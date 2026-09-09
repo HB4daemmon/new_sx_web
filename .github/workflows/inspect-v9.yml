@@ -1,0 +1,38 @@
+name: Inspect Gameplay V9 Baseline
+
+on:
+  push:
+    paths:
+      - '.github/workflows/inspect-v9.yml'
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Restore source and inspect V9 targets
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/fengshen-v9-inspect
+          mkdir -p /tmp/fengshen-v9-inspect
+          : > /tmp/fengshen-source.tar.xz
+          for part in bootstrap/source.part.*.b64; do base64 -d "$part" >> /tmp/fengshen-source.tar.xz; done
+          xz -t /tmp/fengshen-source.tar.xz
+          tar -xJf /tmp/fengshen-source.tar.xz -C /tmp/fengshen-v9-inspect
+          cd /tmp/fengshen-v9-inspect
+          echo '=== VERSION ==='
+          grep -nE "C\['version'\]|C\['rulesVersion'\]|2\.5\.0" scripts/create-content.py | head -n 40 || true
+          echo '=== TARGET ABILITIES ==='
+          grep -nE "art\.(jade|coin|sword|feather)|aux\.wind|rage\.guard|strategy\.guard|art\.bracer|art\.mirror" scripts/create-content.py || true
+          echo '=== MECHANIC ROLE GROUPS ==='
+          grep -n -A 80 -B 5 "MECHANIC_GROUPS" scripts/create-content.py || true
+          echo '=== RESOURCE DAMAGE IMPLEMENTATION ==='
+          grep -n -A 35 -B 8 "resource_damage" src/engine.ts || true
+          echo '=== ABILITY CARD MECHANIC UI ==='
+          grep -n -A 12 -B 8 "mechanicRole" src/app.ts | head -n 200 || true
+          echo '=== SIMULATION POLICY ==='
+          cat tests/policy.mjs
+          echo '=== V8 TEST TAIL ==='
+          tail -n 90 tests/engine.test.mjs
