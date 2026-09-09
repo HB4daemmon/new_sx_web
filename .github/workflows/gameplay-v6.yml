@@ -50,6 +50,10 @@ jobs:
           new_roles=" else if(a.slot==='basic'||triggerOns.has('battle_start')){role='starter';reason='负责稳定起手和基础循环，让构筑每场战斗都能可靠启动。';}\n else if(b.bridge.tier<2&&weakMatch&&(weakSchool!==b.core||!coreMatch)){role='bridge';reason=`补强 ${weakSchool==='rage'?'怒潮':weakSchool==='burn'?'焚劫':weakSchool==='guard'?'玄甲':'破阵'} 一侧，推进「${b.bridge.name}」。`; }"
           if old_roles not in t: raise SystemExit('v6 role order marker missing')
           t=t.replace(old_roles,new_roles,1)
+          old_candidate="candidate=c.abilities.find(a=>a.slot!=='strategy'&&a.rarity!=='mythic'&&a.tags.some(t=>tags.includes(t)));assert(candidate);assert.equal(abilityRole(c,g.s,candidate).role,'bridge');"
+          new_candidate="candidate=c.abilities.find(a=>abilityRole(c,g.s,a).role==='bridge');assert(candidate);assert.equal(abilityRole(c,g.s,candidate).role,'bridge');"
+          if old_candidate not in t: raise SystemExit('v6 role test candidate marker missing')
+          t=t.replace(old_candidate,new_candidate,1)
           p.write_text(t,encoding='utf-8')
           PY
           python tools/build-v6.py /tmp/fengshen-v6
