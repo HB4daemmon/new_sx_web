@@ -55,7 +55,7 @@ marker="test('v7 origin battle perks are JSON configured and deterministic'"
 if marker in tests: raise RuntimeError('origin perk test already present')
 tests += r'''
 
-test('v7 origin battle perks are JSON configured and deterministic',()=>{const w=c.origins.find(o=>o.id==='wanderer'),a=c.origins.find(o=>o.id==='alchemist');assert.equal(w.battleStartEffects[0].type,'gain_rage');assert.equal(w.battleStartEffects[0].value,15);assert.equal(a.battleStartEffects[0].type,'gain_shield');assert.equal(a.battleStartEffects[0].value,8);const g1=fresh('V7-ORIGIN-PERK'),g2=fresh('V7-ORIGIN-PERK'),b1=simulateBattle(c,g1.s,structuredClone(c.enemies[0])),b2=simulateBattle(c,g2.s,structuredClone(c.enemies[0])),f=b1.frames.find(x=>x.sourceId==='origin.wanderer');assert.deepEqual(b1,b2);assert(f);assert(f.player.rage>=15);});
+test('v7 origin battle perks are JSON configured and deterministic',()=>{const w=c.origins.find(o=>o.id==='wanderer'),a=c.origins.find(o=>o.id==='alchemist');assert.equal(w.battleStartEffects[0].type,'gain_rage');assert.equal(w.battleStartEffects[0].value,15);assert.equal(a.battleStartEffects[0].type,'gain_shield');assert.equal(a.battleStartEffects[0].value,8);const g1=fresh('V7-ORIGIN-PERK'),g2=fresh('V7-ORIGIN-PERK'),b1=simulateBattle(c,g1.s,structuredClone(c.enemies[0])),b2=simulateBattle(c,g2.s,structuredClone(c.enemies[0])),f=b1.frames.find(x=>x.sourceId==='origin.wanderer');assert.deepEqual(b1,b2);assert(f);assert(f.p.rage>=15);});
 '''
 test_path.write_text(tests,encoding='utf-8')
 
