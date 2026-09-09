@@ -1,4 +1,4 @@
-name: Inspect UI source
+name: Inspect gameplay source
 
 on:
   push:
@@ -20,17 +20,21 @@ jobs:
           : > /tmp/fengshen-source.tar.xz
           for part in bootstrap/source.part.*.b64; do base64 -d "$part" >> /tmp/fengshen-source.tar.xz; done
           tar -xJf /tmp/fengshen-source.tar.xz
-      - name: Inspect application hooks
+      - name: Inspect gameplay engine
         shell: bash
         run: |
-          echo '=== app.ts matches ==='
-          grep -nE '单人|离线|战报|battle|replay|slot|rarity|稀有|属性|生命|境界|气运|金币|render' src/app.ts | head -n 180 || true
-          echo '=== app.ts selected blocks ==='
-          for p in '斗法战报' 'battle-log' 'slot' 'rarity' 'header' 'status'; do
-            n=$(grep -n -m1 "$p" src/app.ts | cut -d: -f1 || true)
-            if [ -n "$n" ]; then a=$((n>35?n-35:1)); b=$((n+80)); echo "--- $p @ $n ---"; sed -n "${a},${b}p" src/app.ts; fi
+          echo '=== FILES ==='
+          find . -maxdepth 3 -type f | sort | grep -v node_modules | head -n 260
+          for f in src/types.ts src/engine.ts src/game.ts src/content.ts src/app.ts; do
+            if [ -f "$f" ]; then
+              echo "=== $f ==="
+              sed -n '1,520p' "$f"
+            fi
           done
-          echo '=== style.css matches ==='
-          grep -nE 'battle|log|slot|rarity|rare|epic|legend|header|stat|status|hud|metric' src/style.css | head -n 220 || true
-          echo '=== engine log/replay matches ==='
-          grep -nE 'log|replay|Battle|damage|shield|rage|heal|crit' src/engine.ts | head -n 220 || true
+          echo '=== CONTENT FILES ==='
+          find content public -maxdepth 3 -type f 2>/dev/null | sort | head -n 200 || true
+          for f in content/*.json public/*.json; do
+            [ -f "$f" ] || continue
+            echo "=== $f ==="
+            sed -n '1,420p' "$f"
+          done
