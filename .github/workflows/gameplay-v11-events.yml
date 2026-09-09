@@ -31,6 +31,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tools/v11-events.py')
+          t=p.read_text(encoding='utf-8')
+          t=t.replace('insert_marker="  enter(', 'insert_marker=" enter(')
+          t=t.replace('old_choices="  eventChoices()', 'old_choices=" eventChoices()')
+          t=t.replace('r"  event\\(\\)\\{.*?\\n  shop\\(\\)\\{"', 'r" event\\(\\)\\{.*?\\n shop\\(\\)\\{"')
+          p.write_text(t,encoding='utf-8')
+          PY
           python tools/v11-events.py /tmp/fengshen-v11-events
           cd /tmp/fengshen-v11-events
           python scripts/create-content.py
