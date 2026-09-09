@@ -1,0 +1,32 @@
+name: Inspect Gameplay V8 Baseline
+
+on:
+  push:
+    paths:
+      - '.github/workflows/inspect-v8.yml'
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Restore source and inspect ability baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/fengshen-v8-inspect
+          mkdir -p /tmp/fengshen-v8-inspect
+          : > /tmp/fengshen-source.tar.xz
+          for part in bootstrap/source.part.*.b64; do base64 -d "$part" >> /tmp/fengshen-source.tar.xz; done
+          xz -t /tmp/fengshen-source.tar.xz
+          tar -xJf /tmp/fengshen-source.tar.xz -C /tmp/fengshen-v8-inspect
+          cd /tmp/fengshen-v8-inspect
+          echo '=== VERSION ==='
+          grep -nE "contentVersion|rulesVersion|2\.4\.0" scripts/create-content.py src/engine.ts | head -n 40 || true
+          echo '=== ABILITY DEFINITIONS ==='
+          grep -n "^ability(" scripts/create-content.py || true
+          echo '=== EFFECT/CONDITION TYPES ==='
+          grep -nE "type Effect|interface Effect|EffectType|type Condition|interface Condition|consume_status|consume_shield" src/engine.ts | head -n 120 || true
+          echo '=== BUILD/ROLE LOGIC ==='
+          grep -nE "build\(|role\(|resonance|core|bridge|finisher" src/engine.ts | head -n 160 || true
