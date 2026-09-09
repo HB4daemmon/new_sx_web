@@ -1,0 +1,45 @@
+name: Immersion audit workspace
+on:
+  push:
+    branches: [review/immersion-v13]
+    paths: [.github/workflows/review-immersion.yml]
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Export historical and current source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess, tarfile, io, base64
+          out=Path('/tmp/immersion-audit')
+          out.mkdir()
+          versions={'v2':'b414395b18904a60ca04286555433133a5b07951','v4':'cc4be32efbd7fbd1a1036547db470f47641f32f1','v6':'2b5808afa1989db043c7f22b1a4d19b4c2c9e752','v10':'79d3b26f89fbf42891b926cd20a154b78366d8da','v11':'ed39b33e3dc2942183cb9ea7769962687583c5c8','current':'41682ccc4305150d69a6264785247200cb8346ce'}
+          for name,sha in versions.items():
+              root=out/name
+              root.mkdir()
+              with tarfile.open(fileobj=io.BytesIO(subprocess.check_output(['git','archive',sha]))) as t:
+                  t.extractall(root,filter='data')
+              parts=sorted((root/'bootstrap').glob('source.part.*.b64'))
+              if parts:
+                  data=b''.join(base64.b64decode(p.read_bytes()) for p in parts)
+                  with tarfile.open(fileobj=io.BytesIO(data),mode='r:xz') as t:
+                      t.extractall(root,filter='data')
+          (out/'history.txt').write_text(subprocess.check_output(['git','log','--format=%h %s','--reverse']).decode())
+          PY
+          cd /tmp/immersion-audit/current
+          npm install --no-audit --no-fund
+          npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: immersion-audit-source
+          path: /tmp/immersion-audit
+          include-hidden-files: true
+          retention-days: 7
