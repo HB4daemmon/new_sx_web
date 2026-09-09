@@ -38,6 +38,7 @@ jobs:
           sed -i "s/start_marker = f'  {name}('/start_marker = f' {name}('/; s/next_marker = f'  {next_name}('/next_marker = f' {next_name}('/; s/app.find(\"   else if(this.modal==='settings')body=\")/app.find(\"else if(this.modal==='settings')body=\")/; s/app.find(\"   else if(this.modal==='ability')\"/app.find(\"else if(this.modal==='ability')\"/" tools/build-v4.py
           python tools/build-v4.py /tmp/fengshen-v4
           cd /tmp/fengshen-v4
+          sed -i 's/Array.from({length:12}/Array.from({length:40}/' tests/engine.test.mjs
           python scripts/create-content.py
 
       - name: Install and verify
