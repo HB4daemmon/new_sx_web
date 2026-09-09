@@ -1,0 +1,79 @@
+name: Finalize Gameplay V7
+
+on:
+  push:
+    paths:
+      - 'tools/finalize-v7.py'
+      - '.github/workflows/finalize-v7.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  finalize-v7:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Restore current V7 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/fengshen-v7-final
+          mkdir -p /tmp/fengshen-v7-final
+          : > /tmp/fengshen-source.tar.xz
+          for part in bootstrap/source.part.*.b64; do base64 -d "$part" >> /tmp/fengshen-source.tar.xz; done
+          xz -t /tmp/fengshen-source.tar.xz
+          tar -xJf /tmp/fengshen-source.tar.xz -C /tmp/fengshen-v7-final
+      - name: Apply final origin calibration
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/finalize-v7.py /tmp/fengshen-v7-final
+          cd /tmp/fengshen-v7-final
+          python scripts/create-content.py
+      - name: Install and verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/fengshen-v7-final
+          npm install --no-audit --no-fund
+          npm run build
+          node tests/simulate.mjs
+          node --test tests/engine.test.mjs
+      - name: Verify final V7 markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/fengshen-v7-final
+          grep -q "battleStartEffects" src/engine.ts
+          grep -q "origin.wanderer" src/engine.ts
+          grep -q "starting=\['basic.sword','rage.thunder','aux.qi'\]" scripts/create-content.py
+          grep -q "battleStartEffects=\[rage(15)\]" scripts/create-content.py
+          grep -q "battleStartEffects=\[shield(8)\]" scripts/create-content.py
+          grep -q "Greedy build synergy and HP-aware route" tests/simulate.mjs
+          grep -q "'2.4.0'" scripts/create-content.py
+      - name: Repack final V7 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/fengshen-v7-final/node_modules /tmp/fengshen-v7-final/dist /tmp/fengshen-v7-final/build /tmp/fengshen-v7-final/verification
+          tar -C /tmp/fengshen-v7-final -cJf /tmp/fengshen-source.tar.xz .
+          rm -f bootstrap/source.part.*.b64
+          split -b 16000 -d -a 2 /tmp/fengshen-source.tar.xz /tmp/source.part.
+          for part in /tmp/source.part.*; do base64 -w 76 "$part" > "bootstrap/$(basename "$part").b64"; done
+      - name: Commit final V7 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A bootstrap
+          if git diff --cached --quiet; then
+            echo "No source archive changes"
+            exit 0
+          fi
+          git commit -m "balance: add origin battle talents for gameplay v7"
+          git push origin HEAD:main
