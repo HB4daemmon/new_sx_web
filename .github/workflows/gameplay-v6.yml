@@ -42,7 +42,7 @@ jobs:
           if old in t: t=t.replace(old,new,1)
           t=t.replace("as {eq:Equipped;a:Ability;role:any}[]","as {eq:Equipped;a:any;role:any}[]")
           old_reward="app = replace_method(app, 'rewards', 'event', new_rewards)"
-          new_reward="m=re.search(r'(?m)^  rewards\\(\\)\\{.*\\}$',app)\nif not m: raise RuntimeError('rewards method line not found')\napp=app[:m.start()]+new_rewards.rstrip()+app[m.end():]"
+          new_reward="start=app.find('  rewards(){')\nif start<0: raise RuntimeError('rewards method start not found')\nend=app.find('\\n',start)\nif end<0: raise RuntimeError('rewards method end not found')\napp=app[:start]+new_rewards.rstrip()+app[end:]"
           if old_reward not in t: raise SystemExit('v6 rewards patch marker missing')
           t=t.replace(old_reward,new_reward,1)
           p.write_text(t,encoding='utf-8')
