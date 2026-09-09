@@ -35,7 +35,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sed -i "s/start_marker = f'  {name}('/start_marker = f' {name}('/; s/next_marker = f'  {next_name}('/next_marker = f' {next_name}('/" tools/build-v4.py
+          sed -i "s/start_marker = f'  {name}('/start_marker = f' {name}('/; s/next_marker = f'  {next_name}('/next_marker = f' {next_name}('/; s/app.find(\"   else if(this.modal==='settings')body=\")/app.find(\"else if(this.modal==='settings')body=\")/; s/app.find(\"   else if(this.modal==='ability')\"/app.find(\"else if(this.modal==='ability')\"/" tools/build-v4.py
           python tools/build-v4.py /tmp/fengshen-v4
           cd /tmp/fengshen-v4
           python scripts/create-content.py
