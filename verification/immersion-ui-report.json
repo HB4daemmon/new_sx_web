@@ -1,0 +1,538 @@
+{
+  "mode": "http",
+  "checks": [
+    {
+      "name": "landing has no developer feature billboard",
+      "passed": true
+    },
+    {
+      "name": "map is not a build dashboard",
+      "passed": true
+    },
+    {
+      "name": "empty journal does not reveal future characters",
+      "passed": true
+    },
+    {
+      "name": "normal first fight reaches reward or death",
+      "passed": true
+    },
+    {
+      "name": "rank details are available",
+      "passed": true
+    },
+    {
+      "name": "disclosure remains open after closing details",
+      "passed": true
+    },
+    {
+      "name": "reading cards does not alter run",
+      "passed": true
+    },
+    {
+      "name": "battle has a single player health surface",
+      "passed": true
+    },
+    {
+      "name": "simple log is default",
+      "passed": true
+    },
+    {
+      "name": "long battle is scrollable",
+      "passed": true
+    },
+    {
+      "name": "reading old battle rows survives the next frame",
+      "passed": true
+    },
+    {
+      "name": "follow latest control appears when reading history",
+      "passed": true
+    },
+    {
+      "name": "following latest survives the next frame",
+      "passed": true
+    },
+    {
+      "name": "both sides have independent log identity",
+      "passed": true
+    },
+    {
+      "name": "detailed mode persisted",
+      "passed": true
+    },
+    {
+      "name": "detailed mode exposes formula",
+      "passed": true
+    },
+    {
+      "name": "log mode changes no game state",
+      "passed": true
+    },
+    {
+      "name": "tab focus remains in dialog",
+      "passed": true
+    },
+    {
+      "name": "dialog dismissal restores focus",
+      "passed": true
+    },
+    {
+      "name": "full stat dimensions and sources remain available",
+      "passed": true
+    },
+    {
+      "name": "unaffordable action is visible and disabled",
+      "passed": true
+    },
+    {
+      "name": "unaffordable action states requirement",
+      "passed": true
+    },
+    {
+      "name": "first encounter does not pretend familiarity",
+      "passed": true
+    },
+    {
+      "name": "unearned narrative branch is absent",
+      "passed": true
+    },
+    {
+      "name": "earned relationship unlocks visible branch",
+      "passed": true
+    },
+    {
+      "name": "known character receives returning prose",
+      "passed": true
+    },
+    {
+      "name": "event outcome is narrative rather than repeated preview",
+      "passed": true
+    },
+    {
+      "name": "both check stakes visible",
+      "passed": true
+    },
+    {
+      "name": "replacement warning and actions present",
+      "passed": true
+    },
+    {
+      "name": "cancelling replacement keeps every equipped slot",
+      "passed": true
+    },
+    {
+      "name": "event.0.hermit no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "event.0.deal no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "event.0.ruins no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "event.1.hermit no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "event.1.deal no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "event.1.ruins no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "event.2.hermit no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "event.2.deal no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "event.2.ruins no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "event.3.hermit no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "event.3.deal no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "event.3.ruins no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "major.0 no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "major.1 no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "major.2 no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "major.3 no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "event.0.omen no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "event.0.echo no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "event.1.omen no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "event.1.echo no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "event.2.omen no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "event.2.echo no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "event.3.omen no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "event.3.echo no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "375:map:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "375:battle:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "375:map:build no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "375:returning:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "375:shop:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "375:rest:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "375:reward:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "375:returning:karma no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "375:final:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "375: settings has one visible entry",
+      "passed": true
+    },
+    {
+      "name": "375:settings no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "375: dialog within viewport",
+      "passed": true
+    },
+    {
+      "name": "390:map:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "390:battle:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "390:map:build no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "390:returning:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "390:shop:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "390:rest:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "390:reward:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "390:returning:karma no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "390:final:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "390: settings has one visible entry",
+      "passed": true
+    },
+    {
+      "name": "390:settings no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "390: dialog within viewport",
+      "passed": true
+    },
+    {
+      "name": "414:map:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "414:battle:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "414:map:build no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "414:returning:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "414:shop:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "414:rest:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "414:reward:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "414:returning:karma no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "414:final:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "414: settings has one visible entry",
+      "passed": true
+    },
+    {
+      "name": "414:settings no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "414: dialog within viewport",
+      "passed": true
+    },
+    {
+      "name": "750:map:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "750:battle:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "750:map:build no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "750:returning:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "750:shop:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "750:rest:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "750:reward:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "750:returning:karma no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "750:final:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "750: settings has one visible entry",
+      "passed": true
+    },
+    {
+      "name": "750:settings no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "750: dialog within viewport",
+      "passed": true
+    },
+    {
+      "name": "1024:map:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1024:battle:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1024:map:build no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1024:returning:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1024:shop:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1024:rest:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1024:reward:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1024:returning:karma no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1024:final:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1024: settings has one visible entry",
+      "passed": true
+    },
+    {
+      "name": "1024:settings no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1024: dialog within viewport",
+      "passed": true
+    },
+    {
+      "name": "1440:map:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1440:battle:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1440:map:build no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1440:returning:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1440:shop:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1440:rest:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1440:reward:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1440:returning:karma no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1440:final:journey no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1440: settings has one visible entry",
+      "passed": true
+    },
+    {
+      "name": "1440:settings no horizontal document overflow",
+      "passed": true
+    },
+    {
+      "name": "1440: dialog within viewport",
+      "passed": true
+    },
+    {
+      "name": "2.9.0 save resumes with identical run",
+      "passed": true
+    },
+    {
+      "name": "no JavaScript errors",
+      "passed": true
+    }
+  ],
+  "screens": [
+    "home-desktop",
+    "map-desktop",
+    "battle-desktop",
+    "attributes-desktop",
+    "event-desktop",
+    "battle-journey-390",
+    "map-build-390",
+    "returning-journey-390",
+    "reward-journey-390",
+    "returning-karma-390",
+    "settings-390",
+    "battle-journey-750",
+    "map-build-750",
+    "returning-journey-750",
+    "reward-journey-750",
+    "returning-karma-750"
+  ],
+  "errors": [],
+  "overflow": [],
+  "passed": true
+}
