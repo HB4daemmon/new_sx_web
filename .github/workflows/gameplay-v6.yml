@@ -39,8 +39,13 @@ jobs:
           t=p.read_text(encoding='utf-8')
           old='tests = replace_once(tests, "assert.equal(c.version,\'2.2.0\');assert.equal(c.rulesVersion,\'2.2.0\');", "assert.equal(c.version,\'2.3.0\');assert.equal(c.rulesVersion,\'2.3.0\');", \'v6 version assertion\')'
           new='tests = tests.replace("assert.equal(c.version,\'2.2.0\');assert.equal(c.rulesVersion,\'2.2.0\');", "assert.equal(c.version,\'2.3.0\');assert.equal(c.rulesVersion,\'2.3.0\');")'
-          if old not in t: raise SystemExit('v6 assertion patch marker missing')
-          p.write_text(t.replace(old,new,1),encoding='utf-8')
+          if old in t: t=t.replace(old,new,1)
+          t=t.replace("as {eq:Equipped;a:Ability;role:any}[]","as {eq:Equipped;a:any;role:any}[]")
+          old_reward="app = replace_method(app, 'rewards', 'event', new_rewards)"
+          new_reward="m=re.search(r'(?m)^  rewards\\(\\)\\{.*\\}$',app)\nif not m: raise RuntimeError('rewards method line not found')\napp=app[:m.start()]+new_rewards.rstrip()+app[m.end():]"
+          if old_reward not in t: raise SystemExit('v6 rewards patch marker missing')
+          t=t.replace(old_reward,new_reward,1)
+          p.write_text(t,encoding='utf-8')
           PY
           python tools/build-v6.py /tmp/fengshen-v6
           cd /tmp/fengshen-v6
@@ -64,6 +69,7 @@ jobs:
           grep -q "AbilityBuildRole" src/engine.ts
           grep -q "directed-draft" src/app.ts
           grep -q "build-stage-path" src/app.ts
+          grep -q "battleLogRow" src/app.ts
           grep -q "Gameplay v6" src/style.css
           grep -q "'2.3.0'" scripts/create-content.py
           test -f docs/GAMEPLAY_V6.md
