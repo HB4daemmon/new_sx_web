@@ -40,6 +40,8 @@ jobs:
               rel=Path(op['path'])
               assert not rel.is_absolute() and '..' not in rel.parts
               target=root/rel
+              if str(rel)=='README.md' and not target.exists():
+                  target.write_bytes(Path('README.md').read_bytes())
               old=target.read_bytes() if target.exists() else b''
               if op['before'] is None:
                   assert not target.exists(), str(rel)+' already exists'
@@ -53,6 +55,21 @@ jobs:
               target.parent.mkdir(parents=True,exist_ok=True)
               target.write_bytes(result)
               print('VERIFIED',rel,op['after'])
+          p=root/'src/app.ts'
+          text=p.read_text()
+          redundant='<button data-action="settings">${icon(\'gear\',22)}\u8bbe\u7f6e</button>'
+          assert text.count(redundant)==1
+          p.write_text(text.replace(redundant,''))
+          p=root/'tests/immersion-browser.py'
+          text=p.read_text()
+          old='            state("map");page.locator("[data-action=settings]").first.click();no_overflow(f"{w}:settings")'
+          new='            state("map")\n            check(f"{w}: settings has one visible entry",page.locator("[data-action=settings]:visible").count()==1)\n            page.locator("[data-action=settings]").first.click();no_overflow(f"{w}:settings")'
+          assert text.count(old)==1
+          p.write_text(text.replace(old,new))
+          final={'src/app.ts':'ee9c76f892ede9b244dc572fe892c54c85b748481c5ab68e36519d8a9554b996','tests/immersion-browser.py':'0e05970bfb1f24701c1d039ae70e8e24771fec7f13ad7617dfbbfe224a7e014d'}
+          for path,sha in final.items():
+              assert hashlib.sha256((root/path).read_bytes()).hexdigest()==sha
+              next(op for op in changes if op['path']==path)['after']=sha
           (root/'verification').mkdir(exist_ok=True)
           (root/'verification'/'delta-manifest.json').write_text(json.dumps([{k:v for k,v in op.items() if k!='edits'} for op in changes],indent=2))
           PY
