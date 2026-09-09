@@ -1,2 +1,2 @@
 42357e71fba9cc4d777256660bd32d165c13da58
-Gameplay V9: crit/evade typed triggers, four new keystone stat-piece conversions, shield-to-heal jade converter, and origin-only Warrior calibration. 59 invariants and 120-run simulation verified (Wanderer 8, Warrior 14, Alchemist 8 wins / 40).
+Gameplay V9: crit/evade typed triggers, four new keystone stat-piece conversions, shield-to-heal jade converter, and origin-only Warrior calibration. 59 invariants and 120-run simulation verified (Wanderer 8, Warrior 14, Alchemist 8 wins / 40). Temporary V9 migration helpers removed.
