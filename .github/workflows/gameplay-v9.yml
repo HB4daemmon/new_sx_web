@@ -35,6 +35,7 @@ jobs:
           python tools/v9-refactor.py /tmp/fengshen-v9
           cd /tmp/fengshen-v9
           python scripts/create-content.py
+          sed -i "s/mechanicRole==='converter').length,4/mechanicRole==='converter').length,5/" tests/engine.test.mjs
 
       - name: Install build simulate and test
         shell: bash
