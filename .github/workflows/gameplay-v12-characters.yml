@@ -1,0 +1,81 @@
+name: Gameplay V12 Character Arcs
+
+on:
+  push:
+    paths:
+      - 'tools/v12-characters.py'
+      - '.github/workflows/gameplay-v12-characters.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  gameplay-v12-characters:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Restore current game source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/fengshen-v12-characters
+          mkdir -p /tmp/fengshen-v12-characters
+          : > /tmp/fengshen-source.tar.xz
+          for part in bootstrap/source.part.*.b64; do base64 -d "$part" >> /tmp/fengshen-source.tar.xz; done
+          xz -t /tmp/fengshen-source.tar.xz
+          tar -xJf /tmp/fengshen-source.tar.xz -C /tmp/fengshen-v12-characters
+      - name: Apply Gameplay V12 character arcs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/v12-characters.py /tmp/fengshen-v12-characters
+          cd /tmp/fengshen-v12-characters
+          python scripts/create-content.py
+      - name: Install build simulate and test
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/fengshen-v12-characters
+          npm install --no-audit --no-fund
+          npm run build
+          node tests/simulate.mjs
+          node --test tests/engine.test.mjs
+      - name: Verify V12 character markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/fengshen-v12-characters
+          grep -q "character?:string" src/engine.ts
+          grep -q "character-ledger" src/app.ts
+          grep -q "kind==='yangjian'" src/art.ts
+          grep -q "kind==='shengongbao'" src/art.ts
+          grep -q "kind==='zhaogongming'" src/art.ts
+          grep -q "Gameplay V12" docs/GAMEPLAY_V12_CHARACTERS.md
+          grep -q "C\['version'\]='2.9.0'" scripts/create-content.py
+          grep -q "C\['rulesVersion'\]='2.9.0'" scripts/create-content.py
+          grep -q "assert len(A)==43 and len(E)==20 and len(C\['events'\])==24" scripts/create-content.py
+      - name: Repack V12 source baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/fengshen-v12-characters/node_modules /tmp/fengshen-v12-characters/dist /tmp/fengshen-v12-characters/build /tmp/fengshen-v12-characters/verification
+          tar -C /tmp/fengshen-v12-characters -cJf /tmp/fengshen-source.tar.xz .
+          rm -f bootstrap/source.part.*.b64
+          split -b 16000 -d -a 2 /tmp/fengshen-source.tar.xz /tmp/source.part.
+          for part in /tmp/source.part.*; do base64 -w 76 "$part" > "bootstrap/$(basename "$part").b64"; done
+      - name: Commit V12 source baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A bootstrap
+          if git diff --cached --quiet; then
+            echo "No source archive changes"
+            exit 0
+          fi
+          git commit -m "feat: add four recurring character arcs for gameplay v12"
+          git push origin HEAD:main
