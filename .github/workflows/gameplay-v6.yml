@@ -33,6 +33,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tools/build-v6.py')
+          t=p.read_text(encoding='utf-8')
+          old='tests = replace_once(tests, "assert.equal(c.version,\'2.2.0\');assert.equal(c.rulesVersion,\'2.2.0\');", "assert.equal(c.version,\'2.3.0\');assert.equal(c.rulesVersion,\'2.3.0\');", \'v6 version assertion\')'
+          new='tests = tests.replace("assert.equal(c.version,\'2.2.0\');assert.equal(c.rulesVersion,\'2.2.0\');", "assert.equal(c.version,\'2.3.0\');assert.equal(c.rulesVersion,\'2.3.0\');")'
+          if old not in t: raise SystemExit('v6 assertion patch marker missing')
+          p.write_text(t.replace(old,new,1),encoding='utf-8')
+          PY
           python tools/build-v6.py /tmp/fengshen-v6
           cd /tmp/fengshen-v6
           python scripts/create-content.py
