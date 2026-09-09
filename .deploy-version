@@ -1,2 +1,2 @@
-2b5808afa1989db043c7f22b1a4d19b4c2c9e752
-Gameplay V6: contextual ability roles, five-stage build diagnosis, deterministic core/bridge/pivot reward lanes, role-aware cards, and directed draft guidance. 43 invariants and 120-run simulation verified.
+13cf9f4c2b78582fc3b9ca696f93bd8e5bc1c1e0
+Gameplay V7: four deterministic resource engines, typed resource conversion, V6 contextual directed drafts, burn/rage calibration, and JSON-configured origin battle talents. 49 invariants and 120-run simulation verified (Wanderer 5, Warrior 17, Alchemist 8 wins / 40).
