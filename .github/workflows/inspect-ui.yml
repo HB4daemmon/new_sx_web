@@ -1,0 +1,36 @@
+name: Inspect UI source
+
+on:
+  push:
+    paths:
+      - '.github/workflows/inspect-ui.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Restore source
+        shell: bash
+        run: |
+          set -euo pipefail
+          : > /tmp/fengshen-source.tar.xz
+          for part in bootstrap/source.part.*.b64; do base64 -d "$part" >> /tmp/fengshen-source.tar.xz; done
+          tar -xJf /tmp/fengshen-source.tar.xz
+      - name: Inspect application hooks
+        shell: bash
+        run: |
+          echo '=== app.ts matches ==='
+          grep -nE '单人|离线|战报|battle|replay|slot|rarity|稀有|属性|生命|境界|气运|金币|render' src/app.ts | head -n 180 || true
+          echo '=== app.ts selected blocks ==='
+          for p in '斗法战报' 'battle-log' 'slot' 'rarity' 'header' 'status'; do
+            n=$(grep -n -m1 "$p" src/app.ts | cut -d: -f1 || true)
+            if [ -n "$n" ]; then a=$((n>35?n-35:1)); b=$((n+80)); echo "--- $p @ $n ---"; sed -n "${a},${b}p" src/app.ts; fi
+          done
+          echo '=== style.css matches ==='
+          grep -nE 'battle|log|slot|rarity|rare|epic|legend|header|stat|status|hud|metric' src/style.css | head -n 220 || true
+          echo '=== engine log/replay matches ==='
+          grep -nE 'log|replay|Battle|damage|shield|rage|heal|crit' src/engine.ts | head -n 220 || true
