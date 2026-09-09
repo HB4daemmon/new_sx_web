@@ -1,0 +1,36 @@
+name: Inspect Gameplay V7 Inputs
+
+on:
+  push:
+    paths:
+      - '.github/workflows/inspect-v7.yml'
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Restore source and inspect V7 hooks
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/fengshen-v7-inspect
+          mkdir -p /tmp/fengshen-v7-inspect
+          : > /tmp/fengshen-source.tar.xz
+          for part in bootstrap/source.part.*.b64; do base64 -d "$part" >> /tmp/fengshen-source.tar.xz; done
+          xz -t /tmp/fengshen-source.tar.xz
+          tar -xJf /tmp/fengshen-source.tar.xz -C /tmp/fengshen-v7-inspect
+          cd /tmp/fengshen-v7-inspect
+          echo '=== ENGINE SYMBOLS ==='
+          grep -nE "EFFECT_TYPES|BuildProfile|AbilityBuildRole|abilityRole|buildProfile|simulateBattle|function apply|function trigger|build\(\)|rollAbilities" src/engine.ts || true
+          echo '=== ENGINE 1-280 ==='
+          sed -n '1,280p' src/engine.ts
+          echo '=== CONTENT ABILITIES 1-100 ==='
+          sed -n '1,100p' scripts/create-content.py
+          echo '=== APP BUILD/REWARD SYMBOLS ==='
+          grep -nE "buildResonances|buildPanel|card\(|rewards\(\)|fighterFrame|battleLogRow|directed-draft|role-chip" src/app.ts || true
+          echo '=== APP 55-125 ==='
+          sed -n '55,125p' src/app.ts
+          echo '=== TESTS TAIL ==='
+          tail -n 70 tests/engine.test.mjs
