@@ -1,2 +1,2 @@
-69b9c1751f00eda1922ca46892c60049cf338f14
-Gameplay V5: core-school selection, deterministic dual-school bridges, eight-slot finishers, bridge-aware reward guidance, updated build UI, and V5 balance adjustments. 39 invariants and 120-run simulation verified.
+2b5808afa1989db043c7f22b1a4d19b4c2c9e752
+Gameplay V6: contextual ability roles, five-stage build diagnosis, deterministic core/bridge/pivot reward lanes, role-aware cards, and directed draft guidance. 43 invariants and 120-run simulation verified.
