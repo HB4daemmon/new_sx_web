@@ -1,2 +1,2 @@
-84563122301cbf1f4ff7bd1e3feac494afed331b
-Gameplay V3: ssxx2-derived combat objectives, AI/cooldowns, boss phases, event phase DAG/checks, hidden nodes, causal echoes. Archive repack verified.
+cc4be32efbd7fbd1a1036547db470f47641f32f1
+Gameplay V4: distinct player/enemy logs, simple-by-default combat report with detailed toggle, two-tier build resonances, strategy alignment, and build-aware reward weighting. 35 invariants and 120-run simulation verified.
