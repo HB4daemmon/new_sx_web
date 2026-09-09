@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Restore source and inspect V7 policy
+      - name: Restore source and inspect origin hooks
         shell: bash
         run: |
           set -euo pipefail
@@ -22,9 +22,11 @@ jobs:
           xz -t /tmp/fengshen-source.tar.xz
           tar -xJf /tmp/fengshen-source.tar.xz -C /tmp/fengshen-v7-inspect
           cd /tmp/fengshen-v7-inspect
-          echo '=== POLICY ==='
-          cat tests/policy.mjs
-          echo '=== SIMULATOR ==='
-          cat tests/simulate.mjs
-          echo '=== V7 ABILITY LINES ==='
-          grep -nE "basic.sword|rage.thunder|aux.qi|aux.ash|art.flag|strategy.rage|strategy.guard|strategy.fire|strategy.mountain|strategy.hunt" scripts/create-content.py
+          echo '=== ORIGIN TYPE ==='
+          grep -nE "interface Origin|export interface Origin|origins:" src/engine.ts | head -n 20 || true
+          echo '=== BATTLE START ==='
+          grep -n -C 4 "battle_start" src/engine.ts | head -n 120 || true
+          echo '=== CURRENT ORIGINS ==='
+          grep -n "^origins=" scripts/create-content.py
+          echo '=== CURRENT POLICY ==='
+          head -n 20 tests/policy.mjs
