@@ -1,0 +1,61 @@
+name: Hotfix survive objective
+on:
+  push:
+    paths:
+      - 'tools/hotfix-survive-objective.py'
+      - '.github/workflows/hotfix-survive-objective.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  hotfix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Restore source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/fengshen-hotfix && mkdir -p /tmp/fengshen-hotfix
+          : > /tmp/fengshen-source.tar.xz
+          for part in bootstrap/source.part.*.b64; do base64 -d "$part" >> /tmp/fengshen-source.tar.xz; done
+          xz -t /tmp/fengshen-source.tar.xz
+          tar -xJf /tmp/fengshen-source.tar.xz -C /tmp/fengshen-hotfix
+      - name: Apply hotfix
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/hotfix-survive-objective.py /tmp/fengshen-hotfix
+          cd /tmp/fengshen-hotfix
+          python scripts/create-content.py
+      - name: Verify rules and build
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/fengshen-hotfix
+          npm install --no-audit --no-fund
+          npm test
+          npm run simulate
+          npm run build
+          grep -q "e.hp<=0||round>=(objective.rounds??1)" src/engine.ts
+          grep -q "历 '+b.rounds+' 回合" src/app.ts
+      - name: Repack verified source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/fengshen-hotfix/node_modules /tmp/fengshen-hotfix/dist /tmp/fengshen-hotfix/build /tmp/fengshen-hotfix/verification
+          tar -C /tmp/fengshen-hotfix -cJf /tmp/fengshen-source.tar.xz .
+          rm -f bootstrap/source.part.*.b64
+          split -b 16000 -d -a 2 /tmp/fengshen-source.tar.xz /tmp/source.part.
+          for part in /tmp/source.part.*; do base64 -w 76 "$part" > "bootstrap/$(basename "$part").b64"; done
+      - name: Commit verified source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A bootstrap
+          git commit -m 'fix: count early enemy defeat as survive victory'
+          git push origin HEAD:main
