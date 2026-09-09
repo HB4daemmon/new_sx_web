@@ -1,0 +1,89 @@
+name: Apply Gameplay V5
+
+on:
+  push:
+    paths:
+      - 'tools/build-v5.py'
+      - '.github/workflows/gameplay-v5.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  gameplay-v5:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Restore complete source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/fengshen-v5
+          mkdir -p /tmp/fengshen-v5
+          : > /tmp/fengshen-source.tar.xz
+          for part in bootstrap/source.part.*.b64; do
+            base64 -d "$part" >> /tmp/fengshen-source.tar.xz
+          done
+          xz -t /tmp/fengshen-source.tar.xz
+          tar -xJf /tmp/fengshen-source.tar.xz -C /tmp/fengshen-v5
+
+      - name: Apply build-depth v5
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/build-v5.py /tmp/fengshen-v5
+          cd /tmp/fengshen-v5
+          python scripts/create-content.py
+
+      - name: Install and verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/fengshen-v5
+          npm install --no-audit --no-fund
+          npm run build
+          node tests/simulate.mjs
+          node --test tests/engine.test.mjs
+
+      - name: Verify v5 markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/fengshen-v5
+          grep -q "export interface BuildBridge" src/engine.ts
+          grep -q "九转雷劫" src/engine.ts
+          grep -q "雷火轮转" src/engine.ts
+          grep -q "build-core-strip" src/app.ts
+          grep -q "Gameplay v5" src/style.css
+          grep -q "'2.2.0'" scripts/create-content.py
+          test -f docs/GAMEPLAY_V5.md
+
+      - name: Repack complete source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/fengshen-v5/node_modules /tmp/fengshen-v5/dist /tmp/fengshen-v5/build /tmp/fengshen-v5/verification
+          tar -C /tmp/fengshen-v5 -cJf /tmp/fengshen-source.tar.xz .
+          rm -f bootstrap/source.part.*.b64
+          split -b 16000 -d -a 2 /tmp/fengshen-source.tar.xz /tmp/source.part.
+          for part in /tmp/source.part.*; do
+            base64 -w 76 "$part" > "bootstrap/$(basename "$part").b64"
+          done
+
+      - name: Commit gameplay source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A bootstrap
+          if git diff --cached --quiet; then
+            echo "No source archive changes"
+            exit 0
+          fi
+          git commit -m "feat: deepen build with bridges and finishers"
+          git push origin HEAD:main
