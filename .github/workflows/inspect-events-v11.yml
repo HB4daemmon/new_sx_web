@@ -22,13 +22,9 @@ jobs:
           xz -t /tmp/fengshen-source.tar.xz
           tar -xJf /tmp/fengshen-source.tar.xz -C /tmp/fengshen-v11-inspect
           cd /tmp/fengshen-v11-inspect
-          echo '=== AUTHORED EVENTS 95-150 ==='
-          sed -n '95,150p' scripts/create-content.py
-          echo '=== EVENT TYPES ==='
-          sed -n '1,45p' src/engine.ts
-          echo '=== EVENT ENTRY ==='
-          grep -n -A 70 -B 20 "case 'event'" src/engine.ts | head -n 150 || true
-          echo '=== EVENT ADVANCE / NODE ENTRY ==='
-          grep -n -A 100 -B 20 "enter(id:string)" src/engine.ts | head -n 180 || true
-          echo '=== EVENT METHODS ==='
-          grep -n -A 45 -B 5 "eventPhase()" src/engine.ts
+          echo '=== EXTENDED EVENTS 135-220 ==='
+          sed -n '135,220p' scripts/create-content.py
+          echo '=== WORLD CONDITIONS ==='
+          sed -n '125,138p' src/engine.ts
+          echo '=== EVENT CSS ==='
+          grep -n -E "event-page|story-choice|event-phase|check-badge|event-outcome|timeline" src/style.css | head -n 120 || true
