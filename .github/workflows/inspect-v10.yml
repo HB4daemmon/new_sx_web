@@ -1,0 +1,42 @@
+name: Inspect Gameplay V10 Targets
+
+on:
+  push:
+    paths:
+      - '.github/workflows/inspect-v10.yml'
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Restore source and inspect V10 targets
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/fengshen-v10-inspect
+          mkdir -p /tmp/fengshen-v10-inspect
+          : > /tmp/fengshen-source.tar.xz
+          for part in bootstrap/source.part.*.b64; do base64 -d "$part" >> /tmp/fengshen-source.tar.xz; done
+          xz -t /tmp/fengshen-source.tar.xz
+          tar -xJf /tmp/fengshen-source.tar.xz -C /tmp/fengshen-v10-inspect
+          cd /tmp/fengshen-v10-inspect
+          echo '=== VERSION ==='
+          grep -nE "C\['version'\]|C\['rulesVersion'\]" scripts/create-content.py | tail -n 10 || true
+          echo '=== MYTHIC ABILITIES ==='
+          grep -nE "ability\('myth\.(ring|seal|orbs)'" scripts/create-content.py || true
+          echo '=== FATES ==='
+          grep -n "fates=" scripts/create-content.py || true
+          echo '=== MAJOR EVENT GRANTS ==='
+          grep -nE "grant=\{'id':'myth\.(ring|seal|orbs)'\}" scripts/create-content.py || true
+          echo '=== BUILD PROFILE TYPES ==='
+          grep -n -A 45 -B 10 "interface Build" src/engine.ts | head -n 160 || true
+          echo '=== BUILD PROFILE IMPLEMENTATION ==='
+          grep -n -A 95 -B 8 "export function buildProfile" src/engine.ts | head -n 220 || true
+          echo '=== ROLE LOGIC ==='
+          grep -n -A 80 -B 8 "export function abilityRole" src/engine.ts | head -n 190 || true
+          echo '=== CONTENT FATE VALIDATION ==='
+          grep -n -A 20 -B 5 "for(const f of c.fates" src/engine.ts || true
+          echo '=== CARD UI ==='
+          grep -n -A 8 -B 3 "keystone-note" src/app.ts || true
