@@ -22,14 +22,11 @@ jobs:
           xz -t /tmp/fengshen-source.tar.xz
           tar -xJf /tmp/fengshen-source.tar.xz -C /tmp/fengshen-v12-inspect
           cd /tmp/fengshen-v12-inspect
-          echo '=== EVENT GENERATOR V11 TAIL ==='
-          grep -n "Gameplay V11" scripts/create-content.py || true
-          sed -n '135,310p' scripts/create-content.py
-          echo '=== EVENT ENGINE ==='
-          grep -n -E "interface Story|resolveStory|conditionLabel|chooseEvent|advance_thread|set_fact|add_counter|eventChoices" src/engine.ts | head -n 160
-          echo '=== LABELS AND EXISTING CHARACTER NAMES ==='
-          grep -n -E "threads|facts|申公豹|哪吒|杨戬|赵公明|太乙|闻仲" scripts/create-content.py | head -n 220 || true
-          echo '=== PORTRAIT KEYS ==='
-          grep -n -E "portrait|case '|nezha|yang|shen|zhao|taishi|hermit|jiang" src/art.ts | head -n 220 || true
-          echo '=== TEST TAIL ==='
-          tail -n 45 tests/engine.test.mjs
+          echo '=== BASE EVENTS ==='
+          sed -n '105,165p' scripts/create-content.py
+          echo '=== ART PORTRAIT FUNCTION ==='
+          sed -n '48,74p' src/art.ts
+          echo '=== APP EVENT / JOURNAL SURFACES ==='
+          grep -n -E "event\(\)|karma-grid|thread-grid|timeline|因果|storyLog|final-echoes" src/app.ts | head -n 180
+          echo '=== EVENT STYLE V11 ==='
+          tail -n 38 src/style.css
