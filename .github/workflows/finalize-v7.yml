@@ -49,7 +49,7 @@ jobs:
           set -euo pipefail
           cd /tmp/fengshen-v7-final
           grep -q "battleStartEffects" src/engine.ts
-          grep -q "origin.wanderer" src/engine.ts
+          grep -q 'sourceId:`origin.${origin.id}`' src/engine.ts
           grep -q "starting=\['basic.sword','rage.thunder','aux.qi'\]" scripts/create-content.py
           grep -q "battleStartEffects=\[rage(15)\]" scripts/create-content.py
           grep -q "battleStartEffects=\[shield(8)\]" scripts/create-content.py
