@@ -45,6 +45,7 @@ jobs:
           new_reward="app = replace_method(app, 'rewards', 'fighterFrame', new_rewards)"
           if old_reward not in t: raise SystemExit('v6 rewards patch marker missing')
           t=t.replace(old_reward,new_reward,1)
+          t=t.replace("const basic=c.abilities.find(a=>a.slot==='basic')!,strategy=c.abilities.find(a=>a.slot==='strategy')!;","const basic=c.abilities.find(a=>a.slot==='basic'),strategy=c.abilities.find(a=>a.slot==='strategy');")
           p.write_text(t,encoding='utf-8')
           PY
           python tools/build-v6.py /tmp/fengshen-v6
