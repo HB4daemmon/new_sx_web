@@ -43,6 +43,21 @@ jobs:
           python tools/v11-events.py /tmp/fengshen-v11-events
           cd /tmp/fengshen-v11-events
           python scripts/create-content.py
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('tests/engine.test.mjs')
+          t=p.read_text(encoding='utf-8')
+          t=t.replace("'2.7.0'","'2.8.0'")
+          pat=re.compile(r"(?m)^test\('event checks are deterministic under the same seed and action sequence'.*$")
+          ms=list(pat.finditer(t))
+          if len(ms)!=1:
+              raise RuntimeError(f'deterministic event test matches: {len(ms)}')
+          repl="test('event checks are deterministic under the same seed and action sequence',()=>{const play=()=>{const g=fresh('CHECK-DETERMINISTIC'),ev=c.events.find(e=>e.id==='event.0.omen');g.s.phase='event';g.s.eventId=ev.id;g.s.eventPhase=ev.startPhase;g.s.seenEvents[ev.id]=1;g.chooseEvent('enter');const picked=g.eventChoices().find(x=>x.choice.check);assert(picked);g.chooseEvent(picked.choice.id);return {check:g.s.lastCheck,result:g.s.resultText,rng:clone(g.s.rng)};};assert.deepEqual(play(),play());});"
+          m=ms[0]
+          t=t[:m.start()]+repl+t[m.end():]
+          p.write_text(t,encoding='utf-8')
+          PY
       - name: Install build simulate and test
         shell: bash
         run: |
