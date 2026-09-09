@@ -1,0 +1,82 @@
+name: Gameplay V10 Destiny Pivots
+
+on:
+  push:
+    paths:
+      - '.github/workflows/gameplay-v10.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  gameplay-v10:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Restore current game source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/fengshen-v10
+          mkdir -p /tmp/fengshen-v10
+          : > /tmp/fengshen-source.tar.xz
+          for part in bootstrap/source.part.*.b64; do base64 -d "$part" >> /tmp/fengshen-source.tar.xz; done
+          xz -t /tmp/fengshen-source.tar.xz
+          tar -xJf /tmp/fengshen-source.tar.xz -C /tmp/fengshen-v10
+
+      - name: Apply Gameplay V10 destiny pivot pass
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/v10-refactor.py /tmp/fengshen-v10
+          cd /tmp/fengshen-v10
+          python scripts/create-content.py
+
+      - name: Install build simulate and test
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/fengshen-v10
+          npm install --no-audit --no-fund
+          npm run build
+          node tests/simulate.mjs
+          node --test tests/engine.test.mjs
+
+      - name: Verify V10 authored markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/fengshen-v10
+          grep -q "resonanceBias" scripts/create-content.py
+          grep -q "命格引路" src/engine.ts
+          grep -q "神话转轴" src/app.ts
+          grep -q "Gameplay V10" docs/GAMEPLAY_V10.md
+          grep -q "'2.7.0'" scripts/create-content.py
+
+      - name: Repack V10 source baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/fengshen-v10/node_modules /tmp/fengshen-v10/dist /tmp/fengshen-v10/build /tmp/fengshen-v10/verification
+          tar -C /tmp/fengshen-v10 -cJf /tmp/fengshen-source.tar.xz .
+          rm -f bootstrap/source.part.*.b64
+          split -b 16000 -d -a 2 /tmp/fengshen-source.tar.xz /tmp/source.part.
+          for part in /tmp/source.part.*; do base64 -w 76 "$part" > "bootstrap/$(basename "$part").b64"; done
+
+      - name: Commit V10 source baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A bootstrap
+          if git diff --cached --quiet; then
+            echo "No source archive changes"
+            exit 0
+          fi
+          git commit -m "feat: connect fates and mythic rewards to gameplay v10 pivots"
+          git push origin HEAD:main
