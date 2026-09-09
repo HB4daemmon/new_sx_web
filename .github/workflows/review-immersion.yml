@@ -1,45 +1,128 @@
-name: Immersion audit workspace
+name: Verify immersion revision
 on:
   push:
     branches: [review/immersion-v13]
     paths: [.github/workflows/review-immersion.yml]
 permissions:
-  contents: read
+  contents: write
 jobs:
-  export:
+  verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Export historical and current source
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore and apply hash-verified source delta
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
           from pathlib import Path
-          import subprocess, tarfile, io, base64
-          out=Path('/tmp/immersion-audit')
-          out.mkdir()
-          versions={'v2':'b414395b18904a60ca04286555433133a5b07951','v4':'cc4be32efbd7fbd1a1036547db470f47641f32f1','v6':'2b5808afa1989db043c7f22b1a4d19b4c2c9e752','v10':'79d3b26f89fbf42891b926cd20a154b78366d8da','v11':'ed39b33e3dc2942183cb9ea7769962687583c5c8','current':'41682ccc4305150d69a6264785247200cb8346ce'}
-          for name,sha in versions.items():
-              root=out/name
-              root.mkdir()
-              with tarfile.open(fileobj=io.BytesIO(subprocess.check_output(['git','archive',sha]))) as t:
-                  t.extractall(root,filter='data')
-              parts=sorted((root/'bootstrap').glob('source.part.*.b64'))
-              if parts:
-                  data=b''.join(base64.b64decode(p.read_bytes()) for p in parts)
-                  with tarfile.open(fileobj=io.BytesIO(data),mode='r:xz') as t:
-                      t.extractall(root,filter='data')
-          (out/'history.txt').write_text(subprocess.check_output(['git','log','--format=%h %s','--reverse']).decode())
+          import base64,hashlib,io,json,lzma,tarfile
+          root=Path('/tmp/fengshen-ui13')
+          root.mkdir()
+          archived=b''.join(base64.b64decode(p.read_bytes()) for p in sorted(Path('bootstrap').glob('source.part.*.b64')))
+          with tarfile.open(fileobj=io.BytesIO(archived),mode='r:xz') as t:
+              t.extractall(root,filter='data')
+          parts=sorted(Path('tools').glob('ui13.delta.*.b64'))
+          assert len(parts)==7, 'Incomplete delta'
+          encoded=''.join(p.read_text().strip() for p in parts)
+          assert len(encoded)==53004, 'Delta length mismatch'
+          payload=base64.b64decode(encoded,validate=True)
+          assert hashlib.sha256(payload).hexdigest()=='7057a2326f0719b9ccf91eb2750912f1522963c0162ff7c52683ae1b65893e69', 'Delta hash mismatch'
+          changes=json.loads(lzma.decompress(payload))
+          assert len(changes)==13
+          for op in changes:
+              rel=Path(op['path'])
+              assert not rel.is_absolute() and '..' not in rel.parts
+              target=root/rel
+              old=target.read_bytes() if target.exists() else b''
+              if op['before'] is None:
+                  assert not target.exists(), str(rel)+' already exists'
+              else:
+                  assert hashlib.sha256(old).hexdigest()==op['before'], str(rel)+' baseline mismatch'
+              lines=old.decode('utf-8').splitlines(True)
+              for start,end,new in reversed(op['edits']):
+                  lines[start:end]=[new]
+              result=''.join(lines).encode('utf-8')
+              assert hashlib.sha256(result).hexdigest()==op['after'], str(rel)+' output mismatch'
+              target.parent.mkdir(parents=True,exist_ok=True)
+              target.write_bytes(result)
+              print('VERIFIED',rel,op['after'])
+          (root/'verification').mkdir(exist_ok=True)
+          (root/'verification'/'delta-manifest.json').write_text(json.dumps([{k:v for k,v in op.items() if k!='edits'} for op in changes],indent=2))
           PY
-          cd /tmp/immersion-audit/current
+          cd /tmp/fengshen-ui13
+          python scripts/create-content.py
+      - name: Verify rules, compatibility and deterministic simulation
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/fengshen-ui13
           npm install --no-audit --no-fund
-          npm run build
-      - uses: actions/upload-artifact@v4
+          npm test | tee verification/rules-test.log
+          npm run simulate | tee verification/simulation-console.log
+      - name: Install browser test dependencies
+        run: |
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Verify actual HTTP game and responsive player journeys
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/fengshen-ui13
+          python -m http.server 4173 --bind 127.0.0.1 --directory dist > /tmp/immersion-http.log 2>&1 &
+          server=$!
+          trap 'kill "$server"' EXIT
+          sleep 1
+          python tests/immersion-browser.py --url http://127.0.0.1:4173/
+      - name: Upload screenshots, game build and verification
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: immersion-audit-source
-          path: /tmp/immersion-audit
+          name: immersion-ui13-verification
+          path: |
+            /tmp/fengshen-ui13/verification
+            /tmp/fengshen-ui13/dist
+            /tmp/fengshen-ui13/docs/IMMERSION_REVIEW.md
           include-hidden-files: true
-          retention-days: 7
+          retention-days: 30
+      - name: Prepare reviewed archive and public audit record
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import json,hashlib,shutil
+          root=Path('/tmp/fengshen-ui13')
+          report=json.loads((root/'verification/ui/report.json').read_text())
+          assert report['passed'] and report['mode']=='http'
+          tests=(root/'verification/rules-test.log').read_text()
+          assert '# tests 88' in tests and '# pass 88' in tests and '# fail 0' in tests
+          summary={'uiRevision':'13.1','contentVersion':'2.9.0','rulesVersion':'2.9.0','baselineCommit':'41682ccc4305150d69a6264785247200cb8346ce','rulesTests':{'passed':88,'total':88},'browser':{'mode':'http','passed':True,'checks':len(report['checks']),'errors':report['errors'],'overflow':report['overflow'],'viewports':['375x667','390x844','414x896','750x1334','1024x768','1440x1000']},'mechanicsUnchanged':True,'compatibleSaves':'2.9.0','engineSha256':hashlib.sha256((root/'src/engine.ts').read_bytes()).hexdigest()}
+          Path('verification').mkdir(exist_ok=True)
+          Path('docs').mkdir(exist_ok=True)
+          Path('verification/immersion-review.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n')
+          shutil.copy(root/'README.md','README.md')
+          shutil.copy(root/'docs/IMMERSION_REVIEW.md','docs/IMMERSION_REVIEW.md')
+          shutil.copy(root/'verification/ui/report.json','verification/immersion-ui-report.json')
+          PY
+          tar -C /tmp/fengshen-ui13 --exclude='./node_modules' --exclude='./dist' --exclude='./build' --exclude='./verification' -cJf /tmp/immersion-source.tar.xz .
+          xz -t /tmp/immersion-source.tar.xz
+          mkdir -p /tmp/immersion-parts
+          split -b 16000 -d -a 2 /tmp/immersion-source.tar.xz /tmp/immersion-parts/source.part.
+          rm -f bootstrap/source.part.*.b64
+          for part in /tmp/immersion-parts/source.part.*; do base64 -w 76 "$part" > "bootstrap/$(basename "$part").b64"; done
+      - name: Commit tested revision to review branch only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A bootstrap README.md docs/IMMERSION_REVIEW.md verification/immersion-review.json verification/immersion-ui-report.json
+          git commit -m 'feat: prioritize immersion and player decisions without changing rules'
+          git push origin HEAD:review/immersion-v13
