@@ -1,0 +1,29 @@
+name: Inspect Gameplay V6 Hooks
+
+on:
+  push:
+    paths:
+      - '.github/workflows/inspect-v6.yml'
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Restore source and inspect render hooks
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/fengshen-inspect
+          mkdir -p /tmp/fengshen-inspect
+          : > /tmp/fengshen-source.tar.xz
+          for part in bootstrap/source.part.*.b64; do base64 -d "$part" >> /tmp/fengshen-source.tar.xz; done
+          tar -xJf /tmp/fengshen-source.tar.xz -C /tmp/fengshen-inspect
+          cd /tmp/fengshen-inspect
+          echo '=== APP METHODS ==='
+          grep -nE '^  [A-Za-z_][A-Za-z0-9_]*\(' src/app.ts || true
+          echo '=== REWARD / ABILITY HOOKS ==='
+          grep -nE 'reward|ability|offer|choice|modalAbility|card\(' src/app.ts | head -n 160 || true
+          echo '=== ENGINE ROLL HOOKS ==='
+          grep -nE 'rollAbilities|reward|pending|generatedChoices' src/engine.ts | head -n 120 || true
