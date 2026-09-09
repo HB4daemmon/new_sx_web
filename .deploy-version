@@ -1,2 +1,2 @@
-d964848f7c9173eeb339b5e2745c4bee02e31053
-Gameplay V8: 43 authored mechanic roles, deterministic live-resource payoff damage, reworked Burn/Break payoff skills, bridge identities, and contextual V6 drafts. 54 invariants and 120-run simulation verified (Wanderer 8, Warrior 17, Alchemist 6 wins / 40).
+42357e71fba9cc4d777256660bd32d165c13da58
+Gameplay V9: crit/evade typed triggers, four new keystone stat-piece conversions, shield-to-heal jade converter, and origin-only Warrior calibration. 59 invariants and 120-run simulation verified (Wanderer 8, Warrior 14, Alchemist 8 wins / 40).
