@@ -20,21 +20,12 @@ jobs:
           : > /tmp/fengshen-source.tar.xz
           for part in bootstrap/source.part.*.b64; do base64 -d "$part" >> /tmp/fengshen-source.tar.xz; done
           tar -xJf /tmp/fengshen-source.tar.xz
-      - name: Inspect gameplay engine
+      - name: Inspect gameplay content
         shell: bash
         run: |
-          echo '=== FILES ==='
-          find . -maxdepth 3 -type f | sort | grep -v node_modules | head -n 260
-          for f in src/types.ts src/engine.ts src/game.ts src/content.ts src/app.ts; do
+          for f in scripts/create-content.py data/game.json tests/engine.test.mjs tests/simulate.mjs tests/policy.mjs docs/IMPLEMENTATION.md; do
             if [ -f "$f" ]; then
               echo "=== $f ==="
-              sed -n '1,520p' "$f"
+              sed -n '1,760p' "$f"
             fi
-          done
-          echo '=== CONTENT FILES ==='
-          find content public -maxdepth 3 -type f 2>/dev/null | sort | head -n 200 || true
-          for f in content/*.json public/*.json; do
-            [ -f "$f" ] || continue
-            echo "=== $f ==="
-            sed -n '1,420p' "$f"
           done
