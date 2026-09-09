@@ -22,17 +22,13 @@ jobs:
           xz -t /tmp/fengshen-source.tar.xz
           tar -xJf /tmp/fengshen-source.tar.xz -C /tmp/fengshen-v11-inspect
           cd /tmp/fengshen-v11-inspect
-          echo '=== EVENT CONTENT DEFINITIONS ==='
-          grep -nE "^EVENT=|^major=|dict\(id='event\.|dict\(id='major\." scripts/create-content.py | head -n 260 || true
-          echo '=== EVENT HELPERS ==='
-          grep -nE "^def option|^def phase|^def event|^def eff|^def cond" scripts/create-content.py | head -n 120 || true
-          echo '=== EVENT ENGINE METHODS ==='
-          grep -n -A 160 -B 15 "eventPhase()" src/engine.ts | head -n 260 || true
-          echo '=== EVENT CHOICE / LEAVE METHODS ==='
-          grep -n -A 180 -B 10 "eventChoices()" src/engine.ts | head -n 300 || true
-          echo '=== EVENT UI ==='
-          grep -n -A 20 -B 5 "event(){" src/app.ts | head -n 120 || true
-          echo '=== STORY LOG UI ==='
-          grep -n -A 20 -B 5 "storyLog" src/app.ts | head -n 120 || true
-          echo '=== CURRENT EVENT TESTS ==='
-          grep -n -A 6 -B 2 -E "event |event check|hidden limit|major fate|causality" tests/engine.test.mjs | tail -n 220 || true
+          echo '=== AUTHORED EVENTS 95-150 ==='
+          sed -n '95,150p' scripts/create-content.py
+          echo '=== EVENT TYPES ==='
+          sed -n '1,45p' src/engine.ts
+          echo '=== EVENT ENTRY ==='
+          grep -n -A 70 -B 20 "case 'event'" src/engine.ts | head -n 150 || true
+          echo '=== EVENT ADVANCE / NODE ENTRY ==='
+          grep -n -A 100 -B 20 "enter(id:string)" src/engine.ts | head -n 180 || true
+          echo '=== EVENT METHODS ==='
+          grep -n -A 45 -B 5 "eventPhase()" src/engine.ts
