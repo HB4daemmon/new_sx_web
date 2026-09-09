@@ -35,6 +35,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          sed -i "s/profile_end = engine.index('export function simulateBattle', profile_start)/profile_end = engine.index('function fighter', profile_start)/" tools/build-v5.py
           python tools/build-v5.py /tmp/fengshen-v5
           cd /tmp/fengshen-v5
           python scripts/create-content.py
