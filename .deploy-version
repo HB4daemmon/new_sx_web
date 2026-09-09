@@ -1,2 +1,2 @@
-cc4be32efbd7fbd1a1036547db470f47641f32f1
-Gameplay V4: distinct player/enemy logs, simple-by-default combat report with detailed toggle, two-tier build resonances, strategy alignment, and build-aware reward weighting. 35 invariants and 120-run simulation verified.
+69b9c1751f00eda1922ca46892c60049cf338f14
+Gameplay V5: core-school selection, deterministic dual-school bridges, eight-slot finishers, bridge-aware reward guidance, updated build UI, and V5 balance adjustments. 39 invariants and 120-run simulation verified.
