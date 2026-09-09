@@ -1,0 +1,28 @@
+{
+  "uiRevision": "13.1",
+  "contentVersion": "2.9.0",
+  "rulesVersion": "2.9.0",
+  "baselineCommit": "41682ccc4305150d69a6264785247200cb8346ce",
+  "rulesTests": {
+    "passed": 88,
+    "total": 88
+  },
+  "browser": {
+    "mode": "http",
+    "passed": true,
+    "checks": 128,
+    "errors": [],
+    "overflow": [],
+    "viewports": [
+      "375x667",
+      "390x844",
+      "414x896",
+      "750x1334",
+      "1024x768",
+      "1440x1000"
+    ]
+  },
+  "mechanicsUnchanged": true,
+  "compatibleSaves": "2.9.0",
+  "engineSha256": "ecb9d235a7ef91ad2adcf85e32616410ac39ddc1508cfe1f072d142aa5702a05"
+}
