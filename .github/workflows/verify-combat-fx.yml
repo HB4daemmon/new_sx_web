@@ -1,0 +1,51 @@
+name: Verify generated combat feedback
+on:
+  push:
+    branches: [feature/generated-art-combat-fx]
+    paths:
+      - 'tools/apply-combat-fx-v141.py'
+      - '.github/workflows/verify-combat-fx.yml'
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply UI 14.1 patch
+        run: python tools/apply-combat-fx-v141.py
+      - name: Rule, build and simulation regression
+        run: |
+          npm ci --no-audit --no-fund
+          npm test
+          npm run simulate
+      - name: Verify compressed assets and dist copy
+        run: |
+          test $(stat -c%s assets/generated/combat-damage.webp) -lt 4096
+          test $(stat -c%s assets/generated/combat-heal.webp) -lt 4096
+          test $(stat -c%s assets/generated/combat-shield.webp) -lt 4096
+          test $(stat -c%s assets/generated/combat-dispel.webp) -lt 4096
+          test -f dist/assets/generated/combat-damage.webp
+          grep -q 'data:image/webp;base64' PLAY.html
+      - name: Browser regression
+        run: |
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium
+          python -m http.server 4173 --bind 127.0.0.1 --directory dist >/tmp/fengshen-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          sleep 1
+          python tests/immersion-browser.py --url http://127.0.0.1:4173/ --output verification/combat-fx
+      - name: Commit verified implementation
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/app.ts src/style.css src/presentation.ts data/presentation.json scripts/build.mjs package.json tests/combat-feedback.test.mjs
+          git commit -m 'feat: show generated combat feedback for damage healing shields and dispels'
+          git push origin HEAD:feature/generated-art-combat-fx
