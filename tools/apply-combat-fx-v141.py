@@ -45,22 +45,20 @@ css += """
 css_path.write_text(css,encoding='utf-8')
 
 build=build_path.read_text(encoding='utf-8')
-build=build.replace("import {readFileSync,writeFileSync,mkdirSync,copyFileSync,cpSync,rmSync} from 'node:fs';","import {readFileSync,writeFileSync,mkdirSync,copyFileSync,cpSync,rmSync,existsSync} from 'node:fs';")
-needle="copyFileSync('data/presentation.json',join(OUT,'data/presentation.json'));"
+needle="await writeFile('dist/app.js',js);await writeFile('dist/style.css',css);await writeFile('dist/index.html',html);await writeFile('dist/data/game.json',data);await writeFile('dist/.nojekyll','');"
+replacement=needle+"\nconst generatedNames=['combat-damage','combat-heal','combat-shield','combat-dispel'];\nawait mkdir('dist/assets/generated',{recursive:true});\nfor(const name of generatedNames)await copyFile(`assets/generated/${name}.webp`,`dist/assets/generated/${name}.webp`);"
 assert build.count(needle)==1
-build=build.replace(needle,needle+"\nif(existsSync('assets'))cpSync('assets',join(OUT,'assets'),{recursive:true});",1)
-needle="const html=`<!doctype html>"
+build=build.replace(needle,replacement,1)
+needle="const offline=html.replace('<link rel=\"stylesheet\" href=\"./style.css\">',`<style>${css}</style>`).replace('<script src=\"./app.js\" defer></script>',`<script>window.__GAME_CONTENT__=${JSON.stringify(JSON.parse(data)).replace(/</g,'\\\\u003c')};</script><script>${js.replace(/<\\/script/gi,'<\\\\/script')}</script>`);"
 assert build.count(needle)==1
-inline="const generatedNames=['combat-damage','combat-heal','combat-shield','combat-dispel'];\nlet offlineScript=script;\nfor(const name of generatedNames){const rel=`assets/generated/${name}.webp`;if(existsSync(rel)){const uri=`data:image/webp;base64,${readFileSync(rel).toString('base64')}`;offlineScript=offlineScript.replaceAll(`./${rel}`,uri);}}\n"
-build=build.replace(needle,inline+needle,1)
-assert "<script>${script}\ncustomElements.define" in build
-build=build.replace("<script>${script}\ncustomElements.define","<script>${offlineScript}\ncustomElements.define",1)
+offline="let offlineJs=js;\nfor(const name of generatedNames){const rel=`assets/generated/${name}.webp`;const uri=`data:image/webp;base64,${(await readFile(rel)).toString('base64')}`;offlineJs=offlineJs.replaceAll(`./${rel}`,uri);}\nconst offline=html.replace('<link rel=\"stylesheet\" href=\"./style.css\">',`<style>${css}</style>`).replace('<script src=\"./app.js\" defer></script>',`<script>window.__GAME_CONTENT__=${JSON.stringify(JSON.parse(data)).replace(/</g,'\\\\u003c')};</script><script>${offlineJs.replace(/<\\/script/gi,'<\\\\/script')}</script>`);"
+build=build.replace(needle,offline,1)
 build_path.write_text(build,encoding='utf-8')
 
 p=presentation_path.read_text(encoding='utf-8')
 assert "export const UI_REVISION='14.0';" in p
 presentation_path.write_text(p.replace("export const UI_REVISION='14.0';","export const UI_REVISION='14.1';",1),encoding='utf-8')
-p= presentation_json.read_text(encoding='utf-8')
+p=presentation_json.read_text(encoding='utf-8')
 assert '"revision": "14.0"' in p
 presentation_json.write_text(p.replace('"revision": "14.0"','"revision": "14.1"',1),encoding='utf-8')
 
@@ -70,5 +68,30 @@ new='node --test tests/engine.test.mjs tests/presentation.test.mjs tests/content
 assert old in package
 package_path.write_text(package.replace(old,new,1),encoding='utf-8')
 
-test_path.write_text("""import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport {readFileSync,statSync} from 'node:fs';\n\ntest('generated combat art stays small and isolated from ability SVGs',()=>{\n const app=readFileSync('src/app.ts','utf8'),css=readFileSync('src/style.css','utf8');\n for(const name of ['combat-damage','combat-heal','combat-shield','combat-dispel']){\n  assert(app.includes(name));\n  assert(statSync(`assets/generated/${name}.webp`).size<4096);\n }\n const card=app.slice(app.indexOf(' card('),app.indexOf(' rewards()'));\n assert(card.includes('sigil(a.art'));\n assert(!card.includes('generatedFx('));\n assert(css.includes('.combat-feedback-layer'));\n});\n\ntest('combat overlay covers hp, shield and debuff consumption without changing rules',()=>{\n const app=readFileSync('src/app.ts','utf8');\n assert(app.includes("kind:'damage'"));\n assert(app.includes("kind:'heal'"));\n assert(app.includes("kind:'shield'"));\n assert(app.includes("kind:'shield-loss'"));\n assert(app.includes("kind:'dispel'"));\n assert.equal(readFileSync('src/engine.ts','utf8').includes('combatFeedback'),false);\n});\n""",encoding='utf-8')
+test_path.write_text("""import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync,statSync} from 'node:fs';
+
+test('generated combat art stays small and isolated from ability SVGs',()=>{
+ const app=readFileSync('src/app.ts','utf8'),css=readFileSync('src/style.css','utf8');
+ for(const name of ['combat-damage','combat-heal','combat-shield','combat-dispel']){
+  assert(app.includes(name));
+  assert(statSync(`assets/generated/${name}.webp`).size<4096);
+ }
+ const card=app.slice(app.indexOf(' card('),app.indexOf(' rewards()'));
+ assert(card.includes('sigil(a.art'));
+ assert(!card.includes('generatedFx('));
+ assert(css.includes('.combat-feedback-layer'));
+});
+
+test('combat overlay covers hp, shield and debuff consumption without changing rules',()=>{
+ const app=readFileSync('src/app.ts','utf8');
+ assert(app.includes("kind:'damage'"));
+ assert(app.includes("kind:'heal'"));
+ assert(app.includes("kind:'shield'"));
+ assert(app.includes("kind:'shield-loss'"));
+ assert(app.includes("kind:'dispel'"));
+ assert.equal(readFileSync('src/engine.ts','utf8').includes('combatFeedback'),false);
+});
+""",encoding='utf-8')
 print('combat feedback UI 14.1 applied')
