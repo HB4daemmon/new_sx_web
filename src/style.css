@@ -588,3 +588,15 @@ button:disabled{cursor:not-allowed}
 .map-scroll .node-label{font-size:14px;letter-spacing:.04em;max-width:100%;white-space:normal}
 .pool-note{font-size:14px;color:var(--muted);line-height:1.65}
 @media(max-width:760px){.map-scroll{max-height:calc(100svh - 255px);min-height:340px}.map-scroll .map-wrap{height:1160px}.map-scroll .map-node{width:88px}.map-scroll .map-node.available .node-label{font-size:14px}}
+
+
+/* Generated raster art is intentionally limited to combat feedback. Skill, slot and ability artwork stays SVG. */
+.combat-feedback-layer{position:absolute;inset:0;z-index:8;pointer-events:none;overflow:hidden}
+.combat-float{position:absolute;top:calc(10% + var(--stack)*34px);display:flex;align-items:center;gap:5px;padding:3px 8px 3px 4px;border-radius:18px;background:#07110fe8;border:1px solid #ffffff22;box-shadow:0 5px 18px #0009;font:700 15px/1.1 var(--sans);letter-spacing:.5px;animation:combat-float-pop .86s ease-out both;white-space:nowrap}
+.combat-float.side-p{left:21%;transform:translateX(-50%)}.combat-float.side-e{right:21%;transform:translateX(50%)}
+.combat-fx-icon{width:23px;height:23px;object-fit:contain;flex:0 0 23px;filter:drop-shadow(0 1px 5px #0008)}
+.combat-float.damage{color:#ffd0a4;border-color:#d77b5555}.combat-float.damage.crit{font-size:18px;color:#ffe0a1;box-shadow:0 0 24px #dd744855}
+.combat-float.heal{color:#a9e4c3;border-color:#75bd9866}.combat-float.shield{color:#a8dfe3;border-color:#7ac2c866}.combat-float.shield-loss{color:#8fb9bd;border-color:#6d9ca055}.combat-float.dispel{color:#d8b7e8;border-color:#aa81be66}
+@keyframes combat-float-pop{0%{opacity:0;translate:0 14px;scale:.78}18%{opacity:1;scale:1.08}70%{opacity:1}100%{opacity:0;translate:0 -24px;scale:1}}
+@media(max-width:760px){.combat-float{top:calc(7% + var(--stack)*29px);font-size:12px;padding:2px 6px 2px 3px}.combat-float.damage.crit{font-size:14px}.combat-float.side-p{left:20%}.combat-float.side-e{right:20%}.combat-fx-icon{width:19px;height:19px;flex-basis:19px}}
+@media(prefers-reduced-motion:reduce){.combat-float{animation:none;opacity:1}}

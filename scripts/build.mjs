@@ -14,6 +14,11 @@ js+='})();\n';
 const css=await readFile('src/style.css','utf8');let html=await readFile('index.html','utf8');
 const data=await readFile('data/game.json','utf8');JSON.parse(data);
 await writeFile('dist/app.js',js);await writeFile('dist/style.css',css);await writeFile('dist/index.html',html);await writeFile('dist/data/game.json',data);await writeFile('dist/.nojekyll','');
-const offline=html.replace('<link rel="stylesheet" href="./style.css">',`<style>${css}</style>`).replace('<script src="./app.js" defer></script>',`<script>window.__GAME_CONTENT__=${JSON.stringify(JSON.parse(data)).replace(/</g,'\\u003c')};</script><script>${js.replace(/<\/script/gi,'<\\/script')}</script>`);
+const generatedNames=['combat-damage','combat-heal','combat-shield','combat-dispel'];
+await mkdir('dist/assets/generated',{recursive:true});
+for(const name of generatedNames)await copyFile(`assets/generated/${name}.webp`,`dist/assets/generated/${name}.webp`);
+let offlineJs=js;
+for(const name of generatedNames){const rel=`assets/generated/${name}.webp`;const uri=`data:image/webp;base64,${(await readFile(rel)).toString('base64')}`;offlineJs=offlineJs.replaceAll(`./${rel}`,uri);}
+const offline=html.replace('<link rel="stylesheet" href="./style.css">',`<style>${css}</style>`).replace('<script src="./app.js" defer></script>',`<script>window.__GAME_CONTENT__=${JSON.stringify(JSON.parse(data)).replace(/</g,'\\u003c')};</script><script>${offlineJs.replace(/<\/script/gi,'<\\/script')}</script>`);
 await writeFile('PLAY.html',offline);await writeFile('dist/PLAY.html',offline);
 console.log(`Build OK: ${Buffer.byteLength(js)} bytes JS, ${Buffer.byteLength(css)} bytes CSS, ${Buffer.byteLength(offline)} bytes offline HTML`);
