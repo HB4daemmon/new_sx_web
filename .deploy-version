@@ -1,4 +1,5 @@
-Gameplay V14 / content and rules 3.0.0 / UI 14.0
-Ten-step acts; full HP at act boundaries; 8 base and 6 hybrid schools with per-run pools.
-98 abilities; 50 artifacts; 44 enemies; 48 events; 8 recurring character arcs.
-Direct source is authoritative. Requires a new run; 2.9.0 saves are incompatible.
+Gameplay V14 / content and rules 3.0.0 / UI 14.1
+Generated combat feedback assets: four compressed 48x48 WebP icons, total about 7 KB.
+Battle view now surfaces damage, healing, shield gain/loss, and debuff consumption without changing deterministic combat rules.
+Existing skill, slot and ability SVG artwork remains unchanged.
+Verified on feature branch: 106/106 tests, full simulation, asset packaging, standalone inlining, and Chromium regression passed.
