@@ -4,7 +4,7 @@ on:
     branches: [feature/ui15-combat-stage]
     paths:
       - 'tools/apply-ui15.py'
-      - 'tools/ui15-vfx.webp.b64'
+      - 'tools/ui15-vfx.parts/**'
       - '.github/workflows/verify-ui15.yml'
 permissions:
   contents: write
@@ -23,6 +23,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          cat tools/ui15-vfx.parts/00 tools/ui15-vfx.parts/01 tools/ui15-vfx.parts/02 > tools/ui15-vfx.webp.b64
           python - <<'PY'
           from pathlib import Path
           p=Path('tools/apply-ui15.py')
