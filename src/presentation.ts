@@ -4,7 +4,7 @@ import {Ability,Choice,Condition,Content,Effect,EventPhase,RunState,Story,StoryL
 export interface ChoiceCopy {label?:string; preview?:string; outcome?:string; success?:string; failure?:string; hint?:string;}
 export interface EventCopy {intro?:string; variants?:{when:Condition[];text:string}[]; phases?:Record<string,string>; choices?:Record<string,ChoiceCopy>;}
 export interface Presentation {revision:string;events:Record<string,EventCopy>;threadValues?:Record<string,string>;}
-export const UI_REVISION='14.1';
+export const UI_REVISION='15.0';
 export const rankName=(rank:number)=>['初阶','一阶','二阶','三阶'][Math.max(0,Math.min(3,rank))];
 export function presentation(c:Content):Presentation {return (c as Content&{presentation?:Presentation}).presentation??{revision:UI_REVISION,events:{}};}
 export function threadText(c:Content,key:string,raw:string):string {

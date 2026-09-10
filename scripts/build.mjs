@@ -14,7 +14,7 @@ js+='})();\n';
 const css=await readFile('src/style.css','utf8');let html=await readFile('index.html','utf8');
 const data=await readFile('data/game.json','utf8');JSON.parse(data);
 await writeFile('dist/app.js',js);await writeFile('dist/style.css',css);await writeFile('dist/index.html',html);await writeFile('dist/data/game.json',data);await writeFile('dist/.nojekyll','');
-const generatedNames=['combat-damage','combat-heal','combat-shield','combat-dispel'];
+const generatedNames=['combat-vfx-atlas'];
 await mkdir('dist/assets/generated',{recursive:true});
 for(const name of generatedNames)await copyFile(`assets/generated/${name}.webp`,`dist/assets/generated/${name}.webp`);
 let offlineJs=js;
