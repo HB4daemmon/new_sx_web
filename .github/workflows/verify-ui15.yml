@@ -75,6 +75,6 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A assets/generated src/app.ts src/style.css src/presentation.ts data/presentation.json data/game.json scripts/build.mjs README.md tests/combat-feedback.test.mjs PLAY.html dist
+          git add -A assets/generated src/app.ts src/style.css src/presentation.ts data/presentation.json data/game.json scripts/build.mjs README.md tests/combat-feedback.test.mjs
           git commit -m 'feat: rebuild combat stage with animated pixel VFX for UI15'
           git push origin HEAD:feature/ui15-combat-stage
