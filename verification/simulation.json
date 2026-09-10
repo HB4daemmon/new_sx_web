@@ -1,0 +1,5358 @@
+{
+  "policy": "Greedy build synergy and HP-aware route; no stat cheats or resets",
+  "summary": [
+    {
+      "origin": "wanderer",
+      "runs": 40,
+      "wins": 12,
+      "deaths": {
+        "1": 7,
+        "3": 10,
+        "4": 11
+      }
+    },
+    {
+      "origin": "warrior",
+      "runs": 40,
+      "wins": 38,
+      "deaths": {
+        "1": 2
+      }
+    },
+    {
+      "origin": "alchemist",
+      "runs": 40,
+      "wins": 27,
+      "deaths": {
+        "3": 3,
+        "4": 10
+      }
+    }
+  ],
+  "runs": [
+    {
+      "origin": "wanderer",
+      "seed": "SIM-0",
+      "won": false,
+      "act": 4,
+      "node": 6,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 2
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 3
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.river",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 1
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 0
+        },
+        {
+          "id": "myth.ring",
+          "rank": 2
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 0
+        }
+      ],
+      "xp": 576,
+      "actions": 113
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-1",
+      "won": false,
+      "act": 3,
+      "node": 4,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 2
+        },
+        {
+          "id": "aux.qi",
+          "rank": 1
+        },
+        {
+          "id": "aux.focus",
+          "rank": 0
+        },
+        {
+          "id": "art.thunder_drum",
+          "rank": 1
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 0
+        },
+        {
+          "id": "art.flag",
+          "rank": 0
+        },
+        {
+          "id": "strategy.last",
+          "rank": 0
+        }
+      ],
+      "xp": 310,
+      "actions": 72
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-2",
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 2
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.sight",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 0
+        },
+        {
+          "id": "art.wind_pouch",
+          "rank": 1
+        },
+        {
+          "id": "art.thunder_chisel",
+          "rank": 1
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 1
+        }
+      ],
+      "xp": 386,
+      "actions": 92
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-3",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 1,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.sight",
+          "rank": 3
+        },
+        {
+          "id": "myth.ring",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 1
+        },
+        {
+          "id": "art.thunder_chisel",
+          "rank": 0
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 0
+        }
+      ],
+      "xp": 635,
+      "actions": 126
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-4",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 1
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 2
+        },
+        {
+          "id": "aux.qi",
+          "rank": 1
+        },
+        {
+          "id": "aux.sight",
+          "rank": 2
+        },
+        {
+          "id": "art.thunder_drum",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 0
+        },
+        {
+          "id": "myth.ring",
+          "rank": 1
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 0
+        }
+      ],
+      "xp": 604,
+      "actions": 124
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-5",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 2
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.river",
+          "rank": 0
+        },
+        {
+          "id": "myth.ring",
+          "rank": 1
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 1
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 0
+        }
+      ],
+      "xp": 572,
+      "actions": 125
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-6",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 19,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 1
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 0
+        },
+        {
+          "id": "aux.qi",
+          "rank": 1
+        },
+        {
+          "id": "aux.river",
+          "rank": 0
+        },
+        {
+          "id": "myth.ring",
+          "rank": 2
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 3
+        },
+        {
+          "id": "art.feather",
+          "rank": 0
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 0
+        }
+      ],
+      "xp": 611,
+      "actions": 128
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-7",
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 3
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.sight",
+          "rank": 2
+        },
+        {
+          "id": "art.wind_pouch",
+          "rank": 1
+        },
+        {
+          "id": "art.flag",
+          "rank": 1
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 1
+        },
+        {
+          "id": "strategy.hunt",
+          "rank": 0
+        }
+      ],
+      "xp": 357,
+      "actions": 87
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-8",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 36,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 0
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.wind",
+          "rank": 2
+        },
+        {
+          "id": "myth.ring",
+          "rank": 2
+        },
+        {
+          "id": "art.feather",
+          "rank": 2
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 1
+        }
+      ],
+      "xp": 633,
+      "actions": 124
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-9",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 25,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 1
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.ash",
+          "rank": 2
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 0
+        },
+        {
+          "id": "art.thunder_chisel",
+          "rank": 0
+        },
+        {
+          "id": "myth.ring",
+          "rank": 0
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 0
+        }
+      ],
+      "xp": 662,
+      "actions": 122
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-10",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 0
+        },
+        {
+          "id": "aux.qi",
+          "rank": 1
+        },
+        {
+          "id": "aux.hex",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 1
+        },
+        {
+          "id": "art.thunder_chisel",
+          "rank": 0
+        },
+        {
+          "id": "myth.ring",
+          "rank": 2
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 0
+        }
+      ],
+      "xp": 550,
+      "actions": 120
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-11",
+      "won": false,
+      "act": 1,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.ash",
+          "rank": 0
+        },
+        {
+          "id": "art.herbal_basket",
+          "rank": 0
+        },
+        {
+          "id": "art.dragon_stake",
+          "rank": 0
+        },
+        {
+          "id": "art.mirror",
+          "rank": 0
+        },
+        null
+      ],
+      "xp": 108,
+      "actions": 27
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-12",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 1
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 1
+        },
+        {
+          "id": "aux.river",
+          "rank": 0
+        },
+        {
+          "id": "myth.ring",
+          "rank": 1
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 3
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 0
+        }
+      ],
+      "xp": 596,
+      "actions": 130
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-13",
+      "won": false,
+      "act": 3,
+      "node": 4,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 2
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.sight",
+          "rank": 2
+        },
+        {
+          "id": "art.thunder_chisel",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 1
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 2
+        },
+        {
+          "id": "strategy.last",
+          "rank": 0
+        }
+      ],
+      "xp": 356,
+      "actions": 70
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-14",
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 1
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.last",
+          "rank": 0
+        },
+        {
+          "id": "myth.ring",
+          "rank": 1
+        },
+        {
+          "id": "art.thunder_chisel",
+          "rank": 1
+        },
+        {
+          "id": "art.thunder_drum",
+          "rank": 1
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 0
+        }
+      ],
+      "xp": 403,
+      "actions": 90
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-15",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 11,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 1
+        },
+        {
+          "id": "aux.ash",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 0
+        },
+        {
+          "id": "myth.ring",
+          "rank": 2
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 2
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 0
+        }
+      ],
+      "xp": 642,
+      "actions": 117
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-16",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 26,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 1
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 2
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.sight",
+          "rank": 1
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 2
+        },
+        {
+          "id": "art.thunder_chisel",
+          "rank": 0
+        },
+        {
+          "id": "myth.ring",
+          "rank": 2
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 0
+        }
+      ],
+      "xp": 634,
+      "actions": 129
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-17",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 71,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 1
+        },
+        {
+          "id": "aux.river",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 3
+        },
+        {
+          "id": "myth.ring",
+          "rank": 1
+        },
+        {
+          "id": "art.thunder_chisel",
+          "rank": 1
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 3
+        }
+      ],
+      "xp": 708,
+      "actions": 123
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-18",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 1
+        },
+        {
+          "id": "aux.river",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 2
+        },
+        {
+          "id": "art.thunder_chisel",
+          "rank": 1
+        },
+        {
+          "id": "myth.ring",
+          "rank": 1
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 0
+        }
+      ],
+      "xp": 586,
+      "actions": 119
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-19",
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 3
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 2
+        },
+        {
+          "id": "aux.qi",
+          "rank": 1
+        },
+        {
+          "id": "aux.shadow",
+          "rank": 1
+        },
+        {
+          "id": "art.flag",
+          "rank": 0
+        },
+        {
+          "id": "myth.ring",
+          "rank": 2
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 0
+        },
+        {
+          "id": "strategy.star",
+          "rank": 0
+        }
+      ],
+      "xp": 440,
+      "actions": 89
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-20",
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 2
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.river",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 3
+        },
+        {
+          "id": "art.thunder_chisel",
+          "rank": 1
+        },
+        {
+          "id": "art.thunder_drum",
+          "rank": 2
+        },
+        {
+          "id": "strategy.hunt",
+          "rank": 0
+        }
+      ],
+      "xp": 389,
+      "actions": 93
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-21",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 2
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.river",
+          "rank": 2
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 0
+        },
+        {
+          "id": "myth.ring",
+          "rank": 2
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 0
+        },
+        {
+          "id": "strategy.hunt",
+          "rank": 0
+        }
+      ],
+      "xp": 544,
+      "actions": 121
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-22",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 1
+        },
+        {
+          "id": "aux.river",
+          "rank": 1
+        },
+        {
+          "id": "art.thunder_drum",
+          "rank": 1
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 0
+        },
+        {
+          "id": "myth.ring",
+          "rank": 1
+        },
+        {
+          "id": "strategy.hunt",
+          "rank": 3
+        }
+      ],
+      "xp": 587,
+      "actions": 120
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-23",
+      "won": false,
+      "act": 1,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.river",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 0
+        },
+        {
+          "id": "art.soul_banner",
+          "rank": 0
+        },
+        {
+          "id": "art.thunder_drum",
+          "rank": 0
+        },
+        null
+      ],
+      "xp": 105,
+      "actions": 27
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-24",
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 1
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "myth.ring",
+          "rank": 1
+        },
+        {
+          "id": "art.sword",
+          "rank": 3
+        },
+        {
+          "id": "art.coin",
+          "rank": 0
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 0
+        }
+      ],
+      "xp": 414,
+      "actions": 94
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-25",
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.river",
+          "rank": 0
+        },
+        {
+          "id": "art.thunder_chisel",
+          "rank": 0
+        },
+        {
+          "id": "myth.ring",
+          "rank": 1
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 2
+        },
+        {
+          "id": "strategy.last",
+          "rank": 0
+        }
+      ],
+      "xp": 431,
+      "actions": 92
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-26",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 16,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 1
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.river",
+          "rank": 1
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 2
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "myth.ring",
+          "rank": 2
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 1
+        }
+      ],
+      "xp": 675,
+      "actions": 126
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-27",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 44,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 1
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 1
+        },
+        {
+          "id": "aux.last",
+          "rank": 1
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 2
+        },
+        {
+          "id": "myth.ring",
+          "rank": 2
+        },
+        {
+          "id": "art.thunder_chisel",
+          "rank": 0
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 1
+        }
+      ],
+      "xp": 617,
+      "actions": 126
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-28",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 26,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 1
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.ash",
+          "rank": 1
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 3
+        },
+        {
+          "id": "art.thunder_chisel",
+          "rank": 0
+        },
+        {
+          "id": "myth.ring",
+          "rank": 2
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 0
+        }
+      ],
+      "xp": 677,
+      "actions": 124
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-29",
+      "won": false,
+      "act": 1,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 0
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        null,
+        {
+          "id": "art.pearl",
+          "rank": 0
+        },
+        {
+          "id": "art.jade_lance",
+          "rank": 0
+        },
+        null,
+        {
+          "id": "strategy.fire",
+          "rank": 0
+        }
+      ],
+      "xp": 73,
+      "actions": 27
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-30",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.ash",
+          "rank": 2
+        },
+        {
+          "id": "myth.ring",
+          "rank": 3
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 2
+        },
+        {
+          "id": "myth.seal",
+          "rank": 0
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 1
+        }
+      ],
+      "xp": 586,
+      "actions": 121
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-31",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 15,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 2
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.ash",
+          "rank": 1
+        },
+        {
+          "id": "myth.ring",
+          "rank": 1
+        },
+        {
+          "id": "art.flag",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 1
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 1
+        }
+      ],
+      "xp": 624,
+      "actions": 122
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-32",
+      "won": false,
+      "act": 1,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.river",
+          "rank": 0
+        },
+        {
+          "id": "art.bell",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 0
+        },
+        {
+          "id": "art.thorn_ring",
+          "rank": 0
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 0
+        }
+      ],
+      "xp": 105,
+      "actions": 30
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-33",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 1
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 0
+        },
+        {
+          "id": "aux.qi",
+          "rank": 1
+        },
+        {
+          "id": "aux.sight",
+          "rank": 0
+        },
+        {
+          "id": "art.wind_pouch",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 0
+        },
+        {
+          "id": "myth.ring",
+          "rank": 1
+        },
+        {
+          "id": "strategy.hunt",
+          "rank": 1
+        }
+      ],
+      "xp": 580,
+      "actions": 117
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-34",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 1
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.river",
+          "rank": 1
+        },
+        {
+          "id": "art.flag",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 0
+        },
+        {
+          "id": "myth.ring",
+          "rank": 1
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 0
+        }
+      ],
+      "xp": 589,
+      "actions": 121
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-35",
+      "won": false,
+      "act": 1,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 0
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        {
+          "id": "aux.sight",
+          "rank": 0
+        },
+        {
+          "id": "art.needle",
+          "rank": 0
+        },
+        {
+          "id": "art.sword",
+          "rank": 0
+        },
+        {
+          "id": "art.mist_cloak",
+          "rank": 0
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 0
+        }
+      ],
+      "xp": 93,
+      "actions": 30
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-36",
+      "won": false,
+      "act": 1,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 0
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        null,
+        {
+          "id": "art.wind_pouch",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_break",
+          "rank": 0
+        },
+        {
+          "id": "art.thunder_drum",
+          "rank": 0
+        },
+        null
+      ],
+      "xp": 90,
+      "actions": 26
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-37",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 7,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 2
+        },
+        {
+          "id": "aux.qi",
+          "rank": 2
+        },
+        {
+          "id": "aux.ash",
+          "rank": 0
+        },
+        {
+          "id": "art.wind_pouch",
+          "rank": 1
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 2
+        },
+        {
+          "id": "myth.ring",
+          "rank": 1
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 1
+        }
+      ],
+      "xp": 635,
+      "actions": 123
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-38",
+      "won": false,
+      "act": 1,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 0
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        null,
+        {
+          "id": "art.needle",
+          "rank": 0
+        },
+        {
+          "id": "art.cloud_boots",
+          "rank": 0
+        },
+        {
+          "id": "art.wind_pouch",
+          "rank": 0
+        },
+        {
+          "id": "strategy.hunt",
+          "rank": 0
+        }
+      ],
+      "xp": 90,
+      "actions": 27
+    },
+    {
+      "origin": "wanderer",
+      "seed": "SIM-39",
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.thunder",
+          "rank": 0
+        },
+        {
+          "id": "rage.thunder",
+          "rank": 1
+        },
+        {
+          "id": "aux.qi",
+          "rank": 0
+        },
+        null,
+        {
+          "id": "art.flag",
+          "rank": 1
+        },
+        {
+          "id": "myth.ring",
+          "rank": 2
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 0
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 2
+        }
+      ],
+      "xp": 413,
+      "actions": 90
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-0",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 121,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 1
+        },
+        {
+          "id": "rage.guard",
+          "rank": 3
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.stone",
+          "rank": 1
+        },
+        {
+          "id": "art.guard_break",
+          "rank": 3
+        },
+        {
+          "id": "art.mirror",
+          "rank": 2
+        },
+        {
+          "id": "myth.seal",
+          "rank": 3
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 0
+        }
+      ],
+      "xp": 679,
+      "actions": 127
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-1",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 61,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 1
+        },
+        {
+          "id": "rage.guard",
+          "rank": 2
+        },
+        {
+          "id": "aux.counter",
+          "rank": 1
+        },
+        {
+          "id": "aux.sight",
+          "rank": 2
+        },
+        {
+          "id": "myth.seal",
+          "rank": 2
+        },
+        {
+          "id": "art.guard_break",
+          "rank": 2
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 0
+        }
+      ],
+      "xp": 619,
+      "actions": 128
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-2",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 148,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 1
+        },
+        {
+          "id": "rage.guard",
+          "rank": 0
+        },
+        {
+          "id": "aux.counter",
+          "rank": 1
+        },
+        {
+          "id": "aux.stone",
+          "rank": 1
+        },
+        {
+          "id": "myth.seal",
+          "rank": 2
+        },
+        {
+          "id": "art.mirror",
+          "rank": 3
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 1
+        }
+      ],
+      "xp": 698,
+      "actions": 126
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-3",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 114,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 1
+        },
+        {
+          "id": "rage.guard",
+          "rank": 0
+        },
+        {
+          "id": "aux.counter",
+          "rank": 1
+        },
+        {
+          "id": "aux.sight",
+          "rank": 1
+        },
+        {
+          "id": "myth.seal",
+          "rank": 2
+        },
+        {
+          "id": "art.mirror",
+          "rank": 3
+        },
+        {
+          "id": "art.guard_break",
+          "rank": 3
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 1
+        }
+      ],
+      "xp": 630,
+      "actions": 126
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-4",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 148,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 3
+        },
+        {
+          "id": "rage.guard",
+          "rank": 0
+        },
+        {
+          "id": "aux.counter",
+          "rank": 1
+        },
+        {
+          "id": "aux.sight",
+          "rank": 2
+        },
+        {
+          "id": "myth.seal",
+          "rank": 1
+        },
+        {
+          "id": "art.mirror",
+          "rank": 2
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 0
+        }
+      ],
+      "xp": 667,
+      "actions": 127
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-5",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 165,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 1
+        },
+        {
+          "id": "rage.guard",
+          "rank": 1
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.guard",
+          "rank": 0
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "myth.seal",
+          "rank": 1
+        },
+        {
+          "id": "art.mirror",
+          "rank": 2
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 2
+        }
+      ],
+      "xp": 638,
+      "actions": 128
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-6",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 125,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 0
+        },
+        {
+          "id": "rage.guard",
+          "rank": 1
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.shadow",
+          "rank": 0
+        },
+        {
+          "id": "art.mirror",
+          "rank": 2
+        },
+        {
+          "id": "art.guard_break",
+          "rank": 3
+        },
+        {
+          "id": "myth.seal",
+          "rank": 2
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 0
+        }
+      ],
+      "xp": 620,
+      "actions": 130
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-7",
+      "won": false,
+      "act": 1,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 0
+        },
+        {
+          "id": "rage.guard",
+          "rank": 0
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "art.thorn_ring",
+          "rank": 1
+        },
+        {
+          "id": "art.jade",
+          "rank": 0
+        },
+        {
+          "id": "art.mountain_banner",
+          "rank": 0
+        },
+        null
+      ],
+      "xp": 90,
+      "actions": 29
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-8",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 148,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 0
+        },
+        {
+          "id": "rage.guard",
+          "rank": 2
+        },
+        {
+          "id": "aux.counter",
+          "rank": 1
+        },
+        {
+          "id": "aux.guard",
+          "rank": 0
+        },
+        {
+          "id": "art.bracer",
+          "rank": 2
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "myth.seal",
+          "rank": 2
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 1
+        }
+      ],
+      "xp": 613,
+      "actions": 127
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-9",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 165,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 1
+        },
+        {
+          "id": "rage.guard",
+          "rank": 0
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.stone",
+          "rank": 1
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "myth.seal",
+          "rank": 1
+        },
+        {
+          "id": "art.mirror",
+          "rank": 3
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 1
+        }
+      ],
+      "xp": 639,
+      "actions": 127
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-10",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 150,
+      "ending": "free",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 1
+        },
+        {
+          "id": "rage.guard",
+          "rank": 3
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.stone",
+          "rank": 0
+        },
+        {
+          "id": "art.mirror",
+          "rank": 3
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 2
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 1
+        }
+      ],
+      "xp": 688,
+      "actions": 124
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-11",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 179,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 1
+        },
+        {
+          "id": "rage.guard",
+          "rank": 0
+        },
+        {
+          "id": "aux.counter",
+          "rank": 1
+        },
+        {
+          "id": "aux.stone",
+          "rank": 0
+        },
+        {
+          "id": "myth.seal",
+          "rank": 2
+        },
+        {
+          "id": "art.mirror",
+          "rank": 3
+        },
+        {
+          "id": "art.guard_break",
+          "rank": 3
+        },
+        {
+          "id": "strategy.hunt",
+          "rank": 0
+        }
+      ],
+      "xp": 738,
+      "actions": 121
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-12",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 151,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 0
+        },
+        {
+          "id": "rage.guard",
+          "rank": 1
+        },
+        {
+          "id": "aux.counter",
+          "rank": 1
+        },
+        {
+          "id": "aux.stone",
+          "rank": 0
+        },
+        {
+          "id": "art.guard_break",
+          "rank": 3
+        },
+        {
+          "id": "myth.seal",
+          "rank": 2
+        },
+        {
+          "id": "art.mirror",
+          "rank": 3
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 0
+        }
+      ],
+      "xp": 680,
+      "actions": 124
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-13",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 133,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 0
+        },
+        {
+          "id": "rage.guard",
+          "rank": 3
+        },
+        {
+          "id": "aux.counter",
+          "rank": 1
+        },
+        {
+          "id": "aux.sight",
+          "rank": 2
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "art.mountain_banner",
+          "rank": 2
+        },
+        {
+          "id": "art.thorn_ring",
+          "rank": 3
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 1
+        }
+      ],
+      "xp": 633,
+      "actions": 132
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-14",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 148,
+      "ending": "free",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 1
+        },
+        {
+          "id": "rage.guard",
+          "rank": 1
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.stone",
+          "rank": 0
+        },
+        {
+          "id": "art.mirror",
+          "rank": 2
+        },
+        {
+          "id": "art.thorn_ring",
+          "rank": 2
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 0
+        }
+      ],
+      "xp": 629,
+      "actions": 127
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-15",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 148,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 1
+        },
+        {
+          "id": "rage.guard",
+          "rank": 0
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.guard",
+          "rank": 0
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "art.mirror",
+          "rank": 2
+        },
+        {
+          "id": "myth.seal",
+          "rank": 1
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 0
+        }
+      ],
+      "xp": 581,
+      "actions": 122
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-16",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 115,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 0
+        },
+        {
+          "id": "rage.guard",
+          "rank": 1
+        },
+        {
+          "id": "aux.counter",
+          "rank": 1
+        },
+        {
+          "id": "aux.stone",
+          "rank": 0
+        },
+        {
+          "id": "myth.seal",
+          "rank": 2
+        },
+        {
+          "id": "art.gourd",
+          "rank": 3
+        },
+        {
+          "id": "art.guard_break",
+          "rank": 2
+        },
+        {
+          "id": "strategy.hex",
+          "rank": 1
+        }
+      ],
+      "xp": 677,
+      "actions": 127
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-17",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 179,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 2
+        },
+        {
+          "id": "rage.guard",
+          "rank": 1
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.stone",
+          "rank": 0
+        },
+        {
+          "id": "myth.seal",
+          "rank": 2
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 3
+        },
+        {
+          "id": "art.mirror",
+          "rank": 2
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 3
+        }
+      ],
+      "xp": 714,
+      "actions": 126
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-18",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 165,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 0
+        },
+        {
+          "id": "rage.guard",
+          "rank": 1
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.sight",
+          "rank": 2
+        },
+        {
+          "id": "art.guard_break",
+          "rank": 3
+        },
+        {
+          "id": "myth.seal",
+          "rank": 2
+        },
+        {
+          "id": "art.mirror",
+          "rank": 3
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 1
+        }
+      ],
+      "xp": 596,
+      "actions": 127
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-19",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 130,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 1
+        },
+        {
+          "id": "rage.guard",
+          "rank": 3
+        },
+        {
+          "id": "aux.counter",
+          "rank": 3
+        },
+        {
+          "id": "aux.shadow",
+          "rank": 0
+        },
+        {
+          "id": "myth.seal",
+          "rank": 1
+        },
+        {
+          "id": "art.mirror",
+          "rank": 2
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "strategy.gale",
+          "rank": 0
+        }
+      ],
+      "xp": 726,
+      "actions": 125
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-20",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 146,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 0
+        },
+        {
+          "id": "rage.guard",
+          "rank": 1
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.stone",
+          "rank": 2
+        },
+        {
+          "id": "art.guard_break",
+          "rank": 3
+        },
+        {
+          "id": "myth.seal",
+          "rank": 2
+        },
+        {
+          "id": "art.mirror",
+          "rank": 2
+        },
+        {
+          "id": "strategy.hunt",
+          "rank": 3
+        }
+      ],
+      "xp": 672,
+      "actions": 124
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-21",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 148,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 0
+        },
+        {
+          "id": "rage.guard",
+          "rank": 0
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.guard",
+          "rank": 0
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "myth.seal",
+          "rank": 2
+        },
+        {
+          "id": "art.mirror",
+          "rank": 3
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 0
+        }
+      ],
+      "xp": 660,
+      "actions": 125
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-22",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 136,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 1
+        },
+        {
+          "id": "rage.guard",
+          "rank": 1
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.stone",
+          "rank": 1
+        },
+        {
+          "id": "art.mirror",
+          "rank": 1
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "myth.ring",
+          "rank": 2
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 2
+        }
+      ],
+      "xp": 697,
+      "actions": 127
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-23",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 179,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 0
+        },
+        {
+          "id": "rage.guard",
+          "rank": 0
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.stone",
+          "rank": 0
+        },
+        {
+          "id": "art.mirror",
+          "rank": 2
+        },
+        {
+          "id": "myth.seal",
+          "rank": 1
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "strategy.hex",
+          "rank": 0
+        }
+      ],
+      "xp": 691,
+      "actions": 126
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-24",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 134,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 1
+        },
+        {
+          "id": "rage.guard",
+          "rank": 1
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.guard",
+          "rank": 0
+        },
+        {
+          "id": "myth.seal",
+          "rank": 1
+        },
+        {
+          "id": "art.mirror",
+          "rank": 1
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 2
+        }
+      ],
+      "xp": 634,
+      "actions": 129
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-25",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 165,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 2
+        },
+        {
+          "id": "rage.guard",
+          "rank": 2
+        },
+        {
+          "id": "aux.counter",
+          "rank": 2
+        },
+        {
+          "id": "aux.guard",
+          "rank": 0
+        },
+        {
+          "id": "myth.seal",
+          "rank": 1
+        },
+        {
+          "id": "art.mirror",
+          "rank": 2
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 0
+        }
+      ],
+      "xp": 648,
+      "actions": 126
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-26",
+      "won": false,
+      "act": 1,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 0
+        },
+        {
+          "id": "rage.guard",
+          "rank": 0
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        null,
+        {
+          "id": "art.burn_guard",
+          "rank": 1
+        },
+        {
+          "id": "art.lotus_seed",
+          "rank": 0
+        },
+        {
+          "id": "art.gourd",
+          "rank": 1
+        },
+        null
+      ],
+      "xp": 122,
+      "actions": 30
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-27",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 162,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 1
+        },
+        {
+          "id": "rage.guard",
+          "rank": 1
+        },
+        {
+          "id": "aux.counter",
+          "rank": 1
+        },
+        {
+          "id": "aux.stone",
+          "rank": 0
+        },
+        {
+          "id": "myth.seal",
+          "rank": 2
+        },
+        {
+          "id": "art.mirror",
+          "rank": 3
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 0
+        }
+      ],
+      "xp": 632,
+      "actions": 131
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-28",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 165,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 0
+        },
+        {
+          "id": "rage.guard",
+          "rank": 0
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.guard",
+          "rank": 1
+        },
+        {
+          "id": "art.guard_break",
+          "rank": 3
+        },
+        {
+          "id": "art.mirror",
+          "rank": 3
+        },
+        {
+          "id": "myth.seal",
+          "rank": 2
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 0
+        }
+      ],
+      "xp": 610,
+      "actions": 123
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-29",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 84,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 1
+        },
+        {
+          "id": "rage.guard",
+          "rank": 2
+        },
+        {
+          "id": "aux.counter",
+          "rank": 2
+        },
+        {
+          "id": "aux.guard",
+          "rank": 0
+        },
+        {
+          "id": "myth.seal",
+          "rank": 2
+        },
+        {
+          "id": "myth.ring",
+          "rank": 1
+        },
+        {
+          "id": "art.mirror",
+          "rank": 2
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 0
+        }
+      ],
+      "xp": 705,
+      "actions": 125
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-30",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 165,
+      "ending": "free",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 0
+        },
+        {
+          "id": "rage.guard",
+          "rank": 0
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.stone",
+          "rank": 0
+        },
+        {
+          "id": "art.mirror",
+          "rank": 3
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 3
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 0
+        }
+      ],
+      "xp": 614,
+      "actions": 125
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-31",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 165,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 0
+        },
+        {
+          "id": "rage.guard",
+          "rank": 2
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.guard",
+          "rank": 0
+        },
+        {
+          "id": "art.mirror",
+          "rank": 1
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "myth.seal",
+          "rank": 1
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 0
+        }
+      ],
+      "xp": 609,
+      "actions": 128
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-32",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 167,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 0
+        },
+        {
+          "id": "rage.guard",
+          "rank": 1
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.stone",
+          "rank": 0
+        },
+        {
+          "id": "art.gourd",
+          "rank": 2
+        },
+        {
+          "id": "art.mirror",
+          "rank": 3
+        },
+        {
+          "id": "myth.seal",
+          "rank": 3
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 1
+        }
+      ],
+      "xp": 679,
+      "actions": 124
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-33",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 148,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 2
+        },
+        {
+          "id": "rage.guard",
+          "rank": 1
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.stone",
+          "rank": 0
+        },
+        {
+          "id": "art.thorn_ring",
+          "rank": 2
+        },
+        {
+          "id": "art.guard_break",
+          "rank": 3
+        },
+        {
+          "id": "myth.seal",
+          "rank": 2
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 1
+        }
+      ],
+      "xp": 678,
+      "actions": 123
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-34",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 89,
+      "ending": "free",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 0
+        },
+        {
+          "id": "rage.guard",
+          "rank": 1
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.guard",
+          "rank": 1
+        },
+        {
+          "id": "art.thorn_ring",
+          "rank": 1
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "art.mirror",
+          "rank": 2
+        },
+        {
+          "id": "strategy.hunt",
+          "rank": 3
+        }
+      ],
+      "xp": 694,
+      "actions": 123
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-35",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 148,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 1
+        },
+        {
+          "id": "rage.guard",
+          "rank": 1
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.stone",
+          "rank": 0
+        },
+        {
+          "id": "art.mirror",
+          "rank": 3
+        },
+        {
+          "id": "art.bracer",
+          "rank": 3
+        },
+        {
+          "id": "myth.seal",
+          "rank": 2
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 0
+        }
+      ],
+      "xp": 659,
+      "actions": 126
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-36",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 160,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 0
+        },
+        {
+          "id": "rage.guard",
+          "rank": 2
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "aux.guard",
+          "rank": 0
+        },
+        {
+          "id": "art.guard_break",
+          "rank": 2
+        },
+        {
+          "id": "art.mirror",
+          "rank": 2
+        },
+        {
+          "id": "myth.seal",
+          "rank": 2
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 0
+        }
+      ],
+      "xp": 729,
+      "actions": 125
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-37",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 85,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 0
+        },
+        {
+          "id": "rage.guard",
+          "rank": 1
+        },
+        {
+          "id": "aux.counter",
+          "rank": 3
+        },
+        {
+          "id": "aux.sight",
+          "rank": 1
+        },
+        {
+          "id": "art.mirror",
+          "rank": 2
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "myth.seal",
+          "rank": 1
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 2
+        }
+      ],
+      "xp": 673,
+      "actions": 128
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-38",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 148,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 2
+        },
+        {
+          "id": "rage.guard",
+          "rank": 0
+        },
+        {
+          "id": "aux.counter",
+          "rank": 1
+        },
+        {
+          "id": "aux.stone",
+          "rank": 0
+        },
+        {
+          "id": "art.mirror",
+          "rank": 2
+        },
+        {
+          "id": "art.guard_break",
+          "rank": 3
+        },
+        {
+          "id": "myth.seal",
+          "rank": 3
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 0
+        }
+      ],
+      "xp": 656,
+      "actions": 125
+    },
+    {
+      "origin": "warrior",
+      "seed": "SIM-39",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 120,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fist",
+          "rank": 0
+        },
+        {
+          "id": "rage.guard",
+          "rank": 2
+        },
+        {
+          "id": "aux.counter",
+          "rank": 1
+        },
+        {
+          "id": "aux.ash",
+          "rank": 2
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "art.mirror",
+          "rank": 2
+        },
+        {
+          "id": "myth.seal",
+          "rank": 1
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 1
+        }
+      ],
+      "xp": 646,
+      "actions": 129
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-0",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 2
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 1
+        },
+        {
+          "id": "aux.ash",
+          "rank": 0
+        },
+        {
+          "id": "art.fire_fan",
+          "rank": 1
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 1
+        },
+        {
+          "id": "art.pearl",
+          "rank": 3
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 0
+        }
+      ],
+      "xp": 562,
+      "actions": 122
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-1",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 126,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.ash",
+          "rank": 1
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "myth.seal",
+          "rank": 1
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 2
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 1
+        }
+      ],
+      "xp": 619,
+      "actions": 126
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-2",
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 0
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 1
+        },
+        {
+          "id": "aux.last",
+          "rank": 1
+        },
+        {
+          "id": "art.fire_cage",
+          "rank": 1
+        },
+        {
+          "id": "art.fire_fan",
+          "rank": 2
+        },
+        {
+          "id": "art.ash_bowl",
+          "rank": 0
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 1
+        }
+      ],
+      "xp": 389,
+      "actions": 92
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-3",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.sight",
+          "rank": 0
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 2
+        },
+        {
+          "id": "art.fire_fan",
+          "rank": 3
+        },
+        {
+          "id": "art.lamp",
+          "rank": 1
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 2
+        }
+      ],
+      "xp": 536,
+      "actions": 121
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-4",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 3
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 1
+        },
+        {
+          "id": "aux.shadow",
+          "rank": 0
+        },
+        {
+          "id": "art.fire_fan",
+          "rank": 0
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 1
+        },
+        {
+          "id": "art.lamp",
+          "rank": 0
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 0
+        }
+      ],
+      "xp": 542,
+      "actions": 122
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-5",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 118,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 1
+        },
+        {
+          "id": "aux.stone",
+          "rank": 0
+        },
+        {
+          "id": "art.lamp",
+          "rank": 2
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 2
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 1
+        }
+      ],
+      "xp": 626,
+      "actions": 126
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-6",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 82,
+      "ending": "free",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 1
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.sight",
+          "rank": 0
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 3
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "art.pearl",
+          "rank": 2
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 2
+        }
+      ],
+      "xp": 573,
+      "actions": 127
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-7",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 44,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.counter",
+          "rank": 1
+        },
+        {
+          "id": "art.ash_bowl",
+          "rank": 3
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 3
+        },
+        {
+          "id": "art.fire_fan",
+          "rank": 3
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 0
+        }
+      ],
+      "xp": 636,
+      "actions": 123
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-8",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 1
+        },
+        {
+          "id": "aux.counter",
+          "rank": 1
+        },
+        {
+          "id": "art.pearl",
+          "rank": 0
+        },
+        {
+          "id": "art.ash_bowl",
+          "rank": 2
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 0
+        }
+      ],
+      "xp": 541,
+      "actions": 128
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-9",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 98,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.ash",
+          "rank": 1
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 1
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "art.pearl",
+          "rank": 0
+        },
+        {
+          "id": "strategy.last",
+          "rank": 3
+        }
+      ],
+      "xp": 618,
+      "actions": 123
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-10",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 126,
+      "ending": "free",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 2
+        },
+        {
+          "id": "aux.hex",
+          "rank": 1
+        },
+        {
+          "id": "art.lamp",
+          "rank": 3
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 3
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 0
+        }
+      ],
+      "xp": 658,
+      "actions": 121
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-11",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 53,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 1
+        },
+        {
+          "id": "aux.ash",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 3
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "art.ash_bowl",
+          "rank": 0
+        },
+        {
+          "id": "strategy.last",
+          "rank": 1
+        }
+      ],
+      "xp": 646,
+      "actions": 124
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-12",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 0
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 1
+        },
+        {
+          "id": "aux.hex",
+          "rank": 1
+        },
+        {
+          "id": "art.pearl",
+          "rank": 1
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 0
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 3
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 0
+        }
+      ],
+      "xp": 555,
+      "actions": 124
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-13",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 35,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.ash",
+          "rank": 2
+        },
+        {
+          "id": "art.ash_bowl",
+          "rank": 3
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 1
+        },
+        {
+          "id": "art.fire_fan",
+          "rank": 0
+        },
+        {
+          "id": "strategy.hunt",
+          "rank": 0
+        }
+      ],
+      "xp": 647,
+      "actions": 123
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-14",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 6,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.sight",
+          "rank": 0
+        },
+        {
+          "id": "art.lamp",
+          "rank": 0
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 3
+        },
+        {
+          "id": "art.ash_bowl",
+          "rank": 0
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 2
+        }
+      ],
+      "xp": 596,
+      "actions": 127
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-15",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 14,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 2
+        },
+        {
+          "id": "aux.fire",
+          "rank": 1
+        },
+        {
+          "id": "aux.ash",
+          "rank": 2
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 1
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 2
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 1
+        }
+      ],
+      "xp": 567,
+      "actions": 123
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-16",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 35,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 2
+        },
+        {
+          "id": "aux.fire",
+          "rank": 2
+        },
+        {
+          "id": "aux.counter",
+          "rank": 1
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 2
+        },
+        {
+          "id": "art.pearl",
+          "rank": 3
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 1
+        }
+      ],
+      "xp": 633,
+      "actions": 127
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-17",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 141,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.stone",
+          "rank": 0
+        },
+        {
+          "id": "art.fire_fan",
+          "rank": 2
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 3
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 1
+        }
+      ],
+      "xp": 694,
+      "actions": 124
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-18",
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 0
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.ash",
+          "rank": 2
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 3
+        },
+        {
+          "id": "art.ash_bowl",
+          "rank": 0
+        },
+        {
+          "id": "art.fire_fan",
+          "rank": 0
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 2
+        }
+      ],
+      "xp": 374,
+      "actions": 92
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-19",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 37,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 2
+        },
+        {
+          "id": "aux.guard",
+          "rank": 1
+        },
+        {
+          "id": "art.pearl",
+          "rank": 1
+        },
+        {
+          "id": "art.ash_bowl",
+          "rank": 0
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 2
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 1
+        }
+      ],
+      "xp": 699,
+      "actions": 122
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-20",
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 0
+        },
+        {
+          "id": "rage.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.ash",
+          "rank": 2
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 0
+        },
+        {
+          "id": "art.pearl",
+          "rank": 1
+        },
+        {
+          "id": "art.ash_bowl",
+          "rank": 0
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 0
+        }
+      ],
+      "xp": 404,
+      "actions": 98
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-21",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 0
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.ash",
+          "rank": 0
+        },
+        {
+          "id": "art.pearl",
+          "rank": 3
+        },
+        {
+          "id": "art.lamp",
+          "rank": 2
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 0
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 0
+        }
+      ],
+      "xp": 532,
+      "actions": 122
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-22",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 18,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.ash",
+          "rank": 2
+        },
+        {
+          "id": "art.fire_cage",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 0
+        },
+        {
+          "id": "art.pearl",
+          "rank": 3
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 1
+        }
+      ],
+      "xp": 630,
+      "actions": 124
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-23",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 60,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 0
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.hex",
+          "rank": 0
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 2
+        },
+        {
+          "id": "art.pearl",
+          "rank": 2
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 1
+        }
+      ],
+      "xp": 682,
+      "actions": 123
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-24",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 126,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 2
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.ash",
+          "rank": 2
+        },
+        {
+          "id": "art.fire_fan",
+          "rank": 3
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "myth.seal",
+          "rank": 1
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 0
+        }
+      ],
+      "xp": 622,
+      "actions": 126
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-25",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 83,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 2
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 2
+        },
+        {
+          "id": "aux.ash",
+          "rank": 2
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 1
+        },
+        {
+          "id": "art.ash_bowl",
+          "rank": 0
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 0
+        },
+        {
+          "id": "strategy.hunt",
+          "rank": 1
+        }
+      ],
+      "xp": 597,
+      "actions": 126
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-26",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 141,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 0
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.stone",
+          "rank": 1
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 3
+        },
+        {
+          "id": "art.ash_bowl",
+          "rank": 1
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 1
+        }
+      ],
+      "xp": 658,
+      "actions": 131
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-27",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.counter",
+          "rank": 0
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 3
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 2
+        },
+        {
+          "id": "art.lamp",
+          "rank": 0
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 1
+        }
+      ],
+      "xp": 540,
+      "actions": 122
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-28",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 141,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.ash",
+          "rank": 0
+        },
+        {
+          "id": "myth.seal",
+          "rank": 1
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "art.pearl",
+          "rank": 1
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 0
+        }
+      ],
+      "xp": 628,
+      "actions": 127
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-29",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 44,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.renew",
+          "rank": 0
+        },
+        {
+          "id": "art.lamp",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 0
+        },
+        {
+          "id": "art.pearl",
+          "rank": 3
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 1
+        }
+      ],
+      "xp": 613,
+      "actions": 119
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-30",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 72,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 0
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.ash",
+          "rank": 3
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 2
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "art.ash_bowl",
+          "rank": 1
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 0
+        }
+      ],
+      "xp": 587,
+      "actions": 127
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-31",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 117,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 0
+        },
+        {
+          "id": "rage.fire",
+          "rank": 2
+        },
+        {
+          "id": "aux.fire",
+          "rank": 1
+        },
+        {
+          "id": "aux.ash",
+          "rank": 3
+        },
+        {
+          "id": "art.pearl",
+          "rank": 3
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 3
+        },
+        {
+          "id": "strategy.mountain",
+          "rank": 0
+        }
+      ],
+      "xp": 597,
+      "actions": 125
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-32",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 63,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 0
+        },
+        {
+          "id": "rage.fire",
+          "rank": 2
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.ash",
+          "rank": 2
+        },
+        {
+          "id": "art.pearl",
+          "rank": 3
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 3
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 2
+        }
+      ],
+      "xp": 610,
+      "actions": 121
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-33",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 2
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.sight",
+          "rank": 0
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 2
+        },
+        {
+          "id": "art.pearl",
+          "rank": 2
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 3
+        }
+      ],
+      "xp": 551,
+      "actions": 117
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-34",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 99,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 0
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 1
+        },
+        {
+          "id": "aux.ash",
+          "rank": 1
+        },
+        {
+          "id": "myth.seal",
+          "rank": 2
+        },
+        {
+          "id": "art.fire_fan",
+          "rank": 1
+        },
+        {
+          "id": "art.lamp",
+          "rank": 1
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 1
+        }
+      ],
+      "xp": 711,
+      "actions": 126
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-35",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 1
+        },
+        {
+          "id": "rage.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.guard",
+          "rank": 0
+        },
+        {
+          "id": "art.ash_bowl",
+          "rank": 1
+        },
+        {
+          "id": "art.pearl",
+          "rank": 2
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 2
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 1
+        }
+      ],
+      "xp": 552,
+      "actions": 127
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-36",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 32,
+      "ending": "body",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 0
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 1
+        },
+        {
+          "id": "aux.ash",
+          "rank": 0
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 1
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "art.pearl",
+          "rank": 3
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 0
+        }
+      ],
+      "xp": 667,
+      "actions": 125
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-37",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 48,
+      "ending": "free",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 0
+        },
+        {
+          "id": "rage.fire",
+          "rank": 1
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.ash",
+          "rank": 0
+        },
+        {
+          "id": "art.pearl",
+          "rank": 3
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "art.rage_burn",
+          "rank": 2
+        },
+        {
+          "id": "strategy.rage",
+          "rank": 3
+        }
+      ],
+      "xp": 646,
+      "actions": 124
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-38",
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 2
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.sight",
+          "rank": 0
+        },
+        {
+          "id": "art.burn_guard",
+          "rank": 3
+        },
+        {
+          "id": "art.pearl",
+          "rank": 1
+        },
+        {
+          "id": "art.fire_cage",
+          "rank": 1
+        },
+        {
+          "id": "strategy.guard",
+          "rank": 0
+        }
+      ],
+      "xp": 522,
+      "actions": 122
+    },
+    {
+      "origin": "alchemist",
+      "seed": "SIM-39",
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 56,
+      "ending": "god",
+      "build": [
+        {
+          "id": "basic.fire",
+          "rank": 0
+        },
+        {
+          "id": "rage.fire",
+          "rank": 3
+        },
+        {
+          "id": "aux.fire",
+          "rank": 0
+        },
+        {
+          "id": "aux.ash",
+          "rank": 3
+        },
+        {
+          "id": "myth.orbs",
+          "rank": 1
+        },
+        {
+          "id": "art.lamp",
+          "rank": 1
+        },
+        {
+          "id": "myth.seal",
+          "rank": 1
+        },
+        {
+          "id": "strategy.fire",
+          "rank": 1
+        }
+      ],
+      "xp": 626,
+      "actions": 127
+    }
+  ]
+}

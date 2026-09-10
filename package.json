@@ -1,1 +1,19 @@
-{"name":"fengshen-jiezhongren","version":"1.0.0","private":true,"type":"module","description":"Deterministic, JSON-driven Fengshen auto-battler roguelite","scripts":{"dev":"node scripts/serve.mjs","build":"node scripts/build.mjs","test":"npm run build && node --test tests/engine.test.mjs","simulate":"node tests/simulate.mjs"},"devDependencies":{"typescript":"5.9.2"},"engines":{"node":">=22"}}
+{
+  "name": "fengshen-jiezhongren",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Deterministic, JSON-driven Fengshen auto-battler roguelite",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "build": "node scripts/build.mjs",
+    "test": "npm run build && node --test tests/engine.test.mjs tests/presentation.test.mjs tests/content-pool.test.mjs",
+    "simulate": "node tests/simulate.mjs"
+  },
+  "devDependencies": {
+    "typescript": "5.9.2"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

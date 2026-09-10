@@ -1,0 +1,66 @@
+{
+  "version": "3.0.0",
+  "rulesVersion": "3.0.0",
+  "uiRevision": "14.0",
+  "baselineCommit": "8066e18af991ef9d3ab8d26ad7d60b5689962ea8",
+  "tests": {
+    "command": "npm test",
+    "passed": 104,
+    "failed": 0
+  },
+  "simulation": {
+    "runs": 120,
+    "summary": [
+      {
+        "origin": "wanderer",
+        "runs": 40,
+        "wins": 12,
+        "deaths": {
+          "1": 7,
+          "3": 10,
+          "4": 11
+        }
+      },
+      {
+        "origin": "warrior",
+        "runs": 40,
+        "wins": 38,
+        "deaths": {
+          "1": 2
+        }
+      },
+      {
+        "origin": "alchemist",
+        "runs": 40,
+        "wins": 27,
+        "deaths": {
+          "3": 3,
+          "4": 10
+        }
+      }
+    ],
+    "policySha256": "7184118cff3b4d0a3827dfc454200e7a97a751e6be3fb83da8fa370092142f71"
+  },
+  "content": {
+    "stepsPerAct": 10,
+    "baseSchools": 8,
+    "hybrids": 6,
+    "abilities": 98,
+    "artifacts": 50,
+    "enemies": 44,
+    "events": 48,
+    "choices": 221,
+    "characterArcs": 8
+  },
+  "validationScope": "Rule, content, replay, simulation and bundle-generated markup checks; no browser visual QA in this turn.",
+  "limitations": [
+    "New run required; 2.9.0 saves incompatible.",
+    "Warrior still stronger under the unchanged greedy simulation policy."
+  ],
+  "artifacts": {
+    "data/game.json": "dd96b14bd47ed2e4bc67218c1027cc71e16078599178e6fa17a1f57c5f920341",
+    "src/engine.ts": "ecc67603dee2dba1ad87b60c5ecc527a955f45fb739f1c3f152eec4b2f84f849",
+    "dist/app.js": "3d0025d0469440284d77500b3fbac346e92edd7b239f16ddb0ceae13fafcd2e8",
+    "dist/style.css": "4db05fdad142a9fc4bb84379dfbf5ad5752e7a0043ac1a1723d9992263064a6e"
+  }
+}

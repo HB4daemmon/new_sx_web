@@ -21,27 +21,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Restore complete game source
-        shell: bash
-        run: |
-          set -euo pipefail
-          : > /tmp/fengshen-source.tar.xz
-          for part in bootstrap/source.part.*.b64; do
-            echo "Decoding ${part}"
-            base64 -d "${part}" >> /tmp/fengshen-source.tar.xz
-          done
-          xz -t /tmp/fengshen-source.tar.xz
-          tar -xJf /tmp/fengshen-source.tar.xz
-          test -f src/app.ts
-          test -f data/game.json
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Verify game rules
         run: npm test

@@ -1,0 +1,6 @@
+node_modules/
+build/
+dist/
+PLAY.html
+*.zip
+__pycache__/

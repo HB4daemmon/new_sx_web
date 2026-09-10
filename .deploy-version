@@ -1,3 +1,4 @@
-UI revision 13.1 / rules and content 2.9.0
-Hotfix source: ef71e736d46b7533ad1885f919c68b086542e916
-Survive objective: defeating the enemy before the required round is now an immediate victory. Completed battles no longer keep showing an unfinished survive/break target. 89/89 tests and full simulation passed.
+Gameplay V14 / content and rules 3.0.0 / UI 14.0
+Ten-step acts; full HP at act boundaries; 8 base and 6 hybrid schools with per-run pools.
+98 abilities; 50 artifacts; 44 enemies; 48 events; 8 recurring character arcs.
+Direct source is authoritative. Requires a new run; 2.9.0 saves are incompatible.
