@@ -46,6 +46,6 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/app.ts src/style.css src/presentation.ts data/presentation.json scripts/build.mjs package.json tests/combat-feedback.test.mjs
+          git add src/app.ts src/style.css src/presentation.ts data/presentation.json data/game.json scripts/build.mjs package.json tests/combat-feedback.test.mjs
           git commit -m 'feat: show generated combat feedback for damage healing shields and dispels'
           git push origin HEAD:feature/generated-art-combat-fx
