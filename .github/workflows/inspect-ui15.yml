@@ -1,0 +1,37 @@
+name: Inspect UI15 battle surface
+on:
+  push:
+    branches: [feature/ui15-combat-stage]
+    paths: [.github/workflows/inspect-ui15.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Print battle UI and build snippets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          app=Path('src/app.ts').read_text()
+          css=Path('src/style.css').read_text()
+          build=Path('scripts/build.mjs').read_text()
+          for label,start,end in [
+              ('feedback','combatFeedback(', 'battleLogRow('),
+              ('log','battleLogRow(', 'battle(){'),
+              ('battle','battle(){','rewards(){'),
+              ('fighter','fighterFrame(', 'battleLogRow('),
+              ('render','render(){','customElements.define'),
+          ]:
+              a=app.find(start); b=app.find(end,a+1)
+              print('\n=== '+label.upper()+' ===')
+              print(app[a:b if b>=0 else a+12000])
+          print('\n=== CSS BATTLE SELECTORS ===')
+          for token in ['.combat-arena','.fighter-frame','.combat-feedback','.battle-log','.battle-controls','.battle-stage','.fighter-art']:
+              i=css.find(token)
+              if i>=0: print('\n--',token,'--\n',css[max(0,i-500):i+4500])
+          print('\n=== BUILD ===\n',build)
+          PY
