@@ -11,7 +11,7 @@ test_path=root/'tests/combat-feedback.test.mjs'
 
 app=app_path.read_text(encoding='utf-8')
 marker="const RARITY_LABELS:Record<string,string>={common:'凡品',rare:'稀有',mythic:'神话'};"
-insert=marker+"\nconst GENERATED_ASSET_ROOT='./assets/generated/';\nconst generatedFx=(name:string)=>`<img class=\"combat-fx-icon\" src=\"${GENERATED_ASSET_ROOT}${name}.webp\" alt=\"\" decoding=\"async\">`;"
+insert=marker+"\nconst GENERATED_FX:Record<string,string>={\n 'combat-damage':'./assets/generated/combat-damage.webp',\n 'combat-heal':'./assets/generated/combat-heal.webp',\n 'combat-shield':'./assets/generated/combat-shield.webp',\n 'combat-dispel':'./assets/generated/combat-dispel.webp'\n};\nconst generatedFx=(name:string)=>`<img class=\"combat-fx-icon\" src=\"${GENERATED_FX[name]??''}\" alt=\"\" decoding=\"async\">`;"
 assert app.count(marker)==1
 app=app.replace(marker,insert,1)
 
@@ -75,7 +75,7 @@ import {readFileSync,statSync} from 'node:fs';
 test('generated combat art stays small and isolated from ability SVGs',()=>{
  const app=readFileSync('src/app.ts','utf8'),css=readFileSync('src/style.css','utf8');
  for(const name of ['combat-damage','combat-heal','combat-shield','combat-dispel']){
-  assert(app.includes(name));
+  assert(app.includes(`./assets/generated/${name}.webp`));
   assert(statSync(`assets/generated/${name}.webp`).size<4096);
  }
  const card=app.slice(app.indexOf(' card('),app.indexOf(' rewards()'));
