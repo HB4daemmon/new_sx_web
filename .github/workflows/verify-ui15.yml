@@ -1,0 +1,73 @@
+name: Verify UI15 combat stage
+on:
+  push:
+    branches: [feature/ui15-combat-stage]
+    paths:
+      - 'tools/apply-ui15.py'
+      - 'tools/ui15-vfx.webp.b64'
+      - '.github/workflows/verify-ui15.yml'
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply UI15 patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tools/apply-ui15.py')
+          t=p.read_text()
+          t=t.replace("fighter+'  statusChanges('","fighter")
+          t=t.replace("feedback+'  battleLogRow('","feedback")
+          t=t.replace("battle+' event(){'","battle")
+          p.write_text(t)
+          PY
+          python tools/apply-ui15.py
+      - name: Build, rule tests and deterministic simulation
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+          npm test
+          npm run simulate
+      - name: Verify atlas packaging and offline build
+        shell: bash
+        run: |
+          set -euo pipefail
+          test $(stat -c%s assets/generated/combat-vfx-atlas.webp) -lt 100000
+          test -f dist/assets/generated/combat-vfx-atlas.webp
+          grep -q "UI_REVISION='15.0'" src/presentation.ts
+          grep -q 'data:image/webp;base64' PLAY.html
+          grep -q 'combatVfx(frame:Frame' src/app.ts
+          grep -q 'status-add' src/app.ts
+          grep -q 'ui15-vfx-strip' src/style.css
+      - name: Browser regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium
+          python -m http.server 4173 --bind 127.0.0.1 --directory dist >/tmp/fengshen-ui15-http.log 2>&1 &
+          server=$!
+          trap 'kill "$server"' EXIT
+          sleep 1
+          python tests/immersion-browser.py --url http://127.0.0.1:4173/ --output verification/ui15
+      - name: Commit verified UI15 implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A assets/generated src/app.ts src/style.css src/presentation.ts data/presentation.json data/game.json scripts/build.mjs README.md tests/combat-feedback.test.mjs PLAY.html dist
+          git commit -m 'feat: rebuild combat stage with animated pixel VFX for UI15'
+          git push origin HEAD:feature/ui15-combat-stage
