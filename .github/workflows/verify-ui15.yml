@@ -34,6 +34,12 @@ jobs:
           p.write_text(t)
           PY
           python tools/apply-ui15.py
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('src/app.ts'); t=p.read_text()
+          t=t.replace('`;}\\n  statusChanges(', '`;}\n  statusChanges(')
+          p.write_text(t)
+          PY
       - name: Build, rule tests and deterministic simulation
         shell: bash
         run: |
