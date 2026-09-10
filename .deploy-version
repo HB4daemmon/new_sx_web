@@ -1,5 +1,7 @@
-Gameplay V14 / content and rules 3.0.0 / UI 14.1
-Generated combat feedback assets: four compressed 48x48 WebP icons, total about 7 KB.
-Battle view now surfaces damage, healing, shield gain/loss, and debuff consumption without changing deterministic combat rules.
-Existing skill, slot and ability SVG artwork remains unchanged.
-Verified on feature branch: 106/106 tests, full simulation, asset packaging, standalone inlining, and Chromium regression passed.
+Gameplay V14 / content and rules 3.0.0 / UI 15.0
+Battle surface rebuilt around a two-combatant stage with animated pixel VFX and deterministic particles.
+Single 192x256 multi-frame WebP atlas is about 30 KB; standalone PLAY.html inlines it.
+Damage, healing, shield gain/loss, status application and status consumption are surfaced directly in combat.
+Existing skill, slot, artifact and ability SVG artwork remains unchanged.
+Verified on feature branch: 107/107 tests, full deterministic simulation, packaging checks, and 128 HTTP Chromium regression checks passed.
+Source baseline: c98447c654625ae5a9fe5396f2219ed3eaecdd46
