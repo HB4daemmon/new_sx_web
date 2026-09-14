@@ -9,9 +9,9 @@
       "name": "山野散修",
       "subtitle": "一剑一人，自在山河",
       "art": "swordsman",
-      "description": "均衡出身。生命略厚，引雷回气；入战额外吐纳 32 怒气。",
+      "description": "均衡出身。生命略厚，引雷回气；入战额外吐纳 60 怒气，更快接上第一轮雷法。",
       "stats": {
-        "hp": 104,
+        "hp": 110,
         "attack": 20,
         "defense": 10,
         "speed": 10,
@@ -29,7 +29,7 @@
         {
           "type": "gain_rage",
           "target": "self",
-          "value": 32
+          "value": 60
         }
       ]
     },
@@ -38,7 +38,7 @@
       "name": "行伍武者",
       "subtitle": "肉身为盾，凡骨撼天",
       "art": "guardian",
-      "description": "生命 +6，防御 +1，气运 -2。以护盾与反击换取稳定推进。",
+      "description": "生命 +6，防御 +1，气运 -2。开局先以玄甲积盾；反震收益需要在旅途中再补齐。",
       "stats": {
         "hp": 106,
         "attack": 20,
@@ -52,7 +52,7 @@
       "starting": [
         "basic.fist",
         "rage.guard",
-        "aux.counter"
+        "aux.stone"
       ]
     },
     {
@@ -90,11 +90,11 @@
       "id": "physician",
       "name": "行脚药师",
       "subtitle": "携一篓青绿，渡一程生死",
-      "description": "以疗愈养战。生命 108、攻击 19、闪避 13；回春与胎息维持气血，青莲渡厄积蓄反攻。",
+      "description": "以疗愈养战。生命 112、攻击 20、闪避 13；入战先得 8 护盾，让回春循环有时间启动。",
       "art": "hermit",
       "stats": {
-        "hp": 108,
-        "attack": 19,
+        "hp": 112,
+        "attack": 20,
         "defense": 10,
         "speed": 11,
         "hit": 10,
@@ -106,17 +106,26 @@
         "basic.spring",
         "rage.spring",
         "aux.breath"
+      ],
+      "battleStartEffects": [
+        {
+          "type": "gain_shield",
+          "target": "self",
+          "value": 8,
+          "stat": "defense",
+          "coefficient": 0
+        }
       ]
     },
     {
       "id": "hexer",
       "name": "旧观咒徒",
       "subtitle": "旧纸写新符，问魂不问天",
-      "description": "以咒厄削敌。生命 100、攻击 20；缚魂诀与厄印积累虚弱，百厄缠身打开破绽。",
+      "description": "以咒厄削敌。生命 104、攻击 21；开战先落 2 层虚弱，再由缚魂诀与厄印扩大破绽。",
       "art": "sorcerer",
       "stats": {
-        "hp": 100,
-        "attack": 20,
+        "hp": 104,
+        "attack": 21,
         "defense": 10,
         "speed": 11,
         "hit": 13,
@@ -128,6 +137,14 @@
         "basic.hex",
         "rage.hex",
         "aux.hex"
+      ],
+      "battleStartEffects": [
+        {
+          "type": "apply_status",
+          "status": "weak",
+          "target": "enemy",
+          "value": 2
+        }
       ]
     }
   ],
@@ -18980,9 +18997,9 @@
       "name": "龙裔",
       "art": "shield",
       "trait": "护身鳞",
-      "description": "鳞甲未褪，潮声在血。生命 +4，速度 -1；入战获得 4 护盾。",
+      "description": "鳞甲未褪，潮声在血。生命 +2，速度 -1；入战获得 2 护盾，强处更多留给潮汐构筑本身。",
       "stats": {
-        "hp": 4,
+        "hp": 2,
         "speed": -1
       },
       "paths": [
@@ -18997,7 +19014,7 @@
             {
               "type": "gain_shield",
               "target": "self",
-              "value": 4
+              "value": 2
             }
           ]
         }
@@ -19008,10 +19025,10 @@
       "name": "灵族",
       "art": "cloud",
       "trait": "离形",
-      "description": "一缕灵气凝身。生命 -2，闪避 +8；每战首次闪避后获得 18 怒气。",
+      "description": "一缕灵气凝身。闪避 +9；入战获得 4 护盾，每战首次闪避后获得 20 怒气。",
       "stats": {
-        "hp": -2,
-        "dodge": 8
+        "hp": 0,
+        "dodge": 9
       },
       "paths": [
         "无相游身",
@@ -19025,7 +19042,17 @@
             {
               "type": "gain_rage",
               "target": "self",
-              "value": 18
+              "value": 20
+            }
+          ]
+        },
+        {
+          "on": "battle_start",
+          "effects": [
+            {
+              "type": "gain_shield",
+              "target": "self",
+              "value": 4
             }
           ]
         }

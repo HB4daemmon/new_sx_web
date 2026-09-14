@@ -10,7 +10,7 @@ test('all race and vocation combinations are valid and retain independent identi
 });
 test('race stat differences and racial conditions are derived without altering vocation',()=>{
  const human=fresh(),dragon=fresh('dragon');
- assert.equal(dragon.stats().hp-human.stats().hp,4);assert.equal(dragon.stats().speed-human.stats().speed,-1);
+ assert.equal(dragon.stats().hp-human.stats().hp,2);assert.equal(dragon.stats().speed-human.stats().speed,-1);
  assert(conditionOK(c,dragon.s,{type:'race_is',key:'dragon'}));assert(!conditionOK(c,human.s,{type:'race_is',key:'dragon'}));
  assert.throws(()=>fresh('invalid'));
 });

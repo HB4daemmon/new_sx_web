@@ -68,7 +68,7 @@ test('v7 rage engine refunds rage and emits deterministic thunder echoes',()=>{c
 test('v7 resource engines advance content and deterministic rule versions together',()=>{assert.equal(c.version,'4.1.0');assert.equal(c.rulesVersion,'4.1.0');});
 
 
-test('v7 origin battle perks are JSON configured and deterministic',()=>{const w=c.origins.find(o=>o.id==='wanderer'),a=c.origins.find(o=>o.id==='alchemist');assert.equal(w.battleStartEffects[0].type,'gain_rage');assert.equal(w.battleStartEffects[0].value,32);assert.equal(a.battleStartEffects[0].type,'gain_shield');assert.equal(a.battleStartEffects[0].value,8);const g1=fresh('V7-ORIGIN-PERK'),g2=fresh('V7-ORIGIN-PERK'),b1=simulateBattle(c,g1.s,structuredClone(c.enemies[0])),b2=simulateBattle(c,g2.s,structuredClone(c.enemies[0])),f=b1.frames.find(x=>x.sourceId==='origin.wanderer');assert.deepEqual(b1,b2);assert(f);assert(f.p.rage>=15);});
+test('v7 origin battle perks are JSON configured and deterministic',()=>{const w=c.origins.find(o=>o.id==='wanderer'),a=c.origins.find(o=>o.id==='alchemist');assert.equal(w.battleStartEffects[0].type,'gain_rage');assert.equal(w.battleStartEffects[0].value,60);assert.equal(a.battleStartEffects[0].type,'gain_shield');assert.equal(a.battleStartEffects[0].value,8);const g1=fresh('V7-ORIGIN-PERK'),g2=fresh('V7-ORIGIN-PERK'),b1=simulateBattle(c,g1.s,structuredClone(c.enemies[0])),b2=simulateBattle(c,g2.s,structuredClone(c.enemies[0])),f=b1.frames.find(x=>x.sourceId==='origin.wanderer');assert.deepEqual(b1,b2);assert(f);assert(f.p.rage>=15);});
 
 
 test('v8 all abilities carry authored mechanic roles',()=>{const allowed=new Set(['starter','generator','converter','amplifier','bridge','keystone','risk','payoff']);assert.equal(c.abilities.length,106);assert(c.abilities.every(a=>allowed.has(a.mechanicRole)));assert(c.abilities.filter(a=>a.mechanicRole==='payoff').length>=6);assert(c.abilities.filter(a=>a.mechanicRole==='converter').length>=5);});
@@ -112,7 +112,7 @@ test('v9 clear-heart jade converts leftover guard into persistent healing',()=>{
 });
 
 test('v9 warrior correction is origin-only and keeps shared guard skills intact',()=>{
- const w=c.origins.find(o=>o.id==='warrior'),guard=c.abilities.find(a=>a.id==='rage.guard');assert.equal(w.stats.hp,106);assert.equal(w.stats.attack,20);assert.equal(w.stats.defense,11);assert(guard.effects.some(e=>e.type==='gain_shield'&&e.coefficient));assert.equal(c.version,'4.1.0');assert.equal(c.rulesVersion,'4.1.0');
+ const w=c.origins.find(o=>o.id==='warrior'),guard=c.abilities.find(a=>a.id==='rage.guard');assert.equal(w.stats.hp,106);assert.equal(w.stats.attack,20);assert.equal(w.stats.defense,11);assert(w.starting.includes('aux.stone'));assert(!w.starting.includes('aux.counter'));assert(guard.effects.some(e=>e.type==='gain_shield'&&e.coefficient));assert.equal(c.version,'4.1.0');assert.equal(c.rulesVersion,'4.1.0');
 });
 
 
