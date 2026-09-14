@@ -9,6 +9,7 @@ on:
       - 'data/game.json'
       - 'src/**'
       - 'tools/tune-balance-v41.py'
+      - 'tools/tune-warrior-v41.py'
       - '.github/workflows/balance-v41.yml'
   workflow_dispatch:
 
@@ -24,7 +25,9 @@ jobs:
         with:
           node-version: 22
       - name: Apply 4.1 calibration
-        run: python tools/tune-balance-v41.py
+        run: |
+          python tools/tune-balance-v41.py
+          python tools/tune-warrior-v41.py
       - run: npm ci --no-audit --no-fund
       - name: Full rules suite
         run: npm test
