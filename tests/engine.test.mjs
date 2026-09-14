@@ -112,7 +112,7 @@ test('v9 clear-heart jade converts leftover guard into persistent healing',()=>{
 });
 
 test('v9 warrior correction is origin-only and keeps shared guard skills intact',()=>{
- const w=c.origins.find(o=>o.id==='warrior'),guard=c.abilities.find(a=>a.id==='rage.guard');assert.equal(w.stats.hp,104);assert.equal(w.stats.attack,19);assert.equal(w.stats.defense,11);assert(w.starting.includes('aux.qi'));assert(!w.starting.includes('aux.stone'));assert(!w.starting.includes('aux.counter'));assert(guard.effects.some(e=>e.type==='gain_shield'&&e.coefficient));assert.equal(c.version,'4.1.0');assert.equal(c.rulesVersion,'4.1.0');
+ const w=c.origins.find(o=>o.id==='warrior'),guard=c.abilities.find(a=>a.id==='rage.guard');assert.equal(w.stats.hp,104);assert.equal(w.stats.attack,19);assert.equal(w.stats.defense,11);assert.equal(w.starting.length,2);assert(!w.starting.includes('aux.qi'));assert(!w.starting.includes('aux.stone'));assert(!w.starting.includes('aux.counter'));assert(guard.effects.some(e=>e.type==='gain_shield'&&e.coefficient));assert.equal(c.version,'4.1.0');assert.equal(c.rulesVersion,'4.1.0');
 });
 
 
