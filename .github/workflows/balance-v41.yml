@@ -4,9 +4,11 @@ on:
   push:
     branches: [feature/balance-v41]
     paths:
+      - 'package.json'
       - 'tests/balance-audit.mjs'
       - 'tests/policy.mjs'
       - 'tests/ancestry.test.mjs'
+      - 'tests/ancestry-browser.py'
       - 'data/game.json'
       - 'src/**'
       - 'tools/tune-balance-v41.py'
@@ -20,6 +22,7 @@ permissions:
 jobs:
   audit:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
@@ -33,11 +36,24 @@ jobs:
       - name: Full rules suite
         run: npm test
       - name: 500-run ancestry and vocation audit
-        run: node tests/balance-audit.mjs
+        run: npm run balance
+      - name: HTTP browser regression
+        run: |
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium
+          python -m http.server 4173 --bind 127.0.0.1 --directory dist >/tmp/balance-v41-http.log 2>&1 &
+          server=$!
+          trap 'kill "$server"' EXIT
+          sleep 1
+          python tests/ancestry-browser.py --url http://127.0.0.1:4173/ --output /tmp/balance-v41-ui
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: balance-v41-audit
-          path: verification/balance-audit.json
+          name: balance-v41-verification
+          path: |
+            verification/balance-audit.json
+            /tmp/balance-v41-ui
+            /tmp/balance-v41-http.log
       - name: Commit verified calibration
         run: |
           git config user.name "github-actions[bot]"
