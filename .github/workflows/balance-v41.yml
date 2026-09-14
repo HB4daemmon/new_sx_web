@@ -8,11 +8,12 @@ on:
       - 'tests/policy.mjs'
       - 'data/game.json'
       - 'src/**'
+      - 'tools/tune-balance-v41.py'
       - '.github/workflows/balance-v41.yml'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   audit:
@@ -22,6 +23,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Apply 4.1 calibration
+        run: python tools/tune-balance-v41.py
       - run: npm ci --no-audit --no-fund
       - name: Full rules suite
         run: npm test
@@ -31,3 +34,14 @@ jobs:
         with:
           name: balance-v41-audit
           path: verification/balance-audit.json
+      - name: Commit verified calibration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/game.json package.json package-lock.json src/app.ts tests/*.mjs README.md docs/ANCESTRY_TALENTS.md
+          if git diff --cached --quiet; then
+            echo "No verified changes to commit"
+            exit 0
+          fi
+          git commit -m "balance: calibrate ancestry and vocation baselines for 4.1"
+          git push
