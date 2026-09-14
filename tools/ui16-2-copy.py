@@ -61,7 +61,7 @@ for rel in ['tests/combat-feedback.test.mjs','tests/race-events.test.mjs']:
 p=ROOT/'tests/immersion-copy.test.mjs'
 text=p.read_text(encoding='utf-8')
 text=text.replace("test('UI16.1 removes meta guidance from primary play surfaces'","test('UI16.2 keeps primary play surfaces in-world and trims draft meta copy'")
-text=replace_once(text,"assert.match(presentation,/UI_REVISION='16\\.1'/);","for(const phrase of ['择一</span>','精进','合流','新路','fighter-side-badge','THE FINAL CHOICE','>详细战报<','>导出<','>导入<'])assert(!app.includes(phrase),phrase);\n assert(app.includes(\"s.current?.type==='boss'?'劫首遗珍'\"));\n assert(app.includes(\"s.current?.type==='elite'?'强敌遗珍'\"));\n assert.match(presentation,/UI_REVISION='16\\.2'/);",'immersion revision assertions')
+text=replace_once(text,"assert.match(presentation,/UI_REVISION='16\\.1'/);","for(const phrase of ['<span class=\"muted\">择一</span>',\"['精进','合流','新路']\",'draft-lane-head','fighter-side-badge','THE FINAL CHOICE','>详细战报<','>导出<','>导入<'])assert(!app.includes(phrase),phrase);\n assert(app.includes(\"s.current?.type==='boss'?'劫首遗珍'\"));\n assert(app.includes(\"s.current?.type==='elite'?'强敌遗珍'\"));\n assert.match(presentation,/UI_REVISION='16\\.2'/);",'immersion revision assertions')
 text=replace_once(text,"assert(app.includes('详细战报'));","assert(app.includes('战痕详录'));",'critical log label')
 text=replace_once(text,"assert(app.includes('根骨明细'));","assert(app.includes('根骨来处'));",'critical stat label')
 p.write_text(text,encoding='utf-8')
