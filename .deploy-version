@@ -1,7 +1,7 @@
-Gameplay V14 / content and rules 3.0.0 / UI 15.0
-Battle surface rebuilt around a two-combatant stage with animated pixel VFX and deterministic particles.
-Single 192x256 multi-frame WebP atlas is about 30 KB; standalone PLAY.html inlines it.
-Damage, healing, shield gain/loss, status application and status consumption are surfaced directly in combat.
-Existing skill, slot, artifact and ability SVG artwork remains unchanged.
-Verified on feature branch: 107/107 tests, full deterministic simulation, packaging checks, and 128 HTTP Chromium regression checks passed.
-Source baseline: c98447c654625ae5a9fe5396f2219ed3eaecdd46
+Gameplay 4.0.0 / UI 16.0
+Four ancestries, five independent origins, forty manually selected realm talents, sixteen sub-schools, six hybrid recipes and eight resource-conversion artifacts.
+Eight ancestry-specific multi-stage event arcs add public deterministic checks, callbacks and talent-gated solutions; twelve existing place events now use scene-specific prose without changing mechanics.
+UI15 combat stage, pixel VFX and existing skill/artifact SVG language are retained.
+Verified in staged checkpoints: 140/140 final tests, full 120-run deterministic simulation, HTTP Chromium browser regression, and locked place-event mechanics fingerprint.
+3.0.0 saves are intentionally incompatible with 4.0.0; same-version saves and replay remain deterministic.
+Clean source baseline: e1ba444bb941ff3879492d2e3db6c9394a9ecfff
