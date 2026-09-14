@@ -38,21 +38,21 @@
       "name": "行伍武者",
       "subtitle": "肉身为盾，凡骨撼天",
       "art": "guardian",
-      "description": "生命 +6，防御 +1，气运 -2。开局先以玄甲积盾；反震收益需要在旅途中再补齐。",
+      "description": "生命 +4，攻击 -1，防御 +1，气运 -3。拳与玄甲仍是根骨，但护盾增幅和反震收益都需在旅途中补齐。",
       "stats": {
-        "hp": 106,
-        "attack": 20,
+        "hp": 104,
+        "attack": 19,
         "defense": 11,
         "speed": 10,
         "hit": 10,
         "dodge": 10,
-        "luck": 8
+        "luck": 7
       },
       "affinity": "shield",
       "starting": [
         "basic.fist",
         "rage.guard",
-        "aux.stone"
+        "aux.qi"
       ]
     },
     {
