@@ -1,1 +1,1 @@
-{"stage":"04","script":"tools/apply-delta.py","sha256":"4945abed6b699c57b6a19c2dac2f407a73caf40beba506d3e825e131ed2efa0b","message":"feat: add eight ancestry event arcs with public checks and callbacks","browser":true,"retry":3,"postFix":"stage04-presentation"}
+{"stage":"04","script":"tools/apply-delta.py","sha256":"4945abed6b699c57b6a19c2dac2f407a73caf40beba506d3e825e131ed2efa0b","message":"feat: add eight ancestry event arcs with public checks and callbacks","browser":true,"retry":4,"postFix":"stage04-presentation"}
