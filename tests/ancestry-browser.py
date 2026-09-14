@@ -40,6 +40,7 @@ with sync_playwright() as p:
    check(race+' queued choices complete',ev('return a.game.s.talents.length===4&&!a.game.s.talentDraft'))
    ev("a.view='build';a.render();");check(race+' talent ledger exists',page.locator('details[data-panel=talents]').count()==1)
    page.locator('details[data-panel=talents]>summary').click();fit(race+' ledger fits')
+  fixture('spirit',xp=0);ev("a.game.s.phase='event';a.game.s.eventId='race.spirit.0';a.game.s.eventPhase='trail';a.game.s.eventStep=0;a.render();");fit('race event fits');check('public event odds visible',page.locator('.check-badge').count()>=2);check('locked racial talent choice hidden',page.locator('[data-action=event][data-id=foxfire]').count()==0);ev("a.game.s.talents=['talent.spirit.fox'];a.render();");check('racial talent reveals story solution',page.locator('[data-action=event][data-id=foxfire]').count()==1);page.screenshot(path=str(out/'race-event-spirit.png'),full_page=True)
   fixture('human',xp=75);page.locator('[data-action=selectTalent]').first.click();before=ev('return JSON.stringify(a.game.s.talentDraft)');ev('a.save()')
   if args.url:
    page.reload(wait_until='networkidle');page.locator('[data-action=resume]').click();check('reload preserves offer',ev('return JSON.stringify(a.game.s.talentDraft)')==before)

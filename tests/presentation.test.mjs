@@ -23,7 +23,7 @@ test('v13 presentation covers all event outcomes, including checks and phases',(
   for(const k of ch.check?['success','failure']:['outcome'])assert(cp[k]?.length>5,`${e.id}/${ph.id}/${ch.id}/${k}`);
   choices++;
  }
- assert.equal(choices,221);
+ assert.equal(choices,276);
 });
 test('v13 strangers are never described as returning friends',()=>{
  const g=fresh();

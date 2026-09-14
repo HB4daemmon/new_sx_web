@@ -15173,6 +15173,1914 @@
           "weight": 1
         }
       ]
+    },
+    {
+      "id": "race.human.0",
+      "act": 0,
+      "major": false,
+      "name": "城门旧律",
+      "npc": "朝歌书吏",
+      "art": "seal",
+      "text": "城门下挤着一群等候验籍的人。雨水把竹简泡得发黑，一个抱孩子的妇人却怎么也找不到自己的名字。",
+      "choices": [],
+      "phases": [
+        {
+          "id": "gate",
+          "text": "守门书吏把朱笔横在案上：“无籍者不得入城。你若替她担名，出了事便算在你头上。”",
+          "choices": [
+            {
+              "id": "guarantee",
+              "label": "替她担下这个名字",
+              "text": "支付 15 灵石，善念 +1；此事会留下后续因果。",
+              "preview": "支付 15 灵石，善念 +1；此事会留下后续因果。",
+              "effects": [
+                {
+                  "type": "gain_currency",
+                  "value": -15
+                },
+                {
+                  "type": "add_counter",
+                  "key": "mercy",
+                  "value": 1
+                },
+                {
+                  "type": "set_fact",
+                  "key": "human_guarantee",
+                  "value": true
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "human_oath",
+                  "value": "替人担名"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "currency_at_least",
+                  "value": 15
+                }
+              ],
+              "tone": "cost",
+              "next": "seal",
+              "consequence": "你把自己的名字压在了别人的命上。"
+            },
+            {
+              "id": "cite",
+              "label": "按旧律逐条与书吏争辩",
+              "text": "修为 +12，并以旧律为她补籍。",
+              "preview": "修为 +12，并以旧律为她补籍。",
+              "effects": [
+                {
+                  "type": "gain_xp",
+                  "value": 12
+                },
+                {
+                  "type": "set_fact",
+                  "key": "human_cited_law",
+                  "value": true
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "human_oath",
+                  "value": "据理补籍"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_talent",
+                  "key": "talent.human.learn"
+                }
+              ],
+              "tone": "fate",
+              "next": "seal",
+              "consequence": "“博闻”让凡俗律条也成为可用之器。"
+            },
+            {
+              "id": "slip",
+              "label": "趁换岗时带她穿过侧门",
+              "text": "公开气运检定；成则不花灵石过关，败则受伤。",
+              "preview": "公开气运检定；成则不花灵石过关，败则受伤。",
+              "effects": [],
+              "conditions": [],
+              "tone": "check",
+              "check": {
+                "stat": "luck",
+                "base": 48,
+                "difficulty": 10,
+                "success": {
+                  "text": "巡卒的灯笼恰好转向城外。你们贴着阴影穿过门洞。",
+                  "effects": [
+                    {
+                      "type": "gain_xp",
+                      "value": 8
+                    },
+                    {
+                      "type": "set_fact",
+                      "key": "human_guarantee",
+                      "value": true
+                    },
+                    {
+                      "type": "advance_thread",
+                      "key": "human_oath",
+                      "value": "暗门相助"
+                    }
+                  ],
+                  "next": "seal"
+                },
+                "failure": {
+                  "text": "侧门刚开，巡卒便折返。你替她挡下一棍，只能退回雨里。",
+                  "effects": [
+                    {
+                      "type": "damage",
+                      "value": 6
+                    }
+                  ]
+                }
+              },
+              "consequence": "成败由当下气运公开判定。"
+            }
+          ]
+        },
+        {
+          "id": "seal",
+          "text": "妇人进城前把半枚木印塞给你。印背刻着一排被刮掉又重新写上的名字。",
+          "choices": [
+            {
+              "id": "share",
+              "label": "把木印交回等候的人群",
+              "text": "善念 +1，恢复 8 生命。",
+              "preview": "善念 +1，恢复 8 生命。",
+              "effects": [
+                {
+                  "type": "add_counter",
+                  "key": "mercy",
+                  "value": 1
+                },
+                {
+                  "type": "heal",
+                  "value": 8
+                },
+                {
+                  "type": "set_fact",
+                  "key": "human_shared_seal",
+                  "value": true
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "human_oath",
+                  "value": "众名共印"
+                }
+              ],
+              "conditions": [],
+              "tone": "fate",
+              "consequence": "这枚印不再属于一个人，后面会有人认得它。"
+            },
+            {
+              "id": "keep",
+              "label": "收下木印，记住门路",
+              "text": "灵石 +12，修为 +8。",
+              "preview": "灵石 +12，修为 +8。",
+              "effects": [
+                {
+                  "type": "gain_currency",
+                  "value": 12
+                },
+                {
+                  "type": "gain_xp",
+                  "value": 8
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "human_oath",
+                  "value": "留印自用"
+                }
+              ],
+              "conditions": [],
+              "tone": "safe"
+            },
+            {
+              "id": "burn",
+              "label": "把木印上的旧名刮净",
+              "text": "逆命 +1，修为 +12。",
+              "preview": "逆命 +1，修为 +12。",
+              "effects": [
+                {
+                  "type": "add_counter",
+                  "key": "defiance",
+                  "value": 1
+                },
+                {
+                  "type": "gain_xp",
+                  "value": 12
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "human_oath",
+                  "value": "削去旧名"
+                }
+              ],
+              "conditions": [],
+              "tone": "fate",
+              "consequence": "你拒绝让一枚木印决定谁能活成“有名之人”。"
+            }
+          ]
+        }
+      ],
+      "startPhase": "gate",
+      "profile": "A",
+      "weight": 1.15,
+      "maxPerRun": 1,
+      "category": "encounter",
+      "requirements": [
+        {
+          "type": "race_is",
+          "key": "human"
+        }
+      ]
+    },
+    {
+      "id": "race.human.2",
+      "act": 2,
+      "major": false,
+      "name": "军册无名",
+      "npc": "西岐录事",
+      "art": "seal",
+      "text": "西岐军营清点阵亡者时，多出一具无人认领的尸身。军册上没有名字，只有一枚与你在朝歌见过的旧式木印。",
+      "choices": [],
+      "phases": [
+        {
+          "id": "ledger",
+          "text": "录事说：“无名者不能领恤，也不能入祠。你若认得这印，就替他找一个去处。”",
+          "choices": [
+            {
+              "id": "trace",
+              "label": "翻查三日军册与粮簿",
+              "text": "公开命中检定；成则找出身份线索，败则在夜袭中负伤。",
+              "preview": "公开命中检定；成则找出身份线索，败则在夜袭中负伤。",
+              "effects": [],
+              "conditions": [],
+              "tone": "check",
+              "check": {
+                "stat": "hit",
+                "base": 45,
+                "difficulty": 13,
+                "success": {
+                  "text": "你从一笔被涂掉的领粮记录里找到了同样的木印。死者不是逃兵，而是替伤兵顶名的人。",
+                  "effects": [
+                    {
+                      "type": "gain_xp",
+                      "value": 14
+                    },
+                    {
+                      "type": "set_fact",
+                      "key": "human_found_name",
+                      "value": true
+                    }
+                  ],
+                  "next": "verdict"
+                },
+                "failure": {
+                  "text": "你追着错线索出了营门，正撞上夜袭。等回到帐中，军册已经被雨打湿。",
+                  "effects": [
+                    {
+                      "type": "damage",
+                      "value": 8
+                    }
+                  ],
+                  "next": "verdict"
+                }
+              },
+              "consequence": "线索能否接上，由命中与气运共同决定。"
+            },
+            {
+              "id": "enlighten",
+              "label": "从删改痕迹里直接看出前后手",
+              "text": "无需检定，找出被顶替的真名；修为 +16。",
+              "preview": "无需检定，找出被顶替的真名；修为 +16。",
+              "effects": [
+                {
+                  "type": "gain_xp",
+                  "value": 16
+                },
+                {
+                  "type": "set_fact",
+                  "key": "human_found_name",
+                  "value": true
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_talent",
+                  "key": "talent.human.enlighten"
+                }
+              ],
+              "tone": "fate",
+              "next": "verdict",
+              "consequence": "通明不是“知道答案”，而是看见谁在改写答案。"
+            },
+            {
+              "id": "leave",
+              "label": "不替军册补一个陌生人的生平",
+              "text": "修为 +10。",
+              "preview": "修为 +10。",
+              "effects": [
+                {
+                  "type": "gain_xp",
+                  "value": 10
+                }
+              ],
+              "conditions": [],
+              "tone": "safe"
+            }
+          ]
+        },
+        {
+          "id": "verdict",
+          "text": "天亮前，录事要把最后一页封存。你可以让这个名字回到册中，也可以让他彻底从册上消失。",
+          "choices": [
+            {
+              "id": "restore",
+              "label": "把真名写回军册",
+              "text": "善念 +1，防御 +1。",
+              "preview": "善念 +1，防御 +1。",
+              "effects": [
+                {
+                  "type": "add_counter",
+                  "key": "mercy",
+                  "value": 1
+                },
+                {
+                  "type": "modify_stat",
+                  "stat": "defense",
+                  "value": 1
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "human_oath",
+                  "value": "替无名者归册"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_fact",
+                  "key": "human_found_name"
+                }
+              ],
+              "tone": "fate",
+              "consequence": "名字回到册上，也会回到某个仍在等消息的人家。"
+            },
+            {
+              "id": "witness",
+              "label": "以自己曾担过的名字作证",
+              "text": "恢复 14 生命，气运 +1。",
+              "preview": "恢复 14 生命，气运 +1。",
+              "effects": [
+                {
+                  "type": "heal",
+                  "value": 14
+                },
+                {
+                  "type": "modify_stat",
+                  "stat": "luck",
+                  "value": 1
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "human_oath",
+                  "value": "旧担成证"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_fact",
+                  "key": "human_guarantee"
+                }
+              ],
+              "tone": "fate",
+              "consequence": "朝歌的一笔人情，在西岐变成了证词。"
+            },
+            {
+              "id": "erase",
+              "label": "将这一页投入火盆",
+              "text": "逆命 +1，速度 +1。",
+              "preview": "逆命 +1，速度 +1。",
+              "effects": [
+                {
+                  "type": "add_counter",
+                  "key": "defiance",
+                  "value": 1
+                },
+                {
+                  "type": "modify_stat",
+                  "stat": "speed",
+                  "value": 1
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "human_oath",
+                  "value": "不受册定"
+                }
+              ],
+              "conditions": [],
+              "tone": "fate",
+              "consequence": "你让他不再属于任何军册，也失去了由军册证明的一切。"
+            }
+          ]
+        }
+      ],
+      "startPhase": "ledger",
+      "profile": "A",
+      "weight": 1.15,
+      "maxPerRun": 1,
+      "category": "echo",
+      "requirements": [
+        {
+          "type": "race_is",
+          "key": "human"
+        }
+      ],
+      "relevance": [
+        {
+          "type": "has_fact",
+          "key": "human_guarantee"
+        }
+      ]
+    },
+    {
+      "id": "race.spirit.0",
+      "act": 0,
+      "major": false,
+      "name": "猎网下的幼妖",
+      "npc": "山中猎户",
+      "art": "beast",
+      "text": "官道边挂着一张新织的猎网。网里不是野兽，而是一只刚能化出人声的小妖，正学着路人的口音喊“救命”。",
+      "choices": [],
+      "phases": [
+        {
+          "id": "trail",
+          "text": "猎户提着叉子赶来：“它昨夜偷了三只鸡。你若说它算人，就替它赔。”",
+          "choices": [
+            {
+              "id": "cut",
+              "label": "先斩断猎网",
+              "text": "公开攻击检定；成则救下幼妖，败则被猎叉划伤。",
+              "preview": "公开攻击检定；成则救下幼妖，败则被猎叉划伤。",
+              "effects": [],
+              "conditions": [],
+              "tone": "check",
+              "check": {
+                "stat": "attack",
+                "base": 44,
+                "difficulty": 16,
+                "success": {
+                  "text": "绳结在刀下齐断。幼妖没有逃，反而扑回去叼走了最后一根套索。",
+                  "effects": [
+                    {
+                      "type": "add_counter",
+                      "key": "mercy",
+                      "value": 1
+                    },
+                    {
+                      "type": "set_fact",
+                      "key": "spirit_freed_young",
+                      "value": true
+                    },
+                    {
+                      "type": "advance_thread",
+                      "key": "spirit_kin",
+                      "value": "断网救同类"
+                    }
+                  ],
+                  "next": "den"
+                },
+                "failure": {
+                  "text": "猎叉逼得太紧，你只来得及替它挡开一击。幼妖趁乱钻进林中。",
+                  "effects": [
+                    {
+                      "type": "damage",
+                      "value": 7
+                    },
+                    {
+                      "type": "advance_thread",
+                      "key": "spirit_kin",
+                      "value": "林中走散"
+                    }
+                  ]
+                }
+              },
+              "consequence": "强行动手有机会救下它，也可能只留下伤口。"
+            },
+            {
+              "id": "foxfire",
+              "label": "用狐火烧断网绳，不伤猎户",
+              "text": "修为 +10，救下幼妖。",
+              "preview": "修为 +10，救下幼妖。",
+              "effects": [
+                {
+                  "type": "gain_xp",
+                  "value": 10
+                },
+                {
+                  "type": "set_fact",
+                  "key": "spirit_freed_young",
+                  "value": true
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "spirit_kin",
+                  "value": "狐火断网"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_talent",
+                  "key": "talent.spirit.fox"
+                }
+              ],
+              "tone": "fate",
+              "next": "den",
+              "consequence": "狐火路线在山野事件中提供更精细的处理方式。"
+            },
+            {
+              "id": "pay",
+              "label": "替它赔掉鸡钱",
+              "text": "支付 18 灵石，善念 +1。",
+              "preview": "支付 18 灵石，善念 +1。",
+              "effects": [
+                {
+                  "type": "gain_currency",
+                  "value": -18
+                },
+                {
+                  "type": "add_counter",
+                  "key": "mercy",
+                  "value": 1
+                },
+                {
+                  "type": "set_fact",
+                  "key": "spirit_freed_young",
+                  "value": true
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "spirit_kin",
+                  "value": "赔鸡赎妖"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "currency_at_least",
+                  "value": 18
+                }
+              ],
+              "tone": "cost",
+              "next": "den"
+            },
+            {
+              "id": "hide",
+              "label": "装作普通野兽，引开猎户",
+              "text": "公开闪避检定；成功带幼妖脱身，失败受 5 伤害。",
+              "preview": "公开闪避检定；成功带幼妖脱身，失败受 5 伤害。",
+              "effects": [],
+              "conditions": [],
+              "tone": "check",
+              "check": {
+                "stat": "dodge",
+                "base": 46,
+                "difficulty": 12,
+                "success": {
+                  "text": "你故意踩出一串假脚印。等猎户追远，幼妖已经缩在你身后的草丛里。",
+                  "effects": [
+                    {
+                      "type": "gain_xp",
+                      "value": 8
+                    },
+                    {
+                      "type": "set_fact",
+                      "key": "spirit_freed_young",
+                      "value": true
+                    },
+                    {
+                      "type": "advance_thread",
+                      "key": "spirit_kin",
+                      "value": "同形匿迹"
+                    }
+                  ],
+                  "next": "den"
+                },
+                "failure": {
+                  "text": "猎犬先闻出了不对。你带着幼妖翻过石坡，肩背被荆刺划得鲜血淋漓。",
+                  "effects": [
+                    {
+                      "type": "damage",
+                      "value": 5
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "den",
+          "text": "林子深处有一株被雷劈空的老槐。幼妖把藏着的半截药根推到你脚边，又警惕地等你先拿。",
+          "choices": [
+            {
+              "id": "guard",
+              "label": "替它守到天黑再走",
+              "text": "失去 4 生命，善念 +1，最大生命 +3。",
+              "preview": "失去 4 生命，善念 +1，最大生命 +3。",
+              "effects": [
+                {
+                  "type": "damage",
+                  "value": 4
+                },
+                {
+                  "type": "add_counter",
+                  "key": "mercy",
+                  "value": 1
+                },
+                {
+                  "type": "modify_stat",
+                  "stat": "hp",
+                  "value": 3
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "spirit_kin",
+                  "value": "守到天黑"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "hp_above_absolute",
+                  "value": 4
+                }
+              ],
+              "tone": "cost",
+              "consequence": "你用一晚证明“同类”不是一句口号。"
+            },
+            {
+              "id": "herb",
+              "label": "只取半截药根",
+              "text": "恢复 12 生命，修为 +8。",
+              "preview": "恢复 12 生命，修为 +8。",
+              "effects": [
+                {
+                  "type": "heal",
+                  "value": 12
+                },
+                {
+                  "type": "gain_xp",
+                  "value": 8
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "spirit_kin",
+                  "value": "各取所需"
+                }
+              ],
+              "conditions": [],
+              "tone": "safe"
+            },
+            {
+              "id": "root",
+              "label": "教它辨认能活命的草木",
+              "text": "恢复 8 生命，气运 +1。",
+              "preview": "恢复 8 生命，气运 +1。",
+              "effects": [
+                {
+                  "type": "heal",
+                  "value": 8
+                },
+                {
+                  "type": "modify_stat",
+                  "stat": "luck",
+                  "value": 1
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "spirit_kin",
+                  "value": "草木传法"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_talent",
+                  "key": "talent.spirit.root"
+                }
+              ],
+              "tone": "fate",
+              "consequence": "草木回生路线把治疗经验变成族群传承。"
+            }
+          ]
+        }
+      ],
+      "startPhase": "trail",
+      "profile": "A",
+      "weight": 1.15,
+      "maxPerRun": 1,
+      "category": "encounter",
+      "requirements": [
+        {
+          "type": "race_is",
+          "key": "spirit"
+        }
+      ]
+    },
+    {
+      "id": "race.spirit.2",
+      "act": 2,
+      "major": false,
+      "name": "山神借名",
+      "npc": "岐山山神",
+      "art": "hermit",
+      "text": "岐山深处有一座没有香火的小庙。神像脸上长着新苔，开口却叫出了一个你从未用过的旧名字。",
+      "choices": [],
+      "phases": [
+        {
+          "id": "shrine",
+          "text": "“山泽有名，飞禽走兽也有名。你既成了精，为何只认后来学会的那个？”声音从石像腹中传来。",
+          "choices": [
+            {
+              "id": "listen",
+              "label": "顺着旧名追问来处",
+              "text": "公开气运检定；成则听见前身，败则被旧忆冲伤。",
+              "preview": "公开气运检定；成则听见前身，败则被旧忆冲伤。",
+              "effects": [],
+              "conditions": [],
+              "tone": "check",
+              "check": {
+                "stat": "luck",
+                "base": 45,
+                "difficulty": 14,
+                "success": {
+                  "text": "雨声忽然倒退。你在一段并不属于“现在的你”的记忆里，看见自己曾从这座山下经过。",
+                  "effects": [
+                    {
+                      "type": "gain_xp",
+                      "value": 14
+                    },
+                    {
+                      "type": "set_fact",
+                      "key": "spirit_heard_old_name",
+                      "value": true
+                    }
+                  ],
+                  "next": "name"
+                },
+                "failure": {
+                  "text": "旧名像钩子一样扎进识海。你强行把那段声音压下去，额角已经渗血。",
+                  "effects": [
+                    {
+                      "type": "damage",
+                      "value": 8
+                    }
+                  ],
+                  "next": "name"
+                }
+              },
+              "consequence": "这次检定不是找宝，而是在决定你能否承受自己的旧来处。"
+            },
+            {
+              "id": "distill",
+              "label": "把旧名当作一缕杂气炼开",
+              "text": "修为 +16，并进入旧名之问。",
+              "preview": "修为 +16，并进入旧名之问。",
+              "effects": [
+                {
+                  "type": "gain_xp",
+                  "value": 16
+                },
+                {
+                  "type": "set_fact",
+                  "key": "spirit_heard_old_name",
+                  "value": true
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_talent",
+                  "key": "talent.spirit.distill"
+                }
+              ],
+              "tone": "fate",
+              "next": "name"
+            },
+            {
+              "id": "root",
+              "label": "让草木替你听完旧名",
+              "text": "恢复 10 生命，并进入旧名之问。",
+              "preview": "恢复 10 生命，并进入旧名之问。",
+              "effects": [
+                {
+                  "type": "heal",
+                  "value": 10
+                },
+                {
+                  "type": "set_fact",
+                  "key": "spirit_heard_old_name",
+                  "value": true
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_talent",
+                  "key": "talent.spirit.sap"
+                }
+              ],
+              "tone": "fate",
+              "next": "name"
+            },
+            {
+              "id": "leave",
+              "label": "不认山神替你取的名字",
+              "text": "修为 +10。",
+              "preview": "修为 +10。",
+              "effects": [
+                {
+                  "type": "gain_xp",
+                  "value": 10
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "spirit_name",
+                  "value": "仍以今名"
+                }
+              ],
+              "conditions": [],
+              "tone": "safe"
+            }
+          ]
+        },
+        {
+          "id": "name",
+          "text": "神像问你：“若我把旧名还你，你要用它换山泽庇佑，还是把它留在这里？”",
+          "choices": [
+            {
+              "id": "accept",
+              "label": "接回旧名",
+              "text": "最大生命 +4，防御 +1。",
+              "preview": "最大生命 +4，防御 +1。",
+              "effects": [
+                {
+                  "type": "modify_stat",
+                  "stat": "hp",
+                  "value": 4
+                },
+                {
+                  "type": "modify_stat",
+                  "stat": "defense",
+                  "value": 1
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "spirit_name",
+                  "value": "旧名归身"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_fact",
+                  "key": "spirit_heard_old_name"
+                }
+              ],
+              "tone": "fate",
+              "consequence": "你承认自己并非从化形那一日才开始存在。"
+            },
+            {
+              "id": "return",
+              "label": "把旧名留给山泽",
+              "text": "速度 +1，善念 +1。",
+              "preview": "速度 +1，善念 +1。",
+              "effects": [
+                {
+                  "type": "modify_stat",
+                  "stat": "speed",
+                  "value": 1
+                },
+                {
+                  "type": "add_counter",
+                  "key": "mercy",
+                  "value": 1
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "spirit_name",
+                  "value": "名归山泽"
+                }
+              ],
+              "conditions": [],
+              "tone": "fate"
+            },
+            {
+              "id": "sun",
+              "label": "以妖丹照见“名字”只是壳",
+              "text": "攻击 +1，气运 +1。",
+              "preview": "攻击 +1，气运 +1。",
+              "effects": [
+                {
+                  "type": "modify_stat",
+                  "stat": "attack",
+                  "value": 1
+                },
+                {
+                  "type": "modify_stat",
+                  "stat": "luck",
+                  "value": 1
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "spirit_name",
+                  "value": "丹照无名"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_talent",
+                  "key": "talent.spirit.sun"
+                }
+              ],
+              "tone": "fate",
+              "consequence": "九曜妖丹路线拒绝让旧名成为新的枷锁。"
+            },
+            {
+              "id": "cycle",
+              "label": "把旧名送给曾被你救下的幼妖",
+              "text": "恢复 16 生命，善念 +1。",
+              "preview": "恢复 16 生命，善念 +1。",
+              "effects": [
+                {
+                  "type": "heal",
+                  "value": 16
+                },
+                {
+                  "type": "add_counter",
+                  "key": "mercy",
+                  "value": 1
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "spirit_name",
+                  "value": "旧名传后"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_fact",
+                  "key": "spirit_freed_young"
+                },
+                {
+                  "type": "has_talent",
+                  "key": "talent.spirit.cycle"
+                }
+              ],
+              "tone": "fate",
+              "consequence": "前一幕的同类之缘与枯荣路线在这里汇合。"
+            }
+          ]
+        }
+      ],
+      "startPhase": "shrine",
+      "profile": "A",
+      "weight": 1.15,
+      "maxPerRun": 1,
+      "category": "echo",
+      "requirements": [
+        {
+          "type": "race_is",
+          "key": "spirit"
+        }
+      ],
+      "relevance": [
+        {
+          "type": "has_fact",
+          "key": "spirit_freed_young"
+        }
+      ]
+    },
+    {
+      "id": "race.dragon.1",
+      "act": 1,
+      "major": false,
+      "name": "断潮龙骨",
+      "npc": "海眼守碑人",
+      "art": "dragon",
+      "text": "退潮后的礁床露出一截巨大的白骨。骨上刻满潮纹，离它越近，你血里的鳞意便越重。",
+      "choices": [],
+      "phases": [
+        {
+          "id": "reef",
+          "text": "守碑人没有拦你，只说：“龙骨认血。你若真想知道它是谁，先让它知道你是谁。”",
+          "choices": [
+            {
+              "id": "blood",
+              "label": "以血唤醒潮纹",
+              "text": "失去 7 生命，修为 +10，进入骨髓深处。",
+              "preview": "失去 7 生命，修为 +10，进入骨髓深处。",
+              "effects": [
+                {
+                  "type": "damage",
+                  "value": 7
+                },
+                {
+                  "type": "gain_xp",
+                  "value": 10
+                },
+                {
+                  "type": "set_fact",
+                  "key": "dragon_heard_bone",
+                  "value": true
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "hp_above_absolute",
+                  "value": 7
+                }
+              ],
+              "tone": "cost",
+              "next": "marrow",
+              "consequence": "你主动承认这段血脉与自己有关。"
+            },
+            {
+              "id": "tide",
+              "label": "顺着潮息读骨纹",
+              "text": "无需受伤；修为 +12。",
+              "preview": "无需受伤；修为 +12。",
+              "effects": [
+                {
+                  "type": "gain_xp",
+                  "value": 12
+                },
+                {
+                  "type": "set_fact",
+                  "key": "dragon_heard_bone",
+                  "value": true
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_talent",
+                  "key": "talent.dragon.tide"
+                }
+              ],
+              "tone": "fate",
+              "next": "marrow"
+            },
+            {
+              "id": "read",
+              "label": "从断面推算龙骨来历",
+              "text": "公开命中检定；成则进入骨髓，败则受伤。",
+              "preview": "公开命中检定；成则进入骨髓，败则受伤。",
+              "effects": [],
+              "conditions": [],
+              "tone": "check",
+              "check": {
+                "stat": "hit",
+                "base": 46,
+                "difficulty": 13,
+                "success": {
+                  "text": "你找到了骨纹中唯一逆流的一笔，整截龙骨随之发出低沉潮声。",
+                  "effects": [
+                    {
+                      "type": "gain_xp",
+                      "value": 12
+                    },
+                    {
+                      "type": "set_fact",
+                      "key": "dragon_heard_bone",
+                      "value": true
+                    }
+                  ],
+                  "next": "marrow"
+                },
+                "failure": {
+                  "text": "你触错一道旧禁，骨刺从沙下弹起，在小腿上划开一道口子。",
+                  "effects": [
+                    {
+                      "type": "damage",
+                      "value": 6
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "pearl",
+              "label": "只取潮沟里冲出的碎珠",
+              "text": "灵石 +16。",
+              "preview": "灵石 +16。",
+              "effects": [
+                {
+                  "type": "gain_currency",
+                  "value": 16
+                }
+              ],
+              "conditions": [],
+              "tone": "safe"
+            }
+          ]
+        },
+        {
+          "id": "marrow",
+          "text": "潮声里没有祖先的训诫，只有一段反复出现的画面：一条老龙把自己的鳞一片片剥下，铺成凡人过海的堤。",
+          "choices": [
+            {
+              "id": "return",
+              "label": "把断骨推回潮沟",
+              "text": "善念 +1，恢复 12 生命。",
+              "preview": "善念 +1，恢复 12 生命。",
+              "effects": [
+                {
+                  "type": "add_counter",
+                  "key": "mercy",
+                  "value": 1
+                },
+                {
+                  "type": "heal",
+                  "value": 12
+                },
+                {
+                  "type": "set_fact",
+                  "key": "dragon_returned_bone",
+                  "value": true
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "dragon_tide",
+                  "value": "送骨归潮"
+                }
+              ],
+              "conditions": [],
+              "tone": "fate",
+              "consequence": "后来若再听见潮声，它会记得这次归还。"
+            },
+            {
+              "id": "carry",
+              "label": "取下一小段骨片随身",
+              "text": "防御 +1，最大生命 +4。",
+              "preview": "防御 +1，最大生命 +4。",
+              "effects": [
+                {
+                  "type": "modify_stat",
+                  "stat": "defense",
+                  "value": 1
+                },
+                {
+                  "type": "modify_stat",
+                  "stat": "hp",
+                  "value": 4
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "dragon_tide",
+                  "value": "负骨而行"
+                }
+              ],
+              "conditions": [],
+              "tone": "safe"
+            },
+            {
+              "id": "scale",
+              "label": "以逆鳞之意刻下自己的名字",
+              "text": "逆命 +1，攻击 +1。",
+              "preview": "逆命 +1，攻击 +1。",
+              "effects": [
+                {
+                  "type": "add_counter",
+                  "key": "defiance",
+                  "value": 1
+                },
+                {
+                  "type": "modify_stat",
+                  "stat": "attack",
+                  "value": 1
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "dragon_tide",
+                  "value": "逆鳞留名"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_talent",
+                  "key": "talent.dragon.scale"
+                }
+              ],
+              "tone": "fate",
+              "consequence": "逆鳞路线把血脉看成要回应、而不是服从的东西。"
+            }
+          ]
+        }
+      ],
+      "startPhase": "reef",
+      "profile": "A",
+      "weight": 1.15,
+      "maxPerRun": 1,
+      "category": "encounter",
+      "requirements": [
+        {
+          "type": "race_is",
+          "key": "dragon"
+        }
+      ]
+    },
+    {
+      "id": "race.dragon.3",
+      "act": 3,
+      "major": false,
+      "name": "归潮问鳞",
+      "npc": "东海潮使",
+      "art": "dragon",
+      "text": "万仙阵外忽然起了不合时节的海雾。一个披鳞甲的潮使站在雾中，手里托着你曾见过的那种旧龙骨。",
+      "choices": [],
+      "phases": [
+        {
+          "id": "tide",
+          "text": "潮使问：“封神榜要记人的名，也要记龙的名。你这一身血，最后准备归到哪一页？”",
+          "choices": [
+            {
+              "id": "hear",
+              "label": "听完海雾里的旧誓",
+              "text": "公开气运检定；成则听见真意，败则被潮压所伤。",
+              "preview": "公开气运检定；成则听见真意，败则被潮压所伤。",
+              "effects": [],
+              "conditions": [],
+              "tone": "check",
+              "check": {
+                "stat": "luck",
+                "base": 44,
+                "difficulty": 14,
+                "success": {
+                  "text": "你听见的不是召你归海的命令，而是一句早被误传的嘱托：龙血可以记得海，也可以走出海。",
+                  "effects": [
+                    {
+                      "type": "gain_xp",
+                      "value": 16
+                    },
+                    {
+                      "type": "set_fact",
+                      "key": "dragon_heard_tide",
+                      "value": true
+                    }
+                  ],
+                  "next": "oath"
+                },
+                "failure": {
+                  "text": "潮声层层压进胸腔。你仍走到了雾心，却没能分清那些声音究竟来自祖血还是恐惧。",
+                  "effects": [
+                    {
+                      "type": "damage",
+                      "value": 9
+                    }
+                  ],
+                  "next": "oath"
+                }
+              }
+            },
+            {
+              "id": "sea",
+              "label": "以四海归流稳住潮声",
+              "text": "无需检定；恢复 10 生命，进入誓问。",
+              "preview": "无需检定；恢复 10 生命，进入誓问。",
+              "effects": [
+                {
+                  "type": "heal",
+                  "value": 10
+                },
+                {
+                  "type": "set_fact",
+                  "key": "dragon_heard_tide",
+                  "value": true
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_talent",
+                  "key": "talent.dragon.sea"
+                }
+              ],
+              "tone": "fate",
+              "next": "oath"
+            },
+            {
+              "id": "wrath",
+              "label": "以应龙怒震散海雾",
+              "text": "无需检定；修为 +14，进入誓问。",
+              "preview": "无需检定；修为 +14，进入誓问。",
+              "effects": [
+                {
+                  "type": "gain_xp",
+                  "value": 14
+                },
+                {
+                  "type": "set_fact",
+                  "key": "dragon_heard_tide",
+                  "value": true
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_talent",
+                  "key": "talent.dragon.wrath"
+                }
+              ],
+              "tone": "fate",
+              "next": "oath"
+            },
+            {
+              "id": "leave",
+              "label": "不在大劫前再认一门旧亲",
+              "text": "修为 +12。",
+              "preview": "修为 +12。",
+              "effects": [
+                {
+                  "type": "gain_xp",
+                  "value": 12
+                }
+              ],
+              "conditions": [],
+              "tone": "safe"
+            }
+          ]
+        },
+        {
+          "id": "oath",
+          "text": "潮使把骨片放进你掌心：“归海、留陆、或自立一誓。你只需说一次。”",
+          "choices": [
+            {
+              "id": "return",
+              "label": "将骨片连同旧债一并归海",
+              "text": "善念 +1，恢复 18 生命。",
+              "preview": "善念 +1，恢复 18 生命。",
+              "effects": [
+                {
+                  "type": "add_counter",
+                  "key": "mercy",
+                  "value": 1
+                },
+                {
+                  "type": "heal",
+                  "value": 18
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "dragon_tide",
+                  "value": "此债归海"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_fact",
+                  "key": "dragon_returned_bone"
+                }
+              ],
+              "tone": "fate",
+              "consequence": "陈塘时归还的骨，在终幕变成一条完整的因果。"
+            },
+            {
+              "id": "claim",
+              "label": "承认龙名，却不接受龙命",
+              "text": "攻击 +1，逆命 +1。",
+              "preview": "攻击 +1，逆命 +1。",
+              "effects": [
+                {
+                  "type": "modify_stat",
+                  "stat": "attack",
+                  "value": 1
+                },
+                {
+                  "type": "add_counter",
+                  "key": "defiance",
+                  "value": 1
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "dragon_tide",
+                  "value": "认血不认命"
+                }
+              ],
+              "conditions": [],
+              "tone": "fate"
+            },
+            {
+              "id": "open",
+              "label": "让潮声与人间之声一同留下",
+              "text": "防御 +1，气运 +1。",
+              "preview": "防御 +1，气运 +1。",
+              "effects": [
+                {
+                  "type": "modify_stat",
+                  "stat": "defense",
+                  "value": 1
+                },
+                {
+                  "type": "modify_stat",
+                  "stat": "luck",
+                  "value": 1
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "dragon_tide",
+                  "value": "海陆同听"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_fact",
+                  "key": "dragon_heard_tide"
+                }
+              ],
+              "tone": "fate",
+              "consequence": "你没有在海与陆之间二选一，而是承认两边都塑成了你。"
+            }
+          ]
+        }
+      ],
+      "startPhase": "tide",
+      "profile": "A",
+      "weight": 1.15,
+      "maxPerRun": 1,
+      "category": "echo",
+      "requirements": [
+        {
+          "type": "race_is",
+          "key": "dragon"
+        }
+      ],
+      "relevance": [
+        {
+          "type": "has_fact",
+          "key": "dragon_returned_bone"
+        }
+      ]
+    },
+    {
+      "id": "race.ling.1",
+      "act": 1,
+      "major": false,
+      "name": "无主灯",
+      "npc": "守夜婆婆",
+      "art": "ghost",
+      "text": "陈塘城外有盏纸灯逆风而行。灯下没有影子，守夜婆婆却说里面住着一个找不到姓名的亡魂。",
+      "choices": [],
+      "phases": [
+        {
+          "id": "lamp",
+          "text": "纸灯在你面前停住。里面的声音问：“你也是借形而活的东西吗？那你替我听一听，我到底还剩什么。”",
+          "choices": [
+            {
+              "id": "listen",
+              "label": "把手按在灯纸上听完整段记忆",
+              "text": "公开气运检定；成则听见姓名，败则被死气所伤。",
+              "preview": "公开气运检定；成则听见姓名，败则被死气所伤。",
+              "effects": [],
+              "conditions": [],
+              "tone": "check",
+              "check": {
+                "stat": "luck",
+                "base": 46,
+                "difficulty": 13,
+                "success": {
+                  "text": "杂乱的哭声里终于浮出一个清楚的名字。它很普通，却让纸灯第一次不再摇晃。",
+                  "effects": [
+                    {
+                      "type": "gain_xp",
+                      "value": 12
+                    },
+                    {
+                      "type": "set_fact",
+                      "key": "ling_heard_name",
+                      "value": true
+                    }
+                  ],
+                  "next": "voice"
+                },
+                "failure": {
+                  "text": "太多陌生人的最后一念同时涌来。你抽回手时，指尖已经冷得没有知觉。",
+                  "effects": [
+                    {
+                      "type": "damage",
+                      "value": 7
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "wind",
+              "label": "让自身离形，与灯火保持一线距离",
+              "text": "无需检定；修为 +10。",
+              "preview": "无需检定；修为 +10。",
+              "effects": [
+                {
+                  "type": "gain_xp",
+                  "value": 10
+                },
+                {
+                  "type": "set_fact",
+                  "key": "ling_heard_name",
+                  "value": true
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_talent",
+                  "key": "talent.ling.wind"
+                }
+              ],
+              "tone": "fate",
+              "next": "voice"
+            },
+            {
+              "id": "whisper",
+              "label": "以魂语只问它最后记得的人",
+              "text": "无需检定；气运 +1。",
+              "preview": "无需检定；气运 +1。",
+              "effects": [
+                {
+                  "type": "modify_stat",
+                  "stat": "luck",
+                  "value": 1
+                },
+                {
+                  "type": "set_fact",
+                  "key": "ling_heard_name",
+                  "value": true
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_talent",
+                  "key": "talent.ling.whisper"
+                }
+              ],
+              "tone": "fate",
+              "next": "voice"
+            },
+            {
+              "id": "snuff",
+              "label": "替它把灯吹灭",
+              "text": "恢复 8 生命，修为 +6。",
+              "preview": "恢复 8 生命，修为 +6。",
+              "effects": [
+                {
+                  "type": "heal",
+                  "value": 8
+                },
+                {
+                  "type": "gain_xp",
+                  "value": 6
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "ling_lamp",
+                  "value": "灯火已熄"
+                }
+              ],
+              "conditions": [],
+              "tone": "safe"
+            }
+          ]
+        },
+        {
+          "id": "voice",
+          "text": "亡魂想起自己有个妹妹，却忘了回家的路。守夜婆婆说那户人家就在陈塘另一头。",
+          "choices": [
+            {
+              "id": "deliver",
+              "label": "替亡魂把名字送回家",
+              "text": "支付 10 灵石作路资，善念 +1。",
+              "preview": "支付 10 灵石作路资，善念 +1。",
+              "effects": [
+                {
+                  "type": "gain_currency",
+                  "value": -10
+                },
+                {
+                  "type": "add_counter",
+                  "key": "mercy",
+                  "value": 1
+                },
+                {
+                  "type": "set_fact",
+                  "key": "ling_delivered_name",
+                  "value": true
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "ling_lamp",
+                  "value": "替魂送名"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "currency_at_least",
+                  "value": 10
+                }
+              ],
+              "tone": "cost",
+              "consequence": "你替一个无法证明自己存在过的魂，留下了最后一份人间证词。"
+            },
+            {
+              "id": "memory",
+              "label": "借走一段不属于自己的记忆",
+              "text": "修为 +18，气运 +1。",
+              "preview": "修为 +18，气运 +1。",
+              "effects": [
+                {
+                  "type": "gain_xp",
+                  "value": 18
+                },
+                {
+                  "type": "modify_stat",
+                  "stat": "luck",
+                  "value": 1
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "ling_lamp",
+                  "value": "借忆而行"
+                }
+              ],
+              "conditions": [],
+              "tone": "fate"
+            },
+            {
+              "id": "dissolve",
+              "label": "把名字也一同散入夜风",
+              "text": "逆命 +1，恢复 10 生命。",
+              "preview": "逆命 +1，恢复 10 生命。",
+              "effects": [
+                {
+                  "type": "add_counter",
+                  "key": "defiance",
+                  "value": 1
+                },
+                {
+                  "type": "heal",
+                  "value": 10
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "ling_lamp",
+                  "value": "名随灯散"
+                }
+              ],
+              "conditions": [],
+              "tone": "fate"
+            }
+          ]
+        }
+      ],
+      "startPhase": "lamp",
+      "profile": "A",
+      "weight": 1.15,
+      "maxPerRun": 1,
+      "category": "encounter",
+      "requirements": [
+        {
+          "type": "race_is",
+          "key": "ling"
+        }
+      ]
+    },
+    {
+      "id": "race.ling.3",
+      "act": 3,
+      "major": false,
+      "name": "还魂渡",
+      "npc": "无名摆渡人",
+      "art": "ghost",
+      "text": "榜前最后一夜，山脚多出一条从未见过的河。水面漂着无数写过又被洗掉的名字，渡船却只载“仍有人记得”的魂。",
+      "choices": [],
+      "phases": [
+        {
+          "id": "shore",
+          "text": "摆渡人看不见你，只朝空处伸手：“你若也想过河，就先说出一个能证明你存在过的名字。”",
+          "choices": [
+            {
+              "id": "call",
+              "label": "从旧记忆里找一个愿意替你作证的人",
+              "text": "公开气运检定；成则渡船靠岸，败则受伤后仍可登船。",
+              "preview": "公开气运检定；成则渡船靠岸，败则受伤后仍可登船。",
+              "effects": [],
+              "conditions": [],
+              "tone": "check",
+              "check": {
+                "stat": "luck",
+                "base": 43,
+                "difficulty": 15,
+                "success": {
+                  "text": "你喊出的名字被河面接住。远处有一盏灯亮了一瞬，渡船随即靠岸。",
+                  "effects": [
+                    {
+                      "type": "gain_xp",
+                      "value": 16
+                    },
+                    {
+                      "type": "set_fact",
+                      "key": "ling_crossing_open",
+                      "value": true
+                    }
+                  ],
+                  "next": "cross"
+                },
+                "failure": {
+                  "text": "你喊了几次，河面都没有回应。最后亮起的是你自己胸口那点灵光——微弱，却也算数。",
+                  "effects": [
+                    {
+                      "type": "damage",
+                      "value": 8
+                    },
+                    {
+                      "type": "set_fact",
+                      "key": "ling_crossing_open",
+                      "value": true
+                    }
+                  ],
+                  "next": "cross"
+                }
+              }
+            },
+            {
+              "id": "formless",
+              "label": "无相离形，不向渡口证明自己",
+              "text": "无需检定；速度 +1，进入渡河。",
+              "preview": "无需检定；速度 +1，进入渡河。",
+              "effects": [
+                {
+                  "type": "modify_stat",
+                  "stat": "speed",
+                  "value": 1
+                },
+                {
+                  "type": "set_fact",
+                  "key": "ling_crossing_open",
+                  "value": true
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_talent",
+                  "key": "talent.ling.formless"
+                }
+              ],
+              "tone": "fate",
+              "next": "cross"
+            },
+            {
+              "id": "return",
+              "label": "借厄还魂，替河中一个亡魂点亮名字",
+              "text": "无需检定；恢复 12 生命，善念 +1。",
+              "preview": "无需检定；恢复 12 生命，善念 +1。",
+              "effects": [
+                {
+                  "type": "heal",
+                  "value": 12
+                },
+                {
+                  "type": "add_counter",
+                  "key": "mercy",
+                  "value": 1
+                },
+                {
+                  "type": "set_fact",
+                  "key": "ling_crossing_open",
+                  "value": true
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_talent",
+                  "key": "talent.ling.return"
+                }
+              ],
+              "tone": "fate",
+              "next": "cross"
+            },
+            {
+              "id": "leave",
+              "label": "沿岸步行，不登这条只认名字的船",
+              "text": "修为 +12。",
+              "preview": "修为 +12。",
+              "effects": [
+                {
+                  "type": "gain_xp",
+                  "value": 12
+                }
+              ],
+              "conditions": [],
+              "tone": "safe"
+            }
+          ]
+        },
+        {
+          "id": "cross",
+          "text": "船到河心时，纸灯从上游漂来。你认出那是陈塘的旧式样，只是不知道里面是否还是当初那个魂。",
+          "choices": [
+            {
+              "id": "fulfill",
+              "label": "替那盏灯补完最后一程",
+              "text": "恢复 18 生命，善念 +1。",
+              "preview": "恢复 18 生命，善念 +1。",
+              "effects": [
+                {
+                  "type": "heal",
+                  "value": 18
+                },
+                {
+                  "type": "add_counter",
+                  "key": "mercy",
+                  "value": 1
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "ling_lamp",
+                  "value": "旧灯渡尽"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_fact",
+                  "key": "ling_delivered_name"
+                }
+              ],
+              "tone": "fate",
+              "consequence": "陈塘送回去的名字，在终幕给另一盏灯留下了渡河的资格。"
+            },
+            {
+              "id": "borrow",
+              "label": "借一具水中倒影作临时形体",
+              "text": "最大生命 +4，防御 +1。",
+              "preview": "最大生命 +4，防御 +1。",
+              "effects": [
+                {
+                  "type": "modify_stat",
+                  "stat": "hp",
+                  "value": 4
+                },
+                {
+                  "type": "modify_stat",
+                  "stat": "defense",
+                  "value": 1
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "ling_lamp",
+                  "value": "借影成形"
+                }
+              ],
+              "conditions": [],
+              "tone": "fate"
+            },
+            {
+              "id": "cut",
+              "label": "斩断“必须被记得才算活过”的执念",
+              "text": "逆命 +1，速度 +1。",
+              "preview": "逆命 +1，速度 +1。",
+              "effects": [
+                {
+                  "type": "add_counter",
+                  "key": "defiance",
+                  "value": 1
+                },
+                {
+                  "type": "modify_stat",
+                  "stat": "speed",
+                  "value": 1
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "ling_lamp",
+                  "value": "不以名存"
+                }
+              ],
+              "conditions": [],
+              "tone": "fate"
+            }
+          ]
+        }
+      ],
+      "startPhase": "shore",
+      "profile": "A",
+      "weight": 1.15,
+      "maxPerRun": 1,
+      "category": "echo",
+      "requirements": [
+        {
+          "type": "race_is",
+          "key": "ling"
+        }
+      ],
+      "relevance": [
+        {
+          "type": "has_fact",
+          "key": "ling_delivered_name"
+        }
+      ]
     }
   ],
   "acts": [
@@ -15452,7 +17360,19 @@
       "road_deed_0": "曾助船匠",
       "road_deed_1": "曾助药师",
       "road_deed_2": "曾助铸兵人",
-      "road_deed_3": "曾助散仙"
+      "road_deed_3": "曾助散仙",
+      "human_guarantee": "曾替无籍者担名",
+      "human_cited_law": "以旧律补籍",
+      "human_shared_seal": "众名共印",
+      "human_found_name": "找回军册真名",
+      "spirit_freed_young": "救下猎网幼妖",
+      "spirit_heard_old_name": "听见山泽旧名",
+      "dragon_heard_bone": "听见断潮龙骨",
+      "dragon_returned_bone": "送龙骨归潮",
+      "dragon_heard_tide": "听见归潮旧誓",
+      "ling_heard_name": "听见无主灯姓名",
+      "ling_delivered_name": "替亡魂送名",
+      "ling_crossing_open": "还魂渡已开"
     },
     "threads": {
       "shen_gongbao": "申公豹旧债",
@@ -15477,7 +17397,12 @@
       "char_ziya": "姜子牙因缘",
       "char_leizhenzi": "雷震子因缘",
       "char_tuxingsun": "土行孙因缘",
-      "char_yunxiao": "云霄因缘"
+      "char_yunxiao": "云霄因缘",
+      "human_oath": "人间名契",
+      "spirit_kin": "山泽同类",
+      "spirit_name": "山泽旧名",
+      "dragon_tide": "龙血归处",
+      "ling_lamp": "无主灯缘"
     },
     "tags": {
       "rage": "怒潮",
@@ -16542,6 +18467,265 @@
           "sealed.leave": {
             "outcome": "你停在这段因果之外，待呼吸平稳，继续沿路前行。"
           }
+        }
+      },
+      "race.human.0": {
+        "intro": "朝歌城门的雨把名册泡得发黑。有人只差一个名字就能进城，也可能只差这个名字就会被追责。",
+        "choices": {
+          "gate.guarantee": {
+            "outcome": "朱笔落下时，书吏先看你，再看那对母子。你第一次感觉自己的名字有了重量。",
+            "hint": "替别人担名会被后续人间事件记住。"
+          },
+          "gate.cite": {
+            "outcome": "你逐条指出被书吏省略的旧例。围观的人越来越多，他最终只能重新摊开名册。",
+            "hint": "博闻路线能把凡俗规则变成解决问题的工具。"
+          },
+          "gate.slip": {
+            "success": "巡灯转向城外的一瞬，你们贴着门墙穿了过去。雨声掩住了所有脚步。",
+            "failure": "巡卒在侧门拦住你。你替她挡下一棍，门也重新合上。"
+          },
+          "seal.share": {
+            "outcome": "木印在人群里传了一圈。每个人都只按了一下，却像共同替它担住了重量。",
+            "hint": "这枚共印会成为后续“人间名契”的证据。"
+          },
+          "seal.keep": {
+            "outcome": "你收下木印，没有再问它曾经替谁开过门。"
+          },
+          "seal.burn": {
+            "outcome": "旧名被一刀刀刮掉。书吏说这样谁都证明不了，你却觉得它终于不再替谁作主。",
+            "hint": "这是逆命取向，不提供额外隐藏奖励。"
+          }
+        },
+        "phases": {
+          "gate": "城门名册",
+          "seal": "半枚木印"
+        }
+      },
+      "race.human.2": {
+        "intro": "西岐的阵亡册比战场安静得多。一具无名尸身旁，偏偏出现了朝歌旧式的木印。",
+        "choices": {
+          "ledger.trace": {
+            "success": "一笔领粮记录把三个错名串到一起。最后那个被涂掉的人，才是你要找的。",
+            "failure": "错线索把你引到营外。夜袭来得太快，回帐时那一页已经被雨水洇开。"
+          },
+          "ledger.enlighten": {
+            "outcome": "你不再只看名字，而是看每次删改留下的力道和顺序。真名从空白处浮了出来。",
+            "hint": "高阶百家路线在复杂文书事件中可以跳过检定。"
+          },
+          "ledger.leave": {
+            "outcome": "你没有给陌生人补一段自己并不知道的人生。军册照旧合上。"
+          },
+          "verdict.restore": {
+            "outcome": "录事把真名重新写进军册。墨迹很新，但至少有人能循着它找到一封迟到的抚恤。"
+          },
+          "verdict.witness": {
+            "outcome": "你把朝歌那次担名的经过写在证词后面。原来一笔旧因，真的能替另一个陌生人说话。",
+            "hint": "这是跨幕回响，仅在曾替无籍者担名时出现。"
+          },
+          "verdict.erase": {
+            "outcome": "纸页卷起时没有声音。火焰吞掉最后一笔，从此他不再受军册裁定，也不再受军册庇护。"
+          }
+        },
+        "phases": {
+          "ledger": "无名军册",
+          "verdict": "最后一页"
+        }
+      },
+      "race.spirit.0": {
+        "intro": "猎网里传出学得并不熟练的人声。它喊“救命”时，尾音仍像幼兽。",
+        "choices": {
+          "trail.cut": {
+            "success": "网绳断开。幼妖没有立刻逃，反而回头咬断最后一根套索。",
+            "failure": "猎叉先到。你只挡下一击，幼妖便钻进林子，再没有回头。"
+          },
+          "trail.foxfire": {
+            "outcome": "狐火沿着绳结走了一圈，只烧断麻线，没有燎到猎人的手。",
+            "hint": "狐火路线提供精细处理，而不是单纯更高数值。"
+          },
+          "trail.pay": {
+            "outcome": "猎户反复数了两遍灵石，终于把网收了。幼妖躲在你身后，仍盯着他手里的叉。"
+          },
+          "trail.hide": {
+            "success": "你故意留下几串假足迹。等猎犬追远，草丛里才探出一双亮眼睛。",
+            "failure": "猎犬先闻出了不对。你们翻过石坡才甩掉人，背上已经全是血痕。"
+          },
+          "den.guard": {
+            "outcome": "天黑之后幼妖才真正睡着。你替它听了一夜脚步声，也第一次明白“同类”要付什么代价。"
+          },
+          "den.herb": {
+            "outcome": "药根被掰成两半。它学着你的样子把自己的那半藏好，像是在学一条活命的规矩。"
+          },
+          "den.root": {
+            "outcome": "你教它辨草叶的苦甜。它记不住名字，却记住了哪一种能止血。",
+            "hint": "草木路线会在族群事件里提供传承式选择。"
+          }
+        },
+        "phases": {
+          "trail": "猎网",
+          "den": "雷劈老槐"
+        }
+      },
+      "race.spirit.2": {
+        "intro": "无香火的小庙里，山神喊出的却是一个你从未承认过的旧名字。",
+        "choices": {
+          "shrine.listen": {
+            "success": "雨声倒退，你在陌生又熟悉的记忆里看见自己还没化形时，从这座山下经过。",
+            "failure": "旧名像钩子扎进识海。你强行拔出来，才发现掌心全是冷汗。"
+          },
+          "shrine.distill": {
+            "outcome": "你把那两个字当成一缕杂气慢慢炼开。名字没消失，但不再压着你。"
+          },
+          "shrine.root": {
+            "outcome": "树根替你承了一半旧忆。你听见叶片一层层把那个名字念完。"
+          },
+          "shrine.leave": {
+            "outcome": "你没有回答。山神也没有追问，只让那两个字继续留在雨里。"
+          },
+          "name.accept": {
+            "outcome": "旧名落回身上，没有雷鸣，也没有异象。只是某些一直空着的地方忽然有了来处。"
+          },
+          "name.return": {
+            "outcome": "你把旧名写在庙后石上。来日若有人再喊，它回答的将是这座山。"
+          },
+          "name.sun": {
+            "outcome": "妖丹映出许多名字，也映出名字背后同一团不肯熄灭的灵光。你只取后者。"
+          },
+          "name.cycle": {
+            "outcome": "你没有带走旧名，而是把它留给后来者。枯荣之理第一次不是用于自己。",
+            "hint": "需要早期同类因果与枯荣路线同时成立。"
+          }
+        },
+        "phases": {
+          "shrine": "山神旧名",
+          "name": "名归何处"
+        }
+      },
+      "race.dragon.1": {
+        "intro": "退潮之后，白色龙骨横在礁床。越靠近它，血里越像有潮水拍岸。",
+        "choices": {
+          "reef.blood": {
+            "outcome": "血滴进骨纹，潮声立刻响起。它没有认你为主，只承认你确实来自这条血脉。"
+          },
+          "reef.tide": {
+            "outcome": "你顺着潮息一寸寸读过去。旧骨没有醒，海却替它把话说完了。"
+          },
+          "reef.read": {
+            "success": "你找到唯一逆流的一道骨纹，整截龙骨随之低鸣。",
+            "failure": "旧禁从沙下弹起。你退得不慢，仍被骨刺划开小腿。"
+          },
+          "reef.pearl": {
+            "outcome": "你只捡走潮沟里的碎珠，没有让自己的血碰到那截骨。"
+          },
+          "marrow.return": {
+            "outcome": "潮水重新漫上来，把白骨一点点拖回深处。你没有听见谢意，却觉得血里的潮声缓了。",
+            "hint": "归还会被终幕的归潮事件记住。"
+          },
+          "marrow.carry": {
+            "outcome": "骨片贴在胸口时很冷。走出礁床后，它才慢慢有了与你相同的温度。"
+          },
+          "marrow.scale": {
+            "outcome": "你在旧骨上刻下自己的名字，却没有写任何祖号。潮声第一次像是在回答你。"
+          }
+        },
+        "phases": {
+          "reef": "退潮礁床",
+          "marrow": "龙骨旧忆"
+        }
+      },
+      "race.dragon.3": {
+        "intro": "万仙阵前起了海雾。潮使带来的不是召令，而是一块与你曾见过的旧龙骨。",
+        "choices": {
+          "tide.hear": {
+            "success": "潮声最深处只有一句话：记得海，不等于必须回海。",
+            "failure": "你分不清祖血与恐惧的声音，只能顶着潮压走到雾心。"
+          },
+          "tide.sea": {
+            "outcome": "四海归流把杂乱潮声拢成一线。你终于能听见其中最旧的那一句。"
+          },
+          "tide.wrath": {
+            "outcome": "海雾被怒意震散。潮使没有退，反而第一次正眼看你。"
+          },
+          "tide.leave": {
+            "outcome": "你没有进雾。大劫已近，不是每一门旧亲都必须在今夜认完。"
+          },
+          "oath.return": {
+            "outcome": "骨片沉入雾下。陈塘那次归还，到今天终于有了一个完整的句点。",
+            "hint": "需要曾把断潮龙骨送回海中。"
+          },
+          "oath.claim": {
+            "outcome": "你认下这身龙血，却没有对任何旧命低头。潮使点头，像是早就在等这句话。"
+          },
+          "oath.open": {
+            "outcome": "你没有选择海或陆。两边的声音都留下来，而你仍站在自己的位置上。"
+          }
+        },
+        "phases": {
+          "tide": "归潮旧誓",
+          "oath": "龙名何归"
+        }
+      },
+      "race.ling.1": {
+        "intro": "纸灯逆风而行，灯下没有影子。灯里的亡魂忘了名字，却记得有人仍在等它回家。",
+        "choices": {
+          "lamp.listen": {
+            "success": "许多临终杂音散去后，一个普通得不能再普通的名字留了下来。纸灯终于不再发抖。",
+            "failure": "太多最后一念同时挤进来。你抽回手时，连自己的指尖都像别人的。"
+          },
+          "lamp.wind": {
+            "outcome": "你离形半寸，让灯火只碰到最外层的灵气。它的记忆因此没有淹没你。"
+          },
+          "lamp.whisper": {
+            "outcome": "你不问它是谁，只问最后还记得谁。一个妹妹的背影先从黑暗里浮出来。"
+          },
+          "lamp.snuff": {
+            "outcome": "火灭以后，纸灯落在地上。你不知道这算解脱，还是第二次遗忘。"
+          },
+          "voice.deliver": {
+            "outcome": "那户人家听见名字时沉默了很久。没人看见灯，却有人把门槛上的灰擦干净了。",
+            "hint": "这份人间证词会在终幕还魂渡回应你。"
+          },
+          "voice.memory": {
+            "outcome": "你借走它最后一段记忆：灶火、旧鞋、门前石阶。都不是你的，却真实地留在识海里。"
+          },
+          "voice.dissolve": {
+            "outcome": "名字与灯火一同散进夜风。你没有替它决定来世，只替它结束了等待。"
+          }
+        },
+        "phases": {
+          "lamp": "无主纸灯",
+          "voice": "最后记得的人"
+        }
+      },
+      "race.ling.3": {
+        "intro": "榜前最后一夜，一条无名河忽然出现。水面漂着被洗掉的名字，船只载“仍有人记得”的魂。",
+        "choices": {
+          "shore.call": {
+            "success": "你喊出的名字被河水接住。远处一盏灯亮起，渡船便转向你。",
+            "failure": "没有人回应。最后亮起的是你自己胸口那点灵光——微弱，却也足够让船靠岸。"
+          },
+          "shore.formless": {
+            "outcome": "你从“需要被看见”的形体里退开一步。渡口找不到你的名，却也拦不住你的灵。"
+          },
+          "shore.return": {
+            "outcome": "你先替水中一个亡魂点亮名字。船夫这才发现，船边一直还站着一个你。"
+          },
+          "shore.leave": {
+            "outcome": "你沿岸逆流而走。不是每一条通往终局的路，都需要别人承认你存在。"
+          },
+          "cross.fulfill": {
+            "outcome": "旧式纸灯漂到船边。你替它补完最后一程，也像替陈塘那次送名补上了回声。",
+            "hint": "这是“无主灯”事件的终幕回响。"
+          },
+          "cross.borrow": {
+            "outcome": "水中倒影站起来，暂时替你承住了重量。它没有名字，但此刻确实是你的形体。"
+          },
+          "cross.cut": {
+            "outcome": "你斩断那条“必须被记得才算活过”的绳。河水忽然安静，像是无话可驳。"
+          }
+        },
+        "phases": {
+          "shore": "还魂渡口",
+          "cross": "无名之河"
         }
       }
     },

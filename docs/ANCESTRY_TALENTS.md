@@ -26,3 +26,7 @@
 ## Stage 3 - sub-schools and conversion pieces
 
 Eight main schools each have two authored sub-school recipes. Six selected hybrid routes link actual equipment, not a new virtual buff tier. Recipes are a read-only disclosure in the build view, filter unavailable racial talent suggestions, and explicitly label off-pool pieces. Eight new rare artifacts create reserve-rage, burn-to-heal, shield-to-rage, break-to-weak, crit recovery, evade-to-break, healing growth, and weak-to-guard loops. Every trigger is limited to once per round. Existing shared enemy skills remain unchanged.
+
+## Stage 4 - ancestry event arcs
+
+Each ancestry now has two multi-phase world stories (8 new events, 56 total). Every arc includes at least one public deterministic stat check, a talent-specific alternative, and a later callback that gains relevance from an earlier fact without forcing a single canonical route. Human stories ask who gets recorded by institutions; spirits negotiate kinship and old names; dragon-blooded characters decide what inherited obligation means; spirit-bodied characters ask whether existence requires a remembered name. Combat builds remain untouched in this stage.

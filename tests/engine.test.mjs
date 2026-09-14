@@ -4,7 +4,7 @@ import {run,step} from './policy.mjs';
 const c=JSON.parse(await readFile(new URL('../data/game.json',import.meta.url),'utf8'));
 const fresh=(seed='TEST')=>Game.create(c,seed,c.origins[0].id,fateOptions(c,seed)[0].id,'Tester');
 const normalize=s=>{s=clone(s);if(s.battle)s.battle.cursor=0;return s;};
-test('content validates and matches the expanded content counts',()=>{validateContent(c);assert.equal(c.abilities.length,106);assert.equal(c.enemies.length,44);assert.equal(c.events.length,48);assert.equal(c.origins.length,5);assert.equal(c.fates.length,8);assert.equal(c.endings.length,4);});
+test('content validates and matches the expanded content counts',()=>{validateContent(c);assert.equal(c.abilities.length,106);assert.equal(c.enemies.length,44);assert.equal(c.events.length,56);assert.equal(c.origins.length,5);assert.equal(c.fates.length,8);assert.equal(c.endings.length,4);});
 test('unknown effects and dangling references rejected',()=>{const bad=clone(c);bad.abilities[0].effects[0].type='arbitrary_javascript';assert.throws(()=>validateContent(bad));const broken=clone(c);broken.origins[0].starting[0]='missing';assert.throws(()=>validateContent(broken));});
 test('same seed gives exactly the same route and fate offers',()=>{assert.deepEqual(fresh().s,fresh().s);assert.equal(fateOptions(c,'X').length,3);assert.deepEqual(fateOptions(c,'X'),fateOptions(c,'X'));});
 test('cannot select an unoffered fate',()=>{const absent=c.fates.find(f=>!fateOptions(c,'X').some(x=>x.id===f.id));assert.throws(()=>Game.create(c,'X',c.origins[0].id,absent.id));});
@@ -151,10 +151,10 @@ test('v11 Shen Gongbao debt line has authored continuation and settlement states
 
 test('v11 event log records event identity category and declared consequence',()=>{const g=fresh('V11-STORY-AUDIT');g.s.phase='event';g.s.eventId='major.0';const ch=c.events.find(e=>e.id==='major.0').choices[0];g.chooseEvent(ch.id);const log=g.s.storyLog.at(-1);assert.equal(log.eventId,'major.0');assert.equal(log.choiceId,ch.id);assert.equal(log.category,'major');assert(log.consequence);});
 
-test('v11 event rules and content advance together',()=>{assert.equal(c.version,'4.0.0');assert.equal(c.rulesVersion,'4.0.0');assert.equal(c.events.length,48);assert(c.events.every(e=>e.category));});
+test('v11 event rules and content advance together',()=>{assert.equal(c.version,'4.0.0');assert.equal(c.rulesVersion,'4.0.0');assert.equal(c.events.length,56);assert(c.events.every(e=>e.category));});
 
 
-test('original four character arcs remain in the expanded event pool',()=>{const grouped=new Map();for(const e of c.events.filter(e=>e.character)){grouped.set(e.character,(grouped.get(e.character)??0)+1);}assert.equal(c.events.length,48);assert.equal(grouped.get('哪吒'),4);assert.equal(grouped.get('杨戬'),4);assert.equal(grouped.get('申公豹'),4);assert.equal(grouped.get('赵公明'),3);});
+test('original four character arcs remain in the expanded event pool',()=>{const grouped=new Map();for(const e of c.events.filter(e=>e.character)){grouped.set(e.character,(grouped.get(e.character)??0)+1);}assert.equal(c.events.length,56);assert.equal(grouped.get('哪吒'),4);assert.equal(grouped.get('杨戬'),4);assert.equal(grouped.get('申公豹'),4);assert.equal(grouped.get('赵公明'),3);});
 
 test('v12 follow-up character encounters carry state-aware relevance',()=>{const checks=[['event.1.hermit','met_nezha'],['event.2.hermit','met_nezha'],['event.2.ruins','met_yangjian'],['event.3.ruins','met_yangjian'],['event.3.hermit','met_zhaogongming']];for(const [id,key] of checks){const e=c.events.find(x=>x.id===id);assert(e.relevance.some(q=>q.type==='has_fact'&&q.key===key));}});
 
