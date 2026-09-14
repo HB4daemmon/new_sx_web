@@ -1,0 +1,33 @@
+name: Balance v4.1 audit
+
+on:
+  push:
+    branches: [feature/balance-v41]
+    paths:
+      - 'tests/balance-audit.mjs'
+      - 'tests/policy.mjs'
+      - 'data/game.json'
+      - 'src/**'
+      - '.github/workflows/balance-v41.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - name: Full rules suite
+        run: npm test
+      - name: 500-run ancestry and vocation audit
+        run: node tests/balance-audit.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-v41-audit
+          path: verification/balance-audit.json
