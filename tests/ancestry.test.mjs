@@ -10,7 +10,7 @@ test('all race and vocation combinations are valid and retain independent identi
 });
 test('race stat differences and racial conditions are derived without altering vocation',()=>{
  const human=fresh(),dragon=fresh('dragon');
- assert.equal(dragon.stats().hp-human.stats().hp,8);assert.equal(dragon.stats().speed-human.stats().speed,-1);
+ assert.equal(dragon.stats().hp-human.stats().hp,4);assert.equal(dragon.stats().speed-human.stats().speed,-1);
  assert(conditionOK(c,dragon.s,{type:'race_is',key:'dragon'}));assert(!conditionOK(c,human.s,{type:'race_is',key:'dragon'}));
  assert.throws(()=>fresh('invalid'));
 });
@@ -25,5 +25,5 @@ test('new replay retains race and old-version saves are explicitly rejected',()=
  const bad=structuredClone(c);bad.races[0].triggers[0].effects[0].type='typo';assert.throws(()=>validateContent(bad));
 });
 test('UI preserves the legacy save key and skill SVGs while offering race selection',()=>{
- const app=readFileSync('src/app.ts','utf8');assert(app.includes("SAVE_KEY='fengshen-run-v4'"));assert(app.includes("LEGACY_SAVE_KEY='fengshen-run-v1'"));assert(app.includes('racePicker()'));assert(app.includes('sigil(a.art'));assert(!app.includes('removeItem(LEGACY_SAVE_KEY)'));
+ const app=readFileSync('src/app.ts','utf8');assert(app.includes("SAVE_KEY='fengshen-run-v41'"));assert(app.includes("LEGACY_SAVE_KEY='fengshen-run-v4'"));assert(app.includes("LEGACY_OLD_SAVE_KEY='fengshen-run-v1'"));assert(app.includes('racePicker()'));assert(app.includes('sigil(a.art'));assert(!app.includes('removeItem(LEGACY_SAVE_KEY)'));
 });

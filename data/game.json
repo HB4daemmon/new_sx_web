@@ -1,6 +1,6 @@
 {
-  "version": "4.0.0",
-  "rulesVersion": "4.0.0",
+  "version": "4.1.0",
+  "rulesVersion": "4.1.0",
   "title": "封神·劫中人",
   "subtitle": "一场大劫，八寸命途",
   "origins": [
@@ -9,9 +9,9 @@
       "name": "山野散修",
       "subtitle": "一剑一人，自在山河",
       "art": "swordsman",
-      "description": "均衡出身。引雷回气，怒技爆发；入战额外吐纳 25 怒气。",
+      "description": "均衡出身。生命略厚，引雷回气；入战额外吐纳 32 怒气。",
       "stats": {
-        "hp": 100,
+        "hp": 104,
         "attack": 20,
         "defense": 10,
         "speed": 10,
@@ -29,7 +29,7 @@
         {
           "type": "gain_rage",
           "target": "self",
-          "value": 25
+          "value": 32
         }
       ]
     },
@@ -38,15 +38,15 @@
       "name": "行伍武者",
       "subtitle": "肉身为盾，凡骨撼天",
       "art": "guardian",
-      "description": "生命 +12，攻击 +2，防御 +2，气运 -3。护盾反击。",
+      "description": "生命 +6，防御 +1，气运 -2。以护盾与反击换取稳定推进。",
       "stats": {
-        "hp": 112,
-        "attack": 22,
-        "defense": 12,
+        "hp": 106,
+        "attack": 20,
+        "defense": 11,
         "speed": 10,
         "hit": 10,
         "dodge": 10,
-        "luck": 7
+        "luck": 8
       },
       "affinity": "shield",
       "starting": [
@@ -90,15 +90,15 @@
       "id": "physician",
       "name": "行脚药师",
       "subtitle": "携一篓青绿，渡一程生死",
-      "description": "以疗愈养战。回春指与胎息维持气血，青莲渡厄积蓄反攻。",
+      "description": "以疗愈养战。生命 108、攻击 19、闪避 13；回春与胎息维持气血，青莲渡厄积蓄反攻。",
       "art": "hermit",
       "stats": {
-        "hp": 104,
-        "attack": 18,
+        "hp": 108,
+        "attack": 19,
         "defense": 10,
         "speed": 11,
         "hit": 10,
-        "dodge": 12,
+        "dodge": 13,
         "luck": 12
       },
       "affinity": "heal",
@@ -112,11 +112,11 @@
       "id": "hexer",
       "name": "旧观咒徒",
       "subtitle": "旧纸写新符，问魂不问天",
-      "description": "以咒厄削敌。缚魂诀与厄印积累虚弱，百厄缠身打开破绽。",
+      "description": "以咒厄削敌。生命 100、攻击 20；缚魂诀与厄印积累虚弱，百厄缠身打开破绽。",
       "art": "sorcerer",
       "stats": {
-        "hp": 94,
-        "attack": 19,
+        "hp": 100,
+        "attack": 20,
         "defense": 10,
         "speed": 11,
         "hit": 13,
@@ -18951,9 +18951,9 @@
       "name": "精怪",
       "art": "flame",
       "trait": "山泽灵性",
-      "description": "草木禽兽得道。生命 -4，闪避 +4；入战为敌人施加 1 层燃烧。",
+      "description": "草木禽兽得道。闪避 +4；入战为敌人施加 2 层燃烧。",
       "stats": {
-        "hp": -4,
+        "hp": 0,
         "dodge": 4
       },
       "paths": [
@@ -18969,7 +18969,7 @@
               "type": "apply_status",
               "target": "enemy",
               "status": "burn",
-              "value": 1
+              "value": 2
             }
           ]
         }
@@ -18980,9 +18980,9 @@
       "name": "龙裔",
       "art": "shield",
       "trait": "护身鳞",
-      "description": "鳞甲未褪，潮声在血。生命 +8，速度 -1；入战获得 6 护盾。",
+      "description": "鳞甲未褪，潮声在血。生命 +4，速度 -1；入战获得 4 护盾。",
       "stats": {
-        "hp": 8,
+        "hp": 4,
         "speed": -1
       },
       "paths": [
@@ -18997,7 +18997,7 @@
             {
               "type": "gain_shield",
               "target": "self",
-              "value": 6
+              "value": 4
             }
           ]
         }
@@ -19008,9 +19008,9 @@
       "name": "灵族",
       "art": "cloud",
       "trait": "离形",
-      "description": "一缕灵气凝身。生命 -6，闪避 +8；每战首次闪避后获得 15 怒气。",
+      "description": "一缕灵气凝身。生命 -2，闪避 +8；每战首次闪避后获得 18 怒气。",
       "stats": {
-        "hp": -6,
+        "hp": -2,
         "dodge": 8
       },
       "paths": [
@@ -19025,7 +19025,7 @@
             {
               "type": "gain_rage",
               "target": "self",
-              "value": 15
+              "value": 18
             }
           ]
         }

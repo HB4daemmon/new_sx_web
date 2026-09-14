@@ -3,8 +3,9 @@ import {buildPathProgress} from './build-paths.js';
 import {esc,icon,sigil,portrait,landscape} from './art.js';
 import {UI_REVISION,rankName,threadText,conditionText,narrativeAvailable,choiceCopy,storyText,resultText,abilityLines,choiceEffects,phaseText} from './presentation.js';
 declare global {interface Window{__GAME_CONTENT__?:Content;}}
-const SAVE_KEY='fengshen-run-v4';
-const LEGACY_SAVE_KEY='fengshen-run-v1';
+const SAVE_KEY='fengshen-run-v41';
+const LEGACY_SAVE_KEY='fengshen-run-v4';
+const LEGACY_OLD_SAVE_KEY='fengshen-run-v1';
 const TAGS:Record<string,string>={rage:'怒气',burst:'爆发',fire:'火系',burn:'燃烧',shield:'护盾',counter:'反击',break:'破甲',sword:'剑道',crit:'暴击',dodge:'闪避',speed:'身法',evade:'闪避',luck:'气运',heal:'疗愈',control:'控制',defense:'防御',attack:'攻势',sustain:'续航',vitality:'归元',curse:'咒厄',poison:'毒',thunder:'雷'};
 const NODE_ICONS:Record<string,string>={combat:'swords',elite:'skull',event:'cloud',shop:'coin',rest:'camp',major:'eye',hidden:'eye',treasure:'seal',boss:'gate'};
 const STAT_ICONS:Record<string,string>={hp:'heart',attack:'sword',defense:'shield',speed:'feather',hit:'eye',dodge:'cloud',luck:'star'};
@@ -24,7 +25,7 @@ export class FengshenGame extends HTMLElement {
  async connectedCallback(){
   this.innerHTML=`<div class="loading">${icon('seal',60)}<p>山河卷将启…</p></div>`;
   try{this.content=window.__GAME_CONTENT__??await fetch('./data/game.json').then(r=>{if(!r.ok)throw new Error('Content request failed');return r.json();});validateContent(this.content);this.selectedOrigin=this.content.origins[0].id;this.selectedPortrait=this.content.origins[0].art;
-   try{this.legacySave=localStorage.getItem(LEGACY_SAVE_KEY)??'';const text=localStorage.getItem(SAVE_KEY);if(text)this.game=Game.load(this.content,text);this.muted=localStorage.getItem('fengshen-muted')!=='false';this.detailedLog=localStorage.getItem('fengshen-detailed-log')==='true';}catch{this.toastText='存档不可读取，可重新入劫或导入存档。';}
+   try{this.legacySave=localStorage.getItem(LEGACY_SAVE_KEY)??localStorage.getItem(LEGACY_OLD_SAVE_KEY)??'';const text=localStorage.getItem(SAVE_KEY);if(text)this.game=Game.load(this.content,text);this.muted=localStorage.getItem('fengshen-muted')!=='false';this.detailedLog=localStorage.getItem('fengshen-detailed-log')==='true';}catch{this.toastText='存档不可读取，可重新入劫或导入存档。';}
    this.addEventListener('click',e=>this.onClick(e));this.addEventListener('input',e=>this.onInput(e));this.addEventListener('change',e=>this.onChange(e));
    document.addEventListener('keydown',this.keyHandler=e=>{const dialog=this.querySelector<HTMLElement>('.modal');if(e.key==='Tab'&&dialog){const items=Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]),summary,input:not([hidden])')).filter(x=>x.getClientRects().length>0),first=items[0],last=items.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}if(e.key==='Escape'&&this.modal){this.modal='';this.render();}if(e.code==='Space'&&!this.home&&!this.modal&&!this.game?.s.talentDraft&&this.game?.s.phase==='battle'&&!(e.target instanceof HTMLInputElement)&&!(e.target as Element).closest('button,summary,select,textarea')){e.preventDefault();this.paused=!this.paused;this.render();}});
    this.render();
@@ -43,7 +44,7 @@ export class FengshenGame extends HTMLElement {
     case 'selectTalent':if(g?.s.talentDraft?.level===index&&g.s.talentDraft.offers.includes(id))this.selectedTalent=id;break;
     case 'chooseTalent':if(g?.s.talentDraft?.level===index){g.chooseTalent(id);this.selectedTalent='';}break;
     case 'race':if(this.content.races.some(r=>r.id===id))this.selectedRace=id;break;
-    case 'exportLegacy':if(this.legacySave){const url=URL.createObjectURL(new Blob([this.legacySave],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='fengshen-legacy-3.0-save.json';a.click();window.setTimeout(()=>URL.revokeObjectURL(url),1000);}break;
+    case 'exportLegacy':if(this.legacySave){const url=URL.createObjectURL(new Blob([this.legacySave],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='fengshen-legacy-save.json';a.click();window.setTimeout(()=>URL.revokeObjectURL(url),1000);}break;
     case 'origin':this.selectedOrigin=id;this.selectedPortrait=this.content.origins.find(o=>o.id===id)!.art;break;
     case 'portrait':this.selectedPortrait=id;break;
     case 'fates':this.setupStep=1;this.selectedFate='';break;
