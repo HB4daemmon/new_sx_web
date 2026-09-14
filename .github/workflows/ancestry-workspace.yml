@@ -24,7 +24,7 @@ jobs:
           npm test
       - uses: actions/upload-artifact@v4
         with:
-          name: ancestry-resume-source
+          name: ancestry-event-source
           path: /tmp/ancestry-source
           include-hidden-files: true
           retention-days: 14
