@@ -49,20 +49,19 @@ c=load_json(GAME)
 c['version']=TARGET
 c['rulesVersion']=TARGET
 
-# Second calibration: the first 500-run matrix showed that raw stats were not the
-# main issue. Starting-loop completeness dominated outcomes, so this pass adjusts
-# origin-exclusive entry mechanics without touching shared abilities or enemies.
+# 4.1 calibration: keep each origin's authored identity, but prevent a starting kit
+# from arriving with a complete late-game loop while other origins still need pieces.
 w=by_id(c['origins'],'wanderer')
 w['stats']['hp']=110
 w['battleStartEffects']=[{'type':'gain_rage','target':'self','value':60}]
 w['description']='均衡出身。生命略厚，引雷回气；入战额外吐纳 60 怒气，更快接上第一轮雷法。'
 
 war=by_id(c['origins'],'warrior')
-war['stats'].update({'hp':106,'attack':20,'defense':11,'luck':8})
-# 4.0 started with a complete guard -> counter payoff loop. Keep the shield identity,
-# but make the counter payoff something the run must actually assemble.
-war['starting']=['basic.fist','rage.guard','aux.stone']
-war['description']='生命 +6，防御 +1，气运 -2。开局先以玄甲积盾；反震收益需要在旅途中再补齐。'
+war['stats'].update({'hp':104,'attack':19,'defense':11,'luck':7})
+# Keep fist + guard as the identity. The third piece is neutral rage support, so
+# both persistent shield amplification and the counter payoff must be assembled.
+war['starting']=['basic.fist','rage.guard','aux.qi']
+war['description']='生命 +4，攻击 -1，防御 +1，气运 -3。拳与玄甲仍是根骨，但护盾增幅和反震收益都需在旅途中补齐。'
 
 phys=by_id(c['origins'],'physician')
 phys['stats'].update({'hp':112,'attack':20,'dodge':13})
@@ -74,8 +73,8 @@ hexer['stats'].update({'hp':104,'attack':21})
 hexer['battleStartEffects']=[{'type':'apply_status','status':'weak','target':'enemy','value':2}]
 hexer['description']='以咒厄削敌。生命 104、攻击 21；开战先落 2 层虚弱，再由缚魂诀与厄印扩大破绽。'
 
-# Race pass: dragon loses more unconditional floor. Ling gets a small battle-start
-# guard because the first pass showed its evade engine often died before triggering.
+# Race pass: dragon loses unconditional floor. Ling gets a small battle-start guard
+# because the first matrix showed its evade engine could die before triggering.
 dragon=by_id(c['races'],'dragon')
 dragon['stats'].update({'hp':2,'speed':-1})
 set_trigger_value(dragon,'battle_start','gain_shield',2)
@@ -132,13 +131,14 @@ et=engine_test.read_text(encoding='utf-8')
 et=et.replace("assert.equal(w.battleStartEffects[0].value,25);","assert.equal(w.battleStartEffects[0].value,60);")
 et=et.replace("assert.equal(w.battleStartEffects[0].value,32);","assert.equal(w.battleStartEffects[0].value,60);")
 et=et.replace("assert.equal(w.stats.hp,112);assert.equal(w.stats.attack,22);assert.equal(w.stats.defense,12);",
-              "assert.equal(w.stats.hp,106);assert.equal(w.stats.attack,20);assert.equal(w.stats.defense,11);")
-# Protect the intended 4.1 distinction: warrior starts with guard generation, not
-# the finished counter payoff. This replacement is idempotent after the first run.
-needle="const w=c.origins.find(o=>o.id==='warrior'),guard=c.abilities.find(a=>a.id==='rage.guard');assert.equal(w.stats.hp,106);assert.equal(w.stats.attack,20);assert.equal(w.stats.defense,11);"
-replacement=needle+"assert(w.starting.includes('aux.stone'));assert(!w.starting.includes('aux.counter'));"
-if needle in et and "assert(w.starting.includes('aux.stone'))" not in et:
-    et=et.replace(needle,replacement)
+              "assert.equal(w.stats.hp,104);assert.equal(w.stats.attack,19);assert.equal(w.stats.defense,11);")
+et=et.replace("assert.equal(w.stats.hp,106);assert.equal(w.stats.attack,20);assert.equal(w.stats.defense,11);",
+              "assert.equal(w.stats.hp,104);assert.equal(w.stats.attack,19);assert.equal(w.stats.defense,11);")
+et=et.replace("assert(w.starting.includes('aux.stone'));assert(!w.starting.includes('aux.counter'));",
+              "assert(w.starting.includes('aux.qi'));assert(!w.starting.includes('aux.stone'));assert(!w.starting.includes('aux.counter'));")
+needle="const w=c.origins.find(o=>o.id==='warrior'),guard=c.abilities.find(a=>a.id==='rage.guard');assert.equal(w.stats.hp,104);assert.equal(w.stats.attack,19);assert.equal(w.stats.defense,11);"
+if needle in et and "assert(w.starting.includes('aux.qi'))" not in et:
+    et=et.replace(needle,needle+"assert(w.starting.includes('aux.qi'));assert(!w.starting.includes('aux.stone'));assert(!w.starting.includes('aux.counter'));")
 engine_test.write_text(et,encoding='utf-8')
 
 # Version literals in deterministic rule tests represent the current pack unless
@@ -156,6 +156,8 @@ if '## 4.1 平衡校准' not in text:
     text += '\n## 4.1 平衡校准\n\n基于四族 × 五出身的 500 局确定性矩阵做校准。天赋、事件、八槽与敌人共享技能不改结构。\n'
 if '武者不再开局直接拥有完整的反震闭环' not in text:
     text += '\n第二次校准针对开局循环：武者不再开局直接拥有完整的反震闭环；散修更快启动怒气技；药师与咒徒获得各自主题的开战缓冲；龙裔降低无条件底盘，灵族获得最低限度的起手容错。\n'
+if '武者第三件起手改为吐纳' not in text:
+    text += '\n最终收口继续只削武者的无条件优势：武者第三件起手改为吐纳，保留拳与玄甲，但磐石增幅和反震终结都必须在本局中主动补齐。\n'
 readme.write_text(text,encoding='utf-8')
 
 doc=ROOT/'docs/ANCESTRY_TALENTS.md'
@@ -164,10 +166,13 @@ text=text.replace('本轮规则 4.0.0，界面 16.0。','本轮规则 4.1.0，�
 if '## 阶段六：4.1 平衡校准' not in text:
     text += '\n## 阶段六：4.1 平衡校准\n- 先跑四族 × 五出身 × 25 种子的 500 局矩阵，不再只验证默认人族。\n- 初始基线暴露行伍武者 94% 胜率、山野散修 23%，以及龙裔 68% 对灵族 43.2% 的明显落差。\n- 4.1 使用独立存档键，4.0 与更早存档保留为可导出备份，避免旧行动日志在新数值下失去确定性。\n'
 if '第二次矩阵校准' not in text:
-    text += '- 第二次矩阵校准不改共享技能：武者改为玄甲起手、反震需后续补齐；散修提高起始怒气；药师获得起手护盾；咒徒起手施加虚弱；龙裔削减无条件生命/护盾；灵族增加起手护盾与闪避。\n'
+    text += '- 第二次矩阵校准不改共享技能：武者先去除反震起手；散修提高起始怒气；药师获得起手护盾；咒徒起手施加虚弱；龙裔削减无条件生命/护盾；灵族增加起手护盾与闪避。\n'
+text=text.replace('武者改为玄甲起手、反震需后续补齐','武者先去除反震起手')
+if '最终收口' not in text:
+    text += '- 最终收口：武者辅位从磐石改为吐纳，同时轻降生命/攻击；拳与玄甲身份保留，但完整盾辅/反震循环必须由本局奖励构筑出来。\n'
 doc.write_text(text,encoding='utf-8')
 
-print('Applied semantic 4.1 balance tuning pass 2')
+print('Applied semantic 4.1 balance tuning final pass')
 print(json.dumps({
     'wanderer':{'stats':w['stats'],'starting':w['starting'],'battleStartEffects':w.get('battleStartEffects',[])},
     'warrior':{'stats':war['stats'],'starting':war['starting']},
