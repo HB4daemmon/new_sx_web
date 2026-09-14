@@ -15,6 +15,7 @@ export function threadText(c:Content,key:string,raw:string):string {
 }
 export function conditionText(c:Content,q:Condition):string {
  switch(q.type){
+ case 'has_talent':return `需悟得${c.talents.find(t=>t.id===q.key)?.name??'另一门天赋'}`;
  case 'race_is':return `需为${c.races.find(r=>r.id===q.key)?.name??'另一族裔'}`;
  case 'currency_at_least':return `灵石至少 ${q.value}`;
  case 'hp_above_absolute':return `生命高于 ${q.value}`;
@@ -34,7 +35,7 @@ export function conditionText(c:Content,q:Condition):string {
  }
 }
 export function narrativeAvailable(c:Content,s:RunState,ch:Choice):boolean {
- return (ch.conditions??[]).filter(q=>['has_fact','thread_is','event_seen'].includes(q.type)).every(q=>conditionOK(c,s,q));
+ return (ch.conditions??[]).filter(q=>['has_fact','thread_is','event_seen','race_is','has_talent'].includes(q.type)).every(q=>conditionOK(c,s,q));
 }
 export function choiceCopy(c:Content,eventId:string,phase:string,id:string):ChoiceCopy {
  const p=presentation(c).events[eventId]?.choices;return p?.[`${phase}.${id}`]??p?.[id]??{};
@@ -82,7 +83,7 @@ export function abilityLines(c:Content,a:Ability,rank:number):string[]{
  if(a.effects.length)result.push(a.effects.map(e=>effectText(c,e,rank)).filter(Boolean).join('；'));
  for(const t of a.triggers){
   const when=[triggers[t.on]??'触发时',...(t.conditions??[]).map(q=>conditionText(c,q))].filter(Boolean).join('，');
-  result.push(`${t.once?'每战一次 · ':''}${when}${t.chance!==undefined?`（${t.chance}%概率）`:''}：${t.effects.map(e=>effectText(c,e,rank)).filter(Boolean).join('；')}`);
+  result.push(`${t.once?'每战一次 · ':''}${t.maxPerRound?'每轮至多 '+t.maxPerRound+' 次 · ':''}${when}${t.chance!==undefined?`（${t.chance}%概率）`:''}：${t.effects.map(e=>effectText(c,e,rank)).filter(Boolean).join('；')}`);
  }
  return result;
 }

@@ -16441,5 +16441,1309 @@
         }
       ]
     }
+  ],
+  "talents": [
+    {
+      "id": "talent.common.rage.breath",
+      "name": "纳海",
+      "race": "common",
+      "minLevel": 1,
+      "schools": [
+        "rage"
+      ],
+      "description": "每轮首次行动前获得 4 怒气。",
+      "art": "thunder",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "before_action",
+          "effects": [
+            {
+              "type": "gain_rage",
+              "target": "self",
+              "value": 4
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": []
+    },
+    {
+      "id": "talent.common.rage.echo",
+      "name": "余雷",
+      "race": "common",
+      "minLevel": 2,
+      "schools": [
+        "rage"
+      ],
+      "description": "每轮首次怒气技后返还 8 怒气。",
+      "art": "thunder",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_rage_skill",
+          "effects": [
+            {
+              "type": "gain_rage",
+              "target": "self",
+              "value": 8
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": []
+    },
+    {
+      "id": "talent.common.burn.kindling",
+      "name": "引薪",
+      "race": "common",
+      "minLevel": 1,
+      "schools": [
+        "burn"
+      ],
+      "description": "每轮首次命中额外施加 1 层燃烧。",
+      "art": "flame",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_hit",
+          "effects": [
+            {
+              "type": "apply_status",
+              "target": "enemy",
+              "status": "burn",
+              "value": 1
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": []
+    },
+    {
+      "id": "talent.common.burn.ember",
+      "name": "留火",
+      "race": "common",
+      "minLevel": 2,
+      "schools": [
+        "burn"
+      ],
+      "description": "回合结束，敌方燃烧至少 6 层：炼化 1 层，回怒 8 并追加 25% 攻击纯伤。",
+      "art": "flame",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "round_end",
+          "effects": [
+            {
+              "type": "consume_status",
+              "target": "enemy",
+              "status": "burn",
+              "value": 1
+            },
+            {
+              "type": "gain_rage",
+              "target": "self",
+              "value": 8
+            },
+            {
+              "type": "damage",
+              "target": "enemy",
+              "coefficient": 25,
+              "stat": "attack",
+              "pure": true
+            }
+          ],
+          "conditions": [
+            {
+              "type": "status_stack_at_least",
+              "target": "enemy",
+              "status": "burn",
+              "value": 6
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": []
+    },
+    {
+      "id": "talent.common.guard.shell",
+      "name": "披甲",
+      "race": "common",
+      "minLevel": 1,
+      "schools": [
+        "guard"
+      ],
+      "description": "入战获得防御 40% 的护盾。",
+      "art": "shield",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "battle_start",
+          "effects": [
+            {
+              "type": "gain_shield",
+              "target": "self",
+              "stat": "defense",
+              "coefficient": 40
+            }
+          ],
+          "once": true,
+          "maxPerRound": 1
+        }
+      ],
+      "requires": []
+    },
+    {
+      "id": "talent.common.guard.thorn",
+      "name": "甲棘",
+      "race": "common",
+      "minLevel": 2,
+      "schools": [
+        "guard"
+      ],
+      "description": "每轮首次受伤后，若剩余护盾至少 8：消耗 3 护盾，反击 60% 防御纯伤。",
+      "art": "shield",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_damaged",
+          "effects": [
+            {
+              "type": "consume_shield",
+              "target": "self",
+              "value": 3
+            },
+            {
+              "type": "damage",
+              "target": "enemy",
+              "coefficient": 60,
+              "stat": "defense",
+              "pure": true
+            }
+          ],
+          "conditions": [
+            {
+              "type": "status_stack_at_least",
+              "target": "self",
+              "status": "shield",
+              "value": 8
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": []
+    },
+    {
+      "id": "talent.common.break.edge",
+      "name": "试锋",
+      "race": "common",
+      "minLevel": 1,
+      "schools": [
+        "break"
+      ],
+      "description": "每轮首次命中额外施加 1 层破甲。",
+      "art": "sword",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_hit",
+          "effects": [
+            {
+              "type": "apply_status",
+              "target": "enemy",
+              "status": "break",
+              "value": 1
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": []
+    },
+    {
+      "id": "talent.common.break.harvest",
+      "name": "截势",
+      "race": "common",
+      "minLevel": 2,
+      "schools": [
+        "break"
+      ],
+      "description": "每轮首次行动后，敌方破甲至少 3 层：炼化 1 层，获得 8 怒气。",
+      "art": "sword",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "after_action",
+          "effects": [
+            {
+              "type": "consume_status",
+              "target": "enemy",
+              "status": "break",
+              "value": 1
+            },
+            {
+              "type": "gain_rage",
+              "target": "self",
+              "value": 8
+            }
+          ],
+          "conditions": [
+            {
+              "type": "status_stack_at_least",
+              "target": "enemy",
+              "status": "break",
+              "value": 3
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": []
+    },
+    {
+      "id": "talent.common.crit.sight",
+      "name": "观星",
+      "race": "common",
+      "minLevel": 1,
+      "schools": [
+        "crit"
+      ],
+      "description": "气运 +6。",
+      "art": "star",
+      "stats": {
+        "luck": 6
+      },
+      "triggers": [],
+      "requires": []
+    },
+    {
+      "id": "talent.common.crit.expose",
+      "name": "摘星",
+      "race": "common",
+      "minLevel": 2,
+      "schools": [
+        "crit"
+      ],
+      "description": "每轮首次暴击为敌人施加 1 层易伤。",
+      "art": "star",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_crit",
+          "effects": [
+            {
+              "type": "apply_status",
+              "target": "enemy",
+              "status": "vulnerable",
+              "value": 1
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": []
+    },
+    {
+      "id": "talent.common.evade.step",
+      "name": "轻身",
+      "race": "common",
+      "minLevel": 1,
+      "schools": [
+        "evade"
+      ],
+      "description": "闪避 +5。",
+      "art": "feather",
+      "stats": {
+        "dodge": 5
+      },
+      "triggers": [],
+      "requires": []
+    },
+    {
+      "id": "talent.common.evade.veil",
+      "name": "云衣",
+      "race": "common",
+      "minLevel": 2,
+      "schools": [
+        "evade"
+      ],
+      "description": "每轮首次闪避获得 5 护盾。",
+      "art": "feather",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_evade",
+          "effects": [
+            {
+              "type": "gain_shield",
+              "target": "self",
+              "value": 5
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": []
+    },
+    {
+      "id": "talent.common.vitality.rest",
+      "name": "养元",
+      "race": "common",
+      "minLevel": 1,
+      "schools": [
+        "vitality"
+      ],
+      "description": "胜利后恢复 4 生命，伤势随此生保留。",
+      "art": "gourd",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "battle_end",
+          "effects": [
+            {
+              "type": "heal",
+              "target": "self",
+              "value": 4
+            }
+          ],
+          "once": true,
+          "maxPerRound": 1
+        }
+      ],
+      "requires": []
+    },
+    {
+      "id": "talent.common.vitality.flow",
+      "name": "回气",
+      "race": "common",
+      "minLevel": 2,
+      "schools": [
+        "vitality"
+      ],
+      "description": "每轮首次实际恢复生命后获得 6 怒气；满血不触发。",
+      "art": "gourd",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_heal",
+          "effects": [
+            {
+              "type": "gain_rage",
+              "target": "self",
+              "value": 6
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": []
+    },
+    {
+      "id": "talent.common.curse.mark",
+      "name": "残符",
+      "race": "common",
+      "minLevel": 1,
+      "schools": [
+        "curse"
+      ],
+      "description": "入战为敌人施加 1 层虚弱。",
+      "art": "eye",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "battle_start",
+          "effects": [
+            {
+              "type": "apply_status",
+              "target": "enemy",
+              "status": "weak",
+              "value": 1
+            }
+          ],
+          "once": true,
+          "maxPerRound": 1
+        }
+      ],
+      "requires": []
+    },
+    {
+      "id": "talent.common.curse.echo",
+      "name": "追魂",
+      "race": "common",
+      "minLevel": 2,
+      "schools": [
+        "curse"
+      ],
+      "description": "每轮首次行动后，敌方虚弱至少 3 层：追加 30% 攻击纯伤。",
+      "art": "eye",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "after_action",
+          "effects": [
+            {
+              "type": "damage",
+              "target": "enemy",
+              "coefficient": 30,
+              "stat": "attack",
+              "pure": true
+            }
+          ],
+          "conditions": [
+            {
+              "type": "status_stack_at_least",
+              "target": "enemy",
+              "status": "weak",
+              "value": 3
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": []
+    },
+    {
+      "id": "talent.human.learn",
+      "name": "博闻",
+      "race": "human",
+      "minLevel": 1,
+      "schools": [
+        "rage"
+      ],
+      "description": "属性检定成功率 +5 个百分点，上限仍为 95%。",
+      "art": "thunder",
+      "stats": {},
+      "triggers": [],
+      "requires": [],
+      "path": "百家悟法",
+      "world": {
+        "checkBonus": 5
+      }
+    },
+    {
+      "id": "talent.human.insight",
+      "name": "百家",
+      "race": "human",
+      "minLevel": 2,
+      "schools": [
+        "rage",
+        "crit"
+      ],
+      "description": "此后升级的天赋候选由三项增为四项；仍只选一项。",
+      "art": "thunder",
+      "stats": {},
+      "triggers": [],
+      "requires": [
+        "talent.human.learn"
+      ],
+      "path": "百家悟法",
+      "world": {
+        "draftChoices": 4
+      }
+    },
+    {
+      "id": "talent.human.enlighten",
+      "name": "通明",
+      "race": "human",
+      "minLevel": 4,
+      "schools": [
+        "rage",
+        "crit"
+      ],
+      "description": "每轮首次怒气技后返怒 12，并获得 4 护盾。",
+      "art": "thunder",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_rage_skill",
+          "effects": [
+            {
+              "type": "gain_rage",
+              "target": "self",
+              "value": 12
+            },
+            {
+              "type": "gain_shield",
+              "target": "self",
+              "value": 4
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [
+        "talent.human.insight"
+      ],
+      "path": "百家悟法",
+      "exclusiveGroup": "racial-finale"
+    },
+    {
+      "id": "talent.human.promise",
+      "name": "守誓",
+      "race": "human",
+      "minLevel": 1,
+      "schools": [
+        "guard"
+      ],
+      "description": "入战获得 7 护盾。",
+      "art": "shield",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "battle_start",
+          "effects": [
+            {
+              "type": "gain_shield",
+              "target": "self",
+              "value": 7
+            }
+          ],
+          "once": true,
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [],
+      "path": "守誓破阵"
+    },
+    {
+      "id": "talent.human.resolve",
+      "name": "执锋",
+      "race": "human",
+      "minLevel": 2,
+      "schools": [
+        "guard",
+        "break"
+      ],
+      "description": "每轮首次命中施加 1 层破甲与 1 层虚弱。",
+      "art": "shield",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_hit",
+          "effects": [
+            {
+              "type": "apply_status",
+              "target": "enemy",
+              "status": "break",
+              "value": 1
+            },
+            {
+              "type": "apply_status",
+              "target": "enemy",
+              "status": "weak",
+              "value": 1
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [
+        "talent.human.promise"
+      ],
+      "path": "守誓破阵"
+    },
+    {
+      "id": "talent.human.defy",
+      "name": "人定胜天",
+      "race": "human",
+      "minLevel": 4,
+      "schools": [
+        "break",
+        "guard"
+      ],
+      "description": "每轮首次命中破甲至少 4 层的敌人，追加 55% 攻击纯伤。",
+      "art": "sword",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_hit",
+          "effects": [
+            {
+              "type": "damage",
+              "target": "enemy",
+              "coefficient": 55,
+              "stat": "attack",
+              "pure": true
+            }
+          ],
+          "conditions": [
+            {
+              "type": "status_stack_at_least",
+              "target": "enemy",
+              "status": "break",
+              "value": 4
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [
+        "talent.human.resolve"
+      ],
+      "path": "守誓破阵",
+      "exclusiveGroup": "racial-finale"
+    },
+    {
+      "id": "talent.spirit.fox",
+      "name": "狐火",
+      "race": "spirit",
+      "minLevel": 1,
+      "schools": [
+        "burn"
+      ],
+      "description": "每轮首次命中施加 1 层燃烧。",
+      "art": "flame",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_hit",
+          "effects": [
+            {
+              "type": "apply_status",
+              "target": "enemy",
+              "status": "burn",
+              "value": 1
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [],
+      "path": "狐火炼丹"
+    },
+    {
+      "id": "talent.spirit.distill",
+      "name": "炼妖",
+      "race": "spirit",
+      "minLevel": 2,
+      "schools": [
+        "burn",
+        "rage"
+      ],
+      "description": "每轮首次行动后，敌方燃烧至少 4：炼化 1 层，获得 10 怒气。",
+      "art": "flame",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "after_action",
+          "effects": [
+            {
+              "type": "consume_status",
+              "target": "enemy",
+              "status": "burn",
+              "value": 1
+            },
+            {
+              "type": "gain_rage",
+              "target": "self",
+              "value": 10
+            }
+          ],
+          "conditions": [
+            {
+              "type": "status_stack_at_least",
+              "target": "enemy",
+              "status": "burn",
+              "value": 4
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [
+        "talent.spirit.fox"
+      ],
+      "path": "狐火炼丹"
+    },
+    {
+      "id": "talent.spirit.sun",
+      "name": "九曜妖丹",
+      "race": "spirit",
+      "minLevel": 4,
+      "schools": [
+        "burn",
+        "rage"
+      ],
+      "description": "回合结束按敌方燃烧追加纯伤：每层 8% 攻击，最多计算 8 层；不消耗余火。",
+      "art": "flame",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "round_end",
+          "effects": [
+            {
+              "type": "resource_damage",
+              "target": "enemy",
+              "resource": "burn",
+              "resourceTarget": "enemy",
+              "coefficient": 8,
+              "stat": "attack",
+              "cap": 8,
+              "pure": true
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [
+        "talent.spirit.distill"
+      ],
+      "path": "狐火炼丹",
+      "exclusiveGroup": "racial-finale"
+    },
+    {
+      "id": "talent.spirit.root",
+      "name": "草木心",
+      "race": "spirit",
+      "minLevel": 1,
+      "schools": [
+        "vitality"
+      ],
+      "description": "每轮首次实际回复生命后获得 3 护盾。",
+      "art": "gourd",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_heal",
+          "effects": [
+            {
+              "type": "gain_shield",
+              "target": "self",
+              "value": 3
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [],
+      "path": "草木回生"
+    },
+    {
+      "id": "talent.spirit.sap",
+      "name": "春水",
+      "race": "spirit",
+      "minLevel": 2,
+      "schools": [
+        "vitality",
+        "guard"
+      ],
+      "description": "每轮首次受伤后，若生命低于 60%，恢复 4 生命。",
+      "art": "gourd",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_damaged",
+          "effects": [
+            {
+              "type": "heal",
+              "target": "self",
+              "value": 4
+            }
+          ],
+          "conditions": [
+            {
+              "type": "hp_below",
+              "target": "self",
+              "value": 60
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [
+        "talent.spirit.root"
+      ],
+      "path": "草木回生"
+    },
+    {
+      "id": "talent.spirit.cycle",
+      "name": "枯荣妖丹",
+      "race": "spirit",
+      "minLevel": 4,
+      "schools": [
+        "vitality",
+        "curse"
+      ],
+      "description": "每轮首次实际回复后，若敌方有虚弱：炼化 1 层虚弱，获得 12 怒气。",
+      "art": "gourd",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_heal",
+          "effects": [
+            {
+              "type": "consume_status",
+              "target": "enemy",
+              "status": "weak",
+              "value": 1
+            },
+            {
+              "type": "gain_rage",
+              "target": "self",
+              "value": 12
+            }
+          ],
+          "conditions": [
+            {
+              "type": "status_stack_at_least",
+              "target": "enemy",
+              "status": "weak",
+              "value": 1
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [
+        "talent.spirit.sap"
+      ],
+      "path": "草木回生",
+      "exclusiveGroup": "racial-finale"
+    },
+    {
+      "id": "talent.dragon.tide",
+      "name": "潮息",
+      "race": "dragon",
+      "minLevel": 1,
+      "schools": [
+        "guard",
+        "rage"
+      ],
+      "description": "每轮首次行动后获得 3 护盾。",
+      "art": "shield",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "after_action",
+          "effects": [
+            {
+              "type": "gain_shield",
+              "target": "self",
+              "value": 3
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [],
+      "path": "潮汐蓄怒"
+    },
+    {
+      "id": "talent.dragon.surge",
+      "name": "潮涌",
+      "race": "dragon",
+      "minLevel": 2,
+      "schools": [
+        "rage",
+        "guard"
+      ],
+      "description": "每轮首次怒气技后获得防御 35% 的护盾。",
+      "art": "thunder",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_rage_skill",
+          "effects": [
+            {
+              "type": "gain_shield",
+              "target": "self",
+              "stat": "defense",
+              "coefficient": 35
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [
+        "talent.dragon.tide"
+      ],
+      "path": "潮汐蓄怒"
+    },
+    {
+      "id": "talent.dragon.sea",
+      "name": "四海归流",
+      "race": "dragon",
+      "minLevel": 4,
+      "schools": [
+        "guard",
+        "rage"
+      ],
+      "description": "回合结束，护盾至少 15：消耗 6 护盾，获得 12 怒气。",
+      "art": "shield",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "round_end",
+          "effects": [
+            {
+              "type": "consume_shield",
+              "target": "self",
+              "value": 6
+            },
+            {
+              "type": "gain_rage",
+              "target": "self",
+              "value": 12
+            }
+          ],
+          "conditions": [
+            {
+              "type": "status_stack_at_least",
+              "target": "self",
+              "status": "shield",
+              "value": 15
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [
+        "talent.dragon.surge"
+      ],
+      "path": "潮汐蓄怒",
+      "exclusiveGroup": "racial-finale"
+    },
+    {
+      "id": "talent.dragon.scale",
+      "name": "逆鳞",
+      "race": "dragon",
+      "minLevel": 1,
+      "schools": [
+        "break",
+        "guard"
+      ],
+      "description": "每轮首次受伤后为敌人施加 1 层破甲。",
+      "art": "sword",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_damaged",
+          "effects": [
+            {
+              "type": "apply_status",
+              "target": "enemy",
+              "status": "break",
+              "value": 1
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [],
+      "path": "逆鳞反击"
+    },
+    {
+      "id": "talent.dragon.armor",
+      "name": "镇鳞",
+      "race": "dragon",
+      "minLevel": 2,
+      "schools": [
+        "guard",
+        "break"
+      ],
+      "description": "每轮首次命中破甲至少 3 层的敌人，获得 4 护盾。",
+      "art": "shield",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_hit",
+          "effects": [
+            {
+              "type": "gain_shield",
+              "target": "self",
+              "value": 4
+            }
+          ],
+          "conditions": [
+            {
+              "type": "status_stack_at_least",
+              "target": "enemy",
+              "status": "break",
+              "value": 3
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [
+        "talent.dragon.scale"
+      ],
+      "path": "逆鳞反击"
+    },
+    {
+      "id": "talent.dragon.wrath",
+      "name": "应龙怒",
+      "race": "dragon",
+      "minLevel": 4,
+      "schools": [
+        "break",
+        "rage"
+      ],
+      "description": "每轮首次怒气技后，敌方破甲至少 2：每层追加 12% 攻击纯伤（最多 6 层），再炼化 2 层破甲。",
+      "art": "sword",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_rage_skill",
+          "effects": [
+            {
+              "type": "resource_damage",
+              "target": "enemy",
+              "resource": "break",
+              "resourceTarget": "enemy",
+              "coefficient": 12,
+              "stat": "attack",
+              "cap": 6,
+              "pure": true
+            },
+            {
+              "type": "consume_status",
+              "target": "enemy",
+              "status": "break",
+              "value": 2
+            }
+          ],
+          "conditions": [
+            {
+              "type": "status_stack_at_least",
+              "target": "enemy",
+              "status": "break",
+              "value": 2
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [
+        "talent.dragon.armor"
+      ],
+      "path": "逆鳞反击",
+      "exclusiveGroup": "racial-finale"
+    },
+    {
+      "id": "talent.ling.wind",
+      "name": "乘风",
+      "race": "ling",
+      "minLevel": 1,
+      "schools": [
+        "evade",
+        "rage"
+      ],
+      "description": "每轮首次闪避获得 8 怒气。",
+      "art": "feather",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_evade",
+          "effects": [
+            {
+              "type": "gain_rage",
+              "target": "self",
+              "value": 8
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [],
+      "path": "无相游身"
+    },
+    {
+      "id": "talent.ling.mirror",
+      "name": "照影",
+      "race": "ling",
+      "minLevel": 2,
+      "schools": [
+        "evade",
+        "crit"
+      ],
+      "description": "每轮首次闪避恢复 3 生命，并为敌人施加 1 层易伤。",
+      "art": "feather",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_evade",
+          "effects": [
+            {
+              "type": "heal",
+              "target": "self",
+              "value": 3
+            },
+            {
+              "type": "apply_status",
+              "target": "enemy",
+              "status": "vulnerable",
+              "value": 1
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [
+        "talent.ling.wind"
+      ],
+      "path": "无相游身"
+    },
+    {
+      "id": "talent.ling.formless",
+      "name": "无相",
+      "race": "ling",
+      "minLevel": 4,
+      "schools": [
+        "evade",
+        "crit"
+      ],
+      "description": "每轮首次闪避后反击 100% 速度纯伤。",
+      "art": "feather",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_evade",
+          "effects": [
+            {
+              "type": "damage",
+              "target": "enemy",
+              "coefficient": 100,
+              "stat": "speed",
+              "pure": true
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [
+        "talent.ling.mirror"
+      ],
+      "path": "无相游身",
+      "exclusiveGroup": "racial-finale"
+    },
+    {
+      "id": "talent.ling.whisper",
+      "name": "魂语",
+      "race": "ling",
+      "minLevel": 1,
+      "schools": [
+        "curse"
+      ],
+      "description": "每轮首次行动前为敌人施加 1 层虚弱。",
+      "art": "eye",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "before_action",
+          "effects": [
+            {
+              "type": "apply_status",
+              "target": "enemy",
+              "status": "weak",
+              "value": 1
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [],
+      "path": "借厄还魂"
+    },
+    {
+      "id": "talent.ling.anchor",
+      "name": "定魂",
+      "race": "ling",
+      "minLevel": 2,
+      "schools": [
+        "curse",
+        "guard"
+      ],
+      "description": "每轮首次受伤后，若生命低于 50%：清除自身破甲并获得 5 护盾。",
+      "art": "eye",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "on_damaged",
+          "effects": [
+            {
+              "type": "remove_status",
+              "target": "self",
+              "status": "break",
+              "value": 1
+            },
+            {
+              "type": "gain_shield",
+              "target": "self",
+              "value": 5
+            }
+          ],
+          "conditions": [
+            {
+              "type": "hp_below",
+              "target": "self",
+              "value": 50
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [
+        "talent.ling.whisper"
+      ],
+      "path": "借厄还魂"
+    },
+    {
+      "id": "talent.ling.return",
+      "name": "借厄还魂",
+      "race": "ling",
+      "minLevel": 4,
+      "schools": [
+        "curse",
+        "vitality"
+      ],
+      "description": "回合结束，敌方虚弱至少 3：炼化 2 层，造成 50% 攻击纯伤并恢复 4 生命。",
+      "art": "eye",
+      "stats": {},
+      "triggers": [
+        {
+          "on": "round_end",
+          "effects": [
+            {
+              "type": "consume_status",
+              "target": "enemy",
+              "status": "weak",
+              "value": 2
+            },
+            {
+              "type": "damage",
+              "target": "enemy",
+              "coefficient": 50,
+              "stat": "attack",
+              "pure": true
+            },
+            {
+              "type": "heal",
+              "target": "self",
+              "value": 4
+            }
+          ],
+          "conditions": [
+            {
+              "type": "status_stack_at_least",
+              "target": "enemy",
+              "status": "weak",
+              "value": 3
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "requires": [
+        "talent.ling.anchor"
+      ],
+      "path": "借厄还魂",
+      "exclusiveGroup": "racial-finale"
+    }
   ]
 }

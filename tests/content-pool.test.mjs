@@ -56,7 +56,7 @@ test('reward, shop, treasure and event grants share the saved pool with no off-p
 
 test('only a real act boundary refills HP, using final equipment and realm maximum',()=>{
  for(let act=0;act<3;act++)for(const advanceVia of ['skip','acquire']){
-  const g=fresh();g.s.act=act;g.s.row=9;g.s.phase='reward';g.s.hp=1;g.s.bonus.hp=17;g.gainXP(210);
+  const g=fresh();g.s.act=act;g.s.row=9;g.s.phase='reward';g.s.hp=1;g.s.bonus.hp=17;g.gainXP(210);while(g.s.talentDraft)g.chooseTalent(g.s.talentDraft.offers[0]);
   g.s.slots[4]={id:'art.gourd',rank:0};
   if(advanceVia==='acquire'){g.s.reward=['art.gourd'];g.reward(0);}else g.skipReward();
   assert.equal(g.s.act,act+1);assert.equal(g.s.row,0);assert.equal(g.s.hp,g.stats().hp);

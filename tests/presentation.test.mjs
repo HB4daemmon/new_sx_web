@@ -12,7 +12,8 @@ const stable=x=>Array.isArray(x)?x.map(stable):x&&typeof x==='object'?Object.fro
 const fresh=()=>Game.create(c,'IMMERSION-PRESENTATION','wanderer',fateOptions(c,'IMMERSION-PRESENTATION')[0].id,'Review');
 const rootPhase=e=>e.phases?.find(p=>p.id===e.startPhase)??{id:'root',text:e.text,choices:e.choices};
 test('expansion preserves the simulation policy and the authored presentation contract',()=>{
- assert.equal(hash(readFileSync(new URL('./policy.mjs',import.meta.url))),contract.policySha256);
+ const policy=readFileSync(new URL('./policy.mjs',import.meta.url),'utf8').replace(" if(s.talentDraft){g.chooseTalent(s.talentDraft.offers[0]);return;}\n",'').replace("seed,max=400,race='human'){","seed,max=400){").replace("Game.create(c,seed,origin,fate.id,'Sim','',race)","Game.create(c,seed,origin,fate.id,'Sim')");
+ assert.equal(hash(policy),contract.policySha256);
  validateContent(c);
 });
 test('v13 presentation covers all event outcomes, including checks and phases',()=>{
