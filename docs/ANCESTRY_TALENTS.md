@@ -22,3 +22,7 @@
 新增 `maxPerRound` 防止触发器递归及连击放大。触发额度在执行效果前记账。实际恢复才触发恢复联动，所有天赋效果均走真实战斗结算与来源日志。
 
 自动策略仅增加了必须完成的天赋决策，旧选装备、选路、坊市估值保持原样。新胜率不能与 3.0 直接作数值平衡比较；旧策略哈希保留在验收记录中。
+
+## Stage 3 - sub-schools and conversion pieces
+
+Eight main schools each have two authored sub-school recipes. Six selected hybrid routes link actual equipment, not a new virtual buff tier. Recipes are a read-only disclosure in the build view, filter unavailable racial talent suggestions, and explicitly label off-pool pieces. Eight new rare artifacts create reserve-rage, burn-to-heal, shield-to-rage, break-to-weak, crit recovery, evade-to-break, healing growth, and weak-to-guard loops. Every trigger is limited to once per round. Existing shared enemy skills remain unchanged.

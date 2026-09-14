@@ -8,7 +8,7 @@ const copy=JSON.parse(await readFile('data/presentation.json','utf8'));const pac
 const compile=spawnSync(process.platform==='win32'?'tsc.cmd':'tsc',['--pretty','false'],{stdio:'inherit',shell:process.platform==='win32'});
 if(compile.status!==0)process.exit(compile.status??1);
 await mkdir('dist/data',{recursive:true});
-const order=['engine','art','presentation','app'];let js='(()=>{\n"use strict";\n';
+const order=['engine','art','presentation','build-paths','app'];let js='(()=>{\n"use strict";\n';
 for(const name of order){let code=await readFile(`build/${name}.js`,'utf8');code=code.replace(/^import .*?;\s*$/gm,'').replace(/^export /gm,'');js+=code+'\n';}
 js+='})();\n';
 const css=await readFile('src/style.css','utf8');let html=await readFile('index.html','utf8');

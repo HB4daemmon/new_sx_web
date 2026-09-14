@@ -4846,6 +4846,412 @@
       "cooldown": 0,
       "priority": 0,
       "mechanicRole": "keystone"
+    },
+    {
+      "id": "art.path.storm",
+      "name": "蓄雷匣",
+      "slot": "artifact",
+      "schools": [
+        "rage"
+      ],
+      "tags": [
+        "rage",
+        "burst"
+      ],
+      "art": "thunder",
+      "description": "蓄雷匣：每轮最多触发一次。",
+      "effects": [],
+      "triggers": [
+        {
+          "on": "round_end",
+          "effects": [
+            {
+              "type": "gain_shield",
+              "value": 4,
+              "target": "self"
+            },
+            {
+              "type": "damage",
+              "target": "enemy",
+              "coefficient": [
+                20,
+                25,
+                30,
+                40
+              ],
+              "stat": "attack",
+              "pure": true
+            }
+          ],
+          "conditions": [
+            {
+              "type": "rage_at_least",
+              "value": 60,
+              "target": "self"
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "stats": {},
+      "rarity": "rare",
+      "cost": 0,
+      "cooldown": 0,
+      "mechanicRole": "generator"
+    },
+    {
+      "id": "art.path.ember",
+      "name": "余火炉",
+      "slot": "artifact",
+      "schools": [
+        "burn"
+      ],
+      "tags": [
+        "fire",
+        "burn"
+      ],
+      "art": "flame",
+      "description": "余火炉：每轮最多触发一次。",
+      "effects": [],
+      "triggers": [
+        {
+          "on": "round_end",
+          "effects": [
+            {
+              "type": "consume_status",
+              "value": 1,
+              "target": "enemy",
+              "status": "burn"
+            },
+            {
+              "type": "heal",
+              "value": [
+                2,
+                3,
+                4,
+                5
+              ],
+              "target": "self"
+            },
+            {
+              "type": "gain_shield",
+              "value": 4,
+              "target": "self"
+            }
+          ],
+          "conditions": [
+            {
+              "type": "status_stack_at_least",
+              "status": "burn",
+              "value": 4,
+              "target": "enemy"
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "stats": {},
+      "rarity": "rare",
+      "cost": 0,
+      "cooldown": 0,
+      "mechanicRole": "converter"
+    },
+    {
+      "id": "art.path.scale",
+      "name": "鳞纹杯",
+      "slot": "artifact",
+      "schools": [
+        "guard"
+      ],
+      "tags": [
+        "shield",
+        "counter"
+      ],
+      "art": "shield",
+      "description": "鳞纹杯：每轮最多触发一次。",
+      "effects": [],
+      "triggers": [
+        {
+          "on": "after_action",
+          "effects": [
+            {
+              "type": "consume_shield",
+              "value": 6,
+              "target": "self"
+            },
+            {
+              "type": "gain_rage",
+              "value": [
+                10,
+                12,
+                14,
+                16
+              ],
+              "target": "self"
+            }
+          ],
+          "conditions": [
+            {
+              "type": "status_stack_at_least",
+              "status": "shield",
+              "value": 12,
+              "target": "self"
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "stats": {},
+      "rarity": "rare",
+      "cost": 0,
+      "cooldown": 0,
+      "mechanicRole": "converter"
+    },
+    {
+      "id": "art.path.sever",
+      "name": "截脉钩",
+      "slot": "artifact",
+      "schools": [
+        "break"
+      ],
+      "tags": [
+        "break",
+        "sword"
+      ],
+      "art": "sword",
+      "description": "截脉钩：每轮最多触发一次。",
+      "effects": [],
+      "triggers": [
+        {
+          "on": "on_hit",
+          "effects": [
+            {
+              "type": "consume_status",
+              "value": 2,
+              "target": "enemy",
+              "status": "break"
+            },
+            {
+              "type": "apply_status",
+              "value": 1,
+              "target": "enemy",
+              "status": "weak"
+            },
+            {
+              "type": "damage",
+              "target": "enemy",
+              "coefficient": [
+                35,
+                45,
+                55,
+                65
+              ],
+              "stat": "attack",
+              "pure": true
+            }
+          ],
+          "conditions": [
+            {
+              "type": "status_stack_at_least",
+              "status": "break",
+              "value": 4,
+              "target": "enemy"
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "stats": {},
+      "rarity": "rare",
+      "cost": 0,
+      "cooldown": 0,
+      "mechanicRole": "converter"
+    },
+    {
+      "id": "art.path.star",
+      "name": "星筹",
+      "slot": "artifact",
+      "schools": [
+        "crit"
+      ],
+      "tags": [
+        "crit"
+      ],
+      "art": "star",
+      "description": "星筹：每轮最多触发一次。",
+      "effects": [],
+      "triggers": [
+        {
+          "on": "on_crit",
+          "effects": [
+            {
+              "type": "gain_rage",
+              "value": 8,
+              "target": "self"
+            },
+            {
+              "type": "heal",
+              "value": [
+                2,
+                3,
+                4,
+                5
+              ],
+              "target": "self"
+            }
+          ],
+          "conditions": [],
+          "maxPerRound": 1
+        }
+      ],
+      "stats": {},
+      "rarity": "rare",
+      "cost": 0,
+      "cooldown": 0,
+      "mechanicRole": "bridge"
+    },
+    {
+      "id": "art.path.echo",
+      "name": "折影扇",
+      "slot": "artifact",
+      "schools": [
+        "evade"
+      ],
+      "tags": [
+        "evade"
+      ],
+      "art": "wind",
+      "description": "折影扇：每轮最多触发一次。",
+      "effects": [],
+      "triggers": [
+        {
+          "on": "on_evade",
+          "effects": [
+            {
+              "type": "apply_status",
+              "value": 1,
+              "target": "enemy",
+              "status": "break"
+            },
+            {
+              "type": "damage",
+              "target": "enemy",
+              "coefficient": [
+                70,
+                85,
+                100,
+                115
+              ],
+              "stat": "speed",
+              "pure": true
+            }
+          ],
+          "conditions": [],
+          "maxPerRound": 1
+        }
+      ],
+      "stats": {},
+      "rarity": "rare",
+      "cost": 0,
+      "cooldown": 0,
+      "mechanicRole": "bridge"
+    },
+    {
+      "id": "art.path.bloom",
+      "name": "回生印",
+      "slot": "artifact",
+      "schools": [
+        "vitality"
+      ],
+      "tags": [
+        "heal",
+        "vitality"
+      ],
+      "art": "lotus",
+      "description": "回生印：每轮最多触发一次。",
+      "effects": [],
+      "triggers": [
+        {
+          "on": "on_heal",
+          "effects": [
+            {
+              "type": "modify_stat",
+              "value": [
+                1,
+                1,
+                2,
+                2
+              ],
+              "target": "self",
+              "stat": "attack"
+            }
+          ],
+          "conditions": [],
+          "maxPerRound": 1
+        }
+      ],
+      "stats": {},
+      "rarity": "rare",
+      "cost": 0,
+      "cooldown": 0,
+      "mechanicRole": "amplifier"
+    },
+    {
+      "id": "art.path.hex",
+      "name": "厄灯",
+      "slot": "artifact",
+      "schools": [
+        "curse"
+      ],
+      "tags": [
+        "curse",
+        "control"
+      ],
+      "art": "seal",
+      "description": "厄灯：每轮最多触发一次。",
+      "effects": [],
+      "triggers": [
+        {
+          "on": "round_end",
+          "effects": [
+            {
+              "type": "consume_status",
+              "value": 1,
+              "target": "enemy",
+              "status": "weak"
+            },
+            {
+              "type": "gain_shield",
+              "value": [
+                5,
+                6,
+                7,
+                8
+              ],
+              "target": "self"
+            },
+            {
+              "type": "gain_rage",
+              "value": 5,
+              "target": "self"
+            }
+          ],
+          "conditions": [
+            {
+              "type": "status_stack_at_least",
+              "status": "weak",
+              "value": 4,
+              "target": "enemy"
+            }
+          ],
+          "maxPerRound": 1
+        }
+      ],
+      "stats": {},
+      "rarity": "rare",
+      "cost": 0,
+      "cooldown": 0,
+      "mechanicRole": "converter"
     }
   ],
   "enemies": [
@@ -17744,6 +18150,366 @@
       ],
       "path": "借厄还魂",
       "exclusiveGroup": "racial-finale"
+    }
+  ],
+  "buildPaths": [
+    {
+      "id": "path.rage.return",
+      "school": "rage",
+      "name": "雷潮回转",
+      "abilities": [
+        "basic.thunder",
+        "aux.river",
+        "art.flag"
+      ],
+      "talents": [
+        "talent.common.rage.echo",
+        "talent.human.enlighten"
+      ],
+      "description": "引雷蓄怒，怒技后返还，优先缩短两次爆发之间的空档。",
+      "tradeoff": "依赖怒技；返怒溢出不会留到下次。"
+    },
+    {
+      "id": "path.rage.reserve",
+      "school": "rage",
+      "name": "蓄雷护体",
+      "abilities": [
+        "basic.thunder",
+        "aux.qi",
+        "art.path.storm"
+      ],
+      "talents": [
+        "talent.common.rage.breath",
+        "talent.dragon.tide"
+      ],
+      "description": "用行动与回合回怒维持余量，回合末化为护盾与余雷。",
+      "tradeoff": "回合末不足 60 怒气时，蓄雷匣不触发。"
+    },
+    {
+      "id": "path.burn.stack",
+      "school": "burn",
+      "name": "长明积炎",
+      "abilities": [
+        "basic.fire",
+        "art.lamp",
+        "rage.lotus"
+      ],
+      "talents": [
+        "talent.spirit.fox",
+        "talent.common.burn.kindling"
+      ],
+      "description": "保留燃烧层数，长明灯续火，红莲业火收束。",
+      "tradeoff": "重叠层而非即时伤害，需要撑过起手。"
+    },
+    {
+      "id": "path.burn.harvest",
+      "school": "burn",
+      "name": "炼火养元",
+      "abilities": [
+        "basic.fire",
+        "aux.ash",
+        "art.path.ember"
+      ],
+      "talents": [
+        "talent.spirit.distill",
+        "talent.common.burn.ember"
+      ],
+      "description": "燃烧分别换取怒气、生命与护盾，形成持续炼化。",
+      "tradeoff": "多个炼化件会争用余火，层数不足时优先补火。"
+    },
+    {
+      "id": "path.guard.fortress",
+      "school": "guard",
+      "name": "厚土固守",
+      "abilities": [
+        "basic.fist",
+        "art.mirror",
+        "strategy.mountain"
+      ],
+      "talents": [
+        "talent.common.guard.shell",
+        "talent.dragon.scale"
+      ],
+      "description": "开场护盾抵挡首轮，拳势与战策持续补盾。",
+      "tradeoff": "稳健但输出成型慢，需注意回合目标。"
+    },
+    {
+      "id": "path.guard.smelt",
+      "school": "guard",
+      "name": "炼甲返潮",
+      "abilities": [
+        "basic.tide",
+        "art.path.scale",
+        "strategy.guard"
+      ],
+      "talents": [
+        "talent.dragon.sea",
+        "talent.common.guard.thorn"
+      ],
+      "description": "用沧浪补盾，分别消耗护盾换怒气与防御反击。",
+      "tradeoff": "炼化会真实扣除护盾，不是免费追加。"
+    },
+    {
+      "id": "path.break.sword",
+      "school": "break",
+      "name": "蓄势决阵",
+      "abilities": [
+        "basic.break",
+        "art.needle",
+        "rage.sky"
+      ],
+      "talents": [
+        "talent.common.break.edge",
+        "talent.human.resolve"
+      ],
+      "description": "基础技积破甲，斗法中等斩天一剑把层数变成爆发。",
+      "tradeoff": "过早消耗破甲会降低怒技的追加伤害。"
+    },
+    {
+      "id": "path.break.harvest",
+      "school": "break",
+      "name": "截脉猎杀",
+      "abilities": [
+        "basic.break",
+        "art.path.sever",
+        "strategy.hunt"
+      ],
+      "talents": [
+        "talent.common.break.harvest",
+        "talent.dragon.wrath"
+      ],
+      "description": "破甲满足门槛后炼化，追击与虚弱同时压制敌人。",
+      "tradeoff": "截脉钩与猎杀会争用破甲，不宜只拿消耗件。"
+    },
+    {
+      "id": "path.crit.expose",
+      "school": "crit",
+      "name": "摘星破绽",
+      "abilities": [
+        "basic.star",
+        "aux.focus",
+        "art.sword"
+      ],
+      "talents": [
+        "talent.common.crit.sight",
+        "talent.common.crit.expose"
+      ],
+      "description": "气运提高暴击机会，七星剑将暴击接入破甲。",
+      "tradeoff": "暴击仍是概率，不保证每轮发动。"
+    },
+    {
+      "id": "path.crit.flow",
+      "school": "crit",
+      "name": "星泉回流",
+      "abilities": [
+        "basic.star",
+        "art.star_bead",
+        "art.path.star"
+      ],
+      "talents": [
+        "talent.common.crit.sight",
+        "talent.common.vitality.flow"
+      ],
+      "description": "暴击不只追加伤害，还会回怒与治疗，为下轮续航。",
+      "tradeoff": "满血治疗不触发归元的实际治疗联动。"
+    },
+    {
+      "id": "path.evade.counter",
+      "school": "evade",
+      "name": "无相回锋",
+      "abilities": [
+        "basic.gale",
+        "aux.shadow",
+        "art.feather"
+      ],
+      "talents": [
+        "talent.ling.wind",
+        "talent.common.evade.step"
+      ],
+      "description": "速度作为伤害基数，闪避时反击并回怒。",
+      "tradeoff": "无法闪避每一击，仍需生命与防御兜底。"
+    },
+    {
+      "id": "path.evade.cut",
+      "school": "evade",
+      "name": "折影拆阵",
+      "abilities": [
+        "basic.gale",
+        "art.path.echo",
+        "aux.flight"
+      ],
+      "talents": [
+        "talent.ling.mirror",
+        "talent.common.evade.veil"
+      ],
+      "description": "扶摇累积速度，折影扇将闪避变为破甲反击。",
+      "tradeoff": "回合越短速度成长越有限。"
+    },
+    {
+      "id": "path.vitality.sustain",
+      "school": "vitality",
+      "name": "春泉续命",
+      "abilities": [
+        "basic.spring",
+        "art.dew_vase",
+        "aux.renew"
+      ],
+      "talents": [
+        "talent.spirit.root",
+        "talent.common.vitality.rest"
+      ],
+      "description": "小额持续回复搭配一次返生，将拖长的战斗变成续航。",
+      "tradeoff": "回复不能超过生命上限，需警惕单次爆发。"
+    },
+    {
+      "id": "path.vitality.bloom",
+      "school": "vitality",
+      "name": "林海回生",
+      "abilities": [
+        "basic.spring",
+        "art.path.bloom",
+        "strategy.spring"
+      ],
+      "talents": [
+        "talent.spirit.cycle",
+        "talent.common.vitality.flow"
+      ],
+      "description": "每轮首次实际治疗增长攻击，再由枯木逢春发动追击。",
+      "tradeoff": "回生印增益仅限当场，满血空转无益。"
+    },
+    {
+      "id": "path.curse.stack",
+      "school": "curse",
+      "name": "万厄归宗",
+      "abilities": [
+        "basic.hex",
+        "aux.doom",
+        "strategy.hex"
+      ],
+      "talents": [
+        "talent.ling.whisper",
+        "talent.common.curse.mark"
+      ],
+      "description": "先叠虚弱压制对手，再转易伤与追加伤害。",
+      "tradeoff": "光有压制不足以结束战斗，需配合追击。"
+    },
+    {
+      "id": "path.curse.harvest",
+      "school": "curse",
+      "name": "借厄护魂",
+      "abilities": [
+        "basic.hex",
+        "art.path.hex",
+        "art.curse_nail"
+      ],
+      "talents": [
+        "talent.ling.return",
+        "talent.common.curse.echo"
+      ],
+      "description": "留下足够虚弱后炼化一层，换取护盾和怒气。",
+      "tradeoff": "炼化虚弱会降低厄命钉的层数伤害。"
+    },
+    {
+      "id": "path.hybrid.rage_burn",
+      "school": "rage",
+      "hybrid": "rage_burn",
+      "name": "雷火轮转",
+      "abilities": [
+        "basic.fire",
+        "aux.ash",
+        "art.rage_burn"
+      ],
+      "talents": [
+        "talent.spirit.distill",
+        "talent.common.rage.echo"
+      ],
+      "description": "怒气技追加 1 层燃烧；高燃烧时引发劫火",
+      "tradeoff": "需兼顾两侧资源；此处只展示组合，共鸣仍按实际八槽计算。"
+    },
+    {
+      "id": "path.hybrid.rage_break",
+      "school": "rage",
+      "hybrid": "rage_break",
+      "name": "狂澜裂阵",
+      "abilities": [
+        "basic.break",
+        "rage.sky",
+        "art.rage_break"
+      ],
+      "talents": [
+        "talent.dragon.wrath",
+        "talent.common.break.harvest"
+      ],
+      "description": "怒气技命中破甲目标返还 8 怒气",
+      "tradeoff": "需兼顾两侧资源；此处只展示组合，共鸣仍按实际八槽计算。"
+    },
+    {
+      "id": "path.hybrid.burn_guard",
+      "school": "burn",
+      "hybrid": "burn_guard",
+      "name": "炉心金身",
+      "abilities": [
+        "basic.fire",
+        "art.path.ember",
+        "art.burn_guard"
+      ],
+      "talents": [
+        "talent.spirit.root",
+        "talent.common.guard.shell"
+      ],
+      "description": "敌方燃烧结算时获得防御 15% 护盾",
+      "tradeoff": "需兼顾两侧资源；此处只展示组合，共鸣仍按实际八槽计算。"
+    },
+    {
+      "id": "path.hybrid.guard_break",
+      "school": "guard",
+      "hybrid": "guard_break",
+      "name": "铁壁摧锋",
+      "abilities": [
+        "basic.fist",
+        "art.guard_break",
+        "art.path.sever"
+      ],
+      "talents": [
+        "talent.dragon.scale",
+        "talent.human.resolve"
+      ],
+      "description": "每回合首次用护盾吸收伤害，使攻击者 +1 破甲",
+      "tradeoff": "需兼顾两侧资源；此处只展示组合，共鸣仍按实际八槽计算。"
+    },
+    {
+      "id": "path.hybrid.crit_evade",
+      "school": "crit",
+      "hybrid": "crit_evade",
+      "name": "惊鸿夺势",
+      "abilities": [
+        "basic.star",
+        "art.crit_evade",
+        "art.feather"
+      ],
+      "talents": [
+        "talent.ling.wind",
+        "talent.common.crit.expose"
+      ],
+      "description": "闪避成功，战斗内气运 +2；暴击获得速度 30% 护盾",
+      "tradeoff": "需兼顾两侧资源；此处只展示组合，共鸣仍按实际八槽计算。"
+    },
+    {
+      "id": "path.hybrid.vitality_curse",
+      "school": "vitality",
+      "hybrid": "vitality_curse",
+      "name": "枯荣同契",
+      "abilities": [
+        "basic.spring",
+        "art.vitality_curse",
+        "art.path.hex"
+      ],
+      "talents": [
+        "talent.spirit.cycle",
+        "talent.ling.return"
+      ],
+      "description": "实际治疗时施加 1 层虚弱；己方轮末敌有虚弱则恢复 2 生命",
+      "tradeoff": "需兼顾两侧资源；此处只展示组合，共鸣仍按实际八槽计算。"
     }
   ]
 }
