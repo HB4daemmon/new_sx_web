@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+const c=JSON.parse(fs.readFileSync(new URL('../data/game.json',import.meta.url)));
+const p=JSON.parse(fs.readFileSync(new URL('../data/presentation.json',import.meta.url)));
+const places=c.events.filter(e=>e.id.startsWith('place.'));
+const banned=['先把眼前的难处处理好','亲自动手试一试','沿岸再走一段','用自己的衣物护住东西','收紧行囊离开','取一件趁手的旧物','把修补的方法记下来','付钱换一个确定的结果','押上气血辨认真伪','让旧日受助的人作证','不接这场买卖','循声而下','留在入口听完这一阵风','赶在变化前进入','只拾起散落的灵石','顺着封印最薄处探手','以气血承受残留的力量','封好门，带走所得的见识'];
+const strip=x=>Array.isArray(x)?x.map(strip):x&&typeof x==='object'?Object.fromEntries(Object.entries(x).filter(([k])=>!['name','npc','art','text','preview','label','consequence'].includes(k)).map(([k,v])=>[k,strip(v)])):x;
+test('all twelve place events use scene-specific player verbs instead of repeated template labels',()=>{assert.equal(places.length,12);const labels=places.flatMap(e=>e.phases.flatMap(ph=>ph.choices.map(ch=>ch.label)));for(const x of banned)assert(!labels.includes(x),x);});
+test('place-event prose pass does not change rewards checks conditions or phase routing',()=>{const body=JSON.stringify(places.map(strip),Object.keys({}));const stable=JSON.stringify(places.map(strip));const fp=crypto.createHash('sha256').update(JSON.stringify(places.map(strip),Object.keys({}))).digest('hex');assert(stable.length>1000);/* fingerprint is checked below with canonical sorting */});
+test('place event aftermath is authored per scene rather than falling back to stock copy',()=>{const stock='你停在这段因果之外，待呼吸平稳，继续沿路前行。';const seen=[];for(const e of places){const copy=p.events[e.id];assert(copy);for(const v of Object.values(copy.choices))for(const k of ['outcome','success','failure'])if(v[k]){assert.notEqual(v[k],stock);seen.push(v[k]);}}assert(seen.length>=60);assert(new Set(seen).size>=seen.length-2);});
+test('place-event mechanics fingerprint remains locked for the prose-only stage',()=>{const canon=x=>Array.isArray(x)?x.map(canon):x&&typeof x==='object'?Object.fromEntries(Object.entries(x).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>[k,canon(v)])):x;const s=JSON.stringify(canon(places.map(strip)));assert.equal(crypto.createHash('sha256').update(s).digest('hex'),'9d14fea08191085bb935001aa3b0859dc331bbe3718ca3a6f713df9c24480452');});

@@ -30,3 +30,8 @@ Eight main schools each have two authored sub-school recipes. Six selected hybri
 ## Stage 4 - ancestry event arcs
 
 Each ancestry now has two multi-phase world stories (8 new events, 56 total). Every arc includes at least one public deterministic stat check, a talent-specific alternative, and a later callback that gains relevance from an earlier fact without forcing a single canonical route. Human stories ask who gets recorded by institutions; spirits negotiate kinship and old names; dragon-blooded characters decide what inherited obligation means; spirit-bodied characters ask whether existence requires a remembered name. Combat builds remain untouched in this stage.
+
+## 阶段五：地点事件文本重构
+- 保留 12 个既有地点事件的奖励、检定、条件和阶段路由，仅重写场景、动作动词、成功/失败与事后文本。
+- 朝歌夜渡、陈塘药棚、西岐军械铺、万仙遗市四条三阶段事件不再共用同一套“帮忙/动手/离开”模板。
+- 四幕交易与四处秘境分别拥有与地点一致的检定叙事；测试锁定事件机制指纹，防止文案改动误伤数值。
