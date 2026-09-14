@@ -1,5 +1,5 @@
 from pathlib import Path
-import base64,hashlib,json,zlib
+import base64,hashlib,json,re,zlib
 cfg=json.loads(Path('tools/continuation.json').read_text())
 s=''.join(p.read_text().strip() for p in sorted(Path('tools/stages',cfg['stage']).glob('*.b64')))
 for bad,good in cfg.get('repairs',[]):
@@ -26,4 +26,8 @@ if cfg.get('postFix')=='stage04-presentation':
  p=Path('tests/presentation.test.mjs');text=p.read_text()
  assert 'assert.equal(choices,221);' in text
  p.write_text(text.replace('assert.equal(choices,221);','assert.equal(choices,276);',1))
+ p=Path('tests/race-events.test.mjs');text=p.read_text()
+ text,n=re.subn(r"(assert\.equal\([^,\n]*\.revision,\s*)['\"]6['\"](\s*\))",r"\1'16.0'\2",text,count=1)
+ assert n==1,'race event revision assertion not found'
+ p.write_text(text)
  print('Applied stage04 presentation compatibility correction')
