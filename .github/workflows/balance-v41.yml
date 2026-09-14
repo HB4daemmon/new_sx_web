@@ -6,6 +6,7 @@ on:
     paths:
       - 'tests/balance-audit.mjs'
       - 'tests/policy.mjs'
+      - 'tests/ancestry.test.mjs'
       - 'data/game.json'
       - 'src/**'
       - 'tools/tune-balance-v41.py'
