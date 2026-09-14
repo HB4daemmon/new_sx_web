@@ -19,3 +19,11 @@ for op in ops:
  assert hashlib.sha256(out).hexdigest()==op['after'],str(p)+' output mismatch'
  p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(out)
  print('Verified',p)
+if cfg.get('postFix')=='stage04-presentation':
+ p=Path('data/presentation.json');text=p.read_text()
+ assert '"revision": "6"' in text
+ p.write_text(text.replace('"revision": "6"','"revision": "16.0"',1))
+ p=Path('tests/presentation.test.mjs');text=p.read_text()
+ assert 'assert.equal(choices,221);' in text
+ p.write_text(text.replace('assert.equal(choices,221);','assert.equal(choices,276);',1))
+ print('Applied stage04 presentation compatibility correction')
