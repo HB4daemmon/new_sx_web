@@ -1,7 +1,6 @@
-Gameplay 4.1.0 / UI 16.0
-4.1 focuses on balance and choice quality rather than adding more content. Four ancestries, five independent origins, forty manually selected realm talents, sixteen sub-schools, six hybrid recipes and eight resource-conversion artifacts remain intact.
-A permanent 500-run deterministic matrix now covers 4 ancestries x 5 origins x 25 seeds. Baseline race spread 24.8pp is reduced to 10.4pp; origin win-rate range 23%-94% is reduced to 55%-73% under the same fixed autoplay policy.
-Final matrix: overall 60.4%; human 62.4%, spirit 56.8%, dragon 66.4%, ling 56.0%. Warrior now starts with fist + guard only, leaving the auxiliary slot to be built during the run; weaker starts receive identity-consistent early-loop support.
-Verified: 140/140 rule tests, 500-run balance regression gate with no failures, and 53/53 HTTP Chromium UI checks.
-4.1 uses a new deterministic save namespace. 4.0 and older saves are not imported into the new rules but remain exportable as backups.
-Clean source baseline: 1c5749a26c8467eac82a7dee2bd606bb8618231d
+Gameplay 4.1.0 / UI 16.1
+UI 16.1 removes tutorial-like and system-style copy from character creation, build inspection, events, shop, rest, replacement dialogs and help surfaces. Names, emblems, state, direct gains/losses, checks and combat numbers remain visible.
+Inactive build descriptions are suppressed; active resonance effects remain inspectable. Character stat detail remains available as 根骨明细, while combat keeps detailed battle reporting and ability effect numbers.
+Gameplay mechanics and balance are unchanged. The 500-run deterministic audit remains identical: overall 60.4%, race spread 10.4pp, origin spread 18pp, no threshold failures.
+Verified: 142/142 rule and presentation tests, 500-run balance invariance, and 53/53 HTTP Chromium UI checks.
+Clean source baseline: 6d643a8927b3288287906bc475dfa620e6e43834
