@@ -47,9 +47,9 @@ one('''<div class="card-top"><span>淬炼 / 即时</span><span class="card-rank"
 one('''<p class="card-description">本局 ${esc(this.content.labels.stats[o.stat])} +${o.value}。</p>''','''<p class="card-description">${esc(this.content.labels.stats[o.stat])} +${o.value}</p>''')
 one('''<div class="card-foot"><span>即时生效</span><span class="gain">${icon('coin',14)} ${o.price}</span></div>''','''<div class="card-foot"><span class="gain">${icon('coin',14)} ${o.price}</span></div>''')
 one('''本幕刷新 ${count} / 3''','''换货 ${count} / 3''')
-one("''本幕刷新已尽''","''缘尽''")
-one("''免费刷新''","''换货''")
-one("''刷新  '+price+' 灵石''","''换货  '+price+' 灵石''")
+one("'本幕刷新已尽'","'缘尽'")
+one("'免费刷新'","'换货'")
+one("'刷新  '+price+' 灵石'","'换货  '+price+' 灵石'")
 one('''<div class="sold-label">已售出</div>''','''<div class="sold-label">售罄</div>''')
 one("this.heading('山中一息','择一整备')","this.heading('山中一息')")
 one("'恢复 30% 最大生命'","'气血 +30%'")
@@ -83,7 +83,7 @@ one('''<p>选项旁列出直接得失，检定同时列出成败代价。未曾�
 app_path.write_text(app)
 
 presentation=ROOT/'src/presentation.ts'
-p= presentation.read_text()
+p=presentation.read_text()
 assert "export const UI_REVISION='16.0';" in p
 presentation.write_text(p.replace("export const UI_REVISION='16.0';","export const UI_REVISION='16.1';",1))
 
