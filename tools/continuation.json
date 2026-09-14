@@ -1,1 +1,1 @@
-{"stage":"05","script":"tools/apply-delta.py","sha256":"496da408b14d39752c899dd3f5791d74eaa494dbc7a8ad4810d5ed7311a8a7ff","message":"feat: rewrite twelve place events with scene-specific narrative","browser":true}
+{"stage":"05","script":"tools/apply-delta.py","sha256":"496da408b14d39752c899dd3f5791d74eaa494dbc7a8ad4810d5ed7311a8a7ff","message":"feat: rewrite twelve place events with scene-specific narrative","browser":true,"retry":1}
