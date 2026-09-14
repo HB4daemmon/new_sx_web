@@ -1,7 +1,7 @@
-Gameplay 4.0.0 / UI 16.0
-Four ancestries, five independent origins, forty manually selected realm talents, sixteen sub-schools, six hybrid recipes and eight resource-conversion artifacts.
-Eight ancestry-specific multi-stage event arcs add public deterministic checks, callbacks and talent-gated solutions; twelve existing place events now use scene-specific prose without changing mechanics.
-UI15 combat stage, pixel VFX and existing skill/artifact SVG language are retained.
-Verified in staged checkpoints: 140/140 final tests, full 120-run deterministic simulation, HTTP Chromium browser regression, and locked place-event mechanics fingerprint.
-3.0.0 saves are intentionally incompatible with 4.0.0; same-version saves and replay remain deterministic.
-Clean source baseline: e1ba444bb941ff3879492d2e3db6c9394a9ecfff
+Gameplay 4.1.0 / UI 16.0
+4.1 focuses on balance and choice quality rather than adding more content. Four ancestries, five independent origins, forty manually selected realm talents, sixteen sub-schools, six hybrid recipes and eight resource-conversion artifacts remain intact.
+A permanent 500-run deterministic matrix now covers 4 ancestries x 5 origins x 25 seeds. Baseline race spread 24.8pp is reduced to 10.4pp; origin win-rate range 23%-94% is reduced to 55%-73% under the same fixed autoplay policy.
+Final matrix: overall 60.4%; human 62.4%, spirit 56.8%, dragon 66.4%, ling 56.0%. Warrior now starts with fist + guard only, leaving the auxiliary slot to be built during the run; weaker starts receive identity-consistent early-loop support.
+Verified: 140/140 rule tests, 500-run balance regression gate with no failures, and 53/53 HTTP Chromium UI checks.
+4.1 uses a new deterministic save namespace. 4.0 and older saves are not imported into the new rules but remain exportable as backups.
+Clean source baseline: 1c5749a26c8467eac82a7dee2bd606bb8618231d
