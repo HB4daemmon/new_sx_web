@@ -1,0 +1,30 @@
+name: Ancestry workspace snapshot
+on:
+  push:
+    branches: [feature/ancestry-talents-v16]
+    paths: [.github/workflows/ancestry-workspace.yml]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - name: Create clean source snapshot
+        run: |
+          mkdir -p /tmp/ancestry-source
+          git archive HEAD | tar -x -C /tmp/ancestry-source
+          cp -R node_modules /tmp/ancestry-source/node_modules
+          git rev-parse HEAD > /tmp/ancestry-source/BASE_COMMIT
+          cd /tmp/ancestry-source
+          npm test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ancestry-source-baseline
+          path: /tmp/ancestry-source
+          include-hidden-files: true
+          retention-days: 14
