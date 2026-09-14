@@ -1,17 +1,17 @@
 # 族裔、天赋与命途扩展
 
-基线：530f431（规则 3.0.0，UI 15.0）。本轮规则 4.1.0，界面 16.0。
+基线：530f431（规则 3.0.0，UI 15.0）。当前规则 4.1.0，界面 16.0。
 
 ## 设计边界
 族裔决定先天禀赋与专属天赋池；出身决定初始功法与属性；命格保留原有一次选择。三者独立，族裔不锁职业，也不把技能塞进八槽之外的假装备位。
 
-参考的是《王者万象棋》官方介绍里的棋手差异、阵容成长及随机选择结构；种族、天赋与事件均为本项目原创，并非复制其牌面或宣称逐项对应。参考：https://www.taptap.cn/app/243110
+参考的是《王者万象棋》的棋手差异、阵容成长及随机选择结构；种族、天赋与事件均为本项目原创，并非复制其牌面或宣称逐项对应。
 
-## 阶段一
+## 阶段一：族裔与出身
 - 四族：人族、精怪、龙裔、灵族。每族都有一个直接生效的入战/行动禀赋与两条可发展的方向。
 - 五种出身：山野散修、行伍武者、方士、行脚药师、旧观咒徒。
 - 种族属性与触发器来自内容 JSON，玩家专用，不影响敌人的共享技能。
-- 4.0 使用独立存档键；3.0 旧档不自动改写，可从静室导出备份。旧档不能用于新规则，避免中途塞入天赋而破坏重放。
+- 4.1 使用独立存档键；4.0 与更早旧档不自动改写，可从静室导出备份。旧档不能用于新规则，避免中途改变底盘而破坏重放。
 - 保留 UI15 战斗特效和所有技能/法宝 SVG。
 
 ## 阶段二：手选天赋
@@ -21,25 +21,35 @@
 
 新增 `maxPerRound` 防止触发器递归及连击放大。触发额度在执行效果前记账。实际恢复才触发恢复联动，所有天赋效果均走真实战斗结算与来源日志。
 
-自动策略仅增加了必须完成的天赋决策，旧选装备、选路、坊市估值保持原样。新胜率不能与 3.0 直接作数值平衡比较；旧策略哈希保留在验收记录中。
+## 阶段三：子流派与转换件
+8 个主流派各有 2 条明确子流派，共 16 条；另有 6 条混合配方，全部由实际八槽装备组成，不增加虚拟装备位。8 件稀有转换法宝分别承接怒气储备、燃烧转恢复、护盾转怒气、破甲转虚弱、暴击恢复、闪避转破甲、恢复成长、虚弱转护盾等循环。触发器均有每回合上限，共享敌人技能保持不变。
 
-## Stage 3 - sub-schools and conversion pieces
-
-Eight main schools each have two authored sub-school recipes. Six selected hybrid routes link actual equipment, not a new virtual buff tier. Recipes are a read-only disclosure in the build view, filter unavailable racial talent suggestions, and explicitly label off-pool pieces. Eight new rare artifacts create reserve-rage, burn-to-heal, shield-to-rage, break-to-weak, crit recovery, evade-to-break, healing growth, and weak-to-guard loops. Every trigger is limited to once per round. Existing shared enemy skills remain unchanged.
-
-## Stage 4 - ancestry event arcs
-
-Each ancestry now has two multi-phase world stories (8 new events, 56 total). Every arc includes at least one public deterministic stat check, a talent-specific alternative, and a later callback that gains relevance from an earlier fact without forcing a single canonical route. Human stories ask who gets recorded by institutions; spirits negotiate kinship and old names; dragon-blooded characters decide what inherited obligation means; spirit-bodied characters ask whether existence requires a remembered name. Combat builds remain untouched in this stage.
+## 阶段四：族裔事件线
+每族两条多阶段世界事件，共 8 条、事件总量 56。每条至少包含一次公开确定性概率检定、一条族裔天赋特殊解法，以及能回答此前 Fact/Thread 的后续回响，不强迫玩家走唯一“正确”路线。
 
 ## 阶段五：地点事件文本重构
 - 保留 12 个既有地点事件的奖励、检定、条件和阶段路由，仅重写场景、动作动词、成功/失败与事后文本。
-- 朝歌夜渡、陈塘药棚、西岐军械铺、万仙遗市四条三阶段事件不再共用同一套“帮忙/动手/离开”模板。
+- 朝歌夜渡、陈塘药棚、西岐军械铺、万仙遗市四条三阶段事件不再共用同一套模板。
 - 四幕交易与四处秘境分别拥有与地点一致的检定叙事；测试锁定事件机制指纹，防止文案改动误伤数值。
 
 ## 阶段六：4.1 平衡校准
-- 先跑四族 × 五出身 × 25 种子的 500 局矩阵，不再只验证默认人族。
-- 初始基线暴露行伍武者 94% 胜率、山野散修 23%，以及龙裔 68% 对灵族 43.2% 的明显落差。
-- 本轮只调整出身/族裔底盘与被动数值，不改敌人、技能池、事件奖励、路线结构和天赋树形状。
-- 4.1 使用独立存档键，4.0 与更早存档保留为可导出备份，避免旧行动日志在新数值下失去确定性。
-- 第二次矩阵校准不改共享技能：武者先去除反震起手；散修提高起始怒气；药师获得起手护盾；咒徒起手施加虚弱；龙裔削减无条件生命/护盾；灵族增加起手护盾与闪避。
-- 最终收口：武者辅位从磐石改为吐纳，同时轻降生命/攻击；拳与玄甲身份保留，但完整盾辅/反震循环必须由本局奖励构筑出来。
+先固定自动策略，运行 **4 族 × 5 出身 × 25 种子 = 500 局**，把它作为版本间的同口径回归，而不是把少量通关种子当成平衡结论。
+
+初始 4.0 基线：
+- 族裔：人族 56.0%、精怪 44.8%、龙裔 68.0%、灵族 43.2%，最大差 **24.8pp**。
+- 出身：山野散修 23%、行伍武者 94%、方士 66%、行脚药师 43%、旧观咒徒 39%。
+
+定位结果：单纯调 HP/攻防只能有限改善，决定性问题是部分出身开局已经带齐完整循环，而另一些仍需要先找到核心组件。因此最终只校准“开局底盘”，不动共享技能、敌人、事件奖励、路线或天赋树：
+- 山野散修：提高起手怒气，确保雷法能更早启动。
+- 行伍武者：轻降基础生命/攻击，只保留拳与玄甲两件起手功法，辅助槽从空位开始；磐石增幅、反震终结或混合件都必须在局内构筑。
+- 行脚药师：增加主题一致的起手护盾，为恢复循环争取启动时间。
+- 旧观咒徒：开战先施加虚弱，让咒厄体系能在第一场战斗就表现自身特色。
+- 龙裔：削减无条件生命/护盾，把强度更多留给潮汐构筑。
+- 精怪、灵族：增加前期容错，让条件型机制有时间真正触发。
+
+最终 4.1 同口径结果：
+- 整体胜率 **60.4%**。
+- 族裔：人族 **62.4%**、精怪 **56.8%**、龙裔 **66.4%**、灵族 **56.0%**，最大差 **10.4pp**。
+- 出身：山野散修 **55%**、行伍武者 **73%**、方士 **60%**、行脚药师 **57%**、旧观咒徒 **57%**，最大差 **18pp**。
+
+`npm run balance` 已成为长期回归门槛：族裔最大差不得超过 15pp、出身最大差不得超过 20pp，单个出身保持在 50%～80%，整体保持在 50%～70%。这只是固定自动策略的稳定性指标，不代表真人玩家的绝对胜率。
