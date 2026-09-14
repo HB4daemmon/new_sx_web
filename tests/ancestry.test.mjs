@@ -6,7 +6,9 @@ const c=JSON.parse(readFileSync('data/game.json','utf8'));
 const fresh=(race='human',origin='wanderer',seed='ANCESTRY')=>Game.create(c,seed,origin,fateOptions(c,seed)[0].id,'无名','',race);
 test('all race and vocation combinations are valid and retain independent identities',()=>{
  assert.equal(c.races.length,4);assert.equal(c.origins.length,5);
- for(const r of c.races)for(const o of c.origins){const g=fresh(r.id,o.id);assert.equal(g.s.race,r.id);assert.equal(g.s.origin,o.id);assert.equal(g.s.slots.filter(Boolean).length,3);assert(g.s.hp>0);assert.deepEqual(Game.load(c,JSON.stringify(g.s)).s,JSON.parse(JSON.stringify(g.s)));}
+ for(const r of c.races)for(const o of c.origins){const g=fresh(r.id,o.id);assert.equal(g.s.race,r.id);assert.equal(g.s.origin,o.id);assert.equal(g.s.slots.filter(Boolean).length,o.id==='warrior'?2:3);assert(g.s.hp>0);assert.deepEqual(Game.load(c,JSON.stringify(g.s)).s,JSON.parse(JSON.stringify(g.s)));}
+ const warrior=c.origins.find(o=>o.id==='warrior');assert.deepEqual(warrior.starting,['basic.fist','rage.guard']);
+ for(const o of c.origins.filter(o=>o.id!=='warrior'))assert.equal(o.starting.length,3);
 });
 test('race stat differences and racial conditions are derived without altering vocation',()=>{
  const human=fresh(),dragon=fresh('dragon');
@@ -19,11 +21,13 @@ test('racial passives apply to the player only and remain deterministic',()=>{
  assert(x.frames.filter(f=>f.sourceId?.startsWith('race.')).every(f=>f.actor==='p'));}
 });
 test('new replay retains race and old-version saves are explicitly rejected',()=>{
- const g=fresh('spirit');g.enter(g.available().find(n=>n.type==='combat').id);
- const s=replayRun(c,g.s);assert.deepEqual(s,g.s);
- const old=structuredClone(g.s);old.version=old.rulesVersion='3.0.0';assert.throws(()=>Game.load(c,JSON.stringify(old)),/version mismatch/);
- const bad=structuredClone(c);bad.races[0].triggers[0].effects[0].type='typo';assert.throws(()=>validateContent(bad));
+ const g=fresh('spirit','alchemist','REPLAY-RACE');g.selectFate(g.s.fate);const actionLog=[...g.s.actionLog];const replay=replayRun(c,g.s.seed,g.s.origin,g.s.fate,g.s.name,g.s.portrait,actionLog,g.s.race);assert.equal(replay.s.race,'spirit');assert.deepEqual(replay.s,g.s);
+ const old=JSON.parse(JSON.stringify(g.s));old.version='3.0.0';old.rulesVersion='3.0.0';assert.throws(()=>Game.load(c,JSON.stringify(old)),/Incompatible save version/);
 });
 test('UI preserves the legacy save key and skill SVGs while offering race selection',()=>{
- const app=readFileSync('src/app.ts','utf8');assert(app.includes("SAVE_KEY='fengshen-run-v41'"));assert(app.includes("LEGACY_SAVE_KEY='fengshen-run-v4'"));assert(app.includes("LEGACY_OLD_SAVE_KEY='fengshen-run-v1'"));assert(app.includes('racePicker()'));assert(app.includes('sigil(a.art'));assert(!app.includes('removeItem(LEGACY_SAVE_KEY)'));
+ const app=readFileSync('src/app.ts','utf8'),art=readFileSync('src/art.ts','utf8');assert(app.includes("SAVE_KEY='fengshen-run-v41'"));assert(app.includes("LEGACY_SAVE_KEY='fengshen-run-v4'"));assert(app.includes("LEGACY_OLD_SAVE_KEY='fengshen-run-v1'"));assert(app.includes('race-card'));assert(art.includes('abilitySigil'));assert(!app.includes('generateImage'));
+});
+test('content validator rejects dangling race conditions and invalid race triggers',()=>{
+ const bad=structuredClone(c);bad.races[0].triggers[0].on='made_up';assert.throws(()=>validateContent(bad));
+ const broken=structuredClone(c);broken.events[0].choices[0].conditions=[{type:'race_is',key:'missing'}];assert.throws(()=>validateContent(broken));
 });
