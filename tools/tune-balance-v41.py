@@ -98,12 +98,22 @@ app=app.replace("this.legacySave=localStorage.getItem(LEGACY_SAVE_KEY)??'';",
 app=app.replace("a.download='fengshen-legacy-3.0-save.json';","a.download='fengshen-legacy-save.json';")
 app_path.write_text(app,encoding='utf-8')
 
-# Keep compatibility assertions aligned with the intentionally new save namespace.
+# Keep compatibility assertions aligned with the intentionally new save namespace
+# and with the 4.1 ancestry baseline.
 test_path=ROOT/'tests/ancestry.test.mjs'
 t=test_path.read_text(encoding='utf-8')
 t=t.replace("assert(app.includes(\"SAVE_KEY='fengshen-run-v4'\"));assert(app.includes(\"LEGACY_SAVE_KEY='fengshen-run-v1'\"));",
             "assert(app.includes(\"SAVE_KEY='fengshen-run-v41'\"));assert(app.includes(\"LEGACY_SAVE_KEY='fengshen-run-v4'\"));assert(app.includes(\"LEGACY_OLD_SAVE_KEY='fengshen-run-v1'\"));")
+t=t.replace("assert.equal(dragon.stats().hp-human.stats().hp,8);","assert.equal(dragon.stats().hp-human.stats().hp,4);")
 test_path.write_text(t,encoding='utf-8')
+
+# Engine regression contracts that intentionally pin the tuned 4.1 origin values.
+engine_test=ROOT/'tests/engine.test.mjs'
+et=engine_test.read_text(encoding='utf-8')
+et=et.replace("assert.equal(w.battleStartEffects[0].value,25);","assert.equal(w.battleStartEffects[0].value,32);")
+et=et.replace("assert.equal(w.stats.hp,112);assert.equal(w.stats.attack,22);assert.equal(w.stats.defense,12);",
+              "assert.equal(w.stats.hp,106);assert.equal(w.stats.attack,20);assert.equal(w.stats.defense,11);")
+engine_test.write_text(et,encoding='utf-8')
 
 # Version literals in deterministic rule tests represent the current pack unless
 # explicitly checking the old 3.0 rejection path.
