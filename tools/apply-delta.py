@@ -2,6 +2,9 @@ from pathlib import Path
 import base64,hashlib,json,zlib
 cfg=json.loads(Path('tools/continuation.json').read_text())
 s=''.join(p.read_text().strip() for p in sorted(Path('tools/stages',cfg['stage']).glob('*.b64')))
+for bad,good in cfg.get('repairs',[]):
+ assert s.count(bad)==1
+ s=s.replace(bad,good)
 assert hashlib.sha256(s.encode()).hexdigest()==cfg['sha256'], 'Invalid transport hash'
 ops=json.loads(zlib.decompress(base64.b64decode(s,validate=True)))
 for op in ops:
