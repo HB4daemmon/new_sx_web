@@ -1,13 +1,13 @@
 {
   "name": "fengshen-jiezhongren",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "private": true,
   "type": "module",
   "description": "Deterministic, JSON-driven Fengshen auto-battler roguelite",
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",
-    "test": "npm run build && node --test tests/engine.test.mjs tests/presentation.test.mjs tests/content-pool.test.mjs tests/combat-feedback.test.mjs",
+    "test": "npm run build && node --test tests/engine.test.mjs tests/presentation.test.mjs tests/content-pool.test.mjs tests/combat-feedback.test.mjs tests/ancestry.test.mjs",
     "simulate": "node tests/simulate.mjs"
   },
   "devDependencies": {

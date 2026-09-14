@@ -4,7 +4,7 @@ import {run,step} from './policy.mjs';
 const c=JSON.parse(await readFile(new URL('../data/game.json',import.meta.url),'utf8'));
 const fresh=(seed='TEST')=>Game.create(c,seed,c.origins[0].id,fateOptions(c,seed)[0].id,'Tester');
 const normalize=s=>{s=clone(s);if(s.battle)s.battle.cursor=0;return s;};
-test('content validates and matches the expanded content counts',()=>{validateContent(c);assert.equal(c.abilities.length,98);assert.equal(c.enemies.length,44);assert.equal(c.events.length,48);assert.equal(c.origins.length,3);assert.equal(c.fates.length,8);assert.equal(c.endings.length,4);});
+test('content validates and matches the expanded content counts',()=>{validateContent(c);assert.equal(c.abilities.length,98);assert.equal(c.enemies.length,44);assert.equal(c.events.length,48);assert.equal(c.origins.length,5);assert.equal(c.fates.length,8);assert.equal(c.endings.length,4);});
 test('unknown effects and dangling references rejected',()=>{const bad=clone(c);bad.abilities[0].effects[0].type='arbitrary_javascript';assert.throws(()=>validateContent(bad));const broken=clone(c);broken.origins[0].starting[0]='missing';assert.throws(()=>validateContent(broken));});
 test('same seed gives exactly the same route and fate offers',()=>{assert.deepEqual(fresh().s,fresh().s);assert.equal(fateOptions(c,'X').length,3);assert.deepEqual(fateOptions(c,'X'),fateOptions(c,'X'));});
 test('cannot select an unoffered fate',()=>{const absent=c.fates.find(f=>!fateOptions(c,'X').some(x=>x.id===f.id));assert.throws(()=>Game.create(c,'X',c.origins[0].id,absent.id));});
@@ -42,19 +42,19 @@ test('shop contains mixed ability recovery and attribute stock',()=>{const g=fre
 test('build profile activates two-tier resonances from the eight-slot board',()=>{const g=fresh('BUILD-RESONANCE');g.s.slots=[{id:'basic.thunder',rank:0},{id:'rage.thunder',rank:0},{id:'aux.qi',rank:0},{id:'aux.river',rank:0},{id:'art.feather',rank:0},{id:'art.flag',rank:0},null,{id:'strategy.rage',rank:0}];const b=buildProfile(c,g.s),rage=b.resonances.find(x=>x.id==='rage');assert.equal(rage.tier,2);assert(rage.count>=4);assert.equal(b.strategy.tier,2);assert.equal(b.strategy.bonusPercent,18);});
 test('build resonance is deterministic and derived rather than persisted',()=>{const g=fresh('BUILD-DERIVED'),a=buildProfile(c,g.s),b=buildProfile(c,clone(g.s));assert.deepEqual(a,b);assert.equal('build' in g.s,false);});
 test('active build resonance emits a typed combat frame and keeps replay deterministic',()=>{const make=()=>{const g=fresh('BUILD-BATTLE');g.s.slots=[{id:'basic.thunder',rank:0},{id:'rage.thunder',rank:0},{id:'aux.qi',rank:0},{id:'aux.river',rank:0},{id:'art.feather',rank:0},{id:'art.flag',rank:0},null,{id:'strategy.rage',rank:0}];return simulateBattle(c,g.s,c.enemies[0]);};const a=make(),b=make();assert.deepEqual(a,b);assert(a.frames.some(f=>f.kind==='build'));});
-test('rules version advances for build-affecting combat changes',()=>{assert.equal(c.version,'3.0.0');assert.equal(c.rulesVersion,'3.0.0');});
+test('rules version advances for build-affecting combat changes',()=>{assert.equal(c.version,'4.0.0');assert.equal(c.rulesVersion,'4.0.0');});
 
 
 test('v5 full aligned rage board unlocks a late-run finisher',()=>{const g=fresh('BUILD-V5-FINISHER'),extra=c.abilities.find(a=>a.slot==='artifact'&&!['art.feather','art.flag'].includes(a.id));assert(extra);g.s.contentPool={schools:['rage','burn','guard','break'],hybrids:['rage_burn','rage_break']};g.s.slots=[{id:'basic.thunder',rank:0},{id:'rage.thunder',rank:0},{id:'aux.qi',rank:0},{id:'aux.river',rank:0},{id:'art.feather',rank:0},{id:'art.flag',rank:0},{id:extra.id,rank:0},{id:'strategy.rage',rank:0}];const b=buildProfile(c,g.s);assert.equal(b.core,'rage');assert.equal(b.finisher.progress,3);assert.equal(b.finisher.active,true);assert.equal(b.finisher.name,'九转雷劫');});
 test('v5 bridge selection is deterministic and exposes cross-school progress',()=>{const g=fresh('BUILD-V5-BRIDGE'),cc=structuredClone(c);g.s.contentPool={schools:['rage','burn','guard','break'],hybrids:['rage_burn','rage_break']};g.s.slots=[{id:'basic.thunder',rank:0},{id:'rage.thunder',rank:0},{id:'aux.qi',rank:0},{id:'aux.river',rank:0},{id:'art.feather',rank:0},{id:'art.flag',rank:0},null,{id:'strategy.rage',rank:0}];for(const id of ['basic.thunder','rage.thunder','aux.qi','aux.river']){const a=cc.abilities.find(x=>x.id===id);a.tags=[...new Set([...a.tags,'fire','burn'])];}const a=buildProfile(cc,g.s),b=buildProfile(cc,structuredClone(g.s));assert.deepEqual(a,b);assert.equal(a.bridge.id,'rage_burn');assert.equal(a.bridge.tier,2);});
 test('v5 rage bridge and finisher emit deterministic typed combat frames',()=>{const setup=()=>{const cc=structuredClone(c),g=fresh('BUILD-V5-COMBAT'),extra=cc.abilities.find(a=>a.slot==='artifact'&&!['art.feather','art.flag'].includes(a.id));g.s.contentPool={schools:['rage','burn','guard','break'],hybrids:['rage_burn','rage_break']};g.s.slots=[{id:'basic.thunder',rank:0},{id:'rage.thunder',rank:0},{id:'aux.qi',rank:0},{id:'aux.river',rank:0},{id:'art.feather',rank:0},{id:'art.flag',rank:0},{id:extra.id,rank:0},{id:'strategy.rage',rank:0}];for(const id of ['basic.thunder','rage.thunder','aux.qi','aux.river']){const a=cc.abilities.find(x=>x.id===id);a.tags=[...new Set([...a.tags,'fire','burn'])];}const enemy=structuredClone(cc.enemies[0]);enemy.stats.hp=999;enemy.stats.attack=1;enemy.stats.defense=0;return {cc,g,enemy};};const x=setup(),y=setup(),a=simulateBattle(x.cc,x.g.s,x.enemy),b=simulateBattle(y.cc,y.g.s,y.enemy);assert.deepEqual(a,b);assert(a.frames.some(f=>f.label==='雷火轮转'));assert(a.frames.some(f=>f.label==='九转雷劫'));});
-test('v5 content and deterministic rules advance together',()=>{assert.equal(c.version,'3.0.0');assert.equal(c.rulesVersion,'3.0.0');});
+test('v5 content and deterministic rules advance together',()=>{assert.equal(c.version,'4.0.0');assert.equal(c.rulesVersion,'4.0.0');});
 
 
 test('v6 contextual role grammar distinguishes start, bridge and finish pieces',()=>{const g=fresh('V6-ROLES');const basic=c.abilities.find(a=>a.slot==='basic'),strategy=c.abilities.find(a=>a.slot==='strategy');assert.equal(abilityRole(c,g.s,basic).role,'starter');assert.equal(abilityRole(c,g.s,strategy).role,'finisher');const b=g.build(),weak=b.bridge.counts[0]<=b.bridge.counts[1]?b.bridge.schools[0]:b.bridge.schools[1],tags={rage:['rage','burst'],burn:['fire','burn'],guard:['shield','counter'],break:['break','sword']}[weak],candidate=c.abilities.find(a=>abilityRole(c,g.s,a).role==='bridge');assert(candidate);assert.equal(abilityRole(c,g.s,candidate).role,'bridge');});
 test('v6 three-offer draft is deterministic unique and reserves the middle lane for bridge repair',()=>{const a=fresh('V6-DRAFT'),b=fresh('V6-DRAFT'),x=a.rollAbilities(3,'reward'),y=b.rollAbilities(3,'reward');assert.deepEqual(x,y);assert.equal(new Set(x).size,3);assert.equal(abilityRole(c,a.s,a.ability(x[1])).role,'bridge');});
 test('v6 role classification is derived and does not alter save shape',()=>{const g=fresh('V6-DERIVED'),before=JSON.stringify(g.s);for(const a of c.abilities.slice(0,12))abilityRole(c,g.s,a);assert.equal(JSON.stringify(g.s),before);});
-test('v6 content and reward-draft rules advance together',()=>{assert.equal(c.version,'3.0.0');assert.equal(c.rulesVersion,'3.0.0');});
+test('v6 content and reward-draft rules advance together',()=>{assert.equal(c.version,'4.0.0');assert.equal(c.rulesVersion,'4.0.0');});
 
 
 test('v7 burn engine harvests burn into rage and burst damage',()=>{const g=fresh('V7-BURN'),enemy=structuredClone(c.enemies[0]);enemy.stats={...enemy.stats,hp:999,attack:1,defense:0,speed:1,dodge:0};g.s.slots=[{id:'basic.fire',rank:0},{id:'rage.fire',rank:0},{id:'aux.fire',rank:0},{id:'aux.ash',rank:0},{id:'art.lamp',rank:0},{id:'art.pearl',rank:0},null,{id:'strategy.fire',rank:0}];const b=simulateBattle(c,g.s,enemy);assert(b.summary.playerConversions>0);assert(b.frames.some(f=>f.kind==='convert'&&['aux.ash','strategy.fire'].includes(f.sourceId)));});
@@ -65,7 +65,7 @@ test('v7 break engine harvests armor break into rage and pursuit',()=>{const g=f
 
 test('v7 rage engine refunds rage and emits deterministic thunder echoes',()=>{const make=()=>{const g=fresh('V7-RAGE'),enemy=structuredClone(c.enemies[0]);enemy.stats={...enemy.stats,hp:999,attack:1,defense:0,speed:1,dodge:0};g.s.slots=[{id:'basic.sword',rank:0},{id:'rage.thunder',rank:0},{id:'aux.qi',rank:0},{id:'aux.river',rank:0},{id:'art.flag',rank:0},{id:'art.feather',rank:0},null,{id:'strategy.rage',rank:0}];return simulateBattle(c,g.s,enemy);};const a=make(),b=make();assert.deepEqual(a,b);assert(a.summary.playerRageSkills>0);assert(a.frames.some(f=>f.kind==='damage'&&f.sourceId==='strategy.rage'));});
 
-test('v7 resource engines advance content and deterministic rule versions together',()=>{assert.equal(c.version,'3.0.0');assert.equal(c.rulesVersion,'3.0.0');});
+test('v7 resource engines advance content and deterministic rule versions together',()=>{assert.equal(c.version,'4.0.0');assert.equal(c.rulesVersion,'4.0.0');});
 
 
 test('v7 origin battle perks are JSON configured and deterministic',()=>{const w=c.origins.find(o=>o.id==='wanderer'),a=c.origins.find(o=>o.id==='alchemist');assert.equal(w.battleStartEffects[0].type,'gain_rage');assert.equal(w.battleStartEffects[0].value,25);assert.equal(a.battleStartEffects[0].type,'gain_shield');assert.equal(a.battleStartEffects[0].value,8);const g1=fresh('V7-ORIGIN-PERK'),g2=fresh('V7-ORIGIN-PERK'),b1=simulateBattle(c,g1.s,structuredClone(c.enemies[0])),b2=simulateBattle(c,g2.s,structuredClone(c.enemies[0])),f=b1.frames.find(x=>x.sourceId==='origin.wanderer');assert.deepEqual(b1,b2);assert(f);assert(f.p.rage>=15);});
@@ -77,7 +77,7 @@ test('v8 burn payoff makes red lotus scale from live burn stacks deterministical
 
 test('v8 break payoff makes heaven slash scale from armor break',()=>{const g=fresh('V8-SKY'),enemy=structuredClone(c.enemies[0]);enemy.stats={...enemy.stats,hp:2200,attack:1,defense:0,speed:1,dodge:0};g.s.slots=[{id:'basic.break',rank:0},{id:'rage.sky',rank:0},{id:'aux.sight',rank:0},{id:'aux.qi',rank:0},{id:'art.needle',rank:0},{id:'art.sword',rank:0},null,{id:'strategy.hunt',rank:0}];const b=simulateBattle(c,g.s,enemy),hits=b.frames.filter(f=>f.kind==='damage'&&f.sourceId==='rage.sky');assert(b.summary.playerRageSkills>0);assert(hits.length>=2);});
 
-test('v8 bridge pieces express both sides of their resource identity',()=>{const tide=c.abilities.find(a=>a.id==='basic.tide'),orbs=c.abilities.find(a=>a.id==='myth.orbs');assert(tide.effects.some(e=>e.type==='gain_shield'));assert(tide.effects.some(e=>e.type==='gain_rage'));const fx=orbs.triggers.flatMap(t=>t.effects);assert(fx.some(e=>e.type==='gain_shield'));assert(fx.some(e=>e.type==='apply_status'&&e.status==='burn'));assert.equal(c.version,'3.0.0');assert.equal(c.rulesVersion,'3.0.0');});
+test('v8 bridge pieces express both sides of their resource identity',()=>{const tide=c.abilities.find(a=>a.id==='basic.tide'),orbs=c.abilities.find(a=>a.id==='myth.orbs');assert(tide.effects.some(e=>e.type==='gain_shield'));assert(tide.effects.some(e=>e.type==='gain_rage'));const fx=orbs.triggers.flatMap(t=>t.effects);assert(fx.some(e=>e.type==='gain_shield'));assert(fx.some(e=>e.type==='apply_status'&&e.status==='burn'));assert.equal(c.version,'4.0.0');assert.equal(c.rulesVersion,'4.0.0');});
 
 test('v8 resource damage rejects undeclared resources',()=>{const bad=structuredClone(c),lotus=bad.abilities.find(a=>a.id==='rage.lotus'),effect=lotus.effects.find(e=>e.type==='resource_damage');effect.resource='gold';assert.throws(()=>validateContent(bad));});
 
@@ -112,7 +112,7 @@ test('v9 clear-heart jade converts leftover guard into persistent healing',()=>{
 });
 
 test('v9 warrior correction is origin-only and keeps shared guard skills intact',()=>{
- const w=c.origins.find(o=>o.id==='warrior'),guard=c.abilities.find(a=>a.id==='rage.guard');assert.equal(w.stats.hp,112);assert.equal(w.stats.attack,22);assert.equal(w.stats.defense,12);assert(guard.effects.some(e=>e.type==='gain_shield'&&e.coefficient));assert.equal(c.version,'3.0.0');assert.equal(c.rulesVersion,'3.0.0');
+ const w=c.origins.find(o=>o.id==='warrior'),guard=c.abilities.find(a=>a.id==='rage.guard');assert.equal(w.stats.hp,112);assert.equal(w.stats.attack,22);assert.equal(w.stats.defense,12);assert(guard.effects.some(e=>e.type==='gain_shield'&&e.coefficient));assert.equal(c.version,'4.0.0');assert.equal(c.rulesVersion,'4.0.0');
 });
 
 
@@ -137,7 +137,7 @@ test('v10 sea orbs remain a deterministic burn-guard pivot with rage acceleratio
 });
 
 test('v10 major fate choices expose all three mythic pivot rewards',()=>{
- const grants=c.events.filter(e=>e.major).flatMap(e=>e.choices.map(ch=>ch.grant?.id).filter(Boolean));for(const id of ['myth.ring','myth.seal','myth.orbs'])assert(grants.includes(id));for(const id of ['myth.ring','myth.seal','myth.orbs'])assert.equal(c.abilities.find(a=>a.id===id).mechanicRole,'keystone');assert.equal(c.version,'3.0.0');assert.equal(c.rulesVersion,'3.0.0');
+ const grants=c.events.filter(e=>e.major).flatMap(e=>e.choices.map(ch=>ch.grant?.id).filter(Boolean));for(const id of ['myth.ring','myth.seal','myth.orbs'])assert(grants.includes(id));for(const id of ['myth.ring','myth.seal','myth.orbs'])assert.equal(c.abilities.find(a=>a.id===id).mechanicRole,'keystone');assert.equal(c.version,'4.0.0');assert.equal(c.rulesVersion,'4.0.0');
 });
 
 
@@ -151,7 +151,7 @@ test('v11 Shen Gongbao debt line has authored continuation and settlement states
 
 test('v11 event log records event identity category and declared consequence',()=>{const g=fresh('V11-STORY-AUDIT');g.s.phase='event';g.s.eventId='major.0';const ch=c.events.find(e=>e.id==='major.0').choices[0];g.chooseEvent(ch.id);const log=g.s.storyLog.at(-1);assert.equal(log.eventId,'major.0');assert.equal(log.choiceId,ch.id);assert.equal(log.category,'major');assert(log.consequence);});
 
-test('v11 event rules and content advance together',()=>{assert.equal(c.version,'3.0.0');assert.equal(c.rulesVersion,'3.0.0');assert.equal(c.events.length,48);assert(c.events.every(e=>e.category));});
+test('v11 event rules and content advance together',()=>{assert.equal(c.version,'4.0.0');assert.equal(c.rulesVersion,'4.0.0');assert.equal(c.events.length,48);assert(c.events.every(e=>e.category));});
 
 
 test('original four character arcs remain in the expanded event pool',()=>{const grouped=new Map();for(const e of c.events.filter(e=>e.character)){grouped.set(e.character,(grouped.get(e.character)??0)+1);}assert.equal(c.events.length,48);assert.equal(grouped.get('哪吒'),4);assert.equal(grouped.get('杨戬'),4);assert.equal(grouped.get('申公豹'),4);assert.equal(grouped.get('赵公明'),3);});
@@ -162,7 +162,7 @@ test('v12 major fate choices also advance their named relationship',()=>{for(con
 
 test('v12 character arcs cross-link Shen Gongbao with Yang Jian and Zhao Gongming',()=>{const expose=c.events.find(e=>e.id==='event.2.deal').choices.find(ch=>ch.id==='expose'),zhao=c.events.find(e=>e.id==='event.3.hermit').choices.find(ch=>ch.id==='witness');assert(expose.effects.some(e=>e.type==='advance_thread'&&e.key==='char_yangjian'));assert(zhao.conditions.some(q=>q.type==='thread_is'&&q.key==='shen_gongbao'&&q.text==='scheme'));assert(zhao.effects.some(e=>e.type==='advance_thread'&&e.key==='shen_gongbao'&&e.value==='witnessed'));});
 
-test('v12 character content and deterministic rules advance together',()=>{assert.equal(c.version,'3.0.0');assert.equal(c.rulesVersion,'3.0.0');for(const e of c.events.filter(e=>e.character)){assert(e.episode>=1);assert(e.episodes>=e.episode);assert(e.relationKey);}});
+test('v12 character content and deterministic rules advance together',()=>{assert.equal(c.version,'4.0.0');assert.equal(c.rulesVersion,'4.0.0');for(const e of c.events.filter(e=>e.character)){assert(e.episode>=1);assert(e.episodes>=e.episode);assert(e.relationKey);}});
 
 
 test('survive objective succeeds when the enemy is defeated before the required round',()=>{const g=fresh('SURVIVE-EARLY-KILL');g.s.bonus.attack=1000;g.s.bonus.hit=1000;const base=c.enemies.find(e=>e.objective?.type==='survive');const enemy=structuredClone(base);enemy.stats.hp=1;enemy.stats.defense=0;enemy.stats.dodge=0;enemy.objective={...enemy.objective,rounds:6,label:'守至第 6 回合'};const b=simulateBattle(c,g.s,enemy);assert.equal(b.won,true);assert(b.rounds<6);assert.equal(b.frames.at(-1).kind,'win');assert.equal(b.frames.at(-1).label,'斗法告捷');assert.equal(b.frames.some(f=>f.kind==='timeout'),false);});

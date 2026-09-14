@@ -611,3 +611,11 @@ button:disabled{cursor:not-allowed}
 @keyframes ui15-lunge-e{0%{transform:translateX(0)}42%{transform:translateX(-11px)}100%{transform:translateX(0)}}
 @media(max-width:760px){.combat-arena{grid-template-columns:minmax(112px,1fr) 54px minmax(112px,1fr);min-height:360px;padding:18px 10px 13px;gap:5px}.combatant{max-width:145px}.fighter-art{aspect-ratio:4/5}.fighter-identity{margin:6px 0}.fighter-identity h2{font-size:14px;letter-spacing:1px}.turn-mark{display:none}.fighter-numbers{font-size:8px}.fighter-core-stats span{font-size:8px}.battle-stage-core{margin-bottom:64px;gap:5px}.round-seal{width:36px;height:36px;font-size:14px}.battle-stage-core strong{font-size:11px;max-width:90px;letter-spacing:1px}.battle-stage-core small{display:none}.combat-vfx{top:31%;transform:translate(-50%,-50%) scale(2.6)}.combat-vfx.critical{transform:translate(-50%,-50%) scale(2.9)}.combat-vfx.target-p{left:24%}.combat-vfx.target-e{left:76%}.combat-float{top:calc(10% + var(--stack)*26px);font-size:16px}.combat-float.damage.crit{font-size:20px}.combat-float.side-p{left:23%}.combat-float.side-e{right:23%}.combat-float.status-add,.combat-float.status-use{font-size:11px}.simple-damage{grid-template-columns:auto 1fr auto}.simple-damage strong{display:none}.battle-log{max-height:220px}.ability-card .ability-effects p:first-child{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.combat-vfx .vfx-sprite,.vfx-particles i,.combat-float,.combatant.acting{animation:none!important}.combat-vfx{opacity:.82}}
+
+/* Ancestry selection: independent of vocation, compact on touch screens. */
+.race-picker{margin:10px 0 18px}.race-picker h3{font:14px var(--serif);color:var(--gold);margin:0 0 9px}
+.race-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.race-option{display:grid;justify-items:center;gap:6px;min-height:70px;padding:9px 3px;border:1px solid var(--line);background:#10251e;color:var(--muted)}
+.race-option.selected{border-color:var(--gold);color:var(--gold-bright);background:#6d633c30}.race-option strong{font-size:13px}
+.race-trait{font-size:12px;line-height:1.8;color:var(--muted);margin-top:10px}.race-trait b{color:var(--gold)}
+.setup .origin-options{grid-template-columns:1fr}.setup .origin-option{min-height:60px}

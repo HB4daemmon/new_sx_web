@@ -1,6 +1,6 @@
 {
-  "version": "3.0.0",
-  "rulesVersion": "3.0.0",
+  "version": "4.0.0",
+  "rulesVersion": "4.0.0",
   "title": "封神·劫中人",
   "subtitle": "一场大劫，八寸命途",
   "origins": [
@@ -35,7 +35,7 @@
     },
     {
       "id": "warrior",
-      "name": "人间武者",
+      "name": "行伍武者",
       "subtitle": "肉身为盾，凡骨撼天",
       "art": "guardian",
       "description": "生命 +12，攻击 +2，防御 +2，气运 -3。护盾反击。",
@@ -84,6 +84,50 @@
           "stat": "defense",
           "coefficient": 0
         }
+      ]
+    },
+    {
+      "id": "physician",
+      "name": "行脚药师",
+      "subtitle": "携一篓青绿，渡一程生死",
+      "description": "以疗愈养战。回春指与胎息维持气血，青莲渡厄积蓄反攻。",
+      "art": "hermit",
+      "stats": {
+        "hp": 104,
+        "attack": 18,
+        "defense": 10,
+        "speed": 11,
+        "hit": 10,
+        "dodge": 12,
+        "luck": 12
+      },
+      "affinity": "heal",
+      "starting": [
+        "basic.spring",
+        "rage.spring",
+        "aux.breath"
+      ]
+    },
+    {
+      "id": "hexer",
+      "name": "旧观咒徒",
+      "subtitle": "旧纸写新符，问魂不问天",
+      "description": "以咒厄削敌。缚魂诀与厄印积累虚弱，百厄缠身打开破绽。",
+      "art": "sorcerer",
+      "stats": {
+        "hp": 94,
+        "attack": 19,
+        "defense": 10,
+        "speed": 11,
+        "hit": 13,
+        "dodge": 10,
+        "luck": 14
+      },
+      "affinity": "curse",
+      "starting": [
+        "basic.hex",
+        "rage.hex",
+        "aux.hex"
       ]
     }
   ],
@@ -15041,7 +15085,7 @@
     }
   },
   "presentation": {
-    "revision": "15.0",
+    "revision": "16.0",
     "events": {
       "event.0.hermit": {
         "choices": {
@@ -16284,6 +16328,118 @@
       ],
       "one": "实际治疗时施加 1 层虚弱；己方轮末敌有虚弱则恢复 2 生命",
       "two": "实际治疗时施加 2 层虚弱；己方轮末敌有虚弱则恢复 4 生命"
+    }
+  ],
+  "races": [
+    {
+      "id": "human",
+      "name": "人族",
+      "art": "lotus",
+      "trait": "持志",
+      "description": "肉身虽凡，心志不移。首次行动前额外获得 6 怒气。",
+      "stats": {},
+      "paths": [
+        "百家悟法",
+        "守誓破阵"
+      ],
+      "triggers": [
+        {
+          "on": "before_action",
+          "once": true,
+          "effects": [
+            {
+              "type": "gain_rage",
+              "target": "self",
+              "value": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "spirit",
+      "name": "精怪",
+      "art": "flame",
+      "trait": "山泽灵性",
+      "description": "草木禽兽得道。生命 -4，闪避 +4；入战为敌人施加 1 层燃烧。",
+      "stats": {
+        "hp": -4,
+        "dodge": 4
+      },
+      "paths": [
+        "狐火炼丹",
+        "草木回生"
+      ],
+      "triggers": [
+        {
+          "on": "battle_start",
+          "once": true,
+          "effects": [
+            {
+              "type": "apply_status",
+              "target": "enemy",
+              "status": "burn",
+              "value": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dragon",
+      "name": "龙裔",
+      "art": "shield",
+      "trait": "护身鳞",
+      "description": "鳞甲未褪，潮声在血。生命 +8，速度 -1；入战获得 6 护盾。",
+      "stats": {
+        "hp": 8,
+        "speed": -1
+      },
+      "paths": [
+        "潮汐蓄怒",
+        "逆鳞反击"
+      ],
+      "triggers": [
+        {
+          "on": "battle_start",
+          "once": true,
+          "effects": [
+            {
+              "type": "gain_shield",
+              "target": "self",
+              "value": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ling",
+      "name": "灵族",
+      "art": "cloud",
+      "trait": "离形",
+      "description": "一缕灵气凝身。生命 -6，闪避 +8；每战首次闪避后获得 15 怒气。",
+      "stats": {
+        "hp": -6,
+        "dodge": 8
+      },
+      "paths": [
+        "无相游身",
+        "借厄还魂"
+      ],
+      "triggers": [
+        {
+          "on": "on_evade",
+          "once": true,
+          "effects": [
+            {
+              "type": "gain_rage",
+              "target": "self",
+              "value": 15
+            }
+          ]
+        }
+      ]
     }
   ]
 }
