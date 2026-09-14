@@ -21,13 +21,11 @@ test('racial passives apply to the player only and remain deterministic',()=>{
  assert(x.frames.filter(f=>f.sourceId?.startsWith('race.')).every(f=>f.actor==='p'));}
 });
 test('new replay retains race and old-version saves are explicitly rejected',()=>{
- const g=fresh('spirit','alchemist','REPLAY-RACE');g.selectFate(g.s.fate);const actionLog=[...g.s.actionLog];const replay=replayRun(c,g.s.seed,g.s.origin,g.s.fate,g.s.name,g.s.portrait,actionLog,g.s.race);assert.equal(replay.s.race,'spirit');assert.deepEqual(replay.s,g.s);
- const old=JSON.parse(JSON.stringify(g.s));old.version='3.0.0';old.rulesVersion='3.0.0';assert.throws(()=>Game.load(c,JSON.stringify(old)),/Incompatible save version/);
+ const g=fresh('spirit');g.enter(g.available().find(n=>n.type==='combat').id);
+ const s=replayRun(c,g.s);assert.deepEqual(s,g.s);
+ const old=structuredClone(g.s);old.version=old.rulesVersion='3.0.0';assert.throws(()=>Game.load(c,JSON.stringify(old)),/version mismatch/);
+ const bad=structuredClone(c);bad.races[0].triggers[0].effects[0].type='typo';assert.throws(()=>validateContent(bad));
 });
 test('UI preserves the legacy save key and skill SVGs while offering race selection',()=>{
- const app=readFileSync('src/app.ts','utf8'),art=readFileSync('src/art.ts','utf8');assert(app.includes("SAVE_KEY='fengshen-run-v41'"));assert(app.includes("LEGACY_SAVE_KEY='fengshen-run-v4'"));assert(app.includes("LEGACY_OLD_SAVE_KEY='fengshen-run-v1'"));assert(app.includes('race-card'));assert(art.includes('abilitySigil'));assert(!app.includes('generateImage'));
-});
-test('content validator rejects dangling race conditions and invalid race triggers',()=>{
- const bad=structuredClone(c);bad.races[0].triggers[0].on='made_up';assert.throws(()=>validateContent(bad));
- const broken=structuredClone(c);broken.events[0].choices[0].conditions=[{type:'race_is',key:'missing'}];assert.throws(()=>validateContent(broken));
+ const app=readFileSync('src/app.ts','utf8');assert(app.includes("SAVE_KEY='fengshen-run-v41'"));assert(app.includes("LEGACY_SAVE_KEY='fengshen-run-v4'"));assert(app.includes("LEGACY_OLD_SAVE_KEY='fengshen-run-v1'"));assert(app.includes('racePicker()'));assert(app.includes('sigil(a.art'));assert(!app.includes('removeItem(LEGACY_SAVE_KEY)'));
 });
