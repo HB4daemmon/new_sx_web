@@ -1,1 +1,1 @@
-{"stage":"02r","message":"feat: add forty talents and manual realm advancement choices","browser":true,"recover":true}
+{"stage":"03","script":"tools/apply-delta.py","sha256":"2f7309bae9337250daa8add5a48a7a8778a0c004e0463babbcc96e30e9cd5b9c","repairs":[["PxLObUSUSg","PxLObUSg"]],"message":"feat: add sixteen sub-schools, six hybrid recipes and eight resource artifacts","browser":true}
