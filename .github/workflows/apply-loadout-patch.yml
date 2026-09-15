@@ -5,7 +5,6 @@ on:
     branches:
       - feat/loadout-6-1-1
     paths:
-      - '.automation/loadout.patch.gz.b64'
       - '.github/workflows/apply-loadout-patch.yml'
 
 permissions:
@@ -23,10 +22,11 @@ jobs:
       - name: Restore and apply patch
         shell: bash
         run: |
-          base64 -d .automation/loadout.patch.gz.b64 | gzip -d > /tmp/loadout.patch
+          cat .automation/loadout.patch.gz.b64.part-* | base64 -d | gzip -d > /tmp/loadout.patch
           git apply --check /tmp/loadout.patch
           git apply /tmp/loadout.patch
-          rm -f .automation/loadout.patch .automation/loadout.patch.gz.b64
+          rm -f .automation/loadout.patch .automation/loadout.patch.gz.b64 .automation/loadout.patch.gz.b64.part-*
+          rm -f .github/workflows/apply-loadout-patch.yml
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -43,5 +43,3 @@ jobs:
           git add -A
           git commit -m 'feat: redesign loadout and combat feedback'
           git push origin HEAD:feat/loadout-6-1-1
-
-# trigger compressed-patch application
