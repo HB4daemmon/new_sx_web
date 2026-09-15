@@ -5,7 +5,7 @@ on:
     branches:
       - feat/loadout-6-1-1
     paths:
-      - '.automation/loadout.patch'
+      - '.automation/loadout.patch.gz.b64'
       - '.github/workflows/apply-loadout-patch.yml'
 
 permissions:
@@ -20,33 +20,24 @@ jobs:
         with:
           ref: feat/loadout-6-1-1
           fetch-depth: 0
-      - name: Apply patch
+      - name: Restore and apply patch
         shell: bash
         run: |
-          if [ ! -f .automation/loadout.patch ]; then
-            echo 'Patch already applied; nothing to do.'
-            exit 0
-          fi
-          git apply --check .automation/loadout.patch
-          git apply .automation/loadout.patch
-          rm .automation/loadout.patch
+          base64 -d .automation/loadout.patch.gz.b64 | gzip -d > /tmp/loadout.patch
+          git apply --check /tmp/loadout.patch
+          git apply /tmp/loadout.patch
+          rm -f .automation/loadout.patch .automation/loadout.patch.gz.b64
       - uses: actions/setup-node@v4
-        if: hashFiles('.automation/loadout.patch') == ''
         with:
           node-version: '22'
           cache: npm
       - name: Verify
-        if: hashFiles('.automation/loadout.patch') == ''
         run: |
           npm ci
           npm test
       - name: Commit implementation
         shell: bash
         run: |
-          if git diff --quiet && git diff --cached --quiet; then
-            echo 'No implementation changes to commit.'
-            exit 0
-          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
