@@ -43,3 +43,5 @@ jobs:
           git add -A
           git commit -m 'feat: redesign loadout and combat feedback'
           git push origin HEAD:feat/loadout-6-1-1
+
+# trigger compressed-patch application
