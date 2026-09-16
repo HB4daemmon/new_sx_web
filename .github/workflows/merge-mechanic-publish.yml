@@ -1,0 +1,32 @@
+name: Merge mechanic publish PR
+
+on:
+  push:
+    branches:
+      - feat/mechanic-loadout
+    paths:
+      - .github/workflows/merge-mechanic-publish.yml
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge clean publish PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PR=$(gh pr list \
+            --repo HB4daemmon/new_sx_web \
+            --head feat/mechanic-loadout-publish \
+            --base main \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')
+          test -n "$PR"
+          gh pr merge "$PR" --repo HB4daemmon/new_sx_web --squash --delete-branch
