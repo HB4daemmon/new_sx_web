@@ -1,6 +1,6 @@
 {
-  "version": "4.1.0",
-  "rulesVersion": "4.1.0",
+  "version": "4.3.0",
+  "rulesVersion": "4.3.0",
   "title": "封神·劫中人",
   "subtitle": "一场大劫，八寸命途",
   "origins": [
@@ -23,7 +23,8 @@
       "starting": [
         "basic.thunder",
         "rage.thunder",
-        "aux.qi"
+        "aux.qi",
+        "strategy.rage"
       ],
       "battleStartEffects": [
         {
@@ -38,7 +39,7 @@
       "name": "行伍武者",
       "subtitle": "肉身为盾，凡骨撼天",
       "art": "guardian",
-      "description": "生命 +4，攻击 -1，防御 +1，气运 -3。拳与玄甲是根骨；辅助位从空槽起步，需要在旅途中亲手补成护盾、反震或混合循环。",
+      "description": "生命 +4，攻击 -1，防御 +1，气运 -3。拳、玄甲与磐石构成稳定起手，再由旅途中获得的组件接成护盾、反震或混合循环。",
       "stats": {
         "hp": 104,
         "attack": 19,
@@ -51,7 +52,9 @@
       "affinity": "shield",
       "starting": [
         "basic.fist",
-        "rage.guard"
+        "rage.guard",
+        "aux.stone",
+        "strategy.guard"
       ]
     },
     {
@@ -73,7 +76,8 @@
       "starting": [
         "basic.fire",
         "rage.fire",
-        "aux.fire"
+        "aux.fire",
+        "strategy.fire"
       ],
       "battleStartEffects": [
         {
@@ -89,7 +93,7 @@
       "id": "physician",
       "name": "行脚药师",
       "subtitle": "携一篓青绿，渡一程生死",
-      "description": "以疗愈养战。生命 112、攻击 20、闪避 13；入战先得 8 护盾，让回春循环有时间启动。",
+      "description": "以疗愈养战。生命 112、攻击 20、闪避 13；入战先得 12 护盾，让回春循环有时间启动。",
       "art": "hermit",
       "stats": {
         "hp": 112,
@@ -104,13 +108,14 @@
       "starting": [
         "basic.spring",
         "rage.spring",
-        "aux.breath"
+        "aux.breath",
+        "strategy.spring"
       ],
       "battleStartEffects": [
         {
           "type": "gain_shield",
           "target": "self",
-          "value": 8,
+          "value": 12,
           "stat": "defense",
           "coefficient": 0
         }
@@ -135,7 +140,8 @@
       "starting": [
         "basic.hex",
         "rage.hex",
-        "aux.hex"
+        "aux.hex",
+        "strategy.hex"
       ],
       "battleStartEffects": [
         {
@@ -1888,13 +1894,32 @@
       "id": "myth.ring",
       "name": "乾坤圈",
       "slot": "artifact",
+      "equipRole": "relic",
+      "mechanicTags": [
+        "convert",
+        "chain",
+        "burst"
+      ],
+      "relicConversions": [
+        {
+          "from": "damage",
+          "to": "rage",
+          "percent": [
+            6,
+            8,
+            10,
+            12
+          ],
+          "label": "乾坤回气"
+        }
+      ],
       "tags": [
         "rage",
         "break",
         "burst"
       ],
       "art": "ring",
-      "description": "攻击 +5 / +7 / +9 / +12。命中额外获得 8 怒气；施放怒气技后再获得 10 怒气并施加 2 层破甲。",
+      "description": "攻击 +5 / +7 / +9 / +12。造成的实际伤害有 6% / 8% / 10% / 12% 转为怒气；命中与怒技仍可继续回气。",
       "effects": [],
       "triggers": [
         {
@@ -1946,13 +1971,32 @@
       "id": "myth.seal",
       "name": "番天印",
       "slot": "artifact",
+      "equipRole": "relic",
+      "mechanicTags": [
+        "convert",
+        "counter",
+        "burst"
+      ],
+      "relicConversions": [
+        {
+          "from": "shield_gain",
+          "to": "damage",
+          "percent": [
+            35,
+            45,
+            60,
+            80
+          ],
+          "label": "番天镇压"
+        }
+      ],
       "tags": [
         "shield",
         "counter",
         "break"
       ],
       "art": "seal",
-      "description": "防御 +6 / +8 / +10 / +13。入战获得防御 80% 的护盾；施放怒气技后令敌方眩晕并施加 2 层破甲。",
+      "description": "防御 +6 / +8 / +10 / +13。每次获得护盾时，将其中 35% / 45% / 60% / 80% 转为额外伤害；原有镇压触发保留。",
       "effects": [],
       "triggers": [
         {
@@ -2007,6 +2051,26 @@
       "id": "myth.orbs",
       "name": "定海神珠",
       "slot": "artifact",
+      "equipRole": "relic",
+      "mechanicTags": [
+        "convert",
+        "duration",
+        "chain"
+      ],
+      "relicConversions": [
+        {
+          "from": "status_tick",
+          "to": "shield",
+          "status": "burn",
+          "percent": [
+            50,
+            70,
+            90,
+            120
+          ],
+          "label": "定海收焰"
+        }
+      ],
       "tags": [
         "fire",
         "burn",
@@ -2014,7 +2078,7 @@
         "rage"
       ],
       "art": "orbs",
-      "description": "攻击 +4 / +6 / +8 / +10，防御 +4。每轮获得 8 护盾并施加 1 层燃烧；施放怒气技后再获得 6 护盾并施加 2 层燃烧。",
+      "description": "攻击 +4 / +6 / +8 / +10，防御 +4。敌方燃烧结算时，将结算量的 50% / 70% / 90% / 120% 转为护盾；原有逐轮引火与护盾触发保留。",
       "effects": [],
       "triggers": [
         {
@@ -2083,7 +2147,7 @@
         "burst"
       ],
       "art": "wave",
-      "description": "入战 +10 怒气；每次怒气技后返还 28 / 32 / 36 / 42 怒气，并引发 55% / 70% / 85% / 105% 攻击纯伤害的雷劫余震。",
+      "description": "入战 +25 怒气；每次怒气技后返还 40 / 45 / 50 / 60 怒气，并引发 75% / 90% / 110% / 135% 攻击纯伤害的雷劫余震。",
       "effects": [],
       "triggers": [
         {
@@ -2092,7 +2156,7 @@
             {
               "type": "gain_rage",
               "target": "self",
-              "value": 10
+              "value": 25
             }
           ]
         },
@@ -2103,19 +2167,19 @@
               "type": "gain_rage",
               "target": "self",
               "value": [
-                28,
-                32,
-                36,
-                42
+                40,
+                45,
+                50,
+                60
               ]
             },
             {
               "type": "damage",
               "coefficient": [
-                55,
-                70,
-                85,
-                105
+                75,
+                90,
+                110,
+                135
               ],
               "pure": true
             }
@@ -2128,6 +2192,7 @@
       "mechanicRole": "keystone",
       "cooldown": 0,
       "priority": 0,
+      "defaultAction": "rage",
       "schools": [
         "rage"
       ]
@@ -2141,24 +2206,39 @@
         "counter"
       ],
       "art": "shield",
-      "description": "命中且自身护盾≥12：炼化 12 护盾，追加 120% / 145% / 170% / 210% 防御伤害。",
+      "description": "入战获得 18 / 22 / 26 / 32 护盾；命中且自身护盾≥6：炼化 6 护盾，追加 180% / 220% / 260% / 320% 防御伤害。",
       "effects": [],
       "triggers": [
+        {
+          "on": "battle_start",
+          "effects": [
+            {
+              "type": "gain_shield",
+              "target": "self",
+              "value": [
+                18,
+                22,
+                26,
+                32
+              ]
+            }
+          ]
+        },
         {
           "on": "on_hit",
           "effects": [
             {
               "type": "consume_shield",
               "target": "self",
-              "value": 12
+              "value": 6
             },
             {
               "type": "damage",
               "coefficient": [
-                120,
-                145,
-                170,
-                210
+                180,
+                220,
+                260,
+                320
               ],
               "stat": "defense"
             }
@@ -2168,7 +2248,7 @@
               "type": "status_stack_at_least",
               "status": "shield",
               "target": "self",
-              "value": 12
+              "value": 6
             }
           ]
         }
@@ -2179,6 +2259,20 @@
       "mechanicRole": "converter",
       "cooldown": 0,
       "priority": 0,
+      "strategyRules": [
+        {
+          "action": "rage",
+          "label": "生命承压，优先用怒技稳住战线",
+          "conditions": [
+            {
+              "type": "hp_below",
+              "target": "self",
+              "value": 70
+            }
+          ]
+        }
+      ],
+      "defaultAction": "basic",
       "schools": [
         "guard"
       ]
@@ -2192,7 +2286,7 @@
         "burn"
       ],
       "art": "flame",
-      "description": "命中且敌方燃烧≥6：炼化 2 层燃烧，追加 100% / 125% / 150% / 185% 攻击纯伤害；保留余火继续结算。",
+      "description": "命中且敌方燃烧≥4：炼化 1 层燃烧，追加 105% / 130% / 160% / 195% 攻击纯伤害；保留余火继续结算。",
       "effects": [],
       "triggers": [
         {
@@ -2202,15 +2296,15 @@
               "type": "consume_status",
               "target": "enemy",
               "status": "burn",
-              "value": 2
+              "value": 1
             },
             {
               "type": "damage",
               "coefficient": [
-                100,
-                125,
-                150,
-                185
+                105,
+                130,
+                160,
+                195
               ],
               "pure": true
             }
@@ -2220,7 +2314,7 @@
               "type": "status_stack_at_least",
               "status": "burn",
               "target": "enemy",
-              "value": 6
+              "value": 4
             }
           ]
         }
@@ -2231,6 +2325,21 @@
       "mechanicRole": "converter",
       "cooldown": 0,
       "priority": 0,
+      "strategyRules": [
+        {
+          "action": "rage",
+          "label": "燃烧达到 2 层，怒技收束持续伤害",
+          "conditions": [
+            {
+              "type": "status_stack_at_least",
+              "target": "enemy",
+              "status": "burn",
+              "value": 2
+            }
+          ]
+        }
+      ],
+      "defaultAction": "basic",
       "schools": [
         "burn"
       ]
@@ -2280,6 +2389,20 @@
       "mechanicRole": "risk",
       "cooldown": 0,
       "priority": 0,
+      "strategyRules": [
+        {
+          "action": "rage",
+          "label": "生命低于 55%，转入破釜强攻",
+          "conditions": [
+            {
+              "type": "hp_below",
+              "target": "self",
+              "value": 55
+            }
+          ]
+        }
+      ],
+      "defaultAction": "basic",
       "schools": [
         "rage"
       ]
@@ -2293,6 +2416,20 @@
       ],
       "art": "mountain",
       "description": "每轮获得防御 45% / 55% / 65% / 80% 的护盾。",
+      "strategyRules": [
+        {
+          "action": "rage",
+          "label": "生命低于 65%，优先用怒技建立防线",
+          "conditions": [
+            {
+              "type": "hp_below",
+              "target": "self",
+              "value": 65
+            }
+          ]
+        }
+      ],
+      "defaultAction": "basic",
       "effects": [],
       "triggers": [
         {
@@ -2333,6 +2470,20 @@
       ],
       "art": "eye",
       "description": "命中且敌方破甲≥3：炼化 2 层破甲，获得 12 / 15 / 18 / 22 怒气，并追加 90% / 110% / 130% / 155% 攻击伤害。",
+      "strategyRules": [
+        {
+          "action": "rage",
+          "label": "怒气蓄满，立即以怒技追击破绽",
+          "conditions": [
+            {
+              "type": "rage_at_least",
+              "target": "self",
+              "value": 100
+            }
+          ]
+        }
+      ],
+      "defaultAction": "basic",
       "effects": [],
       "triggers": [
         {
@@ -2556,6 +2707,7 @@
       ],
       "art": "swords",
       "description": "暴击后：敌方易伤 +1层；怒气 +8",
+      "defaultAction": "rage",
       "effects": [],
       "triggers": [
         {
@@ -2767,6 +2919,20 @@
       ],
       "art": "cloud",
       "description": "闪避 +4；闪避后：获得 5 护盾；怒气 +8",
+      "strategyRules": [
+        {
+          "action": "rage",
+          "label": "生命低于 60%，怒技优先争取闪避与节奏",
+          "conditions": [
+            {
+              "type": "hp_below",
+              "target": "self",
+              "value": 60
+            }
+          ]
+        }
+      ],
+      "defaultAction": "basic",
       "effects": [],
       "triggers": [
         {
@@ -2986,7 +3152,21 @@
         "vitality"
       ],
       "art": "lotus",
-      "description": "实际治疗后：攻击×35%伤害（无视防御）",
+      "description": "实际治疗后：追加攻击×110% / 140% / 170% / 210% 纯伤害，并获得 8 / 10 / 12 / 15 护盾。",
+      "strategyRules": [
+        {
+          "action": "rage",
+          "label": "生命低于 72%，怒技优先回复与护持",
+          "conditions": [
+            {
+              "type": "hp_below",
+              "target": "self",
+              "value": 72
+            }
+          ]
+        }
+      ],
+      "defaultAction": "basic",
       "effects": [],
       "triggers": [
         {
@@ -2996,12 +3176,22 @@
               "type": "damage",
               "target": "enemy",
               "coefficient": [
-                35,
-                45,
-                55,
-                65
+                110,
+                140,
+                170,
+                210
               ],
               "pure": true
+            },
+            {
+              "type": "gain_shield",
+              "target": "self",
+              "value": [
+                8,
+                10,
+                12,
+                15
+              ]
             }
           ]
         }
@@ -3185,7 +3375,22 @@
         "control"
       ],
       "art": "bell",
-      "description": "命中后，敌方虚弱≥3：敌方每层虚弱追加攻击×14%伤害（上限5层）；消耗敌方1层虚弱",
+      "description": "命中后，敌方虚弱≥4：敌方每层虚弱追加攻击×10% / 13% / 16% / 19% 伤害（上限5层）；消耗敌方1层虚弱",
+      "strategyRules": [
+        {
+          "action": "rage",
+          "label": "虚弱达到 2 层，怒技压上控制与收束",
+          "conditions": [
+            {
+              "type": "status_stack_at_least",
+              "target": "enemy",
+              "status": "weak",
+              "value": 2
+            }
+          ]
+        }
+      ],
+      "defaultAction": "basic",
       "effects": [],
       "triggers": [
         {
@@ -3196,10 +3401,10 @@
               "resource": "weak",
               "stat": "attack",
               "coefficient": [
-                14,
-                18,
-                22,
-                26
+                10,
+                13,
+                16,
+                19
               ],
               "cap": 5,
               "pure": true
@@ -3216,7 +3421,7 @@
               "type": "status_stack_at_least",
               "target": "enemy",
               "status": "weak",
-              "value": 3
+              "value": 4
             }
           ]
         }
@@ -4634,6 +4839,25 @@
       "id": "myth.whip",
       "name": "打神鞭",
       "slot": "artifact",
+      "equipRole": "relic",
+      "mechanicTags": [
+        "convert",
+        "consume",
+        "control"
+      ],
+      "relicConversions": [
+        {
+          "from": "status_consume",
+          "to": "damage",
+          "percent": [
+            200,
+            260,
+            320,
+            400
+          ],
+          "label": "打神炼厄"
+        }
+      ],
       "schools": [
         "break",
         "curse"
@@ -4645,7 +4869,7 @@
         "control"
       ],
       "art": "sword",
-      "description": "怒技后：敌方虚弱 +2层；敌方破甲 +2层",
+      "description": "消耗敌方状态时，每消耗 1 层转为 2 / 2.6 / 3.2 / 4 点额外伤害；怒技后仍施加虚弱与破甲。",
       "effects": [],
       "triggers": [
         {
@@ -4677,6 +4901,25 @@
       "id": "myth.wings",
       "name": "风雷双翅",
       "slot": "artifact",
+      "equipRole": "relic",
+      "mechanicTags": [
+        "convert",
+        "burst",
+        "evade"
+      ],
+      "relicConversions": [
+        {
+          "from": "rage_spend",
+          "to": "damage",
+          "percent": [
+            20,
+            25,
+            30,
+            40
+          ],
+          "label": "风雷泄势"
+        }
+      ],
       "schools": [
         "evade",
         "rage"
@@ -4687,7 +4930,7 @@
         "evade"
       ],
       "art": "feather",
-      "description": "闪避后：速度×120%伤害；怒气 +10",
+      "description": "消耗怒气时，将消耗量的 20% / 25% / 30% / 40% 转为额外伤害；闪避后仍以速度追击并回气。",
       "effects": [],
       "triggers": [
         {
@@ -4723,6 +4966,25 @@
       "id": "myth.earth",
       "name": "地行旗",
       "slot": "artifact",
+      "equipRole": "relic",
+      "mechanicTags": [
+        "convert",
+        "counter",
+        "evade"
+      ],
+      "relicConversions": [
+        {
+          "from": "damage_taken",
+          "to": "shield",
+          "percent": [
+            20,
+            28,
+            36,
+            48
+          ],
+          "label": "地脉回护"
+        }
+      ],
       "schools": [
         "evade",
         "guard"
@@ -4733,7 +4995,7 @@
         "evade"
       ],
       "art": "flag",
-      "description": "每战一次 · 入战：闪避 +12；获得 16 护盾",
+      "description": "承受的实际生命伤害有 20% / 28% / 36% / 48% 转为护盾；入战仍获得闪避与护盾。",
       "effects": [],
       "triggers": [
         {
@@ -4766,6 +5028,25 @@
       "id": "myth.basin",
       "name": "混元金斗",
       "slot": "artifact",
+      "equipRole": "relic",
+      "mechanicTags": [
+        "convert",
+        "chain",
+        "control"
+      ],
+      "relicConversions": [
+        {
+          "from": "heal",
+          "to": "shield",
+          "percent": [
+            40,
+            55,
+            70,
+            90
+          ],
+          "label": "混元纳生"
+        }
+      ],
       "schools": [
         "vitality",
         "curse"
@@ -4777,7 +5058,7 @@
         "control"
       ],
       "art": "gourd",
-      "description": "怒技后：敌方虚弱 +3层；恢复 8 生命",
+      "description": "实际回复量的 40% / 55% / 70% / 90% 转为护盾；怒技后仍施加虚弱并回复生命。",
       "effects": [],
       "triggers": [
         {
@@ -4814,6 +5095,25 @@
       "id": "myth.umbrella",
       "name": "混元伞",
       "slot": "artifact",
+      "equipRole": "relic",
+      "mechanicTags": [
+        "convert",
+        "counter",
+        "chain"
+      ],
+      "relicConversions": [
+        {
+          "from": "shield_gain",
+          "to": "rage",
+          "percent": [
+            25,
+            35,
+            45,
+            60
+          ],
+          "label": "混元聚势"
+        }
+      ],
       "schools": [
         "guard",
         "crit"
@@ -4824,7 +5124,7 @@
         "crit"
       ],
       "art": "seal",
-      "description": "暴击后：获得 防御×70% 护盾；每战一次 · 入战：获得 15 护盾",
+      "description": "每次获得护盾时，将其中 25% / 35% / 45% / 60% 转为怒气；原有入战护盾与命中偶发的护盾触发保留。",
       "effects": [],
       "triggers": [
         {
@@ -4874,16 +5174,28 @@
         "rage",
         "burst"
       ],
+      "mechanicTags": [
+        "burst",
+        "chain"
+      ],
       "art": "thunder",
-      "description": "蓄雷匣：每轮最多触发一次。",
+      "description": "任意【爆发】伤害发生后，回收余势：获得 8 / 10 / 12 / 15 怒气并追加一次伤害。每轮最多触发一次。",
       "effects": [],
       "triggers": [
         {
-          "on": "round_end",
+          "on": "on_damage",
+          "requiresTags": [
+            "burst"
+          ],
           "effects": [
             {
-              "type": "gain_shield",
-              "value": 4,
+              "type": "gain_rage",
+              "value": [
+                8,
+                10,
+                12,
+                15
+              ],
               "target": "self"
             },
             {
@@ -4899,13 +5211,7 @@
               "pure": true
             }
           ],
-          "conditions": [
-            {
-              "type": "rage_at_least",
-              "value": 60,
-              "target": "self"
-            }
-          ],
+          "conditions": [],
           "maxPerRound": 1
         }
       ],
@@ -4926,43 +5232,43 @@
         "fire",
         "burn"
       ],
+      "mechanicTags": [
+        "duration",
+        "convert",
+        "chain"
+      ],
       "art": "flame",
-      "description": "余火炉：每轮最多触发一次。",
+      "description": "任意【持续】效果结算后，将余势转为回复与护盾。每轮最多触发一次。",
       "effects": [],
       "triggers": [
         {
-          "on": "round_end",
+          "on": "on_status_tick",
+          "requiresTags": [
+            "duration"
+          ],
           "effects": [
-            {
-              "type": "consume_status",
-              "value": 1,
-              "target": "enemy",
-              "status": "burn"
-            },
             {
               "type": "heal",
               "value": [
-                2,
                 3,
                 4,
-                5
+                5,
+                6
               ],
               "target": "self"
             },
             {
               "type": "gain_shield",
-              "value": 4,
+              "value": [
+                4,
+                5,
+                6,
+                8
+              ],
               "target": "self"
             }
           ],
-          "conditions": [
-            {
-              "type": "status_stack_at_least",
-              "status": "burn",
-              "value": 4,
-              "target": "enemy"
-            }
-          ],
+          "conditions": [],
           "maxPerRound": 1
         }
       ],
@@ -4983,16 +5289,28 @@
         "shield",
         "counter"
       ],
+      "mechanicTags": [
+        "counter",
+        "chain"
+      ],
       "art": "shield",
-      "description": "鳞纹杯：每轮最多触发一次。",
+      "description": "任意【反击】伤害发生后，获得护盾与怒气。每轮最多触发一次。",
       "effects": [],
       "triggers": [
         {
-          "on": "after_action",
+          "on": "on_damage",
+          "requiresTags": [
+            "counter"
+          ],
           "effects": [
             {
-              "type": "consume_shield",
-              "value": 6,
+              "type": "gain_shield",
+              "value": [
+                5,
+                6,
+                7,
+                9
+              ],
               "target": "self"
             },
             {
@@ -5006,14 +5324,7 @@
               "target": "self"
             }
           ],
-          "conditions": [
-            {
-              "type": "status_stack_at_least",
-              "status": "shield",
-              "value": 12,
-              "target": "self"
-            }
-          ],
+          "conditions": [],
           "maxPerRound": 1
         }
       ],
@@ -5034,19 +5345,21 @@
         "break",
         "sword"
       ],
+      "mechanicTags": [
+        "consume",
+        "burst",
+        "chain"
+      ],
       "art": "sword",
-      "description": "截脉钩：每轮最多触发一次。",
+      "description": "带有【消耗】的伤害发生后，追击并施加虚弱。每轮最多触发一次。",
       "effects": [],
       "triggers": [
         {
-          "on": "on_hit",
+          "on": "on_damage",
+          "requiresTags": [
+            "consume"
+          ],
           "effects": [
-            {
-              "type": "consume_status",
-              "value": 2,
-              "target": "enemy",
-              "status": "break"
-            },
             {
               "type": "apply_status",
               "value": 1,
@@ -5066,14 +5379,7 @@
               "pure": true
             }
           ],
-          "conditions": [
-            {
-              "type": "status_stack_at_least",
-              "status": "break",
-              "value": 4,
-              "target": "enemy"
-            }
-          ],
+          "conditions": [],
           "maxPerRound": 1
         }
       ],
@@ -5093,12 +5399,19 @@
       "tags": [
         "crit"
       ],
+      "mechanicTags": [
+        "multi",
+        "chain"
+      ],
       "art": "star",
-      "description": "星筹：每轮最多触发一次。",
+      "description": "任意【多段】伤害发生后，获得 8 怒气并回复生命。每轮最多触发一次。",
       "effects": [],
       "triggers": [
         {
-          "on": "on_crit",
+          "on": "on_damage",
+          "requiresTags": [
+            "multi"
+          ],
           "effects": [
             {
               "type": "gain_rage",
@@ -5136,8 +5449,13 @@
       "tags": [
         "evade"
       ],
+      "mechanicTags": [
+        "evade",
+        "counter",
+        "chain"
+      ],
       "art": "wind",
-      "description": "折影扇：每轮最多触发一次。",
+      "description": "成功闪避后发动反击并施加破甲。每轮最多触发一次。",
       "effects": [],
       "triggers": [
         {
@@ -5183,8 +5501,12 @@
         "heal",
         "vitality"
       ],
+      "mechanicTags": [
+        "chain",
+        "charge"
+      ],
       "art": "lotus",
-      "description": "回生印：每轮最多触发一次。",
+      "description": "发生实际回复后，凝聚余生之气并永久提高本场攻击。每轮最多触发一次。",
       "effects": [],
       "triggers": [
         {
@@ -5223,19 +5545,20 @@
         "curse",
         "control"
       ],
+      "mechanicTags": [
+        "control",
+        "chain"
+      ],
       "art": "seal",
-      "description": "厄灯：每轮最多触发一次。",
+      "description": "带有【控制】的状态被施加后，获得护盾与怒气。每轮最多触发一次。",
       "effects": [],
       "triggers": [
         {
-          "on": "round_end",
+          "on": "on_status_apply",
+          "requiresTags": [
+            "control"
+          ],
           "effects": [
-            {
-              "type": "consume_status",
-              "value": 1,
-              "target": "enemy",
-              "status": "weak"
-            },
             {
               "type": "gain_shield",
               "value": [
@@ -5252,14 +5575,7 @@
               "target": "self"
             }
           ],
-          "conditions": [
-            {
-              "type": "status_stack_at_least",
-              "status": "weak",
-              "value": 4,
-              "target": "enemy"
-            }
-          ],
+          "conditions": [],
           "maxPerRound": 1
         }
       ],
@@ -17232,6 +17548,18 @@
       60
     ],
     "restPercent": 30,
+    "enemyHpPercentByAct": [
+      84,
+      76,
+      63,
+      49
+    ],
+    "enemyAttackPercentByAct": [
+      88,
+      82,
+      76,
+      71
+    ],
     "rewards": {
       "combat": {
         "gold": 25,
@@ -17294,7 +17622,9 @@
         "boss"
       ]
     ],
-    "actStartFullHeal": true,
+    "actStartFullHeal": false,
+    "actStartHealPercent": 35,
+    "actStartMinHpPercent": 60,
     "poolSchools": 4,
     "poolHybrids": 2
   },
@@ -17432,7 +17762,7 @@
     }
   },
   "presentation": {
-    "revision": "16.0",
+    "revision": "17.1",
     "events": {
       "event.0.hermit": {
         "choices": {

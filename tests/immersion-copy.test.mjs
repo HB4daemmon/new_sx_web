@@ -5,7 +5,7 @@ import {readFileSync} from 'node:fs';
 const app=readFileSync(new URL('../src/app.ts',import.meta.url),'utf8');
 const presentation=readFileSync(new URL('../src/presentation.ts',import.meta.url),'utf8');
 
-test('UI16.2 keeps primary play surfaces in-world and trims draft meta copy',()=>{
+test('UI17.1 keeps primary play surfaces in-world and trims draft meta copy',()=>{
  for(const phrase of [
   '择一，伴此生',
   '入劫将替换当前命途。',
@@ -18,12 +18,12 @@ test('UI16.2 keeps primary play surfaces in-world and trims draft meta copy',()=
   '属性来源 ${icon'
  ])assert(!app.includes(phrase),phrase);
  assert(app.includes('旧途将断。'));
- assert(app.includes('命盘无隙。'));
+ assert(app.includes('已满。'));
  assert(app.includes('气血 +30%'));
  for(const phrase of ['<span class="muted">择一</span>',"['精进','合流','新路']",'draft-lane-head','fighter-side-badge','THE FINAL CHOICE','>详细战报<','>导出<','>导入<'])assert(!app.includes(phrase),phrase);
  assert(app.includes("s.current?.type==='boss'?'劫首遗珍'"));
  assert(app.includes("s.current?.type==='elite'?'强敌遗珍'"));
- assert.match(presentation,/UI_REVISION='16\.2'/);
+ assert.match(presentation,/UI_REVISION='17\.1'/);
 });
 
 test('decision-critical mechanics remain visible',()=>{
@@ -31,5 +31,8 @@ test('decision-critical mechanics remain visible',()=>{
  assert(app.includes('check-stakes'));
  assert(app.includes('战痕详录'));
  assert(app.includes('根骨来处'));
- assert(app.includes('怒满则发。'));
+ assert(app.includes('唯一普攻'));
+ assert(app.includes('四个自由组件'));
+ assert(app.includes('机制 Tag'));
+ assert(app.includes('命器负责'));
 });

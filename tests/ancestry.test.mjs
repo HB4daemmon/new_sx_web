@@ -6,9 +6,9 @@ const c=JSON.parse(readFileSync('data/game.json','utf8'));
 const fresh=(race='human',origin='wanderer',seed='ANCESTRY')=>Game.create(c,seed,origin,fateOptions(c,seed)[0].id,'无名','',race);
 test('all race and vocation combinations are valid and retain independent identities',()=>{
  assert.equal(c.races.length,4);assert.equal(c.origins.length,5);
- for(const r of c.races)for(const o of c.origins){const g=fresh(r.id,o.id);assert.equal(g.s.race,r.id);assert.equal(g.s.origin,o.id);assert.equal(g.s.slots.filter(Boolean).length,o.id==='warrior'?2:3);assert(g.s.hp>0);assert.deepEqual(Game.load(c,JSON.stringify(g.s)).s,JSON.parse(JSON.stringify(g.s)));}
- const warrior=c.origins.find(o=>o.id==='warrior');assert.deepEqual(warrior.starting,['basic.fist','rage.guard']);
- for(const o of c.origins.filter(o=>o.id!=='warrior'))assert.equal(o.starting.length,3);
+ for(const r of c.races)for(const o of c.origins){const g=fresh(r.id,o.id);assert.equal(g.s.race,r.id);assert.equal(g.s.origin,o.id);assert.equal(g.s.slots.filter(Boolean).length,4);assert(g.s.slots[0]&&g.s.slots[1]&&g.s.slots[7]);assert(g.s.hp>0);assert.deepEqual(Game.load(c,JSON.stringify(g.s)).s,JSON.parse(JSON.stringify(g.s)));}
+ const warrior=c.origins.find(o=>o.id==='warrior');assert.deepEqual(warrior.starting,['basic.fist','rage.guard','aux.stone','strategy.guard']);
+ for(const o of c.origins)assert.equal(o.starting.length,4);
 });
 test('race stat differences and racial conditions are derived without altering vocation',()=>{
  const human=fresh(),dragon=fresh('dragon');
@@ -26,6 +26,6 @@ test('new replay retains race and old-version saves are explicitly rejected',()=
  const old=structuredClone(g.s);old.version=old.rulesVersion='3.0.0';assert.throws(()=>Game.load(c,JSON.stringify(old)),/version mismatch/);
  const bad=structuredClone(c);bad.races[0].triggers[0].effects[0].type='typo';assert.throws(()=>validateContent(bad));
 });
-test('UI preserves the legacy save key and skill SVGs while offering race selection',()=>{
- const app=readFileSync('src/app.ts','utf8');assert(app.includes("SAVE_KEY='fengshen-run-v41'"));assert(app.includes("LEGACY_SAVE_KEY='fengshen-run-v4'"));assert(app.includes("LEGACY_OLD_SAVE_KEY='fengshen-run-v1'"));assert(app.includes('racePicker()'));assert(app.includes('sigil(a.art'));assert(!app.includes('removeItem(LEGACY_SAVE_KEY)'));
+test('UI advances the save key and keeps legacy exports and skill SVGs while offering race selection',()=>{
+ const app=readFileSync('src/app.ts','utf8');assert(app.includes("SAVE_KEY='fengshen-run-v43'"));assert(app.includes("PREVIOUS_SAVE_KEY='fengshen-run-v42'"));assert(app.includes("LEGACY_SAVE_KEY='fengshen-run-v4'"));assert(app.includes("LEGACY_OLD_SAVE_KEY='fengshen-run-v1'"));assert(app.includes('racePicker()'));assert(app.includes('sigil(a.art'));assert(!app.includes('removeItem(LEGACY_SAVE_KEY)'));
 });

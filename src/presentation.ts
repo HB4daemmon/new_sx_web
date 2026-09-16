@@ -1,10 +1,10 @@
 
-import {Ability,Choice,Condition,Content,Effect,EventPhase,RunState,Story,StoryLogItem,conditionOK,value} from './engine.js';
+import {Ability,Choice,Condition,Content,Effect,EventPhase,RunState,Story,StoryLogItem,MECHANIC_TAG_LABELS,conditionOK,value} from './engine.js';
 
 export interface ChoiceCopy {label?:string; preview?:string; outcome?:string; success?:string; failure?:string; hint?:string;}
 export interface EventCopy {intro?:string; variants?:{when:Condition[];text:string}[]; phases?:Record<string,string>; choices?:Record<string,ChoiceCopy>;}
 export interface Presentation {revision:string;events:Record<string,EventCopy>;threadValues?:Record<string,string>;}
-export const UI_REVISION='16.2';
+export const UI_REVISION='17.1';
 export const rankName=(rank:number)=>['初阶','一阶','二阶','三阶'][Math.max(0,Math.min(3,rank))];
 export function presentation(c:Content):Presentation {return (c as Content&{presentation?:Presentation}).presentation??{revision:UI_REVISION,events:{}};}
 export function threadText(c:Content,key:string,raw:string):string {
@@ -76,13 +76,14 @@ export function effectText(c:Content,e:Effect,rank=0):string {
  default:return '';
  }
 }
-const triggers:Record<string,string>={battle_start:'入战',round_start:'回合开始',round_end:'回合结束',after_action:'行动后',on_hit:'命中后',on_damaged:'受击后',on_rage_skill:'怒技后',on_crit:'暴击后',on_evade:'闪避后',on_heal:'实际治疗后',hp_threshold:'',battle_end:'胜利后',before_action:'行动前'};
+const triggers:Record<string,string>={battle_start:'入战',round_start:'回合开始',round_end:'回合结束',after_action:'行动后',on_hit:'命中后',on_damage:'造成伤害后',on_damaged:'受击后',on_rage_skill:'怒技后',on_rage_spend:'消耗怒气后',on_crit:'暴击后',on_evade:'闪避后',on_heal:'实际治疗后',on_shield_gain:'获得护盾后',on_status_apply:'施加状态后',on_status_tick:'持续效果结算后',on_consume:'发生消耗后',hp_threshold:'',battle_end:'胜利后',before_action:'行动前'};
 export function abilityLines(c:Content,a:Ability,rank:number):string[]{
  const result:string[]=[];
  const stats=Object.entries(a.stats).map(([k,v])=>`${c.labels.stats[k]} ${signed(value(v,rank))}`).join(' · ');if(stats)result.push(stats);
  if(a.effects.length)result.push(a.effects.map(e=>effectText(c,e,rank)).filter(Boolean).join('；'));
  for(const t of a.triggers){
-  const when=[triggers[t.on]??'触发时',...(t.conditions??[]).map(q=>conditionText(c,q))].filter(Boolean).join('，');
+  const tagRule=t.requiresTags?.length?`来源含${t.requiresTags.map(x=>'【'+MECHANIC_TAG_LABELS[x]+'】').join('、')}`:t.anyTags?.length?`来源含任一${t.anyTags.map(x=>'【'+MECHANIC_TAG_LABELS[x]+'】').join('、')}`:'';
+  const when=[triggers[t.on]??'触发时',tagRule,...(t.conditions??[]).map(q=>conditionText(c,q))].filter(Boolean).join('，');
   result.push(`${t.once?'每战一次 · ':''}${t.maxPerRound?'每轮至多 '+t.maxPerRound+' 次 · ':''}${when}${t.chance!==undefined?`（${t.chance}%概率）`:''}：${t.effects.map(e=>effectText(c,e,rank)).filter(Boolean).join('；')}`);
  }
  return result;
