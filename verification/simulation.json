@@ -11,7 +11,7 @@
   "policy": "Greedy build synergy and HP-aware route; no stat cheats or resets",
   "policyFile": "tests/policy.mjs",
   "policySha256": "46c43838a5a4490254f29fbb76ab184d0a81139784f0d2a0e5631a3718696d12",
-  "contentSha256": "9125651efde5159fa9956b41c09ded603b9d605a78866e3268253493f9004490",
+  "contentSha256": "d0b0ad257faa3b0747bf89d939576658a2fe2317aedcb559cc2be4dae6159398",
   "deterministic": true,
   "seedPattern": "SIM-{0..39} for each origin",
   "runsPerOrigin": 40,

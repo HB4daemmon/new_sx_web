@@ -2,5 +2,5 @@ Gameplay 4.4.0 / UI 18.0
 Adds qualitative creation guidance, behavior summaries for strategies and relics, concrete build-fit diagnostics, battle settlement feedback, and differentiated character promises with active tracking.
 Character promises remain configuration-driven and deterministic, with save/load/replay coverage for legacy migration, bypass, rescue, cross-line echoes, route clues, and one-time rewards.
 The first-act relic schedule, boss phase rules, pre-battle preview, backup slot, cross-run collection, and challenge systems remain unchanged from the prior release.
-Verified: 192/192 Node tests, 200 deterministic simulation runs, 500-run balance audit with no threshold failures, and 63/63 offline Node Playwright checks.
+Verified: 194/194 Node tests, 200 deterministic simulation runs, 500-run balance audit with no threshold failures, and 63/63 offline Node Playwright checks.
 Python Playwright and human acceptance were not run in this environment; this marker records code and offline browser verification only.

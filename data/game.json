@@ -18142,7 +18142,8 @@
     "actStartHealPercent": 35,
     "actStartMinHpPercent": 60,
     "poolSchools": 4,
-    "poolHybrids": 2
+    "poolHybrids": 2,
+    "trackingMultiplier": 2
   },
   "labels": {
     "slots": {

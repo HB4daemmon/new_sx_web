@@ -85,3 +85,25 @@ test('tracking opportunities exclude skipped past rows and include reachable fut
  future.type='event';
  assert.deepEqual(storyOpportunitiesForRelation(original,g.s,'char_ziya').map(node=>node.id),[future.id]);
 });
+
+test('tracking multiplier is content-configured and inert without a tracked character',()=>{
+ assert.equal(original.rules.trackingMultiplier,2);
+ const make=(multiplier,seed,tracked)=>{
+  const content=clone(original);
+  content.rules.routeRows=[['event'],['boss']];
+  content.rules.trackingMultiplier=multiplier;
+  for(const event of content.events){
+   if(event.id==='character.ziya.1'||event.id==='event.0.hermit'){
+    event.requirements=[];event.weight=1;event.maxPerRun=1;
+   }else event.requirements=[{type:'has_fact',key:'tracking_multiplier_only'}];
+  }
+  const g=fresh(content,seed);
+  if(tracked){g.s.facts.met_ziya=true;g.s.trackedCharacter='char_ziya';}
+  const node=g.available()[0],chosen=g.resolveStory(node);
+  return {id:chosen.id,rng:clone(g.s.rng)};
+ };
+ const seed='TRACK-CONFIG-1';
+ assert.equal(make(1,seed,true).id,'event.0.hermit');
+ assert.equal(make(2,seed,true).id,'character.ziya.1');
+ assert.deepEqual(make(1,seed,false),make(2,seed,false));
+});

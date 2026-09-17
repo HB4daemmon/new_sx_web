@@ -7,6 +7,8 @@ process.chdir(root);
 const copy=JSON.parse(await readFile('data/presentation.json','utf8'));const pack=JSON.parse(await readFile('data/game.json','utf8'));pack.presentation=copy;await writeFile('data/game.json',JSON.stringify(pack,null,2)+'\n');
 const compile=spawnSync(process.platform==='win32'?'tsc.cmd':'tsc',['--pretty','false'],{stdio:'inherit',shell:process.platform==='win32'});
 if(compile.status!==0)process.exit(compile.status??1);
+const {validatePresentation}=await import('../build/presentation.js');
+validatePresentation(pack);
 await mkdir('dist/data',{recursive:true});
 const order=['engine','art','presentation','build-paths','build-analysis','app'];
 function stripModuleSyntax(code){

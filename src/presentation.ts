@@ -1,5 +1,5 @@
 
-import {Ability,Choice,Condition,Content,Effect,EventPhase,LoadoutSlot,RunState,Story,StoryLogItem,MECHANIC_TAG_LABELS,abilityLoadoutSlot,conditionOK,slotLabel,value} from './engine.js';
+import {Ability,Choice,Condition,Content,Effect,EventPhase,LoadoutSlot,RelicConversion,RunState,Story,StoryLogItem,MECHANIC_TAG_LABELS,abilityLoadoutSlot,conditionOK,slotLabel,value} from './engine.js';
 
 export interface ChoiceCopy {label?:string; preview?:string; outcome?:string; success?:string; failure?:string; hint?:string;}
 export interface EventCopy {intro?:string; variants?:{when:Condition[];text:string}[]; phases?:Record<string,string>; choices?:Record<string,ChoiceCopy>;}
@@ -11,6 +11,39 @@ export interface Presentation {revision:string;events:Record<string,EventCopy>;t
 export const UI_REVISION='18.0';
 export const rankName=(rank:number)=>['初阶','一阶','二阶','三阶'][Math.max(0,Math.min(3,rank))];
 export function presentation(c:Content):Presentation {return (c as Content&{presentation?:Presentation}).presentation??{revision:UI_REVISION,events:{}};}
+const qualitativeNumeric=/[0-9%]/;
+function copyLines(raw:CreationCopy|AbilityBehaviorCopy|string|undefined):string[] {
+ if(typeof raw==='string')return raw.trim()?[raw.trim()]:[];
+ if(!raw)return [];
+ return [raw.summary??'',...(raw as AbilityBehaviorCopy).lines??[]].map(x=>x.trim()).filter(Boolean);
+}
+/**
+ * Presentation is a build-time contract. Runtime callers still degrade to the
+ * existing name/trait/subtitle UI when a development-only copy is unavailable.
+ */
+export function validatePresentation(c:Content):void {
+ const p=(c as Content&{presentation?:Presentation}).presentation;
+ if(!p||typeof p!=='object')throw new Error('Missing presentation pack');
+ if(typeof p.revision!=='string'||!p.revision.trim())throw new Error('Missing presentation revision');
+ if(p.revision!==UI_REVISION)throw new Error(`Presentation revision mismatch: ${p.revision}`);
+ const checkCreation=(kind:'races'|'origins'|'fates',items:{id:string}[])=>{
+  for(const item of items){
+   const copy=creationEntry(c,kind,item.id);
+   if(!copy||typeof copy.summary!=='string'||!copy.summary.trim()||typeof copy.hint!=='string'||!copy.hint.trim())throw new Error(`Missing creation ${kind} copy: ${item.id}`);
+   if(qualitativeNumeric.test(`${copy.summary} ${copy.hint}`))throw new Error(`Numeric creation ${kind} copy: ${item.id}`);
+  }
+ };
+ checkCreation('races',c.races);
+ checkCreation('origins',c.origins);
+ checkCreation('fates',c.fates);
+ const behaviorMaps=[p.abilityBehaviors,p.abilityBehavior];
+ for(const ability of c.abilities.filter(a=>a.slot==='strategy'||a.relicConversions?.length)){
+  const raw=behaviorMaps.map(source=>source?.[ability.id]).find(value=>value!==undefined);
+  const lines=copyLines(raw);
+  if(!lines.length)throw new Error(`Missing ability behavior copy: ${ability.id}`);
+  if(lines.some(line=>qualitativeNumeric.test(line)))throw new Error(`Numeric ability behavior copy: ${ability.id}`);
+ }
+}
 export function threadText(c:Content,key:string,raw:string):string {
  const translated=presentation(c).threadValues?.[raw];if(translated)return translated;
  const act=key.match(/(?:act_|echo_major_|echo_)(\d+)/);
@@ -220,6 +253,12 @@ function behaviorConversion(c:Content,from:string,to:string,status?:string,cap?:
  const detail=status?`${source}中的${behaviorStatus(c,status)}`:source;
  const target=behaviorResources[to]??({damage:'伤害',heal:'回复生命',shield:'护盾',rage:'怒气'} as Record<string,string>)[to]??'额外效果';
  return `${detail}后，部分收益转为${target}${cap!==undefined?'（受转换上限约束）':''}`;
+}
+export function conversionText(c:Content,conversion:RelicConversion,rank=0):string {
+ const source=behaviorConversions[conversion.from]??'战斗结果';
+ const detail=conversion.status?`${source}中的${behaviorStatus(c,conversion.status)}`:source;
+ const target=({damage:'伤害',heal:'回复生命',shield:'护盾',rage:'怒气'} as Record<string,string>)[conversion.to]??'额外效果';
+ return `${detail} → ${target} · ${value(conversion.percent,rank)}%`;
 }
 function authoredBehaviorLines(c:Content,id:string):string[] {
  const p=presentation(c);

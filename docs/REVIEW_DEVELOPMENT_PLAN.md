@@ -62,7 +62,7 @@
 
 - `npx tsc --noEmit`：通过。
 - `npm run build`：通过，生成网页包和离线包。
-- `npm test`：192 个测试，192 通过。
+- `npm test`：194 个测试，194 通过。
 - `npm run verify:reports`：200 局出身模拟和500局平衡审计均完成；平衡报告 `failures: []`，整体固定策略胜率 `60.4%`。
 - `git diff --check`：通过。
 - 当前为内容/规则 `4.4.0`、UI `18.0`、存档键 `fengshen-run-v44`；旧卷 `v43/v42/v4/v1` 保留为导出备份来源。
@@ -586,8 +586,9 @@ interface CharacterPromiseState {
 - `tests/battle-diagnostics.test.mjs`：触发阻塞、零收益、只加观测、真实损耗、直接联动和不确定归因。
 - `tests/character-promises.test.mjs`：四条不同承诺的接受、兑现、违约、过期、拒绝、重复提交及事件退出。
 - `tests/character-tracking.test.mjs`：已知限制、追踪权重、可达线索、懒解析、无重抽、保存和重放。
+- `tests/character-contract-regression.test.mjs`：旧字段/事实迁移、追踪配置、真实路线可达性、跨线回响和待替换奖励的存档/重放。
 
-以上文件已显式加入当前 `npm test` 列表；本轮实际运行结果为185/185通过。测试覆盖引擎、纯展示函数、来源分析、战斗诊断、人物承诺及追踪的正反路径，并包含一个真实动作日志驱动的云霄跨线存档/重放夹具；它们仍不能替代下文的浏览器和真人验收。
+以上文件已显式加入当前 `npm test` 列表；本轮实际运行结果为194/194通过。测试覆盖引擎、纯展示函数、来源分析、战斗诊断、人物承诺及追踪的正反路径，并包含真实动作日志驱动的迁移、借道、追踪和云霄跨线存档/重放夹具；它们仍不能替代下文的浏览器和真人验收。
 
 ### 14.2 必须保留的回归
 
@@ -621,7 +622,7 @@ node --test tests/build-analysis.test.mjs tests/battle-diagnostics.test.mjs
 node --test tests/character-promises.test.mjs tests/character-tracking.test.mjs
 ```
 
-本轮工作区已执行 `npx tsc --noEmit`、`npm run build`、`npm test`、`npm run simulate`、`npm run balance`、`npm run test:browser-node` 和 `git diff --check`，结果分别通过、构建成功、192/192通过、200局完成、500局完成、63项浏览器检查通过、无差异错误。平衡报告 `failures: []`，整体固定策略胜率为 `60.4%`。`npm ci` 未单独执行；Python Playwright 脚本仍因环境缺少 Python 包而未启动，真人任务尚未执行。review 中的旧500局结果和仓库历史 UI 报告仍只能作为参考，Node 报告只证明当前离线包的自动化 DOM 验收。
+本轮工作区已执行 `npx tsc --noEmit`、`npm run build`、`npm test`、`npm run simulate`、`npm run balance`、`npm run test:browser-node` 和 `git diff --check`，结果分别通过、构建成功、194/194通过、200局完成、500局完成、63项浏览器检查通过、无差异错误。平衡报告 `failures: []`，整体固定策略胜率为 `60.4%`。`npm ci` 未单独执行；Python Playwright 脚本仍因环境缺少 Python 包而未启动，真人任务尚未执行。review 中的旧500局结果和仓库历史 UI 报告仍只能作为参考，Node 报告只证明当前离线包的自动化 DOM 验收。
 
 ### 14.4 模拟解释与平衡边界
 
@@ -655,7 +656,7 @@ node --test tests/character-promises.test.mjs tests/character-tracking.test.mjs
 
 旧浏览器脚本有硬编码旧存档键的情况，扩展时先纠正对当前/目标版本的假设，不能将旧脚本运行成功当作新存档已验收。
 
-Node 浏览器环境阻塞已解决：使用 Playwright `1.60.0` 缓存包和 Chromium `149.0.7827.0` 对 `dist/PLAY.html` 完成 `63` 项检查，桌面/移动视口、结算时序、创建说明、战策行为和存档导入导出均通过；运行 harness 会把报告和截图写入 `verification/browser-node/`。Python Playwright 仍未安装，因此三份 Python 浏览器脚本没有执行；历史 `immersion-ui-report.json` 和 `immersion-review.json` 仍只作追溯，不能替代当前 Node 报告。真人验收未执行。
+Node 浏览器环境阻塞已解决：使用 Playwright `1.60.0` 缓存包和 Chromium `149.0.7827.0` 对 `dist/PLAY.html` 完成 `63` 项检查，桌面/移动视口、结算时序、创建说明、战策行为和存档导入导出均通过；运行 harness 会把报告和截图写入 `verification/browser-node/`，这些文件含本机路径，仅作为本地临时运行记录，不随提交归档。Python Playwright 仍未安装，因此三份 Python 浏览器脚本没有执行；历史 `immersion-ui-report.json` 和 `immersion-review.json` 仍只作追溯，不能替代当前 Node 报告。真人验收未执行。
 
 ### 15.2 真人任务
 

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {Game,clone,fateOptions,validateContent,SLOT_ORDER,slotLabel} from '../build/engine.js';
-import {abilityLines,abilityBehaviorLines,abilityBehaviorSummary,choiceEffects,choiceCopy,creationHint,creationLoadout,creationSummary,storyText,resultText,narrativeAvailable,threadText,rankName} from '../build/presentation.js';
+import {abilityLines,abilityBehaviorLines,abilityBehaviorSummary,choiceEffects,choiceCopy,creationHint,creationLoadout,creationSummary,storyText,resultText,narrativeAvailable,threadText,rankName,validatePresentation,conversionText} from '../build/presentation.js';
 const c=JSON.parse(readFileSync(new URL('../data/game.json',import.meta.url),'utf8'));
 const contract=JSON.parse(readFileSync(new URL('./fixtures/v12-contract.json',import.meta.url),'utf8'));
 const hash=s=>createHash('sha256').update(s).digest('hex');
@@ -85,6 +85,17 @@ test('v14 creation choices all have non-empty qualitative copy',()=>{
  assert.notEqual(creationSummary(c,'origin',c.origins[0].id),creationSummary(c,'origin',c.origins[1].id));
  assert.notEqual(creationSummary(c,'fate',c.fates[0].id),creationSummary(c,'fate',c.fates[1].id));
 });
+test('v14 presentation contract rejects missing qualitative copy before build output',()=>{
+ const missingCreation=structuredClone(c);
+ delete missingCreation.presentation.creation.origins[missingCreation.origins[0].id];
+ assert.throws(()=>validatePresentation(missingCreation),/Missing creation origins copy/);
+ const missingBehavior=structuredClone(c);
+ delete missingBehavior.presentation.abilityBehaviors['strategy.rage'];
+ assert.throws(()=>validatePresentation(missingBehavior),/Missing ability behavior copy/);
+ const wrongRevision=structuredClone(c);
+ wrongRevision.presentation.revision='17.1';
+ assert.throws(()=>validatePresentation(wrongRevision),/Presentation revision mismatch/);
+});
 test('v14 starting copy lists the same abilities and physical slots as a new run',()=>{
  for(const origin of c.origins){
   const loadout=creationLoadout(c,origin.id);
@@ -122,6 +133,12 @@ test('v14 strategy and relic behavior summaries are complete and player-facing',
  assert.match(abilityBehaviorSummary(c,'myth.seal'),/不扣除刚获得的护盾/);
  assert.match(abilityBehaviorSummary(c,'myth.basin'),/满血时没有实际回复/);
  assert.match(abilityBehaviorSummary(c,'strategy.mountain'),/短暂保留怒气/);
+ for(const relic of relics){
+  const details=relic.relicConversions.map(x=>conversionText(c,x,3)).join('\n');
+  assert(!internal.test(details),`${relic.id} leaks an internal enum in exact detail`);
+  assert.match(details,/→/);
+  assert.match(details,/%/);
+ }
 });
 test('v14 authored behavior copy takes precedence without mutating the run state',()=>{
  const game=fresh(),before=JSON.stringify(game.s);
