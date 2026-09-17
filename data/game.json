@@ -1,6 +1,6 @@
 {
-  "version": "4.3.0",
-  "rulesVersion": "4.3.0",
+  "version": "4.4.0",
+  "rulesVersion": "4.4.0",
   "title": "封神·劫中人",
   "subtitle": "一场大劫，八寸命途",
   "origins": [
@@ -17908,6 +17908,7 @@
       "relationKey": "char_yunxiao",
       "character": "云霄",
       "type": "rescue_opposed",
+      "amount": 18,
       "acceptance": {
         "eventId": "character.yunxiao.2",
         "phase": "root",
@@ -18300,7 +18301,7 @@
     }
   },
   "presentation": {
-    "revision": "17.1",
+    "revision": "18.0",
     "events": {
       "event.0.hermit": {
         "choices": {

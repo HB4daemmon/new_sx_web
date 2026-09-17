@@ -34,6 +34,8 @@ export interface Story {requirements?:Condition[];starts?:{phase:string;weight:n
 export type PromiseStatus='active'|'fulfilled'|'broken'|'expired'|'declined';
 export interface CharacterPromiseState {definitionId:string;status:PromiseStatus;acceptedAt?:{act:number;row:number;nodeId:string};bypassPermit?:{state:'available'|'consumed'|'expired';issuedAtNodeId:string;usedAtNodeId?:string};evidenceNodeId?:string;finalRewardOffered?:boolean;settlementClaimed?:boolean;reason?:string;}
 export interface CharacterPromiseDefinition {id:string;relationKey:string;character?:string;type:string;amount?:number;deadline?:{act:number;row:number;boundary?:string};acceptance?:{eventId:string;phase?:string;choiceId?:string;choiceIds?:string[]};fulfillment?:{eventId?:string;phase?:string;choiceId?:string;evidence?:string;nodeType?:string;nodeTypes?:string[];fact?:string;sameAction?:boolean};facts:{accepted?:string;task?:string;fulfilled?:string;declined?:string;abandoned?:string;available?:string;saved?:string};rewardId?:string;}
+export interface CharacterRouteClues {story:RouteNode[];elite:RouteNode[];bypass:RouteNode[];}
+interface LegacyMigrationPayload {trackedCharacter?:string|null;promises:Record<string,CharacterPromiseState>;facts:Record<string,boolean>;}
 export interface Ending { id:string; name:string; art:string; description:string; conditions:Condition[]; }
 export interface BuildPath {id:string;school:SchoolId;hybrid?:string;name:string;abilities:string[];talents:string[];description:string;tradeoff:string;}
 export interface Content {buildPaths:BuildPath[];talents:Talent[];races:Race[];schools:School[];hybrids:Hybrid[]; version:string;rulesVersion:string;title:string;subtitle:string;abilities:Ability[];origins:Origin[];fates:Fate[];enemies:Enemy[];events:Story[];characterPromises?:CharacterPromiseDefinition[];acts:{name:string;subtitle:string;chapter:string;boss:string;major:string;tint:string;bosses?:string[]}[];endings:Ending[];realms:string[];rules:{routeRows:string[][];actStartFullHeal:boolean;actStartHealPercent?:number;actStartMinHpPercent?:number;poolSchools:number;poolHybrids:number;xpThresholds:number[];levelStats:Partial<Stats>;rageMax:number;basicRage:number;hitRage:number;maxRounds:number;burnDamage:number;weakPercent:number;breakDefense:number;vulnerablePercent:number;startingGold:number;refreshPrices:number[];restPercent:number;enemyHpPercentByAct?:number[];enemyAttackPercentByAct?:number[];rewards:Record<string,{gold:number;xp:number}>};labels:Record<string,Record<string,string>>; }
@@ -152,6 +154,7 @@ export function validateContent(c:Content):void {
   promiseIds.add(def.id);
   if(!Number.isInteger(def.amount??0)&&def.type==='reserve_currency')throw new Error('Invalid promise amount');
   if(def.amount!==undefined&&(!Number.isInteger(def.amount)||def.amount<0))throw new Error('Invalid promise amount');
+  if(['reserve_currency','rescue_opposed'].includes(def.type)&&!Number.isInteger(def.amount))throw new Error('Promise cost must be configured');
   if(def.deadline&&(!Number.isInteger(def.deadline.act)||def.deadline.act<0||!Number.isInteger(def.deadline.row)||def.deadline.row<0||def.deadline.boundary!==undefined&&!PROMISE_BOUNDARIES.has(def.deadline.boundary)))throw new Error('Invalid promise deadline');
   const factKeys=new Set([...promiseFactKeys(def),def.fulfillment?.fact].filter((x):x is string=>!!x));
   for(const key of factKeys){const owner=promiseFactOwners.get(key);if(owner&&owner!==def.id)throw new Error('Duplicate promise fact '+key);promiseFactOwners.set(key,def.id);}
@@ -795,6 +798,14 @@ function futureRouteNodes(c:Content,s:RunState,def:CharacterPromiseDefinition,ty
   (!typeFilter||typeFilter.includes(node.type))&&(!deadline||nodeAtOrBefore(node,deadline))
  );
 }
+function currentRouteNodes(c:Content,s:RunState):RouteNode[]{
+ if(s.phase!=='map')return [];
+ return s.route.filter(node=>node.act===s.act&&node.row===s.row&&(s.row===0||Math.abs(node.lane-s.lane)<=1)&&!s.visited.includes(node.id));
+}
+function taskRouteNodes(c:Content,s:RunState,def:CharacterPromiseDefinition,typeFilter:string[]):RouteNode[]{
+ const current=currentRouteNodes(c,s).filter(node=>typeFilter.includes(node.type));
+ return [...current,...futureRouteNodes(c,s,def,typeFilter)].filter((node,index,nodes)=>nodes.findIndex(x=>x.id===node.id)===index);
+}
 export function storyCandidates(c:Content,s:RunState,n:RouteNode):Story[]{
  if(n.ref)return c.events.filter(e=>e.id===n.ref);
  const hidden=n.type==='hidden';
@@ -812,9 +823,7 @@ export function storyCandidatesForRelation(c:Content,s:RunState,n:RouteNode,rela
  * same lane reachability rules as normal navigation.
  */
 export function storyOpportunitiesForRelation(c:Content,s:RunState,relationKey:string):RouteNode[]{
- const current=s.phase==='map'
-  ?s.route.filter(node=>node.act===s.act&&node.row===s.row&&(s.row===0||Math.abs(node.lane-s.lane)<=1))
-  :[];
+ const current=currentRouteNodes(c,s);
  const future=reachableFutureRouteNodes(c,s);
  const seen=new Set<string>();
  return [...current,...future].filter(node=>{
@@ -822,6 +831,22 @@ export function storyOpportunitiesForRelation(c:Content,s:RunState,relationKey:s
   seen.add(node.id);
   return !s.visited.includes(node.id)&&!node.ref&&['event','hidden'].includes(node.type)&&storyCandidatesForRelation(c,s,node,relationKey).length>0;
  });
+}
+export function characterRouteClues(c:Content,s:RunState,relationKey:string):CharacterRouteClues {
+ const story=storyOpportunitiesForRelation(c,s,relationKey);
+ const result:CharacterRouteClues={story,elite:[],bypass:[]};
+ const defs=promiseDefinitions(c).filter(def=>def.relationKey===relationKey);
+ for(const def of defs){
+  const state=s.promises?.[def.id];
+  if(!state)continue;
+  if(def.type==='elite_completion'&&state.status==='active'){
+   result.elite=taskRouteNodes(c,s,def,def.fulfillment?.nodeTypes??(def.fulfillment?.nodeType?[def.fulfillment.nodeType]:['elite']));
+  }
+  if(def.type==='bypass_combat'&&state.status==='active'&&state.bypassPermit?.state==='available'){
+   result.bypass=taskRouteNodes(c,s,def,def.fulfillment?.nodeTypes??(def.fulfillment?.nodeType?[def.fulfillment.nodeType]:['combat']));
+  }
+ }
+ return result;
 }
 export const eventCandidates=storyCandidates;
 
@@ -948,13 +973,31 @@ function projectPromiseFacts(c:Content,s:RunState,only?:Set<string>):void {
   }
  }
 }
+const LEGACY_MIGRATION_COMMAND='__migrateLegacy';
+function legacyMigrationFacts(c:Content,s:RunState,ids:Set<string>):Record<string,boolean>{
+ const facts:Record<string,boolean>={};
+ for(const def of promiseDefinitions(c)){
+  if(!ids.has(def.id))continue;
+  for(const key of promiseFactKeys(def))facts[key]=!!s.facts[key];
+ }
+ return facts;
+}
+function applyLegacyMigration(c:Content,s:RunState,payload:LegacyMigrationPayload):void{
+ if(!isRecord(payload)||!isRecord(payload.promises)||!isRecord(payload.facts))throw new Error('Invalid legacy migration');
+ if(payload.trackedCharacter===null)delete s.trackedCharacter;
+ else if(payload.trackedCharacter!==undefined)s.trackedCharacter=payload.trackedCharacter;
+ for(const [id,state] of Object.entries(payload.promises))s.promises[id]=clone(state);
+ for(const [key,value] of Object.entries(payload.facts))if(value)s.facts[key]=true;else delete s.facts[key];
+ projectPromiseFacts(c,s,new Set(Object.keys(payload.promises)));
+}
 function migratePromiseState(c:Content,s:RunState):void {
  if(s.promises===undefined||s.promises===null)s.promises={};
  else if(!isRecord(s.promises))throw new Error('Invalid promise state');
  const tracked=(s as RunState&{trackedCharacter?:unknown}).trackedCharacter,followed=(s as RunState&{followedCharacter?:unknown}).followedCharacter;
  if(tracked!==undefined&&tracked!==null&&typeof tracked!=='string')throw new Error('Invalid tracked character');
  if(followed!==undefined&&followed!==null&&typeof followed!=='string')throw new Error('Invalid followed character');
- if(tracked===undefined&&typeof followed==='string')s.trackedCharacter=followed;
+ const migratedTracked=tracked===undefined&&typeof followed==='string';
+ if(migratedTracked)s.trackedCharacter=followed;
  else if(typeof tracked==='string'&&typeof followed==='string'&&tracked!==followed)throw new Error('Conflicting tracked character');
  else if(tracked===null&&typeof followed==='string')throw new Error('Conflicting tracked character');
  if((s as RunState&{trackedCharacter?:string|null}).trackedCharacter===null)delete s.trackedCharacter;
@@ -966,6 +1009,15 @@ function migratePromiseState(c:Content,s:RunState):void {
   }
  }
  if(migrated.size)projectPromiseFacts(c,s,migrated);
+ const alreadyRecorded=Array.isArray(s.actionLog)&&s.actionLog.some(action=>action.command===LEGACY_MIGRATION_COMMAND);
+ if(!alreadyRecorded&&(migratedTracked||migrated.size)){
+  const payload:LegacyMigrationPayload={
+   promises:Object.fromEntries([...migrated].map(id=>[id,clone(s.promises[id])])),
+   facts:legacyMigrationFacts(c,s,migrated)
+  };
+  if(migratedTracked)payload.trackedCharacter=String(s.trackedCharacter);
+  s.actionLog.push({command:LEGACY_MIGRATION_COMMAND,args:[payload]});
+ }
 }
 function validatePromiseStates(c:Content,s:RunState):void {
  if(!isRecord(s.promises))throw new Error('Invalid promise state');
@@ -980,6 +1032,9 @@ export class Game {
  promiseFacts(def:CharacterPromiseDefinition):string[]{return promiseFactKeys(def);}
  promiseFactSnapshot():Record<string,boolean|undefined>{
   const out:Record<string,boolean|undefined>={};for(const def of promiseDefinitions(this.c))for(const key of this.promiseFacts(def))out[key]=this.s.facts[key];return out;
+ }
+ applyLegacyMigration(payload:LegacyMigrationPayload):void {
+  applyLegacyMigration(this.c,this.s,payload);
  }
  restorePromiseFacts(snapshot:Record<string,boolean|undefined>):void {
   for(const [key,value] of Object.entries(snapshot))if(value===undefined)delete this.s.facts[key];else this.s.facts[key]=value;
@@ -1060,7 +1115,7 @@ export class Game {
     const fact=def.fulfillment?.fact??'leizhenzi_elite_completed';return state?.status==='active'&&!!this.s.facts[fact]?'': '尚无正式精英胜利证据';
    }
    if(def.type==='rescue_opposed'){
-    const amount=authored.amount??def.amount??18,paid=(choice.effects??[]).filter(e=>e.type==='gain_currency').reduce((n,e)=>n+Math.min(0,value(e.value)),0);
+    const amount=authored.amount??def.amount??0,paid=(choice.effects??[]).filter(e=>e.type==='gain_currency').reduce((n,e)=>n+Math.min(0,value(e.value)),0);
     const sameAction=def.fulfillment?.sameAction===true,sameActionHere=!sameAction||acceptedHere,stateAllowed=sameAction?(!state||state.status==='active'):state?.status==='active';
     return stateAllowed&&sameActionHere&&this.s.gold>=amount&&paid<=-amount?'':'救助代价不足';
    }
@@ -1329,6 +1384,6 @@ export class Game {
   leaveEvent(){this.requireTalentResolved();if(this.s.phase!=='event_result'||this.s.pending)throw new Error('Unresolved event');this.log('leaveEvent');this.advance();this.settlePromisesAfterAction('leaveEvent');}
  legalEndings():Ending[]{return this.c.endings.filter(e=>e.conditions.every(q=>conditionOK(this.c,this.s,q)));}
  chooseEnding(id:string){this.requireTalentResolved();if(this.s.phase!=='ending'||!this.legalEndings().some(e=>e.id===id))throw new Error('Ending unavailable');this.log('chooseEnding',id);this.s.endingId=id;this.s.phase='finished';}
- command(command:string,args:any[]){const actions:Record<string,(...a:any[])=>void>={chooseTalent:this.chooseTalent,enter:this.enter,finishBattle:this.finishBattle,reward:this.reward,skipReward:this.skipReward,replace:this.replace,cancelReplacement:this.cancelReplacement,buy:this.buy,refresh:this.refresh,leaveShop:this.leaveShop,rest:this.rest,chooseEvent:this.chooseEvent,leaveEvent:this.leaveEvent,chooseEnding:this.chooseEnding,followCharacter:this.followCharacter,clearCharacterFollow:this.clearCharacterFollow,bypassCombat:this.bypassCombat,trackCharacter:this.trackCharacter};if(!actions[command])throw new Error('Invalid command');actions[command].apply(this,args);}
+  command(command:string,args:any[]){const actions:Record<string,(...a:any[])=>void>={chooseTalent:this.chooseTalent,enter:this.enter,finishBattle:this.finishBattle,reward:this.reward,skipReward:this.skipReward,replace:this.replace,cancelReplacement:this.cancelReplacement,buy:this.buy,refresh:this.refresh,leaveShop:this.leaveShop,rest:this.rest,chooseEvent:this.chooseEvent,leaveEvent:this.leaveEvent,chooseEnding:this.chooseEnding,followCharacter:this.followCharacter,clearCharacterFollow:this.clearCharacterFollow,bypassCombat:this.bypassCombat,trackCharacter:this.trackCharacter,[LEGACY_MIGRATION_COMMAND]:(payload:LegacyMigrationPayload)=>{this.applyLegacyMigration(payload);this.log(LEGACY_MIGRATION_COMMAND,payload);}};if(!actions[command])throw new Error('Invalid command');actions[command].apply(this,args);}
 }
 export function replayRun(c:Content,source:RunState):RunState {const g=Game.create(c,source.seed,source.origin,source.fate,source.name,source.portrait,source.race);for(const a of source.actionLog)g.command(a.command,a.args);return g.s;}

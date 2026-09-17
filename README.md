@@ -6,7 +6,7 @@
 
 ## 当前版本
 
-玩法与内容 **4.3.0**，界面修订 **17.1**；当前浏览器存档键为 `fengshen-run-v43`。
+玩法与内容 **4.4.0**，界面修订 **18.0**；当前浏览器存档键为 `fengshen-run-v44`。
 
 - 每幕行进 10 个节点（含命运与首领），全程 40 步；每幕从两名首领中抽取一名。
 - 每幕开始恢复至当前最大生命；幕内伤势持续保留。
@@ -18,7 +18,7 @@
 - 12 个既有地点事件已去模板化，奖励、检定、条件和阶段路由保持不变，改为各幕独立叙事。
 - 战斗中即时显示伤害、回复、护盾变化和负面状态消耗；技能、槽位、法宝与能力图形继续使用原有 SVG。
 
-**4.3.0 使用独立存档规则，4.2.0 及更早存档不能直接导入本版，需要重新开局；旧档仍可从静室导出备份。** 同版本内读档、天赋选项、事件检定与行动回放保持确定一致。
+**4.4.0 使用独立存档规则，4.3.0 及更早存档不能直接导入本版，需要重新开局；旧档仍可从静室导出备份。** 同版本内读档、天赋选项、事件检定与行动回放保持确定一致。
 
 ## 开发与验证
 
@@ -53,6 +53,15 @@ python tests/immersion-browser.py
 
 三份脚本都支持 `--html`、`--output`、`--chromium`；也可使用 `PLAY_HTML_PATH`（兼容 `PLAY_HTML`）、`BROWSER_OUTPUT_DIR` 和 `CHROMIUM_PATH` 环境变量。`ancestry-browser.py` 与 `immersion-browser.py` 还支持 `--url` 验证 HTTP 构建。
 
+The Node Playwright browser harness covers creation insights, strategy behavior, settlement timing, desktop/mobile overflow, and save import/export. It checks `dist/PLAY.html` by default, resolves Playwright from `PLAYWRIGHT_MODULE` or common npm/npx caches, and resolves Chromium from `CHROMIUM_PATH` or the Playwright browser cache:
+
+```sh
+npm run build
+npm run test:browser-node
+```
+
+The harness writes `verification/browser-node/browser-node.json` and key screenshots. Missing Playwright, Chromium, or build output returns exit code `3` with a clear message. Use `PLAYWRIGHT_MODULE`, `CHROMIUM_PATH`, `PLAY_HTML_PATH`, and `BROWSER_OUTPUT_DIR` to override the defaults.
+
 ## 内容编辑
 
 `data/game.json` 是权威玩法配置，含族裔、出身、天赋、流派、混合流派、法宝、敌人、事件与出现条件。`data/presentation.json` 保存事件表现文案。修改 JSON 后运行：
@@ -69,13 +78,13 @@ npm run verify:reports
 
 美术沿用项目现有资源，未使用《杀戮尖塔》《小丑牌》或《王者万象棋》的游戏素材；仅参考棋手/阵容/组合构筑的设计思路，具体种族、天赋、功法、法宝与事件均为本项目原创。
 
-## UI 17.1
+## UI 18.0
 
 延续双角色斗法舞台和逐帧像素特效；当前版本加入族裔、出身和命格的定性开局说明，境界突破时的天赋手选，天赋前置关系与流派方向展示。命盘、战斗结算和因缘页会保留对应来源与状态反馈。技能与法宝继续使用原 SVG 视觉。
 
-17.1 收紧主界面文案：创建、命盘、事件、坊市、休整与帮助页减少规则式说明，保留关键数值与直接得失，以人物、命格、因缘和场景本身承担叙事。
+18.0 收紧主界面文案：创建、命盘、事件、坊市、休整与帮助页减少规则式说明，保留关键数值与直接得失，以人物、命格、因缘和场景本身承担叙事。
 
-## 4.3 自动平衡回归
+## 4.4 自动平衡回归
 
 当前版本用 500 局确定性自动策略矩阵检查 20 个“族裔 × 出身”组合，并保留逐局结果。报告由 `npm run balance` 生成，门槛为整体胜率 50%～70%、族裔差不超过 15 个百分点、出身差不超过 20 个百分点。
 

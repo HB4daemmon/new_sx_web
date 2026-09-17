@@ -27,5 +27,5 @@ test('new replay retains race and old-version saves are explicitly rejected',()=
  const bad=structuredClone(c);bad.races[0].triggers[0].effects[0].type='typo';assert.throws(()=>validateContent(bad));
 });
 test('UI advances the save key and keeps legacy exports and skill SVGs while offering race selection',()=>{
- const app=readFileSync('src/app.ts','utf8');assert(app.includes("SAVE_KEY='fengshen-run-v43'"));assert(app.includes("PREVIOUS_SAVE_KEY='fengshen-run-v42'"));assert(app.includes("LEGACY_SAVE_KEY='fengshen-run-v4'"));assert(app.includes("LEGACY_OLD_SAVE_KEY='fengshen-run-v1'"));assert(app.includes('racePicker()'));assert(app.includes('sigil(a.art'));assert(!app.includes('removeItem(LEGACY_SAVE_KEY)'));
+ const app=readFileSync('src/app.ts','utf8');assert(app.includes("SAVE_KEY='fengshen-run-v44'"));assert(app.includes("PREVIOUS_SAVE_KEY='fengshen-run-v43'"));assert(app.includes("LEGACY_SAVE_KEY='fengshen-run-v42'"));assert(app.includes("LEGACY_OLD_SAVE_KEY='fengshen-run-v4'"));assert(app.includes("LEGACY_ANCIENT_SAVE_KEY='fengshen-run-v1'"));assert(app.includes('racePicker()'));assert(app.includes('sigil(a.art'));assert(!app.includes('removeItem(LEGACY_SAVE_KEY)'));
 });

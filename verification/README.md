@@ -2,9 +2,9 @@
 
 本目录同时保留历史验证记录和当前发布验证。当前发布元数据如下：
 
-- 内容与规则版本：`4.3.0`
-- 界面修订：`17.1`
-- 当前浏览器存档键：`fengshen-run-v43`
+- 内容与规则版本：`4.4.0`
+- 界面修订：`18.0`
+- 当前浏览器存档键：`fengshen-run-v44`
 - Node.js：`22` 或以上
 
 ## 当前报告
@@ -32,6 +32,6 @@ npm run balance
 
 ## 历史记录
 
-`content-pool-v14.json`、`immersion-review.json` 和 `immersion-ui-report.json` 是较早版本的验证记录，分别包含 `3.0.0`、`2.9.0` 和旧 UI/存档断言。它们保留用于追溯，不可作为 `4.3.0 / UI 17.1 / 存档 v43` 的当前发布证据。
+`content-pool-v14.json`、`immersion-review.json` 和 `immersion-ui-report.json` 是较早版本的验证记录，分别包含 `3.0.0`、`2.9.0` 和旧 UI/存档断言。它们保留用于追溯，不可作为 `4.4.0 / UI 18.0 / 存档 v44` 的当前发布证据。
 
 浏览器脚本是否通过需要单独的 Chromium 与 Playwright 环境；没有重新执行浏览器验收时，不应把历史 UI 报告改写成当前版本结果。

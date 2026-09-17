@@ -223,11 +223,11 @@ with sync_playwright() as p:
         # Current save-key state still resumes after remount in the revised UI.
         state("returning")
         current=page.evaluate("JSON.stringify(document.querySelector('fengshen-game').game.s)")
-        page.evaluate("(s)=>localStorage.setItem('fengshen-run-v43',s)",current)
+        page.evaluate("(s)=>localStorage.setItem('fengshen-run-v44',s)",current)
         page.evaluate("document.querySelector('fengshen-game').remove();document.body.appendChild(document.createElement('fengshen-game'))")
         page.wait_for_selector("[data-action=resume]")
         page.locator("[data-action=resume]").click()
-        check("current v43 save resumes with identical run after remount",current==page.evaluate("JSON.stringify(document.querySelector('fengshen-game').game.s)"))
+        check("current v44 save resumes with identical run after remount",current==page.evaluate("JSON.stringify(document.querySelector('fengshen-game').game.s)"))
         check("no JavaScript errors",not report["errors"])
         report["passed"]=True
     except Exception as exc:

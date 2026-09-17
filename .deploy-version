@@ -1,6 +1,6 @@
-Gameplay 4.1.0 / UI 16.1
-UI 16.1 removes tutorial-like and system-style copy from character creation, build inspection, events, shop, rest, replacement dialogs and help surfaces. Names, emblems, state, direct gains/losses, checks and combat numbers remain visible.
-Inactive build descriptions are suppressed; active resonance effects remain inspectable. Character stat detail remains available as 根骨明细, while combat keeps detailed battle reporting and ability effect numbers.
-Gameplay mechanics and balance are unchanged. The 500-run deterministic audit remains identical: overall 60.4%, race spread 10.4pp, origin spread 18pp, no threshold failures.
-Verified: 142/142 rule and presentation tests, 500-run balance invariance, and 53/53 HTTP Chromium UI checks.
-Clean source baseline: 6d643a8927b3288287906bc475dfa620e6e43834
+Gameplay 4.4.0 / UI 18.0
+Adds qualitative creation guidance, behavior summaries for strategies and relics, concrete build-fit diagnostics, battle settlement feedback, and differentiated character promises with active tracking.
+Character promises remain configuration-driven and deterministic, with save/load/replay coverage for legacy migration, bypass, rescue, cross-line echoes, route clues, and one-time rewards.
+The first-act relic schedule, boss phase rules, pre-battle preview, backup slot, cross-run collection, and challenge systems remain unchanged from the prior release.
+Verified: 192/192 Node tests, 200 deterministic simulation runs, 500-run balance audit with no threshold failures, and 63/63 offline Node Playwright checks.
+Python Playwright and human acceptance were not run in this environment; this marker records code and offline browser verification only.

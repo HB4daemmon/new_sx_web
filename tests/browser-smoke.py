@@ -173,15 +173,15 @@ with sync_playwright() as playwright:
         page.set_viewport_size({"width": 390, "height": 844})
         page.screenshot(path=str(out / "mobile-map.png"), full_page=True)
 
-        before = page.evaluate("JSON.parse(localStorage.getItem('fengshen-run-v43'))")
+        before = page.evaluate("JSON.parse(localStorage.getItem('fengshen-run-v44'))")
         page.evaluate(
             """const root = document.querySelector('fengshen-game');
             root.remove();
             document.body.append(document.createElement('fengshen-game'));"""
         )
         page.locator('[data-action="resume"]').click()
-        after = page.evaluate("JSON.parse(localStorage.getItem('fengshen-run-v43'))")
-        check("v43 save remains exact after remount", before == after)
+        after = page.evaluate("JSON.parse(localStorage.getItem('fengshen-run-v44'))")
+        check("v44 save remains exact after remount", before == after)
         report["remountSaveExact"] = before == after
 
         page.locator('[data-action="tab"][data-id="build"]').last.click()

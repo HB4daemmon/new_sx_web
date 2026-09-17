@@ -22,6 +22,45 @@ test('same-action rescue can pay and fulfill without a prior active state',()=>{
  assert.equal(g.s.facts.yunxiao_saved_chan_envoy,true);
 });
 
+test('rescue cost and threshold come from the promise definition',()=>{
+ const content=structuredClone(c);
+ const def=content.characterPromises.find(item=>item.id==='yunxiao.rescue_chan');
+ assert(def);
+ def.amount=23;
+ const event=content.events.find(item=>item.id==='character.yunxiao.2');
+ assert(event);
+ for(const choice of event.phases.flatMap(phase=>phase.choices)){
+  if(!['rescue','zhao'].includes(choice.id))continue;
+  for(const effect of choice.effects??[])if(effect.type==='gain_currency')effect.value=-23;
+  for(const condition of choice.conditions??[])if(condition.type==='currency_at_least')condition.value=23;
+ }
+ const seed='PROMISE-RESCUE-CONFIG';
+ const g=Game.create(content,seed,content.origins[0].id,fateOptions(content,seed)[0].id,'Tester');
+ g.s.phase='event';g.s.eventId='character.yunxiao.2';g.s.eventPhase='root';g.s.act=2;g.s.row=0;g.s.gold=23;
+ assert.equal(g.eventChoices().find(item=>item.choice.id==='rescue')?.legal,true);
+ g.chooseEvent('rescue');
+ assert.equal(g.s.gold,0);
+ assert.equal(g.promiseState('yunxiao.rescue_chan')?.status,'fulfilled');
+});
+
+test('promise reward availability distinguishes claimable and already offered states',()=>{
+ const content=structuredClone(c);
+ const event=content.events.find(item=>item.id==='character.ziya.3');
+ assert(event);
+ const reward=event.phases.flatMap(phase=>phase.choices).find(choice=>choice.id==='borrow');
+ assert(reward);
+ reward.conditions.push({type:'promise_reward_available',key:'ziya.reserve_currency'});
+ const g=Game.create(content,'PROMISE-REWARD-CONDITION',content.origins[0].id,fateOptions(content,'PROMISE-REWARD-CONDITION')[0].id,'Tester');
+ g.s.facts.ziya_promise_fulfilled=true;
+ g.s.promises['ziya.reserve_currency']={definitionId:'ziya.reserve_currency',status:'fulfilled',acceptedAt:{act:0,row:0,nodeId:'legacy'},evidenceNodeId:'legacy',finalRewardOffered:false,settlementClaimed:true};
+ g.s.phase='event';g.s.eventId='character.ziya.3';g.s.eventPhase='root';g.s.act=3;g.s.row=0;
+ assert.equal(g.eventChoices().find(item=>item.choice.id==='borrow')?.legal,true);
+ g.s.promises['ziya.reserve_currency'].finalRewardOffered=true;
+ const locked=g.eventChoices().find(item=>item.choice.id==='borrow');
+ assert.equal(locked?.legal,false);
+ assert.match(locked?.lockReason??'',/承诺奖励已领取/);
+});
+
 test('elite evidence after the definition deadline does not fulfill the promise',()=>{
  const g=fresh('PROMISE-ELITE-LATE');
  g.s.promises['leizhenzi.elite_trial']={definitionId:'leizhenzi.elite_trial',status:'active',acceptedAt:{act:0,row:0,nodeId:'0.0.1'},finalRewardOffered:false,settlementClaimed:false};
