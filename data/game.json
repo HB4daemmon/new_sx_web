@@ -8985,126 +8985,201 @@
       "npc": "杨戬",
       "art": "yangjian",
       "text": "万仙阵外，杨戬收刀站在云下。他最后一次睁开天眼，却没有替你说“该”或“不该”。",
-      "choices": [
+      "choices": [],
+      "phases": [
         {
-          "id": "guard",
-          "label": "请他替你守一刻",
-          "text": "若西岐助阐教：恢复 15 生命，阐教 +1；关系收束为生死可托。",
-          "effects": [
+          "id": "root",
+          "text": "万仙阵外，杨戬收刀站在云下。他最后一次睁开天眼，却没有替你说“该”或“不该”。",
+          "choices": [
             {
-              "type": "heal",
-              "value": 15
+              "id": "guard",
+              "label": "请他替你守一刻",
+              "text": "若西岐助阐教：恢复 15 生命，阐教 +1；关系收束为生死可托。",
+              "effects": [
+                {
+                  "type": "heal",
+                  "value": 15
+                },
+                {
+                  "type": "add_counter",
+                  "key": "chan_relation",
+                  "value": 1
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "char_yangjian",
+                  "value": "生死可托"
+                }
+              ],
+              "grant": null,
+              "conditions": [
+                {
+                  "type": "thread_is",
+                  "key": "act_2_fate",
+                  "text": "chan"
+                }
+              ],
+              "tone": "fate",
+              "consequence": "杨戬线收束为“生死可托”。"
             },
             {
-              "type": "add_counter",
-              "key": "chan_relation",
-              "value": 1
+              "id": "enemy",
+              "label": "让他把刀收回去",
+              "text": "若西岐为截教留一线：攻击 +2，逆命 +1；他承认你是可敬之敌。",
+              "effects": [
+                {
+                  "type": "modify_stat",
+                  "stat": "attack",
+                  "value": 2
+                },
+                {
+                  "type": "add_counter",
+                  "key": "defiance",
+                  "value": 1
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "char_yangjian",
+                  "value": "可敬之敌"
+                }
+              ],
+              "grant": null,
+              "conditions": [
+                {
+                  "type": "thread_is",
+                  "key": "act_2_fate",
+                  "text": "jie"
+                }
+              ],
+              "tone": "fate",
+              "consequence": "杨戬线收束为“可敬之敌”。"
             },
             {
-              "type": "advance_thread",
-              "key": "char_yangjian",
-              "value": "生死可托"
-            }
-          ],
-          "grant": null,
-          "conditions": [
+              "id": "own",
+              "label": "请他只看，不劝",
+              "text": "若西岐不入两教：气运 +3，修为 +20；你们各走其道。",
+              "effects": [
+                {
+                  "type": "modify_stat",
+                  "stat": "luck",
+                  "value": 3
+                },
+                {
+                  "type": "gain_xp",
+                  "value": 20
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "char_yangjian",
+                  "value": "各走其道"
+                }
+              ],
+              "grant": null,
+              "conditions": [
+                {
+                  "type": "thread_is",
+                  "key": "act_2_fate",
+                  "text": "free"
+                }
+              ],
+              "tone": "fate",
+              "consequence": "杨戬线收束为“各走其道”。"
+            },
             {
-              "type": "thread_is",
-              "key": "act_2_fate",
-              "text": "chan"
+              "id": "gossip",
+              "label": "问申公豹最后去了哪里",
+              "text": "若曾共同查过密札：修为 +20，善念 +1。",
+              "effects": [
+                {
+                  "type": "gain_xp",
+                  "value": 20
+                },
+                {
+                  "type": "add_counter",
+                  "key": "mercy",
+                  "value": 1
+                }
+              ],
+              "grant": null,
+              "conditions": [
+                {
+                  "type": "thread_is",
+                  "key": "char_yangjian",
+                  "text": "共查密札"
+                }
+              ],
+              "tone": "safe",
+              "consequence": "这是杨戬线与申公豹线的尾声回扣。"
             }
-          ],
-          "tone": "fate",
-          "consequence": "杨戬线收束为“生死可托”。"
+          ]
         },
         {
-          "id": "enemy",
-          "label": "让他把刀收回去",
-          "text": "若西岐为截教留一线：攻击 +2，逆命 +1；他承认你是可敬之敌。",
-          "effects": [
+          "id": "mercy",
+          "text": "云光将合，杨戬从阵后带出一名受伤的阐教使者：“有人替你留过一条生路，我也该还这一笔。”",
+          "authored": {
+            "role": "cross_line_echo",
+            "sourceFact": "yunxiao_saved_chan_envoy",
+            "targetLine": "char_yangjian"
+          },
+          "choices": [
             {
-              "type": "modify_stat",
-              "stat": "attack",
-              "value": 2
+              "id": "accept_aid",
+              "label": "接受这份援手",
+              "text": "善念 +1，修为 +18；让这份跨阵援手留下姓名。",
+              "preview": "善念 +1，修为 +18；让这份跨阵援手留下姓名。",
+              "effects": [
+                {
+                  "type": "add_counter",
+                  "key": "mercy",
+                  "value": 1
+                },
+                {
+                  "type": "gain_xp",
+                  "value": 18
+                },
+                {
+                  "type": "set_fact",
+                  "key": "yunxiao_crossline_acknowledged",
+                  "value": true
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "char_yunxiao",
+                  "value": "跨阵相认"
+                }
+              ],
+              "conditions": [],
+              "tone": "fate",
+              "consequence": "杨戬记下云霄救人的事实；不改写你原先的阵营选择。",
+              "authored": {
+                "role": "cross_line_echo",
+                "sourceFact": "yunxiao_saved_chan_envoy",
+                "action": "accept_aid"
+              }
             },
             {
-              "type": "add_counter",
-              "key": "defiance",
-              "value": 1
-            },
-            {
-              "type": "advance_thread",
-              "key": "char_yangjian",
-              "value": "可敬之敌"
+              "id": "hold_line",
+              "label": "仍按原先立场交谈",
+              "text": "不替旧事改名；回到你原先的立场，再与杨戬说话。",
+              "preview": "不替旧事改名；回到你原先的立场，再与杨戬说话。",
+              "effects": [
+                {
+                  "type": "set_fact",
+                  "key": "yunxiao_crossline_deferred",
+                  "value": true
+                }
+              ],
+              "conditions": [],
+              "tone": "safe",
+              "next": "root",
+              "consequence": "跨阵事实保留，但杨戬线仍按原先立场收束。",
+              "authored": {
+                "role": "cross_line_echo",
+                "sourceFact": "yunxiao_saved_chan_envoy",
+                "action": "hold_line"
+              }
             }
-          ],
-          "grant": null,
-          "conditions": [
-            {
-              "type": "thread_is",
-              "key": "act_2_fate",
-              "text": "jie"
-            }
-          ],
-          "tone": "fate",
-          "consequence": "杨戬线收束为“可敬之敌”。"
-        },
-        {
-          "id": "own",
-          "label": "请他只看，不劝",
-          "text": "若西岐不入两教：气运 +3，修为 +20；你们各走其道。",
-          "effects": [
-            {
-              "type": "modify_stat",
-              "stat": "luck",
-              "value": 3
-            },
-            {
-              "type": "gain_xp",
-              "value": 20
-            },
-            {
-              "type": "advance_thread",
-              "key": "char_yangjian",
-              "value": "各走其道"
-            }
-          ],
-          "grant": null,
-          "conditions": [
-            {
-              "type": "thread_is",
-              "key": "act_2_fate",
-              "text": "free"
-            }
-          ],
-          "tone": "fate",
-          "consequence": "杨戬线收束为“各走其道”。"
-        },
-        {
-          "id": "gossip",
-          "label": "问申公豹最后去了哪里",
-          "text": "若曾共同查过密札：修为 +20，善念 +1。",
-          "effects": [
-            {
-              "type": "gain_xp",
-              "value": 20
-            },
-            {
-              "type": "add_counter",
-              "key": "mercy",
-              "value": 1
-            }
-          ],
-          "grant": null,
-          "conditions": [
-            {
-              "type": "thread_is",
-              "key": "char_yangjian",
-              "text": "共查密札"
-            }
-          ],
-          "tone": "safe",
-          "consequence": "这是杨戬线与申公豹线的尾声回扣。"
+          ]
         }
       ],
       "profile": "A",
@@ -9116,6 +9191,23 @@
       "episode": 4,
       "episodes": 4,
       "relationKey": "char_yangjian",
+      "startPhase": "root",
+      "authored": {
+        "role": "cross_line_echo",
+        "sourceFact": "yunxiao_saved_chan_envoy"
+      },
+      "starts": [
+        {
+          "phase": "mercy",
+          "weight": 1,
+          "conditions": [
+            {
+              "type": "has_fact",
+              "key": "yunxiao_saved_chan_envoy"
+            }
+          ]
+        }
+      ],
       "relevance": [
         {
           "type": "has_fact",
@@ -11656,8 +11748,8 @@
             {
               "id": "help",
               "label": "帮流民分完这一车米",
-              "text": "失去 8 生命，善念 +1；结下承诺。",
-              "preview": "失去 8 生命，善念 +1；结下承诺。",
+              "text": "失去 8 生命，善念 +1；先与他相识，再决定是否接下保粮之约。",
+              "preview": "失去 8 生命，善念 +1；先与他相识，再决定是否接下保粮之约。",
               "effects": [
                 {
                   "type": "damage",
@@ -11677,11 +11769,6 @@
                   "type": "advance_thread",
                   "key": "char_ziya",
                   "value": "粮册留名"
-                },
-                {
-                  "type": "set_fact",
-                  "key": "ziya_promise",
-                  "value": true
                 }
               ],
               "conditions": [
@@ -11691,8 +11778,13 @@
                 }
               ],
               "tone": "cost",
-              "next": "promise",
-              "consequence": "这份承诺会在后来的相遇中被提起。"
+              "next": "oath",
+              "consequence": "相识不等于立约；下一阶段由你决定是否承诺保留军粮。",
+              "authored": {
+                "role": "meeting",
+                "promiseId": "ziya.reserve_currency",
+                "action": "meet"
+              }
             },
             {
               "id": "ask",
@@ -11721,8 +11813,8 @@
             {
               "id": "test",
               "label": "赶在涨水前抢出米袋",
-              "text": "公开身法检定；成则结约，败则受伤。",
-              "preview": "公开身法检定；成则结约，败则受伤。",
+              "text": "公开身法检定；成则相识并进入约定，败则受伤。",
+              "preview": "公开身法检定；成则相识并进入约定，败则受伤。",
               "effects": [],
               "conditions": [],
               "tone": "check",
@@ -11746,14 +11838,9 @@
                       "type": "advance_thread",
                       "key": "char_ziya",
                       "value": "粮册留名"
-                    },
-                    {
-                      "type": "set_fact",
-                      "key": "ziya_promise",
-                      "value": true
                     }
                   ],
-                  "next": "promise"
+                  "next": "oath"
                 },
                 "failure": {
                   "text": "脚下慢了一步，他替你挡住余势。",
@@ -11774,13 +11861,104 @@
                     }
                   ]
                 }
+              },
+              "authored": {
+                "role": "meeting_check",
+                "promiseId": "ziya.reserve_currency",
+                "action": "meet"
               }
             }
           ]
         },
         {
-          "id": "promise",
-          "text": "风雨暂歇。他把一件旧物放在你掌心，等你自己说出要不要记下这个约定。",
+          "id": "oath",
+          "text": "米车已空。姜子牙将一纸军粮单递来：“要不要替我留住这笔粮钱，等到军营再交？”",
+          "authored": {
+            "role": "promise_acceptance",
+            "promiseId": "ziya.reserve_currency"
+          },
+          "choices": [
+            {
+              "id": "accept",
+              "label": "接受保粮之约",
+              "text": "在第三幕结束前保留 18 灵石；到军营再交付。",
+              "preview": "在第三幕结束前保留 18 灵石；到军营再交付。",
+              "effects": [
+                {
+                  "type": "set_fact",
+                  "key": "ziya_promise",
+                  "value": true
+                },
+                {
+                  "type": "set_fact",
+                  "key": "ziya_promise_accepted",
+                  "value": true
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "char_ziya",
+                  "value": "保留军粮"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_fact",
+                  "key": "met_ziya"
+                },
+                {
+                  "type": "currency_at_least",
+                  "value": 18
+                }
+              ],
+              "tone": "fate",
+              "next": "gift",
+              "consequence": "这不是即时奖励；在第三幕结束前，已提交的支出若使余额低于 18 灵石，约定会失效。",
+              "authored": {
+                "role": "promise_acceptance",
+                "promiseId": "ziya.reserve_currency",
+                "action": "accept",
+                "amount": 18
+              }
+            },
+            {
+              "id": "decline",
+              "label": "不接这份保粮之约",
+              "text": "修为 +6；只把这段相识留在粮册边。",
+              "preview": "修为 +6；只把这段相识留在粮册边。",
+              "effects": [
+                {
+                  "type": "gain_xp",
+                  "value": 6
+                },
+                {
+                  "type": "set_fact",
+                  "key": "ziya_promise_declined",
+                  "value": true
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "char_ziya",
+                  "value": "不立军粮约"
+                }
+              ],
+              "conditions": [],
+              "tone": "safe",
+              "next": "gift",
+              "authored": {
+                "role": "promise_acceptance",
+                "promiseId": "ziya.reserve_currency",
+                "action": "decline"
+              }
+            }
+          ]
+        },
+        {
+          "id": "gift",
+          "text": "话已说定。他把一件普通旧物放在你掌心；这份赠物与军粮之约各归各处。",
+          "authored": {
+            "role": "gift_choice",
+            "promiseId": "ziya.reserve_currency"
+          },
           "choices": [
             {
               "id": "keep",
@@ -11792,6 +11970,10 @@
               "tone": "safe",
               "grant": {
                 "slot": "artifact"
+              },
+              "authored": {
+                "role": "gift",
+                "action": "accept"
               }
             },
             {
@@ -11811,7 +11993,11 @@
                 }
               ],
               "conditions": [],
-              "tone": "safe"
+              "tone": "safe",
+              "authored": {
+                "role": "gift",
+                "action": "leave"
+              }
             }
           ]
         }
@@ -11824,7 +12010,12 @@
       "character": "姜子牙",
       "episode": 1,
       "episodes": 3,
-      "relationKey": "char_ziya"
+      "relationKey": "char_ziya",
+      "authored": {
+        "line": "ziya",
+        "promiseId": "ziya.reserve_currency",
+        "role": "meeting"
+      }
     },
     {
       "id": "character.ziya.2",
@@ -11841,10 +12032,10 @@
           "text": "军营外一车粮草倾在泥里，家书被雨浸透。姜子牙请你决定先护粮，还是回头寻那名失踪的送信人。",
           "choices": [
             {
-              "id": "keep",
-              "label": "补齐出营的军粮",
-              "text": "支付 18 灵石，修为 +24；旧约有了结果。",
-              "preview": "支付 18 灵石，修为 +24；旧约有了结果。",
+              "id": "deliver",
+              "label": "交付保留的军粮",
+              "text": "支付 18 灵石，修为 +24；兑现保粮约定。",
+              "preview": "支付 18 灵石，修为 +24；兑现保粮约定。",
               "effects": [
                 {
                   "type": "gain_currency",
@@ -11856,7 +12047,7 @@
                 },
                 {
                   "type": "set_fact",
-                  "key": "ziya_kept",
+                  "key": "ziya_promise_fulfilled",
                   "value": true
                 },
                 {
@@ -11876,13 +12067,21 @@
                 }
               ],
               "tone": "fate",
-              "consequence": "终幕可凭此旧约借取神话法宝。"
+              "consequence": "终幕可凭真实交付记录借取神话法宝。",
+              "authored": {
+                "role": "promise_progress",
+                "promiseId": "ziya.reserve_currency",
+                "action": "fulfill",
+                "evidence": "currency_reserved",
+                "amount": 18,
+                "settleAfterPayment": true
+              }
             },
             {
-              "id": "risk",
+              "id": "recover_letter",
               "label": "追回失踪的送信人",
-              "text": "公开速度检定；成功践约，失败损失 10 生命。",
-              "preview": "公开速度检定；成功践约，失败损失 10 生命。",
+              "text": "公开速度检定；只追回家书，不代替保粮约定，失败损失 10 生命。",
+              "preview": "公开速度检定；只追回家书，不代替保粮约定，失败损失 10 生命。",
               "effects": [],
               "conditions": [],
               "tone": "check",
@@ -11899,13 +12098,13 @@
                     },
                     {
                       "type": "set_fact",
-                      "key": "ziya_kept",
+                      "key": "ziya_letter_recovered",
                       "value": true
                     },
                     {
                       "type": "advance_thread",
                       "key": "char_ziya",
-                      "value": "护粮旧约"
+                      "value": "寻回家书"
                     }
                   ]
                 },
@@ -11923,17 +12122,28 @@
                     }
                   ]
                 }
+              },
+              "authored": {
+                "role": "promise_progress",
+                "promiseId": "ziya.reserve_currency",
+                "action": "evidence_only",
+                "evidence": "letter_recovered"
               }
             },
             {
-              "id": "decline",
+              "id": "abandon",
               "label": "只把断路的消息带回",
-              "text": "恢复 10 生命；把未竟之事记下。",
-              "preview": "恢复 10 生命；把未竟之事记下。",
+              "text": "恢复 10 生命；不再承诺交付。",
+              "preview": "恢复 10 生命；不再承诺交付。",
               "effects": [
                 {
                   "type": "heal",
                   "value": 10
+                },
+                {
+                  "type": "set_fact",
+                  "key": "ziya_promise_abandoned",
+                  "value": true
                 },
                 {
                   "type": "advance_thread",
@@ -11942,7 +12152,12 @@
                 }
               ],
               "conditions": [],
-              "tone": "safe"
+              "tone": "safe",
+              "authored": {
+                "role": "promise_progress",
+                "promiseId": "ziya.reserve_currency",
+                "action": "abandon"
+              }
             }
           ]
         }
@@ -12002,7 +12217,7 @@
               "conditions": [
                 {
                   "type": "has_fact",
-                  "key": "ziya_kept"
+                  "key": "ziya_promise_fulfilled"
                 }
               ],
               "tone": "fate",
@@ -12084,13 +12299,18 @@
       "relevance": [
         {
           "type": "has_fact",
-          "key": "ziya_kept"
+          "key": "ziya_promise_fulfilled"
         }
       ],
       "character": "姜子牙",
       "episode": 3,
       "episodes": 3,
-      "relationKey": "char_ziya"
+      "relationKey": "char_ziya",
+      "authored": {
+        "line": "ziya",
+        "promiseId": "ziya.reserve_currency",
+        "role": "reward"
+      }
     },
     {
       "id": "character.leizhenzi.1",
@@ -12109,8 +12329,8 @@
             {
               "id": "help",
               "label": "撑住断木，救出孩子",
-              "text": "失去 8 生命，善念 +1；结下承诺。",
-              "preview": "失去 8 生命，善念 +1；结下承诺。",
+              "text": "失去 8 生命，善念 +1；先与他相识，再决定是否接下精英之约。",
+              "preview": "失去 8 生命，善念 +1；先与他相识，再决定是否接下精英之约。",
               "effects": [
                 {
                   "type": "damage",
@@ -12130,11 +12350,6 @@
                   "type": "advance_thread",
                   "key": "char_leizhenzi",
                   "value": "雷下相救"
-                },
-                {
-                  "type": "set_fact",
-                  "key": "leizhenzi_promise",
-                  "value": true
                 }
               ],
               "conditions": [
@@ -12144,8 +12359,13 @@
                 }
               ],
               "tone": "cost",
-              "next": "promise",
-              "consequence": "这份承诺会在后来的相遇中被提起。"
+              "next": "oath",
+              "consequence": "相识不等于立约；下一阶段由你决定是否接下精英之约。",
+              "authored": {
+                "role": "meeting",
+                "promiseId": "leizhenzi.elite_trial",
+                "action": "meet"
+              }
             },
             {
               "id": "ask",
@@ -12174,8 +12394,8 @@
             {
               "id": "test",
               "label": "顺着风势架起断枝",
-              "text": "公开身法检定；成则结约，败则受伤。",
-              "preview": "公开身法检定；成则结约，败则受伤。",
+              "text": "公开身法检定；成则相识并进入约定，败则受伤。",
+              "preview": "公开身法检定；成则相识并进入约定，败则受伤。",
               "effects": [],
               "conditions": [],
               "tone": "check",
@@ -12199,14 +12419,9 @@
                       "type": "advance_thread",
                       "key": "char_leizhenzi",
                       "value": "雷下相救"
-                    },
-                    {
-                      "type": "set_fact",
-                      "key": "leizhenzi_promise",
-                      "value": true
                     }
                   ],
-                  "next": "promise"
+                  "next": "oath"
                 },
                 "failure": {
                   "text": "脚下慢了一步，他替你挡住余势。",
@@ -12227,13 +12442,105 @@
                     }
                   ]
                 }
+              },
+              "authored": {
+                "role": "meeting_check",
+                "promiseId": "leizhenzi.elite_trial",
+                "action": "meet"
               }
             }
           ]
         },
         {
-          "id": "promise",
-          "text": "风雨暂歇。他把一件旧物放在你掌心，等你自己说出要不要记下这个约定。",
+          "id": "oath",
+          "text": "风雨暂歇。雷震子把一枚刻着精英路标的木牌递来：“你愿不愿意替我走完其中一场？”",
+          "authored": {
+            "role": "promise_acceptance",
+            "promiseId": "leizhenzi.elite_trial"
+          },
+          "choices": [
+            {
+              "id": "accept",
+              "label": "接受精英之约",
+              "text": "在第二幕结束前完成一场现有精英战；不倒算已经走过的战斗。",
+              "preview": "在第二幕结束前完成一场现有精英战；不倒算已经走过的战斗。",
+              "effects": [
+                {
+                  "type": "set_fact",
+                  "key": "leizhenzi_promise",
+                  "value": true
+                },
+                {
+                  "type": "set_fact",
+                  "key": "leizhenzi_promise_accepted",
+                  "value": true
+                },
+                {
+                  "type": "set_fact",
+                  "key": "leizhenzi_elite_task",
+                  "value": true
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "char_leizhenzi",
+                  "value": "精英任务在手"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_fact",
+                  "key": "met_leizhenzi"
+                }
+              ],
+              "tone": "fate",
+              "next": "gift",
+              "consequence": "只有约定之后正式结算并获胜的精英战才算证据。",
+              "authored": {
+                "role": "promise_acceptance",
+                "promiseId": "leizhenzi.elite_trial",
+                "action": "accept",
+                "evidence": "elite_victory"
+              }
+            },
+            {
+              "id": "decline",
+              "label": "不接这场精英之约",
+              "text": "修为 +6；只记下他不肯松手的那一刻。",
+              "preview": "修为 +6；只记下他不肯松手的那一刻。",
+              "effects": [
+                {
+                  "type": "gain_xp",
+                  "value": 6
+                },
+                {
+                  "type": "set_fact",
+                  "key": "leizhenzi_promise_declined",
+                  "value": true
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "char_leizhenzi",
+                  "value": "不立精英约"
+                }
+              ],
+              "conditions": [],
+              "tone": "safe",
+              "next": "gift",
+              "authored": {
+                "role": "promise_acceptance",
+                "promiseId": "leizhenzi.elite_trial",
+                "action": "decline"
+              }
+            }
+          ]
+        },
+        {
+          "id": "gift",
+          "text": "话已说定。他把一件普通旧物放在你掌心；这份赠物与精英之约各归各处。",
+          "authored": {
+            "role": "gift_choice",
+            "promiseId": "leizhenzi.elite_trial"
+          },
           "choices": [
             {
               "id": "keep",
@@ -12245,6 +12552,10 @@
               "tone": "safe",
               "grant": {
                 "slot": "artifact"
+              },
+              "authored": {
+                "role": "gift",
+                "action": "accept"
               }
             },
             {
@@ -12264,7 +12575,11 @@
                 }
               ],
               "conditions": [],
-              "tone": "safe"
+              "tone": "safe",
+              "authored": {
+                "role": "gift",
+                "action": "leave"
+              }
             }
           ]
         }
@@ -12277,7 +12592,12 @@
       "character": "雷震子",
       "episode": 1,
       "episodes": 3,
-      "relationKey": "char_leizhenzi"
+      "relationKey": "char_leizhenzi",
+      "authored": {
+        "line": "leizhenzi",
+        "promiseId": "leizhenzi.elite_trial",
+        "role": "meeting"
+      }
     },
     {
       "id": "character.leizhenzi.2",
@@ -12288,105 +12608,102 @@
       "art": "guardian",
       "text": "陈塘关外疾风卷海，雷震子试着张翼。岸边的船系得太紧，船上的人已等不起退潮。",
       "choices": [],
+      "authored": {
+        "line": "leizhenzi",
+        "promiseId": "leizhenzi.elite_trial",
+        "role": "promise_progress"
+      },
       "phases": [
         {
           "id": "root",
           "text": "陈塘关外疾风卷海，雷震子试着张翼。岸边的船系得太紧，船上的人已等不起退潮。",
           "choices": [
             {
-              "id": "keep",
-              "label": "买下绳索，护船出海",
-              "text": "支付 18 灵石，修为 +24；旧约有了结果。",
-              "preview": "支付 18 灵石，修为 +24；旧约有了结果。",
+              "id": "task_done",
+              "label": "确认已经完成精英战",
+              "text": "修为 +24；确认约定已经有了真实战果。",
+              "preview": "修为 +24；确认约定已经有了真实战果。",
               "effects": [
-                {
-                  "type": "gain_currency",
-                  "value": -18
-                },
                 {
                   "type": "gain_xp",
                   "value": 24
                 },
                 {
                   "type": "set_fact",
-                  "key": "leizhenzi_kept",
+                  "key": "leizhenzi_promise_fulfilled",
+                  "value": true
+                },
+                {
+                  "type": "set_fact",
+                  "key": "leizhenzi_elite_task_confirmed",
                   "value": true
                 },
                 {
                   "type": "advance_thread",
                   "key": "char_leizhenzi",
-                  "value": "并翼渡海"
+                  "value": "精英已成"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_fact",
+                  "key": "leizhenzi_elite_completed"
+                }
+              ],
+              "tone": "fate",
+              "consequence": "终幕可凭正式精英胜利记录借取神话法宝。",
+              "authored": {
+                "role": "promise_progress",
+                "promiseId": "leizhenzi.elite_trial",
+                "action": "fulfill",
+                "evidence": "elite_victory"
+              }
+            },
+            {
+              "id": "task_open",
+              "label": "确认精英路线仍在前方",
+              "text": "不领取兑现收益；任务仍须由约定后的正式精英胜利完成。",
+              "preview": "不领取兑现收益；任务仍须由约定后的正式精英胜利完成。",
+              "effects": [
+                {
+                  "type": "set_fact",
+                  "key": "leizhenzi_elite_task_confirmed",
+                  "value": true
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "char_leizhenzi",
+                  "value": "精英待成"
                 }
               ],
               "conditions": [
                 {
                   "type": "has_fact",
                   "key": "leizhenzi_promise"
-                },
-                {
-                  "type": "currency_at_least",
-                  "value": 18
                 }
               ],
-              "tone": "fate",
-              "consequence": "终幕可凭此旧约借取神话法宝。"
-            },
-            {
-              "id": "risk",
-              "label": "与他迎浪救人",
-              "text": "公开闪避检定；成功践约，失败损失 10 生命。",
-              "preview": "公开闪避检定；成功践约，失败损失 10 生命。",
-              "effects": [],
-              "conditions": [],
-              "tone": "check",
-              "check": {
-                "stat": "dodge",
-                "base": 42,
-                "difficulty": 13,
-                "success": {
-                  "text": "归来时你身上多了伤痕，手里的东西却完好无损。",
-                  "effects": [
-                    {
-                      "type": "gain_xp",
-                      "value": 24
-                    },
-                    {
-                      "type": "set_fact",
-                      "key": "leizhenzi_kept",
-                      "value": true
-                    },
-                    {
-                      "type": "advance_thread",
-                      "key": "char_leizhenzi",
-                      "value": "并翼渡海"
-                    }
-                  ]
-                },
-                "failure": {
-                  "text": "路未走通，你只能带着消息折返。",
-                  "effects": [
-                    {
-                      "type": "damage",
-                      "value": 10
-                    },
-                    {
-                      "type": "advance_thread",
-                      "key": "char_leizhenzi",
-                      "value": "路未走通"
-                    }
-                  ]
-                }
+              "tone": "safe",
+              "authored": {
+                "role": "promise_progress",
+                "promiseId": "leizhenzi.elite_trial",
+                "action": "ack_active",
+                "evidence": "elite_victory"
               }
             },
             {
-              "id": "decline",
-              "label": "守在岸边接应",
-              "text": "恢复 10 生命；把未竟之事记下。",
-              "preview": "恢复 10 生命；把未竟之事记下。",
+              "id": "abandon",
+              "label": "守在岸边，不再追赶",
+              "text": "恢复 10 生命；不再追赶这场精英之约。",
+              "preview": "恢复 10 生命；不再追赶这场精英之约。",
               "effects": [
                 {
                   "type": "heal",
                   "value": 10
+                },
+                {
+                  "type": "set_fact",
+                  "key": "leizhenzi_promise_abandoned",
+                  "value": true
                 },
                 {
                   "type": "advance_thread",
@@ -12395,7 +12712,12 @@
                 }
               ],
               "conditions": [],
-              "tone": "safe"
+              "tone": "safe",
+              "authored": {
+                "role": "promise_progress",
+                "promiseId": "leizhenzi.elite_trial",
+                "action": "abandon"
+              }
             }
           ]
         }
@@ -12455,7 +12777,7 @@
               "conditions": [
                 {
                   "type": "has_fact",
-                  "key": "leizhenzi_kept"
+                  "key": "leizhenzi_elite_completed"
                 }
               ],
               "tone": "fate",
@@ -12537,13 +12859,18 @@
       "relevance": [
         {
           "type": "has_fact",
-          "key": "leizhenzi_kept"
+          "key": "leizhenzi_elite_completed"
         }
       ],
       "character": "雷震子",
       "episode": 3,
       "episodes": 3,
-      "relationKey": "char_leizhenzi"
+      "relationKey": "char_leizhenzi",
+      "authored": {
+        "line": "leizhenzi",
+        "promiseId": "leizhenzi.elite_trial",
+        "role": "reward"
+      }
     },
     {
       "id": "character.tuxingsun.1",
@@ -12562,8 +12889,8 @@
             {
               "id": "help",
               "label": "替他挡开追兵，留下解释",
-              "text": "失去 8 生命，善念 +1；结下承诺。",
-              "preview": "失去 8 生命，善念 +1；结下承诺。",
+              "text": "失去 8 生命，善念 +1；先与他相识，借道之事留待中段。",
+              "preview": "失去 8 生命，善念 +1；先与他相识，借道之事留待中段。",
               "effects": [
                 {
                   "type": "damage",
@@ -12583,11 +12910,6 @@
                   "type": "advance_thread",
                   "key": "char_tuxingsun",
                   "value": "留他解释"
-                },
-                {
-                  "type": "set_fact",
-                  "key": "tuxingsun_promise",
-                  "value": true
                 }
               ],
               "conditions": [
@@ -12597,8 +12919,13 @@
                 }
               ],
               "tone": "cost",
-              "next": "promise",
-              "consequence": "这份承诺会在后来的相遇中被提起。"
+              "next": "gift",
+              "consequence": "相识不会自动给出借道资格；中段仍要由你决定是否承担这条路的代价。",
+              "authored": {
+                "role": "meeting",
+                "promiseId": "tuxingsun.bypass_escort",
+                "action": "meet"
+              }
             },
             {
               "id": "ask",
@@ -12627,8 +12954,8 @@
             {
               "id": "test",
               "label": "循封泥的气味辨认真假",
-              "text": "公开身法检定；成则结约，败则受伤。",
-              "preview": "公开身法检定；成则结约，败则受伤。",
+              "text": "公开身法检定；成则相识，败则受伤。",
+              "preview": "公开身法检定；成则相识，败则受伤。",
               "effects": [],
               "conditions": [],
               "tone": "check",
@@ -12652,14 +12979,9 @@
                       "type": "advance_thread",
                       "key": "char_tuxingsun",
                       "value": "留他解释"
-                    },
-                    {
-                      "type": "set_fact",
-                      "key": "tuxingsun_promise",
-                      "value": true
                     }
                   ],
-                  "next": "promise"
+                  "next": "gift"
                 },
                 "failure": {
                   "text": "脚下慢了一步，他替你挡住余势。",
@@ -12680,13 +13002,22 @@
                     }
                   ]
                 }
+              },
+              "authored": {
+                "role": "meeting_check",
+                "promiseId": "tuxingsun.bypass_escort",
+                "action": "meet"
               }
             }
           ]
         },
         {
-          "id": "promise",
-          "text": "风雨暂歇。他把一件旧物放在你掌心，等你自己说出要不要记下这个约定。",
+          "id": "gift",
+          "text": "风雨暂歇。他把一件普通旧物放在你掌心；借道之约还要等到粮库再定。",
+          "authored": {
+            "role": "gift_choice",
+            "promiseId": "tuxingsun.bypass_escort"
+          },
           "choices": [
             {
               "id": "keep",
@@ -12698,6 +13029,10 @@
               "tone": "safe",
               "grant": {
                 "slot": "artifact"
+              },
+              "authored": {
+                "role": "gift",
+                "action": "accept"
               }
             },
             {
@@ -12717,7 +13052,11 @@
                 }
               ],
               "conditions": [],
-              "tone": "safe"
+              "tone": "safe",
+              "authored": {
+                "role": "gift",
+                "action": "leave"
+              }
             }
           ]
         }
@@ -12730,7 +13069,12 @@
       "character": "土行孙",
       "episode": 1,
       "episodes": 3,
-      "relationKey": "char_tuxingsun"
+      "relationKey": "char_tuxingsun",
+      "authored": {
+        "line": "tuxingsun",
+        "promiseId": "tuxingsun.bypass_escort",
+        "role": "meeting"
+      }
     },
     {
       "id": "character.tuxingsun.2",
@@ -12741,105 +13085,108 @@
       "art": "swordsman",
       "text": "西岐粮库失了印信。土行孙站在墙角，第一次没有遁走：“你若肯听，我把路带给你。”",
       "choices": [],
+      "authored": {
+        "line": "tuxingsun",
+        "promiseId": "tuxingsun.bypass_escort",
+        "role": "promise_progress"
+      },
       "phases": [
         {
           "id": "root",
           "text": "西岐粮库失了印信。土行孙站在墙角，第一次没有遁走：“你若肯听，我把路带给你。”",
           "choices": [
             {
-              "id": "keep",
-              "label": "补上库损，交回军印",
-              "text": "支付 18 灵石，修为 +24；旧约有了结果。",
-              "preview": "支付 18 灵石，修为 +24；旧约有了结果。",
+              "id": "accept_bypass",
+              "label": "接受借地道护送",
+              "text": "获得一次仅用于普通战斗的借道资格；使用后放弃该战斗全部收益。",
+              "preview": "获得一次仅用于普通战斗的借道资格；使用后放弃该战斗全部收益。",
               "effects": [
                 {
-                  "type": "gain_currency",
-                  "value": -18
+                  "type": "set_fact",
+                  "key": "tuxingsun_promise",
+                  "value": true
                 },
+                {
+                  "type": "set_fact",
+                  "key": "tuxingsun_bypass_available",
+                  "value": true
+                },
+                {
+                  "type": "set_fact",
+                  "key": "tuxingsun_bypass_accepted",
+                  "value": true
+                },
+                {
+                  "type": "advance_thread",
+                  "key": "char_tuxingsun",
+                  "value": "借道护送"
+                }
+              ],
+              "conditions": [
+                {
+                  "type": "has_fact",
+                  "key": "met_tuxingsun"
+                }
+              ],
+              "tone": "fate",
+              "consequence": "资格只能用于当前可达的普通战斗；成功绕行后才算兑现。",
+              "authored": {
+                "role": "promise_progress",
+                "promiseId": "tuxingsun.bypass_escort",
+                "action": "accept",
+                "evidence": "bypass_combat",
+                "allowedNodeTypes": [
+                  "combat"
+                ],
+                "deadline": {
+                  "act": 3,
+                  "row": 5
+                }
+              }
+            },
+            {
+              "id": "trace",
+              "label": "听完路线，自己追印",
+              "text": "修为 +24；不领取借道资格，仍由自己追查军印。",
+              "preview": "修为 +24；不领取借道资格，仍由自己追查军印。",
+              "effects": [
                 {
                   "type": "gain_xp",
                   "value": 24
                 },
                 {
                   "type": "set_fact",
-                  "key": "tuxingsun_kept",
+                  "key": "tuxingsun_bypass_declined",
                   "value": true
                 },
                 {
                   "type": "advance_thread",
                   "key": "char_tuxingsun",
-                  "value": "归还军印"
+                  "value": "自行追印"
                 }
               ],
-              "conditions": [
-                {
-                  "type": "has_fact",
-                  "key": "tuxingsun_promise"
-                },
-                {
-                  "type": "currency_at_least",
-                  "value": 18
-                }
-              ],
-              "tone": "fate",
-              "consequence": "终幕可凭此旧约借取神话法宝。"
-            },
-            {
-              "id": "risk",
-              "label": "潜入暗库找回另一半印",
-              "text": "公开气运检定；成功践约，失败损失 10 生命。",
-              "preview": "公开气运检定；成功践约，失败损失 10 生命。",
-              "effects": [],
               "conditions": [],
-              "tone": "check",
-              "check": {
-                "stat": "luck",
-                "base": 42,
-                "difficulty": 12,
-                "success": {
-                  "text": "归来时你身上多了伤痕，手里的东西却完好无损。",
-                  "effects": [
-                    {
-                      "type": "gain_xp",
-                      "value": 24
-                    },
-                    {
-                      "type": "set_fact",
-                      "key": "tuxingsun_kept",
-                      "value": true
-                    },
-                    {
-                      "type": "advance_thread",
-                      "key": "char_tuxingsun",
-                      "value": "归还军印"
-                    }
-                  ]
-                },
-                "failure": {
-                  "text": "路未走通，你只能带着消息折返。",
-                  "effects": [
-                    {
-                      "type": "damage",
-                      "value": 10
-                    },
-                    {
-                      "type": "advance_thread",
-                      "key": "char_tuxingsun",
-                      "value": "路未走通"
-                    }
-                  ]
-                }
+              "tone": "safe",
+              "authored": {
+                "role": "promise_progress",
+                "promiseId": "tuxingsun.bypass_escort",
+                "action": "decline"
               }
             },
             {
-              "id": "decline",
+              "id": "abandon",
               "label": "把线索交给守库人",
-              "text": "恢复 10 生命；把未竟之事记下。",
-              "preview": "恢复 10 生命；把未竟之事记下。",
+              "text": "恢复 10 生命；不再承担借道护送。",
+              "preview": "恢复 10 生命；不再承担借道护送。",
               "effects": [
                 {
                   "type": "heal",
                   "value": 10
+                },
+                {
+                  "type": "set_fact",
+                  "key": "tuxingsun_promise_abandoned",
+                  "value": true
                 },
                 {
                   "type": "advance_thread",
@@ -12848,7 +13195,12 @@
                 }
               ],
               "conditions": [],
-              "tone": "safe"
+              "tone": "safe",
+              "authored": {
+                "role": "promise_progress",
+                "promiseId": "tuxingsun.bypass_escort",
+                "action": "abandon"
+              }
             }
           ]
         }
@@ -12908,7 +13260,7 @@
               "conditions": [
                 {
                   "type": "has_fact",
-                  "key": "tuxingsun_kept"
+                  "key": "tuxingsun_bypass_used"
                 }
               ],
               "tone": "fate",
@@ -12990,13 +13342,18 @@
       "relevance": [
         {
           "type": "has_fact",
-          "key": "tuxingsun_kept"
+          "key": "tuxingsun_bypass_used"
         }
       ],
       "character": "土行孙",
       "episode": 3,
       "episodes": 3,
-      "relationKey": "char_tuxingsun"
+      "relationKey": "char_tuxingsun",
+      "authored": {
+        "line": "tuxingsun",
+        "promiseId": "tuxingsun.bypass_escort",
+        "role": "reward"
+      }
     },
     {
       "id": "character.yunxiao.1",
@@ -13015,8 +13372,8 @@
             {
               "id": "help",
               "label": "先护病人渡过黄沙",
-              "text": "失去 8 生命，善念 +1；结下承诺。",
-              "preview": "失去 8 生命，善念 +1；结下承诺。",
+              "text": "失去 8 生命，善念 +1；先与她相识，救助之约留待中段。",
+              "preview": "失去 8 生命，善念 +1；先与她相识，救助之约留待中段。",
               "effects": [
                 {
                   "type": "damage",
@@ -13036,11 +13393,6 @@
                   "type": "advance_thread",
                   "key": "char_yunxiao",
                   "value": "渡口救人"
-                },
-                {
-                  "type": "set_fact",
-                  "key": "yunxiao_promise",
-                  "value": true
                 }
               ],
               "conditions": [
@@ -13050,8 +13402,13 @@
                 }
               ],
               "tone": "cost",
-              "next": "promise",
-              "consequence": "这份承诺会在后来的相遇中被提起。"
+              "next": "gift",
+              "consequence": "相识不会自动完成救助；中段仍要由你决定是否救下对立阵营的人。",
+              "authored": {
+                "role": "meeting",
+                "promiseId": "yunxiao.rescue_chan",
+                "action": "meet"
+              }
             },
             {
               "id": "ask",
@@ -13080,8 +13437,8 @@
             {
               "id": "test",
               "label": "辨出风中尚未断绝的生路",
-              "text": "公开身法检定；成则结约，败则受伤。",
-              "preview": "公开身法检定；成则结约，败则受伤。",
+              "text": "公开身法检定；成则相识，败则受伤。",
+              "preview": "公开身法检定；成则相识，败则受伤。",
               "effects": [],
               "conditions": [],
               "tone": "check",
@@ -13105,14 +13462,9 @@
                       "type": "advance_thread",
                       "key": "char_yunxiao",
                       "value": "渡口救人"
-                    },
-                    {
-                      "type": "set_fact",
-                      "key": "yunxiao_promise",
-                      "value": true
                     }
                   ],
-                  "next": "promise"
+                  "next": "gift"
                 },
                 "failure": {
                   "text": "脚下慢了一步，他替你挡住余势。",
@@ -13133,13 +13485,22 @@
                     }
                   ]
                 }
+              },
+              "authored": {
+                "role": "meeting_check",
+                "promiseId": "yunxiao.rescue_chan",
+                "action": "meet"
               }
             }
           ]
         },
         {
-          "id": "promise",
-          "text": "风雨暂歇。他把一件旧物放在你掌心，等你自己说出要不要记下这个约定。",
+          "id": "gift",
+          "text": "风雨暂歇。云霄把一件普通旧物放在你掌心；救助之约要等到阵外再定。",
+          "authored": {
+            "role": "gift_choice",
+            "promiseId": "yunxiao.rescue_chan"
+          },
           "choices": [
             {
               "id": "keep",
@@ -13151,6 +13512,10 @@
               "tone": "safe",
               "grant": {
                 "slot": "artifact"
+              },
+              "authored": {
+                "role": "gift",
+                "action": "accept"
               }
             },
             {
@@ -13170,7 +13535,11 @@
                 }
               ],
               "conditions": [],
-              "tone": "safe"
+              "tone": "safe",
+              "authored": {
+                "role": "gift",
+                "action": "leave"
+              }
             }
           ]
         }
@@ -13183,7 +13552,12 @@
       "character": "云霄",
       "episode": 1,
       "episodes": 3,
-      "relationKey": "char_yunxiao"
+      "relationKey": "char_yunxiao",
+      "authored": {
+        "line": "yunxiao",
+        "promiseId": "yunxiao.rescue_chan",
+        "role": "meeting"
+      }
     },
     {
       "id": "character.yunxiao.2",
@@ -13194,6 +13568,11 @@
       "art": "sorcerer",
       "text": "阵外有人求药，也有人求她报仇。云霄把金斗倒扣：“若救与杀出自同一只手，你如何选？”",
       "choices": [],
+      "authored": {
+        "line": "yunxiao",
+        "promiseId": "yunxiao.rescue_chan",
+        "role": "promise_progress"
+      },
       "phases": [
         {
           "id": "root",
@@ -13201,10 +13580,14 @@
           "choices": [
             {
               "id": "zhao",
-              "label": "出示赵公明的救粮旧事",
-              "text": "善念 +1，记下云霄的信任。",
-              "preview": "善念 +1，记下云霄的信任。",
+              "label": "凭赵公明旧义救人",
+              "text": "支付 18 灵石，善念 +1；救下阐教伤者，并留下跨阵事实。",
+              "preview": "支付 18 灵石，善念 +1；救下阐教伤者，并留下跨阵事实。",
               "effects": [
+                {
+                  "type": "gain_currency",
+                  "value": -18
+                },
                 {
                   "type": "add_counter",
                   "key": "mercy",
@@ -13212,7 +13595,22 @@
                 },
                 {
                   "type": "set_fact",
-                  "key": "yunxiao_kept",
+                  "key": "yunxiao_promise",
+                  "value": true
+                },
+                {
+                  "type": "set_fact",
+                  "key": "yunxiao_promise_fulfilled",
+                  "value": true
+                },
+                {
+                  "type": "set_fact",
+                  "key": "yunxiao_saved_chan_envoy",
+                  "value": true
+                },
+                {
+                  "type": "set_fact",
+                  "key": "yunxiao_rescue_accepted",
                   "value": true
                 },
                 {
@@ -13226,15 +13624,28 @@
                   "type": "thread_is",
                   "key": "char_zhaogongming",
                   "text": "重义"
+                },
+                {
+                  "type": "currency_at_least",
+                  "value": 18
                 }
               ],
-              "tone": "fate"
+              "tone": "fate",
+              "consequence": "赵公明的旧义只提供可信度；真正的践约仍是这次支付与救助。",
+              "authored": {
+                "role": "promise_progress",
+                "promiseId": "yunxiao.rescue_chan",
+                "action": "fulfill",
+                "evidence": "rescue_chan_envoy",
+                "crossLineFact": "yunxiao_saved_chan_envoy",
+                "specialRoute": "zhaogongming_mercy"
+              }
             },
             {
-              "id": "keep",
-              "label": "置办药材，请她暂收金斗",
-              "text": "支付 18 灵石，修为 +24；旧约有了结果。",
-              "preview": "支付 18 灵石，修为 +24；旧约有了结果。",
+              "id": "rescue",
+              "label": "置办药材，救下阐教伤者",
+              "text": "支付 18 灵石，修为 +24；完成救助，并留下跨阵事实。",
+              "preview": "支付 18 灵石，修为 +24；完成救助，并留下跨阵事实。",
               "effects": [
                 {
                   "type": "gain_currency",
@@ -13246,7 +13657,22 @@
                 },
                 {
                   "type": "set_fact",
-                  "key": "yunxiao_kept",
+                  "key": "yunxiao_promise",
+                  "value": true
+                },
+                {
+                  "type": "set_fact",
+                  "key": "yunxiao_promise_fulfilled",
+                  "value": true
+                },
+                {
+                  "type": "set_fact",
+                  "key": "yunxiao_saved_chan_envoy",
+                  "value": true
+                },
+                {
+                  "type": "set_fact",
+                  "key": "yunxiao_rescue_accepted",
                   "value": true
                 },
                 {
@@ -13257,73 +13683,34 @@
               ],
               "conditions": [
                 {
-                  "type": "has_fact",
-                  "key": "yunxiao_promise"
-                },
-                {
                   "type": "currency_at_least",
                   "value": 18
                 }
               ],
               "tone": "fate",
-              "consequence": "终幕可凭此旧约借取神话法宝。"
-            },
-            {
-              "id": "risk",
-              "label": "亲自调一炉救急的药",
-              "text": "公开防御检定；成功践约，失败损失 10 生命。",
-              "preview": "公开防御检定；成功践约，失败损失 10 生命。",
-              "effects": [],
-              "conditions": [],
-              "tone": "check",
-              "check": {
-                "stat": "defense",
-                "base": 42,
-                "difficulty": 15,
-                "success": {
-                  "text": "归来时你身上多了伤痕，手里的东西却完好无损。",
-                  "effects": [
-                    {
-                      "type": "gain_xp",
-                      "value": 24
-                    },
-                    {
-                      "type": "set_fact",
-                      "key": "yunxiao_kept",
-                      "value": true
-                    },
-                    {
-                      "type": "advance_thread",
-                      "key": "char_yunxiao",
-                      "value": "以药换息"
-                    }
-                  ]
-                },
-                "failure": {
-                  "text": "路未走通，你只能带着消息折返。",
-                  "effects": [
-                    {
-                      "type": "damage",
-                      "value": 10
-                    },
-                    {
-                      "type": "advance_thread",
-                      "key": "char_yunxiao",
-                      "value": "路未走通"
-                    }
-                  ]
-                }
+              "consequence": "终幕可凭真实救助记录借取神话法宝。",
+              "authored": {
+                "role": "promise_progress",
+                "promiseId": "yunxiao.rescue_chan",
+                "action": "fulfill",
+                "evidence": "rescue_chan_envoy",
+                "crossLineFact": "yunxiao_saved_chan_envoy"
               }
             },
             {
               "id": "decline",
               "label": "守住阵外的药棚",
-              "text": "恢复 10 生命；把未竟之事记下。",
-              "preview": "恢复 10 生命；把未竟之事记下。",
+              "text": "恢复 10 生命；不支付药材，也不留下救助事实。",
+              "preview": "恢复 10 生命；不支付药材，也不留下救助事实。",
               "effects": [
                 {
                   "type": "heal",
                   "value": 10
+                },
+                {
+                  "type": "set_fact",
+                  "key": "yunxiao_promise_declined",
+                  "value": true
                 },
                 {
                   "type": "advance_thread",
@@ -13332,7 +13719,12 @@
                 }
               ],
               "conditions": [],
-              "tone": "safe"
+              "tone": "safe",
+              "authored": {
+                "role": "promise_progress",
+                "promiseId": "yunxiao.rescue_chan",
+                "action": "decline"
+              }
             }
           ]
         }
@@ -13392,7 +13784,7 @@
               "conditions": [
                 {
                   "type": "has_fact",
-                  "key": "yunxiao_kept"
+                  "key": "yunxiao_saved_chan_envoy"
                 }
               ],
               "tone": "fate",
@@ -13474,13 +13866,18 @@
       "relevance": [
         {
           "type": "has_fact",
-          "key": "yunxiao_kept"
+          "key": "yunxiao_saved_chan_envoy"
         }
       ],
       "character": "云霄",
       "episode": 3,
       "episodes": 3,
-      "relationKey": "char_yunxiao"
+      "relationKey": "char_yunxiao",
+      "authored": {
+        "line": "yunxiao",
+        "promiseId": "yunxiao.rescue_chan",
+        "role": "reward"
+      }
     },
     {
       "id": "place.0.work",
@@ -17415,6 +17812,124 @@
       ]
     }
   ],
+  "characterPromises": [
+    {
+      "id": "ziya.reserve_currency",
+      "relationKey": "char_ziya",
+      "character": "姜子牙",
+      "type": "reserve_currency",
+      "amount": 18,
+      "deadline": {
+        "act": 2,
+        "row": 9,
+        "boundary": "act_end"
+      },
+      "acceptance": {
+        "eventId": "character.ziya.1",
+        "phase": "oath",
+        "choiceId": "accept"
+      },
+      "fulfillment": {
+        "eventId": "character.ziya.2",
+        "phase": "root",
+        "choiceId": "deliver",
+        "evidence": "currency_reserved"
+      },
+      "facts": {
+        "accepted": "ziya_promise",
+        "fulfilled": "ziya_promise_fulfilled",
+        "declined": "ziya_promise_declined",
+        "abandoned": "ziya_promise_abandoned"
+      },
+      "rewardId": "myth.whip"
+    },
+    {
+      "id": "leizhenzi.elite_trial",
+      "relationKey": "char_leizhenzi",
+      "character": "雷震子",
+      "type": "elite_completion",
+      "deadline": {
+        "act": 1,
+        "row": 9,
+        "boundary": "act_end"
+      },
+      "acceptance": {
+        "eventId": "character.leizhenzi.1",
+        "phase": "oath",
+        "choiceId": "accept"
+      },
+      "fulfillment": {
+        "evidence": "elite_victory",
+        "nodeType": "elite",
+        "fact": "leizhenzi_elite_completed"
+      },
+      "facts": {
+        "accepted": "leizhenzi_promise",
+        "task": "leizhenzi_elite_task",
+        "fulfilled": "leizhenzi_promise_fulfilled",
+        "declined": "leizhenzi_promise_declined",
+        "abandoned": "leizhenzi_promise_abandoned"
+      },
+      "rewardId": "myth.wings"
+    },
+    {
+      "id": "tuxingsun.bypass_escort",
+      "relationKey": "char_tuxingsun",
+      "character": "土行孙",
+      "type": "bypass_combat",
+      "deadline": {
+        "act": 3,
+        "row": 5,
+        "boundary": "ordinary_combat_end"
+      },
+      "acceptance": {
+        "eventId": "character.tuxingsun.2",
+        "phase": "root",
+        "choiceId": "accept_bypass"
+      },
+      "fulfillment": {
+        "evidence": "bypass_combat",
+        "nodeTypes": [
+          "combat"
+        ],
+        "fact": "tuxingsun_bypass_used"
+      },
+      "facts": {
+        "accepted": "tuxingsun_promise",
+        "available": "tuxingsun_bypass_available",
+        "fulfilled": "tuxingsun_bypass_used",
+        "declined": "tuxingsun_bypass_declined",
+        "abandoned": "tuxingsun_promise_abandoned"
+      },
+      "rewardId": "myth.earth"
+    },
+    {
+      "id": "yunxiao.rescue_chan",
+      "relationKey": "char_yunxiao",
+      "character": "云霄",
+      "type": "rescue_opposed",
+      "acceptance": {
+        "eventId": "character.yunxiao.2",
+        "phase": "root",
+        "choiceIds": [
+          "rescue",
+          "zhao"
+        ]
+      },
+      "fulfillment": {
+        "evidence": "rescue_chan_envoy",
+        "sameAction": true,
+        "fact": "yunxiao_saved_chan_envoy"
+      },
+      "facts": {
+        "accepted": "yunxiao_promise",
+        "fulfilled": "yunxiao_promise_fulfilled",
+        "saved": "yunxiao_saved_chan_envoy",
+        "declined": "yunxiao_promise_declined"
+      },
+      "rewardId": "myth.basin"
+    }
+  ],
   "acts": [
     {
       "name": "朝歌妖影",
@@ -17693,15 +18208,38 @@
       "met_zhaogongming": "峨眉散财客",
       "met_ziya": "与姜子牙相识",
       "ziya_promise": "姜子牙之约",
+      "ziya_promise_accepted": "姜子牙之约·已接受",
+      "ziya_promise_fulfilled": "姜子牙之约·军粮已交",
+      "ziya_promise_declined": "姜子牙之约·未承诺",
+      "ziya_promise_abandoned": "姜子牙之约·已放弃",
+      "ziya_letter_recovered": "姜子牙·家书已寻回",
       "ziya_kept": "姜子牙之约已践",
       "met_leizhenzi": "与雷震子相识",
       "leizhenzi_promise": "雷震子之约",
+      "leizhenzi_promise_accepted": "雷震子之约·已接受",
+      "leizhenzi_elite_task": "雷震子之约·精英任务",
+      "leizhenzi_elite_task_confirmed": "雷震子之约·任务已确认",
+      "leizhenzi_elite_completed": "雷震子之约·精英已胜",
+      "leizhenzi_promise_fulfilled": "雷震子之约·已践",
+      "leizhenzi_promise_declined": "雷震子之约·未承诺",
+      "leizhenzi_promise_abandoned": "雷震子之约·已放弃",
       "leizhenzi_kept": "雷震子之约已践",
       "met_tuxingsun": "与土行孙相识",
       "tuxingsun_promise": "土行孙之约",
+      "tuxingsun_bypass_available": "土行孙之约·借道资格",
+      "tuxingsun_bypass_accepted": "土行孙之约·已接受借道",
+      "tuxingsun_bypass_used": "土行孙之约·借道已用",
+      "tuxingsun_bypass_declined": "土行孙之约·未借道",
+      "tuxingsun_promise_abandoned": "土行孙之约·已放弃",
       "tuxingsun_kept": "土行孙之约已践",
       "met_yunxiao": "与云霄相识",
       "yunxiao_promise": "云霄之约",
+      "yunxiao_promise_fulfilled": "云霄之约·已践",
+      "yunxiao_saved_chan_envoy": "云霄之约·救下阐教伤者",
+      "yunxiao_rescue_accepted": "云霄之约·已接受救助",
+      "yunxiao_promise_declined": "云霄之约·未救助",
+      "yunxiao_crossline_acknowledged": "云霄之约·跨阵援手已认",
+      "yunxiao_crossline_deferred": "云霄之约·跨阵事实保留",
       "yunxiao_kept": "云霄之约已践",
       "road_deed_0": "曾助船匠",
       "road_deed_1": "曾助药师",
@@ -18074,9 +18612,18 @@
           },
           "gossip": {
             "outcome": "杨戬将所知之事告诉你，没有替申公豹辩解，也没有替你下判词。"
+          },
+          "mercy.accept_aid": {
+            "outcome": "你接过伤者。杨戬记下云霄曾救阐教使者的名字，援手落在手上，却没有改写你原先的立场。"
+          },
+          "mercy.hold_line": {
+            "outcome": "你没有替旧事改名，只按原先立场与杨戬交谈；云霄救人的事实留在阵风里。"
           }
         },
-        "intro": "阵外云光翻涌，杨戬收刀而立。他看过你的因果，却没有替你说“该”或“不该”。"
+        "intro": "阵外云光翻涌，杨戬收刀而立。他看过你的因果，却没有替你说“该”或“不该”。",
+        "phases": {
+          "mercy": "云光将合，杨戬从阵后带出一名受伤的阐教使者：“有人替你留过一条生路，我也该还这一笔。”"
+        }
       },
       "major.0": {
         "choices": {
@@ -18348,25 +18895,35 @@
             "success": "你抢在危局合拢前开出一条路。",
             "failure": "脚下慢了一步，他替你挡住余势。"
           },
-          "promise.keep": {
-            "outcome": "旧物贴着掌心微微发热，这段缘分就此落了实。"
+          "oath.accept": {
+            "outcome": "姜子牙把军粮单压在你掌下：“这一笔，等军营再交。”你知道从此每一次花费都要自己掂量。"
           },
-          "promise.leave": {
-            "outcome": "你停在这段因果之外，待呼吸平稳，继续沿路前行。"
+          "oath.decline": {
+            "outcome": "你没有把保粮的字按下去。姜子牙收回军粮单，只在粮册边留下你的名字。"
+          },
+          "gift.keep": {
+            "outcome": "普通旧物贴着掌心微微发热；它是赠物，不是军粮约定。"
+          },
+          "gift.leave": {
+            "outcome": "你把普通旧物留在粮车旁，待呼吸平稳，继续沿路前行。"
           }
+        },
+        "phases": {
+          "oath": "米车已空。姜子牙将一纸军粮单递来：“要不要替我留住这笔粮钱，等到军营再交？”",
+          "gift": "话已说定。他把一件普通旧物放在你掌心；这份赠物与军粮之约各归各处。"
         }
       },
       "character.ziya.2": {
         "choices": {
-          "root.keep": {
-            "outcome": "军粮有了着落，湿透的家书也终于送到该收信的人手上。"
+          "root.deliver": {
+            "outcome": "军粮有了着落，十八枚灵石一一落账；姜子牙收起家书，知道你没有把约定交给运气。"
           },
-          "root.risk": {
-            "success": "归来时你身上多了伤痕，手里的东西却完好无损。",
+          "root.recover_letter": {
+            "success": "你带着家书从雨里归来，却没有把保粮约定混作一回事。",
             "failure": "路未走通，你只能带着消息折返。"
           },
-          "root.decline": {
-            "outcome": "你没有再许下做不到的诺言。他点点头，让开了前路。"
+          "root.abandon": {
+            "outcome": "你把断路的消息交回去，不再许下做不到的交付。姜子牙点点头，让开了前路。"
           }
         }
       },
@@ -18395,25 +18952,34 @@
             "success": "你抢在危局合拢前开出一条路。",
             "failure": "脚下慢了一步，他替你挡住余势。"
           },
-          "promise.keep": {
-            "outcome": "旧物贴着掌心微微发热，这段缘分就此落了实。"
+          "oath.accept": {
+            "outcome": "雷震子把刻着路标的木牌交给你：“别拿旧日的胜负充数。”这场约定只认之后正式结算的精英战。"
           },
-          "promise.leave": {
-            "outcome": "你停在这段因果之外，待呼吸平稳，继续沿路前行。"
+          "oath.decline": {
+            "outcome": "你没有接下木牌。雷震子收拢羽翼，只把那一刻不肯松手的倔强留给风。"
+          },
+          "gift.keep": {
+            "outcome": "普通旧物贴着掌心微微发热；它是赠物，不是精英之约。"
+          },
+          "gift.leave": {
+            "outcome": "你把普通旧物留在断木旁，待呼吸平稳，继续沿路前行。"
           }
+        },
+        "phases": {
+          "oath": "风雨暂歇。雷震子把一枚刻着精英路标的木牌递来：“你愿不愿意替我走完其中一场？”",
+          "gift": "话已说定。他把一件普通旧物放在你掌心；这份赠物与精英之约各归各处。"
         }
       },
       "character.leizhenzi.2": {
         "choices": {
-          "root.keep": {
-            "outcome": "最后一条船离开了险滩，他在浪声里学会了把双翼张稳。"
+          "root.task_done": {
+            "outcome": "你们在浪声里确认那场精英战已经正式结算；雷震子终于把双翼张稳。"
           },
-          "root.risk": {
-            "success": "归来时你身上多了伤痕，手里的东西却完好无损。",
-            "failure": "路未走通，你只能带着消息折返。"
+          "root.task_open": {
+            "outcome": "前方仍有精英路标。雷震子没有把木牌收回，只提醒你这份约定还没有战果。"
           },
-          "root.decline": {
-            "outcome": "你没有再许下做不到的诺言。他点点头，让开了前路。"
+          "root.abandon": {
+            "outcome": "你守在岸边，不再追赶那场约定。雷震子点头，让风把木牌带回云里。"
           }
         }
       },
@@ -18442,25 +19008,27 @@
             "success": "你抢在危局合拢前开出一条路。",
             "failure": "脚下慢了一步，他替你挡住余势。"
           },
-          "promise.keep": {
-            "outcome": "旧物贴着掌心微微发热，这段缘分就此落了实。"
+          "gift.keep": {
+            "outcome": "普通旧物贴着掌心微微发热；它是赠物，借道之约尚未开始。"
           },
-          "promise.leave": {
-            "outcome": "你停在这段因果之外，待呼吸平稳，继续沿路前行。"
+          "gift.leave": {
+            "outcome": "你把普通旧物留给风沙，借道之事留待粮库再定。"
           }
+        },
+        "phases": {
+          "gift": "风雨暂歇。他把一件普通旧物放在你掌心；借道之事留待粮库再定。"
         }
       },
       "character.tuxingsun.2": {
         "choices": {
-          "root.keep": {
-            "outcome": "两半军印重新合拢，土行孙在库门前站了很久才离开。"
+          "root.accept_bypass": {
+            "outcome": "土行孙把地道的方位压进你掌心：这次借道只护送一场普通战斗，战斗本身的收获也要一并舍下。"
           },
-          "root.risk": {
-            "success": "归来时你身上多了伤痕，手里的东西却完好无损。",
-            "failure": "路未走通，你只能带着消息折返。"
+          "root.trace": {
+            "outcome": "你听完地道的走向，仍选择自己追印；土行孙没有把借道资格塞给你。"
           },
-          "root.decline": {
-            "outcome": "你没有再许下做不到的诺言。他点点头，让开了前路。"
+          "root.abandon": {
+            "outcome": "你把线索交给守库人，不再承担借道护送。土行孙缩回墙角，替你留住最后一盏灯。"
           }
         }
       },
@@ -18489,28 +19057,27 @@
             "success": "你抢在危局合拢前开出一条路。",
             "failure": "脚下慢了一步，他替你挡住余势。"
           },
-          "promise.keep": {
-            "outcome": "旧物贴着掌心微微发热，这段缘分就此落了实。"
+          "gift.keep": {
+            "outcome": "普通旧物贴着掌心微微发热；它是赠物，借道资格仍要等中段决定。"
           },
-          "promise.leave": {
-            "outcome": "你停在这段因果之外，待呼吸平稳，继续沿路前行。"
+          "gift.leave": {
+            "outcome": "你把普通旧物留在渡口，借道之事留待粮库再定。"
           }
+        },
+        "phases": {
+          "gift": "风雨暂歇。云霄把一件普通旧物放在你掌心；救助之约要等到阵外再定。"
         }
       },
       "character.yunxiao.2": {
         "choices": {
           "root.zhao": {
-            "outcome": "听到赵公明曾散财救人的旧事，她把手从斗口移开，重新看向你。"
+            "outcome": "赵公明旧义替你打开一线信任，但十八枚灵石仍须当场落账；云霄把伤者交到你手中。"
           },
-          "root.keep": {
-            "outcome": "药香终于压过阵外的火药气，她将金斗轻轻倒扣，没有再提追杀。"
-          },
-          "root.risk": {
-            "success": "归来时你身上多了伤痕，手里的东西却完好无损。",
-            "failure": "路未走通，你只能带着消息折返。"
+          "root.rescue": {
+            "outcome": "药香压过阵外的火药气。你支付药材，亲手把阐教伤者送过风口，云霄记下这条跨阵生路。"
           },
           "root.decline": {
-            "outcome": "你没有再许下做不到的诺言。他点点头，让开了前路。"
+            "outcome": "你守住阵外药棚，没有支付药材，也没有把这条救助变成自己的约定。"
           }
         }
       },
@@ -19090,6 +19657,138 @@
       "witnessed": "有人见证",
       "nezha_remembered": "红绫旧缘",
       "remembered": "留在心上"
+    },
+    "creation": {
+      "races": {
+        "human": {
+          "summary": "以凡身守住志向，开局更容易积蓄力量，再用怒技接续攻势。",
+          "hint": "偏向主动进攻与怒气循环。"
+        },
+        "spirit": {
+          "summary": "借山泽灵性游斗，先给敌人留下持续灼痕，再靠闪避周旋。",
+          "hint": "偏向燃烧铺场与灵活闪避。"
+        },
+        "dragon": {
+          "summary": "以鳞甲承受开局压力，护盾与潮息为后续蓄怒铺路；行动较慢但更耐打。",
+          "hint": "偏向护盾承伤与潮汐构筑。"
+        },
+        "ling": {
+          "summary": "脱离形体限制，以闪避和护盾换取回气窗口；成功闪身后更容易接上怒技。",
+          "hint": "偏向闪避、护盾与节奏转换。"
+        }
+      },
+      "origins": {
+        "wanderer": {
+          "summary": "开局更快积蓄怒气，以雷法怒技带动连续进攻。",
+          "hint": "起手攻势直接，取舍是防守与后续成长留给旅途中补足。"
+        },
+        "warrior": {
+          "summary": "以护盾承伤，借防御和护盾消耗反推伤害，偏向稳扎稳打。",
+          "hint": "前段更稳，爆发需要在旅途中接出完整循环。"
+        },
+        "alchemist": {
+          "summary": "以燃烧叠层压迫敌人，再用火法收束战局；速度和命中换来更主动的持续施压。",
+          "hint": "偏向持续伤害，取舍是身板较轻，需要维持节奏。"
+        },
+        "physician": {
+          "summary": "以疗愈养战，先撑过开局，再让回复、护盾与伤害彼此接续。",
+          "hint": "偏向续航与回复转化，取舍是需要时间让循环启动。"
+        },
+        "hexer": {
+          "summary": "以咒厄削弱敌人，先制造破绽，再用状态与怒技逐步收束。",
+          "hint": "偏向虚弱控制，取舍是依赖状态铺垫。"
+        }
+      },
+      "fates": {
+        "fate.luck": {
+          "summary": "让偶然更容易转成攻势，暴击时还能把锋芒续成怒气。",
+          "hint": "偏向暴击和破阵，收益取决于能否打出关键命中。"
+        },
+        "fate.war": {
+          "summary": "把攻击压力集中到怒技上，命中破阵后更容易继续压制。",
+          "hint": "偏向直接进攻，取舍是依赖怒技窗口。"
+        },
+        "fate.body": {
+          "summary": "以厚重气血和入战护盾换取更长的试错空间。",
+          "hint": "偏向玄甲承伤，取舍是攻势启动较慢。"
+        },
+        "fate.rage": {
+          "summary": "让怒气循环更早转起来，怒技之后仍能接回下一轮攻势。",
+          "hint": "偏向连续怒技，取舍是需要持续找到施展窗口。"
+        },
+        "fate.kill": {
+          "summary": "进攻更强，但防守变薄；暴击还会削弱敌方防御。",
+          "hint": "偏向高压破阵，取舍是容错更低。"
+        },
+        "fate.late": {
+          "summary": "前期攻势收敛，久战后伤害更强。",
+          "hint": "偏向拖长战线，取舍是需要活过前段。"
+        },
+        "fate.wind": {
+          "summary": "以速度和闪避抢先手，成功躲开攻击后把节奏转回怒气。",
+          "hint": "偏向灵活周旋，取舍是收益依赖闪避时机。"
+        },
+        "fate.guard": {
+          "summary": "以入战护盾和受击回气稳住战线，越能承受压力越容易反击。",
+          "hint": "偏向玄甲与反击，取舍是需要敌人持续施压。"
+        }
+      }
+    },
+    "abilityBehaviors": {
+      "strategy.rage": {
+        "summary": "怒技可用时优先施展，施展后返还怒气并追加伤害。"
+      },
+      "strategy.guard": {
+        "summary": "平时以普攻蓄势，伤势较重时优先施展可用怒技；命中时可消耗护盾换取防御伤害。"
+      },
+      "strategy.fire": {
+        "summary": "平时以普攻铺场，敌方燃烧堆起时优先施展怒技；命中后可消耗燃烧追加纯伤害。"
+      },
+      "strategy.last": {
+        "summary": "平时以普攻推进，生命进入危险区时转入强攻，同时削弱防守。"
+      },
+      "strategy.mountain": {
+        "summary": "平时以普攻蓄势，伤势较重时优先施展可用怒技；条件未成时会短暂保留怒气，随后择机施展；每轮结束时补起护盾。"
+      },
+      "strategy.hunt": {
+        "summary": "平时以普攻寻找破绽，怒气充盈时优先施展怒技；命中后可消耗破甲换取怒气与伤害。"
+      },
+      "strategy.star": {
+        "summary": "怒技可用时优先施展；暴击后使敌方更易受伤，并把锋芒续成怒气。"
+      },
+      "strategy.gale": {
+        "summary": "平时以普攻推进，伤势较重时优先施展可用怒技；闪避后获得护盾并回气。"
+      },
+      "strategy.spring": {
+        "summary": "平时以普攻推进，伤势较重时优先施展可用怒技；实际回复生命后追加伤害并获得护盾。"
+      },
+      "strategy.hex": {
+        "summary": "平时以普攻铺垫，敌方虚弱堆起时优先施展怒技；命中后消耗虚弱并追加伤害。"
+      },
+      "myth.ring": {
+        "summary": "造成实际伤害后，部分收益转为怒气；命中与怒技后仍会继续回气。"
+      },
+      "myth.seal": {
+        "summary": "获得护盾时追加伤害；转换本身不扣除刚获得的护盾，入战护盾与怒技压制仍然保留。"
+      },
+      "myth.orbs": {
+        "summary": "敌方燃烧持续结算后转为护盾；每轮结算与怒技仍会继续添护盾、施加燃烧。"
+      },
+      "myth.whip": {
+        "summary": "消耗敌方状态后追加伤害；怒技后仍会施加虚弱与破甲。"
+      },
+      "myth.wings": {
+        "summary": "消耗怒气后追加伤害；闪避后仍会以速度追击并回气。"
+      },
+      "myth.earth": {
+        "summary": "承受实际伤害后转为护盾；入战仍会获得闪避与护盾。"
+      },
+      "myth.basin": {
+        "summary": "实际回复生命后再获得护盾；满血时没有实际回复，不能带动这条转换；怒技后仍会施加虚弱并回复生命。"
+      },
+      "myth.umbrella": {
+        "summary": "获得护盾后转为怒气；暴击后生成护盾，入战护盾仍会保留。"
+      }
     }
   },
   "schools": [

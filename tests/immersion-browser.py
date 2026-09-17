@@ -1,26 +1,103 @@
-
 """Player-facing UI checks. Use --url for HTTP deployment-like verification.
 Without --url use the exact standalone HTML via set_content (file URLs may be blocked).
 Fixtures are explicit test scenarios, not claimed to be completed human playthroughs.
-Requires playwright==1.57.0 and Chromium.
+Requires playwright==1.57.0 and Chromium. Paths default to this checkout and
+may be overridden with ``PLAY_HTML_PATH``/``PLAY_HTML``,
+``BROWSER_OUTPUT_DIR`` and ``CHROMIUM_PATH``.
 """
+
+import argparse
+import json
+import os
 from pathlib import Path
-import argparse,json,os,subprocess
+import shutil
+import subprocess
+
 from playwright.sync_api import sync_playwright
-root=Path(__file__).resolve().parents[1]
-parser=argparse.ArgumentParser()
-parser.add_argument("--url")
-parser.add_argument("--output",default=str(root/"verification"/"ui"))
-args=parser.parse_args()
-out=Path(args.output);out.mkdir(parents=True,exist_ok=True)
-fixtures=json.loads(subprocess.check_output(["node","tests/immersion-fixtures.mjs"],cwd=root,text=True))
-report={"mode":"http" if args.url else "standalone-set_content","checks":[],"screens":[],"errors":[],"overflow":[]}
-def check(name,condition):
-    report["checks"].append({"name":name,"passed":bool(condition)})
-    if not condition:raise AssertionError(name)
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def configured_path(value, fallback):
+    path = Path(value).expanduser() if value else fallback
+    if not path.is_absolute():
+        path = ROOT / path
+    return path.resolve()
+
+
+def configured_env(*names):
+    for name in names:
+        value = os.environ.get(name)
+        if value:
+            return value
+    return None
+
+
+def chromium_executable(value=None):
+    if value:
+        path = configured_path(value, ROOT / "chromium")
+        if not path.is_file():
+            raise FileNotFoundError(f"Chromium executable not found: {path}")
+        return str(path)
+    for name in ("chromium", "chromium-browser", "google-chrome", "google-chrome-stable"):
+        executable = shutil.which(name)
+        if executable:
+            return executable
+    return None
+
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--url", help="HTTP URL to validate instead of standalone PLAY.html")
+parser.add_argument(
+    "--html",
+    "--play-html",
+    dest="html",
+    default=configured_env("PLAY_HTML_PATH", "PLAY_HTML"),
+    help="standalone PLAY.html path (default: checkout/PLAY.html)",
+)
+parser.add_argument(
+    "--output",
+    default=configured_env("BROWSER_OUTPUT_DIR") or str(ROOT / "verification" / "immersion-ui"),
+    help="directory for screenshots and the JSON report",
+)
+parser.add_argument(
+    "--chromium",
+    dest="chromium",
+    default=os.environ.get("CHROMIUM_PATH"),
+    help="Chromium executable path (default: CHROMIUM_PATH or PATH lookup)",
+)
+args = parser.parse_args()
+
+html_path = configured_path(args.html, ROOT / "PLAY.html")
+out = configured_path(args.output, ROOT / "verification" / "immersion-ui")
+out.mkdir(parents=True, exist_ok=True)
+chromium_path = chromium_executable(args.chromium)
+fixtures = json.loads(
+    subprocess.check_output(["node", "tests/immersion-fixtures.mjs"], cwd=ROOT, text=True)
+)
+report = {
+    "mode": "http" if args.url else "standalone-set_content",
+    "checks": [],
+    "screens": [],
+    "errors": [],
+    "overflow": [],
+    "config": {
+        "html": str(html_path),
+        "output": str(out),
+        "chromium": chromium_path or "Playwright-managed Chromium",
+    },
+}
+
+
+def check(name, condition):
+    report["checks"].append({"name": name, "passed": bool(condition)})
+    if not condition:
+        raise AssertionError(name)
 with sync_playwright() as p:
-    executable=os.environ.get("CHROMIUM_PATH") or ("/usr/bin/chromium" if Path("/usr/bin/chromium").exists() else None)
-    browser=p.chromium.launch(headless=True,executable_path=executable,args=["--no-sandbox"])
+    if not args.url and not html_path.is_file():
+        raise FileNotFoundError(f"PLAY.html not found: {html_path}")
+    browser=p.chromium.launch(headless=True,executable_path=chromium_path,args=["--no-sandbox"])
     page=browser.new_page(viewport={"width":1440,"height":1000},device_scale_factor=1)
     page.on("pageerror",lambda e:report["errors"].append(str(e)))
     page.set_default_timeout(10000)
@@ -29,7 +106,7 @@ with sync_playwright() as p:
             page.goto(args.url,wait_until="networkidle")
         else:
             page.evaluate("Object.defineProperty(window,'localStorage',{configurable:true,value:{data:{},getItem(k){return this.data[k]??null},setItem(k,v){this.data[k]=String(v)},removeItem(k){delete this.data[k]}}})")
-            page.set_content((root/"PLAY.html").read_text(),wait_until="load")
+            page.set_content(html_path.read_text(encoding="utf-8"),wait_until="load")
         page.wait_for_selector("[data-action=fates]")
     def shot(name):
         page.screenshot(path=str(out/(name+".png")),full_page=True)
@@ -58,6 +135,9 @@ with sync_playwright() as p:
         check("normal first fight reaches reward or death",page.evaluate("['reward','dead'].includes(document.querySelector('fengshen-game').game.s.phase)"))
         state("map","build")
         page.locator("details[data-panel=resonances]>summary").click()
+        strategy_card=page.locator(".deck-grid .ability-card.slot-strategy").first
+        check("strategy card has behavior summary",strategy_card.count()==1 and bool(strategy_card.locator(".ability-behavior").inner_text().strip()))
+        check("behavior summary is player-facing",((strategy_card.locator(".ability-sections").get_attribute("aria-label") or "").startswith("行为：")))
         before=page.evaluate("JSON.stringify(document.querySelector('fengshen-game').game.s)")
         page.locator("[data-action=inspect]").first.click()
         page.locator("details[data-panel=rank-effects]>summary").click()
@@ -115,6 +195,14 @@ with sync_playwright() as p:
         state("replacement")
         inv=page.evaluate("JSON.stringify(document.querySelector('fengshen-game').game.s.slots)")
         check("replacement warning and actions present",page.locator(".replacement-candidates [data-action=replace]").count()==3)
+        incoming=page.locator(".replacement-incoming .ability-card").first
+        check("replacement preview has behavior summary",incoming.count()==1 and bool(incoming.locator(".ability-behavior").inner_text().strip()))
+        impacts=page.locator(".replacement-impact")
+        check("every replacement candidate explains its impact",impacts.count()==3 and all(impacts.nth(i).inner_text().strip() for i in range(impacts.count())))
+        check(
+            "replacement impact avoids internal resource names",
+            all(not any(token in impacts.nth(i).inner_text() for token in ["damage_taken","shield_gain","status_consume","rage_spend"]) for i in range(impacts.count())),
+        )
         page.locator("[data-action=cancelReplacement]").click()
         check("cancelling replacement keeps every equipped slot",inv==page.evaluate("JSON.stringify(document.querySelector('fengshen-game').game.s.slots)"))
         # Every event page, including scenarios with locked numeric choices.
@@ -132,14 +220,14 @@ with sync_playwright() as p:
             page.locator("[data-action=settings]").first.click();no_overflow(f"{w}:settings")
             check(f"{w}: dialog within viewport",page.locator(".modal").evaluate("(d)=>d.getBoundingClientRect().left>=0 && d.getBoundingClientRect().right<=innerWidth+1"))
             if w==390:shot("settings-390")
-        # Existing rules-version save still resumes in the revised UI.
+        # Current save-key state still resumes after remount in the revised UI.
         state("returning")
-        old=page.evaluate("JSON.stringify(document.querySelector('fengshen-game').game.s)")
-        page.evaluate("(s)=>localStorage.setItem('fengshen-run-v1',s)",old)
+        current=page.evaluate("JSON.stringify(document.querySelector('fengshen-game').game.s)")
+        page.evaluate("(s)=>localStorage.setItem('fengshen-run-v43',s)",current)
         page.evaluate("document.querySelector('fengshen-game').remove();document.body.appendChild(document.createElement('fengshen-game'))")
         page.wait_for_selector("[data-action=resume]")
         page.locator("[data-action=resume]").click()
-        check("2.9.0 save resumes with identical run",old==page.evaluate("JSON.stringify(document.querySelector('fengshen-game').game.s)"))
+        check("current v43 save resumes with identical run after remount",current==page.evaluate("JSON.stringify(document.querySelector('fengshen-game').game.s)"))
         check("no JavaScript errors",not report["errors"])
         report["passed"]=True
     except Exception as exc:

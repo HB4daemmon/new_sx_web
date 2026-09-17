@@ -8,8 +8,22 @@ const copy=JSON.parse(await readFile('data/presentation.json','utf8'));const pac
 const compile=spawnSync(process.platform==='win32'?'tsc.cmd':'tsc',['--pretty','false'],{stdio:'inherit',shell:process.platform==='win32'});
 if(compile.status!==0)process.exit(compile.status??1);
 await mkdir('dist/data',{recursive:true});
-const order=['engine','art','presentation','build-paths','app'];let js='(()=>{\n"use strict";\n';
-for(const name of order){let code=await readFile(`build/${name}.js`,'utf8');code=code.replace(/^import .*?;\s*$/gm,'').replace(/^export /gm,'');js+=code+'\n';}
+const order=['engine','art','presentation','build-paths','build-analysis','app'];
+function stripModuleSyntax(code){
+ const lines=code.split('\n'),out=[];let importing=false,exporting=false;
+ for(const line of lines){
+  const trimmed=line.trim();
+  if(importing){if(trimmed.includes(';'))importing=false;continue;}
+  if(exporting){if(trimmed.includes('}'))exporting=false;continue;}
+  if(/^import(?:\s|['"{*])/.test(trimmed)){importing=!trimmed.includes(';');continue;}
+  if(/^export\s*\{/.test(trimmed)){exporting=!trimmed.includes('}');continue;}
+  if(/^export\s+\*/.test(trimmed))continue;
+  out.push(line.replace(/^(\s*)export\s+default\s+/,'$1').replace(/^(\s*)export\s+/,'$1'));
+ }
+ return out.join('\n');
+}
+let js='(()=>{\n"use strict";\n';
+for(const name of order){const code=stripModuleSyntax(await readFile(`build/${name}.js`,'utf8'));js+=code+'\n';}
 js+='})();\n';
 const css=await readFile('src/style.css','utf8');let html=await readFile('index.html','utf8');
 const data=await readFile('data/game.json','utf8');JSON.parse(data);

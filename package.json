@@ -7,9 +7,10 @@
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",
-    "test": "npm run build && node --test tests/engine.test.mjs tests/presentation.test.mjs tests/content-pool.test.mjs tests/combat-feedback.test.mjs tests/ancestry.test.mjs tests/talents.test.mjs tests/build-paths.test.mjs tests/race-events.test.mjs tests/world-events.test.mjs tests/immersion-copy.test.mjs",
+    "test": "npm run build && node --test tests/engine.test.mjs tests/presentation.test.mjs tests/content-pool.test.mjs tests/combat-feedback.test.mjs tests/ancestry.test.mjs tests/talents.test.mjs tests/build-paths.test.mjs tests/build-analysis.test.mjs tests/build-pipeline.test.mjs tests/battle-diagnostics.test.mjs tests/character-promises.test.mjs tests/character-tracking.test.mjs tests/race-events.test.mjs tests/world-events.test.mjs tests/immersion-copy.test.mjs",
     "simulate": "node tests/simulate.mjs",
-    "balance": "node tests/balance-audit.mjs"
+    "balance": "node tests/balance-audit.mjs",
+    "verify:reports": "npm run build && npm run simulate && npm run balance"
   },
   "devDependencies": {
     "typescript": "5.9.2"

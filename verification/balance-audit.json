@@ -1,0 +1,9065 @@
+{
+  "policy": "Current deterministic autoplay; first offered talent; 25 seeds per ancestry/vocation pair",
+  "totalRuns": 500,
+  "overallWinRate": 60.4,
+  "raceSpread": 7.2,
+  "originSpread": 20,
+  "thresholds": {
+    "raceSpreadMax": 15,
+    "originSpreadMax": 20,
+    "originWinRateMin": 50,
+    "originWinRateMax": 80,
+    "overallWinRateMin": 50,
+    "overallWinRateMax": 70
+  },
+  "race": [
+    {
+      "id": "human",
+      "name": "人族",
+      "runs": 125,
+      "wins": 78,
+      "winRate": 62.4,
+      "avgWinHpRate": 56.9,
+      "avgActions": 126.9,
+      "deathsByAct": {
+        "1": 1,
+        "3": 10,
+        "4": 36
+      }
+    },
+    {
+      "id": "spirit",
+      "name": "精怪",
+      "runs": 125,
+      "wins": 78,
+      "winRate": 62.4,
+      "avgWinHpRate": 52.7,
+      "avgActions": 127.1,
+      "deathsByAct": {
+        "1": 2,
+        "3": 6,
+        "4": 39
+      }
+    },
+    {
+      "id": "dragon",
+      "name": "龙裔",
+      "runs": 125,
+      "wins": 77,
+      "winRate": 61.6,
+      "avgWinHpRate": 52,
+      "avgActions": 125.6,
+      "deathsByAct": {
+        "1": 2,
+        "3": 11,
+        "4": 35
+      }
+    },
+    {
+      "id": "ling",
+      "name": "灵族",
+      "runs": 125,
+      "wins": 69,
+      "winRate": 55.2,
+      "avgWinHpRate": 55.6,
+      "avgActions": 123.6,
+      "deathsByAct": {
+        "1": 4,
+        "3": 13,
+        "4": 39
+      }
+    }
+  ],
+  "origin": [
+    {
+      "id": "wanderer",
+      "name": "山野散修",
+      "runs": 100,
+      "wins": 59,
+      "winRate": 59,
+      "avgWinHpRate": 56.5,
+      "avgActions": 125.6,
+      "deathsByAct": {
+        "1": 2,
+        "3": 10,
+        "4": 29
+      }
+    },
+    {
+      "id": "warrior",
+      "name": "行伍武者",
+      "runs": 100,
+      "wins": 55,
+      "winRate": 55,
+      "avgWinHpRate": 54.8,
+      "avgActions": 124.5,
+      "deathsByAct": {
+        "1": 4,
+        "3": 6,
+        "4": 35
+      }
+    },
+    {
+      "id": "alchemist",
+      "name": "方士",
+      "runs": 100,
+      "wins": 66,
+      "winRate": 66,
+      "avgWinHpRate": 62.6,
+      "avgActions": 126.9,
+      "deathsByAct": {
+        "3": 7,
+        "4": 27
+      }
+    },
+    {
+      "id": "physician",
+      "name": "行脚药师",
+      "runs": 100,
+      "wins": 51,
+      "winRate": 51,
+      "avgWinHpRate": 44.9,
+      "avgActions": 124.2,
+      "deathsByAct": {
+        "1": 3,
+        "3": 13,
+        "4": 33
+      }
+    },
+    {
+      "id": "hexer",
+      "name": "旧观咒徒",
+      "runs": 100,
+      "wins": 71,
+      "winRate": 71,
+      "avgWinHpRate": 51,
+      "avgActions": 127.7,
+      "deathsByAct": {
+        "3": 4,
+        "4": 25
+      }
+    }
+  ],
+  "matrix": [
+    {
+      "race": "human",
+      "origins": [
+        {
+          "origin": "wanderer",
+          "wins": 14,
+          "runs": 25,
+          "winRate": 56
+        },
+        {
+          "origin": "warrior",
+          "wins": 15,
+          "runs": 25,
+          "winRate": 60
+        },
+        {
+          "origin": "alchemist",
+          "wins": 19,
+          "runs": 25,
+          "winRate": 76
+        },
+        {
+          "origin": "physician",
+          "wins": 12,
+          "runs": 25,
+          "winRate": 48
+        },
+        {
+          "origin": "hexer",
+          "wins": 18,
+          "runs": 25,
+          "winRate": 72
+        }
+      ]
+    },
+    {
+      "race": "spirit",
+      "origins": [
+        {
+          "origin": "wanderer",
+          "wins": 17,
+          "runs": 25,
+          "winRate": 68
+        },
+        {
+          "origin": "warrior",
+          "wins": 13,
+          "runs": 25,
+          "winRate": 52
+        },
+        {
+          "origin": "alchemist",
+          "wins": 17,
+          "runs": 25,
+          "winRate": 68
+        },
+        {
+          "origin": "physician",
+          "wins": 16,
+          "runs": 25,
+          "winRate": 64
+        },
+        {
+          "origin": "hexer",
+          "wins": 15,
+          "runs": 25,
+          "winRate": 60
+        }
+      ]
+    },
+    {
+      "race": "dragon",
+      "origins": [
+        {
+          "origin": "wanderer",
+          "wins": 14,
+          "runs": 25,
+          "winRate": 56
+        },
+        {
+          "origin": "warrior",
+          "wins": 15,
+          "runs": 25,
+          "winRate": 60
+        },
+        {
+          "origin": "alchemist",
+          "wins": 17,
+          "runs": 25,
+          "winRate": 68
+        },
+        {
+          "origin": "physician",
+          "wins": 13,
+          "runs": 25,
+          "winRate": 52
+        },
+        {
+          "origin": "hexer",
+          "wins": 18,
+          "runs": 25,
+          "winRate": 72
+        }
+      ]
+    },
+    {
+      "race": "ling",
+      "origins": [
+        {
+          "origin": "wanderer",
+          "wins": 14,
+          "runs": 25,
+          "winRate": 56
+        },
+        {
+          "origin": "warrior",
+          "wins": 12,
+          "runs": 25,
+          "winRate": 48
+        },
+        {
+          "origin": "alchemist",
+          "wins": 13,
+          "runs": 25,
+          "winRate": 52
+        },
+        {
+          "origin": "physician",
+          "wins": 10,
+          "runs": 25,
+          "winRate": 40
+        },
+        {
+          "origin": "hexer",
+          "wins": 20,
+          "runs": 25,
+          "winRate": 80
+        }
+      ]
+    }
+  ],
+  "talents": [
+    {
+      "id": "talent.human.promise",
+      "picks": 125,
+      "wins": 78,
+      "winRate": 62.4
+    },
+    {
+      "id": "talent.human.learn",
+      "picks": 124,
+      "wins": 78,
+      "winRate": 62.9
+    },
+    {
+      "id": "talent.spirit.root",
+      "picks": 124,
+      "wins": 78,
+      "winRate": 62.9
+    },
+    {
+      "id": "talent.dragon.scale",
+      "picks": 124,
+      "wins": 77,
+      "winRate": 62.1
+    },
+    {
+      "id": "talent.dragon.tide",
+      "picks": 124,
+      "wins": 77,
+      "winRate": 62.1
+    },
+    {
+      "id": "talent.spirit.fox",
+      "picks": 123,
+      "wins": 78,
+      "winRate": 63.4
+    },
+    {
+      "id": "talent.ling.wind",
+      "picks": 122,
+      "wins": 69,
+      "winRate": 56.6
+    },
+    {
+      "id": "talent.ling.whisper",
+      "picks": 121,
+      "wins": 69,
+      "winRate": 57
+    },
+    {
+      "id": "talent.dragon.armor",
+      "picks": 87,
+      "wins": 57,
+      "winRate": 65.5
+    },
+    {
+      "id": "talent.human.resolve",
+      "picks": 86,
+      "wins": 65,
+      "winRate": 75.6
+    },
+    {
+      "id": "talent.human.insight",
+      "picks": 84,
+      "wins": 55,
+      "winRate": 65.5
+    },
+    {
+      "id": "talent.ling.anchor",
+      "picks": 84,
+      "wins": 50,
+      "winRate": 59.5
+    },
+    {
+      "id": "talent.spirit.sap",
+      "picks": 82,
+      "wins": 55,
+      "winRate": 67.1
+    },
+    {
+      "id": "talent.spirit.distill",
+      "picks": 82,
+      "wins": 53,
+      "winRate": 64.6
+    },
+    {
+      "id": "talent.ling.mirror",
+      "picks": 81,
+      "wins": 54,
+      "winRate": 66.7
+    },
+    {
+      "id": "talent.dragon.surge",
+      "picks": 80,
+      "wins": 54,
+      "winRate": 67.5
+    },
+    {
+      "id": "talent.spirit.cycle",
+      "picks": 27,
+      "wins": 24,
+      "winRate": 88.9
+    },
+    {
+      "id": "talent.spirit.sun",
+      "picks": 24,
+      "wins": 21,
+      "winRate": 87.5
+    },
+    {
+      "id": "talent.dragon.wrath",
+      "picks": 24,
+      "wins": 21,
+      "winRate": 87.5
+    },
+    {
+      "id": "talent.human.defy",
+      "picks": 23,
+      "wins": 20,
+      "winRate": 87
+    },
+    {
+      "id": "talent.ling.return",
+      "picks": 23,
+      "wins": 15,
+      "winRate": 65.2
+    },
+    {
+      "id": "talent.ling.formless",
+      "picks": 20,
+      "wins": 18,
+      "winRate": 90
+    },
+    {
+      "id": "talent.human.enlighten",
+      "picks": 20,
+      "wins": 10,
+      "winRate": 50
+    },
+    {
+      "id": "talent.dragon.sea",
+      "picks": 19,
+      "wins": 17,
+      "winRate": 89.5
+    }
+  ],
+  "rows": [
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 0,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 114,
+      "maxHp": 185,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.insight"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 1,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 31,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.resolve"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 2,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 173,
+      "maxHp": 176,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.insight"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 3,
+      "won": false,
+      "act": 1,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 141,
+      "talents": [
+        "talent.human.promise"
+      ],
+      "actions": 31
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 4,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 52,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.resolve"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 5,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 154,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.resolve"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 6,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 145,
+      "maxHp": 174,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.resolve"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 7,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 176,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.promise",
+        "talent.human.insight",
+        "talent.human.enlighten"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 8,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 146,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn"
+      ],
+      "actions": 98
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 9,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 90,
+      "maxHp": 176,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.promise",
+        "talent.human.insight",
+        "talent.human.resolve"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 10,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 40,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.defy"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 11,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 146,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn"
+      ],
+      "actions": 100
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 12,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 146,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 13,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 146,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.promise",
+        "talent.human.insight"
+      ],
+      "actions": 96
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 14,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 140,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.enlighten"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 15,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 81,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.learn",
+        "talent.human.resolve",
+        "talent.human.defy"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 16,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 166,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 17,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 146,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise"
+      ],
+      "actions": 136
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 18,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 28,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.defy"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 19,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 158,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.learn",
+        "talent.human.resolve"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 20,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 170,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.insight"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 21,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 103,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.defy"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 22,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 146,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 23,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 41,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.defy"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "human",
+      "origin": "wanderer",
+      "seed": 24,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 81,
+      "maxHp": 176,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.enlighten"
+      ],
+      "actions": 138
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 0,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 160,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.enlighten"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 1,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 164,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.enlighten"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 2,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 91,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.defy"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 3,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 156,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.learn",
+        "talent.human.resolve"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 4,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 170,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.insight"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 5,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 83,
+      "maxHp": 188,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.insight"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 6,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 66,
+      "maxHp": 192,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.resolve"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 7,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 33,
+      "maxHp": 168,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.insight"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 8,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 152,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.insight"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 9,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 126,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.insight"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 10,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 152,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.insight"
+      ],
+      "actions": 138
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 11,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 8,
+      "maxHp": 168,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.insight"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 12,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 164,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.enlighten"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 13,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 170,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.resolve"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 14,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 40,
+      "maxHp": 172,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.defy"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 15,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 61,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.enlighten"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 16,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 188,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.enlighten"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 17,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 152,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.defy"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 18,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 34,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.insight"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 19,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 170,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.insight"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 20,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 148,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 21,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 170,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.enlighten"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 22,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 24,
+      "maxHp": 183,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.insight"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 23,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 152,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.learn",
+        "talent.human.resolve"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "human",
+      "origin": "warrior",
+      "seed": 24,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 152,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.enlighten"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 0,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 154,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.insight"
+      ],
+      "actions": 125
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 1,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 110,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.insight"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 2,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 146,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.resolve"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 3,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 123,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.defy"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 4,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 15,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.defy"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 5,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 134,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.promise",
+        "talent.human.resolve"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 6,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 141,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 7,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 126,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.insight"
+      ],
+      "actions": 136
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 8,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 141,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn"
+      ],
+      "actions": 123
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 9,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 23,
+      "maxHp": 146,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.defy"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 10,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 50,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.enlighten"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 11,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 77,
+      "maxHp": 154,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.enlighten"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 12,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 134,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise"
+      ],
+      "actions": 96
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 13,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 120,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.defy"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 14,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 141,
+      "maxHp": 141,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 15,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 121,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.insight"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 16,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 110,
+      "maxHp": 146,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.resolve"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 17,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 95,
+      "maxHp": 126,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 18,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 176,
+      "maxHp": 176,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.defy"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 19,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 119,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.defy"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 20,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 68,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.insight"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 21,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 95,
+      "maxHp": 126,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 22,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 154,
+      "maxHp": 154,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.resolve"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 23,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 79,
+      "maxHp": 150,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.insight"
+      ],
+      "actions": 137
+    },
+    {
+      "race": "human",
+      "origin": "alchemist",
+      "seed": 24,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 102,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.enlighten"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 0,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 24,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.defy"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 1,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 59,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.insight"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 2,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 188,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise"
+      ],
+      "actions": 98
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 3,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 138,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.resolve"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 4,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 90,
+      "maxHp": 168,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.promise",
+        "talent.human.insight",
+        "talent.human.resolve"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 5,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 192,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.enlighten"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 6,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 30,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.resolve"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 7,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 33,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.resolve"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 8,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 148,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn"
+      ],
+      "actions": 93
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 9,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 148,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 10,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 188,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.insight"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 11,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 164,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn"
+      ],
+      "actions": 95
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 12,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 91,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.insight"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 13,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 165,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn"
+      ],
+      "actions": 104
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 14,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 160,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.enlighten"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 15,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 88,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.defy"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 16,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 171,
+      "maxHp": 172,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.promise",
+        "talent.human.insight",
+        "talent.human.resolve"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 17,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 164,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise"
+      ],
+      "actions": 101
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 18,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 180,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.enlighten"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 19,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 47,
+      "maxHp": 148,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.promise",
+        "talent.human.insight"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 20,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 105,
+      "maxHp": 180,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.resolve"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 21,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 148,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 22,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 156,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.promise",
+        "talent.human.insight"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 23,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 165,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "human",
+      "origin": "physician",
+      "seed": 24,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 163,
+      "maxHp": 201,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.enlighten"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 0,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 12,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.resolve"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 1,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 76,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.enlighten"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 2,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 168,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.defy"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 3,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 170,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.defy"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 4,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 26,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.resolve"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 5,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 72,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.resolve"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 6,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 15,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.defy"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 7,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 140,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 8,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 156,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn"
+      ],
+      "actions": 122
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 9,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 97,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.resolve"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 10,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 140,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 11,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 132,
+      "maxHp": 188,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.learn",
+        "talent.human.resolve",
+        "talent.human.defy"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 12,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 32,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.promise",
+        "talent.human.insight",
+        "talent.human.resolve"
+      ],
+      "actions": 125
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 13,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 115,
+      "maxHp": 140,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 14,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 91,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.insight"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 15,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 160,
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise"
+      ],
+      "actions": 124
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 16,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 104,
+      "maxHp": 172,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.defy"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 17,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 92,
+      "maxHp": 188,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.enlighten"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 18,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 109,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.insight"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 19,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 148,
+      "talents": [
+        "talent.human.promise",
+        "talent.human.learn",
+        "talent.human.insight"
+      ],
+      "actions": 95
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 20,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 79,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.learn",
+        "talent.human.resolve"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 21,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 84,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.defy"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 22,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 137,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.enlighten"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 23,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 137,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.human.promise",
+        "talent.human.resolve",
+        "talent.human.learn",
+        "talent.human.defy"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "human",
+      "origin": "hexer",
+      "seed": 24,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 12,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.human.learn",
+        "talent.human.insight",
+        "talent.human.promise",
+        "talent.human.resolve"
+      ],
+      "actions": 138
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 0,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 127,
+      "maxHp": 166,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sun"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 1,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 123,
+      "maxHp": 146,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 2,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 146,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root"
+      ],
+      "actions": 100
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 3,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 121,
+      "maxHp": 181,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sun"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 4,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 162,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.fox",
+        "talent.spirit.sap"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 5,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 60,
+      "maxHp": 162,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 6,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 154,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.fox",
+        "talent.spirit.distill"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 7,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 146,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 8,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 158,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sap"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 9,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 145,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sun"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 10,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 101,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 11,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 91,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sap"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 12,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 167,
+      "maxHp": 176,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sap"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 13,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 119,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.fox",
+        "talent.spirit.sap",
+        "talent.spirit.cycle"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 14,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 166,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 15,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 69,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.fox",
+        "talent.spirit.sap",
+        "talent.spirit.cycle"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 16,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 185,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.sap"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 17,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 61,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sun"
+      ],
+      "actions": 136
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 18,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 118,
+      "maxHp": 199,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.cycle"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 19,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 173,
+      "maxHp": 176,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 20,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 166,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sun"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 21,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 150,
+      "maxHp": 162,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.sun"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 22,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 125,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.sap"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 23,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 76,
+      "maxHp": 181,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sun"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "spirit",
+      "origin": "wanderer",
+      "seed": 24,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 37,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.sap"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 0,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 108,
+      "maxHp": 172,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sap"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 1,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 188,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.distill",
+        "talent.spirit.sap"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 2,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 118,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sap"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 3,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 152,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.distill",
+        "talent.spirit.sun"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 4,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 156,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 5,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 80,
+      "maxHp": 176,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sap"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 6,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 160,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.fox",
+        "talent.spirit.sap"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 7,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 170,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 8,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 83,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.sap"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 9,
+      "won": false,
+      "act": 1,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 120,
+      "talents": [],
+      "actions": 28
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 10,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 47,
+      "maxHp": 176,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.cycle"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 11,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 19,
+      "maxHp": 172,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 12,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 117,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.distill",
+        "talent.spirit.sap"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 13,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 152,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.distill",
+        "talent.spirit.sap"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 14,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 156,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 15,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 160,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 16,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 32,
+      "maxHp": 174,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 17,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 152,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.distill"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 18,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 156,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox"
+      ],
+      "actions": 97
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 19,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 121,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 20,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 59,
+      "maxHp": 172,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sap"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 21,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 153,
+      "maxHp": 168,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 22,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 156,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 23,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 109,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sap"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "spirit",
+      "origin": "warrior",
+      "seed": 24,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 160,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.fox",
+        "talent.spirit.sap"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 0,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 57,
+      "maxHp": 154,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 1,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 64,
+      "maxHp": 168,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.distill"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 2,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 127,
+      "maxHp": 150,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sun"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 3,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 2,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.sap"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 4,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 106,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 5,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 117,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 6,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 53,
+      "maxHp": 142,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.distill",
+        "talent.spirit.sun"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 7,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 59,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sun"
+      ],
+      "actions": 124
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 8,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 146,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox"
+      ],
+      "actions": 123
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 9,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 41,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.distill"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 10,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 19,
+      "maxHp": 126,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 11,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 133,
+      "maxHp": 154,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.distill",
+        "talent.spirit.sun"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 12,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 128,
+      "maxHp": 150,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 13,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 138,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sap"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 14,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 116,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 136
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 15,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 126,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root"
+      ],
+      "actions": 120
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 16,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 98,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sap"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 17,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 163,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.fox",
+        "talent.spirit.sap",
+        "talent.spirit.distill"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 18,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 45,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sap"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 19,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 126,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root"
+      ],
+      "actions": 97
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 20,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 126,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 21,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 141,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root"
+      ],
+      "actions": 125
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 22,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 29,
+      "maxHp": 142,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sun"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 23,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 138,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sap"
+      ],
+      "actions": 123
+    },
+    {
+      "race": "spirit",
+      "origin": "alchemist",
+      "seed": 24,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 94,
+      "maxHp": 168,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.cycle"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 0,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 75,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 1,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 176,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.fox",
+        "talent.spirit.sap",
+        "talent.spirit.cycle"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 2,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 148,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 3,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 78,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.fox",
+        "talent.spirit.sap",
+        "talent.spirit.distill"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 4,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 183,
+      "maxHp": 183,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 5,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 65,
+      "maxHp": 179,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.sap"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 6,
+      "won": false,
+      "act": 1,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 132,
+      "talents": [
+        "talent.spirit.root"
+      ],
+      "actions": 33
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 7,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 164,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 8,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 148,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox"
+      ],
+      "actions": 101
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 9,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 160,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.distill",
+        "talent.spirit.sap"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 10,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 153,
+      "maxHp": 179,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 136
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 11,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 115,
+      "maxHp": 180,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.distill",
+        "talent.spirit.sap"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 12,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 37,
+      "maxHp": 183,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.sun"
+      ],
+      "actions": 141
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 13,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 128,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sun"
+      ],
+      "actions": 136
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 14,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 84,
+      "maxHp": 184,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sap"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 15,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 156,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.fox",
+        "talent.spirit.distill"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 16,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 44,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sun"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 17,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 170,
+      "maxHp": 179,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.distill",
+        "talent.spirit.sun"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 18,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 83,
+      "maxHp": 164,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sap"
+      ],
+      "actions": 137
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 19,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 66,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.distill"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 20,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 22,
+      "maxHp": 168,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.fox",
+        "talent.spirit.sap",
+        "talent.spirit.distill"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 21,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 148,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.distill"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 22,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 5,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 23,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 34,
+      "maxHp": 179,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sun"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "spirit",
+      "origin": "physician",
+      "seed": 24,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 156,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 0,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 140,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox"
+      ],
+      "actions": 94
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 1,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 53,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 2,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 12,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.distill"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 3,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 172,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sap"
+      ],
+      "actions": 124
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 4,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 112,
+      "maxHp": 164,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.distill"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 5,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 53,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.distill"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 6,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 179,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 7,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 160,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.distill"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 8,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 168,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 9,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 137,
+      "maxHp": 168,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.cycle"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 10,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 97,
+      "maxHp": 183,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.distill"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 11,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 18,
+      "maxHp": 164,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sun"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 12,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 156,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox"
+      ],
+      "actions": 124
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 13,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 4,
+      "maxHp": 156,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sun"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 14,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 152,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sap"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 15,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 169,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sun"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 16,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 170,
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox"
+      ],
+      "actions": 125
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 17,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 176,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.distill",
+        "talent.spirit.sun"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 18,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 22,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.cycle"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 19,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 50,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.root",
+        "talent.spirit.sap",
+        "talent.spirit.fox",
+        "talent.spirit.distill"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 20,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 45,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sun"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 21,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 44,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.distill",
+        "talent.spirit.sap"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 22,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 97,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root",
+        "talent.spirit.sun"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 23,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 140,
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.distill",
+        "talent.spirit.root"
+      ],
+      "actions": 98
+    },
+    {
+      "race": "spirit",
+      "origin": "hexer",
+      "seed": 24,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 51,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.spirit.fox",
+        "talent.spirit.root",
+        "talent.spirit.distill",
+        "talent.spirit.sap"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 0,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 156,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.tide",
+        "talent.dragon.armor"
+      ],
+      "actions": 98
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 1,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 179,
+      "maxHp": 179,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.wrath"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 2,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 116,
+      "maxHp": 179,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.surge"
+      ],
+      "actions": 136
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 3,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 148,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 4,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 165,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 5,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 165,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 6,
+      "won": false,
+      "act": 1,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 132,
+      "talents": [
+        "talent.dragon.tide"
+      ],
+      "actions": 33
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 7,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 41,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.wrath"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 8,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 188,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 9,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 127,
+      "maxHp": 197,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.sea"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 10,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 160,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.armor"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 11,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 69,
+      "maxHp": 168,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.armor"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 12,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 113,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.armor"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 13,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 10,
+      "maxHp": 179,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.surge"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 14,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 156,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide"
+      ],
+      "actions": 96
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 15,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 84,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.sea"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 16,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 160,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.surge"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 17,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 109,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.wrath"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 18,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 37,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.armor"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 19,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 148,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.scale",
+        "talent.dragon.surge"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 20,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 52,
+      "maxHp": 179,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.armor"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 21,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 57,
+      "maxHp": 168,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale"
+      ],
+      "actions": 125
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 22,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 165,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide"
+      ],
+      "actions": 101
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 23,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 41,
+      "maxHp": 168,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.scale",
+        "talent.dragon.surge",
+        "talent.dragon.armor"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "dragon",
+      "origin": "wanderer",
+      "seed": 24,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 43,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.wrath"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 0,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 172,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.surge"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 1,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 71,
+      "maxHp": 162,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.armor"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 2,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 133,
+      "maxHp": 194,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.wrath"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 3,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 158,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide"
+      ],
+      "actions": 100
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 4,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 164,
+      "maxHp": 190,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.sea"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 5,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 144,
+      "maxHp": 154,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.sea"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 6,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 145,
+      "maxHp": 194,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.wrath"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 7,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 176,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale"
+      ],
+      "actions": 97
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 8,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 88,
+      "maxHp": 172,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.surge"
+      ],
+      "actions": 138
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 9,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 174,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.tide",
+        "talent.dragon.armor",
+        "talent.dragon.surge"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 10,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 50,
+      "maxHp": 166,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.wrath"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 11,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 158,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 12,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 142,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 13,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 154,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.armor"
+      ],
+      "actions": 125
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 14,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 36,
+      "maxHp": 166,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.armor"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 15,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 41,
+      "maxHp": 166,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.scale",
+        "talent.dragon.surge",
+        "talent.dragon.sea"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 16,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 81,
+      "maxHp": 162,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.sea"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 17,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 42,
+      "maxHp": 194,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.armor"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 18,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 162,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 19,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 166,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.sea"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 20,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 96,
+      "maxHp": 190,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.surge"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 21,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 56,
+      "maxHp": 154,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.scale",
+        "talent.dragon.surge",
+        "talent.dragon.sea"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 22,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 154,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.surge"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 23,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 56,
+      "maxHp": 174,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.wrath"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "dragon",
+      "origin": "warrior",
+      "seed": 24,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 84,
+      "maxHp": 172,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.wrath"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 0,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 108,
+      "maxHp": 140,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.wrath"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 1,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 129,
+      "maxHp": 140,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.surge"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 2,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 51,
+      "maxHp": 140,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.surge"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 3,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 128,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide"
+      ],
+      "actions": 125
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 4,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 156,
+      "maxHp": 156,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.armor"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 5,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 128,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.scale",
+        "talent.dragon.armor"
+      ],
+      "actions": 92
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 6,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 58,
+      "maxHp": 156,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.surge"
+      ],
+      "actions": 123
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 7,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 108,
+      "maxHp": 156,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.tide",
+        "talent.dragon.armor",
+        "talent.dragon.wrath"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 8,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 128,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.tide",
+        "talent.dragon.armor"
+      ],
+      "actions": 124
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 9,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 39,
+      "maxHp": 140,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.armor"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 10,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 117,
+      "maxHp": 140,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.sea"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 11,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 78,
+      "maxHp": 140,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.armor"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 12,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 119,
+      "maxHp": 136,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 13,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 128,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide"
+      ],
+      "actions": 94
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 14,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 123,
+      "maxHp": 140,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 15,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 129,
+      "maxHp": 140,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.wrath"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 16,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 156,
+      "maxHp": 156,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.wrath"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 17,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 143,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 18,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 156,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.wrath"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 19,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 37,
+      "maxHp": 140,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.sea"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 20,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 128,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale"
+      ],
+      "actions": 125
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 21,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 65,
+      "maxHp": 140,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.wrath"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 22,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 128,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale"
+      ],
+      "actions": 125
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 23,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 40,
+      "maxHp": 140,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.sea"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "dragon",
+      "origin": "alchemist",
+      "seed": 24,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 114,
+      "maxHp": 140,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.sea"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 0,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 150,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale"
+      ],
+      "actions": 124
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 1,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 73,
+      "maxHp": 162,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.armor"
+      ],
+      "actions": 137
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 2,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 185,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 3,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 26,
+      "maxHp": 162,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.armor"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 4,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 39,
+      "maxHp": 162,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.wrath"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 5,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 181,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.wrath"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 6,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 82,
+      "maxHp": 181,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.sea"
+      ],
+      "actions": 137
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 7,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 79,
+      "maxHp": 182,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.scale",
+        "talent.dragon.surge",
+        "talent.dragon.armor"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 8,
+      "won": false,
+      "act": 1,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 141,
+      "talents": [
+        "talent.dragon.scale"
+      ],
+      "actions": 31
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 9,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 36,
+      "maxHp": 162,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.wrath"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 10,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 59,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.armor"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 11,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 162,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.surge"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 12,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 166,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale"
+      ],
+      "actions": 96
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 13,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 92,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.wrath"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 14,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 49,
+      "maxHp": 162,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.armor"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 15,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 168,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide"
+      ],
+      "actions": 102
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 16,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 125,
+      "maxHp": 182,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.wrath"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 17,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 162,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.wrath"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 18,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 147,
+      "maxHp": 182,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.surge"
+      ],
+      "actions": 136
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 19,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 63,
+      "maxHp": 174,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.armor"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 20,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 174,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.scale",
+        "talent.dragon.surge",
+        "talent.dragon.armor"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 21,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 176,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.scale",
+        "talent.dragon.armor"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 22,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 150,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.scale",
+        "talent.dragon.surge"
+      ],
+      "actions": 99
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 23,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 35,
+      "maxHp": 178,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.sea"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "dragon",
+      "origin": "physician",
+      "seed": 24,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 162,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 0,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 154,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.sea"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 1,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 100,
+      "maxHp": 185,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.sea"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 2,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 85,
+      "maxHp": 172,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.armor"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 3,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 100,
+      "maxHp": 142,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 4,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 61,
+      "maxHp": 172,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.armor"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 5,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 159,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.scale",
+        "talent.dragon.armor"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 6,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 27,
+      "maxHp": 154,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.sea"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 7,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 146,
+      "maxHp": 172,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.surge"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 8,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 158,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.tide",
+        "talent.dragon.armor"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 9,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 133,
+      "maxHp": 154,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.armor"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 10,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 120,
+      "maxHp": 154,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.wrath"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 11,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 36,
+      "maxHp": 154,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.wrath"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 12,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 172,
+      "maxHp": 172,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.surge"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 13,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 150,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.tide",
+        "talent.dragon.armor"
+      ],
+      "actions": 96
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 14,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 142,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 15,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 84,
+      "maxHp": 154,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.tide",
+        "talent.dragon.wrath"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 16,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 59,
+      "maxHp": 154,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.tide",
+        "talent.dragon.armor",
+        "talent.dragon.surge"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 17,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 154,
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.scale",
+        "talent.dragon.surge",
+        "talent.dragon.armor"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 18,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 30,
+      "maxHp": 172,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.scale",
+        "talent.dragon.sea"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 19,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 170,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.surge"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 20,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 46,
+      "maxHp": 142,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.tide",
+        "talent.dragon.armor"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 21,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 81,
+      "maxHp": 154,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.sea"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 22,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 138,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.scale",
+        "talent.dragon.surge",
+        "talent.dragon.armor"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 23,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 20,
+      "maxHp": 162,
+      "ending": "god",
+      "talents": [
+        "talent.dragon.tide",
+        "talent.dragon.scale",
+        "talent.dragon.armor",
+        "talent.dragon.surge"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "dragon",
+      "origin": "hexer",
+      "seed": 24,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 172,
+      "talents": [
+        "talent.dragon.scale",
+        "talent.dragon.tide",
+        "talent.dragon.surge",
+        "talent.dragon.armor"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 0,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 94,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.anchor"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 1,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 114,
+      "maxHp": 176,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.mirror"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 2,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 154,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 3,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 165,
+      "maxHp": 176,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.whisper",
+        "talent.ling.mirror",
+        "talent.ling.formless"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 4,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 146,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 5,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 76,
+      "maxHp": 199,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.return"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 6,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 146,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 7,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 96,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.mirror"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 8,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 66,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.mirror"
+      ],
+      "actions": 139
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 9,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 176,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.return"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 10,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 166,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper"
+      ],
+      "actions": 98
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 11,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 158,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 12,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 146,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 13,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 130,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.whisper",
+        "talent.ling.mirror",
+        "talent.ling.anchor"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 14,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 79,
+      "maxHp": 154,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 15,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 120,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.return"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 16,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 158,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 17,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 146,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 18,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 84,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.anchor"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 19,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 84,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.mirror"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 20,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 21,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.formless"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 21,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 57,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.formless"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 22,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 163,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.whisper",
+        "talent.ling.anchor"
+      ],
+      "actions": 93
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 23,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 178,
+      "maxHp": 178,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.formless"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "ling",
+      "origin": "wanderer",
+      "seed": 24,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 146,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind"
+      ],
+      "actions": 101
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 0,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 164,
+      "maxHp": 164,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.formless"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 1,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 152,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.formless"
+      ],
+      "actions": 137
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 2,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 73,
+      "maxHp": 172,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.wind",
+        "talent.ling.anchor",
+        "talent.ling.return"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 3,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 152,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.wind",
+        "talent.ling.anchor",
+        "talent.ling.mirror"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 4,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 140,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 5,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 49,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.return"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 6,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 152,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.anchor"
+      ],
+      "actions": 125
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 7,
+      "won": false,
+      "act": 1,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 116,
+      "talents": [],
+      "actions": 28
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 8,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 45,
+      "maxHp": 192,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.formless"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 9,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 5,
+      "maxHp": 164,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.formless"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 10,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 75,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.formless"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 11,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 179,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.whisper",
+        "talent.ling.anchor"
+      ],
+      "actions": 101
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 12,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 152,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.return"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 13,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 97,
+      "maxHp": 164,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.mirror"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 14,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 156,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper"
+      ],
+      "actions": 97
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 15,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 148,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.wind",
+        "talent.ling.anchor"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 16,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 160,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.wind",
+        "talent.ling.anchor",
+        "talent.ling.mirror"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 17,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 156,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind"
+      ],
+      "actions": 125
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 18,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 20,
+      "maxHp": 172,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.mirror"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 19,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 135,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.whisper",
+        "talent.ling.mirror",
+        "talent.ling.anchor"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 20,
+      "won": false,
+      "act": 1,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 134,
+      "talents": [],
+      "actions": 28
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 21,
+      "won": false,
+      "act": 1,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 116,
+      "talents": [],
+      "actions": 30
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 22,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 170,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind"
+      ],
+      "actions": 97
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 23,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 170,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.formless"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "ling",
+      "origin": "warrior",
+      "seed": 24,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 156,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.mirror"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 0,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 126,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.wind",
+        "talent.ling.mirror"
+      ],
+      "actions": 95
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 1,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 47,
+      "maxHp": 154,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.anchor"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 2,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 131,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.formless"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 3,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 34,
+      "maxHp": 150,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.mirror"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 4,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 146,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.anchor"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 5,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 93,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.anchor"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 6,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 163,
+      "maxHp": 163,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.formless"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 7,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 150,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.return"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 8,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 126,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper"
+      ],
+      "actions": 125
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 9,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 126,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.wind",
+        "talent.ling.anchor"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 10,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 138,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.anchor"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 11,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 126,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper"
+      ],
+      "actions": 94
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 12,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 131,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.anchor"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 13,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 138,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.return"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 14,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 61,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.anchor"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 15,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 138,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.mirror"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 16,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 138,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.formless"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 17,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 92,
+      "maxHp": 158,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.return"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 18,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 66,
+      "maxHp": 154,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.anchor"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 19,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 39,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.mirror"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 20,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 126,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.wind",
+        "talent.ling.mirror"
+      ],
+      "actions": 101
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 21,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 33,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.return"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 22,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 163,
+      "maxHp": 168,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.formless"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 23,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 110,
+      "maxHp": 138,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.anchor"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "ling",
+      "origin": "alchemist",
+      "seed": 24,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 154,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.return"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 0,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 148,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper"
+      ],
+      "actions": 95
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 1,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 156,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind"
+      ],
+      "actions": 97
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 2,
+      "won": false,
+      "act": 1,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 136,
+      "talents": [
+        "talent.ling.wind"
+      ],
+      "actions": 31
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 3,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 160,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 4,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 165,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 5,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 27,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.formless"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 6,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 172,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.wind",
+        "talent.ling.anchor",
+        "talent.ling.return"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 7,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 148,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.whisper",
+        "talent.ling.anchor"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 8,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 49,
+      "maxHp": 180,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.return"
+      ],
+      "actions": 136
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 9,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 144,
+      "maxHp": 201,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.return"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 10,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 160,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.wind",
+        "talent.ling.anchor",
+        "talent.ling.mirror"
+      ],
+      "actions": 135
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 11,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 168,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind"
+      ],
+      "actions": 123
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 12,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 11,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.return"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 13,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 148,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 14,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 176,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.whisper",
+        "talent.ling.mirror",
+        "talent.ling.anchor"
+      ],
+      "actions": 132
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 15,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 164,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper"
+      ],
+      "actions": 96
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 16,
+      "won": false,
+      "act": 3,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 148,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.whisper",
+        "talent.ling.anchor"
+      ],
+      "actions": 102
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 17,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 19,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.formless"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 18,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 176,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.return"
+      ],
+      "actions": 137
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 19,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 79,
+      "maxHp": 179,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.return"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 20,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 107,
+      "maxHp": 172,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.mirror"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 21,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 179,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.mirror"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 22,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 116,
+      "maxHp": 180,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.mirror"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 23,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 88,
+      "maxHp": 176,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.return"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "ling",
+      "origin": "physician",
+      "seed": 24,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 39,
+      "maxHp": 160,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.return"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 0,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 73,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.formless"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 1,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 113,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.mirror"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 2,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 188,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.return"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 3,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 152,
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.whisper",
+        "talent.ling.mirror",
+        "talent.ling.anchor"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 4,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 121,
+      "maxHp": 179,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.anchor"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 5,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 3,
+      "maxHp": 172,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.whisper",
+        "talent.ling.mirror",
+        "talent.ling.formless"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 6,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 54,
+      "maxHp": 164,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.mirror"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 7,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 99,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.return"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 8,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 102,
+      "maxHp": 179,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.return"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 9,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 107,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.whisper",
+        "talent.ling.mirror",
+        "talent.ling.anchor"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 10,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 72,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.formless"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 11,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 141,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.anchor"
+      ],
+      "actions": 127
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 12,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 183,
+      "maxHp": 188,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.anchor"
+      ],
+      "actions": 131
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 13,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 140,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.wind",
+        "talent.ling.anchor"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 14,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 68,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.anchor"
+      ],
+      "actions": 125
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 15,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 159,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.return"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 16,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 156,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.wind",
+        "talent.ling.anchor"
+      ],
+      "actions": 126
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 17,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 102,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.anchor"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 18,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 38,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.anchor"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 19,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 64,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.formless"
+      ],
+      "actions": 133
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 20,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 142,
+      "maxHp": 192,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind",
+        "talent.ling.mirror"
+      ],
+      "actions": 134
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 21,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 105,
+      "maxHp": 170,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.whisper",
+        "talent.ling.anchor"
+      ],
+      "actions": 130
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 22,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 71,
+      "maxHp": 168,
+      "ending": "god",
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.wind",
+        "talent.ling.mirror",
+        "talent.ling.anchor"
+      ],
+      "actions": 129
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 23,
+      "won": true,
+      "act": 4,
+      "node": 10,
+      "hp": 98,
+      "maxHp": 152,
+      "ending": "god",
+      "talents": [
+        "talent.ling.wind",
+        "talent.ling.whisper",
+        "talent.ling.mirror",
+        "talent.ling.anchor"
+      ],
+      "actions": 128
+    },
+    {
+      "race": "ling",
+      "origin": "hexer",
+      "seed": 24,
+      "won": false,
+      "act": 4,
+      "node": 10,
+      "hp": 0,
+      "maxHp": 152,
+      "talents": [
+        "talent.ling.whisper",
+        "talent.ling.anchor",
+        "talent.ling.wind"
+      ],
+      "actions": 130
+    }
+  ],
+  "failures": []
+}

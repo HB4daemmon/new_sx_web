@@ -85,23 +85,74 @@ test('random event openings are persisted and replay uses exactly the same openi
  assert.deepEqual([...starts].sort(),['root','storm']);
 });
 
-test('character followups cannot appear before first meeting, and old promises unlock named relics',()=>{
+test('character followups require first meeting and each commitment uses its real evidence path',()=>{
+ const stage=(g,id,phase='root')=>{
+  const event=c.events.find(e=>e.id===id);
+  g.s.phase='event';g.s.act=event.act;g.s.row=0;g.s.lane=1;g.s.current=undefined;g.s.battle=undefined;g.s.eventId=id;g.s.eventPhase=phase;g.s.eventStep=0;
+ };
+ const assertReward=(g,id)=>assert(g.s.slots.some(eq=>eq?.id===id)||g.s.pending?.id===id,id);
  for(const key of ['ziya','leizhenzi','tuxingsun','yunxiao']){
-  const g=fresh(),second=c.events.find(e=>e.id===`character.${key}.2`),third=c.events.find(e=>e.id===`character.${key}.3`);
+  const g=fresh(`PRE-MEETING-${key}`),second=c.events.find(e=>e.id===`character.${key}.2`);
   assert.equal(second.requirements.every(q=>conditionOK(c,g.s,q)),false);
-  g.s.phase='event';g.s.eventId=`character.${key}.1`;g.s.eventPhase='root';g.chooseEvent('help');
-  assert(g.s.facts['met_'+key]);assert(g.s.facts[key+'_promise']);
-  g.chooseEvent('leave');g.s.phase='event';g.s.act=second.act;g.s.eventId=second.id;g.s.eventPhase='root';g.s.gold=100;
-  g.chooseEvent('keep');assert(g.s.facts[key+'_kept']);
-  g.s.phase='event';g.s.act=third.act;g.s.eventId=third.id;g.s.eventPhase='root';g.chooseEvent('borrow');
-  const myth=third.phases[0].choices.find(ch=>ch.id==='borrow').grant.id;
-  assert(g.s.slots.some(eq=>eq?.id===myth)||g.s.pending?.id===myth);
+ }
+
+ {
+  const g=fresh('PROMISE-ZIYA');
+  stage(g,'character.ziya.1');g.chooseEvent('help');
+  assert(g.s.facts.met_ziya);assert.equal(g.s.promises['ziya.reserve_currency'],undefined);
+  g.chooseEvent('accept');
+  assert.equal(g.s.promises['ziya.reserve_currency']?.status,'active');assert(g.s.facts.ziya_promise);
+  g.chooseEvent('leave');
+  stage(g,'character.ziya.2');g.s.gold=18;g.chooseEvent('deliver');
+  assert.equal(g.s.gold,0);assert.equal(g.s.promises['ziya.reserve_currency']?.status,'fulfilled');assert(g.s.facts.ziya_promise_fulfilled);
+  stage(g,'character.ziya.3');g.chooseEvent('borrow');
+  assertReward(g,'myth.whip');assert.equal(g.s.promises['ziya.reserve_currency']?.finalRewardOffered,true);
+ }
+
+ {
+  const g=fresh('PROMISE-LEIZHENZI');
+  stage(g,'character.leizhenzi.1');g.chooseEvent('help');
+  assert(g.s.facts.met_leizhenzi);assert.equal(g.s.promises['leizhenzi.elite_trial'],undefined);
+  g.chooseEvent('accept');assert.equal(g.s.promises['leizhenzi.elite_trial']?.status,'active');g.chooseEvent('keep');
+  const elite=g.s.route.find(n=>n.act===1&&n.type==='elite');assert(elite);
+  g.s.act=elite.act;g.s.row=elite.row;g.s.lane=elite.lane;g.s.current=elite;g.s.phase='battle';
+  const enemy=clone(c.enemies.find(e=>e.id===elite.ref));enemy.stats={...enemy.stats,hp:1,attack:0,defense:0,speed:0,hit:0,dodge:0};
+  g.s.battle=simulateBattle(c,g.s,enemy);assert(g.s.battle.won);g.finishBattle();
+  assert.equal(g.s.promises['leizhenzi.elite_trial']?.status,'fulfilled');assert.equal(g.s.promises['leizhenzi.elite_trial']?.evidenceNodeId,elite.id);assert(g.s.facts.leizhenzi_elite_completed);
+  stage(g,'character.leizhenzi.3');g.chooseEvent('borrow');
+  assertReward(g,'myth.wings');assert.equal(g.s.promises['leizhenzi.elite_trial']?.finalRewardOffered,true);
+ }
+
+ {
+  const g=fresh('PROMISE-TUXINGSUN');
+  stage(g,'character.tuxingsun.1');g.chooseEvent('ask');
+  assert(g.s.facts.met_tuxingsun);assert.equal(g.s.promises['tuxingsun.bypass_escort'],undefined);
+  stage(g,'character.tuxingsun.2');g.chooseEvent('accept_bypass');
+  assert.equal(g.s.promises['tuxingsun.bypass_escort']?.status,'active');assert.equal(g.s.promises['tuxingsun.bypass_escort']?.bypassPermit?.state,'available');
+  g.s.act=3;g.s.row=0;g.s.lane=1;g.s.phase='map';g.s.current=undefined;const combat=g.available().find(n=>n.type==='combat');assert(combat);
+  const before={hp:g.s.hp,gold:g.s.gold,xp:g.s.xp,visited:g.s.visited.length};g.bypassCombat(combat.id);
+  assert.equal(g.s.phase,'map');assert.equal(g.s.row,1);assert.equal(g.s.hp,before.hp);assert.equal(g.s.gold,before.gold);assert.equal(g.s.xp,before.xp);assert.equal(g.s.visited.length,before.visited+1);
+  assert.equal(g.s.promises['tuxingsun.bypass_escort']?.status,'fulfilled');assert.equal(g.s.promises['tuxingsun.bypass_escort']?.bypassPermit?.state,'consumed');assert(g.s.facts.tuxingsun_bypass_used);
+  stage(g,'character.tuxingsun.3');g.chooseEvent('borrow');
+  assertReward(g,'myth.earth');assert.equal(g.s.promises['tuxingsun.bypass_escort']?.finalRewardOffered,true);
+ }
+
+ {
+  const g=fresh('PROMISE-YUNXIAO');
+  stage(g,'character.yunxiao.1');g.chooseEvent('ask');
+  assert(g.s.facts.met_yunxiao);assert.equal(g.s.promises['yunxiao.rescue_chan'],undefined);
+  stage(g,'character.yunxiao.2');g.s.gold=18;g.chooseEvent('rescue');
+  assert.equal(g.s.gold,0);assert.equal(g.s.promises['yunxiao.rescue_chan']?.status,'fulfilled');assert(g.s.facts.yunxiao_saved_chan_envoy);
+  stage(g,'character.yunxiao.3');g.chooseEvent('borrow');
+  assertReward(g,'myth.basin');assert.equal(g.s.promises['yunxiao.rescue_chan']?.finalRewardOffered,true);
+  stage(g,'event.3.ruins','mercy');g.chooseEvent('accept_aid');
+  assert(g.s.facts.yunxiao_crossline_acknowledged);assert.equal(g.s.threads.char_yunxiao,'跨阵相认');
  }
 });
 
 test('all event phases retain an unconditional exit or legal safe branch, without leaking internal tokens',()=>{
  for(const e of c.events)for(const ph of e.phases??[{id:'root',choices:e.choices}]){
-  const g=fresh();g.s.act=e.act;if(e.act>0)g.s.threads[`act_${e.act-1}_fate`]=c.events.find(x=>x.id===c.acts[e.act-1].major).choices.at(-1).id;g.s.hp=1;g.s.gold=0;g.s.phase='event';g.s.eventId=e.id;g.s.eventPhase=ph.id;
+  const g=fresh();g.s.act=e.act;if(e.act>0)g.s.threads[`act_${e.act-1}_fate`]=c.events.find(x=>x.id===c.acts[e.act-1].major).choices.at(-1).id;if(e.id==='event.3.ruins'&&ph.id==='mercy')g.s.facts.yunxiao_saved_chan_envoy=true;g.s.hp=1;g.s.gold=0;g.s.phase='event';g.s.eventId=e.id;g.s.eventPhase=ph.id;
   assert(g.eventChoices().some(x=>x.legal),`${e.id}/${ph.id}`);
  }
 });
@@ -136,6 +187,22 @@ test('content rejects broken school, hybrid and random-phase references',()=>{
   const bad=clone(c);alter(bad);assert.throws(()=>validateContent(bad));
  }
  const g=fresh();g.s.contentPool.hybrids[0]='missing';assert.throws(()=>Game.load(c,JSON.stringify(g.s)));
+});
+
+test('phase-level authored metadata is validated alongside event and choice metadata',()=>{
+ validateContent(c);
+ const badRole=clone(c);
+ badRole.events.find(e=>e.id==='character.ziya.1').phases.find(p=>p.id==='gift').authored.role='unknown_phase_role';
+ assert.throws(()=>validateContent(badRole),/Unknown authored role/);
+
+ const badPromise=clone(c);
+ badPromise.events.find(e=>e.id==='character.ziya.1').phases.find(p=>p.id==='gift').authored.promiseId='missing.promise';
+ assert.throws(()=>validateContent(badPromise),/Broken authored promise reference/);
+
+ const badRequiredPromise=clone(c);
+ badRequiredPromise.events.find(e=>e.id==='event.3.ruins').phases.find(p=>p.id==='mercy').authored.role='gift_choice';
+ delete badRequiredPromise.events.find(e=>e.id==='event.3.ruins').phases.find(p=>p.id==='mercy').authored.promiseId;
+ assert.throws(()=>validateContent(badRequiredPromise),/Authored promise role requires promise/);
 });
 
 test('expanded long runs replay to identical state after intervening save/load and inspections',()=>{

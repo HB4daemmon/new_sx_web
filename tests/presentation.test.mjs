@@ -3,8 +3,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
-import {Game,clone,fateOptions,validateContent} from '../build/engine.js';
-import {abilityLines,choiceEffects,choiceCopy,storyText,resultText,narrativeAvailable,threadText,rankName} from '../build/presentation.js';
+import {Game,clone,fateOptions,validateContent,SLOT_ORDER,slotLabel} from '../build/engine.js';
+import {abilityLines,abilityBehaviorLines,abilityBehaviorSummary,choiceEffects,choiceCopy,creationHint,creationLoadout,creationSummary,storyText,resultText,narrativeAvailable,threadText,rankName} from '../build/presentation.js';
 const c=JSON.parse(readFileSync(new URL('../data/game.json',import.meta.url),'utf8'));
 const contract=JSON.parse(readFileSync(new URL('./fixtures/v12-contract.json',import.meta.url),'utf8'));
 const hash=s=>createHash('sha256').update(s).digest('hex');
@@ -23,7 +23,7 @@ test('v13 presentation covers all event outcomes, including checks and phases',(
   for(const k of ch.check?['success','failure']:['outcome'])assert(cp[k]?.length>5,`${e.id}/${ph.id}/${ch.id}/${k}`);
   choices++;
  }
- assert.equal(choices,276);
+ assert.equal(choices,281);
 });
 test('v13 strangers are never described as returning friends',()=>{
  const g=fresh();
@@ -64,6 +64,72 @@ test('v13 trigger prerequisites and resource damage caps remain legible',()=>{
  assert(!all.includes('因缘未至'));
  const ruby=c.abilities.find(a=>a.id==='rage.lotus');
  assert.match(abilityLines(c,ruby,0).join(''),/上限/);
+});
+test('v14 creation choices all have non-empty qualitative copy',()=>{
+ const groups=[
+  ['race',c.races,4],
+  ['origin',c.origins,5],
+  ['fate',c.fates,8]
+ ];
+ for(const [kind,items,count] of groups){
+ assert.equal(items.length,count,`${kind} count`);
+  for(const item of items){
+   const summary=creationSummary(c,kind,item.id),hint=creationHint(c,kind,item.id),copy=`${summary} ${hint}`.trim();
+   assert(summary.trim().length>10,`${kind}/${item.id} summary`);
+   assert(hint.trim().length>0,`${kind}/${item.id} hint`);
+   assert(!/undefined|NaN/.test(copy),`${kind}/${item.id} unresolved copy`);
+   assert(!/[0-9%]/.test(copy),`${kind}/${item.id} exposes a numeric rule`);
+  }
+ }
+ assert.notEqual(creationSummary(c,'race',c.races[0].id),creationSummary(c,'race',c.races[1].id));
+ assert.notEqual(creationSummary(c,'origin',c.origins[0].id),creationSummary(c,'origin',c.origins[1].id));
+ assert.notEqual(creationSummary(c,'fate',c.fates[0].id),creationSummary(c,'fate',c.fates[1].id));
+});
+test('v14 starting copy lists the same abilities and physical slots as a new run',()=>{
+ for(const origin of c.origins){
+  const loadout=creationLoadout(c,origin.id);
+  assert.equal(loadout.length,origin.starting.length,`${origin.id} loadout length`);
+  assert.deepEqual(loadout.map(item=>item.id),origin.starting,`${origin.id} loadout ids`);
+  const expected=Array(SLOT_ORDER.length).fill(null);
+  for(const item of loadout){
+   const index=SLOT_ORDER.findIndex((slot,i)=>slot===item.slot&&expected[i]===null);
+   assert.notEqual(index,-1,`${origin.id}/${item.id} slot capacity`);
+   expected[index]=item.id;
+   assert.equal(item.slotLabel,slotLabel(item.slot),`${origin.id}/${item.id} slot label`);
+  }
+  const seed=`PRESENTATION-LOADOUT-${origin.id}`;
+  const game=Game.create(c,seed,origin.id,fateOptions(c,seed)[0].id,'Review','', 'human');
+  assert.deepEqual(game.s.slots.map(item=>item?.id??null),expected,`${origin.id} physical slots`);
+  assert.equal(game.s.slots.filter(Boolean).length,4,`${origin.id} starting ability count`);
+ }
+});
+test('v14 strategy and relic behavior summaries are complete and player-facing',()=>{
+ const strategies=c.abilities.filter(a=>a.slot==='strategy');
+ const relics=c.abilities.filter(a=>a.relicConversions?.length);
+ assert.equal(strategies.length,10);
+ assert.equal(relics.length,8);
+ const internal=/\b(?:battle_start|round_start|round_end|before_action|after_action|on_hit|on_damage|on_damaged|on_rage_skill|on_rage_spend|on_crit|on_evade|on_heal|on_shield_gain|on_status_apply|on_status_tick|on_consume|hp_threshold|battle_end|damage_taken|shield_gain|rage_spend|status_tick|status_consume|basic|rage|self|enemy)\b/;
+ for(const ability of [...strategies,...relics]){
+  const lines=abilityBehaviorLines(c,ability,3);
+  const summary=abilityBehaviorSummary(c,ability,3);
+  assert(lines.length>0,`${ability.id} behavior lines`);
+  assert(summary.trim().length>10,`${ability.id} behavior summary`);
+  assert(!/undefined|NaN/.test(summary),`${ability.id} unresolved behavior`);
+  assert(!internal.test(summary),`${ability.id} leaks an internal enum: ${summary}`);
+  assert(!/[0-9%]/.test(summary),`${ability.id} exposes a numeric rule: ${summary}`);
+  assert(summary.includes(c.presentation.abilityBehaviors[ability.id].summary),`${ability.id} authored copy`);
+ }
+ assert.match(abilityBehaviorSummary(c,'myth.seal'),/不扣除刚获得的护盾/);
+ assert.match(abilityBehaviorSummary(c,'myth.basin'),/满血时没有实际回复/);
+ assert.match(abilityBehaviorSummary(c,'strategy.mountain'),/短暂保留怒气/);
+});
+test('v14 authored behavior copy takes precedence without mutating the run state',()=>{
+ const game=fresh(),before=JSON.stringify(game.s);
+ for(const ability of c.abilities.filter(a=>a.slot==='strategy'||a.relicConversions?.length)){
+  assert.equal(abilityBehaviorSummary(c,ability),abilityBehaviorSummary(c,ability,3));
+  abilityBehaviorLines(c,ability,3);
+ }
+ assert.equal(JSON.stringify(game.s),before);
 });
 test('v13 choices show losses, grants and both probability outcomes',()=>{
  const ev=c.events.find(e=>e.id==='event.0.deal');
