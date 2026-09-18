@@ -24,5 +24,5 @@ test('later ancestry stories answer earlier facts instead of requiring a single 
  for(const [id,key] of expected){const e=c.events.find(x=>x.id===id);assert(e.relevance?.some(q=>q.type==='has_fact'&&q.key===key));const choices=e.phases.flatMap(p=>p.choices);assert(choices.some(ch=>ch.conditions?.some(q=>q.type==='has_fact'&&q.key===key)));}
 });
 test('all ancestry story choices have authored presentation outcomes',()=>{
- const p=c.presentation;assert.equal(p.revision,'18.0');for(const id of ids){const e=c.events.find(x=>x.id===id),copy=p.events[id];assert(copy?.intro);for(const ph of e.phases)for(const ch of ph.choices){const x=copy.choices[`${ph.id}.${ch.id}`];assert(x,`${id}/${ph.id}/${ch.id}`);if(ch.check){assert(x.success&&x.failure);}else assert(x.outcome);}}
+ const p=c.presentation;assert.equal(p.revision,'18.1');for(const id of ids){const e=c.events.find(x=>x.id===id),copy=p.events[id];assert(copy?.intro);for(const ph of e.phases)for(const ch of ph.choices){const x=copy.choices[`${ph.id}.${ch.id}`];assert(x,`${id}/${ph.id}/${ch.id}`);if(ch.check){assert(x.success&&x.failure);}else assert(x.outcome);}}
 });

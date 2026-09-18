@@ -8,7 +8,7 @@ export interface CreationPresentation {races?:Record<string,CreationCopy|string>
 export interface AbilityBehaviorCopy {summary?:string;lines?:string[];}
 export type CreationKind='race'|'races'|'origin'|'origins'|'fate'|'fates';
 export interface Presentation {revision:string;events:Record<string,EventCopy>;threadValues?:Record<string,string>;creation?:CreationPresentation;abilityBehaviors?:Record<string,AbilityBehaviorCopy|string>;abilityBehavior?:Record<string,AbilityBehaviorCopy|string>;}
-export const UI_REVISION='18.0';
+export const UI_REVISION='18.1';
 export const rankName=(rank:number)=>['初阶','一阶','二阶','三阶'][Math.max(0,Math.min(3,rank))];
 export function presentation(c:Content):Presentation {return (c as Content&{presentation?:Presentation}).presentation??{revision:UI_REVISION,events:{}};}
 const qualitativeNumeric=/[0-9%]/;

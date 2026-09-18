@@ -5,7 +5,7 @@ import {readFileSync} from 'node:fs';
 const app=readFileSync(new URL('../src/app.ts',import.meta.url),'utf8');
 const presentation=readFileSync(new URL('../src/presentation.ts',import.meta.url),'utf8');
 
-test('UI18.0 keeps primary play surfaces in-world and trims draft meta copy',()=>{
+test('UI18.1 keeps primary play surfaces in-world and trims draft meta copy',()=>{
  for(const phrase of [
   '择一，伴此生',
   '入劫将替换当前命途。',
@@ -20,10 +20,11 @@ test('UI18.0 keeps primary play surfaces in-world and trims draft meta copy',()=
  assert(app.includes('旧途将断。'));
  assert(app.includes('已满。'));
  assert(app.includes('气血 +30%'));
- for(const phrase of ['<span class="muted">择一</span>',"['精进','合流','新路']",'draft-lane-head','fighter-side-badge','THE FINAL CHOICE','>详细战报<','>导出<','>导入<'])assert(!app.includes(phrase),phrase);
+ for(const phrase of ['<span class="muted">择一</span>',"['精进','合流','新路']",'draft-lane-head','THE FINAL CHOICE','>详细战报<','>导出<','>导入<'])assert(!app.includes(phrase),phrase);
+ assert(app.includes('fighter-side-badge'));
  assert(app.includes("s.current?.type==='boss'?'劫首遗珍'"));
  assert(app.includes("s.current?.type==='elite'?'强敌遗珍'"));
- assert.match(presentation,/UI_REVISION='18\.0'/);
+ assert.match(presentation,/UI_REVISION='18\.1'/);
 });
 
 test('decision-critical mechanics remain visible',()=>{

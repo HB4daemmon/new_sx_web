@@ -1,5 +1,5 @@
 {
-  "revision": "18.0",
+  "revision": "18.1",
   "events": {
     "event.0.hermit": {
       "choices": {

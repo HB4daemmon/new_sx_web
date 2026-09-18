@@ -642,3 +642,146 @@ button:disabled{cursor:not-allowed}
 
 /* Sub-school recipes: only expanded on demand. */
 .path-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}.path-entry{border:1px solid var(--line);padding:14px;min-width:0}.path-entry header{display:flex;flex-wrap:wrap;gap:7px;justify-content:space-between}.path-entry small,.path-entry p{color:var(--muted);font-size:13px;line-height:1.8}.path-entry p{margin-top:8px}.path-pieces{display:flex;flex-wrap:wrap;gap:4px 10px}.path-pieces .text-link{font-size:13px;min-height:36px}.path-pieces .owned{color:var(--gold-bright)}.path-tradeoff{font-size:12px;margin-top:8px}.path-tradeoff summary{cursor:pointer;min-height:28px}.path-catalog>summary{min-height:44px}.path-talents{border-top:1px solid var(--line);padding-top:8px}@media(max-width:760px){.path-grid{grid-template-columns:1fr}.path-entry{padding:12px}.path-pieces .text-link{min-height:44px}}
+
+/* UI recovery: shared hierarchy, touch targets and safe scrolling. */
+html{scroll-padding-bottom:0}
+.main-stage,.game-layout,.event-page,.reward-page,.shop-grid,.deck-grid,.ability-card,.battle-shell,.combat-arena,.combatant,.battle-settlement,.settlement-details{min-width:0}
+button.text-link{min-height:44px}
+.icon-button{min-width:44px;min-height:44px}
+button:focus-visible,summary:focus-visible,[tabindex]:focus-visible,input:focus-visible{outline:2px solid #e4c77f;outline-offset:3px;box-shadow:0 0 0 3px #e4c77f26}
+
+/* Creation choices keep the selected explanation close to the decision. */
+.setup .origin-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+.setup .origin-option{min-height:88px}
+.creation-insight{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.8fr);gap:14px;align-items:start;margin:14px 0 0;padding:14px 16px;border:1px solid var(--line);background:#12241e;min-width:0}
+.creation-insight>div{min-width:0}
+.creation-insight .eyebrow{display:block;font-size:9px;letter-spacing:2px}
+.creation-insight h3{font:20px/1.35 var(--serif);color:#e2d3a9;margin-top:4px}
+.creation-insight p{font-size:13px;line-height:1.8;color:#c1cbb8;margin-top:7px}
+.creation-insight small{display:block;font-size:11px;line-height:1.7;color:#8fa79a;margin-top:6px}
+.creation-starting{border-left:1px solid #b79a5b66;padding-left:14px}
+.creation-starting>strong{display:block;font:12px var(--serif);letter-spacing:1px;color:var(--gold-bright);margin-bottom:7px}
+.creation-starting>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px}
+.creation-starting span{display:flex;align-items:center;gap:5px;min-width:0;min-height:30px}
+.creation-starting span .icon{color:#c2b078}
+.creation-starting b{font-size:11px;color:#c9d0bc;overflow-wrap:anywhere}
+.creation-starting em{margin-left:auto;color:#82988a;font-size:10px;font-style:normal;white-space:nowrap}
+
+/* Ability cards separate precise effects from authored behavior guidance. */
+.ability-sections{display:grid;gap:10px;min-width:0;flex:1}
+.ability-section{min-width:0;border-top:1px solid #b6a27725;padding-top:8px}
+.ability-section h4{font:10px var(--sans);letter-spacing:1.5px;color:#d2bd7f;margin:0 0 5px}
+.ability-section .ability-effects{padding:0;flex:none;font-size:12px;line-height:1.75}
+.ability-behavior{font-size:12px;line-height:1.75;color:#a9bbb0}
+.ability-behavior p{margin:0 0 5px}
+.ability-behavior p:last-child{margin-bottom:0}
+.ability-behavior-section{border-top-color:#7e9d8c33}
+.ability-behavior-section h4{color:#9bc0aa}
+
+/* Battle controls and feedback stay usable at the narrowest supported width. */
+.battle-context{flex-wrap:wrap;gap:6px 12px}
+.battle-controls{align-items:stretch;flex-wrap:wrap}
+.speeds{display:grid;grid-template-columns:repeat(3,minmax(44px,1fr)) minmax(44px,auto);min-width:0}
+.speeds button{min-width:44px;min-height:44px;padding:7px 8px}
+.speeds button:last-child{border-right:0}
+.battle-controls>.button{min-width:44px;min-height:44px;margin-left:auto}
+.fighter-side-badge{max-width:calc(100% - 16px);overflow-wrap:anywhere}
+.fighter-numbers{line-height:1.4;min-height:14px}
+.fighter-bars .bar.hp{min-height:8px}
+.fighter-bars .bar.rage{min-height:4px}
+.combat-statuses .status{line-height:1.4;white-space:normal}
+.battle-log{scroll-padding-bottom:12px}
+.battle-log-row{font-size:12px;line-height:1.7}
+.simple-damage>b{font-size:12px}
+.simple-damage>span:not(.log-actor-badge){font-size:11px}
+.simple-status{min-height:36px;line-height:1.5}
+.simple-status>strong,.simple-status>em,.simple-status>b{font-size:11px}
+.battle-summary span{font-size:11px}
+.battle-summary b{font-size:14px}
+.battle-contributions{padding:11px 12px}
+.battle-contributions>strong{font-size:13px}
+.contribution-row{grid-template-columns:minmax(0,.75fr) minmax(0,1.4fr);gap:9px;padding:7px 0}
+.contribution-row span,.contribution-row em{font-size:11px;line-height:1.55}
+
+/* Settlement facts are scannable before the full diagnostic disclosure. */
+.battle-settlement{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 14px;scroll-margin-bottom:78px}
+.battle-settlement>article{display:flex;flex-direction:column;gap:7px;min-width:0;padding:12px;border:1px solid var(--line);background:#111f1a}
+.battle-settlement>article>h3{font:15px/1.35 var(--serif);color:#e0cb90;padding-bottom:7px;border-bottom:1px solid #b6a27728}
+.battle-settlement p{font-size:12px;line-height:1.75;color:#b8c3b5;overflow-wrap:anywhere}
+.settlement-row{display:grid;grid-template-columns:minmax(74px,.6fr) minmax(0,1.4fr);gap:8px;align-items:start;padding:6px 0;border-top:1px solid #7d917f25}
+.settlement-row:first-child{border-top:0;padding-top:0}
+.settlement-row strong{font:12px/1.55 var(--serif);color:#d4c38f;overflow-wrap:anywhere}
+.settlement-row span{font-size:11px;line-height:1.65;color:#aabbad;overflow-wrap:anywhere}
+.battle-settlement>.disclosure{grid-column:1/-1;margin:0}
+.settlement-details{display:grid;gap:0;padding:0 2px 5px}
+
+/* Route clues and character actions share the same low-noise affordance. */
+.map-bypass{display:grid;gap:8px;margin:12px 0 0;padding:10px 12px;border:1px solid #9b845243;background:#14251e}
+.map-bypass>div{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+.map-bypass>div>span{font-size:12px;line-height:1.65;color:#aabaae}
+.map-bypass strong{display:block;font:13px var(--serif);color:#d5c58f;margin-bottom:2px}
+.map-bypass .button{flex:0 0 auto;min-width:78px;min-height:44px}
+.character-relation.is-tracked{border-color:#c5a66066;background:#18291f}
+.character-clue{margin-top:6px!important;padding:6px 8px;border-left:2px solid #c5a660;background:#17271e;color:#b8c7b5!important;font-size:11px!important;line-height:1.65!important}
+.character-actions{display:flex;flex-wrap:wrap;margin-top:5px}
+.character-actions .text-link{min-height:44px}
+.story-choice-wrap{min-width:0}
+
+/* Fixed navigation must leave long decision surfaces reachable. */
+@media(max-width:1050px){
+ html{scroll-padding-bottom:calc(78px + env(safe-area-inset-bottom,0px))}
+ .game-layout{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+ .map-scroll{scroll-padding-bottom:calc(78px + env(safe-area-inset-bottom,0px))}
+ .reward-page,.event-page,.final-page{scroll-margin-bottom:calc(78px + env(safe-area-inset-bottom,0px))}
+}
+
+@media(min-width:761px){
+ .setup .origin-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .setup .origin-option{min-height:88px}
+}
+
+@media(max-width:760px){
+ .creation-insight{grid-template-columns:1fr;gap:11px;padding:12px}
+ .creation-insight h3{font-size:18px}
+ .creation-insight p{font-size:12px;line-height:1.75}
+ .creation-starting{border-left:0;border-top:1px solid #b79a5b55;padding:10px 0 0}
+ .creation-starting>div{grid-template-columns:1fr 1fr;gap:5px 8px}
+ .creation-starting b{font-size:10px}
+ .creation-starting em{font-size:9px}
+ .ability-sections{gap:8px}
+ .ability-section{padding-top:7px}
+ .ability-section h4{font-size:9px}
+ .ability-section .ability-effects,.ability-behavior{font-size:11px;line-height:1.7}
+ .battle-controls{gap:8px}
+ .speeds{grid-template-columns:repeat(3,minmax(44px,1fr)) minmax(44px,auto)}
+ .battle-controls>.button{margin-left:auto}
+ .fighter-side-badge{font-size:8px;letter-spacing:1px;padding:3px 5px}
+ .battle-settlement{grid-template-columns:1fr;gap:7px}
+ .battle-settlement>article{padding:11px}
+ .battle-settlement>.disclosure{grid-column:auto}
+ .settlement-row{grid-template-columns:minmax(72px,.65fr) minmax(0,1.35fr);gap:7px}
+ .settlement-row strong{font-size:11px}
+ .settlement-row span{font-size:11px}
+ .battle-contributions{padding:10px}
+ .contribution-row{grid-template-columns:1fr;gap:2px}
+ .contribution-row em{text-align:left}
+ .map-bypass>div{align-items:flex-start}
+ .map-bypass>div>span{font-size:11px}
+ .map-bypass .button{min-width:72px}
+ .modal-backdrop{padding:12px max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+ .modal{width:100%;max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);padding:20px 14px;scroll-padding-bottom:14px}
+ .modal>h2{line-height:1.4}
+ .modal .setting-row{min-height:56px}
+ .modal .actions{gap:8px}
+ .modal .button{min-height:44px}
+ .reward-page{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+}
+
+@media(max-width:360px){
+ .setup .origin-option{padding:11px 8px}
+ .creation-starting>div{grid-template-columns:1fr}
+ .battle-controls{gap:6px}
+ .battle-settlement>article{padding:10px}
+ .settlement-row{grid-template-columns:1fr;gap:2px}
+ .settlement-row span{font-size:11px}
+}

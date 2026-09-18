@@ -24,8 +24,8 @@ test('combat overlay exposes damage healing shields and status changes without t
  assert.equal(readFileSync('src/engine.ts','utf8').includes('combatVfx'),false);
 });
 
-test('UI18.0 preserves the sprite packaging contract',()=>{
- assert(readFileSync('src/presentation.ts','utf8').includes("UI_REVISION='18.0'"));
- assert.equal(JSON.parse(readFileSync('data/presentation.json','utf8')).revision,'18.0');
+test('UI18.1 preserves the sprite packaging contract',()=>{
+ assert(readFileSync('src/presentation.ts','utf8').includes("UI_REVISION='18.1'"));
+ assert.equal(JSON.parse(readFileSync('data/presentation.json','utf8')).revision,'18.1');
  assert.equal(JSON.parse(readFileSync('package.json','utf8')).version,'4.4.0');
 });
