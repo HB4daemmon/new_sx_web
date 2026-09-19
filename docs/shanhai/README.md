@@ -19,7 +19,7 @@
 ## 当前阅读链
 
 1. 先看[功法树总览](./CULTIVATION_TREES.md)，一次比较十门功法。
-2. 再看[三份功法分册](./CULTIVATION_TREES_01_03.md)、[功法分册二](./CULTIVATION_TREES_04_06.md)、[功法分册三](./CULTIVATION_TREES_07_10.md)。
+2. 再看[三份功法分册](./CULTIVATION_TREES_01_03.md)、[功法分册二](./CULTIVATION_TREES_04_06.md)、[功法分册三](./CULTIVATION_TREES_07_10.md)：天赋采用四字名、直白的快速选择和具体效果说明。
 3. 故事和事件读[故事大纲](./STORY_OUTLINE.md)与[核心事件](./CORE_EVENTS.md)。
 4. 公共口径读[战斗规则](./COMBAT_RULES.md)、[写作验收](./WRITING_GUIDE.md)和对应的[开发规则页](./rules/KF01_03.md)、[KF04-KF06](./rules/KF04_06.md)、[KF07-KF10](./rules/KF07_10.md)、[事件规则](./rules/EVENT_RULES.md)。
 5. [旧构筑系统](./BUILD_SYSTEM.md)与[旧内容目录](./CONTENT_CATALOG.md)只作历史跳转，[来源笔记](./REFERENCE_NOTES.md)只记录历史查证边界。
