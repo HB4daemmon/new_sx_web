@@ -8,6 +8,7 @@
 - 玩家在一局内取得一门能马上使用的功法，并能说明自己的成长选择。
 - 自动斗法负责执行构筑；玩家在战斗外决定功法、进阶、法宝、事件和行旅风险。
 - 人物有自己的目标与底线，事件选择要在当下给出清楚得失，并在后续产生可见回响。
+- 使用有原典依据、容易辨认的神话人物和法宝；出处只证明人物与典故，不替游戏原创的赠宝、能力或数值背书。
 - 正向机缘可以保持正向；风险必须在选择前说清，不靠隐藏惩罚制造复杂度。
 
 ## 当前设计方向
@@ -21,7 +22,9 @@
 ## 内容边界
 
 十门功法的比较见[CULTIVATION_TREES.md](./CULTIVATION_TREES.md)，具体卡面见三份分册；
-故事见[STORY_OUTLINE.md](./STORY_OUTLINE.md)，事件见[CORE_EVENTS.md](./CORE_EVENTS.md)。
+故事见[STORY_OUTLINE.md](./STORY_OUTLINE.md)，人物见[CHARACTERS.md](./CHARACTERS.md)，事件见[CORE_EVENTS.md](./CORE_EVENTS.md)。
+首批法宝见[ARTIFACTS.md](./ARTIFACTS.md)，原典与改编边界见[MYTH_SOURCES.md](./MYTH_SOURCES.md)。
+本轮五幕主线通向昆仑天门；五条随机人物线每局抽二至三条，女娲为公共终幕。
 实现与验收口径集中在[COMBAT_RULES.md](./COMBAT_RULES.md)、[WRITING_GUIDE.md](./WRITING_GUIDE.md)
 和[开发规则页](./rules/KF01_03.md)、[KF04-KF06](./rules/KF04_06.md)、[KF07-KF10](./rules/KF07_10.md)、[事件规则](./rules/EVENT_RULES.md)。
 本页不恢复旧主辅功法、G/B/T/I 编号、统一槽位或未批准的后续大战规则。
