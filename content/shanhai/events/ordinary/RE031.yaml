@@ -1,0 +1,53 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE031
+name: 终程筹币
+status: design_target
+summary: 用灵石换终门前的护盾，或把灵石/修为带走。
+description: 终程商筹只写着下一处战门的风声，筹主能把牌面换成护行护盾、盘缠或修行。
+tags: [ordinary, shop_prep, preparation, act4]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；准备不增加节点、不生成免费商店物品。
+balance:
+  target:
+    gross_U: [0.5, 1.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [4]
+scene: 终程的风越来越紧，筹主把三样东西摆在你面前：护盾、灵石和修为。
+options:
+  - id: RE031-A
+    label: 付石备终程
+    quick: 付出标价灵石，为下一场战斗备下一层护盾。
+    requirements:
+      - {type: can_pay}
+    costs:
+      - {type: resource, resource: coins, amount: 1.0, basis: common_price}
+    rewards:
+      - {type: preparation, effect: shield, amount: 0.1, basis: reference_hp}
+    outcome: 护行灵材化成护盾，在下一场战斗前等着你。
+  - id: RE031-B
+    label: 留币看门
+    quick: 拿走一笔灵石，留着最后一段路使用。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: coins, amount: 0.25, basis: common_price}
+    outcome: 你收好筹主递来的灵石，最后一段路仍由你自己安排。
+  - id: RE031-C
+    label: 以筹换修
+    quick: 静坐片刻，修为提高下一次进阶所需的两成；已到当前境界尽头时收益有限。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
+    outcome: 你在终程风声里守住心神，让修为向下一次进阶推进；已到当前境界尽头时，只留下修为记录。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

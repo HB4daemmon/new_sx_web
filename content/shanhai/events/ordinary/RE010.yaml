@@ -1,0 +1,44 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE010
+name: 潮关药签
+status: design_target
+summary: 在潮关选择疗伤，或带走行医囊。
+description: 潮关药棚只剩一张药签，药师能当场煎服，也能把它缝进行医囊。
+tags: [ordinary, heal, artifact, act2]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件。
+balance:
+  target:
+    gross_U: [0.4, 1.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [2]
+scene: 潮关药棚只剩一张药签。药师问你，是现在喝下，还是把药材缝进行医囊。
+options:
+  - id: RE010-A
+    label: 当场煎服
+    quick: 当场煎服，立即恢复一段气血。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: hp, amount: 0.2, basis: reference_hp}
+    outcome: 药汤入腹，潮湿的伤口很快止住了痛。
+  - id: RE010-B
+    label: 封入行医囊
+    quick: 带走一层行医囊，让沿途行走时也能慢慢补气血。
+    requirements:
+      - {type: capacity, id: RC17, count: 1}
+    costs: []
+    rewards:
+      - {type: artifact, id: RC17, count: 1}
+    outcome: 你把药材封进行医囊，往后的旅路会得到它的照料。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

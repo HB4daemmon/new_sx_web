@@ -1,0 +1,38 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RC12
+name: 回春瓶
+status: design_target
+summary: 最大气血 +10；自身治疗量 +6%
+description: 瓶中春息回旋，抬高最大气血并放大自身治疗总量。
+tags: [max_hp, heal, combat]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 1, A: 5, J: 0, U: 1}
+  measured: null
+rarity: common
+max_stacks: 3
+unique_group: null
+attributes:
+  flat: {max_hp: 10}
+  percent: {}
+effects:
+  - id: RC12-SELF-HEAL-BONUS
+    trigger: always
+    operation: modify_effect
+    target: self
+    params:
+      effect_selector: {operation: heal, source: self}
+      ratio: 0.06
+      stacking: linear
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: permanent, count: 1}
+    text: 每层使自身治疗量提高6%，先修正治疗总量再拆分有效治疗与溢出。
+acquisition:
+  pools: [common_artifact]

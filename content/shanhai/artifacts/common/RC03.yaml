@@ -1,0 +1,25 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RC03
+name: 玄铁甲
+status: design_target
+summary: 防御 +5
+description: 玄铁片层叠成甲，直接提高承受攻击时的防御。
+tags: [defense, combat, durable]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 1, A: 5, J: 0, U: 1}
+  measured: null
+rarity: common
+max_stacks: 5
+unique_group: null
+attributes:
+  flat: {defense: 5}
+  percent: {}
+effects: []
+acquisition:
+  pools: [common_artifact]

@@ -1,0 +1,44 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RR13
+name: 截脉针
+status: design_target
+summary: 攻击 +8；普攻命中削减敌方怒气 10，每主动作一次
+description: 针尖截断气脉，在普攻首个有效基础命中时登记敌方削怒请求。
+tags: [attack, rage_drain, basic, rare]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 2.4, A: 12, J: 0, U: 2.4}
+  measured: null
+rarity: rare
+max_stacks: 1
+unique_group: null
+attributes:
+  flat: {attack: 8}
+  percent: {}
+effects:
+  - id: RR13-FIRST-BASIC-RAGE-DRAIN
+    trigger: direct_hit
+    operation: rage_drain
+    target: enemy
+    params:
+      amount: 10
+      request_only: true
+      deferred: round_end
+      action_type: basic_action
+      hit_scope: first_effective_base_direct_hit
+      one_per_action: true
+      counts_toward_target_round_cap: true
+      target_round_cap: 20
+      excludes: [rage_action, artifact_followup, reflect, poison, burn]
+    requires: [effective_basic_base_hit]
+    consumes: []
+    replaces: []
+    limit: {scope: action, count: 1}
+    text: 普攻首个有效基础命中登记敌方本轮削怒请求10，轮尾统一结算并受目标每轮外来削怒20上限约束。
+acquisition:
+  pools: [rare_artifact]

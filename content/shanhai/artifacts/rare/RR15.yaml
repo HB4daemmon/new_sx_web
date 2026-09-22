@@ -1,0 +1,41 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RR15
+name: 定心佩
+status: design_target
+summary: 最大气血 +30；受到的外来削怒量减半
+description: 佩中定心之意削弱外来冲击，只作用于外来的削怒请求。
+tags: [max_hp, rage_drain_resist, combat, rare]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 2.4, A: 12, J: 0, U: 2.4}
+  measured: null
+rarity: rare
+max_stacks: 1
+unique_group: null
+attributes:
+  flat: {max_hp: 30}
+  percent: {}
+effects:
+  - id: RR15-EXTERNAL-RAGE-DRAIN-RESIST
+    trigger: always
+    operation: rage_drain_resist
+    target: self
+    params:
+      ratio: 0.5
+      source: external_rage_drain_only
+      combine: additive
+      cap: 1
+      rounding: floor_after_resistance
+      excludes: [rage_gain, incoming_segments]
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: permanent, count: 1}
+    text: 外来削怒请求按50%抗性处理；多个明示抗性先相加并封顶100%，不影响回怒收入或受击段数。
+acquisition:
+  pools: [rare_artifact]

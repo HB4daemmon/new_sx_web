@@ -1,0 +1,59 @@
+{
+  "url": "http://localhost:4173/",
+  "generatedAt": "2026-09-22T13:18:58.622Z",
+  "checks": [
+    {
+      "name": "desktop setup has five methods and no overflow",
+      "ok": true
+    },
+    {
+      "name": "mobile setup has five methods and no overflow",
+      "ok": true
+    },
+    {
+      "name": "battle playback speed pause and skip controls",
+      "ok": true
+    },
+    {
+      "name": "4096-round draw keeps explicit retirement and disables continuation",
+      "ok": true
+    },
+    {
+      "name": "reward candidates remain frozen after reload",
+      "ok": true
+    },
+    {
+      "name": "reward percentages and contribution reasons stay readable",
+      "ok": true
+    },
+    {
+      "name": "event unavailable reasons stay Chinese and disabled",
+      "ok": true
+    },
+    {
+      "name": "event fixture renders",
+      "ok": true
+    },
+    {
+      "name": "shop fixture renders",
+      "ok": true
+    },
+    {
+      "name": "rest fixture renders",
+      "ok": true
+    },
+    {
+      "name": "talent fixture renders",
+      "ok": true
+    },
+    {
+      "name": "won fixture renders",
+      "ok": true
+    },
+    {
+      "name": "mobile battle controls stay reachable",
+      "ok": true
+    }
+  ],
+  "errors": []
+}

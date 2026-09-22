@@ -1,0 +1,5 @@
+node_modules/
+cache/
+published/
+site/content/
+site/.vitepress/sidebar-data.mjs

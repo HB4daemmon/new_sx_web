@@ -1,0 +1,42 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RL02
+name: 薪火宝炉
+status: design_target
+summary: 攻击 +12、防御 +6；燃烧实际伤害后按比例治疗
+description: 炉中薪火在燃烧造成真实气血损失后回馈治疗，燃烧伤害本身不被消耗。
+tags: [attack, defense, burn, heal, legendary]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 4, A: 20, J: 0, U: 4}
+  measured: null
+rarity: legendary
+max_stacks: 1
+unique_group: null
+attributes:
+  flat: {attack: 12, defense: 6}
+  percent: {}
+effects:
+  - id: RL02-FIRST-BURN-HEAL
+    trigger: dot_resolved
+    operation: heal
+    target: self
+    params:
+      ratio: 0.25
+      basis: actual_hp_damage
+      source: self_applied_burn
+      first_burn_damage_per_round: true
+      preserve_burn_damage: true
+      cap: max_hp
+      first_test_value: {burn_damage_to_heal_ratio: 0.25}
+    requires: [positive_actual_hp_damage_from_own_burn]
+    consumes: []
+    replaces: []
+    limit: {scope: round, count: 1}
+    text: 每轮首次自身燃烧造成实际气血伤害后，按该次实际伤害的25%治疗自身；燃烧伤害保留，每轮最多一次。
+acquisition:
+  pools: [legendary_artifact]

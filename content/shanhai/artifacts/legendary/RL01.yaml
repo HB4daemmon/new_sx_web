@@ -1,0 +1,46 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RL01
+name: 琉璃法印
+status: design_target
+summary: 最大气血 +12%、防御 +8；治疗溢出改走护盾出口
+description: 法印将真实治疗溢出导向护盾出口，保留有效治疗并替代同一份溢出的原出口。
+tags: [max_hp, defense, heal, shield, overflow, legendary]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 4, A: 20, J: 0, U: 4}
+  measured: null
+rarity: legendary
+max_stacks: 1
+unique_group: overflow_outlet
+attributes:
+  flat: {defense: 8}
+  percent: {max_hp: 0.12}
+effects:
+  - id: RL01-HEAL-OVERFLOW-TO-SHIELD
+    trigger: overflow_resolved
+    operation: convert_overflow
+    target: self
+    params:
+      source: self_heal
+      input: actual_overflow
+      ratio: 1
+      destination: shield
+      preserve_effective_heal: true
+      shield_cap: max_hp
+      outlet_selector:
+        scope: overflow_outlet
+        replace_outputs: [direct_damage, poison]
+      one_conversion_per_overflow_instance: true
+      first_test_value: {overflow_to_shield_ratio: 1}
+    requires: [positive_actual_heal_overflow]
+    consumes: []
+    replaces: []
+    limit: {scope: segment, count: 1}
+    text: 每份战斗中真实治疗溢出按100%转为护盾，原有效治疗保留；只替代同一溢出的原出口，不与其它来源施毒重复。
+acquisition:
+  pools: [legendary_artifact]

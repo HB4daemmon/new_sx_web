@@ -1,0 +1,25 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RC02
+name: 虎纹佩
+status: design_target
+summary: 攻击 +4%
+description: 佩面上的虎纹聚拢劲力，使攻击按比例增长。
+tags: [attack, percent, combat]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 1, A: 5, J: 0, U: 1}
+  measured: null
+rarity: common
+max_stacks: 3
+unique_group: null
+attributes:
+  flat: {}
+  percent: {attack: 0.04}
+effects: []
+acquisition:
+  pools: [common_artifact]

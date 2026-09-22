@@ -1,0 +1,63 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RK016
+name: 烛龙垂天
+status: design_target
+summary: 传奇法本烛龙真经只向学过太阴经的人显现；挑战或支付 36 灵石可取，但挑战失手不留法本。
+description: 第四幕云门昼夜倒转，烛龙真经就在门后；只有学过太阴经的人能读卷，进入方式、气血代价和失手后果都摆在眼前。
+tags: [core, independent_core, legendary_method, RKF10, phase, high_risk]
+source:
+  basis: original
+  reference: null
+  note: 烛龙垂天、法本取得、挑战和昼夜相位均为游戏原创；RKF10是现有游戏原创功法，不声称原典修炼体系。
+  identity: 本事件不宣称烛龙垂天或RKF10具有已核验的原典修炼身份。
+  game_original: 烛龙机缘、RKF08前置、两种公开投入和RKF10取得均为游戏原创。
+balance:
+  target:
+    gross_U: [2.4, 4.0]
+    method_value: legendary_method_quality
+  measured: null
+event_type: core
+acts: [4]
+scene: 云门一开一合，昼夜在门后交替；石碑写明只有学过太阴经的人可读卷；试炼要承受 15% 气血损耗，支付 36 灵石可直接取烛龙真经，失手则两手空空。
+options:
+  - id: RK016-open-day-night
+    label: 迎昼夜试炼
+    quick: 学过太阴经，支付 15% 气血，胜利取烛龙真经
+    requirements:
+      - {type: known_method, id: RKF08}
+    costs:
+      - {type: resource, resource: hp, amount: 0.15, basis: reference_hp, must_survive: true}
+    rewards:
+      - {type: method, id: RKF10}
+    outcome: 你在昼夜换相前完成试炼，胜利后取得烛龙真经；之后仍可再决定是否换功法、突破或渡劫。
+    encounter:
+      enemy_id: EN-A4-B2
+      mode: nonlethal
+      failure_hp_floor: 1
+      failure_rewards: []
+      failure_outcome: 昼夜交替打乱你的节奏，烛龙真经闭门；已付的 15% 气血留在云门前，烛龙真经没有到手。
+  - id: RK016-buy-dawn
+    label: 付石开云门
+    quick: 学过太阴经，支付 36 灵石，稳妥取烛龙真经
+    requirements:
+      - {type: known_method, id: RKF08}
+      - {type: can_pay}
+    costs:
+      - {type: resource, resource: coins, amount: 36, basis: flat}
+    rewards:
+      - {type: method, id: RKF10}
+    outcome: 你用盘缠取到烛龙真经；之后仍可看清现有天赋和路上损失，再决定是否换功法。
+  - id: RK016-close-cloud-gate
+    label: 关上云门
+    quick: 不愿投入，保留当前功法与资源
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 你让云门重新合拢，烛龙真经只是一条可绕开的高风险机缘。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

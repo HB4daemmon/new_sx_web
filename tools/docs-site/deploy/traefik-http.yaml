@@ -1,0 +1,12 @@
+http:
+  routers:
+    suishi-docs:
+      entryPoints:
+        - web
+      rule: Host(`sg.229465154.xyz`)
+      service: suishi-docs
+  services:
+    suishi-docs:
+      loadBalancer:
+        servers:
+          - url: http://suishi-docs-web-1:8080

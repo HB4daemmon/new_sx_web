@@ -1,0 +1,68 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE032
+name: 云阶试锋
+status: design_target
+summary: 在云阶试锋中争取两层虎纹佩或厚土环，也可付灵石带走雷纹印。
+description: 云阶试锋者把虎纹佩与厚土环分列两边，败者只退回石线。
+tags: [ordinary, nonlethal, encounter, two_layers, act4]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；内部试锋不发普通战包或 RR06。
+balance:
+  target:
+    gross_U: [1.5, 2.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [4]
+scene: 云阶上风声猎猎，虎纹佩、厚土环和雷纹印摆在三道石线之间。你可以试锋，也可以用灵石换一件现成的法宝。
+options:
+  - id: RE032-A
+    label: 试虎纹双片
+    quick: 参加非致命试锋，胜者带走两层虎纹佩；败了只剩一线气血。
+    requirements:
+      - {type: capacity, id: RC02, count: 2}
+    costs: []
+    rewards:
+      - {type: artifact, id: RC02, count: 2}
+    encounter:
+      enemy_id: EN-A4-C4
+      mode: nonlethal
+      failure_hp_floor: 1
+      failure_rewards: []
+      failure_outcome: 你被试锋者逼回石线，气血只剩一线，虎纹佩仍留在阶上。
+    outcome: 你赢下云阶试锋，带走两层虎纹佩。
+  - id: RE032-B
+    label: 试厚土双片
+    quick: 参加非致命试锋，胜者带走两层厚土环；败了只剩一线气血。
+    requirements:
+      - {type: capacity, id: RC04, count: 2}
+    costs: []
+    rewards:
+      - {type: artifact, id: RC04, count: 2}
+    encounter:
+      enemy_id: EN-A4-C4
+      mode: nonlethal
+      failure_hp_floor: 1
+      failure_rewards: []
+      failure_outcome: 你被试锋者逼回石线，气血只剩一线，厚土环仍留在阶上。
+    outcome: 你赢下云阶试锋，带走两层厚土环。
+  - id: RE032-C
+    label: 付石取雷纹
+    quick: 付出标价灵石，带走一层雷纹印，避开试锋。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC10, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 1.0, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC10, count: 1}
+    outcome: 你付出灵石接过雷纹印，云阶上的风声渐渐远去。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

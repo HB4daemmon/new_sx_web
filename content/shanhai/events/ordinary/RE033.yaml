@@ -1,0 +1,55 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE033
+name: 孤灯换卷
+status: design_target
+summary: 付灵石取得归元诀法本，或带走返气环。
+description: 孤灯只照得清一卷归元诀，灯旁的返气环价格更低，却各有用途。
+tags: [ordinary, method, purchase, artifact, act4]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；法本取得不强制换法。
+balance:
+  target:
+    gross_U: [0.8, 1.2]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [4]
+scene: 孤灯下，归元诀残卷与返气环静静相对。卷要价更高，环更便宜，取舍写在灯影里。
+options:
+  - id: RE033-A
+    label: 付石收下归元卷
+    quick: 付出标价灵石，带走归元诀法本；是否改修由你决定。
+    requirements:
+      - {type: can_pay}
+    costs:
+      - {type: resource, resource: coins, amount: 1.25, basis: common_price}
+    rewards:
+      - {type: method, id: RKF02}
+    outcome: 归元诀收入你的行囊，眼下仍沿用原先的功法。
+  - id: RE033-B
+    label: 付石取返气环
+    quick: 付出标价灵石，带走一层返气环，怒技后额外回怒。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC23, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 0.75, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC23, count: 1}
+    outcome: 返气环在怒技余波中轻响，下一轮聚气会更从容。
+  - id: RE033-C
+    label: 吹灯过阶
+    quick: 吹灯过阶，保留灵石与当前功法。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 孤灯熄灭，你带着原有灵石和功法继续赶路。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

@@ -1,0 +1,47 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A1-C2
+name: 风穴雷獭
+status: design_target
+summary: 以较快速度和三段雷怒技形成第一幕前段多段压力。
+description: 雷獭的压力来自奔雷诀本身的三段怒技和公开速度，而不是动态读取玩家 build。它的生命与攻击保持前段普通范围，主要风险是多段直接伤害在同一怒技内连续兑现，不承诺静态胜率。
+tags: [enemy, act1, normal, multihit]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创妖物，不声称古籍存在此身份或这些效果。
+balance:
+  target:
+    rounds: [3, 5]
+    net_hp_loss_pct: [3, 6]
+    burst_warning_pct: 12
+    observation_window: 15
+    note: 首轮普通前段参考目标带，不是胜率或准确命中承诺。
+  measured: null
+acts: [1]
+tier: normal
+identity: 风穴雷獭从石缝窜出，尾端的电光在蓄怒时变亮。它以三段雷击和有限连雷形成短促直接压力，不包含未公开的免疫。
+method: RKF07
+n: 0
+talents: []
+artifacts:
+  - {id: RC07, stacks: 1}
+  - {id: RC08, stacks: 2}
+stats:
+  attack: 14
+  defense: 34
+  max_hp: 295
+  crit_rate: 0.06
+  speed: 11
+pressure: [多段]
+counterplay:
+  - 用护盾或防御提高承受三段怒技的容错，并利用每段受击回怒准备自己的反击。
+  - 争取先手短战或用可见的减攻、破甲来源缩短它等待下一次怒技的窗口。
+preview: 基础五维为装备前值；普通行动是一段普攻，怒技公开为三段雷击并按奔雷诀卡面逐段判定连雷，疾风履只改变先后顺序，阶段列表为空。
+phases: []
+reward_profile: C
+measured: null
+"null":
+  reason: target_design_before_runtime_fixture
+  allowed: true

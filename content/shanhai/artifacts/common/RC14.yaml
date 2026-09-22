@@ -1,0 +1,38 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RC14
+name: 蛇纹瓶
+status: design_target
+summary: 攻击 +2；自身中毒持续伤害 +6%
+description: 瓶口蛇纹吐出阴息，强化自身施加的中毒持续伤害。
+tags: [attack, poison, dot, combat]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 1, A: 5, J: 0, U: 1}
+  measured: null
+rarity: common
+max_stacks: 3
+unique_group: null
+attributes:
+  flat: {attack: 2}
+  percent: {}
+effects:
+  - id: RC14-SELF-POISON-BONUS
+    trigger: always
+    operation: modify_effect
+    target: self
+    params:
+      effect_selector: {operation: damage, status: poison, source: self}
+      ratio: 0.06
+      stacking: linear
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: permanent, count: 1}
+    text: 每层使自身中毒持续伤害提高6%，按毒层快照修正，不改变施毒次数。
+acquisition:
+  pools: [common_artifact]

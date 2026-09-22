@@ -1,0 +1,48 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A1-C1
+name: 浅滩石鼋
+status: design_target
+summary: 以低攻击和单段直接伤害形成第一幕前段普通压力。
+description: 石鼋只使用现有归元诀的普攻和怒技，不读取玩家配置，也没有隐藏阶段。它的攻击较低、最大气血低于第一幕基础玩家参考，实际压力集中在稳定的单段直接伤害，不承诺固定胜率。
+tags: [enemy, act1, normal, direct]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创妖物，不声称古籍存在此身份或这些效果。
+balance:
+  target:
+    rounds: [3, 5]
+    net_hp_loss_pct: [3, 6]
+    burst_warning_pct: 12
+    observation_window: 15
+    note: 首轮普通前段参考目标带，不是胜率或准确命中承诺。
+  measured: null
+acts: [1]
+tier: normal
+identity: 浅滩石鼋伏在半露的礁石旁，只以沉稳的拳脚和一次怒技造成直接压力。它是最大气血低于基础玩家参考的原创妖物。
+method: RKF02
+n: 0
+talents: []
+artifacts:
+  - {id: RC01, stacks: 1}
+  - {id: RC09, stacks: 1}
+  - {id: RC22, stacks: 1}
+stats:
+  attack: 13
+  defense: 36
+  max_hp: 280
+  crit_rate: 0.05
+  speed: 9
+pressure: [直接攻击]
+counterplay:
+  - 先用护盾或防御来源承受第一轮直接段，再在它攒满怒气前集中输出。
+  - 选带普攻或持续输出的方案压低气血，不必等到自己的怒技才开始造成有效伤害。
+preview: 基础五维为装备前值；公开行动是单段普攻，怒气满足公共门槛后使用单段归元怒技，装备只提供攻击、普攻直接伤害和开场回怒，不含额外阶段。
+phases: []
+reward_profile: C
+measured: null
+"null":
+  reason: target_design_before_runtime_fixture
+  allowed: true

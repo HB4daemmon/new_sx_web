@@ -1,0 +1,53 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RK011
+name: 铁扇借一阵风
+status: design_target
+summary: 火山口只给短风，先承受一笔气血代价，后段才有资格问真正的风。
+description: 铁扇公主把火山风口的安全路和火伤承诺摆在一起；她不送扇子，只让你决定是否先把代价带上路。
+tags: [core, character_encounter, princess_iron_fan, first_meeting, hp_commitment]
+source:
+  basis: myth_adaptation
+  reference: canon.xiyou_ji.character.e46529d4c
+  note: 原典库以draft实体确认铁扇公主与翠云山芭蕉洞、献扇救夫等关系；火山承诺与本作奖励为游戏原创。
+  identity: 铁扇公主为《西游记》知识库实体，当前校对状态draft。
+  game_original: 显性气血承诺、风止石回访、火系法宝和内部战均为游戏改编。
+balance:
+  target:
+    gross_U: [0, 0.5]
+  measured: null
+event_type: core
+acts: [2]
+scene: 火妖把山腹烧成窄口，铁扇公主只能把凉风推过一段路；你可以拿盘缠，也可以现在就承受一笔明示的火伤。
+options:
+  - id: RK011-carry-fire-cost
+    label: 带火伤上路
+    quick: 支付 10% 气血且必须存活，保留后段借风资格
+    requirements: []
+    costs:
+      - {type: resource, resource: hp, amount: 0.1, basis: reference_hp, must_survive: true}
+    rewards: []
+    set_flags:
+      RS06-promised: true
+    outcome: 你承受火伤穿过风口，铁扇公主记下这笔代价：后段风止石见。
+  - id: RK011-take-coins
+    label: 先取盘缠
+    quick: 立即获得一小笔灵石，不接火山承诺
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: coins, amount: 0.1, basis: common_price}
+    outcome: 你拿盘缠绕开火根，铁扇公主不再为你预留后段风口。
+  - id: RK011-leave
+    label: 沿冷坡离开
+    quick: 不拿资源、不受伤，回到普通路线
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 你选择冷坡，火山的借风机会留在原地。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

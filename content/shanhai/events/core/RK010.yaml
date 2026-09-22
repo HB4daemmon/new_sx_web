@@ -1,0 +1,63 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RK010
+name: 哪吒再接一阵
+status: design_target
+summary: 第一阵的伤势不会被抹掉，第二阵胜利取如意钱，支付 24 灵石可取雷纹印。
+description: 哪吒在后段收起第一面阵旗，只问你继续接阵、支付灵石取雷纹印，还是承认这一回到此为止。
+tags: [core, character_encounter, nezha, follow_up, staged_trial]
+source:
+  basis: myth_adaptation
+  reference: canon.fengjian_chunqiu.character.e8205e7a1
+  note: 哪吒身份由知识库draft实体支持；第二阵和器物奖励为游戏原创改编。
+  identity: 哪吒为知识库所收录的神将人物，原典摘要不等于本作阵法或法宝规则。
+  game_original: 回访旗标、第二阵、失败不补奖励和RR04奖励均为游戏改编。
+balance:
+  target:
+    gross_U: [2.4, 4.0]
+  measured: null
+event_type: core
+acts: [4]
+scene: 第二面阵旗已经升起，哪吒明说第一阵留下的伤势和护盾不会在这里免费重置；如意钱和雷纹印摆在阵旁。
+options:
+  - id: RK010-enter-second-array
+    label: 接第二阵
+    quick: 再付 12% 气血，胜利取如意钱
+    requirements:
+      - {type: flag, id: RS05-promised, value: true}
+    costs:
+      - {type: resource, resource: hp, amount: 0.12, basis: reference_hp, must_survive: true}
+    rewards:
+      - {type: artifact, id: RR04, count: 1}
+    outcome: 你把两阵都走完，胜利后取下如意钱；它的攻击与暴击属性立即计入，下一场真实战斗可触发追加一击。
+    encounter:
+      enemy_id: EN-A4-L1
+      mode: nonlethal
+      failure_hp_floor: 1
+      failure_rewards: []
+      failure_outcome: 第二阵压住了你的出手，哪吒收阵；已付的 12% 气血留在阵前，如意钱没有到手。
+  - id: RK010-pay-artifact
+    label: 付石收锋
+    quick: 支付 24 灵石，稳妥取雷纹印
+    requirements:
+      - {type: flag, id: RS05-promised, value: true}
+      - {type: can_pay}
+    costs:
+      - {type: resource, resource: coins, amount: 24, basis: flat}
+    rewards:
+      - {type: artifact, id: RC10, count: 1}
+    outcome: 你用盘缠换下雷纹印；它的攻击提升立即计入，下一场真实战斗的怒技会更强，你不再接第二阵。
+  - id: RK010-stop
+    label: 收手离阵
+    quick: 收手离阵，保留第一阵的伤势与经历
+    requirements:
+      - {type: flag, id: RS05-promised, value: true}
+    costs: []
+    rewards: []
+    outcome: 你在第二阵前收手，哪吒点头：知道什么时候停，也算过阵；如意钱和雷纹印都留在阵旁。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

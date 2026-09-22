@@ -1,0 +1,51 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A3-C1
+name: 沉甲巡谷
+status: design_target
+summary: 以金刚功护盾和真实盾返建立承伤压力的普通敌人。
+description: 裂谷沉甲巡守是原创匿名敌人，配装只展示现有金刚功与法宝输入。
+tags: [enemy, act3, normal, shield, direct]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创匿名敌人与原创配装，不声称古籍人物或原典战斗效果。
+balance:
+  target:
+    rounds: [3, 5]
+    net_hp_loss_pct: [3, 6]
+    burst_warning_pct: 12
+  measured: null
+acts: [3]
+tier: normal
+identity: 裂谷沉甲巡守
+method: RKF01
+n: 2
+talents: [RKF01-J1-A, RKF01-J2-A]
+artifacts:
+  - {id: RC03, stacks: 2}
+  - {id: RC11, stacks: 2}
+  - {id: RR09, stacks: 1}
+stats:
+  attack: 18
+  defense: 66
+  max_hp: 345
+  crit_rate: 0.06
+  speed: 9
+pressure: [稳打护盾]
+counterplay:
+  - 战前选持续直伤或多段攻击，先消耗护盾再交怒技，避免把单次爆发完整撞在厚盾上。
+  - 战前选防御或护盾型构筑承受盾返，并保留普攻循环等其护盾窗口变薄。
+preview: >-
+  普攻后按防御造盾，怒技后造更厚的盾；护盾实际吸收敌方主动直接攻击时会触发金刚功盾返，
+  RR09只在这份真实盾返生效后登记额外回怒。预览显示当前护盾、盾返来源与下一次可能的怒技，
+  自动战仅执行战前已选的输出或承伤取舍。
+phases: []
+reward_profile: C
+target:
+  rounds: [3, 5]
+  net_hp_loss_pct: [3, 6]
+  burst_warning_pct: 12
+  note: 参考幸存胜利样本的首测损耗输入，不承诺胜率或固定击杀轮数。
+measured: null

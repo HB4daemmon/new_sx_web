@@ -1,0 +1,42 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RR09
+name: 震岳鼓
+status: design_target
+summary: 防御 +8；盾返有效后每敌方主动作额外回怒 10
+description: 鼓面在已有护盾反击生效时震动，为后续敌方主动作积蓄怒气。
+tags: [defense, shield_reflect, rage_gain, rare]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 2.4, A: 12, J: 0, U: 2.4}
+  measured: null
+rarity: rare
+max_stacks: 1
+unique_group: null
+attributes:
+  flat: {defense: 8}
+  percent: {}
+effects:
+  - id: RR09-REFLECT-ENEMY-ACTION-RAGE
+    trigger: enemy_action_end
+    operation: rage_gain
+    target: self
+    params:
+      amount: 10
+      timing: round_end
+      source: existing_shield_reflect
+      requires_effective_reflect: true
+      reflect_must_be_positive: true
+      one_per_enemy_action: true
+      does_not_grant_shield_reflect: true
+    requires: [effective_existing_shield_reflect]
+    consumes: []
+    replaces: []
+    limit: {scope: enemy_action, count: 1}
+    text: 只有已有护盾实际完成正向盾返时，每个敌方主动作额外登记10点怒气；本效果不授予盾返。
+acquisition:
+  pools: [rare_artifact]

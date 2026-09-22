@@ -1,0 +1,56 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE017
+name: 寒泉押注
+status: design_target
+summary: 付高价取蓄气珠，或以较低代价带走引气符。
+description: 寒泉押柜只开一格，稀有蓄气珠与普通引气符的价钱写在柜牌上。
+tags: [ordinary, rare_artifact, purchase, resource, act2]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；稀有法宝有公开付费成本并按 B=2.4 预算记账。
+balance:
+  target:
+    gross_U: [0.75, 2.4]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [2]
+scene: 寒泉边的柜门只肯开一次，蓄气珠和引气符隔着水雾相望。价钱不同，带来的回气路数也不同。
+options:
+  - id: RE017-A
+    label: 付高价取蓄气珠
+    quick: 付出高价，带走蓄气珠，提升攻击并让攻击命中时回怒。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RR01, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 1.75, basis: common_price}
+    rewards:
+      - {type: artifact, id: RR01, count: 1}
+    outcome: 你用灵石换来蓄气珠，珠中气息在每次出手后回流。
+  - id: RE017-B
+    label: 付石取引气符
+    quick: 付出较低标价，带走一层引气符，普攻后额外回怒。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC20, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 0.75, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC20, count: 1}
+    outcome: 引气符贴在腕间，普攻收势时便有一缕灵气回到体内。
+  - id: RE017-C
+    label: 合柜留石
+    quick: 合柜离开，保留灵石。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 柜门合上，寒泉边只剩水声，你把灵石留在身边。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

@@ -1,0 +1,47 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A1-B2
+name: 河伯试潮遗影
+status: design_target
+summary: 以可见自疗和溢疗转伤延长第一幕首领战。
+description: 这是借用河伯试潮意象制作的原创试炼残影，不声称神话人物本人现身或被击杀。它的恢复只来自回春功；长生结与回春瓶只抬高最大气血和治疗输入，不提供护盾或隐藏阶段。
+tags: [enemy, act1, boss, myth_adaptation, water, healing]
+source:
+  basis: myth_adaptation
+  reference: null
+  note: 借用河伯水府与试潮意象的原创试炼残影，原典映射待核验，不声称神话本人进入战斗或被击杀。
+balance:
+  target:
+    rounds: [8, 12]
+    net_hp_loss_pct: [12, 20]
+    burst_warning_pct: 30
+    observation_window: 15
+    note: 首轮幕首领参考目标带，不是胜率、TTK或准确命中承诺。
+  measured: null
+acts: [1]
+tier: boss
+identity: 河伯试潮遗影站在退潮水纹中央，以每一次回身试探潮势。它是原创试炼残影，自疗先填当前气血，真实溢疗按回春功默认出口转成直接伤害，不声称神话本人被击败。
+method: RKF03
+n: 1
+talents: [RKF03-J1-C]
+artifacts:
+  - {id: RC06, stacks: 1}
+  - {id: RC12, stacks: 2}
+stats:
+  attack: 20
+  defense: 73
+  max_hp: 280
+  crit_rate: 0.08
+  speed: 10
+pressure: [恢复]
+counterplay:
+  - 用开场爆发、破甲或持续伤害压低气血，争取在一次怒技自疗前形成不可轻易补回的缺口。
+  - 用毒火或直接输出持续压低当前气血，迫使它的治疗先填真实缺口；保留治疗或防御承受它的直接段。
+preview: 基础五维为装备前值；回春功普攻约按最大气血10%自疗、怒技约按24%自疗，J1-C只提高最大气血，RC06/RC12只提供最大气血或治疗输入，真实溢疗不生成护盾；无额外阶段。
+phases: []
+reward_profile: B
+measured: null
+"null":
+  reason: target_design_before_runtime_fixture
+  allowed: true

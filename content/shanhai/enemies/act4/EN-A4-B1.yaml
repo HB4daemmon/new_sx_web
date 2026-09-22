@@ -1,0 +1,51 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A4-B1
+name: 陆吾守门
+status: design_target
+summary: 以剑势积累、护盾和两段怒技守住终幕入口。
+description: 陆吾守门采用神话意象，具体养剑配装和剑势路线为游戏原创。
+tags: [enemy, act4, boss, myth_adaptation, sword, stacking, multi_segment]
+source:
+  basis: myth_adaptation
+  reference: null
+  note: 仅借用陆吾守门意象；原典出处与本敌人的战斗能力待核验，不伪造原典技能。
+balance:
+  target:
+    rounds: [8, 12]
+    net_hp_loss_pct: [12, 20]
+    burst_warning_pct: 30
+  measured: null
+acts: [4]
+tier: boss
+identity: 陆吾守门
+method: RKF05
+n: 4
+talents: [RKF05-J1-C, RKF05-J2-A, RKF05-J3-B, RKF05-J4-A]
+artifacts:
+  - {id: RC07, stacks: 3}
+  - {id: RC08, stacks: 2}
+  - {id: RR04, stacks: 1}
+stats:
+  attack: 39
+  defense: 100
+  max_hp: 790
+  crit_rate: 0.16
+  speed: 12
+pressure: [多段, 叠buff]
+counterplay:
+  - 战前选防御或护盾构筑承受剑势满层后的两段怒技，利用受击回怒渡过其守门窗口。
+  - 战前选先手高暴击或持续直伤构筑，在剑势达到五层前缩短战斗，避免满层增伤与追剑叠加。
+preview: >-
+  陆吾守门普攻积剑势，J2-A把剑势上限提高到7且怒技不消费，J3-B按动作开始时剑势造盾，
+  J4-A把怒技改为两段各0.85倍的直接剑击，RR04只在普攻首个有效基础命中进行一次追加判定。
+  预览公开剑势层数、护盾输入和两段怒技，自动战仅执行战前的速杀或承伤取舍。
+phases: []
+reward_profile: B
+target:
+  rounds: [8, 12]
+  net_hp_loss_pct: [12, 20]
+  burst_warning_pct: 30
+  note: 参考幸存胜利样本的首测损耗输入，不承诺胜率、TTK或固定首领击杀轮数。
+measured: null

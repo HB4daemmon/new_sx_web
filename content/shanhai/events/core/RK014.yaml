@@ -1,0 +1,60 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RK014
+name: 月门借器
+status: design_target
+summary: 月门后的回澜印只在挑战胜利后到手；支付 28 灵石可取回元佩。
+description: 月门里没有人物等你，只有会改变怒气节奏的回澜印；机缘可绕，支付灵石可取回元佩。
+tags: [core, independent_core, high_risk, rage, legendary_artifact]
+source:
+  basis: original
+  reference: null
+  note: 月门、敌战与法宝是游戏原创设计；RL05为现有原创传奇器物，不声称神话神器。
+  identity: 本事件不绑定原典人物或器物，月门与回澜印均按游戏原创处理。
+  game_original: 月门压制、非致命挑战、付石替代和RL05取得均为游戏原创。
+balance:
+  target:
+    gross_U: [2.4, 4.0]
+  measured: null
+event_type: core
+acts: [2]
+scene: 月门的门缝只开一刻，里面的压制阵会先削弱你的怒气；石牌写着挑战要承受 14% 气血损耗，支付 28 灵石可取回元佩，失手就关门。
+options:
+  - id: RK014-enter-moon-gate
+    label: 承受月门压制
+    quick: 支付 14% 气血，胜利取回澜印
+    requirements: []
+    costs:
+      - {type: resource, resource: hp, amount: 0.14, basis: reference_hp, must_survive: true}
+    rewards:
+      - {type: artifact, id: RL05, count: 1}
+    outcome: 你在怒气被压低前完成破门，胜利后取走回澜印；它的攻击与防御从此刻计入，下一场真实战斗的怒技完成后可返怒。
+    encounter:
+      enemy_id: EN-A2-L2
+      mode: nonlethal
+      failure_hp_floor: 1
+      failure_rewards: []
+      failure_outcome: 月门压制住了你的节奏，回澜印留在门内；已付的 14% 气血留在门槛，回澜印没有到手。
+  - id: RK014-pay-quietly
+    label: 付石取稳
+    quick: 支付 28 灵石，稳妥取回元佩
+    requirements:
+      - {type: can_pay}
+    costs:
+      - {type: resource, resource: coins, amount: 28, basis: flat}
+    rewards:
+      - {type: artifact, id: RR07, count: 1}
+    outcome: 你用盘缠换下回元佩；它的防御立即计入，下一场真实战斗的首个怒技完成后会改变怒气上限，你不进月门。
+  - id: RK014-close-gate
+    label: 关门离开
+    quick: 关门离开，不付石、不挑战
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 你关上月门，回澜印和回元佩都留在门内，公共道路仍然可走。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

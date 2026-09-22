@@ -1,0 +1,53 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE022
+name: 断炉商筹
+status: design_target
+summary: 用灵石为下一场战斗备盾，或换取灵石/修为。
+description: 断炉旁的商筹写着下一处浮市，炉工能把余火铸成护盾，也能换成盘缠或修行。
+tags: [ordinary, shop_prep, preparation, act3]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；准备效果不复制商店库存。
+balance:
+  target:
+    gross_U: [0.5, 1.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [3]
+scene: 炉火将熄，商筹上写着下一处浮市的方向。炉工给你三种去处：护盾、灵石或修为。
+options:
+  - id: RE022-A
+    label: 付石压炉火
+    quick: 付出标价灵石，为下一场战斗备下一层护盾。
+    requirements:
+      - {type: can_pay}
+    costs:
+      - {type: resource, resource: coins, amount: 0.75, basis: common_price}
+    rewards:
+      - {type: preparation, effect: shield, amount: 0.1, basis: reference_hp}
+    outcome: 余火化成护盾，静静等着下一场战斗。
+  - id: RE022-B
+    label: 收下商筹
+    quick: 拿走一笔灵石，留作下一处买卖。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: coins, amount: 0.25, basis: common_price}
+    outcome: 你收好炉工递来的灵石，浮市里的选择仍由你自己决定。
+  - id: RE022-C
+    label: 拆筹修行
+    quick: 静坐片刻，修为提高下一次进阶所需的两成。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
+    outcome: 你把炉火余温纳入体内，修为向下一次进阶推进。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

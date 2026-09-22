@@ -1,0 +1,60 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE014
+name: 石桥点斗
+status: design_target
+summary: 在石桥试取两层雷纹印，或付灵石带走铁壁符。
+description: 守桥人把雷纹印摆在白线尽头，约你点到为止；败者只退回桥头。
+tags: [ordinary, nonlethal, encounter, two_layers, act2]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；内部比试不发普通战包或 RR06。
+balance:
+  target:
+    gross_U: [1.5, 2.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [2]
+scene: 石桥风急，守桥人抬手亮出雷纹印。想拿走它，先在白线内接下这一轮试招。
+options:
+  - id: RE014-A
+    label: 线上试雷纹
+    quick: 参加非致命试招，胜者带走两层雷纹印；败了只剩一线气血。
+    requirements:
+      - {type: capacity, id: RC10, count: 2}
+    costs: []
+    rewards:
+      - {type: artifact, id: RC10, count: 2}
+    encounter:
+      enemy_id: EN-A2-C2
+      mode: nonlethal
+      failure_hp_floor: 1
+      failure_rewards: []
+      failure_outcome: 你被守桥人逼回桥头，气血只剩一线，雷纹印仍留在桥面。
+    outcome: 你在白线内赢下试招，带走两层雷纹印。
+  - id: RE014-B
+    label: 付石买铁壁
+    quick: 付出标价灵石，带走一层铁壁符，避开试招。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC11, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 1.0, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC11, count: 1}
+    outcome: 你付出灵石接过铁壁符，石桥上的风声与凶险都被留在身后。
+  - id: RE014-C
+    label: 退到桥头
+    quick: 退到桥头，保留气血与资源。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 守桥人收回雷纹印，你安全离开石桥。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

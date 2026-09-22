@@ -1,0 +1,55 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE003
+name: 灰烬石匣
+status: design_target
+summary: 以气血为价，在青锋石与玄铁甲之间取两层，或拿走灵石。
+description: 灰烬石匣还在发烫，匣底压着两枚法片。外沿的灵石不必冒险就能捡走。
+tags: [ordinary, blood_price, two_layers, artifact]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件。
+balance:
+  target:
+    gross_U: [1.5, 2.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [1, 2]
+scene: 灰烬石匣仍在发烫，匣底压着青锋石与玄铁甲。外沿的灵石安静躺在冷灰里。
+options:
+  - id: RE003-A
+    label: 探入匣底取锋
+    quick: 付出当前幕参考气血的12%代价，带走两层青锋石。
+    requirements:
+      - {type: capacity, id: RC01, count: 2}
+    costs:
+      - {type: resource, resource: hp, amount: 0.12, basis: reference_hp, must_survive: true}
+    rewards:
+      - {type: artifact, id: RC01, count: 2}
+    outcome: 你忍住灼痛取出两层青锋石，锋芒沾着灰烬。
+  - id: RE003-B
+    label: 探入匣底取甲
+    quick: 付出当前幕参考气血的12%代价，带走两层玄铁甲。
+    requirements:
+      - {type: capacity, id: RC03, count: 2}
+    costs:
+      - {type: resource, resource: hp, amount: 0.12, basis: reference_hp, must_survive: true}
+    rewards:
+      - {type: artifact, id: RC03, count: 2}
+    outcome: 你忍住灼痛取出两层玄铁甲，沉重的护意贴上肩背。
+  - id: RE003-C
+    label: 拾取外沿灵石
+    quick: 拾走外沿灵石，不必损失气血。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: coins, amount: 0.2, basis: common_price}
+    outcome: 你捡起冷却的灵石，转身离开炽红石匣。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

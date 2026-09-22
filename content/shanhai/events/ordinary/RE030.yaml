@@ -1,0 +1,55 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE030
+name: 天门血契
+status: design_target
+summary: 以气血换两层养气玉或长生结，或静坐修行。
+description: 天门石缝里嵌着两份血契，契文写明取出时会抽走一段气血；旁边仍有一处能静心的石台。
+tags: [ordinary, blood_price, two_layers, artifact, act4]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件。
+balance:
+  target:
+    gross_U: [1.5, 2.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [4]
+scene: 血契在天门缝隙中微微发亮，石台上的风却很平静。你可以取宝，也可以不冒险，静坐积累修为。
+options:
+  - id: RE030-A
+    label: 取养气血契
+    quick: 付出当前幕参考气血的12%代价，带走两层养气玉，提高最大气血。
+    requirements:
+      - {type: capacity, id: RC05, count: 2}
+    costs:
+      - {type: resource, resource: hp, amount: 0.12, basis: reference_hp, must_survive: true}
+    rewards:
+      - {type: artifact, id: RC05, count: 2}
+    outcome: 你忍痛撕开血契，养气玉贴着掌心发热，气血根基更厚。
+  - id: RE030-B
+    label: 取长生血契
+    quick: 付出当前幕参考气血的12%代价，带走两层长生结，提高最大气血。
+    requirements:
+      - {type: capacity, id: RC06, count: 2}
+    costs:
+      - {type: resource, resource: hp, amount: 0.12, basis: reference_hp, must_survive: true}
+    rewards:
+      - {type: artifact, id: RC06, count: 2}
+    outcome: 你忍痛撕开血契，长生结在指间收紧，生机随之延续。
+  - id: RE030-C
+    label: 撕契离门
+    quick: 不碰血契，修为提高下一次进阶所需的两成；已到当前境界尽头时收益有限。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
+    outcome: 你在石台上静坐，让修为向下一次进阶靠近；已到当前境界尽头时，只留下修为记录。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

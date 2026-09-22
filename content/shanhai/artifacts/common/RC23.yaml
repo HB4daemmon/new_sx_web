@@ -1,0 +1,39 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RC23
+name: 返气环
+status: design_target
+summary: 防御 +2；怒技完成后固定返怒 5
+description: 环身受怒气冲击后回弹，在怒技主动作完成时返还固定怒气。
+tags: [defense, rage_gain, rage, combat]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 1, A: 5, J: 0, U: 1}
+  measured: null
+rarity: common
+max_stacks: 3
+unique_group: null
+attributes:
+  flat: {defense: 2}
+  percent: {}
+effects:
+  - id: RC23-RAGE-ACTION-RETURN
+    trigger: rage_action
+    operation: rage_gain
+    target: self
+    params:
+      amount: 5
+      timing: round_end
+      completed_action_only: true
+      fixed_return: true
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: action, count: 1}
+    text: 每层在怒技实际执行并完成后登记固定5点返怒，不按支付比例计算，也不在普攻后触发。
+acquisition:
+  pools: [common_artifact]

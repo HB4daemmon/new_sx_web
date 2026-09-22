@@ -1,0 +1,55 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE024
+name: 经阁残页
+status: design_target
+summary: 付灵石取得养剑诀法本，或带走剑穗。
+description: 火山经阁只剩一页能读的养剑诀，旁边的剑穗也等着被带出阁门。
+tags: [ordinary, method, purchase, artifact, act3]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；法本取得不强制换法。
+balance:
+  target:
+    gross_U: [0.8, 1.2]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [3]
+scene: 经阁的火光照着养剑诀残页和一枚剑穗。守页人说，两件只能带走一件。
+options:
+  - id: RE024-A
+    label: 付石收下养剑卷
+    quick: 付出标价灵石，带走养剑诀法本；是否改修由你决定。
+    requirements:
+      - {type: can_pay}
+    costs:
+      - {type: resource, resource: coins, amount: 1.0, basis: common_price}
+    rewards:
+      - {type: method, id: RKF05}
+    outcome: 养剑诀收入你的行囊，眼下仍沿用原先的功法。
+  - id: RE024-B
+    label: 付石取剑穗
+    quick: 付出标价灵石，带走一层剑穗，强化普攻。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC09, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 0.75, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC09, count: 1}
+    outcome: 你把剑穗系上兵刃，下一次出手会更加利落。
+  - id: RE024-C
+    label: 合页封阁
+    quick: 合页离阁，保留灵石和当前功法。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 经阁合页，你带着原有灵石和功法离开火光。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

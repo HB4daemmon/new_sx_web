@@ -1,0 +1,38 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: storyline
+id: RS05
+name: 哪吒过阵
+status: design_target
+summary: 先用一次公开的过阵证明自己，后段再决定是否承受第二阵换取如意钱，或用灵石取雷纹印。
+description: 哪吒把阵门分成轻重两路，主角初遇时不是领宝，而是先承担一段可收手的阵试；后段的力量来自是否继续把第二阵走完。
+tags: [character_line, nezha, two_stage_trial, combat_artifact]
+source:
+  basis: myth_adaptation
+  reference: canon.fengjian_chunqiu.character.e8205e7a1
+  note: 原典库以draft实体确认哪吒为三头六臂、脚踏风火二轮、持火尖枪的神将；本作过阵、敌战与奖励是游戏原创改编。
+  identity: 哪吒实体来自《封神演义》相关资料的知识库条目，当前校对状态为draft。
+  game_original: 两段非致命过阵、收手点和法宝奖励均为游戏原创。
+balance:
+  target:
+    initial_gross_U: [0, 0.5]
+    resolution_gross_U: [2.4, 4.0]
+    high_investment_total_U: [3.0, 4.5]
+  measured: null
+character: 哪吒
+premise: 阵门一重一快，安全路线能马上拿一笔小资源，另一条路要求先过一阵再谈后面的力量。
+encounters: [RK009, RK010]
+commitment:
+  id: RS05-promised
+  form: staged_trial
+  text: 初遇时承受一次公开的阵试，胜利后才留下后段继续接第二阵的资格。
+  requirement: 初遇第一阵获胜，并保留后段承诺
+  cancellation: 初遇离阵、挑战失败或错过回访时，保留已发生的事件结果，但不补第二阵奖励。
+resolution:
+  condition: 初遇第一阵胜利且承诺仍在，后段再选择第二阵、支付 24 灵石或收手。
+  reward_shape: 第二阵成功取如意钱；支付 24 灵石取雷纹印，收手不再取器物。
+  tradeoff: 第二阵不回血，第一阵伤势会继续压在身上；支付路线用盘缷取确定的普通补足。
+selection:
+  planned_per_run: 1
+  optional: true
+  fallback: ordinary_event

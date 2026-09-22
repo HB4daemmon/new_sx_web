@@ -1,0 +1,59 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE018
+name: 落雷门槛
+status: design_target
+summary: 参加落雷试诀争取奔雷诀，或付灵石带走先机符。
+description: 断桥上方雷声低鸣，雷影守着一卷奔雷诀，石阶边画着退回的安全线。
+tags: [ordinary, nonlethal, encounter, rare_method, act2]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；法本取得不折算稀有法宝 B，也不强制换法。
+balance:
+  target:
+    gross_U: [0.8, 1.8]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [2, 4]
+scene: 雷影立在断桥尽头，奔雷诀被压在它身后的石台上。你可以踏上雷阶，也可以用灵石换来先机。
+options:
+  - id: RE018-A
+    label: 踏阶试奔雷
+    quick: 参加非致命试诀，胜者带走奔雷诀；败了只剩一线气血。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: method, id: RKF07}
+    encounter:
+      enemy_id: EN-A2-L1
+      mode: nonlethal
+      failure_hp_floor: 1
+      failure_rewards: []
+      failure_outcome: 你被雷影逼回石阶，气血只剩一线，奔雷诀仍留在雷门之后。
+    outcome: 你踏过雷阶，奔雷诀在掌中发出微光，眼下仍可沿用原来的功法。
+  - id: RE018-B
+    label: 付石取先机
+    quick: 付出标价灵石，带走一层先机符，避开雷阶。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC22, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 1.0, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC22, count: 1}
+    outcome: 你把先机符收入袖中，雷声和险阶都被留在身后。
+  - id: RE018-C
+    label: 绕过雷阶
+    quick: 绕过雷阶，保留气血与资源。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 雷影让开一条普通路，你安然绕过断桥。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

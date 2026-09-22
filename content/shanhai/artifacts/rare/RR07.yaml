@@ -1,0 +1,41 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RR07
+name: 回元佩
+status: design_target
+summary: 防御 +8；首个怒技完成后本战怒气上限 -15
+description: 佩中回元之力在首个怒技落定后压低本战上限，换取后续节奏。
+tags: [defense, rage_cap, rage, rare]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 2.4, A: 12, J: 0, U: 2.4}
+  measured: null
+rarity: rare
+max_stacks: 1
+unique_group: null
+attributes:
+  flat: {defense: 8}
+  percent: {}
+effects:
+  - id: RR07-FIRST-RAGE-CAP-REDUCTION
+    trigger: rage_action
+    operation: rage_cap
+    target: self
+    params:
+      delta: -15
+      first_rage_action_only: true
+      scope: current_battle
+      apply_at: round_end
+      cost_uses_pre_change_cap: true
+      lower_bound: 60
+    requires: [rage_action_completed]
+    consumes: []
+    replaces: []
+    limit: {scope: battle, count: 1}
+    text: 首个怒技实际完成后登记本战怒气上限-15，轮尾生效；首怒已锁定和已支付的成本不追溯改变。
+acquisition:
+  pools: [rare_artifact]

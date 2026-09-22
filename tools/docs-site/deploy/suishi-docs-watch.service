@@ -1,0 +1,24 @@
+[Unit]
+Description=Rebuild the public Suishi Xiuxian design documents
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/product/new_sx_web/tools/docs-site
+Environment=PATH=/home/ubuntu/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/ubuntu/.local/bin/node scripts/watch.mjs
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=90
+KillMode=mixed
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/product/new_sx_web/tools/docs-site
+UMask=0022
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,50 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A4-L1
+name: 春脉护谷
+status: design_target
+summary: 以大额怒技治疗和治疗后直接减伤延长第四幕精英战。
+description: 百草关医修是原创匿名敌人，回春功的治疗先填气血再处理溢疗。
+tags: [enemy, act4, elite, recovery, heal, damage_reduction]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创匿名敌人与原创配装，不声称古籍人物或原典战斗效果。
+balance:
+  target:
+    rounds: [5, 8]
+    net_hp_loss_pct: [8, 14]
+    burst_warning_pct: 22
+  measured: null
+acts: [4]
+tier: elite
+identity: 百草关医修
+method: RKF03
+n: 4
+talents: [RKF03-J1-C, RKF03-J2-B, RKF03-J3-B, RKF03-J4-A]
+artifacts:
+  - {id: RC05, stacks: 3}
+  - {id: RC12, stacks: 2}
+stats:
+  attack: 29
+  defense: 70
+  max_hp: 500
+  crit_rate: 0.09
+  speed: 10
+pressure: [恢复, 直接减伤]
+counterplay:
+  - 战前选高爆发和暴击构筑，争取在怒技治疗前形成足够缺口，不让治疗后减伤覆盖完整轮次。
+  - 战前选持续直伤配合防御或破甲来源，逼出有效治疗后继续压过治疗后的短时减伤，而不是等待战外恢复。
+preview: >-
+  回春功普攻按最大气血10%自疗，怒技按24%加J4-A的14%输入；有效治疗后J3-B提供后续1轮直接减伤，
+  治疗不足或满血时没有有效治疗和减伤输入，预览公开气血缺口、治疗和减伤窗口，
+  自动战仅执行战前爆发或持续压制取舍。
+phases: []
+reward_profile: L
+target:
+  rounds: [5, 8]
+  net_hp_loss_pct: [8, 14]
+  burst_warning_pct: 22
+  note: 参考幸存胜利样本的首测损耗输入，不承诺胜率或固定击杀轮数。
+measured: null

@@ -1,0 +1,43 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RR06
+name: 长明灯
+status: design_target
+summary: 最大气血 +30；完成战斗节点后恢复气血
+description: 灯火在战后不灭，为真实战斗节点提供一次战外恢复。
+tags: [max_hp, travel, heal, battle_node, rare]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 2.4, A: 3, J: 1.8, U: 2.4}
+  measured: null
+rarity: rare
+max_stacks: 1
+unique_group: null
+attributes:
+  flat: {max_hp: 30}
+  percent: {}
+effects:
+  - id: RR06-BATTLE-NODE-HEAL
+    trigger: battle_node_complete
+    operation: heal
+    target: self
+    params:
+      ratio: 0.08
+      basis: max_hp
+      combat: false
+      battle_types: [C, L, B]
+      real_battle_node_only: true
+      once_per_node: true
+      cap: max_hp
+      first_test_value: {max_hp_ratio: 0.08}
+    requires: [real_battle_node_completed]
+    consumes: []
+    replaces: []
+    limit: {scope: node, count: 1}
+    text: 每个真实普通战、精英战或幕首领节点完成后恢复最大气血的8%；节点内多战只结算一次，非战斗节点不触发。
+acquisition:
+  pools: [rare_artifact]

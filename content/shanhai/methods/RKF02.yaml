@@ -1,0 +1,414 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: method
+id: RKF02
+name: 归元诀
+status: design_target
+summary: 以公共怒气为循环核心，普攻积怒、怒技按实际支付返怒的普通回气功法。
+description: 归元诀不新增战斗资源，所有循环强化都读取公共怒气入口；攻击和暴击负责直接输出，防御与最大气血只提供容错。
+tags: [method, common, attack, rage, cycle]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创功法；固有返怒20%及其余首测参数承接METHODS中的设计输入，不声称已实现或已平衡。
+balance:
+  target:
+    D: 100
+    L: 100
+    H: 100
+    P: 100
+    P_by_tier: [100, 125, 150, 175, 200]
+  measured: null
+rarity: common
+role: 回气斗士
+stat_focus:
+  primary: attack
+  secondary: [crit_rate, defense, max_hp]
+  damage_from: attack
+  critical_direct_only: true
+  survival_from: [defense, max_hp]
+mechanic: null
+acquisition:
+  start: true
+  pools: [method_common]
+actions:
+  basic:
+    name: 归元行气
+    quick: 普攻并按公共规则积怒
+    effects:
+      - id: RKF02-BASIC-DAMAGE
+        trigger: basic_action
+        operation: damage
+        target: enemy
+        params:
+          attack_ratio: 1.00
+          segments: 1
+          can_crit: true
+          damage_kind: direct
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 按攻击的1.00倍对敌人造成一段可暴击直接伤害；完成一次普攻后另按公共规则登记基础回怒25。
+  rage:
+    name: 归元震脉
+    quick: 怒技攻击并返还实际怒耗
+    effects:
+      - id: RKF02-RAGE-DAMAGE
+        trigger: rage_action
+        operation: damage
+        target: enemy
+        params:
+          attack_ratio: 1.40
+          segments: 1
+          can_crit: true
+          damage_kind: direct
+          rage_cost: locked_action_cost
+        requires: []
+        consumes: [rage_locked_action_cost]
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 按公共规则支付本轮锁定怒耗后，按攻击的1.40倍造成一段可暴击直接伤害；本动作不另登记普攻完成。
+passives:
+  - id: RKF02-PASSIVE-RAGE-REFUND
+    trigger: action_end
+    operation: rage_gain
+    target: self
+    params:
+      action: rage_action
+      mode: ratio_of_actual_paid
+      ratio: 0.20
+      source: method_intrinsic
+      record_at: round_end
+      add_to_public_sources: true
+      no_extra_action: true
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: action, count: 1}
+    text: 每次怒技完成后，按本次实际支付怒气的20%登记固有返怒；它与公共开场、普攻、受击和轮尾自然回怒叠加，不改变主动作次数。
+travel:
+  - id: RKF02-TRAVEL-NONBATTLE-XP
+    trigger: node_complete
+    operation: grant_resource
+    target: run
+    params:
+      resource: xp
+      amount: 18
+      basis: flat
+      node_types: [rest, event, shop]
+      non_battle_only: true
+      once_per_node: true
+      combat_trigger: false
+    requires: [real_nonbattle_node_completed]
+    consumes: []
+    replaces: []
+    limit: {scope: node, count: 1}
+    text: 完成休整、事件或商店等非战斗节点后获得18修为；每个节点只结算一次，不在战斗动作中触发。
+talents:
+  - id: RKF02-J1-A
+    tier: 1
+    branch: A
+    name: 纳气归元
+    quick: 怒气上限降低
+    category: enhance
+    effects:
+      - id: RKF02-J1-A-CAP
+        trigger: always
+        operation: rage_cap
+        target: self
+        params:
+          mode: subtract
+          amount: 10
+          minimum_cap: 60
+          sync_threshold: true
+          sync_actual_cost: true
+          damage_unchanged: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 当前主修时怒气上限降低10，并按公共规则同步降低怒技门槛与实际怒耗；不降低怒技基础伤害，也不创造额外资源。
+  - id: RKF02-J1-B
+    tier: 1
+    branch: B
+    name: 吐纳绵长
+    quick: 普攻积怒提高
+    category: cycle
+    effects:
+      - id: RKF02-J1-B-RAGE
+        trigger: action_end
+        operation: rage_gain
+        target: self
+        params:
+          action: basic_action
+          amount: 10
+          base_public_gain: 25
+          action_must_complete: true
+          record_at: round_end
+          no_extra_action: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 每次完整完成基础普攻时，在公共普攻回怒25之外登记额外10点；未命中也按完成动作登记，不放大法宝额外回怒。
+  - id: RKF02-J1-C
+    tier: 1
+    branch: C
+    name: 归元重击
+    quick: 怒技伤害提高
+    category: enhance
+    effects:
+      - id: RKF02-J1-C-RAGE-DAMAGE
+        trigger: rage_action
+        operation: modify_effect
+        target: self
+        params:
+          mode: add_ratio
+          effect_id: RKF02-RAGE-DAMAGE
+          damage_ratio_add: 0.22
+          damage_scope: base_direct_segment
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 归元震脉的基础直接段额外提高22%；不提高固有返怒、追加段或其它来源的怒气。
+  - id: RKF02-J2-A
+    tier: 2
+    branch: A
+    name: 攻势归元
+    quick: 攻击命中回怒
+    category: cycle
+    effects:
+      - id: RKF02-J2-A-HIT-RAGE
+        trigger: direct_hit
+        operation: rage_gain
+        target: self
+        params:
+          source_action_types: [basic_action, rage_action]
+          source_kind: base_direct
+          amount: 10
+          once_per_action: true
+          max_segments_counted: 1
+          requires_positive_effective_hit: true
+          record_at: round_end
+          no_extra_action: true
+        requires: [positive_effective_base_hit]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 本门普攻或怒技的基础直接段首次有效命中时登记额外10点怒气，每个主动作最多一次；追加、反震、毒火和零伤害命中不触发。
+  - id: RKF02-J2-B
+    tier: 2
+    branch: B
+    name: 周天吐纳
+    quick: 每轮结束回怒
+    category: cycle
+    effects:
+      - id: RKF02-J2-B-ROUND-RAGE
+        trigger: round_end
+        operation: rage_gain
+        target: self
+        params:
+          amount: 10
+          base_public_round_end_gain: 10
+          once_per_round: true
+          record_at: round_end
+          not_opening_income: true
+          no_extra_action: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: round, count: 1}
+        text: 每轮轮尾在公共自然回怒10之外登记额外10点；不提前进入开场窗口，也不按双方动作次数重复发放。
+  - id: RKF02-J2-C
+    tier: 2
+    branch: C
+    name: 余气归元
+    quick: 怒技返怒提高
+    category: cycle
+    effects:
+      - id: RKF02-J2-C-REFUND
+        trigger: action_end
+        operation: rage_gain
+        target: self
+        params:
+          action: rage_action
+          mode: add_ratio_to_actual_paid
+          ratio_add: 0.20
+          combines_with: RKF02-PASSIVE-RAGE-REFUND
+          percentage_points: true
+          record_at: round_end
+          no_second_refund: true
+          no_extra_action: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 本门怒技返怒比例在固有20%之上增加20个百分点，按本次实际支付计算并与固有返怒合并登记一次，不对已返怒气再次乘算。
+  - id: RKF02-J3-A
+    tier: 3
+    branch: A
+    name: 蓄怒破锋
+    quick: 上限提高怒技更重
+    category: enhance
+    effects:
+      - id: RKF02-J3-A-CAP
+        trigger: always
+        operation: rage_cap
+        target: self
+        params:
+          mode: add
+          amount: 20
+          sync_threshold: true
+          sync_actual_cost: true
+          minimum_cap: 60
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 怒气上限提高20，并按公共规则同步提高怒技门槛与实际怒耗；提高上限本身不直接造成伤害。
+      - id: RKF02-J3-A-HEAVY-HIT
+        trigger: rage_action
+        operation: modify_effect
+        target: self
+        params:
+          mode: add_formula
+          effect_id: RKF02-RAGE-DAMAGE
+          attack_ratio_per_paid_rage: 0.012
+          paid_rage_source: actual_action_cost
+          merge_into_same_direct_segment: true
+          no_extra_segment: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 怒技同一直接段额外读取本次实际支付怒气，每1点支付增加攻击0.012倍的原始伤害；不增加动作、段数或普攻回怒。
+  - id: RKF02-J3-B
+    tier: 3
+    branch: B
+    name: 运气成锋
+    quick: 普攻伤害提高
+    category: enhance
+    effects:
+      - id: RKF02-J3-B-BASIC-DAMAGE
+        trigger: basic_action
+        operation: modify_effect
+        target: self
+        params:
+          mode: add_ratio
+          effect_id: RKF02-BASIC-DAMAGE
+          damage_ratio_add: 0.18
+          damage_scope: base_direct_segment
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 归元行气的基础直接段额外提高18%；不提高怒技、追加段或普攻积怒。
+  - id: RKF02-J3-C
+    tier: 3
+    branch: C
+    name: 怒后凝盾
+    quick: 怒技后获得护盾
+    category: enhance
+    effects:
+      - id: RKF02-J3-C-SHIELD
+        trigger: action_end
+        operation: shield
+        target: self
+        params:
+          action: rage_action
+          attack_ratio: 0.26
+          max_hp_ratio: 0
+          cap_ratio: 1
+          timing: after_damage
+          no_extra_rage: true
+          shield_incoming_counts_public_hit: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 怒技完成后按攻击的0.26倍获得护盾；造盾本身不额外回怒，但该盾承受敌方有效直接攻击时仍按公共规则逐段登记受击回怒。
+  - id: RKF02-J4-A
+    tier: 4
+    branch: A
+    name: 生生不息
+    quick: 怒技返怒再提高
+    category: cycle
+    effects:
+      - id: RKF02-J4-A-REFUND
+        trigger: action_end
+        operation: rage_gain
+        target: self
+        params:
+          action: rage_action
+          mode: add_ratio_to_actual_paid
+          ratio_add: 0.20
+          combines_with: [RKF02-PASSIVE-RAGE-REFUND, RKF02-J2-C-REFUND]
+          percentage_points: true
+          record_at: round_end
+          no_second_refund: true
+          no_extra_action: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 本门怒技返怒比例再增加20个百分点，直接读取固有返怒入口，不要求选择余气归元；每份实际支付只按合计比例返还一次。
+  - id: RKF02-J4-B
+    tier: 4
+    branch: B
+    name: 一怒千钧
+    quick: 怒技伤害大幅提高
+    category: enhance
+    effects:
+      - id: RKF02-J4-B-RAGE-DAMAGE
+        trigger: rage_action
+        operation: modify_effect
+        target: self
+        params:
+          mode: add_ratio
+          effect_id: RKF02-RAGE-DAMAGE
+          damage_ratio_add: 0.30
+          damage_scope: base_direct_segment
+          includes_j3_a_formula: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 归元震脉基础直接段额外提高30%；若同时有蓄怒破锋，仍并入同一直接段，不改变返怒。
+  - id: RKF02-J4-C
+    tier: 4
+    branch: C
+    name: 回风贯劲
+    quick: 怒后强化普攻
+    category: cycle
+    effects:
+      - id: RKF02-J4-C-NEXT-BASIC
+        trigger: action_end
+        operation: replace_action
+        target: self
+        params:
+          source_action: rage_action
+          next_action: basic_action
+          force: true
+          basic_damage_ratio_add: 0.18
+          basic_rage_gain_bonus: 15
+          base_public_basic_gain: 25
+          clear_after_use: true
+          no_extra_action: true
+          even_if_full_rage: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 怒技后下一轮主动作强制改为强化普攻，该次普攻直接段提高18%，基础积怒由25变为40；不增加主动作，即使轮初满怒也先完成该普攻。
+routes:
+  - name: 快转回元
+    summary: 降低怒气上限并提高返流，怒技后以护盾接住压力；代价是低上限和低支付会同时降低按实际支付计算的返怒量。
+    talents: [RKF02-J1-A, RKF02-J2-C, RKF02-J3-C, RKF02-J4-A]
+  - name: 蓄怒重击
+    summary: 用轮尾回怒支撑更高上限和更重的怒技；代价是门槛、支付与等待窗口都会变长。
+    talents: [RKF02-J1-C, RKF02-J2-B, RKF02-J3-A, RKF02-J4-B]
+  - name: 普攻穿插
+    summary: 提高普攻和基础命中回怒，怒技后强制插入强化普攻；代价是额外回怒依赖基础直接段有效命中。
+    talents: [RKF02-J1-B, RKF02-J2-A, RKF02-J3-B, RKF02-J4-C]

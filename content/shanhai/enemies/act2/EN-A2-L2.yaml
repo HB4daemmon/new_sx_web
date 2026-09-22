@@ -1,0 +1,49 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A2-L2
+name: 玄甲截流将
+status: design_target
+summary: 以有来源护盾和开场削怒组成第二幕第二名精英。
+description: 截流将的双压力来自金刚功护盾、震岳鼓的真实盾返回怒以及封元镜的开场削怒，三者都不改变公共动作次数。它要求玩家在破盾、回怒和承伤之间取舍，不会读取玩家配置动态增强，也不承诺静态胜率。
+tags: [enemy, act2, elite, shield, rage_drain]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创妖物，不声称古籍存在此身份或这些效果。
+balance:
+  target:
+    rounds: [5, 8]
+    net_hp_loss_pct: [8, 14]
+    burst_warning_pct: 22
+    observation_window: 15
+    note: 首轮第二幕精英参考目标带，不是胜率、TTK或准确命中承诺。
+  measured: null
+acts: [2]
+tier: elite
+identity: 玄甲截流将把旧桥铁片扣在肩上，在入战时先截断对手一段气机。它只在真实护盾吸收并触发盾返后按卡面回怒，是可查的原创精英，不含永久锁怒。
+method: RKF01
+n: 2
+talents: [RKF01-J1-A, RKF01-J2-B]
+artifacts:
+  - {id: RC03, stacks: 2}
+  - {id: RC11, stacks: 1}
+  - {id: RR09, stacks: 1}
+  - {id: RR14, stacks: 1}
+stats:
+  attack: 19
+  defense: 55
+  max_hp: 400
+  crit_rate: 0.06
+  speed: 9
+pressure: [稳打护盾, 削怒]
+counterplay:
+  - 用持续伤害或破甲先处理护盾，再在盾返窗口外使用高伤动作，并以治疗承受直接段。
+  - 用普攻和轮尾回怒维持自己的循环，或选择明示抗削怒来源应对封元镜的开场请求。
+preview: 基础五维为装备前值；封元镜在开场登记一次削怒，金刚功每次动作后造盾，J2-B只强化怒技伤害，震岳鼓仅在护盾真实吸收敌方直接段并触发盾返后回怒，阶段列表为空。
+phases: []
+reward_profile: L
+measured: null
+"null":
+  reason: target_design_before_runtime_fixture
+  allowed: true

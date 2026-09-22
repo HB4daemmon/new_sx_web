@@ -1,0 +1,38 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: storyline
+id: RS01
+name: 神农留药
+status: design_target
+summary: 先留下一笔灵石渡过药荒，再以公开风险换回长明灯，或用更多灵石取行医囊。
+description: 神农在潮口分药，主角必须在眼前的盘缠和一份延后的救命药之间作决定；后段的回访只认初遇时确实留下的灵石。
+tags: [character_line, shennong, resource_reserve, healing]
+source:
+  basis: myth_adaptation
+  reference: canon.fengshen_yanyi.character.ef3b2a433
+  note: 原典库确认神农为上古三皇之一、居火云洞；本作相遇、承诺、敌战与奖励是游戏原创改编。
+  identity: 神农在《封神演义》实体中以赐丹药与升麻的医药形象出现，检索状态为draft。
+  game_original: 潮口留药、灵石承诺、非致命回访和法宝奖励均为游戏原创。
+balance:
+  target:
+    initial_gross_U: [0, 0.5]
+    resolution_gross_U: [2.4, 4.0]
+    high_investment_total_U: [3.0, 4.5]
+  measured: null
+character: 神农
+premise: 潮水漫到药圃，神农只够把一份药材交给一名赶路人；你现在要么留出盘缠保住后路，要么拿小利离开。
+encounters: [RK001, RK002]
+commitment:
+  id: RS01-promised
+  form: resource_reserve
+  text: 初遇时明确留下 8 灵石，约定后段回到药棚时仍愿意为药器承担一次风险。
+  requirement: 初遇时留下灵石，并在后段回到药棚
+  cancellation: 未留下灵石、主动放弃或错过回访，不追回初遇成本，终奖也不会随后追来。
+resolution:
+  condition: 初遇承诺仍在，并在药棚选择守药挑战或支付 20 灵石取行医囊。
+  reward_shape: 守药成功取长明灯；支付 20 灵石取行医囊，不承担挑战风险。
+  tradeoff: 守药挑战承受 12% 气血损耗并承担失手风险；支付路线保留气血，但会减少后段盘缠。
+selection:
+  planned_per_run: 1
+  optional: true
+  fallback: ordinary_event

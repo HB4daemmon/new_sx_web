@@ -1,0 +1,49 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A1-L2
+name: 月蚀断脉客
+status: design_target
+summary: 以虚弱和公开削怒组成第一名精英的双压力交互。
+description: 断脉客只按太阴经、截脉针和封元镜的现有来源施加减益与削怒，削怒在公共窗口结算，不取消本轮已锁动作。它要求玩家在承受属性下降前主动选择输出或回怒路线，不承诺静态胜率。
+tags: [enemy, act1, elite, weakness, rage_drain]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创妖物，不声称古籍存在此身份或这些效果。
+balance:
+  target:
+    rounds: [5, 8]
+    net_hp_loss_pct: [8, 14]
+    burst_warning_pct: 22
+    observation_window: 15
+    note: 首轮精英参考目标带，不是胜率、TTK或准确命中承诺。
+  measured: null
+acts: [1]
+tier: elite
+identity: 月蚀断脉客用阴光在对手经脉上留下一层短暂虚弱，再以针影截断回气。它是公开减益与延后削怒的原创精英，不拥有免疫或隐藏阶段。
+method: RKF08
+n: 1
+talents: [RKF08-J1-A]
+artifacts:
+  - {id: RC04, stacks: 2}
+  - {id: RC08, stacks: 1}
+  - {id: RR13, stacks: 1}
+  - {id: RR14, stacks: 1}
+stats:
+  attack: 16
+  defense: 63
+  max_hp: 460
+  crit_rate: 0.05
+  speed: 11
+pressure: [虚弱/破甲, 削怒]
+counterplay:
+  - 在开场削怒后先用普攻或明确回怒来源维持循环，不把本轮已经锁定的怒技当作被取消。
+  - 用短战爆发减少虚弱覆盖，或用护盾、治疗和不依赖攻击的防护来源承受减益期间的直接段。
+preview: 基础五维为装备前值；开场封元镜登记一次削怒，普攻与太阴经效果公开显示虚弱/削怒请求并在轮尾统一处理，阶段列表为空。
+phases: []
+reward_profile: L
+measured: null
+"null":
+  reason: target_design_before_runtime_fixture
+  allowed: true

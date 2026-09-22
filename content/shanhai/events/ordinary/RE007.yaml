@@ -1,0 +1,55 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE007
+name: 炼气残简
+status: design_target
+summary: 付灵石取得回春功法本，或带走回春瓶。
+description: 破旧经摊只剩一页完整的回春功残简，旁边的回春瓶也在等买主。
+tags: [ordinary, method, purchase, artifact]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；法本取得不等于换法。
+balance:
+  target:
+    gross_U: [0.8, 1.2]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [1]
+scene: 经摊上，一页回春功残简和一只回春瓶并排摆着。摊主催你在收摊前做决定。
+options:
+  - id: RE007-A
+    label: 付石收下回春法本
+    quick: 付出标价灵石，带走回春功法本；是否改修由你决定。
+    requirements:
+      - {type: can_pay}
+    costs:
+      - {type: resource, resource: coins, amount: 1.0, basis: common_price}
+    rewards:
+      - {type: method, id: RKF03}
+    outcome: 回春功写入你的行囊，你眼下仍沿用原来的功法。
+  - id: RE007-B
+    label: 付石收下回春瓶
+    quick: 付出标价灵石，带走一层回春瓶，让今后的自疗更有力。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC12, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 0.75, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC12, count: 1}
+    outcome: 你接过回春瓶，瓶中春意会在往后的疗伤里帮你一把。
+  - id: RE007-C
+    label: 合卷离摊
+    quick: 合上残简离开，保留灵石与当前功法。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 你合上残简离开经摊，灵石和现用功法都没有改变。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

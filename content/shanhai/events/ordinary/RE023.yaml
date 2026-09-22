@@ -1,0 +1,68 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE023
+name: 火门试手
+status: design_target
+summary: 在火门试手中争取两层蛇纹瓶或赤炎珠，也可付灵石带走厚土环。
+description: 火门弟子把练手场分成两半，蛇纹瓶与赤炎珠各压一边，败者只退到白线外。
+tags: [ordinary, nonlethal, encounter, two_layers, act3]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；内部比试不发普通战包或 RR06。
+balance:
+  target:
+    gross_U: [1.5, 2.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [3]
+scene: 火门弟子在白线两侧摆出蛇纹瓶与赤炎珠。你可以选一边试手，也可以付灵石带走厚土环。
+options:
+  - id: RE023-A
+    label: 试蛇纹火
+    quick: 参加非致命试手，胜者带走两层蛇纹瓶；败了只剩一线气血。
+    requirements:
+      - {type: capacity, id: RC14, count: 2}
+    costs: []
+    rewards:
+      - {type: artifact, id: RC14, count: 2}
+    encounter:
+      enemy_id: EN-A3-C3
+      mode: nonlethal
+      failure_hp_floor: 1
+      failure_rewards: []
+      failure_outcome: 你被火门弟子逼退到白线外，气血只剩一线，蛇纹瓶仍留在场中。
+    outcome: 你赢下火门试手，带走两层蛇纹瓶。
+  - id: RE023-B
+    label: 试赤炎火
+    quick: 参加非致命试手，胜者带走两层赤炎珠；败了只剩一线气血。
+    requirements:
+      - {type: capacity, id: RC15, count: 2}
+    costs: []
+    rewards:
+      - {type: artifact, id: RC15, count: 2}
+    encounter:
+      enemy_id: EN-A3-C3
+      mode: nonlethal
+      failure_hp_floor: 1
+      failure_rewards: []
+      failure_outcome: 你被火门弟子逼退到白线外，气血只剩一线，赤炎珠仍留在场中。
+    outcome: 你赢下火门试手，带走两层赤炎珠。
+  - id: RE023-C
+    label: 付石取厚土
+    quick: 付出标价灵石，带走一层厚土环，避开火门试手。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC04, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 1.0, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC04, count: 1}
+    outcome: 你付出灵石接过厚土环，火门里的灼热与喧声都留在身后。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

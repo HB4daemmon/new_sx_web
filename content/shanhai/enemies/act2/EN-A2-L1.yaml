@@ -1,0 +1,48 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A2-L1
+name: 养元桥守
+status: design_target
+summary: 以动作后攻击成长和公开自疗组成第二幕第一名精英。
+description: 桥守的双压力分别来自镇心玉的动作后攻击层和回春功的有效自疗，层数与治疗顺序均可在预览中查到。它是精英参考配置，不根据玩家 build 动态提高恢复，也不承诺静态胜率。
+tags: [enemy, act2, elite, healing, stacking]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创妖物，不声称古籍存在此身份或这些效果。
+balance:
+  target:
+    rounds: [5, 8]
+    net_hp_loss_pct: [8, 14]
+    burst_warning_pct: 22
+    observation_window: 15
+    note: 首轮第二幕精英参考目标带，不是胜率、TTK或准确命中承诺。
+  measured: null
+acts: [2]
+tier: elite
+identity: 养元桥守在断桥中央反复调整呼吸，受伤后会先把回春之力填入缺口。它把治疗和动作后攻击成长并列公开，属于原创精英而非神话人物。
+method: RKF03
+n: 2
+talents: [RKF03-J1-C, RKF03-J2-C]
+artifacts:
+  - {id: RC12, stacks: 2}
+  - {id: RC17, stacks: 1}
+  - {id: RR05, stacks: 1}
+stats:
+  attack: 19
+  defense: 45
+  max_hp: 300
+  crit_rate: 0.07
+  speed: 10
+pressure: [恢复, 叠buff]
+counterplay:
+  - 用开场爆发或破甲在它完成多次动作前制造缺口，减少治疗和镇心玉攻击层共同成长的时间。
+  - 用持续伤害维持压力，同时用护盾或治疗承受它逐步变高的直接段，不等待不存在的净化。
+preview: 基础五维为装备前值；回春功按卡面在主动作后治疗，J1-C提高最大气血，镇心玉从下一次动作起每次叠攻击+4且最多三层，阶段列表为空。
+phases: []
+reward_profile: L
+measured: null
+"null":
+  reason: target_design_before_runtime_fixture
+  allowed: true

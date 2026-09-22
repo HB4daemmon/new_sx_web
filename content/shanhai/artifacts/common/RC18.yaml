@@ -1,0 +1,39 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RC18
+name: 聚财钱
+status: design_target
+summary: 防御 +2；完成真实节点后额外灵石 +2
+description: 钱面刻着聚拢财气的纹路，沿途积攒可实际使用的灵石。
+tags: [defense, travel, coins, node]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 1, A: 1, J: 0.8, U: 1}
+  measured: null
+rarity: common
+max_stacks: 3
+unique_group: null
+attributes:
+  flat: {defense: 2}
+  percent: {}
+effects:
+  - id: RC18-NODE-COINS
+    trigger: node_complete
+    operation: grant_resource
+    target: run
+    params:
+      resource: coins
+      amount: 2
+      node_scope: real_node
+      extra_only: true
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: node, count: 1}
+    text: 每层在一个真实冒险节点完成后额外获得2枚灵石；取得节点不追溯结算。
+acquisition:
+  pools: [common_artifact]

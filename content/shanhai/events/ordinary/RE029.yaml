@@ -1,0 +1,56 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE029
+name: 昆仑前炉
+status: design_target
+summary: 付灵石从虎纹佩与厚土环中选一件。
+description: 昆仑前门炉火收窄，炉主只能把云铁炼成虎纹佩或厚土环。
+tags: [ordinary, purchase, attack, defense, act4]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件。
+balance:
+  target:
+    gross_U: [0.75, 1.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [4]
+scene: 云铁在炉心泛着青光，虎纹佩和厚土环的模具一左一右。炉主说，今夜只够成器一次。
+options:
+  - id: RE029-A
+    label: 付石炼虎纹
+    quick: 付出标价灵石，带走一层虎纹佩，增强攻击。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC02, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 1.0, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC02, count: 1}
+    outcome: 虎纹佩在炉火中定形，周身的攻击之势随之拔高。
+  - id: RE029-B
+    label: 付石炼厚土
+    quick: 付出标价灵石，带走一层厚土环，提升防御。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC04, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 1.0, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC04, count: 1}
+    outcome: 厚土环沉稳地扣在腕上，云铁化作护身之力。
+  - id: RE029-C
+    label: 熄炉过门
+    quick: 熄炉过门，保留灵石与当前法宝。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 炉火熄灭，你带着原有法宝和灵石走过昆仑前门。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

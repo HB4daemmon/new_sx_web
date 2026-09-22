@@ -1,0 +1,51 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE006
+name: 驿站余火
+status: design_target
+summary: 在驿站选择疗伤、盘缠或修行。
+description: 驿站的余火只够照亮一张桌子，掌柜端来药碗、钱袋和静室钥匙。
+tags: [ordinary, heal, coins, xp]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件。
+balance:
+  target:
+    gross_U: [0.8, 1.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [1]
+scene: 掌柜把药碗、钱袋和静室钥匙摆在桌上。余火将尽，你只能取其中一份。
+options:
+  - id: RE006-A
+    label: 借火养伤
+    quick: 喝下药汤，立即恢复一段气血。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: hp, amount: 0.2, basis: reference_hp}
+    outcome: 药力沿经脉散开，疲惫的伤势缓了下来。
+  - id: RE006-B
+    label: 换取盘缠
+    quick: 拿走一笔盘缠，为下一段路添些灵石。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: coins, amount: 0.5, basis: common_price}
+    outcome: 掌柜把钱袋交给你，旅途多了一点余裕。
+  - id: RE006-C
+    label: 静坐修行
+    quick: 静坐片刻，修为提高下一次进阶所需的两成。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
+    outcome: 你在余火旁静坐，修为稳稳向前推进。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

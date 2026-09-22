@@ -1,0 +1,65 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RK006
+name: 后羿回访试射
+status: design_target
+summary: 带着明目珠进入公开试射，胜利取引雷针；支付 24 灵石可取剑穗，失手不留器物。
+description: 后羿把箭靶立在第四幕风口，只要明目珠仍在，试射机会就会打开；失手就带着气血损耗离开。
+tags: [core, character_encounter, houyi, follow_up, critical]
+source:
+  basis: myth_adaptation
+  reference: null
+  note: 后羿原典身份待核验；风口试射、明目珠前置和器物奖励为游戏原创改编。
+  identity: 本次只读古籍库未命中后羿人物与射日事件。
+  game_original: 回访条件、非致命试射和RR10奖励均为游戏改编。
+balance:
+  target:
+    gross_U: [2.4, 4.0]
+  measured: null
+event_type: core
+acts: [4]
+scene: 风口把箭羽吹得横斜，后羿把引雷针和剑穗摆在箭靶旁；明目珠仍在，试射才会开始。
+options:
+  - id: RK006-shoot-trial
+    label: 接下风口试射
+    quick: 支付 12% 气血，胜利取引雷针
+    requirements:
+      - {type: flag, id: RS03-promised, value: true}
+      - {type: owned_artifact, id: RC07, count: 1}
+    costs:
+      - {type: resource, resource: hp, amount: 0.12, basis: reference_hp, must_survive: true}
+    rewards:
+      - {type: artifact, id: RR10, count: 1}
+    outcome: 你以明目珠校准最后一箭，胜利后取走引雷针；它的攻击提升立即计入，下一场真实战斗可触发回怒。
+    encounter:
+      enemy_id: EN-A4-L2
+      mode: nonlethal
+      failure_hp_floor: 1
+      failure_rewards: []
+      failure_outcome: 风口压过了你的准头，后羿收回箭靶；已付的 12% 气血留在风里，引雷针没有到手。
+  - id: RK006-pay-steady
+    label: 付石买准
+    quick: 支付 24 灵石，稳妥取剑穗
+    requirements:
+      - {type: flag, id: RS03-promised, value: true}
+      - {type: owned_artifact, id: RC07, count: 1}
+      - {type: can_pay}
+    costs:
+      - {type: resource, resource: coins, amount: 24, basis: flat}
+    rewards:
+      - {type: artifact, id: RC09, count: 1}
+    outcome: 你用盘缠换下剑穗；它的攻击提升立即计入，下一场真实战斗的普攻会更锋利，但你不必把命押在风口。
+  - id: RK006-release
+    label: 放下弓弦
+    quick: 收回弓弦，保留明目珠和剩余资源
+    requirements:
+      - {type: flag, id: RS03-promised, value: true}
+    costs: []
+    rewards: []
+    outcome: 你把明目珠取回身上，后羿点头，承诺到这里结束，引雷针和剑穗都留在箭靶旁。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

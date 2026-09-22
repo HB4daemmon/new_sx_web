@@ -1,0 +1,38 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RC15
+name: 赤炎珠
+status: design_target
+summary: 攻击 +2；自身燃烧持续伤害 +6%
+description: 珠内存着赤热火种，强化自身施加的燃烧持续伤害。
+tags: [attack, burn, dot, combat]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 1, A: 5, J: 0, U: 1}
+  measured: null
+rarity: common
+max_stacks: 3
+unique_group: null
+attributes:
+  flat: {attack: 2}
+  percent: {}
+effects:
+  - id: RC15-SELF-BURN-BONUS
+    trigger: always
+    operation: modify_effect
+    target: self
+    params:
+      effect_selector: {operation: damage, status: burn, source: self}
+      ratio: 0.06
+      stacking: linear
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: permanent, count: 1}
+    text: 每层使自身燃烧持续伤害提高6%，按燃烧层快照修正，不改变施火次数。
+acquisition:
+  pools: [common_artifact]

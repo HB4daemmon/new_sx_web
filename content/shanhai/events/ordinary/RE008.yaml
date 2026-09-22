@@ -1,0 +1,56 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE008
+name: 炉影换法
+status: design_target
+summary: 付灵石获得一次重新选择已学功法的机会，或带走玄铁甲。
+description: 炉影映出你曾学过的法门，守炉人还在旁边备好一件玄铁甲。
+tags: [ordinary, method_swap, purchase, route]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；换法不回血、不洗点、不继承临时状态。
+balance:
+  target:
+    gross_U: [0.6, 1.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [1, 3]
+scene: 炉影里浮出几条熟悉的法脉，玄铁甲也在火边泛着冷光。守炉人只给你一次取舍。
+options:
+  - id: RE008-A
+    label: 付石开换法门
+    quick: 付出标价灵石，获得一次从已学功法中重新选择的机会。
+    requirements:
+      - {type: known_method, id: RKF01}
+      - {type: can_pay}
+    costs:
+      - {type: resource, resource: coins, amount: 0.75, basis: common_price}
+    rewards:
+      - {type: swap_method, pool: owned_methods}
+    outcome: 炉影为你打开旧法之门，是否改修仍由你自己决定。
+  - id: RE008-B
+    label: 付石收下玄铁甲
+    quick: 付出标价灵石，带走一层玄铁甲，提升防御。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC03, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 0.75, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC03, count: 1}
+    outcome: 你接过玄铁甲，炉火里的寒光沉入甲片。
+  - id: RE008-C
+    label: 熄影守法
+    quick: 熄灭炉影，保留当前功法和资源。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 你让炉影归于寂静，熟悉的功法与手中资源陪你继续上路。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

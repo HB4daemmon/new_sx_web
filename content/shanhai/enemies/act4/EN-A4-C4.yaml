@@ -1,0 +1,52 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A4-C4
+name: 归元石台
+status: design_target
+summary: 以高上限怒技、轮尾回怒和动作后攻击叠层制造终幕普通战节奏。
+description: 石台回气客是原创匿名敌人，攻击叠层和怒气输入均来自现有功法与法宝。
+tags: [enemy, act4, normal, rage, stacking, direct]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创匿名敌人与原创配装，不声称古籍人物或原典战斗效果。
+balance:
+  target:
+    rounds: [3, 5]
+    net_hp_loss_pct: [3, 6]
+    burst_warning_pct: 12
+  measured: null
+acts: [4]
+tier: normal
+identity: 石台回气客
+method: RKF02
+n: 4
+talents: [RKF02-J1-C, RKF02-J2-B, RKF02-J3-A, RKF02-J4-B]
+artifacts:
+  - {id: RC01, stacks: 3}
+  - {id: RC19, stacks: 2}
+  - {id: RC23, stacks: 2}
+  - {id: RR05, stacks: 1}
+stats:
+  attack: 34
+  defense: 86
+  max_hp: 593
+  crit_rate: 0.11
+  speed: 13
+pressure: [叠buff]
+counterplay:
+  - 战前选先手直接伤害，在RR05攻击层数和高上限怒技兑现前压低其气血。
+  - 战前选高防御或护盾构筑，接受普攻回气并在其怒技结束后的轮尾回怒窗口反击。
+preview: >-
+  J3-A把怒气上限提高20并同步提高支付，J2-B提供轮尾额外回怒，RC23在怒技完成后返怒，
+  RR05则在每次主动作完成后从下一次动作叠加攻击。RC19只把自身上限压低，不会凭空增加动作。
+  预览公开怒气上限、攻击层数和返怒登记，自动战仅执行战前的速杀或续航取舍。
+phases: []
+reward_profile: C
+target:
+  rounds: [3, 5]
+  net_hp_loss_pct: [3, 6]
+  burst_warning_pct: 12
+  note: 参考幸存胜利样本的首测损耗输入，不承诺胜率或固定击杀轮数。
+measured: null

@@ -1,0 +1,38 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: storyline
+id: RS02
+name: 精卫追堤
+status: design_target
+summary: 先承受一段潮水冲击，追一场危险清礁试炼，后段以毒牙钉兑现，或用灵石取蛇纹瓶。
+description: 精卫反复衔石填补海口，主角可以拿走眼前的修为，也可以先承受潮水冲击，答应追上那场危险的清礁试炼。
+tags: [character_line, jingwei, dangerous_trial, sea_route]
+source:
+  basis: myth_adaptation
+  reference: null
+  note: 本次离线古籍库未命中精卫实体或“精卫填海”段落，原典身份待核验；人物线和游戏能力均为原创改编草案。
+  identity: 精卫常见于上古填海传说，但未由本次只读知识库确认。
+  game_original: 精卫的潮口相遇、清礁承诺、回访挑战与法宝奖励均为游戏原创。
+balance:
+  target:
+    initial_gross_U: [0, 0.5]
+    resolution_gross_U: [2.4, 4.0]
+    high_investment_total_U: [3.0, 4.5]
+  measured: null
+character: 精卫
+premise: 海堤缺口只够再撑一阵，精卫需要有人把近礁清出来；你可以先收下修为，也可以承诺追上危险的清礁试炼。
+encounters: [RK003, RK004]
+commitment:
+  id: RS02-promised
+  form: endure_reef_pressure
+  text: 初遇时承受 8% 气血损耗并存活，答应在后段进入公开的清礁试炼。
+  requirement: 初遇时承受潮水冲击并存活，答应后段清礁
+  cancellation: 未承受冲击、错过回访或挑战失败后，不会得到普通斗法战利品，也不会得到堤路回报。
+resolution:
+  condition: 初遇承诺仍在，并在清礁处选择挑战或支付 20 灵石取蛇纹瓶。
+  reward_shape: 清礁成功取毒牙钉；支付 20 灵石取蛇纹瓶，不承担挑战风险。
+  tradeoff: 初遇先承受 8% 气血损耗，后段清礁不另收入场气血但仍会留下战斗损耗；支付路线保留气血，却放弃毒牙钉的更高回报。
+selection:
+  planned_per_run: 1
+  optional: true
+  fallback: ordinary_event

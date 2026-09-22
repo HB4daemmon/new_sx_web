@@ -1,0 +1,51 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A3-C4
+name: 赤砂引火客
+status: design_target
+summary: 以燃烧持续伤害、真实燃烧回怒和普攻后护盾制造混合压力的普通敌人。
+description: 赤砂引火客是原创匿名敌人，毒牙钉与御火诀的毒火输入均为已有卡面效果。
+tags: [enemy, act3, normal, burn, poison, dot, shield]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创匿名敌人与原创配装，不声称古籍人物或原典战斗效果。
+balance:
+  target:
+    rounds: [3, 5]
+    net_hp_loss_pct: [3, 6]
+    burst_warning_pct: 12
+  measured: null
+acts: [3]
+tier: normal
+identity: 赤砂引火客
+method: RKF04
+n: 3
+talents: [RKF04-J1-C, RKF04-J2-B, RKF04-J3-B]
+artifacts:
+  - {id: RC15, stacks: 2}
+  - {id: RC11, stacks: 1}
+  - {id: RR03, stacks: 1}
+stats:
+  attack: 21
+  defense: 56
+  max_hp: 353
+  crit_rate: 0.09
+  speed: 12
+pressure: [长DOT, 稳打护盾]
+counterplay:
+  - 战前选高防御或护盾构筑承受毒火，并用持续直伤让其燃烧回怒不至于滚成短周期爆发。
+  - 战前选先手直接输出，优先压过第一轮燃烧，再在其护盾变薄后安排怒技爆发。
+preview: >-
+  御火诀普攻和怒技施加燃烧，燃烧在轮尾按公共规则结算；RR03只在普攻首个有效基础命中补一层中毒，
+  不改变毒火上限。J1-C仅在普攻后按防御造盾，J3-B只在敌方带燃烧时减免直接伤害。
+  预览公开毒火层数、tick轮次和护盾来源，自动战仅执行战前的承伤或先手取舍。
+phases: []
+reward_profile: C
+target:
+  rounds: [3, 5]
+  net_hp_loss_pct: [3, 6]
+  burst_warning_pct: 12
+  note: 参考幸存胜利样本的首测损耗输入，不承诺胜率或固定击杀轮数。
+measured: null

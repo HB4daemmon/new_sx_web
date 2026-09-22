@@ -1,0 +1,53 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE004
+name: 无主石印
+status: design_target
+summary: 在青锋石、玄铁甲与修行之间刻下一道选择。
+description: 空白石印只能留下一个印记，石匠把青锋石、玄铁甲和一缕灵光放在案上。
+tags: [ordinary, artifact, xp, attack, defense]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件。
+balance:
+  target:
+    gross_U: [0.8, 1.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [1]
+scene: 空白石印只能刻下一道纹。石匠说，锋芒、护身和修行，今天只能选一条。
+options:
+  - id: RE004-A
+    label: 刻攻纹
+    quick: 带走一层青锋石，增强直接攻击。
+    requirements:
+      - {type: capacity, id: RC01, count: 1}
+    costs: []
+    rewards:
+      - {type: artifact, id: RC01, count: 1}
+    outcome: 石印亮起锋纹，青锋石化作一层贴身锋意。
+  - id: RE004-B
+    label: 刻守纹
+    quick: 带走一层玄铁甲，提升防御。
+    requirements:
+      - {type: capacity, id: RC03, count: 1}
+    costs: []
+    rewards:
+      - {type: artifact, id: RC03, count: 1}
+    outcome: 石印沉下厚重的护纹，玄铁甲落入你的行囊。
+  - id: RE004-C
+    label: 留印观潮
+    quick: 静坐片刻，修为提高下一次进阶所需的两成。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
+    outcome: 你让心神沉入石印，修为又向下一次进阶靠近两成。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

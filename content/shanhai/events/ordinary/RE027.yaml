@@ -1,0 +1,59 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE027
+name: 毒火问阵
+status: design_target
+summary: 参加毒火问阵争取太阴经，或付灵石带走赤炎珠。
+description: 毒火阵只开一条安全边，阵师把太阴经放在阵心；败者会退回阵外。
+tags: [ordinary, nonlethal, encounter, rare_method, act3]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；法本不是法宝 B，不强制换法。
+balance:
+  target:
+    gross_U: [0.8, 1.8]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [3, 4]
+scene: 毒火沿阵纹游走，太阴经静静躺在阵心。阵师让你闯阵，也给出一条用灵石绕开的路。
+options:
+  - id: RE027-A
+    label: 入阵试太阴
+    quick: 参加非致命问阵，胜者带走太阴经；败了只剩一线气血。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: method, id: RKF08}
+    encounter:
+      enemy_id: EN-A3-L2
+      mode: nonlethal
+      failure_hp_floor: 1
+      failure_rewards: []
+      failure_outcome: 你被毒火逼回阵外，气血只剩一线，太阴经仍留在阵心。
+    outcome: 你穿过毒火阵，太阴经收入囊中，是否改修仍由你决定。
+  - id: RE027-B
+    label: 付石取赤炎珠
+    quick: 付出标价灵石，带走一层赤炎珠，避开问阵。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC15, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 1.0, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC15, count: 1}
+    outcome: 你接过赤炎珠，阵中的毒火再也追不上你的脚步。
+  - id: RE027-C
+    label: 沿阵边离开
+    quick: 沿阵边离开，保留气血与资源。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 阵师收起毒火，你沿安全边离开，太阴经留在阵中。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

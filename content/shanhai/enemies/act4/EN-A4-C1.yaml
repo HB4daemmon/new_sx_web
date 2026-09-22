@@ -1,0 +1,51 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A4-C1
+name: 金焰巡天
+status: design_target
+summary: 以燃烧回怒和带火造盾在终幕前段提供传奇火压的普通敌人。
+description: 赤羽巡天者是原创匿名敌人，金乌真经的火焰与法宝输入均来自现有卡面。
+tags: [enemy, act4, normal, burn, dot, shield]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创匿名敌人与原创配装，不声称古籍人物或原典战斗效果。
+balance:
+  target:
+    rounds: [3, 5]
+    net_hp_loss_pct: [3, 6]
+    burst_warning_pct: 12
+  measured: null
+acts: [4]
+tier: normal
+identity: 赤羽巡天者
+method: RKF09
+n: 3
+talents: [RKF09-J1-A, RKF09-J2-C, RKF09-J3-C]
+artifacts:
+  - {id: RC15, stacks: 2}
+  - {id: RC05, stacks: 2}
+  - {id: RR11, stacks: 1}
+stats:
+  attack: 32
+  defense: 70
+  max_hp: 450
+  crit_rate: 0.13
+  speed: 12
+pressure: [长DOT, 稳打护盾]
+counterplay:
+  - 战前选高防御或护盾构筑承受燃烧，并用不依赖怒技的持续输出减少其火衣护盾收益。
+  - 战前选先手直接爆发，在燃烧层数和火焰回怒形成循环前压低生命，再处理剩余护盾。
+preview: >-
+  金乌真经普攻施加燃烧，怒技以三段直接火伤逐段施火；敌方带燃烧时J2-C在每个主动作后按最大气血造盾，
+  J3-C只在轮尾首次燃烧造成实际伤害时额外回怒。预览公开燃烧层数、tick时间和护盾输入，
+  自动战仅执行战前的速杀或承伤取舍。
+phases: []
+reward_profile: C
+target:
+  rounds: [3, 5]
+  net_hp_loss_pct: [3, 6]
+  burst_warning_pct: 12
+  note: 参考幸存胜利样本的首测损耗输入，不承诺胜率或固定击杀轮数。
+measured: null

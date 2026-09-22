@@ -1,0 +1,25 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RC08
+name: 疾风履
+status: design_target
+summary: 速度 +1
+description: 鞋底刻着短促风痕，只改变先后顺序，不直接增加伤害。
+tags: [speed, tempo, combat]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 1, A: 5, J: 0, U: 1}
+  measured: null
+rarity: common
+max_stacks: 3
+unique_group: null
+attributes:
+  flat: {speed: 1}
+  percent: {}
+effects: []
+acquisition:
+  pools: [common_artifact]

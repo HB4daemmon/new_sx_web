@@ -1,0 +1,54 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RK001
+name: 神农分药
+status: design_target
+summary: 潮水逼近药圃，眼前的小利和留下一笔盘缠只能选一项。
+description: 神农把最后几包药放在潮线以上，告诉你后段还有一处药棚；是否留下灵石，由你现在决定。
+tags: [core, character_encounter, shennong, first_meeting, resource_commitment]
+source:
+  basis: myth_adaptation
+  reference: canon.fengshen_yanyi.character.ef3b2a433
+  note: 原典库确认神农的赐丹药与升麻身份，事件中的药圃、承诺和游戏奖励为原创改编。
+  identity: 神农为上古三皇之一，知识库实体状态draft。
+  game_original: 灵石承诺、后段药棚回访、内部战和法宝奖励均为游戏原创。
+balance:
+  target:
+    gross_U: [0, 0.5]
+  measured: null
+event_type: core
+acts: [1]
+scene: 潮水正漫过药圃边缘，神农只够分出一份药材。你可以收下眼前的小利，也可以留下盘缠，约好后段再回来。
+options:
+  - id: RK001-take-small-gain
+    label: 收下盘缠离开
+    quick: 立即拿少量灵石，不留下后路承诺
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: coins, amount: 0.1, basis: common_price}
+    outcome: 你把药棚让给更急的人，先收下公开的一小笔盘缠。
+  - id: RK001-reserve-medicine
+    label: 留下八枚灵石
+    quick: 支付 8 灵石，保留后段药棚约定
+    requirements:
+      - {type: can_pay}
+    costs:
+      - {type: resource, resource: coins, amount: 8, basis: flat}
+    rewards: []
+    set_flags:
+      RS01-promised: true
+    outcome: 你把 8 枚灵石压在药包上，神农记下这份承诺：后段药棚见。
+  - id: RK001-leave
+    label: 收紧行囊离开
+    quick: 不拿药、不付石，保留当前构筑
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 你不接这份安排，潮声里只留下普通道路。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

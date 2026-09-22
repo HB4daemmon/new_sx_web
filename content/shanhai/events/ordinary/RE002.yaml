@@ -1,0 +1,56 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE002
+name: 旧炉余温
+status: design_target
+summary: 付灵石从青锋石与玄铁甲中选一件。
+description: 旧炉主只够再开一炉，青锋石和玄铁甲在火边各自发亮。
+tags: [ordinary, purchase, attack, defense]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件。
+balance:
+  target:
+    gross_U: [0.75, 1.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [1]
+scene: 旧炉主把青锋石与玄铁甲摆上炉台：只够炼成一件，价钱也已写在炉边。
+options:
+  - id: RE002-A
+    label: 付石炼锋
+    quick: 付出标价灵石，带走一层青锋石，增强直接攻击。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC01, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 0.75, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC01, count: 1}
+    outcome: 炉火一收，青锋石落入掌中，出手更添锋芒。
+  - id: RE002-B
+    label: 付石炼甲
+    quick: 付出标价灵石，带走一层玄铁甲，提升防御。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC03, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 0.75, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC03, count: 1}
+    outcome: 玄铁甲扣上肩背，沉重的铁意护住周身。
+  - id: RE002-C
+    label: 熄炉离开
+    quick: 熄炉离开，保留灵石和已有法宝。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 你让炉火自行熄灭，灵石与随身法宝都留在手里。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

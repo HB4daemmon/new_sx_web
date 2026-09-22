@@ -1,0 +1,60 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE005
+name: 散修赌斗
+status: design_target
+summary: 在散修擂台上赌两层青锋石，或付灵石带走玄铁甲。
+description: 散修把两枚法片压在石上，约好点到为止。败者会被逼退到只剩一线气血。
+tags: [ordinary, nonlethal, encounter, artifact]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；内部比试不发普通战包。
+balance:
+  target:
+    gross_U: [1.5, 2.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [1]
+scene: 散修把青锋石压在石面，笑着邀你过招。胜者带走法片，败者只需退到安全线。
+options:
+  - id: RE005-A
+    label: 接下比试
+    quick: 参加非致命比试，胜者带走两层青锋石；败了只剩一线气血。
+    requirements:
+      - {type: capacity, id: RC01, count: 2}
+    costs: []
+    rewards:
+      - {type: artifact, id: RC01, count: 2}
+    encounter:
+      enemy_id: EN-A1-C1
+      mode: nonlethal
+      failure_hp_floor: 1
+      failure_rewards: []
+      failure_outcome: 你被逼退到安全线，气血只剩一线，青锋石仍留在散修手中。
+    outcome: 你在石线内分出胜负，带走两层青锋石。
+  - id: RE005-B
+    label: 出价交换
+    quick: 付出标价灵石，直接带走一层玄铁甲，避开比试。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC03, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 1.0, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC03, count: 1}
+    outcome: 你付出灵石，接过玄铁甲，免去擂台上的凶险。
+  - id: RE005-C
+    label: 不参与
+    quick: 收起兵刃，保留气血与灵石。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 你不接这场赌斗，散修收回法片，双方各自离开。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

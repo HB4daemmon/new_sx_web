@@ -1,0 +1,51 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A4-C2
+name: 晨昏守碑
+status: design_target
+summary: 以昼夜轮替和白昼护盾构成可预读的终幕相位普通敌人。
+description: 晨昏守碑人是原创匿名敌人，昼夜状态只读取烛龙真经的现有相位机制。
+tags: [enemy, act4, normal, phase, shield, direct]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创匿名敌人与原创配装，不声称古籍人物或原典战斗效果。
+balance:
+  target:
+    rounds: [3, 5]
+    net_hp_loss_pct: [3, 6]
+    burst_warning_pct: 12
+  measured: null
+acts: [4]
+tier: normal
+identity: 晨昏守碑人
+method: RKF10
+n: 3
+talents: [RKF10-J1-B, RKF10-J2-C, RKF10-J3-A]
+artifacts:
+  - {id: RC03, stacks: 2}
+  - {id: RC10, stacks: 1}
+  - {id: RR07, stacks: 1}
+stats:
+  attack: 30
+  defense: 89
+  max_hp: 580
+  crit_rate: 0.1
+  speed: 9
+pressure: [稳打护盾]
+counterplay:
+  - 战前选持续直伤或多段攻击，在白昼护盾出现后先行消耗，不把唯一怒技浪费在满盾窗口。
+  - 战前选先手速度或高防御构筑，利用长夜伤害较高但缺少白昼护盾的窗口安排自身爆发。
+preview: >-
+  烛龙真经以白昼开始，主动作结束后只轮替一次相位；白昼普攻和怒技有护盾，长夜直接伤害更高，
+  J2-C同时提高两相护盾与长夜伤害，RR07在首个怒技完成后的轮尾才降低自身怒气上限15。
+  预览公开当前相位、护盾来源和下一次轮替，自动战仅执行战前的破盾或先手取舍。
+phases: []
+reward_profile: C
+target:
+  rounds: [3, 5]
+  net_hp_loss_pct: [3, 6]
+  burst_warning_pct: 12
+  note: 参考幸存胜利样本的首测损耗输入，不承诺胜率或固定击杀轮数。
+measured: null

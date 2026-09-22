@@ -1,0 +1,45 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RR04
+name: 如意钱
+status: design_target
+summary: 攻击 +6、暴击率 +2 个百分点；普攻首命中概率追加一击
+description: 钱面两侧刻着如意纹，普攻首个有效命中有机会牵出一次追加攻击。
+tags: [attack, crit_rate, basic, chance, rare]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 2.4, A: 12, J: 0, U: 2.4}
+  measured: null
+rarity: rare
+max_stacks: 1
+unique_group: null
+attributes:
+  flat: {attack: 6, crit_rate: 0.02}
+  percent: {}
+effects:
+  - id: RR04-BASIC-HIT-CHANCE-FOLLOWUP
+    trigger: direct_hit
+    operation: chance_damage
+    target: enemy
+    params:
+      chance: 0.25
+      attack_ratio: 0.5
+      segments: 1
+      can_crit: false
+      action_type: basic_action
+      hit_scope: first_effective_base_direct_hit
+      rolls_per_action: 1
+      append_after_base_hit: true
+      does_not_chain: true
+      first_test_value: {chance: 0.25, attack_ratio: 0.5}
+    requires: [effective_basic_base_hit]
+    consumes: []
+    replaces: []
+    limit: {scope: action, count: 1}
+    text: 每个普攻主动作首个有效基础命中只检定一次；首测25%概率追加一段攻击倍率0.5的直接伤害，追加段不再触发追加。
+acquisition:
+  pools: [rare_artifact]

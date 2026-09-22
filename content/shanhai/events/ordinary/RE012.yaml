@@ -1,0 +1,55 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE012
+name: 锈锁双匣
+status: design_target
+summary: 付出气血换两层养气玉或厚土环，也可把伤势留给修行。
+description: 锈锁住两只木匣，里面分别躺着养气玉和厚土环。锁芯滚烫，开匣需要付出气血。
+tags: [ordinary, blood_price, two_layers, artifact, act2]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件。
+balance:
+  target:
+    gross_U: [1.5, 2.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [2]
+scene: 锈锁住两只木匣，里面的养气玉和厚土环隔着木板泛光。锁芯滚烫，伸手便会受伤。
+options:
+  - id: RE012-A
+    label: 割锁取养气玉
+    quick: 付出一成气血代价，带走两层养气玉，提高最大气血。
+    requirements:
+      - {type: capacity, id: RC05, count: 2}
+    costs:
+      - {type: resource, resource: hp, amount: 0.1, basis: reference_hp, must_survive: true}
+    rewards:
+      - {type: artifact, id: RC05, count: 2}
+    outcome: 你忍着锁刃割伤取出两层养气玉，胸口的气息渐渐厚实。
+  - id: RE012-B
+    label: 割锁取厚土环
+    quick: 付出一成气血代价，带走两层厚土环，提升防御。
+    requirements:
+      - {type: capacity, id: RC04, count: 2}
+    costs:
+      - {type: resource, resource: hp, amount: 0.1, basis: reference_hp, must_survive: true}
+    rewards:
+      - {type: artifact, id: RC04, count: 2}
+    outcome: 你忍痛取出两层厚土环，沉重的护意贴上肩背。
+  - id: RE012-C
+    label: 留锁取修为
+    quick: 不碰锁匣，静坐片刻，修为提高下一次进阶所需的两成。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
+    outcome: 你放下烫手的锁，借一息清静让修为向前走了一步。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

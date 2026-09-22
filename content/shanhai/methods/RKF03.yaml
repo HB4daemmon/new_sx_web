@@ -1,0 +1,462 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: method
+id: RKF03
+name: 回春功
+status: design_target
+summary: 以最大气血支撑自疗和溢疗出口的普通医修功法。
+description: 回春功的攻击读取攻击属性，治疗读取最大气血；先结算有效治疗，再把同一份真实溢疗交给互斥出口选择器，不能重复消费。
+tags: [method, common, healing, max_hp, overflow]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创功法；治疗、溢疗和转化系数是首测设计输入，不声称已实装或已平衡。
+balance:
+  target:
+    D: 85
+    L: 85
+    H: 100
+    P: 100
+    P_by_tier: [100, 125, 150, 175, 200]
+  measured: null
+rarity: common
+role: 医修
+stat_focus:
+  primary: max_hp
+  secondary: [attack, defense]
+  damage_from: attack
+  heal_from: max_hp
+  overflow_from: actual_heal_result
+mechanic: null
+acquisition:
+  start: true
+  pools: [method_common]
+actions:
+  basic:
+    name: 回春引气
+    quick: 攻击并按最大气血自疗
+    effects:
+      - id: RKF03-BASIC-DAMAGE
+        trigger: basic_action
+        operation: damage
+        target: enemy
+        params:
+          attack_ratio: 0.88
+          segments: 1
+          can_crit: true
+          damage_kind: direct
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 按攻击的0.88倍对敌人造成一段可暴击直接伤害。
+      - id: RKF03-BASIC-HEAL
+        trigger: action_end
+        operation: heal
+        target: self
+        params:
+          action: basic_action
+          max_hp_ratio: 0.10
+          timing: after_damage
+          overflow_selector:
+            id: RKF03-OVERFLOW-OUTLET
+            default: damage_enemy
+            alternatives: [RL01]
+            mutually_exclusive: true
+            consume_once: true
+            outlet_order: [RL01, method_default]
+          heal_first_then_overflow: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 普攻完成后按最大气血的10%进行自疗；先填补当前气血缺口，真实溢疗再交给溢出出口选择器，RL01与默认伤害出口互斥。
+  rage:
+    name: 枯木回天
+    quick: 怒技攻击并强化自疗
+    effects:
+      - id: RKF03-RAGE-DAMAGE
+        trigger: rage_action
+        operation: damage
+        target: enemy
+        params:
+          attack_ratio: 1.35
+          segments: 1
+          can_crit: true
+          damage_kind: direct
+          rage_cost: locked_action_cost
+        requires: []
+        consumes: [rage_locked_action_cost]
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 按公共规则支付本轮锁定怒耗后，按攻击的1.35倍对敌人造成一段可暴击直接伤害。
+      - id: RKF03-RAGE-HEAL
+        trigger: action_end
+        operation: heal
+        target: self
+        params:
+          action: rage_action
+          max_hp_ratio: 0.24
+          timing: after_damage
+          overflow_selector:
+            id: RKF03-OVERFLOW-OUTLET
+            default: damage_enemy
+            alternatives: [RL01]
+            mutually_exclusive: true
+            consume_once: true
+            outlet_order: [RL01, method_default]
+          heal_first_then_overflow: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 怒技完成后按最大气血的24%进行自疗；先结算有效治疗，再把同一份真实溢疗交给互斥出口，不同时转伤和转盾。
+passives:
+  - id: RKF03-PASSIVE-OVERFLOW
+    trigger: overflow_resolved
+    operation: convert_overflow
+    target: enemy
+    params:
+      selector:
+        id: RKF03-OVERFLOW-OUTLET
+        default: damage_enemy
+        alternatives:
+          RL01: shield_from_same_overflow
+        mutually_exclusive: true
+        consume_once: true
+        outlet_order: [RL01, method_default]
+      mode: damage
+      damage_ratio: 0.70
+      damage_source: actual_overflow
+      damage_kind: derived
+      can_crit: false
+      defense_interaction: normal_direct
+      recursive: false
+      no_second_overflow_consumer: true
+    requires: [positive_actual_heal_overflow]
+    consumes: [actual_heal_overflow]
+    replaces: []
+    limit: {scope: action, count: 1}
+    text: 默认把本门治疗产生的真实溢疗按70%转为一次派生伤害；若选择RL01，则同一份溢疗改走RL01护盾出口，二者互斥且只消费一次。
+travel:
+  - id: RKF03-TRAVEL-NONBATTLE-HEAL
+    trigger: node_complete
+    operation: heal
+    target: self
+    params:
+      amount: 0.06
+      basis: max_hp
+      heal_mode: current_hp_only
+      node_types: [rest, event, shop]
+      non_battle_only: true
+      no_rage: true
+      no_overflow_outlet: true
+      once_per_node: true
+    requires: [real_nonbattle_node_completed]
+    consumes: []
+    replaces: []
+    limit: {scope: node, count: 1}
+    text: 完成非战斗节点后恢复最大气血的6%，只填当前气血缺口，不生成战斗怒气、不触发溢疗出口，也不重复结算同一节点。
+talents:
+  - id: RKF03-J1-A
+    tier: 1
+    branch: A
+    name: 溢疗生锋
+    quick: 溢疗转伤提高
+    category: enhance
+    effects:
+      - id: RKF03-J1-A-OVERFLOW
+        trigger: overflow_resolved
+        operation: modify_effect
+        target: enemy
+        params:
+          mode: add_ratio
+          effect_id: RKF03-PASSIVE-OVERFLOW
+          damage_ratio_add: 0.25
+          applies_to: default_damage_exit
+          preserve_rl01_choice: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 默认伤害出口把实际溢疗转伤比例从0.70提高25个百分点；选择RL01时仍保持互斥，不把同一溢疗重复转化。
+  - id: RKF03-J1-B
+    tier: 1
+    branch: B
+    name: 春息自守
+    quick: 基础自疗提高
+    category: enhance
+    effects:
+      - id: RKF03-J1-B-BASIC-HEAL
+        trigger: action_end
+        operation: modify_effect
+        target: self
+        params:
+          mode: add_input
+          effect_id: RKF03-BASIC-HEAL
+          max_hp_ratio_add: 0.06
+          timing: after_damage
+          overflow_selector_unchanged: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 回春引气的基础治疗增加最大气血的6%，仍先结算有效治疗，再按同一个溢疗出口处理剩余量。
+  - id: RKF03-J1-C
+    tier: 1
+    branch: C
+    name: 丹田厚养
+    quick: 最大气血提高
+    category: enhance
+    effects:
+      - id: RKF03-J1-C-MAX-HP
+        trigger: always
+        operation: modify_stat
+        target: self
+        params:
+          stat: max_hp
+          mode: percent_add
+          amount: 0.10
+          affects: [starting_max_hp, heal_input, survival]
+          dynamic_hp_clamp: public_rule
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 最大气血提高10%；该属性同时提高起始最大气血和本门按最大气血读取的治疗输入，但不自动补齐当前气血。
+  - id: RKF03-J2-A
+    tier: 2
+    branch: A
+    name: 余春化毒
+    quick: 溢疗改为施毒
+    category: convert
+    effects:
+      - id: RKF03-J2-A-POISON
+        trigger: overflow_resolved
+        operation: convert_overflow
+        target: enemy
+        params:
+          selector:
+            id: RKF03-OVERFLOW-OUTLET
+            choice: poison
+            alternatives:
+              RL01: shield_from_same_overflow
+            mutually_exclusive: true
+            consume_once: true
+            outlet_order: [RL01, method_poison]
+          mode: apply_status
+          status: poison
+          stacks_per_overflow: 0.012
+          max_stacks: 10
+          duration_rounds: 3
+          snapshot: overflow_amount
+          tick_at: round_end_before_rage
+          replaces_default_damage_exit: true
+          no_damage_and_poison_double_count: true
+        requires: [actual_heal_overflow]
+        consumes: [actual_heal_overflow]
+        replaces: [RKF03-PASSIVE-OVERFLOW]
+        limit: {scope: action, count: 1}
+        text: 取代默认溢疗伤害出口，把同一份实际溢疗按每点0.012层施加中毒，最多10层、持续3轮；选择RL01时仍改走RL01护盾且不同时施毒。
+  - id: RKF03-J2-B
+    tier: 2
+    branch: B
+    name: 医脉贯通
+    quick: 怒技治疗提高
+    category: enhance
+    effects:
+      - id: RKF03-J2-B-RAGE-HEAL
+        trigger: action_end
+        operation: modify_effect
+        target: self
+        params:
+          mode: add_input
+          effect_id: RKF03-RAGE-HEAL
+          max_hp_ratio_add: 0.10
+          timing: after_damage
+          overflow_selector_unchanged: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 枯木回天的基础治疗增加最大气血的10%，溢疗仍只交给一个已选择的出口。
+  - id: RKF03-J2-C
+    tier: 2
+    branch: C
+    name: 回气养元
+    quick: 有效治疗返怒
+    category: cycle
+    effects:
+      - id: RKF03-J2-C-RAGE
+        trigger: heal_resolved
+        operation: rage_gain
+        target: self
+        params:
+          source: effective_heal
+          ratio: 0.25
+          once_per_action: true
+          minimum_effective_heal: 1
+          record_at: round_end
+          overflow_excluded: true
+          no_extra_action: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 每次自身主动作首次产生至少1点有效治疗时，按有效治疗量的25%登记额外怒气；溢疗和战外治疗不计入。
+  - id: RKF03-J3-A
+    tier: 3
+    branch: A
+    name: 血盛春深
+    quick: 低血治疗增强
+    category: enhance
+    effects:
+      - id: RKF03-J3-A-LOW-HEAL
+        trigger: heal_resolved
+        operation: modify_effect
+        target: self
+        params:
+          mode: multiplier
+          heal_multiplier: 1.25
+          condition: current_hp_ratio_at_or_below_0.50
+          applies_to: basic_and_rage_heal
+          overflow_after_multiplier: true
+        requires: [low_current_hp]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 结算治疗时若当前气血不高于最大气血50%，本次基础治疗量乘以1.25，再按有效治疗与溢疗顺序拆账。
+  - id: RKF03-J3-B
+    tier: 3
+    branch: B
+    name: 回元续脉
+    quick: 治疗后短暂减伤
+    category: enhance
+    effects:
+      - id: RKF03-J3-B-REDUCE
+        trigger: heal_resolved
+        operation: modify_effect
+        target: self
+        params:
+          mode: temporary_incoming_multiplier
+          source: enemy_direct
+          multiplier: 0.88
+          duration_rounds: 1
+          condition: effective_heal_positive
+          starts_after_heal: true
+          excludes: [poison, burn, event_damage]
+        requires: [effective_self_heal]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 产生有效治疗后，后续1轮受到的敌方直接伤害乘以0.88；持续伤害和事件扣血不受影响，当前治疗动作不追溯减免。
+  - id: RKF03-J3-C
+    tier: 3
+    branch: C
+    name: 养气护生
+    quick: 有效治疗造盾
+    category: enhance
+    effects:
+      - id: RKF03-J3-C-SHIELD
+        trigger: heal_resolved
+        operation: shield
+        target: self
+        params:
+          source: effective_heal
+          effective_heal_ratio: 0.35
+          read_only: true
+          consume_heal: false
+          overflow_excluded: true
+          cap_ratio: 1
+        requires: [effective_self_heal]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 每次有效治疗后按该次有效治疗量的35%造盾；只读取已记录结果，不消费治疗、不读取溢疗，也不重复触发治疗。
+  - id: RKF03-J4-A
+    tier: 4
+    branch: A
+    name: 春回大地
+    quick: 怒技治疗与溢伤提高
+    category: enhance
+    effects:
+      - id: RKF03-J4-A-RAGE-HEAL
+        trigger: action_end
+        operation: modify_effect
+        target: self
+        params:
+          mode: add_input
+          effect_id: RKF03-RAGE-HEAL
+          max_hp_ratio_add: 0.14
+          timing: after_damage
+          overflow_selector_unchanged: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 枯木回天的基础治疗增加最大气血的14%，真实溢疗仍只沿已选择出口结算，不把治疗和溢疗重复计入。
+  - id: RKF03-J4-B
+    tier: 4
+    branch: B
+    name: 生死回春
+    quick: 重伤时治疗增强
+    category: enhance
+    effects:
+      - id: RKF03-J4-B-LOW-HEAL
+        trigger: heal_resolved
+        operation: modify_effect
+        target: self
+        params:
+          mode: multiplier
+          heal_multiplier: 1.30
+          condition: current_hp_ratio_at_or_below_0.30
+          applies_to: basic_and_rage_heal
+          overflow_after_multiplier: true
+        requires: [critical_low_current_hp]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 结算治疗时若当前气血不高于最大气血30%，本次治疗量乘以1.30，再按同一出口拆分有效治疗与溢疗。
+  - id: RKF03-J4-C
+    tier: 4
+    branch: C
+    name: 枯荣转锋
+    quick: 溢疗转直接伤害
+    category: convert
+    effects:
+      - id: RKF03-J4-C-DAMAGE
+        trigger: overflow_resolved
+        operation: convert_overflow
+        target: enemy
+        params:
+          selector:
+            id: RKF03-OVERFLOW-OUTLET
+            choice: direct_damage
+            alternatives:
+              RL01: shield_from_same_overflow
+            mutually_exclusive: true
+            consume_once: true
+            outlet_order: [RL01, method_direct_damage]
+          mode: damage
+          damage_ratio: 1.10
+          damage_source: actual_overflow
+          damage_kind: derived
+          can_crit: false
+          recursive: false
+          replaces_all_lower_tier_overflow_exits: true
+          no_damage_and_rl01_double_count: true
+        requires: [actual_heal_overflow]
+        consumes: [actual_heal_overflow]
+        replaces: [RKF03-PASSIVE-OVERFLOW, RKF03-J2-A-POISON]
+        limit: {scope: action, count: 1}
+        text: 取代本门较低层溢疗出口，把同一份真实溢疗按110%转为一次派生直接伤害；与余春化毒、RL01互斥，不同时造成伤害、施毒或造盾。
+routes:
+  - name: 溢疗转伤
+    summary: 提高最大气血和治疗量，把满血后的真实溢疗转成伤害；代价是持续掉血或治疗不足时溢疗出口覆盖下降。
+    talents: [RKF03-J1-C, RKF03-J2-A, RKF03-J3-C, RKF03-J4-C]
+  - name: 春毒同生
+    summary: 以治疗和溢疗施毒维持长线压力，再用低血治疗扩大有效恢复；代价是短战可能来不及叠毒。
+    talents: [RKF03-J1-B, RKF03-J2-A, RKF03-J3-A, RKF03-J4-B]
+  - name: 低血续战
+    summary: 低血时放大治疗并在治疗后短暂减伤，以有效治疗返怒和护盾维持回合；代价是满血时循环收益和防护触发较少。
+    talents: [RKF03-J1-C, RKF03-J2-C, RKF03-J3-B, RKF03-J4-A]

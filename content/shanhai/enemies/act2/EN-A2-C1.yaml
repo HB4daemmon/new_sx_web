@@ -1,0 +1,48 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A2-C1
+name: 断桥青蛇
+status: design_target
+summary: 以中毒叠层和轮尾持续伤害形成第二幕前段普通压力。
+description: 青蛇的持续伤害来自五毒经、毒牙钉与蛇纹瓶的现有输入，不读取玩家当前 build 动态加层。它的基础属性把第二幕压力集中在中毒覆盖和轮尾结算，不承诺静态胜率。
+tags: [enemy, act2, normal, poison, dot]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创妖物，不声称古籍存在此身份或这些效果。
+balance:
+  target:
+    rounds: [3, 5]
+    net_hp_loss_pct: [3, 6]
+    burst_warning_pct: 12
+    observation_window: 15
+    note: 首轮第二幕普通前段参考目标带，不是胜率或准确命中承诺。
+  measured: null
+acts: [2]
+tier: normal
+identity: 断桥青蛇缠在旧索桥的木桩上，吐息会在伤口边缘留下逐轮扩散的青痕。它以中毒层数和轮尾结算造成持续压力，不拥有免毒效果。
+method: RKF06
+n: 1
+talents: [RKF06-J1-A]
+artifacts:
+  - {id: RC05, stacks: 1}
+  - {id: RC14, stacks: 2}
+  - {id: RC24, stacks: 1}
+stats:
+  attack: 16
+  defense: 44
+  max_hp: 360
+  crit_rate: 0.06
+  speed: 10
+pressure: [长DOT]
+counterplay:
+  - 用短战爆发或破甲尽快击倒青蛇，减少中毒在多个轮尾继续结算。
+  - 以治疗或护盾接住毒层期间的直接段，并用能持续造成有效伤害的普攻路线保持压力。
+preview: 基础五维为装备前值；五毒经普攻与怒技会公开施加中毒，J1-A使每次基础动作多叠一层，蛇纹瓶只放大自身毒 tick，阶段列表为空。
+phases: []
+reward_profile: C
+measured: null
+"null":
+  reason: target_design_before_runtime_fixture
+  allowed: true

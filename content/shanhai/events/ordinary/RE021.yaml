@@ -1,0 +1,55 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE021
+name: 赤砂双层
+status: design_target
+summary: 以气血换两层蛇纹瓶或赤炎珠，或捡走冷石换灵石。
+description: 赤砂里埋着两片同纹法片，取出时砂砾会灌入伤口；旁边的冷石可直接换成灵石。
+tags: [ordinary, blood_price, two_layers, artifact, act3]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件。
+balance:
+  target:
+    gross_U: [1.5, 2.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [3, 4]
+scene: 赤砂灼热，两枚法片在砂下泛光。你可以忍痛取宝，也可以捡起冷石，带着灵石离开。
+options:
+  - id: RE021-A
+    label: 取蛇纹瓶
+    quick: 付出一成半气血代价，带走两层蛇纹瓶，增强中毒伤害。
+    requirements:
+      - {type: capacity, id: RC14, count: 2}
+    costs:
+      - {type: resource, resource: hp, amount: 0.15, basis: reference_hp, must_survive: true}
+    rewards:
+      - {type: artifact, id: RC14, count: 2}
+    outcome: 你忍痛从赤砂里取出两层蛇纹瓶，瓶中毒意随之苏醒。
+  - id: RE021-B
+    label: 取赤炎珠
+    quick: 付出一成半气血代价，带走两层赤炎珠，增强燃烧伤害。
+    requirements:
+      - {type: capacity, id: RC15, count: 2}
+    costs:
+      - {type: resource, resource: hp, amount: 0.15, basis: reference_hp, must_survive: true}
+    rewards:
+      - {type: artifact, id: RC15, count: 2}
+    outcome: 你忍痛从赤砂里取出两层赤炎珠，火种在掌中灼灼燃烧。
+  - id: RE021-C
+    label: 拾冷石离砂
+    quick: 捡走冷石换成灵石，不必损失气血。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: coins, amount: 0.2, basis: common_price}
+    outcome: 你捡起冷石换来灵石，转身离开灼热的赤砂。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

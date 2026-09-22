@@ -1,0 +1,51 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A3-L2
+name: 五毒行舟客
+status: design_target
+summary: 以中毒、虚弱和消费毒层自疗形成持续型精英压力。
+description: 毒沼行舟客是原创匿名敌人，中毒、虚弱与自疗分别由五毒经、天赋和法宝的公开卡面输入提供。
+tags: [enemy, act3, elite, poison, dot, weakness, recovery]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创匿名敌人与原创配装，不声称古籍人物或原典战斗效果。
+balance:
+  target:
+    rounds: [5, 8]
+    net_hp_loss_pct: [8, 14]
+    burst_warning_pct: 22
+  measured: null
+acts: [3]
+tier: elite
+identity: 毒沼行舟客
+method: RKF06
+n: 3
+talents: [RKF06-J1-C, RKF06-J2-B, RKF06-J3-C]
+artifacts:
+  - {id: RC14, stacks: 2}
+  - {id: RC05, stacks: 2}
+  - {id: RR11, stacks: 1}
+stats:
+  attack: 22
+  defense: 69
+  max_hp: 483
+  crit_rate: 0.07
+  speed: 9
+pressure: [长DOT, 虚弱]
+counterplay:
+  - 战前选短战直接输出或高防御构筑，减少毒层tick次数，优先在其消费毒层前压低气血。
+  - 战前选护盾与稳定治疗构筑拉长窗口，再利用中毒触发的虚弱覆盖降低其后续直接压力。
+preview: >-
+  五毒经普攻和怒技真实命中后施加中毒；J2-B在带毒目标上追加虚弱，J3-C每个主动作最多消费两层
+  动作开始前已有的毒并按每层最大气血5%治疗，RR11只在自身中毒首次造成真实伤害的轮次回怒。
+  预览公开毒层、虚弱层和自疗输入，自动战仅执行战前的速杀或续航取舍。
+phases: []
+reward_profile: L
+target:
+  rounds: [5, 8]
+  net_hp_loss_pct: [8, 14]
+  burst_warning_pct: 22
+  note: 参考幸存胜利样本的首测损耗输入，不承诺胜率或固定击杀轮数。
+measured: null

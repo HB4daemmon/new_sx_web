@@ -1,0 +1,49 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A1-B1
+name: 共工遗影试炼
+status: design_target
+summary: 以昼夜护盾和普攻追加段组合成第一幕首领候选。
+description: 这是借用共工水势意象制作的原创遗影试炼，不声称击败或复现神话人物本人。它的多段与护盾压力均来自烛龙真经和裂空宝轮的公开输入，配置不会读取玩家 build 动态增强。
+tags: [enemy, act1, boss, myth_adaptation, water, multihit, shield]
+source:
+  basis: myth_adaptation
+  reference: null
+  note: 借用共工水势意象的原创遗影试炼，原典映射待核验，不声称神话本人进入战斗或被击杀。
+balance:
+  target:
+    rounds: [8, 12]
+    net_hp_loss_pct: [12, 20]
+    burst_warning_pct: 30
+    observation_window: 15
+    note: 首轮幕首领参考目标带，不是胜率、TTK或准确命中承诺。
+  measured: null
+acts: [1]
+tier: boss
+identity: 共工遗影试炼在潮门前展开一面不断变换明暗的水幕，水幕后的身影只是一段供修行者检验的残影。它把护持与多段冲击写成公开卡面组合，不声称杀死神话中的共工。
+method: RKF10
+n: 1
+talents: [RKF10-J1-A]
+artifacts:
+  - {id: RL03, stacks: 1}
+  - {id: RL05, stacks: 1}
+  - {id: RC04, stacks: 1}
+  - {id: RC11, stacks: 2}
+stats:
+  attack: 20
+  defense: 75
+  max_hp: 600
+  crit_rate: 0.1
+  speed: 12
+pressure: [多段, 稳打护盾]
+counterplay:
+  - 用护盾或防御承受普攻首段与裂空宝轮追加段，并在白昼护盾形成后先破盾再交怒技。
+  - 以破甲或短战爆发压缩它从长夜高伤到下一次循环的窗口，保留治疗应对多段后续缺口。
+preview: 基础五维为装备前值；烛龙真经按卡面在昼夜间轮替，白昼生成护盾，裂空宝轮只在普攻首个有效基础命中后追加两段，回澜印在怒技完成后返怒；无额外阶段。
+phases: []
+reward_profile: B
+measured: null
+"null":
+  reason: target_design_before_runtime_fixture
+  allowed: true

@@ -1,0 +1,59 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE009
+name: 河灯试诀
+status: design_target
+summary: 参加河灯试诀争取五毒经，或付灵石带走青锋石。
+description: 河灯照亮临时擂台，擂主拿出五毒经作彩头；败者会被送回安全线。
+tags: [ordinary, nonlethal, encounter, rare_method]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；稀有法本不是稀有法宝预算，不自动换法。
+balance:
+  target:
+    gross_U: [1.0, 1.8]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [1, 2]
+scene: 河灯在水面摇曳，擂主把五毒经放上擂台。想拿走它，先在安全线内赢下这场试诀。
+options:
+  - id: RE009-A
+    label: 上台试诀
+    quick: 参加非致命试诀，胜者带走五毒经；败了只剩一线气血。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: method, id: RKF06}
+    encounter:
+      enemy_id: EN-A1-L1
+      mode: nonlethal
+      failure_hp_floor: 1
+      failure_rewards: []
+      failure_outcome: 你被擂主逼回安全线，气血只剩一线，五毒经没有交到你手上。
+    outcome: 你赢下擂台，五毒经落入囊中，暂时仍可沿用原先功法。
+  - id: RE009-B
+    label: 付石取青锋
+    quick: 付出标价灵石，带走一层青锋石，稳稳增强攻击。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC01, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 1.0, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC01, count: 1}
+    outcome: 青锋石入手，河灯下的锋芒不必再靠赌斗争取。
+  - id: RE009-C
+    label: 提灯离台
+    quick: 提灯离台，保留气血与灵石。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 你提灯离开擂台，河面只留下未散的灯影。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

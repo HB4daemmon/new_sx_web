@@ -1,0 +1,39 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RC20
+name: 引气符
+status: design_target
+summary: 攻击 +2；普攻完成后额外回怒 5
+description: 符纸牵引散气，在每次普攻主动作结束时补回少量怒气。
+tags: [attack, rage_gain, basic, combat]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 1, A: 5, J: 0, U: 1}
+  measured: null
+rarity: common
+max_stacks: 3
+unique_group: null
+attributes:
+  flat: {attack: 2}
+  percent: {}
+effects:
+  - id: RC20-BASIC-RAGE-GAIN
+    trigger: basic_action
+    operation: rage_gain
+    target: self
+    params:
+      amount: 5
+      timing: round_end
+      action_scope: own_basic_action
+      replaces_public_basic_gain: false
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: action, count: 1}
+    text: 每层在一次普攻主动作完成时登记额外5点怒气，不替代公共普攻完成回怒。
+acquisition:
+  pools: [common_artifact]

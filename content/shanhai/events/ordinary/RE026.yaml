@@ -1,0 +1,56 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE026
+name: 雷骨难题
+status: design_target
+summary: 付高价取镇心玉，或以较低代价带走凝气珠。
+description: 雷骨商人只带来一件镇心玉，旁边的凝气珠便宜得多，却会压低怒气上限。
+tags: [ordinary, rare_artifact, purchase, attack, act3]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；稀有法宝有显著成本并按 B=2.4 预算记账。
+balance:
+  target:
+    gross_U: [0.75, 2.4]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [3]
+scene: 雷声里，镇心玉压住一侧桌角，凝气珠在另一侧轻轻旋转。商人把两种价钱都说得明白。
+options:
+  - id: RE026-A
+    label: 付高价取镇心玉
+    quick: 付出高价，带走镇心玉，提升防御并在战斗中积攒攻击。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RR05, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 2.0, basis: common_price}
+    rewards:
+      - {type: artifact, id: RR05, count: 1}
+    outcome: 镇心玉沉入掌心，防守越稳，出手越有后劲。
+  - id: RE026-B
+    label: 付石取凝气珠
+    quick: 付出较低标价，带走一层凝气珠，增强攻击但降低怒气上限。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC19, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 0.75, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC19, count: 1}
+    outcome: 凝气珠在掌中微微发亮，锋劲更足，聚气却要更精打细算。
+  - id: RE026-C
+    label: 放下雷骨
+    quick: 合上商匣，保留灵石。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 商人收回两件法宝，你把灵石留在身边继续赶路。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

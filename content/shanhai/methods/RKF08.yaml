@@ -1,0 +1,324 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: method
+id: RKF08
+name: 太阴经
+status: design_target
+summary: 以虚弱、破甲和公共削怒请求控制敌方节奏的阴咒功法。
+description: 普攻施加虚弱，怒技施加破甲，天赋分别强化寒月压制、负面转伤和耗弱成盾。
+tags: [method, rare, curse, original]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创阴咒能力，不声称古籍存在这些战斗效果。
+balance:
+  target:
+    P_by_tier: [110, 137.5, 165, 192.5, 220]
+    D: 99
+    L: 90
+    H: 100
+    P: 110
+  measured: null
+rarity: rare
+role: 咒师
+stat_focus: [attack, defense]
+mechanic: null
+acquisition:
+  start: false
+  pools: [method_rare]
+actions:
+  basic:
+    name: 幽月蚀心
+    quick: 直接阴伤并施加虚弱
+    effects:
+      - id: RKF08-BASIC-DAMAGE
+        trigger: basic_action
+        operation: damage
+        target: enemy
+        params: {attack_ratio: 0.9, segments: 1, can_crit: true, damage_kind: direct}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 按攻击的0.90倍造成一段可暴击直接阴伤。
+      - id: RKF08-BASIC-WEAKNESS
+        trigger: basic_hit
+        operation: apply_status
+        target: enemy
+        params: {status: weakness, stacks: 1, duration_rounds: 2, max_stacks: 5, refresh: false, only_if_damage_actual: true}
+        requires: [effective_basic_base_hit]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 基础直接段实际命中后施加一层虚弱，按公共规则降低敌方后续攻击。
+  rage:
+    name: 太阴破妄
+    quick: 重击并施加破甲
+    effects:
+      - id: RKF08-RAGE-DAMAGE
+        trigger: rage_action
+        operation: damage
+        target: enemy
+        params: {attack_ratio: 1.3, segments: 1, can_crit: true, damage_kind: direct, rage_cost: locked_action_cost}
+        requires: []
+        consumes: [rage_locked_action_cost]
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 按攻击的1.30倍造成一段可暴击直接阴伤，不另发放基础普攻怒气。
+      - id: RKF08-RAGE-ARMOR
+        trigger: rage_action
+        operation: apply_status
+        target: enemy
+        params: {status: armor_break, stacks: 2, duration_rounds: 2, max_stacks: 5, refresh: false, after_effect: RKF08-RAGE-DAMAGE}
+        requires: [RKF08-RAGE-DAMAGE]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 怒技直接段结算后施加两层破甲，供后续直接段读取，破甲本身不额外造成伤害。
+passives:
+  - id: RKF08-PASSIVE-MOON-GUARD
+    trigger: battle_start
+    operation: modify_stat
+    target: self
+    params: {stat: defense, mode: add, amount: 8, duration: battle, snapshot: battle_start}
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: battle, count: 1}
+    text: 每场战斗开始时防御提高8，只影响承伤及本门明确读取防御的护盾。
+travel:
+  - id: RKF08-TRAVEL-REFUND
+    trigger: event_cost_paid
+    operation: grant_resource
+    target: self
+    params: {resource: hp, amount: 0.08, basis: reference_hp, refund_cap: actual_paid_hp, active_event_cost: true, condition: {event_cost_resource: hp, player_survived: true}, timing: after_payment}
+    requires: [active_hp_event_cost_paid_and_survived]
+    consumes: []
+    replaces: []
+    limit: {scope: node, count: 1}
+    text: 主动扣血事件结算后若仍存活，返还实际扣血与当前幕参考气血8%两者较低者；死亡、重进或换法不触发，也不生成怒气。
+talents:
+  - id: RKF08-J1-A
+    tier: 1
+    branch: A
+    name: 月蚀初临
+    quick: 普攻多施一层虚弱
+    category: enhance
+    effects:
+      - id: RKF08-J1-A-MODIFY
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {effect_ids: [RKF08-BASIC-WEAKNESS], field: params.stacks, mode: add, value: 1}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 太阴经普攻实际命中的虚弱层数增加1，仍受公共五层上限约束。
+  - id: RKF08-J1-B
+    tier: 1
+    branch: B
+    name: 阴锋凝神
+    quick: 怒技直接伤害提高
+    category: enhance
+    effects:
+      - id: RKF08-J1-B-MODIFY
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {effect_ids: [RKF08-RAGE-DAMAGE], field: params.attack_ratio, mode: add, value: 0.15}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 太阴经怒技直接段攻击比增加0.15。
+  - id: RKF08-J1-C
+    tier: 1
+    branch: C
+    name: 太阴敛息
+    quick: 命中减益敌人额外回怒
+    category: cycle
+    effects:
+      - id: RKF08-J1-C-RAGE
+        trigger: action_end
+        operation: rage_gain
+        target: self
+        params: {amount: 8, source: talent, condition: {enemy_has_actual_debuff: true}, once_per_action: true, additive_to_public_sources: true, record_at: round_end, no_extra_action: true}
+        requires: [enemy_has_actual_debuff]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 本主动作结束时若敌方至少有一个实际生效的公共减益，额外获得8点怒气。
+  - id: RKF08-J2-A
+    tier: 2
+    branch: A
+    name: 摄气封脉
+    quick: 普攻削减敌怒十点
+    category: cycle
+    effects:
+      - id: RKF08-J2-A-DRAIN
+        trigger: basic_hit
+        operation: rage_drain
+        target: enemy
+        params: {amount: 10, stage: register_request, source: basic_hit, first_basic_segment: true, public_resistance: true, round_target_cap: 20, does_not_cancel_locked_action: true}
+        requires: [effective_basic_base_hit]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 本门普攻首个基础直接段实际命中后登记敌方外来削怒请求10点，交由公共抗性、向下取整和每目标每轮20点上限结算；不取消本轮已锁动作。
+  - id: RKF08-J2-B
+    tier: 2
+    branch: B
+    name: 阴蚀入骨
+    quick: 减益目标受到本门增伤
+    category: enhance
+    effects:
+      - id: RKF08-J2-B-BASIC
+        trigger: basic_action
+        operation: modify_effect
+        target: self
+        params: {effect_ids: [RKF08-BASIC-DAMAGE], field: params.attack_ratio, mode: add, value: 0.18, condition: {enemy_has_actual_debuff: true}}
+        requires: [enemy_has_actual_debuff]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 普攻开始时敌方已有实际生效的虚弱或破甲，则本次普攻直接段攻击比增加0.18，不按减益条数叠加。
+      - id: RKF08-J2-B-RAGE
+        trigger: rage_action
+        operation: modify_effect
+        target: self
+        params: {effect_ids: [RKF08-RAGE-DAMAGE], field: params.attack_ratio, mode: add, value: 0.18, condition: {enemy_has_actual_debuff: true}}
+        requires: [enemy_has_actual_debuff]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 怒技开始时敌方已有实际生效的虚弱或破甲，则本次怒技直接段攻击比增加0.18，不按减益条数叠加。
+  - id: RKF08-J2-C
+    tier: 2
+    branch: C
+    name: 月华护体
+    quick: 怒技结束按防御造盾
+    category: enhance
+    effects:
+      - id: RKF08-J2-C-SHIELD
+        trigger: rage_action
+        operation: shield
+        target: self
+        params: {defense_ratio: 0.35, after_effect: RKF08-RAGE-DAMAGE, preserves_armor_break: true}
+        requires: [RKF08-RAGE-DAMAGE]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 怒技直接段与破甲结算后按防御0.35倍获得护盾，保留基础破甲效果。
+  - id: RKF08-J3-A
+    tier: 3
+    branch: A
+    name: 寒月锁魄
+    quick: 减益敌人再削怒八点
+    category: cycle
+    effects:
+      - id: RKF08-J3-A-DRAIN
+        trigger: action_end
+        operation: rage_drain
+        target: enemy
+        params: {amount: 8, stage: register_request, condition: {enemy_has_actual_debuff: true}, public_resistance: true, round_target_cap: 20, does_not_cancel_locked_action: true}
+        requires: [enemy_has_actual_debuff]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 主动作结束时若敌方仍有实际减益，登记8点外来削怒请求；请求与其它来源合并后按公共每轮上限结算。
+  - id: RKF08-J3-B
+    tier: 3
+    branch: B
+    name: 负面转锋
+    quick: 实际施加减益后补直接伤害
+    category: convert
+    effects:
+      - id: RKF08-J3-B-DAMAGE
+        trigger: direct_hit
+        operation: damage
+        target: enemy
+        params: {attack_ratio: 0.28, segments: 1, can_crit: false, damage_kind: derived, condition: {actual_debuff_applied_this_action: true}, once_per_action: true, recursive: false}
+        requires: [actual_debuff_applied_this_action]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 本主动作实际施加至少一个公共减益后追加一段攻击0.28倍派生伤害；该派生段不再次触发本效果。
+  - id: RKF08-J3-C
+    tier: 3
+    branch: C
+    name: 幽月成盾
+    quick: 命中减益敌人后造盾
+    category: enhance
+    effects:
+      - id: RKF08-J3-C-SHIELD
+        trigger: action_end
+        operation: shield
+        target: self
+        params: {defense_ratio: 0.24, condition: {enemy_has_actual_debuff: true}, max_per_action: 1}
+        requires: [enemy_has_actual_debuff]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 本主动作实际命中带有公共减益的敌人后，按防御0.24倍获得一次护盾。
+  - id: RKF08-J4-A
+    tier: 4
+    branch: A
+    name: 破甲追命
+    quick: 破甲敌人受到怒技增伤
+    category: enhance
+    effects:
+      - id: RKF08-J4-A-MODIFY
+        trigger: rage_action
+        operation: modify_effect
+        target: self
+        params: {effect_ids: [RKF08-RAGE-DAMAGE], field: params.attack_ratio, mode: add, value: 0.28, condition: {enemy_status: armor_break, min_stacks: 1}}
+        requires: [enemy_has_armor_break]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 怒技开始结算时敌方已有至少一层破甲，则本次怒技直接段攻击比增加0.28。
+  - id: RKF08-J4-B
+    tier: 4
+    branch: B
+    name: 削怒回元
+    quick: 破甲敌人命中后回怒
+    category: cycle
+    effects:
+      - id: RKF08-J4-B-RAGE
+        trigger: direct_hit
+        operation: rage_gain
+        target: self
+        params: {amount: 10, source: talent, condition: {enemy_status: armor_break, min_stacks: 1}, once_per_action: true, additive_to_public_sources: true, record_at: round_end, no_extra_action: true}
+        requires: [enemy_has_armor_break]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 本门直接段命中带破甲敌人时额外获得10点怒气，每个主动作最多一次。
+  - id: RKF08-J4-C
+    tier: 4
+    branch: C
+    name: 月沉无伤
+    quick: 减益敌人时提高防御
+    category: enhance
+    effects:
+      - id: RKF08-J4-C-DEFENSE
+        trigger: always
+        operation: modify_stat
+        target: self
+        params: {stat: defense, mode: add, amount: 12, duration: conditional_battle, condition: {enemy_has_actual_debuff: true}, dynamic: true}
+        requires: [enemy_has_actual_debuff]
+        consumes: []
+        replaces: []
+        limit: {scope: battle, count: 1}
+        text: 敌方存在至少一个实际生效的公共减益时，防御提高12；减益全部消失后该加成不再提供输入。
+routes:
+  - name: 寒月压制
+    summary: 以普攻与动作后削怒请求压低敌方后续怒技节奏；代价是削怒受公共抗性和每轮上限约束。
+    talents: [RKF08-J1-A, RKF08-J2-A, RKF08-J3-A, RKF08-J4-B]
+  - name: 负面转伤
+    summary: 让虚弱和破甲的实际覆盖转成额外直接段并追击破甲目标；代价是没有实际施加减益时追加段和破甲增伤都不生效。
+    talents: [RKF08-J1-B, RKF08-J2-B, RKF08-J3-B, RKF08-J4-A]
+  - name: 耗弱成盾
+    summary: 以减益覆盖换取护盾和动态防御，延长太阴经的有效战斗窗口；代价是敌方清除减益后防护输入会暂时消失。
+    talents: [RKF08-J1-C, RKF08-J2-C, RKF08-J3-C, RKF08-J4-C]

@@ -1,0 +1,52 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A4-C3
+name: 玄门再铸
+status: design_target
+summary: 以高防御、多次造盾、真实盾返和一次破盾续护制造普通战后段压力。
+description: 玄甲再铸守是原创匿名敌人，所有盾返与续护都来自金刚功和已有法宝。
+tags: [enemy, act4, normal, shield, shield_reflect, stacking]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创匿名敌人与原创配装，不声称古籍人物或原典战斗效果。
+balance:
+  target:
+    rounds: [3, 5]
+    net_hp_loss_pct: [3, 6]
+    burst_warning_pct: 12
+  measured: null
+acts: [4]
+tier: normal
+identity: 玄甲再铸守
+method: RKF01
+n: 4
+talents: [RKF01-J1-C, RKF01-J2-C, RKF01-J3-B, RKF01-J4-C]
+artifacts:
+  - {id: RC03, stacks: 3}
+  - {id: RC05, stacks: 3}
+  - {id: RC13, stacks: 2}
+  - {id: RR09, stacks: 1}
+stats:
+  attack: 31
+  defense: 60
+  max_hp: 350
+  crit_rate: 0.08
+  speed: 8
+pressure: [稳打护盾, 破甲]
+counterplay:
+  - 战前选持续直伤或多段攻击先消耗护盾，再在首次破盾续护已经兑现后安排第二轮爆发。
+  - 战前选高防御或护盾构筑承受真实盾返，并把速度与普攻回怒留给其无盾窗口。
+preview: >-
+  金刚功普攻和怒技均按防御与最大气血造盾，首次被直接攻击完全破盾且仍存活时会按最大气血补盾一次；
+  J4-C只在真实盾返命中后追加破甲，RC13和RR09都只放大或响应已有盾返，不授予新的盾返来源。
+  预览公开护盾、续护是否已用和破甲层数，自动战仅执行战前的破盾或承伤取舍。
+phases: []
+reward_profile: C
+target:
+  rounds: [3, 5]
+  net_hp_loss_pct: [3, 6]
+  burst_warning_pct: 12
+  note: 参考幸存胜利样本的首测损耗输入，不承诺胜率或固定击杀轮数。
+measured: null

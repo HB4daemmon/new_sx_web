@@ -1,0 +1,53 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE013
+name: 商舟看牌
+status: design_target
+summary: 用灵石换下一场战斗的护盾，或把盘缠/修为带走。
+description: 商舟挂出下一站的货牌，船家能把护行灵材炼成一层护盾，也能折成盘缠或修行。
+tags: [ordinary, shop_prep, preparation, act2]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；准备效果只作用于后续明确窗口。
+balance:
+  target:
+    gross_U: [0.5, 1.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [2]
+scene: 商舟的货牌在风里翻动，船家只肯替你准备一件东西。护盾、灵石和修为，选一份带走。
+options:
+  - id: RE013-A
+    label: 付石备护
+    quick: 付出标价灵石，为下一场战斗备下一层护盾。
+    requirements:
+      - {type: can_pay}
+    costs:
+      - {type: resource, resource: coins, amount: 0.5, basis: common_price}
+    rewards:
+      - {type: preparation, effect: shield, amount: 0.1, basis: reference_hp}
+    outcome: 护行灵材化作护盾，静静等着下一场战斗。
+  - id: RE013-B
+    label: 留石候市
+    quick: 带走一笔灵石，留给下一处商路。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: coins, amount: 0.25, basis: common_price}
+    outcome: 你收好船家递来的灵石，货牌后的买卖仍由你自己决定。
+  - id: RE013-C
+    label: 记下牌价
+    quick: 静坐片刻，修为提高下一次进阶所需的两成。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
+    outcome: 你记下货牌上的风声，把这份灵息化作修为。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

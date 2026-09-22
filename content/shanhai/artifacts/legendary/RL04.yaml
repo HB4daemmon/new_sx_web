@@ -1,0 +1,41 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RL04
+name: 启明玉
+status: design_target
+summary: 攻击 +12、速度 +1；开场额外回怒 50
+description: 玉面在开战前先亮，为开场怒气加入一次额外的高额储备。
+tags: [attack, speed, rage_gain, battle_start, legendary]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 4, A: 20, J: 0, U: 4}
+  measured: null
+rarity: legendary
+max_stacks: 1
+unique_group: null
+attributes:
+  flat: {attack: 12, speed: 1}
+  percent: {}
+effects:
+  - id: RL04-OPENING-RAGE-GAIN
+    trigger: battle_start
+    operation: rage_gain
+    target: self
+    params:
+      amount: 50
+      timing: opening_window
+      once_per_battle: true
+      read_save_once: true
+      combine_with_base_opening: true
+      clamp_once_after_all_opening_sources: true
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: battle, count: 1}
+    text: 每场真实战斗在独立开场窗口额外登记50点怒气，与基础50及其它开场来源合并后只截断一次，不直接宣称开场必满。
+acquisition:
+  pools: [legendary_artifact]

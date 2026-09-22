@@ -1,5 +1,8 @@
 # 《随时修仙》山海版设计简报
 
+> 版本提示：本页为 2026-09-19 旧结构快照。2026-09-20 的替代结构见[重构总纲](./rework/README.md)；
+> 功法职业化、普通法宝叠层和低频核心事件尚未在下文逐项迁移，不得混用两版合同。
+
 > 状态：评审提案，不是实现规格、数值承诺或平衡结论。
 > 本页只定体验和范围；共同战斗口径见[COMBAT_RULES.md](./COMBAT_RULES.md)。
 
@@ -24,7 +27,9 @@
 
 十门功法的比较见[CULTIVATION_TREES.md](./CULTIVATION_TREES.md)，具体卡面见三份分册；
 故事见[STORY_OUTLINE.md](./STORY_OUTLINE.md)，人物见[CHARACTERS.md](./CHARACTERS.md)，事件见[CORE_EVENTS.md](./CORE_EVENTS.md)。
-首批法宝见[ARTIFACTS.md](./ARTIFACTS.md)，原典与改编边界见[MYTH_SOURCES.md](./MYTH_SOURCES.md)。
+一期 48 件法宝见[ARTIFACTS.md](./ARTIFACTS.md)，24 个普通事件及 13 个机缘见[内容索引](./CONTENT_CATALOG.md)；
+35 套敌方真实功法、天赋与法宝配置见[ENEMIES.md](./ENEMIES.md)。
+原典与改编边界见[人物来源](./MYTH_SOURCES.md)、[名器来源](./content/MYTH_ARTIFACT_SOURCES.md)和[敌人来源](./content/MYTH_ENEMY_SOURCES.md)。
 本轮五幕主线通向昆仑天门；五条随机人物线每局抽二至三条，女娲为公共终幕。
 实现与验收口径集中在[COMBAT_RULES.md](./COMBAT_RULES.md)、[WRITING_GUIDE.md](./WRITING_GUIDE.md)
 和[开发规则页](./rules/KF01_03.md)、[KF04-KF06](./rules/KF04_06.md)、[KF07-KF10](./rules/KF07_10.md)、[事件规则](./rules/EVENT_RULES.md)。
@@ -32,5 +37,6 @@
 
 ## 仍待评审
 
-正式幕数、单局长度、伤害与怒气数值、状态时长、节点产出、换法成本、法宝完整目录、
-永久属性的长期曲线和后续大战赛制都未定。文档状态不能替代试玩、走读或平衡测试。
+当前按五幕、31-33 个真实节点投放一期目录，见[投放草案](./CONTENT_DISTRIBUTION.md)；
+这不是已测定的最佳局长。伤害与怒气数值、状态时长、经济与权重、换法成本、
+永久属性曲线和后续大战赛制仍待确定。[测试计划](./CONTENT_TEST_PLAN.md)不能替代实际试玩或平衡证据。

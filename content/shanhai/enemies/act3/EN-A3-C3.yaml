@@ -1,0 +1,50 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A3-C3
+name: 春庭采药人
+status: design_target
+summary: 以真实自疗、有效治疗回怒和治疗后护盾延长战斗的普通敌人。
+description: 回春谷采药人是原创匿名敌人，所有恢复均来自回春功的现有治疗输入。
+tags: [enemy, act3, normal, recovery, heal, shield]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创匿名敌人与原创配装，不声称古籍人物或原典战斗效果。
+balance:
+  target:
+    rounds: [3, 5]
+    net_hp_loss_pct: [3, 6]
+    burst_warning_pct: 12
+  measured: null
+acts: [3]
+tier: normal
+identity: 回春谷采药人
+method: RKF03
+n: 3
+talents: [RKF03-J1-B, RKF03-J2-C, RKF03-J3-C]
+artifacts:
+  - {id: RC05, stacks: 2}
+  - {id: RC12, stacks: 1}
+stats:
+  attack: 16
+  defense: 45
+  max_hp: 300
+  crit_rate: 0.05
+  speed: 10
+pressure: [恢复]
+counterplay:
+  - 战前选直接爆发，在其第一次有效自疗前制造足够缺口，优先缩短治疗兑现的战斗窗口。
+  - 战前选持续直伤并补足防御或护盾，接受其低频恢复，用稳定输出压过治疗总量。
+preview: >-
+  普攻真实输入为最大气血10%的自疗，怒技真实输入为最大气血24%的自疗；只有产生有效治疗时，
+  J2-C才回怒，J3-C把有效治疗的35%转成护盾，满血溢出不会伪造有效治疗。
+  预览公开当前气血、有效治疗和护盾出口，自动战仅执行战前的爆发或持续压制取舍。
+phases: []
+reward_profile: C
+target:
+  rounds: [3, 5]
+  net_hp_loss_pct: [3, 6]
+  burst_warning_pct: 12
+  note: 参考幸存胜利样本的首测损耗输入，不承诺胜率或固定击杀轮数。
+measured: null

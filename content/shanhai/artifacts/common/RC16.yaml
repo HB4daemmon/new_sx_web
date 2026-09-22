@@ -1,0 +1,39 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RC16
+name: 采气袋
+status: design_target
+summary: 攻击 +2；完成真实节点后额外修为 +1
+description: 小袋收纳沿途灵息，兼顾少量攻击与每个真实节点的修为积累。
+tags: [attack, travel, xp, node]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 1, A: 1, J: 0.8, U: 1}
+  measured: null
+rarity: common
+max_stacks: 3
+unique_group: null
+attributes:
+  flat: {attack: 2}
+  percent: {}
+effects:
+  - id: RC16-NODE-XP
+    trigger: node_complete
+    operation: grant_resource
+    target: run
+    params:
+      resource: xp
+      amount: 1
+      node_scope: real_node
+      extra_only: true
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: node, count: 1}
+    text: 每层在一个真实冒险节点完成后额外获得1点修为；取得节点不追溯结算。
+acquisition:
+  pools: [common_artifact]

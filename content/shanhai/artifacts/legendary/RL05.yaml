@@ -1,0 +1,42 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RL05
+name: 回澜印
+status: design_target
+summary: 攻击 +12、防御 +6；怒技完成固定返怒 50
+description: 印中回澜之力在怒技落定后回卷，固定返还一大段怒气供下一轮使用。
+tags: [attack, defense, rage_gain, rage, legendary]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 4, A: 20, J: 0, U: 4}
+  measured: null
+rarity: legendary
+max_stacks: 1
+unique_group: null
+attributes:
+  flat: {attack: 12, defense: 6}
+  percent: {}
+effects:
+  - id: RL05-RAGE-ACTION-RETURN
+    trigger: rage_action
+    operation: rage_gain
+    target: self
+    params:
+      amount: 50
+      timing: round_end
+      completed_action_only: true
+      fixed_return: true
+      available_next_round: true
+      after_payment: true
+      does_not_create_second_action: true
+    requires: [rage_action_completed]
+    consumes: []
+    replaces: []
+    limit: {scope: action, count: 1}
+    text: 怒技实际执行并完成后固定登记50点返怒，仍参加轮尾统一结算，只供下一轮，不在动作中生成第二次怒技。
+acquisition:
+  pools: [legendary_artifact]

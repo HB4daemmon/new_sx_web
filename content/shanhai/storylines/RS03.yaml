@@ -1,0 +1,38 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: storyline
+id: RS03
+name: 后羿借目
+status: design_target
+summary: 带着明目珠走到后段，再以试射换取引雷针，或用灵石取剑穗。
+description: 后羿不问你是不是射手，只要求你把明目珠带过山火；承诺的价值在于一路保留它，而不是口头答应。
+tags: [character_line, houyi, attribute_artifact, critical]
+source:
+  basis: myth_adaptation
+  reference: null
+  note: 本次离线古籍库未命中后羿实体或射日事件，原典身份待核验；人物线、器物用途和奖励是游戏原创改编。
+  identity: 后羿与射日传说未由本次只读知识库确认。
+  game_original: 明目珠的携带前置、后羿的回访试射与奖励均为游戏原创。
+balance:
+  target:
+    initial_gross_U: [0, 0.5]
+    resolution_gross_U: [2.4, 4.0]
+    high_investment_total_U: [3.0, 4.5]
+  measured: null
+character: 后羿
+premise: 山火映得箭路真假难辨，后羿要你把一件能校准准头的器物带到第四幕；眼前的安全修行并不等于兑现。
+encounters: [RK005, RK006]
+commitment:
+  id: RS03-promised
+  form: carry_attribute_artifact
+  text: 初遇时持有一枚明目珠，并承诺把它带到后段的试射场。
+  requirement: 持有明目珠，并完成初遇承诺
+  cancellation: 没有明目珠、提前失去器物或错过回访时，后段只会走普通道路。
+resolution:
+  condition: 初遇承诺仍在，试射时仍持有明目珠。
+  reward_shape: 试射成功取引雷针；支付 24 灵石取剑穗，不承担挑战风险。
+  tradeoff: 明目珠不会妨碍你再取得别的法宝，但必须一路保留到试射；挑战有 12% 气血损耗，支付路线则减少后段盘缠。
+selection:
+  planned_per_run: 1
+  optional: true
+  fallback: ordinary_event

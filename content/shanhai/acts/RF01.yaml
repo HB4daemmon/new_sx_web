@@ -1,0 +1,173 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: act
+id: RF01
+name: 天门独渡
+status: design_target
+summary: 用四幕实际带入的主修、天赋、法宝和资源完成唯一终战。
+description: 女娲只补住天裂的边缘，天门提供渡劫发生的天光，不替主角承受雷火；终段没有第五幕整备，也不追加任何成长候选。
+tags: [final, terminal, heavenly_gate, solo_trial, original]
+source:
+  basis: original
+  reference: null
+  note: 终战外壳、候选敌人和结局结算是游戏原创首测输入；不把神话人物或天门关系写成原典流程证明。
+balance:
+  target:
+    node_count: 1
+    final_enemy_candidates: 2
+    new_reward_candidates: 0
+  measured: null
+index: 5
+story:
+  title: 终局渡劫段：天门独渡
+  goal: 用当前主修、已选天赋、实际持有法宝、当前气血和资源击败唯一终战。
+  prelude: 昆仑前门在身后合拢，女娲补住天裂的一线；天门的雷光从云隙中落下。
+  ordinary_route: 你沿最后一段天阶独自上行，门后的风声和雷声在同一刻静了下来。
+  battle_after:
+    final: 雷火在天门外散开，云层短暂露出一片无声的天光。
+  boss_before: 天门中央悬着一道未落的雷痕，终战的两道劫相在光幕后轮流显形。
+  boss_after: 雷声远去，天门落下一束清光，胜负都在这一刻定下。
+  passage: 天门之后只剩结局，长阶的回声随着云海一同合拢。
+  core_relationships:
+    RS01: [RK001, RK002]
+    RS02: [RK003, RK004]
+    RS03: [RK005, RK006]
+    RS04: [RK007, RK008]
+    RS05: [RK009, RK010]
+    RS06: [RK011, RK012]
+  independent_core_echo: [RK013, RK014, RK015, RK016]
+  no_core_requirement: true
+  completed_story_endings:
+    storylines: [RS01, RS02, RS03, RS04, RS05, RS06]
+    independent: [RK013, RK014, RK015, RK016]
+    source: prior_act_completed_flags
+    read_only: true
+    grants: []
+node_budget:
+  F: 1
+routes:
+  - id: final
+    name: 天门独渡
+    summary: 唯一终战节点；F1是展示样本，F1/F2按种子二选一抽取，不强制两战。
+    nodes:
+      - {type: F, id: EN-F1, candidate_ids: [EN-F1, EN-F2], draw: 1, force_all: false}
+    count: {F: 1}
+pools:
+  enemies:
+    final_candidates: [EN-F1, EN-F2]
+  enemy_types:
+    - {type: F, ids: [EN-F1, EN-F2]}
+  enemy_selection:
+    route_node_id_semantics: display_sample_not_fixed_encounter
+    runtime_selection: one_frozen_draw_per_node_from_same_type_pool
+    final:
+      candidate_count: 2
+      draw: 1
+      replacement: false
+      seed_scope: run_seed.final.enemy
+      force_all: false
+      draw_once_per_run: true
+      freeze_at: node_generation
+  events:
+    ordinary: []
+    core: []
+    storylines: {}
+    independent: []
+  artifacts:
+    common: []
+    rare: []
+    legendary_replacements: []
+    reward_rules:
+      final: {candidates: 0, choose: 0, pool: none, no_new_items: true}
+  methods:
+    common: []
+    rare: []
+    legendary: []
+rewards: []
+economy:
+  reference_hp: 1150
+  terminal_resource_policy:
+    auxiliary_node_count: 0
+    item_grant: false
+    xp_gain: 0
+    coins_gain: 0
+    free_level: false
+  no_additional_economy: true
+terminal_contract:
+  shop: false
+  rest: false
+  preparation: false
+  items: false
+  xp: 0
+  coins: 0
+  freelevel: false
+  note: RF01明确没有商店、休整、准备、法宝、修为、灵石或免费突破；这些布尔项位于终段契约，不伪装成可用商店库存。
+cultivation:
+  entry_realm: n4_or_current_realm
+  target_realm: n4
+  breakthrough_requirements: [120, 480, 600, 840]
+  entry_cumulative_xp_target: 2040_or_actual_previous_total
+  target_cumulative_xp: 2040
+  final_boss_xp: 0
+  final_boss_can_choose_talent_from_B4: true
+  realm_is_target_not_granted: true
+  no_freelevel: true
+  no_xp_gain: true
+  no_automatic_breakthrough: true
+  no_heal_on_level: true
+  swapping_method_does_not_level_or_heal: true
+transition:
+  previous_act: RA04
+  next_act: null
+  on_entry: exact_runtime_state_from_RA04
+  on_victory: save_actual_build_and_end_run
+  on_failure: end_run_without_unresolved_rewards
+  no_shop: true
+  no_rest: true
+  no_preparation: true
+  no_items: true
+  no_xp: true
+  no_coins: true
+  no_freelevel: true
+  no_extra_transition_node: true
+  route_filter:
+    only_route: final
+    only_node_type: F
+    candidate_draw: 1
+    candidate_pool_size: 2
+    force_both_candidates: false
+legacy_fixture_boundary:
+  status: example_only
+  fixed_hp: 200
+  formal_enemy_damage: false
+  loss_input_is_external_only: true
+  note: 旧固定200HP账本只用于节点与资源算例，不是终战正式怪物伤害、压力或胜率输入。
+entry_snapshot:
+  target:
+    realm: n4_or_actual_realm
+    cumulative_xp: actual_previous_total
+    reference_hp: 1150
+    coins: actual_previous_coins
+    current_hp: exact_runtime_state
+    max_hp: exact_runtime_state
+    current_method: exact_current_method
+    talents: exact_selected_talents
+    artifacts: exact_owned_artifacts
+    preparation: exact_existing_preparation_only
+  risk:
+    - 终战不回血、不换法、不补准备、不发法宝、不发修为或灵石。
+    - B4真实修为若在过幕后达到门槛，仍可正常选天赋；进入RF01不会撤销已合法选择。
+    - F1与F2只按固定种子抽取一个，失败不切换为另一候选，也不强制两场。
+exit_snapshot:
+  target:
+    run_status: victory_or_failure
+    rewards: []
+    new_items: 0
+    xp_gain: 0
+    coins_gain: 0
+    freelevel: false
+    current_method: unchanged_from_actual_run
+    artifacts: unchanged_from_actual_run
+  risk:
+    - 终战失败立即结束，未发生的胜利结算不延迟、不转成资源。
+    - 终战胜利只保存实际带入和实际赢下的构筑，不追加第五幕节点。

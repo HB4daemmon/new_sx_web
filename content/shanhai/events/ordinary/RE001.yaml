@@ -1,0 +1,44 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE001
+name: 潮痕药篓
+status: design_target
+summary: 在立即疗伤与带走回春瓶之间取舍。
+description: 潮水刚退，一只破药篓挂在礁石上。药师认出两种用法：现在煎服，或封成回春瓶带走。
+tags: [ordinary, heal, artifact]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件。
+balance:
+  target:
+    gross_U: [0.4, 1.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [1]
+scene: 潮水退去，药篓里只剩一味灵药。药师说，药力可以现在入口，也可以封进回春瓶。
+options:
+  - id: RE001-A
+    label: 熬药疗伤
+    quick: 马上煎服，立即恢复一段气血。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: hp, amount: 0.2, basis: reference_hp}
+    outcome: 药汤入腹，伤口立刻缓解。
+  - id: RE001-B
+    label: 封存成回春瓶
+    quick: 带走一层回春瓶，让今后的自疗更有力。
+    requirements:
+      - {type: capacity, id: RC12, count: 1}
+    costs: []
+    rewards:
+      - {type: artifact, id: RC12, count: 1}
+    outcome: 你封好回春瓶，往后的治疗会多一分春意。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

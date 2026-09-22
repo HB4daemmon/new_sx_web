@@ -1,0 +1,38 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RC11
+name: 铁壁符
+status: design_target
+summary: 防御 +2；获得的护盾量 +6%
+description: 符面铁线收束护体之力，提高自身获得的护盾总量。
+tags: [defense, shield, combat]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 1, A: 5, J: 0, U: 1}
+  measured: null
+rarity: common
+max_stacks: 3
+unique_group: null
+attributes:
+  flat: {defense: 2}
+  percent: {}
+effects:
+  - id: RC11-SHIELD-GAIN-BONUS
+    trigger: always
+    operation: modify_effect
+    target: self
+    params:
+      effect_selector: {operation: shield, direction: received_by_self}
+      ratio: 0.06
+      stacking: linear
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: permanent, count: 1}
+    text: 每层使自身获得的护盾量提高6%，只修正实际护盾输入。
+acquisition:
+  pools: [common_artifact]

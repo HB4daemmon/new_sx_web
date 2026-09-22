@@ -1,0 +1,48 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A1-L1
+name: 养锋石卫
+status: design_target
+summary: 以剑势和动作后攻击叠层形成第一幕精英的双重直接压力。
+description: 石卫把养剑诀的剑势与镇心玉的动作后攻击层分开结算，攻击成长不会追溯到刚结束的动作。它是精英参考输入，不代表所有玩家 build 都应保证胜利。
+tags: [enemy, act1, elite, stacking, direct]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创妖物，不声称古籍存在此身份或这些效果。
+balance:
+  target:
+    rounds: [5, 8]
+    net_hp_loss_pct: [8, 14]
+    burst_warning_pct: 22
+    observation_window: 15
+    note: 首轮精英参考目标带，不是胜率、TTK或准确命中承诺。
+  measured: null
+acts: [1]
+tier: elite
+identity: 养锋石卫守在潮路转折处，先用普通剑击积累剑势，再把力量压进下一次主动作。它的风险来自剑势与镇心玉层数同时成长后的直接伤害。
+method: RKF05
+n: 1
+talents: [RKF05-J1-B]
+artifacts:
+  - {id: RC01, stacks: 2}
+  - {id: RC09, stacks: 1}
+  - {id: RR05, stacks: 1}
+stats:
+  attack: 17
+  defense: 55
+  max_hp: 450
+  crit_rate: 0.08
+  speed: 10
+pressure: [叠buff, 直接攻击]
+counterplay:
+  - 在镇心玉的攻击层和剑势都尚未成形时集中爆发，缩短它进入高输出循环的时间。
+  - 用破甲或减攻来源压低成长后的单段伤害，并以护盾承受仍会逐步增加的直接段。
+preview: 基础五维为装备前值；普攻会积剑势，J1-B让一次普攻额外积一层，镇心玉在每次自身主动作完成后从下一次动作起获得攻击+4，最多三层，阶段列表为空。
+phases: []
+reward_profile: L
+measured: null
+"null":
+  reason: target_design_before_runtime_fixture
+  allowed: true

@@ -1,0 +1,51 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A3-B2
+name: 祝融试火
+status: design_target
+summary: 以虚弱、破甲和开场削怒把火试炼压缩成可读的首领节奏。
+description: 祝融试火采用神话意象，具体阴咒配装、减益和削怒行为均为游戏原创。
+tags: [enemy, act3, boss, myth_adaptation, weakness, armor_break, rage_drain]
+source:
+  basis: myth_adaptation
+  reference: null
+  note: 仅借用祝融试火意象；原典出处与本敌人的战斗能力待核验，不伪造原典技能。
+balance:
+  target:
+    rounds: [8, 12]
+    net_hp_loss_pct: [12, 20]
+    burst_warning_pct: 30
+  measured: null
+acts: [3]
+tier: boss
+identity: 祝融试火
+method: RKF08
+n: 3
+talents: [RKF08-J1-B, RKF08-J2-B, RKF08-J3-B]
+artifacts:
+  - {id: RC03, stacks: 2}
+  - {id: RC10, stacks: 2}
+  - {id: RR14, stacks: 1}
+stats:
+  attack: 26
+  defense: 84
+  max_hp: 620
+  crit_rate: 0.1
+  speed: 8
+pressure: [虚弱/破甲, 削怒]
+counterplay:
+  - 战前选不依赖攻击属性的护盾或防御构筑，承受虚弱覆盖并把破甲窗口当作怒技前的可读风险。
+  - 战前选高速度和直接爆发构筑，先于减益循环压低生命；保留普攻与轮尾回怒应对开场削怒。
+preview: >-
+  普攻实际命中后施加虚弱，怒技实际完成后施加两层破甲；J2-B在已有减益时强化本次直接段，
+  J3-B在本动作实际施加减益后追加一段派生伤害。RR14只在独立开场窗口登记30点削怒，受50点开场上限约束，
+  不锁死后续怒技。预览公开减益持续轮数、派生段与削怒请求，自动战仅执行战前取舍。
+phases: []
+reward_profile: B
+target:
+  rounds: [8, 12]
+  net_hp_loss_pct: [12, 20]
+  burst_warning_pct: 30
+  note: 参考幸存胜利样本的首测损耗输入，不承诺胜率、TTK或固定首领击杀轮数。
+measured: null

@@ -1,0 +1,56 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE011
+name: 驳船整甲
+status: design_target
+summary: 付灵石从剑穗与铁壁符中选一件，为水路做准备。
+description: 驳船要过一段碎礁，船工把旧铁片摆成剑穗和铁壁符两种形制。
+tags: [ordinary, purchase, attack, defense, act2]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件。
+balance:
+  target:
+    gross_U: [0.75, 1.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [2]
+scene: 驳船将要驶过碎礁，船工把剑穗与铁壁符摆到你面前。旧铁片只够炼成一件。
+options:
+  - id: RE011-A
+    label: 付石锻锋
+    quick: 付出标价灵石，带走一层剑穗，强化普攻。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC09, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 1.0, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC09, count: 1}
+    outcome: 剑穗系在兵刃上，普通一击更显利落。
+  - id: RE011-B
+    label: 付石钉甲
+    quick: 付出标价灵石，带走一层铁壁符，提升防御并增强护盾。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC11, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 1.0, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC11, count: 1}
+    outcome: 铁壁符贴上衣甲，护体之力更稳。
+  - id: RE011-C
+    label: 只过碎礁
+    quick: 只过碎礁，保留灵石和随身法宝。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 船工收起铁片，驳船继续向前，手中的资源原样保留。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

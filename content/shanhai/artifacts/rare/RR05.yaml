@@ -1,0 +1,44 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RR05
+name: 镇心玉
+status: design_target
+summary: 防御 +8；自身主动作完成后攻击提高，最多三层
+description: 玉心压住杂念，每次自身主动作完成后累积一层后续攻击。
+tags: [defense, attack, stacking, rare]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 2.4, A: 12, J: 0, U: 2.4}
+  measured: null
+rarity: rare
+max_stacks: 1
+unique_group: null
+attributes:
+  flat: {defense: 8}
+  percent: {}
+effects:
+  - id: RR05-ACTION-END-ATTACK-LAYER
+    trigger: action_end
+    operation: modify_stat
+    target: self
+    params:
+      stat: attack
+      flat: 4
+      stacking: true
+      max_stacks: 3
+      layer_value: 4
+      action_scope: own_main_action
+      apply_after_action: true
+      reset: battle_end
+      first_test_value: {attack_per_layer: 4, max_stacks: 3}
+    requires: [own_main_action_completed]
+    consumes: []
+    replaces: []
+    limit: {scope: action, count: 1}
+    text: 每次自身主动作完成后获得1层攻击+4，最多3层；增益从下一次主动作生效，战斗结束清除。
+acquisition:
+  pools: [rare_artifact]

@@ -1,0 +1,56 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE020
+name: 熔脉炼锋
+status: design_target
+summary: 付灵石把熔脉赤铁炼成剑穗或厚土环。
+description: 熔脉只稳定一刻，铸工把同一块赤铁分成剑穗和厚土环两种形制。
+tags: [ordinary, purchase, attack, defense, act3]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件。
+balance:
+  target:
+    gross_U: [0.75, 1.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [3]
+scene: 赤铁在熔脉口翻滚，铸工举起两只模具。火势只够成器一次，剑穗和厚土环只能选一件。
+options:
+  - id: RE020-A
+    label: 付石炼剑穗
+    quick: 付出标价灵石，带走一层剑穗，强化普攻。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC09, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 0.75, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC09, count: 1}
+    outcome: 剑穗在熔火中定形，普攻的锋势随之更利。
+  - id: RE020-B
+    label: 付石炼厚土环
+    quick: 付出标价灵石，带走一层厚土环，提升防御。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC04, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 0.75, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC04, count: 1}
+    outcome: 厚土环沉入掌心，稳重的护意随身而行。
+  - id: RE020-C
+    label: 退离熔口
+    quick: 退离熔口，保留灵石与当前法宝。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 熔脉闭合，你带着原有法宝和灵石离开。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

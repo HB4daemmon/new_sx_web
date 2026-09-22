@@ -1,0 +1,56 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE025
+name: 回身换脉
+status: design_target
+summary: 付灵石获得一次重新选择已学功法的机会，或带走返气环。
+description: 旧路的回身石能映出你已学过的法脉，旁边的返气环正等着被取走。
+tags: [ordinary, method_swap, purchase, artifact, act3]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；换法不回血、不洗点、不复制功法。
+balance:
+  target:
+    gross_U: [0.6, 1.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [3, 4]
+scene: 回身石映出旧日修行的影子，返气环在石旁轻轻鸣响。你只能带走一份机缘。
+options:
+  - id: RE025-A
+    label: 付石回身看法
+    quick: 付出标价灵石，获得一次从已学功法中重新选择的机会。
+    requirements:
+      - {type: known_method, id: RKF03}
+      - {type: can_pay}
+    costs:
+      - {type: resource, resource: coins, amount: 1.0, basis: common_price}
+    rewards:
+      - {type: swap_method, pool: owned_methods}
+    outcome: 回身石为你照出旧法之门，是否改修仍由你自己决定。
+  - id: RE025-B
+    label: 付石取返气环
+    quick: 付出标价灵石，带走一层返气环，怒技后额外回怒。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC23, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 0.75, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC23, count: 1}
+    outcome: 返气环在怒技余波中轻响，下一轮聚气会更从容。
+  - id: RE025-C
+    label: 不回身
+    quick: 不回身，保留当前功法与灵石。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 回身石归于沉默，你沿着熟悉的功法继续上路。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

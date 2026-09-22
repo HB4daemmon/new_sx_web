@@ -1,0 +1,403 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: act
+id: RA01
+name: 潮口立身
+status: design_target
+summary: 在潮口建立第一套能持续前进的构筑。
+description: 山海潮刚露出通向昆仑的断续石阶，主角从一门普通功法起步，在潮声、药篓与第一场首领战之间决定先补输出、保气血还是承担风险。
+tags: [act, act1, tide_gate, foundation, original]
+source:
+  basis: original
+  reference: null
+  note: 四幕主线、地点、路线调度与奖励数值是游戏原创首测输入；神话人物关系仅通过已登记事件和人物线接入，不把本幕文案当作原典事实。
+balance:
+  target:
+    node_count: 11
+    common_battles: 4
+    ordinary_events: 3
+    elite_battles: 1
+    shop_nodes: 1
+    rest_nodes: 1
+    boss_battles: 1
+    reference_hp: 625
+  measured: null
+index: 1
+story:
+  title: 第一幕：潮口立身
+  goal: 在潮口建立能持续前进的基础构筑，击败潮口首领后才算站稳第一块通向昆仑的石阶。
+  prelude: 潮水退开半步，露出通向潮门的断续石阶；药篓、旧碑和远处的潮门前哨在雾里逐一显形。
+  ordinary_route: 你沿着药篓、旧碑和潮门前哨前行，石阶尽头的水雾里浮出一座旧门。
+  battle_after:
+    common: 潮声暂低，石阶在脚下重新露出一截。
+    elite: 石卫退入潮雾，前方的水门亮起一线冷光。
+    boss: 潮门震动了一次，向上的石阶在雾后显出。
+  boss_before: 潮门前的两道首领遗影轮流守住石阶，水雾把旧门和断桥隔在身后。
+  boss_after: 水雾从潮门上退去，通往断桥的石阶在潮声里缓缓抬升。
+  passage: 你踏上第二段石阶，潮声变成桥下回音，断桥的影子已经压到眼前。
+  boss_variants:
+    EN-A1-B1: 共工遗影撞开潮门，碎水沿着石阶奔向断桥。
+    EN-A1-B2: 河伯试潮遗影收拢回流，潮口在短暂的寂静中让出道路。
+  core_relationships:
+    RS01: [RK001, RK002]
+    RS02: [RK003, RK004]
+    RS03: [RK005, RK006]
+    RS04: [RK007, RK008]
+    RS05: [RK009, RK010]
+    RS06: [RK011, RK012]
+  relationship_notes:
+    RS01: 神农以分药建立医药承诺，回访时用药棚风险兑现，不是随机人物名。
+    RS02: 精卫把筑堤与后段清礁连成一次追踪，初遇让出眼前选择，回访才有试炼。
+    RS03: 后羿要求携带明目珠到后段，关系核心是器物前置与试射，不是抽到名字就领奖。
+    RS04: 禹把让出修为与后段守堤绑定，承诺失败不追回已放弃的成长。
+    RS05: 哪吒的两阵结构把初遇过阵和后段续阵分成两个事件位，第一阵不是免费法宝。
+    RS06: 铁扇公主的短风与火伤承诺指向后段风止石，火器奖励只在明示风险后结算。
+  independent_core_echo: RK013
+  no_core_requirement: true
+node_budget:
+  C: 4
+  E: 3
+  L: 1
+  S: 1
+  R: 1
+  B: 1
+routes:
+  - id: steady
+    name: 稳健
+    summary: 先休整，再用商店补缺，保留四场普通战和一场精英战。
+    nodes:
+      - {type: C, id: EN-A1-C1}
+      - {type: E, id: RE001}
+      - {type: C, id: EN-A1-C2}
+      - {type: R, id: R-A1-01}
+      - {type: E, id: RE002}
+      - {type: S, id: SHOP-A1-01}
+      - {type: C, id: EN-A1-C3}
+      - {type: E, id: RE004}
+      - {type: C, id: EN-A1-C4}
+      - {type: L, id: EN-A1-L1}
+      - {type: B, id: EN-A1-B1}
+    count: {C: 4, E: 3, L: 1, S: 1, R: 1, B: 1}
+    core_slot_policy: {eligible_event_slots: [2, 5, 8], core_replaces: E, fallback: ordinary_event}
+  - id: elite
+    name: 精英
+    summary: 用第二场精英替换一场普通战，换取更多稀有质量机会并承担真实损耗。
+    nodes:
+      - {type: C, id: EN-A1-C1}
+      - {type: E, id: RE003}
+      - {type: C, id: EN-A1-C2}
+      - {type: R, id: R-A1-02}
+      - {type: L, id: EN-A1-L1}
+      - {type: E, id: RE005}
+      - {type: S, id: SHOP-A1-02}
+      - {type: L, id: EN-A1-L2}
+      - {type: E, id: RE006}
+      - {type: C, id: EN-A1-C3}
+      - {type: B, id: EN-A1-B1}
+    count: {C: 3, E: 3, L: 2, S: 1, R: 1, B: 1}
+    core_slot_policy: {eligible_event_slots: [2, 6, 9], core_replaces: E, fallback: ordinary_event}
+  - id: tracking
+    name: 追踪
+    summary: 用一个事件位显示人物线或独立机缘，核心内部内容不增加节点。
+    nodes:
+      - {type: C, id: EN-A1-C1}
+      - {type: K, id: RK001, candidate_ids: [RK001, RK003, RK013], fallback: ordinary_event}
+      - {type: C, id: EN-A1-C2}
+      - {type: E, id: RE007}
+      - {type: L, id: EN-A1-L1}
+      - {type: R, id: R-A1-03}
+      - {type: C, id: EN-A1-C3}
+      - {type: S, id: SHOP-A1-03}
+      - {type: E, id: RE008}
+      - {type: C, id: EN-A1-C4}
+      - {type: B, id: EN-A1-B2}
+    count: {C: 4, E: 2, K: 1, L: 1, S: 1, R: 1, B: 1}
+    core_slot_policy: {eligible_event_slots: [2], core_replaces: E, fallback: ordinary_event}
+  - id: saving
+    name: 省钱
+    summary: 跳过商店，以普通事件补足十一节点，不获得免费库存或强制购买。
+    nodes:
+      - {type: C, id: EN-A1-C1}
+      - {type: E, id: RE001}
+      - {type: C, id: EN-A1-C2}
+      - {type: R, id: R-A1-04}
+      - {type: E, id: RE002}
+      - {type: L, id: EN-A1-L1}
+      - {type: E, id: RE004}
+      - {type: E, id: RE005}
+      - {type: C, id: EN-A1-C3}
+      - {type: C, id: EN-A1-C4}
+      - {type: B, id: EN-A1-B1}
+    count: {C: 4, E: 4, L: 1, R: 1, B: 1}
+    core_slot_policy: {eligible_event_slots: [2, 5, 7, 8], core_replaces: E, fallback: ordinary_event}
+  - id: rush
+    name: 硬闯
+    summary: 跳过休整，以普通事件补位；不发隐藏回血，保留商店的有限购买机会。
+    nodes:
+      - {type: C, id: EN-A1-C1}
+      - {type: E, id: RE001}
+      - {type: C, id: EN-A1-C2}
+      - {type: E, id: RE002}
+      - {type: S, id: SHOP-A1-04}
+      - {type: L, id: EN-A1-L1}
+      - {type: E, id: RE004}
+      - {type: E, id: RE005}
+      - {type: C, id: EN-A1-C3}
+      - {type: C, id: EN-A1-C4}
+      - {type: B, id: EN-A1-B1}
+    count: {C: 4, E: 4, L: 1, S: 1, B: 1}
+    core_slot_policy: {eligible_event_slots: [2, 4, 7, 8], core_replaces: E, fallback: ordinary_event}
+  - id: avoid
+    name: 避险
+    summary: 用普通战替换精英，获得第五场普通战机会，放弃稀有精英奖励。
+    nodes:
+      - {type: C, id: EN-A1-C1}
+      - {type: E, id: RE001}
+      - {type: C, id: EN-A1-C2}
+      - {type: R, id: R-A1-05}
+      - {type: E, id: RE002}
+      - {type: S, id: SHOP-A1-05}
+      - {type: C, id: EN-A1-C3}
+      - {type: E, id: RE004}
+      - {type: C, id: EN-A1-C4}
+      - {type: C, id: EN-A1-C1}
+      - {type: B, id: EN-A1-B2}
+    count: {C: 5, E: 3, S: 1, R: 1, B: 1}
+    core_slot_policy: {eligible_event_slots: [2, 5, 8], core_replaces: E, fallback: ordinary_event}
+pools:
+  enemies:
+    common_candidates: [EN-A1-C1, EN-A1-C2, EN-A1-C3, EN-A1-C4]
+    elite_candidates: [EN-A1-L1, EN-A1-L2]
+    boss_candidates: [EN-A1-B1, EN-A1-B2]
+  enemy_types:
+    - {type: C, ids: [EN-A1-C1, EN-A1-C2, EN-A1-C3, EN-A1-C4]}
+    - {type: L, ids: [EN-A1-L1, EN-A1-L2]}
+    - {type: B, ids: [EN-A1-B1, EN-A1-B2]}
+  enemy_selection:
+    route_node_id_semantics: display_sample_not_fixed_encounter
+    runtime_selection: one_frozen_draw_per_node_from_same_type_pool
+    normal:
+      candidate_count: 4
+      draw: 1
+      replacement: true
+      seed_scope: run_seed.node.enemy
+      prefer_unseen: true
+      on_pool_exhaustion: reset_pool
+      avoid_adjacent_repeat: true
+      freeze_at: node_generation
+    elite:
+      candidate_count: 2
+      draw: 1
+      replacement: false
+      seed_scope: run_seed.node.enemy
+      prefer_unseen: true
+      freeze_at: node_generation
+    boss:
+      candidate_count: 2
+      draw: 1
+      replacement: false
+      seed_scope: run_seed.node.enemy
+      force_all: false
+      draw_once_per_act: true
+      freeze_at: node_generation
+  events:
+    ordinary: [RE001, RE002, RE003, RE004, RE005, RE006, RE007, RE008, RE009]
+    core: [RK001, RK003, RK013]
+    storylines:
+      RS01: [RK001, RK002]
+      RS02: [RK003, RK004]
+      RS03: [RK005, RK006]
+      RS04: [RK007, RK008]
+      RS05: [RK009, RK010]
+      RS06: [RK011, RK012]
+    independent: [RK013, RK014, RK015, RK016]
+  artifacts:
+    common: [RC01, RC02, RC03, RC04, RC05, RC06, RC07, RC08, RC09, RC10, RC11, RC12, RC13, RC14, RC15, RC16, RC17, RC18, RC19, RC20, RC21, RC22, RC23, RC24]
+    rare: [RR01, RR02, RR03, RR04, RR05, RR06, RR07, RR08, RR09, RR10, RR11, RR12, RR13, RR14, RR15]
+    legendary_replacements: [RL01, RL02, RL03, RL04, RL05]
+    reward_rules:
+      common: {candidates: 3, choose: 1, pool: common, decline_coins: 4, draw_once: true, freeze_on_display: true, free_refreshes: 0}
+      elite: {candidates: 3, choose: 1, pool: rare, decline_coins: 4, draw_once: true, freeze_on_display: true, free_refreshes: 0}
+      boss: {candidates: 3, choose: 1, pool: rare, legendary_may_replace_one: true, legendary_replace_probability: 0.02, legendary_bonus_candidates: 0, decline_coins: 4, draw_once: true, freeze_on_display: true, free_refreshes: 0, exact_ids_before_battle: false}
+      legendary_replacement: {probability: 0.02, max_replacements: 1, adds_candidate: false, replaces_candidate: true, no_extra_reward: true, fallback_if_ineligible: rare, guaranteed: false}
+    candidate_timing: {generated_at: victory_reward_screen, freeze_on_display: true, exact_ids_before_battle: false, free_refreshes: 0}
+economy:
+  reference_hp: 625
+  initial_coins: 20
+  reward_inputs:
+    ordinary: {xp: 60, coins: 4}
+    elite: {xp: 100, coins: 6}
+    boss: {xp: 120, coins: 10}
+  ordinary_artifact_choices: 3
+  elite_artifact_choices: 3
+  boss_artifact_choices: 3
+  artifact_decline_coins: 4
+  shop:
+    inventory_slots: 5
+    artifact_slots: 3
+    recovery_slots: 1
+    preparation_slots: 1
+    common_price: 40
+    rare_price: 90
+    rare_inventory_weight: 0.00
+    refreshes: 0
+    one_visit: true
+    sold_out_stays_sold: true
+    no_infinite_refresh: true
+    no_cross_act_inventory: true
+    no_free_stock_when_skipped: true
+    rare_weight_scope: artifact_slots_only
+    rare_weight_semantics: per_artifact_slot_generation_probability
+    inventory_sampling: {generated_once_on_open: true, freeze_after_generation: true, free_refreshes: 0}
+    non_artifact_prices:
+      status: design_target
+      source: rules.economy.non_artifact_prices
+      measured: null
+      recovery: {price: 15, currency: coins, amount: 0.12, basis: reference_hp, mode: raw, stock: 1}
+      preparation: {price: 12, currency: coins, effect: shield, amount: 0.10, basis: reference_hp, scope: next_battle, stock: 1}
+  rest:
+    choices: [heal, swap_method, preparation]
+    exclusive: true
+    one_confirmation: true
+    no_extra_node: true
+    heal: {ratio: 0.25, basis: reference_hp, from_rules: rest_heal_ratio}
+    swap_method: {available: true, heals: false, fee: 0, fee_currency: coins, occupies_rest_choice: true, resets_talents: false, fee_source: rules.economy.swap_method}
+    preparation: {available: true, effect: shield, amount: 0.1, basis: reference_hp, heals: false}
+    entering_rest_does_not_auto_heal: true
+    full_health_does_not_convert_to_coins: true
+  event_heal_ratio: 0.2
+  cross_act_heal: false
+  level_up_heal: false
+cultivation:
+  entry_realm: n0
+  target_realm: n1
+  breakthrough_requirements: [120, 480, 600, 840]
+  entry_cumulative_xp_target: 0
+  target_cumulative_xp: 120
+  ordinary_xp: 60
+  elite_xp: 100
+  boss_xp: 120
+  realm_is_target_not_granted: true
+  breakthrough_requires_real_cumulative_xp: true
+  talent_choice_after_threshold: true
+  crossing_act_does_not_level: true
+  level_up_does_not_heal: true
+  obtaining_method_does_not_level: true
+  swapping_method_does_not_level_or_heal: true
+rewards:
+  ordinary:
+    xp: 60
+    coins: 4
+    artifact: {pool: common_artifact, candidates: 3, choose: 1, decline_to_coins: 4, draw_once: true, freeze_on_display: true, free_refreshes: 0}
+  elite:
+    xp: 100
+    coins: 6
+    artifact: {pool: rare_artifact, candidates: 3, choose: 1, decline_to_coins: 4, draw_once: true, freeze_on_display: true, free_refreshes: 0}
+  boss:
+    xp: 120
+    coins: 10
+    artifact: {pool: rare_artifact, candidates: 3, choose: 1, legendary_replaces_one: true, legendary_replace_probability: 0.02, legendary_additional: false, legendary_fallback: rare, legendary_max_replacements: 1, decline_to_coins: 4, draw_once: true, freeze_on_display: true, free_refreshes: 0}
+  internal_event_battle: {ordinary_package: false, duplicate_xp: false, duplicate_coins: false, duplicate_artifact_choice: false}
+  victory_only: true
+  death_or_failure_grants_unresolved_reward: false
+artifact_timing:
+  combat_attributes: effective_for_any_battle_not_started_after_acquisition
+  travel_attributes: effective_from_next_real_node_only
+  acquisition_settlement: after_reward_confirmation
+  no_retroactive_battles: true
+run_selection:
+  planned_core:
+    storyline_lines: 1
+    independent_lines: {min: 0, max: 1}
+    actual_completed: {min: 0, max: 3}
+  storyline_candidates: [RS01, RS02, RS03, RS04, RS05, RS06]
+  storyline_pairings:
+    RS01: {first: RK001, follow_up: RK002, first_act: 1, follow_up_act: 3}
+    RS02: {first: RK003, follow_up: RK004, first_act: 1, follow_up_act: 3}
+    RS03: {first: RK005, follow_up: RK006, first_act: 2, follow_up_act: 4}
+    RS04: {first: RK007, follow_up: RK008, first_act: 2, follow_up_act: 4}
+    RS05: {first: RK009, follow_up: RK010, first_act: 2, follow_up_act: 4}
+    RS06: {first: RK011, follow_up: RK012, first_act: 2, follow_up_act: 4}
+  independent_core_candidates: [RK013, RK014, RK015, RK016]
+  route_composition:
+    one_route_per_act: true
+    core_replaces_event_slot: true
+    extra_elite_replaces_existing_C_or_E: true
+    concatenate_routes: false
+    add_nodes: false
+  filters:
+    per_act_core_max: 1
+    global_core_max: 3
+    min_noncore_nodes_between_core: 2
+    per_act_extra_elite_max: 1
+    global_extra_elite_max: 3
+    global_C_plus_E_min: 22
+    count_K_as_E_slot_but_not_as_C_plus_E: true
+    boss_candidates_drawn: 1
+    boss_candidates_forced: 1
+  reject:
+    - route_length_not_11
+    - route_with_fewer_than_3_common_battles
+    - route_with_F_node
+    - four_extra_elites_in_one_run
+    - four_core_nodes_in_one_run
+    - four_tracking_routes_in_one_run
+    - core_gap_below_two_noncore_nodes
+    - core_without_event_slot_replacement
+  fallback:
+    ineligible_core: same_slot_ordinary_event
+    missed_storyline_first_encounter: ordinary_event
+    missed_storyline_follow_up: ordinary_event
+    core_gap_violation: defer_to_next_eligible_event_slot_else_ordinary_event
+    no_valid_route_after_filter: steady
+    empty_enemy_candidate: explicit_enemy_pool_error_no_second_boss
+    empty_artifact_candidate: coins_4_from_rules_artifact_decline
+    skipped_shop: ordinary_node_replaces_without_inventory
+    skipped_rest: ordinary_node_replaces_without_heal
+transition:
+  next_act: RA02
+  on_boss_victory_only: true
+  boss_is_required_for_transition: true
+  transition_text: 潮门首领倒下后，断桥方向开放。
+  preserve: [current_hp, max_hp, coins, cumulative_xp, current_method_id, talents, artifacts, core_flags]
+  no_auto_heal: true
+  no_auto_breakthrough: true
+  no_free_artifact: true
+  no_extra_transition_node: true
+  route_filter:
+    same_as_run_selection: true
+    global_constraints_apply_across_all_four_acts: true
+legacy_fixture_boundary:
+  status: example_only
+  fixed_hp: 200
+  formal_enemy_damage: false
+  loss_input_is_external_only: true
+  note: 旧固定200HP账本只用于节点与资源算例，不是本幕正式怪物伤害、压力或胜率输入。
+entry_snapshot:
+  target:
+    realm: n0
+    cumulative_xp: 0
+    next_breakthrough_requirement: 120
+    reference_hp: 625
+    coins: 20
+    current_hp: runtime_state
+    max_hp: runtime_state
+    current_method: one_common_method
+    artifact_layers: []
+  risk:
+    - 未突破时普通战伤害会连续消耗初始气血。
+    - 休整、事件恢复、换法和准备互斥，不产生额外节点。
+    - 核心与精英都是可选替换，不是首领通路门槛。
+exit_snapshot:
+  target:
+    target_realm: n1
+    cumulative_xp: 120_or_more_if_earned
+    reference_hp: 625
+    coins: runtime_state_after_rewards_and_purchases
+    current_hp: runtime_state
+    max_hp: runtime_state
+    selected_artifacts: actual_owned_only
+  risk:
+    - n1只是达到真实修为门槛后的可选目标，不因过幕自动赋予。
+    - 过幕不回血，最大气血增加不回填当前气血。
+    - 未完成核心奖励、未走节点和未购买库存不延迟到下一幕。

@@ -1,0 +1,59 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RK009
+name: 哪吒先过阵
+status: design_target
+summary: 先过一阵才有后段资格，失手会停在 1 点气血，收手和承险都在眼前说清。
+description: 哪吒把轻阵和重阵的压力公开给你看，初遇不发法宝，只让你决定是否先承担一段可收手的阵试。
+tags: [core, character_encounter, nezha, first_meeting, staged_trial]
+source:
+  basis: myth_adaptation
+  reference: canon.fengjian_chunqiu.character.e8205e7a1
+  note: 原典库以draft实体确认哪吒的神将身份；过阵、失败线和奖励是游戏原创改编。
+  identity: 哪吒知识库摘要包含三头六臂、风火二轮和火尖枪等身份信息。
+  game_original: 两段过阵、先胜后可回访和普通付石替代均为游戏改编。
+balance:
+  target:
+    gross_U: [0, 0.5]
+  measured: null
+event_type: core
+acts: [2]
+scene: 哪吒在山场摆下两阵，一阵重击，一阵连招；他先让你接第一阵，失手会停在 1 点气血，胜利才可在后段继续接阵。
+options:
+  - id: RK009-enter-first-array
+    label: 先接重阵
+    quick: 支付 8% 气血，胜利后保留第二阵资格
+    requirements: []
+    costs:
+      - {type: resource, resource: hp, amount: 0.08, basis: reference_hp, must_survive: true}
+    rewards: []
+    set_flags:
+      RS05-promised: true
+    outcome: 你过了第一阵，哪吒没有发宝，只留下后段继续接阵的资格。
+    encounter:
+      enemy_id: EN-A2-L2
+      mode: nonlethal
+      failure_hp_floor: 1
+      failure_rewards: []
+      failure_outcome: 重阵把你逼退，哪吒收起第二阵的牌；已付的 8% 气血留在阵门前，后段不再开第二阵。
+  - id: RK009-take-safe
+    label: 收下小修行
+    quick: 立即获得一笔修为，放弃两阵承诺
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
+    outcome: 你不把气血押在阵门上，先拿修为继续赶路。
+  - id: RK009-leave
+    label: 退出阵门
+    quick: 保留气血、灵石和法宝，不参加试炼
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 你看清两阵的锋口后转身，哪吒让开公共路线。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

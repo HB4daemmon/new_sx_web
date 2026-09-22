@@ -1,0 +1,38 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RC09
+name: 剑穗
+status: design_target
+summary: 攻击 +2；普攻基础直接伤害 +6%
+description: 剑柄上的短穗随普攻起落，强化普攻的基础直接段。
+tags: [attack, basic, direct, combat]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 1, A: 5, J: 0, U: 1}
+  measured: null
+rarity: common
+max_stacks: 3
+unique_group: null
+attributes:
+  flat: {attack: 2}
+  percent: {}
+effects:
+  - id: RC09-BASIC-DIRECT-BONUS
+    trigger: always
+    operation: modify_effect
+    target: self
+    params:
+      effect_selector: {action: basic_action, damage_scope: base_direct}
+      ratio: 0.06
+      stacking: linear
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: permanent, count: 1}
+    text: 每层使普攻基础直接伤害提高6%，不作用于毒火、盾返或法宝追加段。
+acquisition:
+  pools: [common_artifact]

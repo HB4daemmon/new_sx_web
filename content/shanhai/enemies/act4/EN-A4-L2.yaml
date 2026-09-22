@@ -1,0 +1,51 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A4-L2
+name: 烬路行者
+status: design_target
+summary: 以两段怒技、燃烧消费和普攻追加形成中后段精英火压。
+description: 灰烬行者是原创匿名敌人，所有毒火与燃烧消费均来自现有御火诀和法宝。
+tags: [enemy, act4, elite, burn, dot, multi_segment]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创匿名敌人与原创配装，不声称古籍人物或原典战斗效果。
+balance:
+  target:
+    rounds: [5, 8]
+    net_hp_loss_pct: [8, 14]
+    burst_warning_pct: 22
+  measured: null
+acts: [4]
+tier: elite
+identity: 灰烬行者
+method: RKF04
+n: 4
+talents: [RKF04-J1-B, RKF04-J2-C, RKF04-J3-A, RKF04-J4-A]
+artifacts:
+  - {id: RC01, stacks: 3}
+  - {id: RC15, stacks: 2}
+  - {id: RR04, stacks: 1}
+stats:
+  attack: 35
+  defense: 84
+  max_hp: 660
+  crit_rate: 0.15
+  speed: 14
+pressure: [长DOT, 多段]
+counterplay:
+  - 战前选高防御或护盾构筑承受燃烧与两段直接伤害，并在燃烧未叠高前消耗其怒气窗口。
+  - 战前选先手直接爆发或稳定多段输出，迫使其在低燃烧层时使用怒技，减少焚尽爆燃可消费的层数。
+preview: >-
+  J4-A把炎心爆发改为同一怒技内两段各0.88倍的直接火伤，J3-A只消费动作开始前已有的最多三层燃烧，
+  每层转为0.18倍派生火伤且不再补本次燃烧；RR04只对普攻首命中做一次追加判定。
+  预览公开燃烧层数、消费量和段数，自动战仅执行战前取舍。
+phases: []
+reward_profile: L
+target:
+  rounds: [5, 8]
+  net_hp_loss_pct: [8, 14]
+  burst_warning_pct: 22
+  note: 参考幸存胜利样本的首测损耗输入，不承诺胜率或固定击杀轮数。
+measured: null

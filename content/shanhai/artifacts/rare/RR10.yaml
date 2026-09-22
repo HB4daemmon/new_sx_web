@@ -1,0 +1,41 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RR10
+name: 引雷针
+status: design_target
+summary: 攻击 +8；直接暴击每次回怒 5，每己方主动作最多两次
+description: 针尖牵引雷意，在直接攻击暴击结算后补回少量怒气。
+tags: [attack, crit_rate, rage_gain, direct, rare]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 2.4, A: 12, J: 0, U: 2.4}
+  measured: null
+rarity: rare
+max_stacks: 1
+unique_group: null
+attributes:
+  flat: {attack: 8}
+  percent: {}
+effects:
+  - id: RR10-DIRECT-CRIT-RAGE
+    trigger: direct_crit
+    operation: rage_gain
+    target: self
+    params:
+      amount: 5
+      timing: round_end
+      source: direct_attack
+      include: [base_direct, artifact_followup]
+      excludes: [poison, burn, reflect]
+      per_action_cap: 2
+    requires: [effective_direct_critical_hit]
+    consumes: []
+    replaces: []
+    limit: {scope: action, count: 2}
+    text: 每次基础或追加直接攻击暴击登记5点怒气，每个己方主动作最多两次；持续伤害和反震不触发。
+acquisition:
+  pools: [rare_artifact]

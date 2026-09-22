@@ -1,0 +1,25 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RC07
+name: 明目珠
+status: design_target
+summary: 暴击率 +2 个百分点
+description: 珠面清亮，帮助攻击者抓住直接攻击的破绽。
+tags: [crit_rate, direct, combat]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 1, A: 5, J: 0, U: 1}
+  measured: null
+rarity: common
+max_stacks: 3
+unique_group: null
+attributes:
+  flat: {crit_rate: 0.02}
+  percent: {}
+effects: []
+acquisition:
+  pools: [common_artifact]

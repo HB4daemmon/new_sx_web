@@ -1,0 +1,19 @@
+{
+  "name": "shanhai-content-kit",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Manifest-driven validator and reader-page renderer for Shanhai content.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "validate": "node src/cli.mjs validate",
+    "docs": "node src/cli.mjs docs",
+    "docs:check": "node src/cli.mjs docs:check"
+  },
+  "dependencies": {
+    "yaml": "2.8.1"
+  }
+}

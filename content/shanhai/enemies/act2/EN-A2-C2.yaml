@@ -1,0 +1,48 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A2-C2
+name: 断桥回气魈
+status: design_target
+summary: 以基础命中削怒压缩第二幕前段普通战的怒气窗口。
+description: 回气魈的削怒只有截脉针的公开首个基础命中请求，归元诀的 J1-B 只影响敌方自身普攻回气。它的攻击和生命仍是普通档输入，玩家可以用普攻、轮尾回怒或短战取得正反馈，不承诺静态胜率。
+tags: [enemy, act2, normal, rage_drain]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创妖物，不声称古籍存在此身份或这些效果。
+balance:
+  target:
+    rounds: [3, 5]
+    net_hp_loss_pct: [3, 6]
+    burst_warning_pct: 12
+    observation_window: 15
+    note: 首轮第二幕普通前段参考目标带，不是胜率或准确命中承诺。
+  measured: null
+acts: [2]
+tier: normal
+identity: 断桥回气魈守着一截仍在回响的桥桩，专门截断过路者最先聚起的一口气。削怒请求延后到轮尾结算，不会取消已经锁定的动作。
+method: RKF02
+n: 1
+talents: [RKF02-J1-B]
+artifacts:
+  - {id: RC20, stacks: 2}
+  - {id: RC22, stacks: 1}
+  - {id: RR13, stacks: 1}
+stats:
+  attack: 17
+  defense: 47
+  max_hp: 375
+  crit_rate: 0.06
+  speed: 11
+pressure: [削怒]
+counterplay:
+  - 用普攻完成回怒、轮尾自然回怒或明示抗削怒来源保持下一轮计划，不把本轮已锁怒技视为被取消。
+  - 以先手爆发压低回气魈的行动次数，或用护盾承受基础命中后再安排自己的怒技窗口。
+preview: 基础五维为装备前值；封装在截脉针中的效果只在普攻首个有效基础命中登记敌方削怒10并于轮尾处理，先机符只增加敌方开场回怒，阶段列表为空。
+phases: []
+reward_profile: C
+measured: null
+"null":
+  reason: target_design_before_runtime_fixture
+  allowed: true

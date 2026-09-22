@@ -1,0 +1,24 @@
+{
+	admin off
+	auto_https off
+}
+
+:8080 {
+	root * /srv/current
+	encode zstd gzip
+
+	header {
+		-Server
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		Cache-Control "no-cache"
+		Content-Security-Policy "frame-ancestors 'none'; object-src 'none'; base-uri 'self'"
+	}
+
+	@private path /.git* /.env* /package*.json /scripts/* /node_modules/* /releases/* /current/* /cache/*
+	respond @private 404
+
+	try_files {path} {path}.html {path}/index.html
+	file_server
+}

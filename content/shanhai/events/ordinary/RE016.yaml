@@ -1,0 +1,57 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE016
+name: 铁印暂换
+status: design_target
+summary: 以灵石和修为换一次重新选择已学功法的机会，或带走凝气珠。
+description: 铁印师能让旧法脉暂时退开，也能用余料炼出一颗凝气珠。
+tags: [ordinary, method_swap, purchase, xp, act2]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；换法不继承怒气、护盾或免费天赋。
+balance:
+  target:
+    gross_U: [0.6, 1.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [2]
+scene: 铁印师把旧法的印痕压在桌上，又亮出一颗凝气珠。要改修，或要眼前的法宝，只能选一边。
+options:
+  - id: RE016-A
+    label: 付材开暂换
+    quick: 付出灵石和修为，获得一次从已学功法中重新选择的机会。
+    requirements:
+      - {type: known_method, id: RKF02}
+      - {type: can_pay}
+    costs:
+      - {type: resource, resource: coins, amount: 0.5, basis: common_price}
+      - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
+    rewards:
+      - {type: swap_method, pool: owned_methods}
+    outcome: 铁印为你打开旧法之门，是否换修仍由你决定。
+  - id: RE016-B
+    label: 付石收下凝气珠
+    quick: 付出标价灵石，带走一层凝气珠，增强攻击但降低怒气上限。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC19, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 0.75, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC19, count: 1}
+    outcome: 凝气珠落入掌中，锋劲更足，怒气却要更精打细算。
+  - id: RE016-C
+    label: 封印前行
+    quick: 封印铁印，保留当前功法与资源。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 铁印封回原位，你沿着熟悉的功法继续前行。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

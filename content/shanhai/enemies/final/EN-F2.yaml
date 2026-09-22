@@ -1,0 +1,53 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-F2
+name: 昼夜劫相
+status: design_target
+summary: 以昼夜切换、白昼护盾和长夜怒技作为终战候选之一。
+description: 昼夜劫相采用昼夜劫变意象，阶段读法来自烛龙真经，配装与强度为游戏原创。
+tags: [enemy, final, myth_adaptation, phase, shield, direct]
+source:
+  basis: myth_adaptation
+  reference: null
+  note: 仅借用昼夜劫相意象；原典出处与本敌人的战斗能力待核验，不伪造原典技能。本局与EN-F1二选一。
+balance:
+  target:
+    rounds: [10, 15]
+    net_hp_loss_pct: [18, 30]
+    burst_warning_pct: 35
+  measured: null
+acts: [5]
+tier: final
+identity: 昼夜劫相
+method: RKF10
+n: 4
+talents: [RKF10-J1-C, RKF10-J2-B, RKF10-J3-B, RKF10-J4-B]
+artifacts:
+  - {id: RC03, stacks: 3}
+  - {id: RC10, stacks: 3}
+  - {id: RR07, stacks: 1}
+  - {id: RL04, stacks: 1}
+stats:
+  attack: 40
+  defense: 121
+  max_hp: 1070
+  crit_rate: 0.14
+  speed: 10
+pressure: [稳打护盾, 相位]
+counterplay:
+  - 战前选持续直伤或多段攻击，先处理白昼护盾，再把爆发安排到长夜直接伤害窗口。
+  - 战前选高防御或稳定护盾构筑，承受长夜怒技并用普攻回怒渡过昼夜轮替；不依赖单件传奇法宝。
+preview: >-
+  敌人以白昼开始，主动作结束后只轮替一次相位；白昼普攻和怒技造盾，长夜普攻与怒技直接伤害更高。
+  J2-B与J4-B只强化长夜怒技，J3-B同时提高两相直接段，RR07在首个怒技完成后的轮尾降低自身上限15，
+  RL04只提供一次开场额外回怒。它是终战候选，与EN-F1在本局只抽一名；预览公开相位、护盾、怒气与轮替，
+  自动战仅执行战前取舍。
+phases: []
+reward_profile: F
+target:
+  rounds: [10, 15]
+  net_hp_loss_pct: [18, 30]
+  burst_warning_pct: 35
+  note: 参考幸存胜利样本的首测损耗输入，不承诺胜率、TTK或固定终战击杀轮数。
+measured: null

@@ -1,0 +1,42 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RR11
+name: 余烬盏
+status: design_target
+summary: 最大气血 +30；毒火造成实际掉血时每轮额外回怒 10
+description: 盏底余烬在毒火造成真实伤害时复燃，每轮只回响一次。
+tags: [max_hp, poison, burn, rage_gain, rare]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 2.4, A: 12, J: 0, U: 2.4}
+  measured: null
+rarity: rare
+max_stacks: 1
+unique_group: null
+attributes:
+  flat: {max_hp: 30}
+  percent: {}
+effects:
+  - id: RR11-DOT-ROUND-RAGE
+    trigger: dot_resolved
+    operation: rage_gain
+    target: self
+    params:
+      amount: 10
+      timing: round_end
+      source: self_applied_dot
+      statuses: [poison, burn]
+      requires_actual_hp_damage: true
+      once_per_round: true
+      excludes: [shield_only, reflect, self_damage]
+    requires: [positive_actual_hp_damage_from_own_poison_or_burn]
+    consumes: []
+    replaces: []
+    limit: {scope: round, count: 1}
+    text: 自身施加的毒或火在一轮内首次造成实际气血损失时额外登记10点怒气；护盾吸收不算，整轮最多一次。
+acquisition:
+  pools: [rare_artifact]

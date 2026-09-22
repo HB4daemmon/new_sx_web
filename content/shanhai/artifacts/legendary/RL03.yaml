@@ -1,0 +1,45 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RL03
+name: 裂空宝轮
+status: design_target
+summary: 攻击 +12、暴击率 +3 个百分点；普攻首命中追加两段
+description: 宝轮撕开普攻首个基础命中的余势，追加两段独立直接攻击。
+tags: [attack, crit_rate, basic, followup, legendary]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 4, A: 20, J: 0, U: 4}
+  measured: null
+rarity: legendary
+max_stacks: 1
+unique_group: null
+attributes:
+  flat: {attack: 12, crit_rate: 0.03}
+  percent: {}
+effects:
+  - id: RL03-BASIC-HIT-TWO-FOLLOWUPS
+    trigger: direct_hit
+    operation: damage
+    target: enemy
+    params:
+      attack_ratio: 0.5
+      segments: 2
+      can_crit: false
+      source: artifact_followup
+      action_type: basic_action
+      hit_scope: first_effective_base_direct_hit
+      append_after_base_hit: true
+      one_trigger_per_basic_action: true
+      does_not_chain: true
+      first_test_value: {attack_ratio_per_segment: 0.5, segments: 2}
+    requires: [effective_basic_base_hit]
+    consumes: []
+    replaces: []
+    limit: {scope: action, count: 1}
+    text: 每次普攻首个有效基础命中后追加两段倍率各0.5的直接伤害；追加段不再触发本效果或其它普攻首命中追加。
+acquisition:
+  pools: [legendary_artifact]

@@ -1,0 +1,48 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A1-C4
+name: 岩汐甲蜥
+status: design_target
+summary: 以有来源的短护盾和盾返制造可读防守压力的后段普通敌人。
+description: 甲蜥的护盾、盾返和护盾加成分别来自金刚功、铁壁符与震山环的现有卡面。它的直接攻击保持克制，玩家可以破盾后爆发，也可以用持续伤害换取稳定正反馈，不承诺静态胜率。
+tags: [enemy, act1, normal, shield, reflect]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创妖物，不声称古籍存在此身份或这些效果。
+balance:
+  target:
+    rounds: [3, 5]
+    net_hp_loss_pct: [3, 6]
+    burst_warning_pct: 12
+    observation_window: 15
+    note: 首轮普通后段参考目标带，不是胜率或准确命中承诺。
+  measured: null
+acts: [1]
+tier: normal
+identity: 岩汐甲蜥把潮湿岩片叠在背上，每次出手后都会收拢一层短护盾，真实吸收直接攻击时才可能触发盾返，不凭空获得永久防护。
+method: RKF01
+n: 1
+talents: [RKF01-J1-A]
+artifacts:
+  - {id: RC03, stacks: 1}
+  - {id: RC11, stacks: 2}
+  - {id: RC13, stacks: 1}
+stats:
+  attack: 14
+  defense: 46
+  max_hp: 330
+  crit_rate: 0.05
+  speed: 8
+pressure: [稳打护盾]
+counterplay:
+  - 先打掉当轮护盾再用怒技，避免把高伤段直接交给盾返窗口。
+  - 用燃烧、中毒或破甲等不依赖一次盾返的公开来源持续制造缺口，并保留治疗应对直接段。
+preview: 基础五维为装备前值；普攻和怒技都按金刚功卡面造盾，盾实际吸收敌方主动直接攻击时才触发盾返，铁壁符提高入盾量，阶段列表为空。
+phases: []
+reward_profile: C
+measured: null
+"null":
+  reason: target_design_before_runtime_fixture
+  allowed: true

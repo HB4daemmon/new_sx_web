@@ -1,0 +1,51 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-A4-B2
+name: 开明镇阶
+status: design_target
+summary: 以毒层、虚弱和破甲把终幕首领战的持续压制公开化。
+description: 开明镇阶采用神话意象，具体五毒配装、毒层与破甲输入为游戏原创。
+tags: [enemy, act4, boss, myth_adaptation, poison, dot, weakness, armor_break]
+source:
+  basis: myth_adaptation
+  reference: null
+  note: 仅借用开明镇阶意象；原典出处与本敌人的战斗能力待核验，不伪造原典技能。
+balance:
+  target:
+    rounds: [8, 12]
+    net_hp_loss_pct: [12, 20]
+    burst_warning_pct: 30
+  measured: null
+acts: [4]
+tier: boss
+identity: 开明镇阶
+method: RKF06
+n: 4
+talents: [RKF06-J1-A, RKF06-J2-B, RKF06-J3-C, RKF06-J4-B]
+artifacts:
+  - {id: RC14, stacks: 3}
+  - {id: RC04, stacks: 2}
+  - {id: RR11, stacks: 1}
+stats:
+  attack: 37
+  defense: 105
+  max_hp: 830
+  crit_rate: 0.12
+  speed: 9
+pressure: [长DOT, 虚弱/破甲]
+counterplay:
+  - 战前选短战爆发或高防御构筑，减少毒层和虚弱持续时间，并在J3-C消费毒层前压出缺口。
+  - 战前选护盾与稳定治疗构筑拉长战斗，利用毒层触发的虚弱和破甲读法调整自己的输出顺序。
+preview: >-
+  J1-A提高普攻与怒技的初始施毒层数，J2-B在带毒目标上追加虚弱，J4-B在带毒目标上追加破甲；
+  J3-C每个主动作最多消费两层预存毒并按每层最大气血5%治疗，RR11只在自身毒火首次造成实际伤害的轮次回怒。
+  预览公开毒、虚弱、破甲层数和自疗输入，自动战仅执行战前速杀或续航取舍。
+phases: []
+reward_profile: B
+target:
+  rounds: [8, 12]
+  net_hp_loss_pct: [12, 20]
+  burst_warning_pct: 30
+  note: 参考幸存胜利样本的首测损耗输入，不承诺胜率、TTK或固定首领击杀轮数。
+measured: null

@@ -1,0 +1,41 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RC24
+name: 血气石
+status: design_target
+summary: 最大气血 +10；每有效受击段额外回怒 2
+description: 石中血光随受击闪动，在每个有效敌方主动直接攻击段登记少量怒气。
+tags: [max_hp, rage_gain, incoming_segment, combat]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 1, A: 5, J: 0, U: 1}
+  measured: null
+rarity: common
+max_stacks: 3
+unique_group: null
+attributes:
+  flat: {max_hp: 10}
+  percent: {}
+effects:
+  - id: RC24-INCOMING-SEGMENT-RAGE
+    trigger: direct_hit
+    operation: rage_gain
+    target: self
+    params:
+      amount: 2
+      timing: round_end
+      source: enemy_active_direct_attack
+      result: positive_hp_damage_or_shield_absorption
+      segment_scope: each_effective_segment
+      excludes: [poison, burn, reflect, self_damage, event_damage]
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: segment, count: 1}
+    text: 每层对每个有效敌方主动直接攻击段额外登记2点怒气，与公共每段5点共用同一段边界。
+acquisition:
+  pools: [common_artifact]

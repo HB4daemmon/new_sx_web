@@ -1,0 +1,470 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: method
+id: RKF01
+name: 金刚功
+status: design_target
+summary: 以防御造盾、承伤反震并把护盾转成攻势的普通护法功法。
+description: 金刚功以攻击完成直接输出，以防御生成护盾并触发固定盾返；天赋可分别强化护盾、怒技、反震或护盾消费。
+tags: [method, common, defense, shield, direct]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创功法；职业定位、效果和数值均为首测设计输入，不声称古籍出处或已平衡。
+balance:
+  target:
+    D: 90
+    L: 90
+    H: 100
+    P: 100
+    P_by_tier: [100, 125, 150, 175, 200]
+  measured: null
+rarity: common
+role: 护法
+stat_focus:
+  primary: defense
+  secondary: [attack, max_hp]
+  damage_from: attack
+  shield_from: defense
+  shield_bonus_from: max_hp
+mechanic: null
+acquisition:
+  start: true
+  pools: [method_common]
+actions:
+  basic:
+    name: 金刚镇岳
+    quick: 攻击并按防御造盾
+    effects:
+      - id: RKF01-BASIC-DAMAGE
+        trigger: basic_action
+        operation: damage
+        target: enemy
+        params:
+          attack_ratio: 0.95
+          segments: 1
+          can_crit: true
+          damage_kind: direct
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 按攻击的0.95倍对敌人造成一段可暴击直接伤害。
+      - id: RKF01-BASIC-SHIELD
+        trigger: action_end
+        operation: shield
+        target: self
+        params:
+          action: basic_action
+          defense_ratio: 0.42
+          max_hp_ratio: 0
+          cap_ratio: 1
+          timing: after_damage
+          source: defense
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 金刚镇岳完成伤害后，按防御的0.42倍生成护盾；护盾入池不等于已吸收伤害。
+  rage:
+    name: 撼岳怒印
+    quick: 怒技攻击并按防御造盾
+    effects:
+      - id: RKF01-RAGE-DAMAGE
+        trigger: rage_action
+        operation: damage
+        target: enemy
+        params:
+          attack_ratio: 1.35
+          segments: 1
+          can_crit: true
+          damage_kind: direct
+          rage_cost: locked_action_cost
+        requires: []
+        consumes: [rage_locked_action_cost]
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 按公共规则支付本轮锁定怒耗后，按攻击的1.35倍对敌人造成一段可暴击直接伤害。
+      - id: RKF01-RAGE-SHIELD
+        trigger: action_end
+        operation: shield
+        target: self
+        params:
+          action: rage_action
+          defense_ratio: 0.55
+          max_hp_ratio: 0
+          cap_ratio: 1
+          timing: after_damage
+          source: defense
+          consumes_existing_shield: false
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 撼岳怒印完成伤害后，按防御的0.55倍生成护盾；默认不消费已有护盾。
+passives:
+  - id: RKF01-PASSIVE-RECOIL
+    trigger: shield_absorbed
+    operation: damage
+    target: enemy
+    params:
+      defense_ratio: 0.38
+      segments: 1
+      can_crit: false
+      damage_kind: derived
+      trigger_when: positive_direct_damage_absorbed
+      max_per_enemy_action: 1
+      excludes: [dot, reflection, self_damage, event_damage]
+      no_reentry: true
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: action, count: 1}
+    text: 当前护盾实际吸收敌方主动直接攻击的正伤害时，按防御的0.38倍反震一次；每个敌方主动作最多一次，反震不再次触发本效果。
+travel:
+  - id: RKF01-TRAVEL-XP
+    trigger: rest_complete
+    operation: grant_resource
+    target: run
+    params:
+      resource: xp
+      amount: 24
+      basis: flat
+      once_per_node: true
+      combat_trigger: false
+    requires: [real_rest_completed_alive]
+    consumes: []
+    replaces: []
+    limit: {scope: node, count: 1}
+    text: 完成休整后额外获得24修为；只在该休整节点结算一次，不在战斗中触发。
+  - id: RKF01-TRAVEL-SHIELD
+    trigger: rest_complete
+    operation: prepare_next_battle
+    target: run
+    params:
+      preparation: shield
+      amount: 0.12
+      basis: reference_hp
+      expires: next_battle
+      once_per_node: true
+      combat_trigger: false
+    requires: [real_rest_completed]
+    consumes: []
+    replaces: []
+    limit: {scope: node, count: 1}
+    text: 完成休整后为下一场战斗准备相当于参考气血0.12倍的护盾；只兑现到下一场且不在当前节点重复结算。
+talents:
+  - id: RKF01-J1-A
+    tier: 1
+    branch: A
+    name: 金刚厚壁
+    quick: 普攻怒技加盾
+    category: enhance
+    effects:
+      - id: RKF01-J1-A-SHIELD
+        trigger: always
+        operation: modify_effect
+        target: self
+        params:
+          mode: add_ratio
+          effect_ids: [RKF01-BASIC-SHIELD, RKF01-RAGE-SHIELD]
+          shield_ratio_add: 0.18
+          applies_to: shield_generated
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 本门普攻和怒技的实际造盾量各增加18%，与其它合法护盾加成相加。
+  - id: RKF01-J1-B
+    tier: 1
+    branch: B
+    name: 镇岳回气
+    quick: 普攻积怒加快
+    category: cycle
+    effects:
+      - id: RKF01-J1-B-RAGE
+        trigger: action_end
+        operation: rage_gain
+        target: self
+        params:
+          action: basic_action
+          amount: 10
+          base_public_gain: 25
+          action_must_complete: true
+          record_at: round_end
+          no_extra_action: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 每次完整完成基础普攻时，在公共普攻回怒25之外登记额外10点；未命中也按完成动作登记，不放大其它来源。
+  - id: RKF01-J1-C
+    tier: 1
+    branch: C
+    name: 降魔劲骨
+    quick: 普攻伤害提高
+    category: enhance
+    effects:
+      - id: RKF01-J1-C-DAMAGE
+        trigger: basic_action
+        operation: modify_effect
+        target: self
+        params:
+          mode: add_ratio
+          effect_id: RKF01-BASIC-DAMAGE
+          damage_ratio_add: 0.16
+          damage_scope: base_direct_segment
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 金刚镇岳的基础直接段额外提高16%；不提高盾返、燃烧或其它派生伤害。
+  - id: RKF01-J2-A
+    tier: 2
+    branch: A
+    name: 玄甲承锋
+    quick: 持盾时加防
+    category: enhance
+    effects:
+      - id: RKF01-J2-A-DEFENSE
+        trigger: always
+        operation: modify_stat
+        target: self
+        params:
+          stat: defense
+          mode: percent_add
+          amount: 0.14
+          condition: shield_present
+          reads_before_hit: true
+        requires: [shield_present]
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 持有护盾时防御提高14%；防御再按公共规则读取造盾与盾返，无盾时不保留这项增防。
+  - id: RKF01-J2-B
+    tier: 2
+    branch: B
+    name: 怒印裂阵
+    quick: 怒技伤害提高
+    category: enhance
+    effects:
+      - id: RKF01-J2-B-RAGE-DAMAGE
+        trigger: rage_action
+        operation: modify_effect
+        target: self
+        params:
+          mode: add_ratio
+          effect_id: RKF01-RAGE-DAMAGE
+          damage_ratio_add: 0.22
+          damage_scope: base_direct_segment
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 撼岳怒印的基础直接段额外提高22%；不提高怒技造盾或盾返。
+  - id: RKF01-J2-C
+    tier: 2
+    branch: C
+    name: 法相护体
+    quick: 气血越高盾越厚
+    category: enhance
+    effects:
+      - id: RKF01-J2-C-BASIC-HP-SHIELD
+        trigger: always
+        operation: modify_effect
+        target: self
+        params:
+          mode: add_input
+          effect_id: RKF01-BASIC-SHIELD
+          max_hp_ratio_add: 0.12
+          preserve_defense_input: true
+          source: max_hp
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 金刚镇岳的实际造盾额外加入最大气血的12%，保留原有防御项；它不是只扩大护盾容量。
+      - id: RKF01-J2-C-RAGE-HP-SHIELD
+        trigger: always
+        operation: modify_effect
+        target: self
+        params:
+          mode: add_input
+          effect_id: RKF01-RAGE-SHIELD
+          max_hp_ratio_add: 0.12
+          preserve_defense_input: true
+          source: max_hp
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 撼岳怒印的实际造盾额外加入最大气血的12%，保留原有防御项；该项可被J4-B单独取代。
+  - id: RKF01-J3-A
+    tier: 3
+    branch: A
+    name: 反震定势
+    quick: 盾返伤害提高
+    category: enhance
+    effects:
+      - id: RKF01-J3-A-RECOIL
+        trigger: shield_absorbed
+        operation: modify_effect
+        target: self
+        params:
+          mode: add_ratio
+          effect_id: RKF01-PASSIVE-RECOIL
+          damage_ratio_add: 0.28
+          preserve_trigger_limit: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 护体反震的实际反震伤害提高28%；不提高每个敌方主动作的触发次数。
+  - id: RKF01-J3-B
+    tier: 3
+    branch: B
+    name: 僧衣续护
+    quick: 首次破盾补盾
+    category: enhance
+    effects:
+      - id: RKF01-J3-B-RECHARGE
+        trigger: shield_broken
+        operation: shield
+        target: self
+        params:
+          max_hp_ratio: 0.24
+          defense_ratio: 0
+          condition: first_direct_break_per_battle
+          requires_alive: true
+          active_shield_consumption_triggers: false
+          self_reentry: false
+        requires: [first_direct_break_alive]
+        consumes: []
+        replaces: []
+        limit: {scope: battle, count: 1}
+        text: 每场首次被敌方直接攻击完全击破护盾且自身仍存活时，按最大气血24%补盾一次；主动耗盾不触发。
+  - id: RKF01-J3-C
+    tier: 3
+    branch: C
+    name: 怒后追击
+    quick: 怒后强化普攻
+    category: cycle
+    effects:
+      - id: RKF01-J3-C-NEXT-BASIC
+        trigger: action_end
+        operation: replace_action
+        target: self
+        params:
+          source_action: rage_action
+          next_action: basic_action
+          force: true
+          basic_damage_ratio_add: 0.20
+          basic_rage_gain_bonus: 0
+          clear_after_use: true
+          no_extra_action: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 怒技完成后把下一轮主动作固定为一次强化普攻，普攻直接段提高20%；不增加主动作，也不改变公共普攻回怒25。
+  - id: RKF01-J4-A
+    tier: 4
+    branch: A
+    name: 护法无疆
+    quick: 持盾减直接伤害
+    category: enhance
+    effects:
+      - id: RKF01-J4-A-REDUCE
+        trigger: always
+        operation: modify_effect
+        target: self
+        params:
+          mode: incoming_multiplier
+          source: enemy_direct
+          multiplier: 0.82
+          condition: shield_present
+          excludes: [burn, poison, event_damage]
+          shield_still_absorbs: true
+        requires: [shield_present]
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 持有护盾时，敌方直接攻击最终伤害乘以0.82；燃烧、中毒和事件扣血不受影响，护盾仍按正常顺序承伤。
+  - id: RKF01-J4-B
+    tier: 4
+    branch: B
+    name: 盾转破阵
+    quick: 怒技耗盾增伤
+    category: convert
+    effects:
+      - id: RKF01-J4-B-CONSUME-SHIELD
+        trigger: rage_action
+        operation: replace_action
+        target: self
+        params:
+          mode: replace_generated_shield
+          replace_effect_ids: [RKF01-RAGE-SHIELD, RKF01-J2-C-RAGE-HP-SHIELD]
+          shield_consume_ratio: 0.75
+          extra_damage_per_shield_ratio: 0.50
+          preserve_base_rage_damage: true
+          no_new_rage_shield: true
+          when_no_shield: base_damage_only
+          consume_once: true
+          consume_key: shield_current_ratio
+          outlet_group: shield_to_rage_damage
+        requires: [RKF01-RAGE-DAMAGE]
+        consumes: [shield_current_ratio]
+        replaces: [RKF01-RAGE-SHIELD, RKF01-J2-C-RAGE-HP-SHIELD]
+        limit: {scope: action, count: 1}
+        text: 取代怒技全部造盾段，包括法相护体的怒技最大气血项，但保留法相护体对普攻的最大气血造盾；若有护盾，怒技先一次性消费已有护盾的75%，按实际消费量的50%转为同一直接段额外伤害，且不再造怒技护盾；无盾时保留基础怒技伤害但没有转换伤害。
+  - id: RKF01-J4-C
+    tier: 4
+    branch: C
+    name: 反震转锋
+    quick: 攻击也加强盾返
+    category: convert
+    effects:
+      - id: RKF01-J4-C-RECOIL-FORMULA
+        trigger: shield_absorbed
+        operation: modify_effect
+        target: enemy
+        params:
+          mode: replace
+          effect_id: RKF01-PASSIVE-RECOIL
+          defense_ratio: 0.38
+          attack_ratio: 0.22
+          damage_kind: derived
+          preserve_existing_recoil_modifiers: true
+          max_per_enemy_action: 1
+          no_reentry: true
+        requires: [RKF01-PASSIVE-RECOIL]
+        consumes: []
+        replaces: [RKF01-PASSIVE-RECOIL]
+        limit: {scope: action, count: 1}
+        text: 取代基础盾返公式但保留其触发条件和次数，改为防御0.38倍加攻击0.22倍的单次盾返；已选反震定势或法宝盾返加成继续只合加一次。
+      - id: RKF01-J4-C-ARMOR-BREAK
+        trigger: shield_absorbed
+        operation: apply_status
+        target: enemy
+        params:
+          status: armor_break
+          stacks: 1
+          duration_rounds: 2
+          max_stacks: 5
+          source: RKF01-J4-C-RECOIL-FORMULA
+          applies_after_recoil: true
+        requires: [RKF01-J4-C-RECOIL-FORMULA]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 新盾返实际命中后给敌人施加1层破甲，持续2轮；破甲按公共状态规则处理，不增加第二次反震。
+routes:
+  - name: 护法金刚
+    summary: 以防御和护盾维持承伤，持盾时减伤并靠固定盾返反击；代价是失盾后部分增益暂时没有输入。
+    talents: [RKF01-J1-A, RKF01-J2-A, RKF01-J3-A, RKF01-J4-A]
+  - name: 降魔武僧
+    summary: 强化普攻和怒技，怒后插入强化普攻，再以攻防并取的盾返施加破甲；代价是防御不足时护盾更薄。
+    talents: [RKF01-J1-C, RKF01-J2-B, RKF01-J3-C, RKF01-J4-C]
+  - name: 护体法僧
+    summary: 用最大气血增加实际造盾，破盾后续护，最后把一份护盾换成怒技爆发；代价是主动耗盾会减少后续承伤窗口。
+    talents: [RKF01-J1-A, RKF01-J2-C, RKF01-J3-B, RKF01-J4-B]

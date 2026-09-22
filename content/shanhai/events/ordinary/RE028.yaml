@@ -1,0 +1,52 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE028
+name: 云门养息
+status: design_target
+summary: 在云门前选择疗伤、行医囊或修行。
+description: 云门下的薄雾能暂缓灼痛，守门人让你把这一口清息用在眼前的伤、随身药囊或下一次进阶上。
+tags: [ordinary, heal, artifact, xp, act4]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件。
+balance:
+  target:
+    gross_U: [0.4, 1.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [4]
+scene: 云门薄雾贴着石阶，守门人捧来一口清息。疗伤、行医囊和修行，只能选一条路。
+options:
+  - id: RE028-A
+    label: 借雾疗伤
+    quick: 借雾疗伤，立即恢复一段气血。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: hp, amount: 0.2, basis: reference_hp}
+    outcome: 清雾贴过伤口，灼痛很快退去。
+  - id: RE028-B
+    label: 凝雾成结
+    quick: 带走一层行医囊，让沿途行走时也能补气血。
+    requirements:
+      - {type: capacity, id: RC17, count: 1}
+    costs: []
+    rewards:
+      - {type: artifact, id: RC17, count: 1}
+    outcome: 你把清息封进行医囊，接下来的旅路会得到它的照料。
+  - id: RE028-C
+    label: 以息换修
+    quick: 静坐片刻，修为提高下一次进阶所需的两成；已到当前境界尽头时收益有限。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
+    outcome: 若你还在追逐下一次进阶，这股修为正好派上用场；已到当前境界尽头时，只留下修为记录。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

@@ -1,0 +1,51 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: enemy
+id: EN-F1
+name: 雷劫化身
+status: design_target
+summary: 以四段雷劫、有限连雷和公开削怒请求作为终战候选之一。
+description: 雷劫化身采用雷劫神话意象，全部配装、段数和削怒输入均为游戏原创。
+tags: [enemy, final, myth_adaptation, lightning, multi_segment, rage_drain]
+source:
+  basis: myth_adaptation
+  reference: null
+  note: 仅借用雷劫意象；原典出处与本敌人的战斗能力待核验，不伪造原典技能。本局与EN-F2二选一。
+balance:
+  target:
+    rounds: [10, 15]
+    net_hp_loss_pct: [18, 30]
+    burst_warning_pct: 35
+  measured: null
+acts: [5]
+tier: final
+identity: 雷劫化身
+method: RKF07
+n: 4
+talents: [RKF07-J1-A, RKF07-J2-C, RKF07-J3-A, RKF07-J4-B]
+artifacts:
+  - {id: RC07, stacks: 3}
+  - {id: RC08, stacks: 3}
+  - {id: RR13, stacks: 1}
+stats:
+  attack: 42
+  defense: 114
+  max_hp: 990
+  crit_rate: 0.18
+  speed: 15
+pressure: [多段, 削怒]
+counterplay:
+  - 战前选高防御或护盾构筑承受四段雷劫，并利用逐段受击回怒维持自己的直接输出。
+  - 战前选先手速度和稳定直接伤害构筑，优先压低其蓄运与怒技循环；RR13削怒受公共轮内上限约束，不需要净化。
+preview: >-
+  J3-A把怒技基础雷段提高为四段，J2-C提高有限连雷概率，J4-B只提高每个基础雷段的伤害；
+  RR13在普攻首个有效基础命中登记10点外来削怒请求，按公共每轮20点上限结算，不取消本轮已锁动作。
+  这是终战候选，与EN-F2在本局只抽一名；预览公开段数、连雷、蓄运和削怒请求，自动战仅执行战前取舍。
+phases: []
+reward_profile: F
+target:
+  rounds: [10, 15]
+  net_hp_loss_pct: [18, 30]
+  burst_warning_pct: 35
+  note: 参考幸存胜利样本的首测损耗输入，不承诺胜率、TTK或固定终战击杀轮数。
+measured: null

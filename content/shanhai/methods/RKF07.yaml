@@ -1,0 +1,324 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: method
+id: RKF07
+name: 奔雷诀
+status: design_target
+summary: 以有限连雷判定制造多段爆发并用蓄运补偿失手的雷修功法。
+description: 普攻一段、怒技三段，追加雷击只在原始雷段上逐段判定，失败会留下唯一的蓄运状态。
+tags: [method, rare, lightning, original]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创雷修能力，不声称古籍存在这些战斗效果。
+balance:
+  target:
+    P_by_tier: [110, 137.5, 165, 192.5, 220]
+    D: 110
+    L: 100
+    H: 100
+    P: 110
+  measured: null
+rarity: rare
+role: 雷修
+stat_focus: [attack, crit_rate]
+mechanic:
+  id: charge_luck
+  name: 蓄运
+  max_stacks: 1
+  scope: battle
+  initial: 0
+  description: 连雷失败留下一层蓄运，提高下一次连雷的成功率，不增加检定次数；选择护身天赋后，动作开始前已有的蓄运优先留给护盾。
+  consumption_priority: [RKF07-J4-C-CHAIN, RKF07-J3-B-SHIELD, next_eligible_chain_check]
+  shield_reservation: 动作开始时，已选护盾出口优先预约现存一层，动作结束且存活时消费造盾；预约期间同一层不提供连雷加成，也不接收新失败层。
+  chain_consumption: 无护盾预约时，下一个有效基础雷段消费现有蓄运使本次概率增加20个百分点；同动作此前雷段失败产生的蓄运也可消费。
+acquisition:
+  start: false
+  pools: [method_rare]
+actions:
+  basic:
+    name: 引雷破空
+    quick: 直接雷击并判定一次连雷
+    effects:
+      - id: RKF07-BASIC-DAMAGE
+        trigger: basic_action
+        operation: damage
+        target: enemy
+        params: {attack_ratio: 0.9, segments: 1, can_crit: true, damage_kind: direct}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 按攻击的0.90倍造成一段可暴击直接雷伤。
+      - id: RKF07-BASIC-CHAIN
+        trigger: basic_hit
+        operation: chance_damage
+        target: enemy
+        params: {attack_ratio: 0.48, chance: 0.35, segments: 1, can_crit: true, per_base_segment: true, max_bonus_segments: 1, recursive: false, charge_luck_status: charge_luck, charge_luck_bonus: 0.20, charge_luck_created_before: current_segment, charge_luck_consumption: next_eligible_chain_check, charge_luck_outlet_group: charge_luck, consume_if_available: true, exclude_reserved_for_shield: true, on_fail: {apply_status: charge_luck, stacks: 1, duration_rounds: 2, max_stacks: 1}}
+        requires: [RKF07-BASIC-DAMAGE, effective_basic_base_hit]
+        consumes: [charge_luck]
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 基础雷段命中后只判定一次35%连雷；有未预约给护盾的蓄运时，消费一层使本次概率提高20个百分点。成功追加一段，失败留下一层蓄运，不增加检定次数或主动作。
+  rage:
+    name: 九霄雷劫
+    quick: 三段雷击并逐段判定连雷
+    effects:
+      - id: RKF07-RAGE-DAMAGE
+        trigger: rage_action
+        operation: damage
+        target: enemy
+        params: {attack_ratio: 0.45, segments: 3, can_crit: true, damage_kind: direct, rage_cost: locked_action_cost}
+        requires: []
+        consumes: [rage_locked_action_cost]
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 按攻击的0.45倍造成三段可暴击直接雷伤，三段属于同一怒技主动作。
+      - id: RKF07-RAGE-CHAIN
+        trigger: rage_action
+        operation: chance_damage
+        target: enemy
+        params: {attack_ratio: 0.42, chance: 0.4, segments: 1, can_crit: true, per_base_segment: true, max_bonus_segments: 4, recursive: false, charge_luck_status: charge_luck, charge_luck_bonus: 0.20, charge_luck_created_before: current_segment, charge_luck_consumption: next_eligible_chain_check, charge_luck_outlet_group: charge_luck, consume_if_available: true, exclude_reserved_for_shield: true, on_fail: {apply_status: charge_luck, stacks: 1, duration_rounds: 2, max_stacks: 1}, after_effect: RKF07-RAGE-DAMAGE}
+        requires: [RKF07-RAGE-DAMAGE, effective_rage_base_segment]
+        consumes: [charge_luck]
+        replaces: []
+        limit: {scope: segment, count: 4}
+        text: 怒技每个基础雷段各判定一次40%连雷；未预约的蓄运可使下一次判定提高20个百分点，随后被消费。此前雷段失败留下的蓄运可供后段使用，追加段不再判定。
+travel:
+  - id: RKF07-TRAVEL-NEXT-NONBATTLE-COINS
+    trigger: battle_node_complete
+    operation: grant_resource
+    target: run
+    params:
+      resource: coins
+      amount: 4
+      basis: flat
+      source_node_types: [combat, elite, boss]
+      defer_until: next_nonbattle_node
+      eligible_node_types: [rest, event, shop]
+      max_pending: 1
+      pending_resource_key: RKF07-TRAVEL-COINS
+      claim_pending_once: true
+      only_if_alive: true
+      combat_trigger: false
+    requires: [real_battle_node_completed_alive]
+    consumes: []
+    replaces: []
+    limit: {scope: node, count: 1}
+    text: 活着完成战斗节点后，为下一次非战斗节点准备4灵石；最多待领一份，连续战斗不叠加，下一次休整、事件或商店节点完成时只领取一次。
+talents:
+  - id: RKF07-J1-A
+    tier: 1
+    branch: A
+    name: 雷种初鸣
+    quick: 基础雷击伤害提高
+    category: enhance
+    effects:
+      - id: RKF07-J1-A-MODIFY
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {effect_ids: [RKF07-BASIC-DAMAGE], field: params.attack_ratio, mode: add, value: 0.12}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 奔雷诀普攻基础直接段攻击比增加0.12。
+  - id: RKF07-J1-B
+    tier: 1
+    branch: B
+    name: 引雷积势
+    quick: 普攻额外积怒
+    category: cycle
+    effects:
+      - id: RKF07-J1-B-RAGE
+        trigger: basic_action
+        operation: rage_gain
+        target: self
+        params: {amount: 8, source: talent, additive_to_public_basic: true, only_after_action_complete: true, record_at: round_end, no_extra_action: true}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 每次完成一次基础普攻后在公共+25之外额外获得8点怒气，不读取命中也不放大其它回怒来源。
+  - id: RKF07-J1-C
+    tier: 1
+    branch: C
+    name: 电走周身
+    quick: 防御提高并稳住承伤
+    category: enhance
+    effects:
+      - id: RKF07-J1-C-DEFENSE
+        trigger: battle_start
+        operation: modify_stat
+        target: self
+        params: {stat: defense, mode: add, amount: 12, duration: battle}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: battle, count: 1}
+        text: 每场战斗开始时防御提高12，只负责承伤，不改变雷段数量。
+  - id: RKF07-J2-A
+    tier: 2
+    branch: A
+    name: 雷息轻行
+    quick: 怒气上限降低十点
+    category: cycle
+    effects:
+      - id: RKF07-J2-A-CAP
+        trigger: always
+        operation: rage_cap
+        target: self
+        params: {mode: add, amount: -10, floor: 60, sync_threshold_and_cost: true}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 当前主修奔雷诀时怒气上限降低10，并按公共规则同步降低怒技门槛与实际怒耗。
+  - id: RKF07-J2-B
+    tier: 2
+    branch: B
+    name: 雷怒千钧
+    quick: 怒技基础伤害提高
+    category: enhance
+    effects:
+      - id: RKF07-J2-B-MODIFY
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {effect_ids: [RKF07-RAGE-DAMAGE], field: params.attack_ratio, mode: add, value: 0.22}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 本门怒技三段基础直接段的每段攻击比增加0.22，不提高追加雷击的检定次数。
+  - id: RKF07-J2-C
+    tier: 2
+    branch: C
+    name: 奔雷逐电
+    quick: 连雷概率提高十五点
+    category: enhance
+    effects:
+      - id: RKF07-J2-C-MODIFY
+        trigger: always
+        operation: modify_chance
+        target: self
+        params: {effect_ids: [RKF07-BASIC-CHAIN, RKF07-RAGE-CHAIN], field: params.chance, mode: add, value: 0.15, cap: 1}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 本门已有连雷判定概率各增加0.15并封顶100%，不增加判定次数，追加雷击不递归。
+  - id: RKF07-J3-A
+    tier: 3
+    branch: A
+    name: 连霄雷网
+    quick: 怒技基础段增加一段
+    category: enhance
+    effects:
+      - id: RKF07-J3-A-SEGMENT
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {effect_ids: [RKF07-RAGE-DAMAGE], field: params.segments, mode: add, value: 1, max_segments: 4}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 怒技基础雷段由3段增加为4段，新增段仍只参加一次已有连雷判定。
+  - id: RKF07-J3-B
+    tier: 3
+    branch: B
+    name: 蓄运护身
+    quick: 失败蓄运转为护盾
+    category: convert
+    effects:
+      - id: RKF07-J3-B-SHIELD
+        trigger: action_end
+        operation: shield
+        target: self
+        params: {defense_ratio: 0.22, condition: {status: charge_luck, min_stacks: 1}, consume_status: charge_luck, consume_key: charge_luck, outlet_group: charge_luck, max_per_action: 1, preexisting_only: true, reserve_at: action_start, resolve_at: action_end, priority_over_chain: true, no_new_stack_while_reserved: true}
+        requires: [charge_luck_available]
+        consumes: [charge_luck]
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 动作开始时将已有蓄运优先留给护盾，结束且存活后消费并按防御0.22倍造盾；同一层不再提高连雷概率，新失败不在同一动作转盾。
+  - id: RKF07-J3-C
+    tier: 3
+    branch: C
+    name: 雷行回气
+    quick: 追加雷击后额外回怒
+    category: cycle
+    effects:
+      - id: RKF07-J3-C-RAGE
+        trigger: action_end
+        operation: rage_gain
+        target: self
+        params: {amount: 8, source: talent, condition: {actual_bonus_lightning_segments: 1}, once_per_action: true, additive_to_public_sources: true, record_at: round_end, no_extra_action: true}
+        requires: [actual_bonus_lightning_segments]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 本主动作至少有一段追加雷击实际命中时额外获得8点怒气，不增加主动作。
+  - id: RKF07-J4-A
+    tier: 4
+    branch: A
+    name: 万雷归宗
+    quick: 连雷概率再次提高
+    category: enhance
+    effects:
+      - id: RKF07-J4-A-MODIFY
+        trigger: always
+        operation: modify_chance
+        target: self
+        params: {effect_ids: [RKF07-BASIC-CHAIN, RKF07-RAGE-CHAIN], field: params.chance, mode: add, value: 0.18, cap: 1}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 本门已有连雷判定概率各增加0.18并封顶100%，仍按原始基础段逐段判定。
+  - id: RKF07-J4-B
+    tier: 4
+    branch: B
+    name: 雷怒天门
+    quick: 怒技每段伤害再提高
+    category: enhance
+    effects:
+      - id: RKF07-J4-B-MODIFY
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {effect_ids: [RKF07-RAGE-DAMAGE], field: params.attack_ratio, mode: add, value: 0.3}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 本门怒技每个基础雷段攻击比再增加0.30，追加雷击仍读取自己的攻击比。
+  - id: RKF07-J4-C
+    tier: 4
+    branch: C
+    name: 蓄运成甲
+    quick: 预存蓄运得护盾
+    category: convert
+    effects:
+      - id: RKF07-J4-C-CHAIN
+        trigger: action_end
+        operation: shield
+        target: self
+        params: {defense_ratio: 0.30, condition: {status: charge_luck, min_stacks: 1}, consume_status: charge_luck, consume_key: charge_luck, outlet_group: charge_luck, max_per_action: 1, preexisting_only: true, reserve_at: action_start, resolve_at: action_end, priority_over_chain: true, no_new_stack_while_reserved: true}
+        requires: [charge_luck_available]
+        consumes: [charge_luck]
+        replaces: [RKF07-J3-B-SHIELD]
+        limit: {scope: action, count: 1}
+        text: 动作开始时将已有蓄运优先留给护盾，结束且存活后按防御0.30倍造盾；取代较弱的护盾出口，同一层不再提高连雷概率，不需要先选蓄运护身。
+passives: []
+routes:
+  - name: 连雷追击
+    summary: 提高连雷概率与怒技基础段数，靠多次有限判定放大直接输出；代价是追加雷击仍受每个基础段一次的上限约束。
+    talents: [RKF07-J1-A, RKF07-J2-C, RKF07-J3-A, RKF07-J4-A]
+  - name: 雷怒重击
+    summary: 强化怒技每段伤害并用额外积怒维持雷劫循环；代价是普攻积怒和额外雷段都不保证每次立刻兑现。
+    talents: [RKF07-J1-B, RKF07-J2-B, RKF07-J3-C, RKF07-J4-B]
+  - name: 失败护身
+    summary: 把连雷失败留下的蓄运转成护盾，减少失手后的承伤压力；代价是消费蓄运后不再同时获得下一次连雷加成。
+    talents: [RKF07-J1-C, RKF07-J2-A, RKF07-J3-B, RKF07-J4-C]

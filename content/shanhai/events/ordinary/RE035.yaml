@@ -1,0 +1,56 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE035
+name: 稀页付价
+status: design_target
+summary: 付高价取回元佩，或以较低代价带走调息玉。
+description: 云阶书商只带来一件回元佩，旁边的调息玉便宜得多，二者都能为终局前的战斗添力。
+tags: [ordinary, rare_artifact, purchase, defense, act4]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；稀有法宝有公开付费成本并按 B=2.4 预算记账。
+balance:
+  target:
+    gross_U: [0.75, 2.4]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [4]
+scene: 书商摊开的稀页压着回元佩，调息玉在旁边泛着温光。高价的护持与便宜的调息，只能选一件。
+options:
+  - id: RE035-A
+    label: 付高价取回元佩
+    quick: 付出高价，带走回元佩，提升防御并让首次怒技后更容易再次聚气。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RR07, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 2.0, basis: common_price}
+    rewards:
+      - {type: artifact, id: RR07, count: 1}
+    outcome: 回元佩贴上腕间，防守更稳，首次怒技之后的气息也更容易续上。
+  - id: RE035-B
+    label: 付石取调息玉
+    quick: 付出较低标价，带走一层调息玉，战斗每轮都能慢慢回怒。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC21, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 0.75, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC21, count: 1}
+    outcome: 调息玉随呼吸明灭，战斗拖得越久，回气越稳定。
+  - id: RE035-C
+    label: 合页留石
+    quick: 合上稀页，保留灵石。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 书商合上稀页，你把灵石留在身边，继续走向终门。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

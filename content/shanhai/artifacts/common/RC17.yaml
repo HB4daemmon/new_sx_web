@@ -1,0 +1,40 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RC17
+name: 行医囊
+status: design_target
+summary: 最大气血 +10；完成真实节点后治疗 2 点
+description: 行医囊收着便携药材，提升最大气血并在节点结束时补回少量气血。
+tags: [max_hp, travel, heal, node]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 1, A: 1, J: 0.8, U: 1}
+  measured: null
+rarity: common
+max_stacks: 3
+unique_group: null
+attributes:
+  flat: {max_hp: 10}
+  percent: {}
+effects:
+  - id: RC17-NODE-HEAL
+    trigger: node_complete
+    operation: heal
+    target: self
+    params:
+      amount: 2
+      basis: flat
+      combat: false
+      node_scope: real_node
+      cap: max_hp
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: node, count: 1}
+    text: 每层在一个真实冒险节点完成后治疗2点气血；只结算一次，不生成怒气或战斗护盾。
+acquisition:
+  pools: [common_artifact]

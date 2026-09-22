@@ -1,0 +1,52 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE034
+name: 最后换法
+status: design_target
+summary: 以气血换一次重新选择已学功法的机会，或用修为守住当前道路。
+description: 天门前的换法台只开最后一次，台面明写血价，旁边的石座却能让人安心修行。
+tags: [ordinary, method_swap, blood_price, route, act4]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；血价必须存活，换法不回血、不洗点。
+balance:
+  target:
+    gross_U: [0.6, 1.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [4]
+scene: 换法台上的血纹正在亮起，石座上的灵息却安静平和。你可以付出气血改走旧法，也可以沿当前道路继续积累。
+options:
+  - id: RE034-A
+    label: 以血开换法台
+    quick: 付出约一成气血，获得一次从已学功法中重新选择的机会。
+    requirements:
+      - {type: known_method, id: RKF05}
+    costs:
+      - {type: resource, resource: hp, amount: 0.1, basis: reference_hp, must_survive: true}
+    rewards:
+      - {type: swap_method, pool: owned_methods}
+    outcome: 血纹落下，你得到一次改修机会；血价已付，换不换法仍由你决定。
+  - id: RE034-B
+    label: 以修守旧法
+    quick: 静坐片刻，修为提高下一次进阶所需的两成；已到当前境界尽头时收益有限。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
+    outcome: 你在石座上守住原路，修为向下一次进阶靠近；已到当前境界尽头时，只留下修为记录。
+  - id: RE034-C
+    label: 关台前行
+    quick: 关台离开，不付血价，保留当前功法和资源。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 换法台关闭，你沿着当前道路继续前行。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

@@ -1,0 +1,31 @@
+name: suishi-docs
+
+services:
+  web:
+    image: caddy:2-alpine@sha256:de23def33b17fb5d1290b0f6c2add1d70780e52341896c00a4c8a2a2fe9d355e
+    restart: unless-stopped
+    read_only: true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    user: "1001:1001"
+    volumes:
+      - ../published:/srv:ro
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    tmpfs:
+      - /tmp
+      - /data:uid=1001,gid=1001,mode=0700
+      - /config:uid=1001,gid=1001,mode=0700
+    networks:
+      - traefik
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
+      traefik.enable: "false"
+
+networks:
+  traefik:
+    external: true
+    name: traefik_default

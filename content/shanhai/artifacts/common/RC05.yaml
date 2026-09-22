@@ -1,0 +1,25 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RC05
+name: 养气玉
+status: design_target
+summary: 最大气血 +25
+description: 温润玉心缓慢养气，直接抬高最大气血。
+tags: [max_hp, combat, durable]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 1, A: 5, J: 0, U: 1}
+  measured: null
+rarity: common
+max_stacks: 5
+unique_group: null
+attributes:
+  flat: {max_hp: 25}
+  percent: {}
+effects: []
+acquisition:
+  pools: [common_artifact]

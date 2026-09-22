@@ -1,4 +1,4 @@
-name: Build and deploy Fengshen Pages
+name: Build and deploy Suishi Pages
 
 on:
   push:
@@ -29,11 +29,14 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Install content compiler
+        run: npm ci --prefix tools/content-kit --no-audit --no-fund
+
       - name: Verify game rules
         run: npm test
 
-      - name: Build standalone web game
-        run: npm run build
+      - name: Verify content contracts
+        run: npm run test:content
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

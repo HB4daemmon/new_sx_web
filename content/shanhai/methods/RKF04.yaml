@@ -1,0 +1,435 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: method
+id: RKF04
+name: 御火诀
+status: design_target
+summary: 以攻击造成火焰直伤并施加公共燃烧的普通火修功法。
+description: 御火诀把直接火伤与燃烧持续伤害分开记账，天赋分别强化留火、耗火和火盾；燃烧不默认暴击且遵守公共状态上限。
+tags: [method, common, attack, burn, direct]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创功法；燃烧参数、耗火出口和护身收益均为首测设计输入，不声称已实装或已平衡。
+balance:
+  target:
+    D: 100
+    L: 100
+    H: 100
+    P: 100
+    P_by_tier: [100, 125, 150, 175, 200]
+  measured: null
+rarity: common
+role: 火修
+stat_focus:
+  primary: attack
+  secondary: [defense, max_hp]
+  damage_from: attack
+  burn_from: attack
+  survival_from: [defense, max_hp]
+mechanic: null
+acquisition:
+  start: true
+  pools: [method_common]
+actions:
+  basic:
+    name: 引火灼身
+    quick: 火伤并施加燃烧
+    effects:
+      - id: RKF04-BASIC-DAMAGE
+        trigger: basic_action
+        operation: damage
+        target: enemy
+        params:
+          attack_ratio: 0.95
+          segments: 1
+          can_crit: true
+          damage_kind: direct
+          element: fire
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 按攻击的0.95倍造成一段可暴击火焰直接伤害；该段与后续燃烧分开记账。
+      - id: RKF04-BASIC-BURN
+        trigger: action_end
+        operation: apply_status
+        target: enemy
+        params:
+          status: burn
+          stacks: 1
+          max_stacks: 10
+          duration_rounds: 3
+          attack_ratio_per_stack: 0.08
+          snapshot: attack
+          tick_at: round_end_before_rage
+          can_crit: false
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 引火灼身完成后对敌人施加1层燃烧，持续3轮；状态施加不等于已造成燃烧伤害。
+  rage:
+    name: 炎心爆发
+    quick: 怒技火伤并叠燃烧
+    effects:
+      - id: RKF04-RAGE-DAMAGE
+        trigger: rage_action
+        operation: damage
+        target: enemy
+        params:
+          attack_ratio: 1.55
+          segments: 1
+          can_crit: true
+          damage_kind: direct
+          element: fire
+          rage_cost: locked_action_cost
+        requires: []
+        consumes: [rage_locked_action_cost]
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 按公共规则支付本轮锁定怒耗后，按攻击的1.55倍造成一段可暴击火焰直接伤害。
+      - id: RKF04-RAGE-BURN
+        trigger: action_end
+        operation: apply_status
+        target: enemy
+        params:
+          status: burn
+          stacks: 2
+          max_stacks: 10
+          duration_rounds: 3
+          attack_ratio_per_stack: 0.08
+          snapshot: attack
+          tick_at: round_end_before_rage
+          can_crit: false
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 炎心爆发完成后对敌人施加2层燃烧，持续3轮；怒技动作不因此增加普攻回怒或额外主动作。
+passives:
+  - id: RKF04-PASSIVE-BURN
+    trigger: always
+    operation: modify_effect
+    target: self
+    params:
+      mode: add_ratio
+      status: burn
+      attack_ratio_per_stack_add: 0.02
+      applies_to: method_burn_only
+      snapshot: attack
+      preserves_public_status_rules: true
+      can_crit: false
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: permanent, count: 1}
+    text: 本门施加的燃烧每层额外读取攻击0.02倍作为首测持续伤害输入；公共燃烧的上限、持续和不暴击规则保持不变。
+travel:
+  - id: RKF04-TRAVEL-BATTLE-COINS
+    trigger: battle_node_complete
+    operation: grant_resource
+    target: run
+    params:
+      resource: coins
+      amount: 3
+      basis: flat
+      node_types: [combat, elite, boss]
+      once_per_node: true
+      combat_trigger: false
+    requires: [real_battle_node_completed_alive]
+    consumes: []
+    replaces: []
+    limit: {scope: node, count: 1}
+    text: 活着完成战斗、精英或首领节点后获得3灵石；只在战斗节点结算完成时触发一次，不在战斗动作中重复发放。
+talents:
+  - id: RKF04-J1-A
+    tier: 1
+    branch: A
+    name: 余火绵延
+    quick: 燃烧持续加长
+    category: enhance
+    effects:
+      - id: RKF04-J1-A-BURN-DURATION
+        trigger: action_end
+        operation: modify_effect
+        target: enemy
+        params:
+          mode: add_input
+          effect_ids: [RKF04-BASIC-BURN, RKF04-RAGE-BURN]
+          duration_rounds_add: 1
+          status: burn
+          refresh_policy: add_new_layer_only
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 本门新施加燃烧的持续时间增加1轮；不追溯已经结束的tick，不突破公共层数上限。
+  - id: RKF04-J1-B
+    tier: 1
+    branch: B
+    name: 炽击入骨
+    quick: 普攻火伤提高
+    category: enhance
+    effects:
+      - id: RKF04-J1-B-BASIC-DAMAGE
+        trigger: basic_action
+        operation: modify_effect
+        target: self
+        params:
+          mode: add_ratio
+          effect_id: RKF04-BASIC-DAMAGE
+          damage_ratio_add: 0.15
+          damage_scope: base_direct_segment
+          excludes: [burn]
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 引火灼身的基础直接火伤提高15%；不提高燃烧tick或其它派生伤害。
+  - id: RKF04-J1-C
+    tier: 1
+    branch: C
+    name: 炉心护脉
+    quick: 普攻后按防御造盾
+    category: enhance
+    effects:
+      - id: RKF04-J1-C-SHIELD
+        trigger: action_end
+        operation: shield
+        target: self
+        params:
+          action: basic_action
+          defense_ratio: 0.20
+          max_hp_ratio: 0
+          timing: after_damage_and_burn_application
+          cap_ratio: 1
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 引火灼身完成后按防御的0.20倍造盾；护盾只负责生存，不把防御转为火焰伤害。
+  - id: RKF04-J2-A
+    tier: 2
+    branch: A
+    name: 长燃不灭
+    quick: 燃烧层数上限提高
+    category: enhance
+    effects:
+      - id: RKF04-J2-A-BURN-CAP
+        trigger: always
+        operation: modify_effect
+        target: self
+        params:
+          mode: add_input
+          status: burn
+          max_stacks_add: 2
+          method_burn_only: true
+          public_base_max_stacks: 10
+          duration_unchanged: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 本门燃烧层数上限从10提高到12；持续时间和tick顺序仍按公共规则，不凭空追加额外主动作。
+  - id: RKF04-J2-B
+    tier: 2
+    branch: B
+    name: 灰烬回气
+    quick: 燃烧命中返怒
+    category: cycle
+    effects:
+      - id: RKF04-J2-B-RAGE
+        trigger: dot_resolved
+        operation: rage_gain
+        target: self
+        params:
+          status: burn
+          amount: 5
+          once_per_round: true
+          requires_positive_actual_damage: true
+          record_at: round_end
+          no_extra_action: true
+        requires: [positive_actual_burn_damage]
+        consumes: []
+        replaces: []
+        limit: {scope: round, count: 1}
+        text: 本门燃烧在轮尾实际造成正伤害时，每轮最多登记额外5点怒气；未tick、被护盾完全吸收或空转状态不返怒。
+  - id: RKF04-J2-C
+    tier: 2
+    branch: C
+    name: 怒火穿心
+    quick: 怒技火伤提高
+    category: enhance
+    effects:
+      - id: RKF04-J2-C-RAGE-DAMAGE
+        trigger: rage_action
+        operation: modify_effect
+        target: self
+        params:
+          mode: add_ratio
+          effect_id: RKF04-RAGE-DAMAGE
+          damage_ratio_add: 0.22
+          damage_scope: base_direct_segment
+          excludes: [burn]
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 炎心爆发的基础直接火伤提高22%；不提高燃烧持续伤害或其它派生段。
+  - id: RKF04-J3-A
+    tier: 3
+    branch: A
+    name: 焚尽爆燃
+    quick: 怒技耗火增伤
+    category: convert
+    effects:
+      - id: RKF04-J3-A-CONSUME-BURN
+        trigger: rage_action
+        operation: consume_status
+        target: enemy
+        params:
+          status: burn
+          max_stacks: 3
+          damage_per_stack_attack_ratio: 0.18
+          damage_kind: derived
+          can_crit: false
+          recursive: false
+          preserve_base_rage_damage: true
+          no_new_burn: true
+          consume_once: true
+          if_no_burn: base_rage_only
+          consume_key: burn_up_to_3_stacks
+          outlet_group: burn_to_rage_damage
+        requires: [burn_available]
+        consumes: [burn_up_to_3_stacks]
+        replaces: [RKF04-RAGE-BURN]
+        limit: {scope: action, count: 1}
+        text: 取代怒技施加燃烧段；怒技保留基础直接火伤，先消费敌方最多3层已有燃烧，每层按攻击0.18倍追加一次派生火伤，消费后不再给本次怒技补新燃烧，无火层时只结算基础怒技。
+  - id: RKF04-J3-B
+    tier: 3
+    branch: B
+    name: 火铠护身
+    quick: 有燃烧时减伤
+    category: enhance
+    effects:
+      - id: RKF04-J3-B-REDUCE
+        trigger: always
+        operation: modify_effect
+        target: self
+        params:
+          mode: incoming_multiplier
+          source: enemy_direct
+          multiplier: 0.88
+          condition: enemy_has_burn
+          excludes: [burn, poison, event_damage]
+          duration_reads_current_status: true
+        requires: [enemy_has_method_burn]
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 敌人至少有1层本门燃烧时，受到的敌方直接伤害乘以0.88；燃烧tick、毒、事件扣血不受影响。
+  - id: RKF04-J3-C
+    tier: 3
+    branch: C
+    name: 烈焰追身
+    quick: 普攻怒技多叠燃烧
+    category: enhance
+    effects:
+      - id: RKF04-J3-C-BURN-STACK
+        trigger: action_end
+        operation: modify_effect
+        target: enemy
+        params:
+          mode: add_input
+          effect_ids: [RKF04-BASIC-BURN, RKF04-RAGE-BURN]
+          stacks_add: 1
+          status: burn
+          obey_max_stacks: true
+          no_refresh_old_layers: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 本门普攻或怒技施加燃烧时额外加入1层，仍受公共燃烧上限约束，不能刷新旧层或递归追加。
+  - id: RKF04-J4-A
+    tier: 4
+    branch: A
+    name: 焚天火脉
+    quick: 怒技变为两段火伤
+    category: enhance
+    effects:
+      - id: RKF04-J4-A-RAGE-SEGMENTS
+        trigger: rage_action
+        operation: modify_effect
+        target: self
+        params:
+          mode: replace_segments
+          effect_id: RKF04-RAGE-DAMAGE
+          segments: 2
+          attack_ratio_per_segment: 0.88
+          can_crit: true
+          total_ratio: 1.76
+          burn_effect_unchanged: true
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 将炎心爆发直接伤害改为同一怒技内两段、每段攻击0.88倍的可暴击火伤；两段不是额外主动作，燃烧施加仍只按对应效果结算一次。
+  - id: RKF04-J4-B
+    tier: 4
+    branch: B
+    name: 火种不灭
+    quick: 燃烧持续大幅延长
+    category: enhance
+    effects:
+      - id: RKF04-J4-B-BURN-DURATION
+        trigger: always
+        operation: modify_effect
+        target: self
+        params:
+          mode: add_input
+          status: burn
+          duration_rounds_add: 2
+          method_burn_only: true
+          refresh_old_layers: false
+          tick_order: public_rule
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 本门新燃烧持续时间再增加2轮；旧层不因选择天赋追溯刷新，仍按各层独立tick和公共清除规则处理。
+  - id: RKF04-J4-C
+    tier: 4
+    branch: C
+    name: 赤焰成盾
+    quick: 燃烧伤害转护盾
+    category: convert
+    effects:
+      - id: RKF04-J4-C-SHIELD
+        trigger: dot_resolved
+        operation: shield
+        target: self
+        params:
+          status: burn
+          source: actual_burn_damage
+          actual_damage_ratio: 0.30
+          read_only: true
+          consume_burn: false
+          cap_ratio: 1
+          no_recursive_dot: true
+        requires: [positive_actual_burn_damage]
+        consumes: []
+        replaces: []
+        limit: {scope: round, count: 1}
+        text: 本门燃烧在轮尾实际造成伤害后，按实际燃烧伤害的30%造盾；只读取已结算伤害，不消费燃烧、不把护盾再转成伤害。
+routes:
+  - name: 长燃不灭
+    summary: 提高燃烧层数和持续时间，靠长线tick与燃烧护身积累优势；代价是短战中未兑现的燃烧不计入输出。
+    talents: [RKF04-J1-A, RKF04-J2-A, RKF04-J3-B, RKF04-J4-B]
+  - name: 耗火爆燃
+    summary: 以怒技消费已有燃烧换即时派生伤害，并强化怒技本体；代价是消费后失去后续燃烧tick。
+    talents: [RKF04-J1-B, RKF04-J2-C, RKF04-J3-A, RKF04-J4-A]
+  - name: 火盾护身
+    summary: 普攻先造盾、燃烧时减伤并把实际燃烧伤害转为护盾；代价是燃烧未实际tick时护盾出口也没有输入。
+    talents: [RKF04-J1-C, RKF04-J2-B, RKF04-J3-C, RKF04-J4-C]

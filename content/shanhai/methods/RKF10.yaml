@@ -1,0 +1,421 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: method
+id: RKF10
+name: 烛龙真经
+status: design_target
+summary: 以昼夜相位轮替在护持与破坏之间切换的传奇功法。
+description: 战斗中只有昼夜一种专属状态，主动作后自动轮替且不增加行动；行旅效果独立读取节点序号。
+tags: [method, legendary, phase, original]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创昼夜意象与战斗能力，不声称古籍存在这些数值或效果。
+balance:
+  target:
+    P_by_tier: [125, 156.25, 187.5, 218.75, 250]
+    D: 112.5
+    L: 90
+    H: 100
+    P: 125
+  measured: null
+rarity: legendary
+role: 昼夜相位者
+stat_focus: [attack, defense]
+mechanic:
+  id: day_night
+  name: 昼夜
+  max_stacks: 1
+  scope: battle
+  initial: day
+  phases: [day, night]
+  transition: after_each_main_action
+  description: 白昼偏护盾，长夜偏直接伤害；相位只改变已有主动作，不增加主动作次数。
+acquisition:
+  start: false
+  pools: [method_legendary]
+actions:
+  basic:
+    name: 昼夜交辉
+    quick: 随相位造成伤害并轮替昼夜
+    effects:
+      - id: RKF10-BASIC-DAMAGE
+        trigger: basic_action
+        operation: damage
+        target: enemy
+        params: {attack_ratio_by_phase: {day: 0.92, night: 1.1}, segments: 1, can_crit: true, damage_kind: direct, phase_status: day_night}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 白昼按攻击0.92倍、长夜按攻击1.10倍造成一段可暴击直接伤害。
+      - id: RKF10-BASIC-SHIELD-DAY
+        trigger: basic_action
+        operation: shield
+        target: self
+        params: {defense_ratio: 0.24, condition: {phase_status: day_night, phase: day}, max_per_action: 1}
+        requires: [RKF10-PASSIVE-INITIAL-PHASE, phase_is_day]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 基础普攻在白昼结算后按防御0.24倍获得护盾，长夜不生成这份白昼护盾。
+      - id: RKF10-BASIC-PHASE
+        trigger: action_end
+        operation: advance_phase
+        target: self
+        params: {status: day_night, order: [day, night], after_main_action: true, no_extra_action: true}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 基础主动作结束后把昼夜从白昼切到长夜或从长夜切到白昼，不增加行动。
+  rage:
+    name: 烛照开天
+    quick: 随相位强化伤害或护盾
+    effects:
+      - id: RKF10-RAGE-DAMAGE
+        trigger: rage_action
+        operation: damage
+        target: enemy
+        params: {attack_ratio_by_phase: {day: 1.25, night: 1.55}, segments: 1, can_crit: true, damage_kind: direct, phase_status: day_night, rage_cost: locked_action_cost}
+        requires: []
+        consumes: [rage_locked_action_cost]
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 白昼按攻击1.25倍、长夜按攻击1.55倍造成一段可暴击直接伤害。
+      - id: RKF10-RAGE-SHIELD-DAY
+        trigger: rage_action
+        operation: shield
+        target: self
+        params: {defense_ratio: 0.38, condition: {phase_status: day_night, phase: day}, max_per_action: 1}
+        requires: [RKF10-PASSIVE-INITIAL-PHASE, RKF10-RAGE-DAMAGE, phase_is_day]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 怒技在白昼结算后按防御0.38倍获得护盾，长夜只保留直接伤害。
+      - id: RKF10-RAGE-PHASE
+        trigger: action_end
+        operation: advance_phase
+        target: self
+        params: {status: day_night, order: [day, night], after_main_action: true, no_extra_action: true}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 怒技主动作结束后轮替昼夜；怒技不是额外行动，基础怒气收入仍只按公共合同处理。
+passives:
+  - id: RKF10-PASSIVE-INITIAL-PHASE
+    trigger: battle_start
+    operation: apply_status
+    target: self
+    params: {status: day_night, stacks: 1, max_stacks: 1, phase: day, duration_rounds: 99, refresh: true}
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: battle, count: 1}
+    text: 每场战斗以白昼相位开始，昼夜状态只保留一份并由主动作结束后的轮替效果更新。
+travel:
+  - id: RKF10-TRAVEL-HEAL
+    trigger: node_complete
+    operation: heal
+    target: self
+    params:
+      basis: max_hp
+      amount_ratio: 0.08
+      outside_battle: true
+      generates_rage: false
+      node_types: [combat, elite, boss, rest, event, shop]
+      only_if_alive: true
+      travel_sequence: RKF10-TRAVEL-SEQUENCE
+      sequence_value: heal
+      sequence_scope: method_travel
+      sequence_starts_with: heal
+      read_combat_phase: false
+    requires: [travel_sequence_heal_turn]
+    consumes: []
+    replaces: []
+    limit: {scope: node, count: 1}
+    text: 按独立行旅序号在奇数次合资格节点完成时恢复最大气血的8%；只作战外治疗，不生成怒气，也不读取战斗昼夜。
+  - id: RKF10-TRAVEL-XP
+    trigger: node_complete
+    operation: grant_resource
+    target: run
+    params:
+      resource: xp
+      amount: 9
+      basis: flat
+      node_types: [combat, elite, boss, rest, event, shop]
+      only_if_alive: true
+      travel_sequence: RKF10-TRAVEL-SEQUENCE
+      sequence_value: xp
+      sequence_scope: method_travel
+      sequence_starts_with: heal
+      read_combat_phase: false
+    requires: [travel_sequence_xp_turn]
+    consumes: []
+    replaces: []
+    limit: {scope: node, count: 1}
+    text: 按独立行旅序号在偶数次合资格节点完成时获得9点修为；不读取战斗昼夜，不在战斗回合内刷取。
+  - id: RKF10-TRAVEL-SEQUENCE
+    trigger: node_complete
+    operation: advance_phase
+    target: run
+    params:
+      sequence_id: RKF10-TRAVEL-SEQUENCE
+      scope: method_travel
+      order: [heal, xp]
+      initial: heal
+      advance_after_effects: [RKF10-TRAVEL-HEAL, RKF10-TRAVEL-XP]
+      node_types: [combat, elite, boss, rest, event, shop]
+      only_if_alive: true
+      read_combat_phase: false
+    requires: [real_node_completed_alive]
+    consumes: []
+    replaces: []
+    limit: {scope: node, count: 1}
+    text: 每个合资格节点完成后仅推进一次独立行旅序号，在回血与修为之间交替；该序号不读取或改写战斗昼夜相位。
+talents:
+  - id: RKF10-J1-A
+    tier: 1
+    branch: A
+    name: 昼照厚壁
+    quick: 白昼普攻护盾提高
+    category: enhance
+    effects:
+      - id: RKF10-J1-A-MODIFY
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {effect_ids: [RKF10-BASIC-SHIELD-DAY], field: params.defense_ratio, mode: add, value: 0.14, condition: {phase: day}}
+        requires: [RKF10-BASIC-SHIELD-DAY]
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 白昼普攻护盾的防御比增加0.14，长夜仍不生成该护盾。
+  - id: RKF10-J1-B
+    tier: 1
+    branch: B
+    name: 夜行破空
+    quick: 长夜普攻伤害提高
+    category: enhance
+    effects:
+      - id: RKF10-J1-B-MODIFY
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {effect_ids: [RKF10-BASIC-DAMAGE], field: params.attack_ratio_by_phase.night, mode: add, value: 0.18}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 长夜普攻直接段攻击比增加0.18，白昼数值不变。
+  - id: RKF10-J1-C
+    tier: 1
+    branch: C
+    name: 晨昏定息
+    quick: 夜转昼时额外回怒
+    category: cycle
+    effects:
+      - id: RKF10-J1-C-RAGE
+        trigger: action_end
+        operation: rage_gain
+        target: self
+        params: {amount: 8, source: talent, condition: {phase_transition: night_to_day}, once_per_action: true, additive_to_public_sources: true, record_at: round_end, no_extra_action: true}
+        requires: [phase_transition_night_to_day]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 昼夜由长夜转回白昼时额外获得8点怒气，不增加轮内主动作。
+  - id: RKF10-J2-A
+    tier: 2
+    branch: A
+    name: 白昼护身
+    quick: 白昼状态提高防御
+    category: enhance
+    effects:
+      - id: RKF10-J2-A-DEFENSE
+        trigger: always
+        operation: modify_stat
+        target: self
+        params: {stat: defense, mode: add, amount: 14, duration: conditional_battle, condition: {phase_status: day_night, phase: day}, dynamic: true}
+        requires: [phase_is_day]
+        consumes: []
+        replaces: []
+        limit: {scope: battle, count: 1}
+        text: 处于白昼时防御提高14，转入长夜后该条件加成不再提供输入。
+  - id: RKF10-J2-B
+    tier: 2
+    branch: B
+    name: 长夜增锋
+    quick: 长夜怒技伤害提高
+    category: enhance
+    effects:
+      - id: RKF10-J2-B-MODIFY
+        trigger: rage_action
+        operation: modify_effect
+        target: self
+        params: {effect_ids: [RKF10-RAGE-DAMAGE], field: params.attack_ratio_by_phase.night, mode: add, value: 0.26}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 长夜怒技直接段攻击比增加0.26，白昼怒技数值不变。
+  - id: RKF10-J2-C
+    tier: 2
+    branch: C
+    name: 相位固守
+    quick: 昼盾夜伤都提高
+    category: enhance
+    effects:
+      - id: RKF10-J2-C-DAY
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {effect_ids: [RKF10-BASIC-SHIELD-DAY, RKF10-RAGE-SHIELD-DAY], field: params.defense_ratio, mode: add, value: 0.1, condition: {phase: day}}
+        requires: [RKF10-BASIC-SHIELD-DAY, RKF10-RAGE-SHIELD-DAY]
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 白昼普攻与怒技护盾的防御比各增加0.10。
+      - id: RKF10-J2-C-NIGHT
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {effect_ids: [RKF10-BASIC-DAMAGE, RKF10-RAGE-DAMAGE], field: params.attack_ratio_by_phase.night, mode: add, value: 0.1}
+        requires: [RKF10-BASIC-DAMAGE, RKF10-RAGE-DAMAGE]
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 长夜普攻与怒技直接段攻击比各增加0.10。
+  - id: RKF10-J3-A
+    tier: 3
+    branch: A
+    name: 昼夜轮转
+    quick: 日转夜时额外回怒
+    category: cycle
+    effects:
+      - id: RKF10-J3-A-RAGE
+        trigger: action_end
+        operation: rage_gain
+        target: self
+        params: {amount: 8, source: talent, condition: {phase_transition: day_to_night}, once_per_action: true, additive_to_public_sources: true, record_at: round_end, no_extra_action: true}
+        requires: [phase_transition_day_to_night]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 昼夜由白昼转入长夜时额外获得8点怒气，不改变相位轮替次数。
+  - id: RKF10-J3-B
+    tier: 3
+    branch: B
+    name: 阴阳交泰
+    quick: 两相直接伤害提高
+    category: enhance
+    effects:
+      - id: RKF10-J3-B-BASIC
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {effect_ids: [RKF10-BASIC-DAMAGE], field: params.attack_ratio_by_phase, mode: add_each, value: 0.12}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 普攻白昼与长夜的直接段攻击比各增加0.12。
+      - id: RKF10-J3-B-RAGE
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {effect_ids: [RKF10-RAGE-DAMAGE], field: params.attack_ratio_by_phase, mode: add_each, value: 0.12}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 怒技白昼与长夜的直接段攻击比各增加0.12。
+  - id: RKF10-J3-C
+    tier: 3
+    branch: C
+    name: 护转龙息
+    quick: 消耗旧盾转成伤害
+    category: convert
+    effects:
+      - id: RKF10-J3-C-CONVERT
+        trigger: basic_action
+        operation: consume_shield
+        target: self
+        params: {consume_ratio: 0.35, condition: {phase_status: day_night, phase: day}, convert_to: damage, attack_ratio_per_shield: 0.18, target: enemy, can_crit: false, preexisting_only: true, once_per_action: true, consume_key: shield_current_ratio, outlet_group: shield_to_day_damage, recursive: false}
+        requires: [shield_available, phase_is_day]
+        consumes: [shield_current_ratio]
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 白昼普攻开始时消费动作开始前已有护盾的35%，按每点护盾0.18转为一段派生伤害；本动作新生成的护盾不可被同次消费。
+  - id: RKF10-J4-A
+    tier: 4
+    branch: A
+    name: 烛照万方
+    quick: 白昼护盾与长夜伤害提高
+    category: enhance
+    effects:
+      - id: RKF10-J4-A-SHIELD
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {effect_ids: [RKF10-BASIC-SHIELD-DAY, RKF10-RAGE-SHIELD-DAY], field: params.defense_ratio, mode: add, value: 0.22, condition: {phase: day}}
+        requires: [RKF10-BASIC-SHIELD-DAY, RKF10-RAGE-SHIELD-DAY]
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 白昼普攻与怒技护盾的防御比各增加0.22。
+      - id: RKF10-J4-A-DAMAGE
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {effect_ids: [RKF10-BASIC-DAMAGE, RKF10-RAGE-DAMAGE], field: params.attack_ratio_by_phase.night, mode: add, value: 0.2}
+        requires: [RKF10-BASIC-DAMAGE, RKF10-RAGE-DAMAGE]
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 长夜普攻与怒技直接段攻击比各增加0.20。
+  - id: RKF10-J4-B
+    tier: 4
+    branch: B
+    name: 龙息裂宙
+    quick: 长夜怒技大幅强化
+    category: enhance
+    effects:
+      - id: RKF10-J4-B-MODIFY
+        trigger: rage_action
+        operation: modify_effect
+        target: self
+        params: {effect_ids: [RKF10-RAGE-DAMAGE], field: params.attack_ratio_by_phase.night, mode: add, value: 0.38}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 长夜怒技直接段攻击比增加0.38，白昼怒技不受此效果影响。
+  - id: RKF10-J4-C
+    tier: 4
+    branch: C
+    name: 晨昏快转
+    quick: 每次换相额外回怒
+    category: cycle
+    effects:
+      - id: RKF10-J4-C-RAGE
+        trigger: action_end
+        operation: rage_gain
+        target: self
+        params: {amount: 12, source: talent, condition: {phase_changed: true}, once_per_action: true, additive_to_public_sources: true, record_at: round_end, no_extra_action: true}
+        requires: [phase_changed]
+        consumes: []
+        replaces: []
+        limit: {scope: action, count: 1}
+        text: 每次主动作完成并实际发生一次昼夜轮替时额外获得12点怒气，不增加主动作次数。
+routes:
+  - name: 白昼重壁
+    summary: 强化白昼护盾并用已有护盾换取一次受控的龙息伤害；代价是输出转换只在白昼且必须先有护盾。
+    talents: [RKF10-J1-A, RKF10-J2-A, RKF10-J3-C, RKF10-J4-A]
+  - name: 长夜破空
+    summary: 集中提高长夜直接伤害与怒技爆发，接受白昼输出较低的取舍；代价是护盾方向投入较少。
+    talents: [RKF10-J1-B, RKF10-J2-B, RKF10-J3-B, RKF10-J4-B]
+  - name: 晨昏快转
+    summary: 让每次实际换相都提供额外怒气，维持昼夜循环的稳定节奏；代价是必须持续完成主动作，且行旅序号与战斗相位无关。
+    talents: [RKF10-J1-C, RKF10-J2-C, RKF10-J3-A, RKF10-J4-C]

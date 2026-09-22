@@ -1,0 +1,53 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RK007
+name: 禹让修为
+status: design_target
+summary: 眼前修为能马上变强，禹却要求你先把这一步成长让给河口。
+description: 禹在断河口导水，主角可以领走一笔修为，也可以明确放弃这次成长，为后段治水回访留下资格。
+tags: [core, character_encounter, yu, first_meeting, forgo_growth]
+source:
+  basis: myth_adaptation
+  reference: null
+  note: 本次离线古籍库未命中禹人物或治水段落，原典身份待核验；让出修为与回访奖励为游戏原创。
+  identity: 禹治水身份本次只读知识库未确认；库中仅有九鼎叙事相关命中，不能替代人物出处。
+  game_original: 舍弃眼前修为、守堤回访和器物效果均为游戏改编。
+balance:
+  target:
+    gross_U: [0, 0.5]
+  measured: null
+event_type: core
+acts: [2]
+scene: 断河口的水势只给一人让路，禹说眼前这笔修为能立刻进阶，但若把它让给疏导，后段才有稳住长战的机会。
+options:
+  - id: RK007-take-xp
+    label: 先取修为
+    quick: 领取一笔修为，放弃治水承诺
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
+    outcome: 你先把境界往前推一步，禹把剩下的水口交给公共路线。
+  - id: RK007-forgo-growth
+    label: 让出这一步
+    quick: 不拿眼前修为，承诺后段守堤
+    requirements: []
+    costs: []
+    rewards: []
+    set_flags:
+      RS04-promised: true
+    outcome: 你把修为让给河口，禹记下你的选择：后段守堤时再谈回报。
+  - id: RK007-leave
+    label: 沿高地离开
+    quick: 拿一小笔灵石，不进入治水线
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: coins, amount: 0.1, basis: common_price}
+    outcome: 你从高地绕开水口，保留资源，也保留不承诺的自由。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

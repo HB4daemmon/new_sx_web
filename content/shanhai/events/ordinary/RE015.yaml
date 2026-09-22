@@ -1,0 +1,55 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RE015
+name: 药炉换卷
+status: design_target
+summary: 付灵石取得御火诀法本，或带走赤炎珠。
+description: 药炉旁只剩一张能写满御火诀的火纸，炉主还摆着一颗赤炎珠。
+tags: [ordinary, method, purchase, artifact, act2]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创普通事件；法本取得不强制换法。
+balance:
+  target:
+    gross_U: [0.8, 1.2]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [2]
+scene: 火纸和赤炎珠在药炉边并排发亮，炉主说价钱已经写明。
+options:
+  - id: RE015-A
+    label: 付石收下御火卷
+    quick: 付出标价灵石，带走御火诀法本；改修与否由你决定。
+    requirements:
+      - {type: can_pay}
+    costs:
+      - {type: resource, resource: coins, amount: 1.25, basis: common_price}
+    rewards:
+      - {type: method, id: RKF04}
+    outcome: 御火诀落进你的行囊，眼下仍沿用原先的功法。
+  - id: RE015-B
+    label: 付石收下赤炎珠
+    quick: 付出标价灵石，带走一层赤炎珠，增强燃烧伤害。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC15, count: 1}
+    costs:
+      - {type: resource, resource: coins, amount: 0.75, basis: common_price}
+    rewards:
+      - {type: artifact, id: RC15, count: 1}
+    outcome: 赤炎珠在掌心发热，敌人身上的火势会烧得更久更深。
+  - id: RE015-C
+    label: 合上火纸
+    quick: 合上火纸离开，保留灵石和当前功法。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 你合上火纸离开药炉，灵石与现用功法都留在身边。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

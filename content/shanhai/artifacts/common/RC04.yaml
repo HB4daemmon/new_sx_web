@@ -1,0 +1,25 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RC04
+name: 厚土环
+status: design_target
+summary: 防御 +4%
+description: 环身沉重如土，令已有防御更稳固。
+tags: [defense, percent, combat]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 1, A: 5, J: 0, U: 1}
+  measured: null
+rarity: common
+max_stacks: 3
+unique_group: null
+attributes:
+  flat: {}
+  percent: {defense: 0.04}
+effects: []
+acquisition:
+  pools: [common_artifact]

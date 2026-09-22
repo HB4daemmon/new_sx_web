@@ -1,0 +1,40 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RC21
+name: 调息玉
+status: design_target
+summary: 防御 +2；每整轮存活且战斗未结束时额外回怒 5
+description: 玉面随着呼吸明暗变化，在完整存活的战斗轮末稳定补怒。
+tags: [defense, rage_gain, round_end, combat]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 1, A: 5, J: 0, U: 1}
+  measured: null
+rarity: common
+max_stacks: 3
+unique_group: null
+attributes:
+  flat: {defense: 2}
+  percent: {}
+effects:
+  - id: RC21-ROUND-RAGE-GAIN
+    trigger: round_end
+    operation: rage_gain
+    target: self
+    params:
+      amount: 5
+      timing: round_end
+      requires_self_alive: true
+      requires_battle_active: true
+      after_public_natural_gain: true
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: round, count: 1}
+    text: 每层在角色存活且战斗未结束的轮尾、公共自然回怒登记后额外登记5点怒气。
+acquisition:
+  pools: [common_artifact]

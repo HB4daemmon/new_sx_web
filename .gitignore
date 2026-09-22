@@ -4,3 +4,13 @@ dist/
 PLAY.html
 *.zip
 __pycache__/
+
+# Local browser captures, not authored game assets.
+/.playwright-mcp/
+/docs-desktop.png
+/docs-mobile.png
+/shanhai-battle-desktop.png
+/shanhai-start-desktop.png
+/verification/browser-node/
+/verification/shanhai/browser/*.png
+/verification/shanhai/browser-journey/screenshots/

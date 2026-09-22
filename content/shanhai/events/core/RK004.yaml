@@ -1,0 +1,62 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RK004
+name: 精卫清礁回访
+status: design_target
+summary: 兑现承诺要把潮下礁石清开；成功取毒牙钉，支付 20 灵石可取蛇纹瓶，失手两样都没有。
+description: 精卫把清礁的位置标给你，潮水把失手后的退路也摆明；没完成初遇承诺时，这里只会看见普通道路。
+tags: [core, character_encounter, jingwei, follow_up, dangerous_trial]
+source:
+  basis: myth_adaptation
+  reference: null
+  note: 原典身份待知识库核验；清礁回访和奖励为游戏原创。
+  identity: 精卫填海故事本次离线检索未命中可追溯实体或段落。
+  game_original: 非致命清礁战、普通付石替代和回访旗标均为游戏改编。
+balance:
+  target:
+    gross_U: [2.4, 4.0]
+  measured: null
+event_type: core
+acts: [3]
+scene: 潮线退开一瞬，礁石露出锋口；精卫把毒牙钉和蛇纹瓶摆在岸边，清礁失手就回到堤边，20 灵石可绕过最险的礁群。
+options:
+  - id: RK004-clear-reef
+    label: 迎潮清礁
+    quick: 迎潮清礁，胜利取毒牙钉；失手带着战斗损耗离开
+    requirements:
+      - {type: flag, id: RS02-promised, value: true}
+    costs: []
+    rewards:
+      - {type: artifact, id: RR03, count: 1}
+    outcome: 你把礁口清成一条窄路，胜利后得到毒牙钉；它的攻击提升立即计入，下一场真实战斗的普攻首击会带毒。
+    encounter:
+      enemy_id: EN-A3-B1
+      mode: nonlethal
+      failure_hp_floor: 1
+      failure_rewards: []
+      failure_outcome: 你没能清开礁口，精卫把剩下的路标回公共道路；战斗损耗留在潮下，毒牙钉没有到手。
+  - id: RK004-pay-route
+    label: 付石走堤
+    quick: 支付 20 灵石，稳妥取蛇纹瓶
+    requirements:
+      - {type: flag, id: RS02-promised, value: true}
+      - {type: can_pay}
+    costs:
+      - {type: resource, resource: coins, amount: 20, basis: flat}
+    rewards:
+      - {type: artifact, id: RC14, count: 1}
+    outcome: 你用盘缠买到蛇纹瓶；它的攻击提升立即计入，下一场真实战斗中的中毒会更猛烈。
+  - id: RK004-stop
+    label: 收手回公共路
+    quick: 收手回公共道路，不再追这份器物
+    requirements:
+      - {type: flag, id: RS02-promised, value: true}
+    costs: []
+    rewards: []
+    outcome: 你不再把气血压在潮下，承诺到此结束，毒牙钉和蛇纹瓶都留在堤边。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

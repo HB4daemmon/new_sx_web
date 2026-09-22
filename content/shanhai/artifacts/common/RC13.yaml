@@ -1,0 +1,38 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: artifact
+id: RC13
+name: 震山环
+status: design_target
+summary: 防御 +2；已有盾返伤害 +6%
+description: 环身沉稳如山，只放大已经存在的盾返伤害。
+tags: [defense, shield_reflect, combat]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 1, A: 5, J: 0, U: 1}
+  measured: null
+rarity: common
+max_stacks: 3
+unique_group: null
+attributes:
+  flat: {defense: 2}
+  percent: {}
+effects:
+  - id: RC13-SHIELD-REFLECT-BONUS
+    trigger: always
+    operation: modify_effect
+    target: self
+    params:
+      effect_selector: {operation: damage, damage_scope: existing_shield_reflect}
+      ratio: 0.06
+      stacking: linear
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: permanent, count: 1}
+    text: 每层使已有盾返伤害提高6%，不授予盾返也不改变有效返伤触发边界。
+acquisition:
+  pools: [common_artifact]

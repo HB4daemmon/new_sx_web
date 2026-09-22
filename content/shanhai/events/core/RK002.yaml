@@ -1,0 +1,63 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: event
+id: RK002
+name: 神农回访药棚
+status: design_target
+summary: 初遇时留下的灵石仍在药棚边，长明灯要用守药挑战换，行医囊则用 20 灵石取。
+description: 你回到后段药棚，神农没有替你补气血，只把长明灯、行医囊和守药试炼摆在眼前；没完成初遇承诺时，这里只剩普通道路。
+tags: [core, character_encounter, shennong, follow_up, healing]
+source:
+  basis: myth_adaptation
+  reference: canon.fengshen_yanyi.character.ef3b2a433
+  note: 神农原典身份由知识库draft实体支持；药棚回访、内部战和器物效果是游戏原创。
+  identity: 原典中神农有赐丹药、升麻的医药形象。
+  game_original: 回访资格读取RS01-promised，奖励和非致命战均为游戏改编。
+balance:
+  target:
+    gross_U: [2.4, 4.0]
+  measured: null
+event_type: core
+acts: [3]
+scene: 药棚还在，但潮痕已经逼到门槛；神农把长明灯和行医囊摆在门边，守药失手会留下气血损耗，20 灵石则可绕开险路。
+options:
+  - id: RK002-enter-trial
+    label: 守住药棚
+    quick: 支付 12% 气血，胜利取长明灯
+    requirements:
+      - {type: flag, id: RS01-promised, value: true}
+    costs:
+      - {type: resource, resource: hp, amount: 0.12, basis: reference_hp, must_survive: true}
+    rewards:
+      - {type: artifact, id: RR06, count: 1}
+    outcome: 你顶住药棚前的冲击，胜利后神农把长明灯交到你手里；它的最大气血加成立即计入，下一场真实斗法完成后才会点亮战后恢复。
+    encounter:
+      enemy_id: EN-A3-L1
+      mode: nonlethal
+      failure_hp_floor: 1
+      failure_rewards: []
+      failure_outcome: 你守不住药棚，神农收起药匣；已付的 12% 气血留在潮痕里，长明灯没有到手。
+  - id: RK002-pay-safe
+    label: 付石取药
+    quick: 支付 20 灵石，稳妥取行医囊
+    requirements:
+      - {type: flag, id: RS01-promised, value: true}
+      - {type: can_pay}
+    costs:
+      - {type: resource, resource: coins, amount: 20, basis: flat}
+    rewards:
+      - {type: artifact, id: RC17, count: 1}
+    outcome: 你用盘缠换下行医囊；它的最大气血加成立即计入，走过下一处真实地点后才会补回气血。
+  - id: RK002-walk-away
+    label: 放弃回访
+    quick: 不再投入，保留剩余资源和法宝，回到普通道路
+    requirements:
+      - {type: flag, id: RS01-promised, value: true}
+    costs: []
+    rewards: []
+    outcome: 你承认这次风险不值，神农收回药匣；初遇留下的灵石不返还。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

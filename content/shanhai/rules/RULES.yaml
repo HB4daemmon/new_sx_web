@@ -1,0 +1,190 @@
+schema_version: 1
+content_version: shanhai-content-0.1
+kind: rules
+id: RULES
+name: 山海版首轮内容规则
+status: design_target
+summary: 共用动作、状态、资源与四幕预算
+description: 本文件提供首轮实现输入；目标、配置和实测分开，不覆盖旧游戏运行规则。
+tags: [shared, design_target]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创设计，承接rework各基线文档。
+balance:
+  target: {window: 15}
+  measured: null
+attributes: [attack, defense, max_hp, crit_rate, speed]
+rarities:
+  common: {method_multiplier: 1, artifact_B: 1}
+  rare: {method_multiplier: 1.1, artifact_B: 2.4}
+  legendary: {method_multiplier: 1.25, artifact_B: 4}
+cultivation:
+  realm_names: [炼气, 筑基, 金丹, 元婴, 化神]
+  requirements: [120, 480, 600, 840]
+  cumulative: [120, 600, 1200, 2040]
+  heal_on_level: false
+  talents_per_tier: 1
+  base_stats_by_tier:
+    - {attack: 120, defense: 100, max_hp: 500, crit_rate: 0.05, speed: 10}
+    - {attack: 150, defense: 125, max_hp: 625, crit_rate: 0.05, speed: 10}
+    - {attack: 185, defense: 150, max_hp: 775, crit_rate: 0.05, speed: 10}
+    - {attack: 225, defense: 180, max_hp: 950, crit_rate: 0.05, speed: 10}
+    - {attack: 270, defense: 215, max_hp: 1150, crit_rate: 0.05, speed: 10}
+combat:
+  main_actions_per_round: 1
+  speed_changes_action_count: false
+  default_hit: true
+  crit_multiplier: 1.5
+  direct_defense_constant: 100
+  direct_damage_formula: raw_damage * 100 / (100 + max(0, effective_defense))
+  damage_rounding: 各段最终量保留小数记账，玩家显示取整；不按每个中间倍率提前取整。
+  shield_cap_ratio: 1
+  shield_expiry: battle_end
+  same_speed: seeded_prebattle_order
+  death_stops_chain: true
+  derived_reentry: false
+  observation_rounds: 15
+  timeout_defeat: false
+rage:
+  base_cap: 100
+  min_cap: 60
+  opening: 50
+  basic_completed: 25
+  effective_incoming_segment: 5
+  round_end: 10
+  round_drain_cap: 20
+  opening_drain_cap: 50
+  lock_action_at: round_start
+  pay_at: action_execute
+  income_at: round_end
+  interrupted_income: discarded
+statuses:
+  poison:
+    max_stacks: 10
+    duration_rounds: 3
+    tick_at: round_end_before_rage
+    attack_ratio_per_stack: 0.08
+    ignores_defense: true
+    hits_shield: true
+    can_crit: false
+    duration_policy: 每份毒层独立记录剩余tick；当轮施加可在当轮轮尾首次tick，超上限不刷新旧层。
+  burn:
+    max_stacks: 10
+    duration_rounds: 3
+    tick_at: round_end_before_rage
+    attack_ratio_per_stack: 0.08
+    ignores_defense: true
+    hits_shield: true
+    can_crit: false
+    duration_policy: 每份燃烧独立记录剩余tick；当轮施加可在当轮轮尾首次tick，超上限不刷新旧层。
+  weakness:
+    stat: attack
+    reduction_per_stack: 0.05
+    max_stacks: 5
+    duration_rounds: 2
+    duration_policy: 当轮影响后续未发生事件，轮尾递减；重施只刷新对应新增层，未执行动作不补伤害。
+  armor_break:
+    stat: defense
+    reduction_per_stack: 0.05
+    max_stacks: 5
+    duration_rounds: 2
+    duration_policy: 当轮影响后续未发生事件，轮尾递减；有效防御最低为0。
+  dot_snapshot: 每次施加保存来源攻击及DOT修正，持续期间不随来源攻击变化重算；消费读取实际存量。
+  cleanup: 战末清除所有战斗状态、怒气与护盾，不带入下一节点。
+adventure:
+  acts: 4
+  nodes_per_act: 11
+  terminal_nodes: 1
+  baseline: {C: 4, E: 3, L: 1, S: 1, R: 1, B: 1}
+  min_common_battles_per_act: 3
+  min_C_plus_E_per_run: 22
+  max_extra_elites_per_act: 1
+  max_extra_elites_per_run: 3
+  max_core_per_act: 1
+  max_core_per_run: 3
+  min_noncore_between_core: 2
+  planned_storylines: 1
+  planned_independent_cores: [0, 1]
+  act_transition_heal: false
+  terminal_rewards: []
+  terminal_preparation: false
+  route_enemy_selection:
+    route_node_ids_are_display_samples: true
+    fixed_encounters: false
+    runtime_selection: one_frozen_draw_per_node_from_same_type_pool
+    common:
+      candidate_count: 4
+      draw: 1
+      replacement: true
+      prefer_unseen: true
+      on_pool_exhaustion: reset_pool
+      avoid_adjacent_repeat: true
+    boss:
+      candidate_count: 2
+      draw: 1
+      replacement: false
+      draw_once_per_act: true
+  method_sources:
+    common_start: {pool: method_common, ids: [RKF01, RKF02, RKF03, RKF04, RKF05], source: game_start}
+    rare_ordinary_events: {pool: method_rare, ids: [RKF06, RKF07, RKF08], source_events: [RE009, RE018, RE027]}
+    legendary_core_events: {pool: method_legendary, ids: [RKF09, RKF10], source_events: [RK015, RK016]}
+  design_notes:
+    status: design_target
+    measured: null
+    note: 路线中的敌人ID是展示样本；运行时按节点类型池抽取并冻结，不把示意路线当作固定遭遇表。
+economy:
+  initial_coins: 20
+  common_prices_by_act: [40, 40, 40, 40]
+  rare_prices_by_act: [90, 90, 90, 90]
+  ordinary_coins_by_act: [4, 4, 4, 4]
+  elite_coins_by_act: [6, 6, 6, 6]
+  boss_coins_by_act: [10, 10, 10, 10]
+  ordinary_xp_by_act: [60, 80, 100, 120]
+  elite_xp_by_act: [100, 120, 150, 180]
+  boss_xp_by_act: [120, 160, 200, 240]
+  rest_heal_ratio: 0.25
+  event_heal_ratio: 0.2
+  reference_hp_by_act: [625, 775, 950, 1150]
+  references: 每幕使用公开首领前境界参考气血；X*按当前境界读取下一次完整突破需求，满阶后不可折价。
+  artifact_decline_coins: 4
+  exhausted_pool_fallback: 明示改领4灵石，不保留原法宝；传奇候选失败不额外补传奇。
+  non_artifact_prices:
+    recovery: {price: 15, currency: coins, amount: 0.12, basis: reference_hp, mode: raw, stock: 1}
+    preparation: {price: 12, currency: coins, effect: shield, amount: 0.10, basis: reference_hp, scope: next_battle, stock: 1}
+    inventory_rule: one_each_per_shop_visit
+    free_refreshes: 0
+  swap_method:
+    fee: 0
+    fee_currency: coins
+    occupies_rest_choice: true
+    heals: false
+    resets_talents: false
+  artifact_reward_sampling:
+    ordinary_common: {candidates: 3, draw_once: true, freeze_on_display: true, free_refreshes: 0}
+    elite_rare: {candidates: 3, draw_once: true, freeze_on_display: true, free_refreshes: 0}
+    boss_rare: {candidates: 3, draw_once: true, freeze_on_display: true, exact_ids_before_battle: false, free_refreshes: 0}
+  boss_legendary_replacement:
+    probability_by_act: [0.02, 0.04, 0.06, 0.08]
+    max_replacements: 1
+    replaces_candidate: true
+    adds_candidate: false
+    no_extra_reward: true
+    fallback_if_ineligible: rare
+    guaranteed: false
+  design_notes:
+    status: design_target
+    measured: null
+    note: 本节是四幕商店、休整和奖励的唯一首测参照；价格、权重和传奇替换概率均为目标输入，不是实测结论。
+pools:
+  common_artifact: {kind: artifact, rarity: common}
+  rare_artifact: {kind: artifact, rarity: rare}
+  legendary_artifact: {kind: artifact, rarity: legendary}
+  method_common: {kind: method, rarity: common}
+  method_rare: {kind: method, rarity: rare}
+  method_legendary: {kind: method, rarity: legendary}
+  owned_methods: {kind: method, owned_only: true}
+calibration:
+  current_artifact_values: 保留44张卡现有数值，逐卡测A/J后再修订；基础属性参考不构成全部卡达标的证明。
+  damage_and_status_values: 新填系数、状态和成长表均是首轮实现输入，必须通过共享参照和实际遭遇复测。
+  measured: null
