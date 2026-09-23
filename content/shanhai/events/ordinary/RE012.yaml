@@ -22,7 +22,7 @@ scene: 锈锁住两只木匣，里面的养气玉和厚土环隔着木板泛光�
 options:
   - id: RE012-A
     label: 割锁取养气玉
-    quick: 付出一成气血代价，带走两层养气玉，提高最大气血。
+    quick: 损失约78点气血，带走两层养气玉，提高最大气血。
     requirements:
       - {type: capacity, id: RC05, count: 2}
     costs:
@@ -32,7 +32,7 @@ options:
     outcome: 你忍着锁刃割伤取出两层养气玉，胸口的气息渐渐厚实。
   - id: RE012-B
     label: 割锁取厚土环
-    quick: 付出一成气血代价，带走两层厚土环，提升防御。
+    quick: 损失约78点气血，带走两层厚土环，提升防御。
     requirements:
       - {type: capacity, id: RC04, count: 2}
     costs:

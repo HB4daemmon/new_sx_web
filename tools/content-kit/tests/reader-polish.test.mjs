@@ -17,6 +17,11 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
+function methodTravelSection(id) {
+  const page = pages.get(`methods/${id}.md`)
+  return page.match(/## 行旅能力\n\n([\s\S]*?)\n\n## 天赋树/)?.[1] ?? ''
+}
+
 test('INDEX exposes every fixed reader page with readable names and counts', () => {
   const index = pages.get('INDEX.md')
   assert.equal(pages.size, 32)
@@ -55,7 +60,19 @@ test('reader pages use player-facing rewards, bases, categories, and method abil
   assert.match(methodPage, /\| 转化 \|/)
   assert.doesNotMatch(methodPage, /类别：(?:enhance|cycle|convert)/)
   assert.match(methodPage, /## 固有被动/)
-  assert.match(methodPage, /当前护盾实际吸收敌方主动直接攻击的正伤害时/)
+  assert.match(methodPage, /护盾吸收敌方主动直接攻击时，反击造成防御0\.38倍的伤害/)
   assert.match(methodPage, /## 行旅能力/)
-  assert.match(methodPage, /完成休整后为下一场战斗准备相当于当前幕参考气血的12%的护盾/)
+  assert.match(methodPage, /完成休整后，为下一场战斗准备护盾；第1幕75点、第2幕93点、第3幕114点、第4幕138点，仅在下一场战斗生效。/)
+
+  const travelDescriptions = [
+    ['RKF01', /第1幕75点、第2幕93点、第3幕114点、第4幕138点/],
+    ['RKF06', /最多减免：第1幕50点、第2幕62点、第3幕76点、第4幕92点/],
+    ['RKF08', /返还上限为第1幕50点、第2幕62点、第3幕76点、第4幕92点/],
+  ]
+  for (const [id, expected] of travelDescriptions) {
+    const travelSection = methodTravelSection(id)
+    assert.notEqual(travelSection, '', `${id} travel section exists`)
+    assert.match(travelSection, expected)
+    assert.doesNotMatch(travelSection, /参考气血/)
+  }
 })

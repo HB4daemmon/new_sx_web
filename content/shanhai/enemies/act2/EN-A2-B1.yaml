@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A2-B1
 name: 相柳残蜕试阵
 status: design_target
-summary: 以中毒叠层和中毒后虚弱组成第二幕首领候选。
-description: 这是借用相柳多首毒蜕意象制作的原创残蜕试阵，不声称神话中的相柳本人出现或被击杀。它的长 DOT 与虚弱互动只来自五毒经、天赋和现有法宝，敌方配置不会因玩家 build 改变。
+summary: 断桥下盘绕着数道蛇形水痕，水雾久久不散。
+description: 桥墩间的水雾聚散不定，远处传来低沉的蛇吟。
 tags: [enemy, act2, boss, myth_adaptation, poison, weakness]
 source:
   basis: myth_adaptation
@@ -21,7 +21,7 @@ balance:
   measured: null
 acts: [2]
 tier: boss
-identity: 相柳残蜕试阵在断桥下留下数道蛇形水痕，水痕聚拢时才显出一具供试炼者对照的残蜕。它把毒层与虚弱的顺序写成公开卡面，不声称相柳本人被杀死或完整现身。
+identity: 相柳旧迹隐在断桥下，水痕绕着石墩盘旋，雾中九道影子时隐时现。
 method: RKF06
 n: 2
 talents: [RKF06-J1-B, RKF06-J2-B]
@@ -36,10 +36,10 @@ stats:
   max_hp: 710
   crit_rate: 0.08
   speed: 11
-pressure: [长DOT, 虚弱]
+pressure: [持续伤害, 虚弱]
 counterplay:
   - 用开场爆发或持续直伤在毒层尚少时压低残蜕，避免中毒触发的虚弱覆盖多个后续动作。
-  - 用护盾、治疗和防御承受毒 tick 与直接段，同时用破甲或不依赖攻击的来源保持输出。
+  - 以护盾、治疗或防御扛住轮末毒伤与直接攻击，再用破甲或不依赖攻击力的手段持续反击。
 preview: 基础五维为装备前值；毒牙钉在普攻首个有效基础命中施毒，J1-B提高毒层伤害，J2-B在中毒目标上追加公开虚弱，蛇纹瓶放大自身毒 tick；无额外阶段。
 phases: []
 reward_profile: B

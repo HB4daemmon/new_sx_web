@@ -4,8 +4,8 @@ kind: artifact
 id: RR03
 name: 毒牙钉
 status: design_target
-summary: 攻击 +8；普攻首个基础命中施加中毒
-description: 细钉藏着毒纹，在普攻的首个有效基础命中时添上一层中毒。
+summary: 攻击 +8；普攻首次命中后施加1层中毒
+description: 普攻首次命中后，施加1层中毒。
 tags: [attack, poison, dot, basic, rare]
 source:
   basis: original
@@ -37,6 +37,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: action, count: 1}
-    text: 每个普攻主动作的首个有效基础命中施加1层中毒，多段普攻只施加一次。
+    text: 普攻首次命中后施加1层中毒；多段普攻只触发一次。
 acquisition:
   pools: [rare_artifact]

@@ -5,7 +5,7 @@ id: RS04
 name: 禹让一步
 status: design_target
 summary: 舍弃眼前的一笔修为，把成长让给治水工程，后段以长明灯或临时护堤盾兑现。
-description: 禹在断河口疏导水势，眼前的修为唾手可得；主角可以先变强，也可以把这次成长让给一条真正能通行的水路。
+description: 禹在断河口疏导水势，眼前的修为唾手可得；主角可以先变强，也可以把这次成长让给治水工程，为后来的人疏通河道。
 tags: [character_line, yu, forgo_growth, endurance]
 source:
   basis: myth_adaptation
@@ -30,8 +30,8 @@ commitment:
   cancellation: 若领取修为、未保留承诺或错过回访，不追回已领成长，治水终奖也不会随后出现。
 resolution:
   condition: 初遇承诺仍在，并在堤口选择守堤挑战或借一层临时护堤盾。
-  reward_shape: 守堤成功取长明灯；安全路线只在下一场真实战斗前立起临时护堤盾。
-  tradeoff: 守堤挑战不另收灵石，但会承担公开的河口冲击；安全路线没有法宝，却能保留气血和后段盘缠。
+  reward_shape: 守堤成功取长明灯；不挑战可得一层临时护堤盾，护住下一场战斗。
+  tradeoff: 守堤挑战不另收灵石，但需损失约138点气血，失手后仅剩1点；不挑战可保留气血和盘缠，但只能获得护堤盾，拿不到长明灯。
 selection:
   planned_per_run: 1
   optional: true

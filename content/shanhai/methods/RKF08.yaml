@@ -4,7 +4,7 @@ kind: method
 id: RKF08
 name: 太阴经
 status: design_target
-summary: 以虚弱、破甲和公共削怒请求控制敌方节奏的阴咒功法。
+summary: 以虚弱、破甲和削怒压制敌方节奏的阴咒功法。
 description: 普攻施加虚弱，怒技施加破甲，天赋分别强化寒月压制、负面转伤和耗弱成盾。
 tags: [method, rare, curse, original]
 source:
@@ -50,7 +50,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 基础直接段实际命中后施加一层虚弱，按公共规则降低敌方后续攻击。
+        text: 普攻命中后施加1层虚弱，降低敌方后续攻击的伤害。
   rage:
     name: 太阴破妄
     quick: 重击并施加破甲
@@ -64,7 +64,7 @@ actions:
         consumes: [rage_locked_action_cost]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按攻击的1.30倍造成一段可暴击直接阴伤，不另发放基础普攻怒气。
+        text: 按攻击的1.30倍造成一段可暴击直接阴伤；怒技不会获得普攻的基础回怒。
       - id: RKF08-RAGE-ARMOR
         trigger: rage_action
         operation: apply_status
@@ -74,7 +74,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 怒技直接段结算后施加两层破甲，供后续直接段读取，破甲本身不额外造成伤害。
+        text: 怒技命中后施加2层破甲，降低敌方受到后续直接攻击时的防御；破甲本身不造成伤害。
 passives:
   - id: RKF08-PASSIVE-MOON-GUARD
     trigger: battle_start
@@ -85,7 +85,7 @@ passives:
     consumes: []
     replaces: []
     limit: {scope: battle, count: 1}
-    text: 每场战斗开始时防御提高8，只影响承伤及本门明确读取防御的护盾。
+    text: 每场战斗开始时防御提高8。
 travel:
   - id: RKF08-TRAVEL-REFUND
     trigger: event_cost_paid
@@ -96,7 +96,7 @@ travel:
     consumes: []
     replaces: []
     limit: {scope: node, count: 1}
-    text: 主动扣血事件结算后若仍存活，返还实际扣血与当前幕参考气血8%两者较低者；死亡、重进或换法不触发，也不生成怒气。
+    text: 主动支付气血代价后若仍存活，返还实际扣除量与本幕上限中较低者；返还上限为第1幕50点、第2幕62点、第3幕76点、第4幕92点。死亡时不返还气血，也不产生怒气。
 talents:
   - id: RKF08-J1-A
     tier: 1
@@ -114,7 +114,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 太阴经普攻实际命中的虚弱层数增加1，仍受公共五层上限约束。
+        text: 太阴经普攻施加的虚弱层数增加1；虚弱仍最多叠加5层。
   - id: RKF08-J1-B
     tier: 1
     branch: B
@@ -131,7 +131,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 太阴经怒技直接段攻击比增加0.15。
+        text: 太阴经怒技直接伤害提高攻击的0.15倍。
   - id: RKF08-J1-C
     tier: 1
     branch: C
@@ -148,7 +148,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 本主动作结束时若敌方至少有一个实际生效的公共减益，额外获得8点怒气。
+        text: 普攻或怒技结束时，若敌方仍处于虚弱或破甲状态，额外获得8点怒气。
   - id: RKF08-J2-A
     tier: 2
     branch: A
@@ -165,7 +165,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 本门普攻首个基础直接段实际命中后登记敌方外来削怒请求10点，交由公共抗性、向下取整和每目标每轮20点上限结算；不取消本轮已锁动作。
+        text: 普攻的第一段基础攻击命中后，使敌方本轮怒气减少10点；削怒会受敌方抗性影响并向下取整，来自我方的削怒每轮最多减少20点。不会改变敌方本轮已经选定的行动。
   - id: RKF08-J2-B
     tier: 2
     branch: B
@@ -182,7 +182,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 普攻开始时敌方已有实际生效的虚弱或破甲，则本次普攻直接段攻击比增加0.18，不按减益条数叠加。
+        text: 普攻开始时，若敌方处于虚弱或破甲状态，本次普攻直接伤害提高攻击的0.18倍；两种状态同时存在时不重复叠加。
       - id: RKF08-J2-B-RAGE
         trigger: rage_action
         operation: modify_effect
@@ -192,7 +192,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 怒技开始时敌方已有实际生效的虚弱或破甲，则本次怒技直接段攻击比增加0.18，不按减益条数叠加。
+        text: 怒技开始时，若敌方处于虚弱或破甲状态，本次怒技直接伤害提高攻击的0.18倍；两种状态同时存在时不重复叠加。
   - id: RKF08-J2-C
     tier: 2
     branch: C
@@ -209,7 +209,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 怒技直接段与破甲结算后按防御0.35倍获得护盾，保留基础破甲效果。
+        text: 怒技造成伤害并施加破甲后，获得防御0.35倍的护盾。
   - id: RKF08-J3-A
     tier: 3
     branch: A
@@ -226,7 +226,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 主动作结束时若敌方仍有实际减益，登记8点外来削怒请求；请求与其它来源合并后按公共每轮上限结算。
+        text: 普攻或怒技结束时，若敌方仍处于虚弱或破甲状态，使其本轮怒气减少8点；削怒受每轮20点上限和敌方抗性影响。
   - id: RKF08-J3-B
     tier: 3
     branch: B
@@ -243,7 +243,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 本主动作实际施加至少一个公共减益后追加一段攻击0.28倍派生伤害；该派生段不再次触发本效果。
+        text: 普攻或怒技实际施加虚弱或破甲后，追加一段攻击0.28倍的伤害；追加伤害不会再次触发此效果。
   - id: RKF08-J3-C
     tier: 3
     branch: C
@@ -260,7 +260,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 本主动作实际命中带有公共减益的敌人后，按防御0.24倍获得一次护盾。
+        text: 普攻或怒技命中处于虚弱或破甲状态的敌方后，获得防御0.24倍的护盾。
   - id: RKF08-J4-A
     tier: 4
     branch: A
@@ -277,7 +277,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 怒技开始结算时敌方已有至少一层破甲，则本次怒技直接段攻击比增加0.28。
+        text: 怒技开始时若敌方至少有1层破甲，本次怒技直接伤害提高攻击的0.28倍。
   - id: RKF08-J4-B
     tier: 4
     branch: B
@@ -294,7 +294,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 本门直接段命中带破甲敌人时额外获得10点怒气，每个主动作最多一次。
+        text: 普攻或怒技命中处于破甲状态的敌方后，额外获得10点怒气；每次行动最多触发一次。
   - id: RKF08-J4-C
     tier: 4
     branch: C
@@ -311,7 +311,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: battle, count: 1}
-        text: 敌方存在至少一个实际生效的公共减益时，防御提高12；减益全部消失后该加成不再提供输入。
+        text: 敌方处于虚弱或破甲状态时，防御提高12；两种状态都消失后，加成也会消失。
 routes:
   - name: 寒月压制
     summary: 以普攻与动作后削怒请求压低敌方后续怒技节奏；代价是削怒受公共抗性和每轮上限约束。
@@ -320,5 +320,5 @@ routes:
     summary: 让虚弱和破甲的实际覆盖转成额外直接段并追击破甲目标；代价是没有实际施加减益时追加段和破甲增伤都不生效。
     talents: [RKF08-J1-B, RKF08-J2-B, RKF08-J3-B, RKF08-J4-A]
   - name: 耗弱成盾
-    summary: 以减益覆盖换取护盾和动态防御，延长太阴经的有效战斗窗口；代价是敌方清除减益后防护输入会暂时消失。
+    summary: 以虚弱和破甲换取护盾和防御加成；代价是敌方失去这两种状态后，相关防护效果也会失效。
     talents: [RKF08-J1-C, RKF08-J2-C, RKF08-J3-C, RKF08-J4-C]

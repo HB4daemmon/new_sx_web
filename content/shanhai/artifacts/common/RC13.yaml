@@ -33,6 +33,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: permanent, count: 1}
-    text: 每层使已有盾返伤害提高6%，不授予盾返也不改变有效返伤触发边界。
+    text: 每层使已有盾返伤害提高6%；没有盾返效果时，此法宝不会赋予盾返。
 acquisition:
   pools: [common_artifact]

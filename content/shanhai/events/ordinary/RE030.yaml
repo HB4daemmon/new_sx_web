@@ -22,7 +22,7 @@ scene: 血契在天门缝隙中微微发亮，石台上的风却很平静。你�
 options:
   - id: RE030-A
     label: 取养气血契
-    quick: 付出当前幕参考气血的12%代价，带走两层养气玉，提高最大气血。
+    quick: 损失约138点气血，带走两层养气玉，提高最大气血。
     requirements:
       - {type: capacity, id: RC05, count: 2}
     costs:
@@ -32,7 +32,7 @@ options:
     outcome: 你忍痛撕开血契，养气玉贴着掌心发热，气血根基更厚。
   - id: RE030-B
     label: 取长生血契
-    quick: 付出当前幕参考气血的12%代价，带走两层长生结，提高最大气血。
+    quick: 损失约138点气血，带走两层长生结，提高最大气血。
     requirements:
       - {type: capacity, id: RC06, count: 2}
     costs:

@@ -19,22 +19,22 @@
 
 ::: details 普攻开发详情
 - `RKF06-BASIC-DAMAGE`；按攻击的0.90倍造成一段可暴击直接伤害。；操作：造成伤害；触发：普攻动作；目标：敌人；参数：攻击倍率=0.9；段数=1；can_crit=是；伤害类型=direct；限制：范围=action；次数=1
-- `RKF06-BASIC-POISON`；基础直接段实际命中后施加一层中毒，毒伤按施加时攻击快照并在轮尾结算。；操作：施加状态；触发：普攻命中；目标：敌人；参数：状态=中毒；层数=1；持续轮数=3；最大层数=10；refresh=否；snapshot=是；每层攻击倍率=0.08；ignores_defense=是；hits_shield=是；only_if_damage_actual=是；前置：effective_basic_base_hit；限制：范围=action；次数=1
+- `RKF06-BASIC-POISON`；普攻命中后施加1层中毒；每层伤害按施加时的攻击计算，并在每轮结束时结算。；操作：施加状态；触发：普攻命中；目标：敌人；参数：状态=中毒；层数=1；持续轮数=3；最大层数=10；refresh=否；snapshot=是；每层攻击倍率=0.08；ignores_defense=是；hits_shield=是；only_if_damage_actual=是；前置：effective_basic_base_hit；限制：范围=action；次数=1
 :::
 
 ::: details 怒技开发详情
-- `RKF06-RAGE-DAMAGE`；按攻击的1.30倍造成一段可暴击直接伤害，不另发放基础普攻怒气。；操作：造成伤害；触发：怒技动作；目标：敌人；参数：攻击倍率=1.3；段数=1；can_crit=是；伤害类型=direct；rage_cost=locked_action_cost；消费：rage_locked_action_cost；限制：范围=action；次数=1
-- `RKF06-RAGE-POISON`；怒技直接段结算后施加两层中毒，保留原有毒层，不把同一层毒重复消费。；操作：施加状态；触发：怒技动作；目标：敌人；参数：状态=中毒；层数=2；持续轮数=3；最大层数=10；refresh=否；snapshot=是；每层攻击倍率=0.08；ignores_defense=是；hits_shield=是；after_effect=RKF06-RAGE-DAMAGE；前置：RKF06-RAGE-DAMAGE；限制：范围=action；次数=1
+- `RKF06-RAGE-DAMAGE`；按攻击的1.30倍造成一段可暴击直接伤害；怒技不会获得普攻的基础回怒。；操作：造成伤害；触发：怒技动作；目标：敌人；参数：攻击倍率=1.3；段数=1；can_crit=是；伤害类型=direct；rage_cost=locked_action_cost；消费：rage_locked_action_cost；限制：范围=action；次数=1
+- `RKF06-RAGE-POISON`；怒技命中后施加2层中毒；已有的中毒层不会因此消失。；操作：施加状态；触发：怒技动作；目标：敌人；参数：状态=中毒；层数=2；持续轮数=3；最大层数=10；refresh=否；snapshot=是；每层攻击倍率=0.08；ignores_defense=是；hits_shield=是；after_effect=RKF06-RAGE-DAMAGE；前置：RKF06-RAGE-DAMAGE；限制：范围=action；次数=1
 :::
 
 ## 固有被动
 
-- 每场战斗开始时防御提高8，只影响承伤与本门明确读取防御的效果。
+- 每场战斗开始时防御提高8。
 
 ## 行旅能力
 
-- 以本门主修完成节点并存活时额外获得6点修为。
-- 毒瘴行旅使一次主动扣血事件的气血代价按0.85倍计算，单次最多少付当前参考气血的8%。
+- 选择五毒经为主修，存活完成节点后额外获得6点修为。
+- 主动选择扣除气血的行旅选项时，该事件首次气血代价降低15%；最多减免：第1幕50点、第2幕62点、第3幕76点、第4幕92点。
 
 ## 天赋树
 
@@ -59,90 +59,90 @@
 - 玩家摘要：基础动作多叠一层毒
 - 类别：强化
 - 开发标识：`RKF06-J1-A`
-- `RKF06-J1-A-MODIFY`；本门普攻和怒技每次实际施毒的初始层数各增加1，不增加中毒上限。；操作：修改效果；触发：始终；目标：自身；参数：效果 ID=RKF06-BASIC-POISON、RKF06-RAGE-POISON；field=params.stacks；模式=add；数值=1；前置：RKF06-BASIC-POISON、RKF06-RAGE-POISON；限制：范围=permanent；次数=1
+- `RKF06-J1-A-MODIFY`；普攻和怒技各自施加的中毒层数增加1；中毒仍最多叠加10层。；操作：修改效果；触发：始终；目标：自身；参数：效果 ID=RKF06-BASIC-POISON、RKF06-RAGE-POISON；field=params.stacks；模式=add；数值=1；前置：RKF06-BASIC-POISON、RKF06-RAGE-POISON；限制：范围=permanent；次数=1
 :::
 ::: details 1层B：毒伤蚀心
 - 玩家摘要：中毒每层伤害提高
 - 类别：强化
 - 开发标识：`RKF06-J1-B`
-- `RKF06-J1-B-MODIFY`；本门两种基础施毒效果的每层攻击比各增加0.02，只修正持续毒伤。；操作：修改效果；触发：始终；目标：自身；参数：效果 ID=RKF06-BASIC-POISON、RKF06-RAGE-POISON；field=params.attack_ratio_per_stack；模式=add；数值=0.02；前置：RKF06-BASIC-POISON、RKF06-RAGE-POISON；限制：范围=permanent；次数=1
+- `RKF06-J1-B-MODIFY`；五毒经施加的每层中毒伤害增加攻击0.02倍；只提高持续毒伤。；操作：修改效果；触发：始终；目标：自身；参数：效果 ID=RKF06-BASIC-POISON、RKF06-RAGE-POISON；field=params.attack_ratio_per_stack；模式=add；数值=0.02；前置：RKF06-BASIC-POISON、RKF06-RAGE-POISON；限制：范围=permanent；次数=1
 :::
 ::: details 1层C：毒息延绵
 - 玩家摘要：中毒持续多一轮
 - 类别：循环
 - 开发标识：`RKF06-J1-C`
-- `RKF06-J1-C-MODIFY`；本门新施加的每份中毒持续时间增加1轮，仍按每份毒层独立记录tick。；操作：修改效果；触发：始终；目标：自身；参数：效果 ID=RKF06-BASIC-POISON、RKF06-RAGE-POISON；field=params.duration_rounds；模式=add；数值=1；前置：RKF06-BASIC-POISON、RKF06-RAGE-POISON；限制：范围=permanent；次数=1
+- `RKF06-J1-C-MODIFY`；五毒经新施加的每层中毒多持续1轮；每层中毒分别结算伤害和消失。；操作：修改效果；触发：始终；目标：自身；参数：效果 ID=RKF06-BASIC-POISON、RKF06-RAGE-POISON；field=params.duration_rounds；模式=add；数值=1；前置：RKF06-BASIC-POISON、RKF06-RAGE-POISON；限制：范围=permanent；次数=1
 :::
 ::: details 2层A：腐骨穿脉
 - 玩家摘要：普攻怒技直接伤害提高
 - 类别：强化
 - 开发标识：`RKF06-J2-A`
-- `RKF06-J2-A-BASIC`；五毒经普攻直接段攻击比增加0.10。；操作：修改效果；触发：始终；目标：自身；参数：效果 ID=RKF06-BASIC-DAMAGE；field=params.attack_ratio；模式=add；数值=0.1；前置：RKF06-BASIC-DAMAGE；限制：范围=permanent；次数=1
-- `RKF06-J2-A-RAGE`；五毒经怒技直接段攻击比增加0.10。；操作：修改效果；触发：始终；目标：自身；参数：效果 ID=RKF06-RAGE-DAMAGE；field=params.attack_ratio；模式=add；数值=0.1；前置：RKF06-RAGE-DAMAGE；限制：范围=permanent；次数=1
+- `RKF06-J2-A-BASIC`；五毒经普攻直接伤害提高攻击的0.10倍。；操作：修改效果；触发：始终；目标：自身；参数：效果 ID=RKF06-BASIC-DAMAGE；field=params.attack_ratio；模式=add；数值=0.1；前置：RKF06-BASIC-DAMAGE；限制：范围=permanent；次数=1
+- `RKF06-J2-A-RAGE`；五毒经怒技直接伤害提高攻击的0.10倍。；操作：修改效果；触发：始终；目标：自身；参数：效果 ID=RKF06-RAGE-DAMAGE；field=params.attack_ratio；模式=add；数值=0.1；前置：RKF06-RAGE-DAMAGE；限制：范围=permanent；次数=1
 :::
 ::: details 2层B：五毒缠身
 - 玩家摘要：中毒敌人再施虚弱
 - 类别：强化
 - 开发标识：`RKF06-J2-B`
-- `RKF06-J2-B-WEAKNESS`；本门直接段命中至少有一层中毒的敌人时，额外施加一层虚弱，不读取毒层数量。；操作：施加状态；触发：直接命中；目标：敌人；参数：状态=虚弱；层数=1；持续轮数=2；最大层数=5；refresh=否；条件=enemy_status=中毒；min_stacks=1；only_once_per_action=是；前置：enemy_has_poison；限制：范围=action；次数=1
+- `RKF06-J2-B-WEAKNESS`；普攻或怒技命中中毒的敌方时，额外施加1层虚弱；不因中毒层数增加而重复施加。；操作：施加状态；触发：直接命中；目标：敌人；参数：状态=虚弱；层数=1；持续轮数=2；最大层数=5；refresh=否；条件=enemy_status=中毒；min_stacks=1；only_once_per_action=是；前置：enemy_has_poison；限制：范围=action；次数=1
 :::
 ::: details 2层C：毒雾护体
 - 玩家摘要：毒敌在场时造盾
 - 类别：强化
 - 开发标识：`RKF06-J2-C`
-- `RKF06-J2-C-SHIELD`；本门主动作结束时若敌方仍有中毒，按防御的0.24倍获得护盾。；操作：生成护盾；触发：动作结束；目标：自身；参数：防御倍率=0.24；条件=enemy_status=中毒；min_stacks=1；max_per_action=1；前置：enemy_has_poison；限制：范围=action；次数=1
+- `RKF06-J2-C-SHIELD`；普攻或怒技结束时，若敌方仍有中毒，获得防御0.24倍的护盾。；操作：生成护盾；触发：动作结束；目标：自身；参数：防御倍率=0.24；条件=enemy_status=中毒；min_stacks=1；max_per_action=1；前置：enemy_has_poison；限制：范围=action；次数=1
 :::
 ::: details 3层A：毒潮翻涌
 - 玩家摘要：怒技再叠两层毒
 - 类别：强化
 - 开发标识：`RKF06-J3-A`
-- `RKF06-J3-A-MODIFY`；五毒经怒技的实际施毒层数增加2，不增加怒技主动作或额外普攻回怒。；操作：修改效果；触发：始终；目标：自身；参数：效果 ID=RKF06-RAGE-POISON；field=params.stacks；模式=add；数值=2；前置：RKF06-RAGE-POISON；限制：范围=permanent；次数=1
+- `RKF06-J3-A-MODIFY`；五毒经怒技施加的中毒层数增加2；不会额外增加行动或普攻回怒。；操作：修改效果；触发：始终；目标：自身；参数：效果 ID=RKF06-RAGE-POISON；field=params.stacks；模式=add；数值=2；前置：RKF06-RAGE-POISON；限制：范围=permanent；次数=1
 :::
 ::: details 3层B：蚀骨减攻
 - 玩家摘要：毒敌额外施加虚弱
 - 类别：强化
 - 开发标识：`RKF06-J3-B`
-- `RKF06-J3-B-WEAKNESS`；直接段命中带毒敌人时额外登记一层虚弱，实际层数仍受公共五层上限约束。；操作：施加状态；触发：直接命中；目标：敌人；参数：状态=虚弱；层数=1；持续轮数=2；最大层数=5；refresh=否；条件=enemy_status=中毒；min_stacks=1；only_once_per_action=是；前置：enemy_has_poison；限制：范围=action；次数=1
+- `RKF06-J3-B-WEAKNESS`；普攻或怒技命中中毒的敌方时，额外施加1层虚弱；虚弱最多叠加5层。；操作：施加状态；触发：直接命中；目标：敌人；参数：状态=虚弱；层数=1；持续轮数=2；最大层数=5；refresh=否；条件=enemy_status=中毒；min_stacks=1；only_once_per_action=是；前置：enemy_has_poison；限制：范围=action；次数=1
 :::
 ::: details 3层C：吞毒回元
 - 玩家摘要：消耗毒层治疗自身
 - 类别：转化
 - 开发标识：`RKF06-J3-C`
-- `RKF06-J3-C-CONSUME`；每个自身主动作最多消费动作开始前敌方已有的两层中毒，并记录实际消费层数。；操作：消费状态；触发：直接命中；目标：敌人；参数：状态=中毒；最大层数=2；consume_once_per_action=是；preexisting_only=是；record_key=rkf06_consumed_poison；consume_key=poison_up_to_2_stacks；outlet_group=poison_to_survival；前置：poison_available；消费：poison_up_to_2_stacks；限制：范围=action；次数=1
-- `RKF06-J3-C-HEAL`；只把同一次实际消费的中毒层按每层最大气血5%转为治疗，溢出不再触发其它出口。；操作：治疗；触发：直接命中；目标：自身；参数：basis=max_hp；来源=consumed_status；record_key=rkf06_consumed_poison；每层数量=0.05；max_amount_ratio=0.1；effective_only=是；前置：RKF06-J3-C-CONSUME；消费：RKF06-J3-C-CONSUME；限制：范围=action；次数=1
+- `RKF06-J3-C-CONSUME`；每次普攻或怒技最多消耗敌方已有的2层中毒；行动中新增的中毒不会被这次消耗。；操作：消费状态；触发：直接命中；目标：敌人；参数：状态=中毒；最大层数=2；consume_once_per_action=是；preexisting_only=是；record_key=rkf06_consumed_poison；consume_key=poison_up_to_2_stacks；outlet_group=poison_to_survival；前置：poison_available；消费：poison_up_to_2_stacks；限制：范围=action；次数=1
+- `RKF06-J3-C-HEAL`；每消耗1层中毒，恢复最大气血5%的气血；超过气血上限的部分不触发其他效果。；操作：治疗；触发：直接命中；目标：自身；参数：basis=max_hp；来源=consumed_status；record_key=rkf06_consumed_poison；每层数量=0.05；max_amount_ratio=0.1；effective_only=是；前置：RKF06-J3-C-CONSUME；消费：RKF06-J3-C-CONSUME；限制：范围=action；次数=1
 :::
 ::: details 4层A：万毒归宗
 - 玩家摘要：中毒持续伤害再提高
 - 类别：强化
 - 开发标识：`RKF06-J4-A`
-- `RKF06-J4-A-MODIFY`；本门每层中毒的攻击比再增加0.04，只影响窗口内实际tick。；操作：修改效果；触发：始终；目标：自身；参数：效果 ID=RKF06-BASIC-POISON、RKF06-RAGE-POISON；field=params.attack_ratio_per_stack；模式=add；数值=0.04；前置：RKF06-BASIC-POISON、RKF06-RAGE-POISON；限制：范围=permanent；次数=1
+- `RKF06-J4-A-MODIFY`；五毒经施加的每层中毒伤害再增加攻击0.04倍。；操作：修改效果；触发：始终；目标：自身；参数：效果 ID=RKF06-BASIC-POISON、RKF06-RAGE-POISON；field=params.attack_ratio_per_stack；模式=add；数值=0.04；前置：RKF06-BASIC-POISON、RKF06-RAGE-POISON；限制：范围=permanent；次数=1
 :::
 ::: details 4层B：毒海封生
 - 玩家摘要：毒敌额外破甲
 - 类别：强化
 - 开发标识：`RKF06-J4-B`
-- `RKF06-J4-B-ARMOR`；直接段命中带毒敌人时额外施加一层破甲，破甲实际影响后续直接段防御结算。；操作：施加状态；触发：直接命中；目标：敌人；参数：状态=破甲；层数=1；持续轮数=2；最大层数=5；refresh=否；条件=enemy_status=中毒；min_stacks=1；only_once_per_action=是；前置：enemy_has_poison；限制：范围=action；次数=1
+- `RKF06-J4-B-ARMOR`；普攻或怒技命中中毒的敌方时，额外施加1层破甲；破甲会降低敌方受到后续直接攻击时的防御。；操作：施加状态；触发：直接命中；目标：敌人；参数：状态=破甲；层数=1；持续轮数=2；最大层数=5；refresh=否；条件=enemy_status=中毒；min_stacks=1；only_once_per_action=是；前置：enemy_has_poison；限制：范围=action；次数=1
 :::
 ::: details 4层C：毒尽护生
 - 玩家摘要：毒敌在场时护盾更厚
 - 类别：强化
 - 开发标识：`RKF06-J4-C`
-- `RKF06-J4-C-SHIELD`；敌方带毒时主动作结束获得防御0.28倍加最大气血0.04倍的护盾。；操作：生成护盾；触发：动作结束；目标：自身；参数：防御倍率=0.28；最大气血倍率=0.04；条件=enemy_status=中毒；min_stacks=1；max_per_action=1；前置：enemy_has_poison；限制：范围=action；次数=1
+- `RKF06-J4-C-SHIELD`；普攻或怒技结束时，若敌方带有中毒，获得防御0.28倍加最大气血0.04倍的护盾。；操作：生成护盾；触发：动作结束；目标：自身；参数：防御倍率=0.28；最大气血倍率=0.04；条件=enemy_status=中毒；min_stacks=1；max_per_action=1；前置：enemy_has_poison；限制：范围=action；次数=1
 :::
 
 ## 推荐路线
 
 | 路线 | 说明 | 选择 |
 | --- | --- | --- |
-| 叠毒蚀骨 | 迅速堆高毒层并提高每次中毒的实际持续伤害；代价是需要时间让毒层真实跳伤。 | 百毒入脉（`RKF06-J1-A`）、腐骨穿脉（`RKF06-J2-A`）、毒潮翻涌（`RKF06-J3-A`）、万毒归宗（`RKF06-J4-A`） |
+| 叠毒蚀骨 | 迅速堆高毒层并提高每层中毒伤害；代价是需要时间让中毒反复造成伤害。 | 百毒入脉（`RKF06-J1-A`）、腐骨穿脉（`RKF06-J2-A`）、毒潮翻涌（`RKF06-J3-A`）、万毒归宗（`RKF06-J4-A`） |
 | 毒压减攻 | 以虚弱和破甲压低敌人有效输出并保持直接段压力；代价是必须先让敌人带毒，短战覆盖较低。 | 毒伤蚀心（`RKF06-J1-B`）、五毒缠身（`RKF06-J2-B`）、蚀骨减攻（`RKF06-J3-B`）、毒海封生（`RKF06-J4-B`） |
 | 耗毒续命 | 用毒层换取治疗与护盾，适合较长战斗中的主动续战；代价是消费毒层会降低后续持续伤害。 | 毒息延绵（`RKF06-J1-C`）、毒雾护体（`RKF06-J2-C`）、吞毒回元（`RKF06-J3-C`）、毒尽护生（`RKF06-J4-C`） |
 
 ::: details 战斗被动开发详情
-- `RKF06-PASSIVE-TOXIN-RESIST`；每场战斗开始时防御提高8，只影响承伤与本门明确读取防御的效果。；操作：修改属性；触发：战斗开始；目标：自身；参数：属性=defense；模式=add；数量=8；持续范围=battle；snapshot=battle_start；限制：范围=battle；次数=1
+- `RKF06-PASSIVE-TOXIN-RESIST`；每场战斗开始时防御提高8。；操作：修改属性；触发：战斗开始；目标：自身；参数：属性=defense；模式=add；数量=8；持续范围=battle；snapshot=battle_start；限制：范围=battle；次数=1
 :::
 
 ::: details 行旅效果开发详情
-- `RKF06-TRAVEL-XP`；以本门主修完成节点并存活时额外获得6点修为。；操作：获得资源；触发：节点完成；目标：本局；参数：resource=修为；数量=6；basis=固定值；only_if_alive=是；前置：real_node_completed_alive；限制：范围=node；次数=1
-- `RKF06-TRAVEL-COST`；毒瘴行旅使一次主动扣血事件的气血代价按0.85倍计算，单次最多少付当前参考气血的8%。；操作：降低事件成本；触发：事件成本支付；目标：本局；参数：resource=气血；模式=multiply；倍率=0.85；max_reduction_ratio=0.08；时机=before_payment；active_event_cost=是；one_cost_per_event=是；前置：active_hp_event_cost_paid；限制：范围=node；次数=1
+- `RKF06-TRAVEL-XP`；选择五毒经为主修，存活完成节点后额外获得6点修为。；操作：获得资源；触发：节点完成；目标：本局；参数：resource=修为；数量=6；basis=固定值；only_if_alive=是；前置：real_node_completed_alive；限制：范围=node；次数=1
+- `RKF06-TRAVEL-COST`；主动选择扣除气血的行旅选项时，该事件首次气血代价降低15%；最多减免：第1幕50点、第2幕62点、第3幕76点、第4幕92点。；操作：降低事件成本；触发：事件成本支付；目标：本局；参数：resource=气血；模式=multiply；倍率=0.85；max_reduction_ratio=0.08；时机=before_payment；active_event_cost=是；one_cost_per_event=是；前置：active_hp_event_cost_paid；限制：范围=node；次数=1
 :::

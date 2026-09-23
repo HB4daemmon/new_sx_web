@@ -20,11 +20,11 @@ balance:
   measured: null
 event_type: core
 acts: [4]
-scene: 云门一开一合，昼夜在门后交替；石碑写明只有学过太阴经的人可读卷；试炼要承受 15% 气血损耗，支付 36 灵石可直接取烛龙真经，失手则两手空空。
+scene: 云门一开一合，昼夜在门后交替；石碑写明只有学过太阴经的人可读卷；挑战损失约173点气血，失手后仅剩1点。付36灵石可直接取烛龙真经。
 options:
   - id: RK016-open-day-night
     label: 迎昼夜试炼
-    quick: 学过太阴经，支付 15% 气血，胜利取烛龙真经
+    quick: 学过太阴经，损失约173点气血挑战；胜利取烛龙真经，失手后仅剩1点气血。
     requirements:
       - {type: known_method, id: RKF08}
     costs:
@@ -37,7 +37,7 @@ options:
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 昼夜交替打乱你的节奏，烛龙真经闭门；已付的 15% 气血留在云门前，烛龙真经没有到手。
+      failure_outcome: 昼夜交替打乱你的节奏，烛龙真经闭门；损失的约173点气血留在云门前，气血仅剩1点，烛龙真经没有到手。
   - id: RK016-buy-dawn
     label: 付石开云门
     quick: 学过太阴经，支付 36 灵石，稳妥取烛龙真经

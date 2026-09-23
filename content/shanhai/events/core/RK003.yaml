@@ -5,7 +5,7 @@ id: RK003
 name: 精卫筑堤
 status: design_target
 summary: 海堤缺口只够一人先做选择，眼前修为和危险清礁承诺不能并得。
-description: 精卫一次次把木石投进缺口，告诉你后段有一场真正的清礁试炼；现在先拿修为，或把机会留给那场危险工作。
+description: 精卫一次次把木石投进缺口，告诉你后段有一场清礁挑战；现在先拿修为，或把机会留给那场危险的差事。
 tags: [core, character_encounter, jingwei, first_meeting, dangerous_trial]
 source:
   basis: myth_adaptation
@@ -31,14 +31,14 @@ options:
     outcome: 你把这一步修为收进体内，海堤由精卫继续看守。
   - id: RK003-pursue-trial
     label: 答应追礁
-    quick: 承受 8% 气血并存活，承诺后段清礁试炼
+    quick: 损失约50点气血并存活，承诺后段清礁挑战。
     requirements: []
     costs:
       - {type: resource, resource: hp, amount: 0.08, basis: reference_hp, must_survive: true}
     rewards: []
     set_flags:
       RS02-promised: true
-    outcome: 你承受潮水冲击并活着站稳，记下潮后清礁的位置：危险会公开，奖励也会公开。
+    outcome: 你承受潮水冲击并活着站稳，记下潮后清礁的位置；胜利可取毒牙钉，失手则没有战斗奖励。
   - id: RK003-leave
     label: 拾取散石离开
     quick: 只拿一小笔灵石，不接堤路承诺

@@ -5,7 +5,7 @@ id: RR04
 name: 如意钱
 status: design_target
 summary: 攻击 +6、暴击率 +2 个百分点；普攻首命中概率追加一击
-description: 钱面两侧刻着如意纹，普攻首个有效命中有机会牵出一次追加攻击。
+description: 普攻首段命中后有25%概率追加一段攻击。
 tags: [attack, crit_rate, basic, chance, rare]
 source:
   basis: original
@@ -40,6 +40,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: action, count: 1}
-    text: 每个普攻主动作首个有效基础命中只检定一次；首测25%概率追加一段攻击倍率0.5的直接伤害，追加段不再触发追加。
+    text: 普攻首段基础攻击命中后，有25%概率追加一段攻击倍率0.5的直接伤害；追加段不会再次触发本效果。
 acquisition:
   pools: [rare_artifact]

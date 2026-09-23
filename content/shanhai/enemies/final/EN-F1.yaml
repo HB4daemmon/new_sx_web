@@ -4,8 +4,8 @@ kind: enemy
 id: EN-F1
 name: 雷劫化身
 status: design_target
-summary: 以四段雷劫、有限连雷和公开削怒请求作为终战候选之一。
-description: 雷劫化身采用雷劫神话意象，全部配装、段数和削怒输入均为游戏原创。
+summary: 劫云压过天穹，雷光照出山河轮廓。
+description: 天外雷声连绵不绝，云层深处有一道身影凝聚。
 tags: [enemy, final, myth_adaptation, lightning, multi_segment, rage_drain]
 source:
   basis: myth_adaptation
@@ -19,7 +19,7 @@ balance:
   measured: null
 acts: [5]
 tier: final
-identity: 雷劫化身
+identity: 雷劫化身现于劫云之下，千山万水都被电光映得发白。
 method: RKF07
 n: 4
 talents: [RKF07-J1-A, RKF07-J2-C, RKF07-J3-A, RKF07-J4-B]
@@ -36,7 +36,7 @@ stats:
 pressure: [多段, 削怒]
 counterplay:
   - 战前选高防御或护盾构筑承受四段雷劫，并利用逐段受击回怒维持自己的直接输出。
-  - 战前选先手速度和稳定直接伤害构筑，优先压低其蓄运与怒技循环；RR13削怒受公共轮内上限约束，不需要净化。
+  - 抢先出手并持续进攻，在雷势积蓄前压低它的气血；截脉针的削怒有限，不会打断已经出手的招式。
 preview: >-
   J3-A把怒技基础雷段提高为四段，J2-C提高有限连雷概率，J4-B只提高每个基础雷段的伤害；
   RR13在普攻首个有效基础命中登记10点外来削怒请求，按公共每轮20点上限结算，不取消本轮已锁动作。

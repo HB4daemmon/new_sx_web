@@ -4,8 +4,8 @@ kind: method
 id: RKF02
 name: 归元诀
 status: design_target
-summary: 以公共怒气为循环核心，普攻积怒、怒技按实际支付返怒的普通回气功法。
-description: 归元诀不新增战斗资源，所有循环强化都读取公共怒气入口；攻击和暴击负责直接输出，防御与最大气血只提供容错。
+summary: 以怒气循环为核心，普攻积怒、怒技按消耗量返怒的回气功法。
+description: 归元诀以普攻积攒怒气，并按怒技消耗量返还怒气；天赋强化攻击、回气或护盾。
 tags: [method, common, attack, rage, cycle]
 source:
   basis: original
@@ -34,7 +34,7 @@ acquisition:
 actions:
   basic:
     name: 归元行气
-    quick: 普攻并按公共规则积怒
+    quick: 攻击并回复25点怒气
     effects:
       - id: RKF02-BASIC-DAMAGE
         trigger: basic_action
@@ -49,7 +49,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按攻击的1.00倍对敌人造成一段可暴击直接伤害；完成一次普攻后另按公共规则登记基础回怒25。
+        text: 按攻击的1.00倍对敌方造成一段可暴击直接伤害；普攻完成后获得25点怒气。
   rage:
     name: 归元震脉
     quick: 怒技攻击并返还实际怒耗
@@ -68,7 +68,7 @@ actions:
         consumes: [rage_locked_action_cost]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按公共规则支付本轮锁定怒耗后，按攻击的1.40倍造成一段可暴击直接伤害；本动作不另登记普攻完成。
+        text: 消耗本次怒技所需的怒气后，按攻击的1.40倍造成一段可暴击直接伤害；怒技不会触发普攻回怒。
 passives:
   - id: RKF02-PASSIVE-RAGE-REFUND
     trigger: action_end
@@ -86,7 +86,7 @@ passives:
     consumes: []
     replaces: []
     limit: {scope: action, count: 1}
-    text: 每次怒技完成后，按本次实际支付怒气的20%登记固有返怒；它与公共开场、普攻、受击和轮尾自然回怒叠加，不改变主动作次数。
+    text: 每次怒技完成后，按本次消耗怒气的20%返还怒气。
 travel:
   - id: RKF02-TRAVEL-NONBATTLE-XP
     trigger: node_complete
@@ -104,7 +104,7 @@ travel:
     consumes: []
     replaces: []
     limit: {scope: node, count: 1}
-    text: 完成休整、事件或商店等非战斗节点后获得18修为；每个节点只结算一次，不在战斗动作中触发。
+    text: 完成休整、事件、商店等非战斗节点后获得18点修为；每个节点只触发一次。
 talents:
   - id: RKF02-J1-A
     tier: 1
@@ -128,7 +128,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 当前主修时怒气上限降低10，并按公共规则同步降低怒技门槛与实际怒耗；不降低怒技基础伤害，也不创造额外资源。
+        text: 选择归元诀为主修时，怒气上限及怒技所需怒气各降低10点；怒技伤害不变。
   - id: RKF02-J1-B
     tier: 1
     branch: B
@@ -151,7 +151,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 每次完整完成基础普攻时，在公共普攻回怒25之外登记额外10点；未命中也按完成动作登记，不放大法宝额外回怒。
+        text: 每次普攻完成后，除原有的25点回怒外，再获得10点怒气；即使没有命中也会触发。
   - id: RKF02-J1-C
     tier: 1
     branch: C
@@ -172,7 +172,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 归元震脉的基础直接段额外提高22%；不提高固有返怒、追加段或其它来源的怒气。
+        text: 归元震脉的直接伤害提高22%；不提高返还怒气或追加攻击的伤害。
   - id: RKF02-J2-A
     tier: 2
     branch: A
@@ -197,7 +197,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 本门普攻或怒技的基础直接段首次有效命中时登记额外10点怒气，每个主动作最多一次；追加、反震、毒火和零伤害命中不触发。
+        text: 普攻或怒技的第一段基础直接攻击命中后，额外获得10点怒气；每次行动最多触发一次，追加攻击、反震、中毒、燃烧和未造成伤害的攻击不触发。
   - id: RKF02-J2-B
     tier: 2
     branch: B
@@ -220,7 +220,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: round, count: 1}
-        text: 每轮轮尾在公共自然回怒10之外登记额外10点；不提前进入开场窗口，也不按双方动作次数重复发放。
+        text: 每轮结束时，除自然回复的10点怒气外，再获得10点怒气；每轮只触发一次。
   - id: RKF02-J2-C
     tier: 2
     branch: C
@@ -245,7 +245,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 本门怒技返怒比例在固有20%之上增加20个百分点，按本次实际支付计算并与固有返怒合并登记一次，不对已返怒气再次乘算。
+        text: 怒技返还怒气的比例从20%提高到40%，按本次消耗怒气计算。
   - id: RKF02-J3-A
     tier: 3
     branch: A
@@ -267,7 +267,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 怒气上限提高20，并按公共规则同步提高怒技门槛与实际怒耗；提高上限本身不直接造成伤害。
+        text: 怒气上限提高20点，怒技所需怒气也提高20点；此效果本身不造成伤害。
       - id: RKF02-J3-A-HEAVY-HIT
         trigger: rage_action
         operation: modify_effect
@@ -283,7 +283,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 怒技同一直接段额外读取本次实际支付怒气，每1点支付增加攻击0.012倍的原始伤害；不增加动作、段数或普攻回怒。
+        text: 怒技每消耗1点怒气，该次直接伤害额外增加攻击的0.012倍；不增加攻击段数或普攻回怒。
   - id: RKF02-J3-B
     tier: 3
     branch: B
@@ -304,7 +304,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 归元行气的基础直接段额外提高18%；不提高怒技、追加段或普攻积怒。
+        text: 归元行气的直接伤害提高18%；不提高怒技或追加攻击的伤害，也不增加普攻回怒。
   - id: RKF02-J3-C
     tier: 3
     branch: C
@@ -328,7 +328,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 怒技完成后按攻击的0.26倍获得护盾；造盾本身不额外回怒，但该盾承受敌方有效直接攻击时仍按公共规则逐段登记受击回怒。
+        text: 怒技完成后获得攻击0.26倍的护盾；敌方攻击被护盾吸收时，仍会按受击段数获得怒气。
   - id: RKF02-J4-A
     tier: 4
     branch: A
@@ -353,7 +353,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 本门怒技返怒比例再增加20个百分点，直接读取固有返怒入口，不要求选择余气归元；每份实际支付只按合计比例返还一次。
+        text: 怒技返还怒气的比例再提高20个百分点，按本次消耗怒气计算；返还比例合并后只计算一次。
   - id: RKF02-J4-B
     tier: 4
     branch: B
@@ -375,7 +375,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 归元震脉基础直接段额外提高30%；若同时有蓄怒破锋，仍并入同一直接段，不改变返怒。
+        text: 归元震脉的直接伤害提高30%；若同时选择蓄怒破锋，两项加成作用于同一段伤害，返怒不变。
   - id: RKF02-J4-C
     tier: 4
     branch: C
@@ -401,7 +401,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 怒技后下一轮主动作强制改为强化普攻，该次普攻直接段提高18%，基础积怒由25变为40；不增加主动作，即使轮初满怒也先完成该普攻。
+        text: 怒技完成后，下一轮必须先使用强化普攻；该次普攻直接伤害提高18%，并获得40点怒气而非25点。即使怒气已满，也要先进行这次普攻。
 routes:
   - name: 快转回元
     summary: 降低怒气上限并提高返流，怒技后以护盾接住压力；代价是低上限和低支付会同时降低按实际支付计算的返怒量。

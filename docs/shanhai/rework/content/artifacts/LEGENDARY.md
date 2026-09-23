@@ -16,40 +16,40 @@
 ### 琉璃法印
 
 - 开发标识：`RL01`
-最大气血 +12%、防御 +8；治疗溢出改走护盾出口
+最大气血 +12%、防御 +8；治疗溢出转为护盾
 
-- 玩家看到：法印将真实治疗溢出导向护盾出口，保留有效治疗并替代同一份溢出的原出口。
+- 玩家看到：自身治疗填满气血后，溢出的部分转为护盾；已回复的气血照常保留。
 - 获取池：legendary_artifact
 - 唯一组：overflow_outlet
 
 ::: details 法宝开发效果
-- `RL01-HEAL-OVERFLOW-TO-SHIELD`；每份战斗中真实治疗溢出按100%转为护盾，原有效治疗保留；只替代同一溢出的原出口，不与其它来源施毒重复。；操作：转化溢疗；触发：溢疗结算；目标：自身；参数：来源=self_heal；input=actual_overflow；比例=1；destination=shield；preserve_effective_heal=是；shield_cap=max_hp；outlet_selector=范围=overflow_outlet；replace_outputs=direct_damage、poison；one_conversion_per_overflow_instance=是；first_test_value=overflow_to_shield_ratio=1；前置：positive_actual_heal_overflow；限制：范围=segment；次数=1
+- `RL01-HEAL-OVERFLOW-TO-SHIELD`；战斗中自身治疗超出气血上限的部分100%转为护盾，护盾最多累积到最大气血；已回复的气血照常保留，这部分不会再转为伤害或中毒。；操作：转化溢疗；触发：溢疗结算；目标：自身；参数：来源=self_heal；input=actual_overflow；比例=1；destination=shield；preserve_effective_heal=是；shield_cap=max_hp；outlet_selector=范围=overflow_outlet；replace_outputs=direct_damage、poison；one_conversion_per_overflow_instance=是；first_test_value=overflow_to_shield_ratio=1；前置：positive_actual_heal_overflow；限制：范围=segment；次数=1
 :::
 
 ### 薪火宝炉
 
 - 开发标识：`RL02`
-攻击 +12、防御 +6；燃烧实际伤害后按比例治疗
+攻击 +12、防御 +6；燃烧造成气血损失后按比例治疗
 
-- 玩家看到：炉中薪火在燃烧造成真实气血损失后回馈治疗，燃烧伤害本身不被消耗。
+- 玩家看到：自身施加的燃烧造成气血损失后，按损失量回复气血；燃烧伤害照常结算。
 - 获取池：legendary_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RL02-FIRST-BURN-HEAL`；每轮首次自身燃烧造成实际气血伤害后，按该次实际伤害的25%治疗自身；燃烧伤害保留，每轮最多一次。；操作：治疗；触发：持续伤害结算；目标：自身；参数：比例=0.25；basis=actual_hp_damage；来源=self_applied_burn；first_burn_damage_per_round=是；preserve_burn_damage=是；上限=max_hp；first_test_value=burn_damage_to_heal_ratio=0.25；前置：positive_actual_hp_damage_from_own_burn；限制：范围=round；次数=1
+- `RL02-FIRST-BURN-HEAL`；每轮首次由自身施加的燃烧造成气血损失后，按该次损失量的25%恢复气血，不超过最大气血；每轮最多触发一次。；操作：治疗；触发：持续伤害结算；目标：自身；参数：比例=0.25；basis=actual_hp_damage；来源=self_applied_burn；first_burn_damage_per_round=是；preserve_burn_damage=是；上限=max_hp；first_test_value=burn_damage_to_heal_ratio=0.25；前置：positive_actual_hp_damage_from_own_burn；限制：范围=round；次数=1
 :::
 
 ### 裂空宝轮
 
 - 开发标识：`RL03`
-攻击 +12、暴击率 +3 个百分点；普攻首命中追加两段
+攻击 +12、暴击率 +3 个百分点；普攻首次命中后追加两段伤害
 
-- 玩家看到：宝轮撕开普攻首个基础命中的余势，追加两段独立直接攻击。
+- 玩家看到：普攻首次命中后，宝轮会接续两段不可暴击的直接攻击。
 - 获取池：legendary_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RL03-BASIC-HIT-TWO-FOLLOWUPS`；每次普攻首个有效基础命中后追加两段倍率各0.5的直接伤害；追加段不再触发本效果或其它普攻首命中追加。；操作：造成伤害；触发：直接命中；目标：敌人；参数：攻击倍率=0.5；段数=2；can_crit=否；来源=artifact_followup；action_type=basic_action；hit_scope=first_effective_base_direct_hit；append_after_base_hit=是；one_trigger_per_basic_action=是；does_not_chain=是；first_test_value=每段攻击倍率=0.5；段数=2；前置：effective_basic_base_hit；限制：范围=action；次数=1
+- `RL03-BASIC-HIT-TWO-FOLLOWUPS`；每次普攻首次命中后，追加两段各为攻击0.5倍的不可暴击直接伤害；追加段不会再次触发此效果。；操作：造成伤害；触发：直接命中；目标：敌人；参数：攻击倍率=0.5；段数=2；can_crit=否；来源=artifact_followup；action_type=basic_action；hit_scope=first_effective_base_direct_hit；append_after_base_hit=是；one_trigger_per_basic_action=是；does_not_chain=是；first_test_value=每段攻击倍率=0.5；段数=2；前置：effective_basic_base_hit；限制：范围=action；次数=1
 :::
 
 ### 启明玉
@@ -57,12 +57,12 @@
 - 开发标识：`RL04`
 攻击 +12、速度 +1；开场额外回怒 50
 
-- 玩家看到：玉面在开战前先亮，为开场怒气加入一次额外的高额储备。
+- 玩家看到：每场战斗开始时，额外获得50点怒气。
 - 获取池：legendary_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RL04-OPENING-RAGE-GAIN`；每场真实战斗在独立开场窗口额外登记50点怒气，与基础50及其它开场来源合并后只截断一次，不直接宣称开场必满。；操作：获得怒气；触发：战斗开始；目标：自身；参数：数量=50；时机=opening_window；once_per_battle=是；read_save_once=是；combine_with_base_opening=是；clamp_once_after_all_opening_sources=是；限制：范围=battle；次数=1
+- `RL04-OPENING-RAGE-GAIN`；每场战斗开始时额外获得50点怒气；这份怒气与基础开场怒气及其他开场回怒一并计入怒气上限。；操作：获得怒气；触发：战斗开始；目标：自身；参数：数量=50；时机=opening_window；once_per_battle=是；read_save_once=是；combine_with_base_opening=是；clamp_once_after_all_opening_sources=是；限制：范围=battle；次数=1
 :::
 
 ### 回澜印
@@ -70,12 +70,12 @@
 - 开发标识：`RL05`
 攻击 +12、防御 +6；怒技完成固定返怒 50
 
-- 玩家看到：印中回澜之力在怒技落定后回卷，固定返还一大段怒气供下一轮使用。
+- 玩家看到：怒技完成后固定返还50点怒气，留待下一轮使用。
 - 获取池：legendary_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RL05-RAGE-ACTION-RETURN`；怒技实际执行并完成后固定登记50点返怒，仍参加轮尾统一结算，只供下一轮，不在动作中生成第二次怒技。；操作：获得怒气；触发：怒技动作；目标：自身；参数：数量=50；时机=round_end；completed_action_only=是；fixed_return=是；available_next_round=是；after_payment=是；does_not_create_second_action=是；前置：rage_action_completed；限制：范围=action；次数=1
+- `RL05-RAGE-ACTION-RETURN`；怒技完成后固定返还50点怒气，在本轮结束时结算，下一轮才可使用。；操作：获得怒气；触发：怒技动作；目标：自身；参数：数量=50；时机=round_end；completed_action_only=是；fixed_return=是；available_next_round=是；after_payment=是；does_not_create_second_action=是；前置：rage_action_completed；限制：范围=action；次数=1
 :::
 
 ::: details 开发边界

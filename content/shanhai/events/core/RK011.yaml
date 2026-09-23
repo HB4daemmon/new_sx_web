@@ -4,8 +4,8 @@ kind: event
 id: RK011
 name: 铁扇借一阵风
 status: design_target
-summary: 火山口只给短风，先承受一笔气血代价，后段才有资格问真正的风。
-description: 铁扇公主把火山风口的安全路和火伤承诺摆在一起；她不送扇子，只让你决定是否先把代价带上路。
+summary: 火山口只给短风；损失约78点气血并存活，才有后段借风的机会。
+description: 铁扇公主把绕开火口的路和承受火伤的选择摆在眼前；不付出气血便不能参加后段挑战。
 tags: [core, character_encounter, princess_iron_fan, first_meeting, hp_commitment]
 source:
   basis: myth_adaptation
@@ -19,11 +19,11 @@ balance:
   measured: null
 event_type: core
 acts: [2]
-scene: 火妖把山腹烧成窄口，铁扇公主只能把凉风推过一段路；你可以拿盘缠，也可以现在就承受一笔明示的火伤。
+scene: 火妖把山腹烧成窄口，铁扇公主只能把凉风推过一段路；你可以拿盘缠，也可以损失约78点气血并存活，以换取后段借风的机会。
 options:
   - id: RK011-carry-fire-cost
     label: 带火伤上路
-    quick: 支付 10% 气血且必须存活，保留后段借风资格
+    quick: 损失约78点气血且必须存活，保留后段借风资格。
     requirements: []
     costs:
       - {type: resource, resource: hp, amount: 0.1, basis: reference_hp, must_survive: true}

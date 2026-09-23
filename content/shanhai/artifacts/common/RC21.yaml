@@ -35,6 +35,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: round, count: 1}
-    text: 每层在角色存活且战斗未结束的轮尾、公共自然回怒登记后额外登记5点怒气。
+    text: 每轮结束时，若自身仍存活且战斗尚未结束，每层额外获得5点怒气。
 acquisition:
   pools: [common_artifact]

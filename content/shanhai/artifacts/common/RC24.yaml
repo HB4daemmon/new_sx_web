@@ -4,8 +4,8 @@ kind: artifact
 id: RC24
 name: 血气石
 status: design_target
-summary: 最大气血 +10；每有效受击段额外回怒 2
-description: 石中血光随受击闪动，在每个有效敌方主动直接攻击段登记少量怒气。
+summary: 最大气血 +10；敌方每段主动直接攻击造成伤害或被护盾吸收时，额外获得2点怒气
+description: 敌方直接攻击造成伤害时，石中血光随受击闪动，为每一段攻击补充怒气。
 tags: [max_hp, rage_gain, incoming_segment, combat]
 source:
   basis: original
@@ -36,6 +36,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: segment, count: 1}
-    text: 每层对每个有效敌方主动直接攻击段额外登记2点怒气，与公共每段5点共用同一段边界。
+    text: 每层在敌方每段主动直接攻击造成气血或护盾损失时，额外获得2点怒气。
 acquisition:
   pools: [common_artifact]

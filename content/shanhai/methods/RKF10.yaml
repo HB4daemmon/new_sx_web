@@ -4,8 +4,8 @@ kind: method
 id: RKF10
 name: 烛龙真经
 status: design_target
-summary: 以昼夜相位轮替在护持与破坏之间切换的传奇功法。
-description: 战斗中只有昼夜一种专属状态，主动作后自动轮替且不增加行动；行旅效果独立读取节点序号。
+summary: 随昼夜轮替，在护盾与直接伤害之间切换的传奇功法。
+description: 普攻和怒技出手后昼夜轮替；白昼偏重护盾，长夜偏重直接伤害。行旅效果会在恢复气血与获得修为之间交替。
 tags: [method, legendary, phase, original]
 source:
   basis: original
@@ -48,7 +48,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 白昼按攻击0.92倍、长夜按攻击1.10倍造成一段可暴击直接伤害。
+        text: 白昼时按攻击0.92倍、长夜时按攻击1.10倍造成一段可暴击直接伤害。
       - id: RKF10-BASIC-SHIELD-DAY
         trigger: basic_action
         operation: shield
@@ -58,7 +58,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 基础普攻在白昼结算后按防御0.24倍获得护盾，长夜不生成这份白昼护盾。
+        text: 白昼普攻后获得防御0.24倍的护盾；长夜普攻不获得此护盾。
       - id: RKF10-BASIC-PHASE
         trigger: action_end
         operation: advance_phase
@@ -68,7 +68,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 基础主动作结束后把昼夜从白昼切到长夜或从长夜切到白昼，不增加行动。
+        text: 每次普攻结束后，昼夜从白昼转为长夜，或从长夜转为白昼。
   rage:
     name: 烛照开天
     quick: 随相位强化伤害或护盾
@@ -82,7 +82,7 @@ actions:
         consumes: [rage_locked_action_cost]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 白昼按攻击1.25倍、长夜按攻击1.55倍造成一段可暴击直接伤害。
+        text: 白昼时按攻击1.25倍、长夜时按攻击1.55倍造成一段可暴击直接伤害。
       - id: RKF10-RAGE-SHIELD-DAY
         trigger: rage_action
         operation: shield
@@ -92,7 +92,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 怒技在白昼结算后按防御0.38倍获得护盾，长夜只保留直接伤害。
+        text: 白昼怒技后获得防御0.38倍的护盾；长夜怒技不获得此护盾。
       - id: RKF10-RAGE-PHASE
         trigger: action_end
         operation: advance_phase
@@ -102,7 +102,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 怒技主动作结束后轮替昼夜；怒技不是额外行动，基础怒气收入仍只按公共合同处理。
+        text: 每次怒技结束后，昼夜从白昼转为长夜，或从长夜转为白昼。
 passives:
   - id: RKF10-PASSIVE-INITIAL-PHASE
     trigger: battle_start
@@ -113,7 +113,7 @@ passives:
     consumes: []
     replaces: []
     limit: {scope: battle, count: 1}
-    text: 每场战斗以白昼相位开始，昼夜状态只保留一份并由主动作结束后的轮替效果更新。
+    text: 每场战斗从白昼开始；每次普攻或怒技结束后，昼夜轮替。
 travel:
   - id: RKF10-TRAVEL-HEAL
     trigger: node_complete
@@ -135,7 +135,7 @@ travel:
     consumes: []
     replaces: []
     limit: {scope: node, count: 1}
-    text: 按独立行旅序号在奇数次合资格节点完成时恢复最大气血的8%；只作战外治疗，不生成怒气，也不读取战斗昼夜。
+    text: 存活完成行旅节点且轮到恢复气血时，恢复最大气血的8%；从获得功法后的第一个节点开始恢复气血。
   - id: RKF10-TRAVEL-XP
     trigger: node_complete
     operation: grant_resource
@@ -155,7 +155,7 @@ travel:
     consumes: []
     replaces: []
     limit: {scope: node, count: 1}
-    text: 按独立行旅序号在偶数次合资格节点完成时获得9点修为；不读取战斗昼夜，不在战斗回合内刷取。
+    text: 存活完成行旅节点且轮到获得修为时，获得9点修为；此效果与战斗中的昼夜无关。
   - id: RKF10-TRAVEL-SEQUENCE
     trigger: node_complete
     operation: advance_phase
@@ -173,7 +173,7 @@ travel:
     consumes: []
     replaces: []
     limit: {scope: node, count: 1}
-    text: 每个合资格节点完成后仅推进一次独立行旅序号，在回血与修为之间交替；该序号不读取或改写战斗昼夜相位。
+    text: 每完成一个节点且仍存活时，在恢复最大气血8%与获得9点修为之间交替一次；先恢复气血，再获得修为。
 talents:
   - id: RKF10-J1-A
     tier: 1
@@ -191,7 +191,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 白昼普攻护盾的防御比增加0.14，长夜仍不生成该护盾。
+        text: 白昼普攻获得的护盾额外增加防御0.14倍；长夜普攻仍不产生护盾。
   - id: RKF10-J1-B
     tier: 1
     branch: B
@@ -208,7 +208,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 长夜普攻直接段攻击比增加0.18，白昼数值不变。
+        text: 长夜普攻直接伤害提高攻击的0.18倍；白昼数值不变。
   - id: RKF10-J1-C
     tier: 1
     branch: C
@@ -225,7 +225,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 昼夜由长夜转回白昼时额外获得8点怒气，不增加轮内主动作。
+        text: 昼夜从长夜转为白昼时，额外获得8点怒气。
   - id: RKF10-J2-A
     tier: 2
     branch: A
@@ -242,7 +242,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: battle, count: 1}
-        text: 处于白昼时防御提高14，转入长夜后该条件加成不再提供输入。
+        text: 白昼时防御提高14；转入长夜后此加成消失。
   - id: RKF10-J2-B
     tier: 2
     branch: B
@@ -259,7 +259,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 长夜怒技直接段攻击比增加0.26，白昼怒技数值不变。
+        text: 长夜怒技直接伤害提高攻击的0.26倍；白昼怒技数值不变。
   - id: RKF10-J2-C
     tier: 2
     branch: C
@@ -276,7 +276,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 白昼普攻与怒技护盾的防御比各增加0.10。
+        text: 白昼普攻和怒技获得的护盾各增加防御0.10倍。
       - id: RKF10-J2-C-NIGHT
         trigger: always
         operation: modify_effect
@@ -286,7 +286,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 长夜普攻与怒技直接段攻击比各增加0.10。
+        text: 长夜普攻和怒技的直接伤害各提高攻击的0.10倍。
   - id: RKF10-J3-A
     tier: 3
     branch: A
@@ -303,7 +303,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 昼夜由白昼转入长夜时额外获得8点怒气，不改变相位轮替次数。
+        text: 昼夜从白昼转为长夜时，额外获得8点怒气。
   - id: RKF10-J3-B
     tier: 3
     branch: B
@@ -320,7 +320,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 普攻白昼与长夜的直接段攻击比各增加0.12。
+        text: 白昼和长夜的普攻直接伤害各提高攻击的0.12倍。
       - id: RKF10-J3-B-RAGE
         trigger: always
         operation: modify_effect
@@ -330,7 +330,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 怒技白昼与长夜的直接段攻击比各增加0.12。
+        text: 白昼和长夜的怒技直接伤害各提高攻击的0.12倍。
   - id: RKF10-J3-C
     tier: 3
     branch: C
@@ -347,7 +347,7 @@ talents:
         consumes: [shield_current_ratio]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 白昼普攻开始时消费动作开始前已有护盾的35%，按每点护盾0.18转为一段派生伤害；本动作新生成的护盾不可被同次消费。
+        text: 白昼普攻开始时消耗已有护盾的35%，每消耗1点护盾造成0.18点追加伤害；这次普攻新获得的护盾不会被消耗。
   - id: RKF10-J4-A
     tier: 4
     branch: A
@@ -364,7 +364,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 白昼普攻与怒技护盾的防御比各增加0.22。
+        text: 白昼普攻和怒技获得的护盾各增加防御0.22倍。
       - id: RKF10-J4-A-DAMAGE
         trigger: always
         operation: modify_effect
@@ -374,7 +374,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 长夜普攻与怒技直接段攻击比各增加0.20。
+        text: 长夜普攻和怒技的直接伤害各提高攻击的0.20倍。
   - id: RKF10-J4-B
     tier: 4
     branch: B
@@ -391,7 +391,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 长夜怒技直接段攻击比增加0.38，白昼怒技不受此效果影响。
+        text: 长夜怒技直接伤害提高攻击的0.38倍；白昼怒技不受影响。
   - id: RKF10-J4-C
     tier: 4
     branch: C
@@ -408,7 +408,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 每次主动作完成并实际发生一次昼夜轮替时额外获得12点怒气，不增加主动作次数。
+        text: 每次普攻或怒技完成并使昼夜轮替时，额外获得12点怒气。
 routes:
   - name: 白昼重壁
     summary: 强化白昼护盾并用已有护盾换取一次受控的龙息伤害；代价是输出转换只在白昼且必须先有护盾。

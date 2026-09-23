@@ -554,7 +554,7 @@ export class ShanhaiGame {
         return { type: 'R', id: `R-A${act}-${key}`, completed: false, label: '休整' };
       }
       if (depth === 5 && lane === shopLane) {
-        return { type: 'S', id: `SHOP-A${act}-${key}`, completed: false, label: '商店' };
+        return { type: 'S', id: `SHOP-A${act}-${key}`, completed: false, label: '坊市' };
       }
       if (depth === 9 && hasElite && lane === eliteLane) type = 'L';
       if (type === 'C' || type === 'L') {
@@ -597,7 +597,7 @@ export class ShanhaiGame {
       E: '事件',
       K: '机缘',
       L: '精英',
-      S: '商店',
+      S: '坊市',
       R: '休整',
       B: '首领',
       F: '终战',
@@ -1072,7 +1072,7 @@ export class ShanhaiGame {
     }
     if (node.type === 'F') {
       this.markNodeCompleteWithoutTravel();
-      const finalText = '你以真实带入的构筑渡过天门。';
+      const finalText = '你凭一路修来的本领渡过天门。';
       this.state.history.push({
         act: this.state.act,
         step: this.state.step,

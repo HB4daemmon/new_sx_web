@@ -4,8 +4,8 @@ kind: method
 id: RKF05
 name: 养剑诀
 status: design_target
-summary: 以唯一剑势状态积累剑锋、强化直接剑击并在需要时耗势追击的普通剑修功法。
-description: 养剑诀的主输出读取攻击，暴击只作用于明示的直接剑击；剑势是本门唯一专属战斗状态，不新增资源栏或额外主动作。
+summary: 积累剑势强化剑击，并可消耗剑势追击的剑修功法。
+description: 养剑诀以攻击造成剑击伤害，剑势层数可进一步强化普攻和怒技；部分天赋会消耗剑势发动追击。
 tags: [method, common, attack, crit_rate, sword_intent]
 source:
   basis: original
@@ -55,7 +55,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按攻击的1.05倍造成一段可暴击直接剑击；当前剑势的基础伤害增量由本门被动统一读取。
+        text: 按攻击的1.05倍造成一段可暴击剑击；伤害还会按出手时的剑势层数提高。
       - id: RKF05-BASIC-INTENT
         trigger: action_end
         operation: apply_status
@@ -71,7 +71,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 养锋出鞘完成后获得1层剑势，最多5层；积势不增加主动作，也不改变公共普攻回怒25。
+        text: 普攻完成后增加1层剑势，最多5层；普攻仍获得25点基础怒气。
   rage:
     name: 断水养锋
     quick: 怒技剑击并保留剑势
@@ -91,7 +91,7 @@ actions:
         consumes: [rage_locked_action_cost]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按公共规则支付本轮锁定怒耗后，按攻击的1.50倍造成一段可暴击直接剑击；怒技默认保留剑势，剑势伤害增量由本门被动统一读取。
+        text: 消耗本次怒技所需的怒气后，按攻击的1.50倍造成一段可暴击剑击；怒技不会消耗剑势，伤害仍按出手时的剑势层数提高。
 passives:
   - id: RKF05-PASSIVE-EDGE
     trigger: always
@@ -108,7 +108,7 @@ passives:
     consumes: []
     replaces: []
     limit: {scope: permanent, count: 1}
-    text: 普攻和怒技的基础直接剑击都读取动作开始时的剑势，每层额外增加攻击0.04倍的直接量；该增量不把暴击率扩展到未明示的派生效果。
+    text: 普攻和怒技按出手时的剑势层数提高直接伤害，每层增加攻击0.04倍；此加成不影响追剑等追加效果。
 travel:
   - id: RKF05-TRAVEL-NEXT-STRIKE
     trigger: node_complete
@@ -129,7 +129,7 @@ travel:
     consumes: []
     replaces: []
     limit: {scope: node, count: 1}
-    text: 连续完成2个节点后为下一场战斗准备一次攻击0.20倍的首击；准备只存一份、只在下一场兑现，换法或错过战斗不重复追领。
+    text: 连续完成2个节点后，为下一场战斗准备一次攻击0.20倍的首击；准备效果只保留一份，并在下一场战斗使用。
 talents:
   - id: RKF05-J1-A
     tier: 1
@@ -152,7 +152,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 普攻和怒技每层剑势的直接伤害增量再增加攻击0.02倍；只读取剑势，不扩大其它派生攻击。
+        text: 普攻和怒技每层剑势带来的直接伤害额外增加攻击0.02倍；不提高追剑等追加攻击的伤害。
   - id: RKF05-J1-B
     tier: 1
     branch: B
@@ -175,7 +175,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 每次基础普攻额外积1层剑势，单次最多从基础1层变为2层，仍受5层上限约束，不增加主动作。
+        text: 每次普攻额外增加1层剑势；普攻完成时最多增加2层，剑势仍最多5层。
   - id: RKF05-J1-C
     tier: 1
     branch: C
@@ -197,7 +197,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 暴击率提高0.08；只影响卡面允许暴击的直接剑击，不影响燃烧、中毒、治疗、护盾或反震。
+        text: 暴击率提高8个百分点；只影响可暴击的直接剑击，不影响燃烧、中毒、治疗、护盾或反震。
   - id: RKF05-J2-A
     tier: 2
     branch: A
@@ -220,7 +220,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 剑势上限提高到7层，怒技继续保留全部剑势；它强化已有状态，不新增第二种专属资源。
+        text: 剑势上限提高到7层；怒技仍不会消耗剑势。
   - id: RKF05-J2-B
     tier: 2
     branch: B
@@ -249,7 +249,7 @@ talents:
         consumes: [sword_intent_up_to_3_stacks]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 怒技完成时最多消费3层已有剑势，每层追加一次攻击0.28倍的不可暴击追剑；基础怒技保留，无剑势时只结算基础怒技。
+        text: 怒技完成时最多消耗3层剑势；每消耗1层，追加一次攻击0.28倍且不可暴击的追剑。没有剑势可消耗时，仍照常造成怒技伤害。
   - id: RKF05-J2-C
     tier: 2
     branch: C
@@ -273,7 +273,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 每次完成普攻或怒技后额外登记5点怒气；不消费剑势，不增加主动作，与公共普攻和受击回怒分开记录。
+        text: 每次普攻或怒技完成后额外获得5点怒气；不消耗剑势。
   - id: RKF05-J3-A
     tier: 3
     branch: A
@@ -295,7 +295,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 断水养锋的基础直接段提高20%；不提高耗势追剑或其它派生攻击。
+        text: 断水养锋的直接伤害提高20%；不提高耗势追剑或其他追加攻击。
   - id: RKF05-J3-B
     tier: 3
     branch: B
@@ -319,7 +319,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 普攻或怒技完成后按防御0.16倍加当前每层剑势最大气血0.025倍造盾；只读取剑势，不消费剑势或新增资源。
+        text: 每次普攻或怒技完成后，获得防御0.16倍加当前每层剑势最大气血0.025倍的护盾；此效果不消耗剑势。
   - id: RKF05-J3-C
     tier: 3
     branch: C
@@ -343,7 +343,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 本门普攻或怒技的一次基础直接段实际暴击后追加一次攻击0.45倍的不可暴击追剑；每个主动作最多一次，追剑不再触发自身。
+        text: 普攻或怒技的基础剑击暴击后，追加一次攻击0.45倍且不可暴击的追剑；每次行动最多触发一次，追剑不会再次触发此效果。
   - id: RKF05-J4-A
     tier: 4
     branch: A
@@ -367,7 +367,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 将断水养锋改为同一怒技内两段、每段攻击0.85倍的可暴击剑击；不增加主动作，剑势读取仍按动作开始时快照。
+        text: 断水养锋改为同一次怒技内造成两段剑击，每段为攻击的0.85倍且可暴击；两段均按出手时的剑势层数计算伤害。
   - id: RKF05-J4-B
     tier: 4
     branch: B
@@ -391,7 +391,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 每次完成普攻或怒技后额外登记6点怒气；与归鞘回气可合法相加，但不增加主动作、不消费剑势。
+        text: 每次普攻或怒技完成后额外获得6点怒气；可与归鞘回气同时生效，不消耗剑势。
   - id: RKF05-J4-C
     tier: 4
     branch: C
@@ -414,7 +414,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 动作开始时剑势至少5层时，普攻和怒技基础直接段额外提高25%；不足5层时不触发，不影响追剑、护盾或其它派生效果。
+        text: 出手时剑势达到5层，普攻和怒技的直接伤害提高25%；不足5层时不触发，也不提高追剑或护盾效果。
 routes:
   - name: 留势长锋
     summary: 提高剑势上限并保留层数，以满层直接剑击和剑心增伤取胜；代价是需要连续普攻积累状态。
@@ -423,5 +423,5 @@ routes:
     summary: 用怒技消费剑势换多次追剑，再以两段怒技放大直接爆发；代价是消费剑势后下一轮基础增伤下降。
     talents: [RKF05-J1-B, RKF05-J2-B, RKF05-J3-A, RKF05-J4-A]
   - name: 追剑回气
-    summary: 通过暴击追剑和两档出剑回怒维持循环，并以基础暴击率取得稳定输入；代价是追加段依赖真实暴击。
+    summary: 通过暴击追剑和两档出剑回怒维持循环，并以基础暴击率提高追剑机会；代价是必须暴击才会触发追加剑击。
     talents: [RKF05-J1-C, RKF05-J2-C, RKF05-J3-C, RKF05-J4-B]

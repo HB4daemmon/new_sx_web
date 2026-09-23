@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A2-C4
 name: 断桥雷鲛
 status: design_target
-summary: 以三段怒技和首击追加段形成第二幕后段多段压力。
-description: 雷鲛的多段压力来自奔雷诀、连雷天赋和如意钱的首击追加，所有触发边界都沿用现有卡面。它的五维仍低于精英档，玩家可用护盾、防御或先手短战取得正反馈，不承诺静态胜率。
+summary: 桥下雷光一闪，水面随即泛起环形波纹。
+description: 旧桥阴影里鳞光时隐时现，雷声从水面深处传来。
 tags: [enemy, act2, normal, multihit, crit]
 source:
   basis: original
@@ -21,7 +21,7 @@ balance:
   measured: null
 acts: [2]
 tier: normal
-identity: 断桥雷鲛伏在桥下，鳞片会在普攻首击落下时弹出一小段回雷。它以多段顺序与首击追加造成直接压力，是原创妖物而非神话身份本人。
+identity: 断桥雷鲛伏在桥下，鳞片映着水光，远处一有脚步便搅起涟漪。
 method: RKF07
 n: 2
 talents: [RKF07-J1-A, RKF07-J2-C]

@@ -41,7 +41,7 @@ options:
     outcome: 你把修为收进气海，后羿让开火线，不再为你保留试射位。
   - id: RK005-leave
     label: 留石观火
-    quick: 拿一小笔灵石，保留当前法宝配置
+    quick: 拿一小笔灵石，不更换身上的法宝。
     requirements: []
     costs: []
     rewards:

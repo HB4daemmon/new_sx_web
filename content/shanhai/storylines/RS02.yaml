@@ -25,13 +25,13 @@ encounters: [RK003, RK004]
 commitment:
   id: RS02-promised
   form: endure_reef_pressure
-  text: 初遇时承受 8% 气血损耗并存活，答应在后段进入公开的清礁试炼。
+  text: 初遇损失约50点气血并存活，答应后段进入清礁挑战；挑战失手不发战斗奖励。
   requirement: 初遇时承受潮水冲击并存活，答应后段清礁
-  cancellation: 未承受冲击、错过回访或挑战失败后，不会得到普通斗法战利品，也不会得到堤路回报。
+  cancellation: 未承受冲击、错过回访或挑战失手后，不会得到额外战斗奖励，也没有堤路回报。
 resolution:
   condition: 初遇承诺仍在，并在清礁处选择挑战或支付 20 灵石取蛇纹瓶。
   reward_shape: 清礁成功取毒牙钉；支付 20 灵石取蛇纹瓶，不承担挑战风险。
-  tradeoff: 初遇先承受 8% 气血损耗，后段清礁不另收入场气血但仍会留下战斗损耗；支付路线保留气血，却放弃毒牙钉的更高回报。
+  tradeoff: 初遇先损失约50点气血并存活；后段清礁不另扣气血，但战斗仍可能造成伤害。付20灵石可稳妥取蛇纹瓶，却拿不到毒牙钉。
 selection:
   planned_per_run: 1
   optional: true

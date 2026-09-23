@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A1-L1
 name: 养锋石卫
 status: design_target
-summary: 以剑势和动作后攻击叠层形成第一幕精英的双重直接压力。
-description: 石卫把养剑诀的剑势与镇心玉的动作后攻击层分开结算，攻击成长不会追溯到刚结束的动作。它是精英参考输入，不代表所有玩家 build 都应保证胜利。
+summary: 潮路转弯处立着一尊磨损的石卫。
+description: 古道边的石卫残缺不全，掌中长剑仍映着潮光。
 tags: [enemy, act1, elite, stacking, direct]
 source:
   basis: original
@@ -21,7 +21,7 @@ balance:
   measured: null
 acts: [1]
 tier: elite
-identity: 养锋石卫守在潮路转折处，先用普通剑击积累剑势，再把力量压进下一次主动作。它的风险来自剑势与镇心玉层数同时成长后的直接伤害。
+identity: 养锋石卫守在潮路转折处，脚下落满旧剑留下的碎片。
 method: RKF05
 n: 1
 talents: [RKF05-J1-B]
@@ -35,7 +35,7 @@ stats:
   max_hp: 450
   crit_rate: 0.08
   speed: 10
-pressure: [叠buff, 直接攻击]
+pressure: [攻势渐强, 直接攻击]
 counterplay:
   - 在镇心玉的攻击层和剑势都尚未成形时集中爆发，缩短它进入高输出循环的时间。
   - 用破甲或减攻来源压低成长后的单段伤害，并以护盾承受仍会逐步增加的直接段。

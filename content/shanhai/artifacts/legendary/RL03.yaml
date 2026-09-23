@@ -4,8 +4,8 @@ kind: artifact
 id: RL03
 name: 裂空宝轮
 status: design_target
-summary: 攻击 +12、暴击率 +3 个百分点；普攻首命中追加两段
-description: 宝轮撕开普攻首个基础命中的余势，追加两段独立直接攻击。
+summary: 攻击 +12、暴击率 +3 个百分点；普攻首次命中后追加两段伤害
+description: 普攻首次命中后，宝轮会接续两段不可暴击的直接攻击。
 tags: [attack, crit_rate, basic, followup, legendary]
 source:
   basis: original
@@ -40,6 +40,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: action, count: 1}
-    text: 每次普攻首个有效基础命中后追加两段倍率各0.5的直接伤害；追加段不再触发本效果或其它普攻首命中追加。
+    text: 每次普攻首次命中后，追加两段各为攻击0.5倍的不可暴击直接伤害；追加段不会再次触发此效果。
 acquisition:
   pools: [legendary_artifact]

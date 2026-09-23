@@ -4,8 +4,8 @@ kind: event
 id: RK009
 name: 哪吒先过阵
 status: design_target
-summary: 先过一阵才有后段资格，失手会停在 1 点气血，收手和承险都在眼前说清。
-description: 哪吒把轻阵和重阵的压力公开给你看，初遇不发法宝，只让你决定是否先承担一段可收手的阵试。
+summary: 先赢下第一阵才有后段资格；挑战损失约62点气血，失手后仅剩1点，收手选项也摆在眼前。
+description: 哪吒把第一阵的打法与后果说清：挑战损失约62点气血，失手后仅剩1点；胜利后才可在后段选择第二阵。
 tags: [core, character_encounter, nezha, first_meeting, staged_trial]
 source:
   basis: myth_adaptation
@@ -23,7 +23,7 @@ scene: 哪吒在山场摆下两阵，一阵重击，一阵连招；他先让你�
 options:
   - id: RK009-enter-first-array
     label: 先接重阵
-    quick: 支付 8% 气血，胜利后保留第二阵资格
+    quick: 损失约62点气血挑战，胜利后保留第二阵资格；失手后仅剩1点气血。
     requirements: []
     costs:
       - {type: resource, resource: hp, amount: 0.08, basis: reference_hp, must_survive: true}
@@ -36,7 +36,7 @@ options:
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 重阵把你逼退，哪吒收起第二阵的牌；已付的 8% 气血留在阵门前，后段不再开第二阵。
+      failure_outcome: 重阵把你逼退，哪吒收起第二阵的牌；损失的约62点气血留在阵门前，气血仅剩1点，后段不再开第二阵。
   - id: RK009-take-safe
     label: 收下小修行
     quick: 立即获得一笔修为，放弃两阵承诺

@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A2-C1
 name: 断桥青蛇
 status: design_target
-summary: 以中毒叠层和轮尾持续伤害形成第二幕前段普通压力。
-description: 青蛇的持续伤害来自五毒经、毒牙钉与蛇纹瓶的现有输入，不读取玩家当前 build 动态加层。它的基础属性把第二幕压力集中在中毒覆盖和轮尾结算，不承诺静态胜率。
+summary: 青蛇缠在旧桥木桩上，水面映着细长青影。
+description: 断桥边的青苔一路爬到木桩，潮气中有淡淡草木腥气。
 tags: [enemy, act2, normal, poison, dot]
 source:
   basis: original
@@ -21,7 +21,7 @@ balance:
   measured: null
 acts: [2]
 tier: normal
-identity: 断桥青蛇缠在旧索桥的木桩上，吐息会在伤口边缘留下逐轮扩散的青痕。它以中毒层数和轮尾结算造成持续压力，不拥有免毒效果。
+identity: 断桥青蛇盘在旧索桥旁，青鳞贴着湿木，水面映出一道细长影子。
 method: RKF06
 n: 1
 talents: [RKF06-J1-A]
@@ -35,7 +35,7 @@ stats:
   max_hp: 360
   crit_rate: 0.06
   speed: 10
-pressure: [长DOT]
+pressure: [持续伤害]
 counterplay:
   - 用短战爆发或破甲尽快击倒青蛇，减少中毒在多个轮尾继续结算。
   - 以治疗或护盾接住毒层期间的直接段，并用能持续造成有效伤害的普攻路线保持压力。

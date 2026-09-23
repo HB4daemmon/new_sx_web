@@ -5,7 +5,7 @@ id: RC20
 name: 引气符
 status: design_target
 summary: 攻击 +2；普攻完成后额外回怒 5
-description: 符纸牵引散气，在每次普攻主动作结束时补回少量怒气。
+description: 每次普攻完成后，符纸额外补回5点怒气。
 tags: [attack, rage_gain, basic, combat]
 source:
   basis: original
@@ -34,6 +34,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: action, count: 1}
-    text: 每层在一次普攻主动作完成时登记额外5点怒气，不替代公共普攻完成回怒。
+    text: 每层在普攻完成后额外获得5点怒气；普攻原有的回怒照常获得。
 acquisition:
   pools: [common_artifact]

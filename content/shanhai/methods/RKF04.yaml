@@ -4,8 +4,8 @@ kind: method
 id: RKF04
 name: 御火诀
 status: design_target
-summary: 以攻击造成火焰直伤并施加公共燃烧的普通火修功法。
-description: 御火诀把直接火伤与燃烧持续伤害分开记账，天赋分别强化留火、耗火和火盾；燃烧不默认暴击且遵守公共状态上限。
+summary: 以火焰攻击和燃烧持续伤害压制敌方的火修功法。
+description: 御火诀用普攻和怒技造成火焰伤害并施加燃烧；天赋可强化燃烧、消耗燃烧造成伤害或转为护盾。燃烧不会暴击。
 tags: [method, common, attack, burn, direct]
 source:
   basis: original
@@ -50,7 +50,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按攻击的0.95倍造成一段可暴击火焰直接伤害；该段与后续燃烧分开记账。
+        text: 按攻击的0.95倍造成一段可暴击火焰直接伤害；燃烧伤害另行结算。
       - id: RKF04-BASIC-BURN
         trigger: action_end
         operation: apply_status
@@ -68,7 +68,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 引火灼身完成后对敌人施加1层燃烧，持续3轮；状态施加不等于已造成燃烧伤害。
+        text: 引火灼身命中后施加1层燃烧，持续3轮；燃烧伤害在每轮结束时结算。
   rage:
     name: 炎心爆发
     quick: 怒技火伤并叠燃烧
@@ -88,7 +88,7 @@ actions:
         consumes: [rage_locked_action_cost]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按公共规则支付本轮锁定怒耗后，按攻击的1.55倍造成一段可暴击火焰直接伤害。
+        text: 消耗本次怒技所需的怒气后，按攻击的1.55倍造成一段可暴击火焰直接伤害。
       - id: RKF04-RAGE-BURN
         trigger: action_end
         operation: apply_status
@@ -106,7 +106,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 炎心爆发完成后对敌人施加2层燃烧，持续3轮；怒技动作不因此增加普攻回怒或额外主动作。
+        text: 炎心爆发命中后施加2层燃烧，持续3轮；怒技不会因此获得普攻回怒或额外行动。
 passives:
   - id: RKF04-PASSIVE-BURN
     trigger: always
@@ -124,7 +124,7 @@ passives:
     consumes: []
     replaces: []
     limit: {scope: permanent, count: 1}
-    text: 本门施加的燃烧每层额外读取攻击0.02倍作为首测持续伤害输入；公共燃烧的上限、持续和不暴击规则保持不变。
+    text: 御火诀施加的每层燃烧每次结算时额外造成攻击0.02倍的伤害；燃烧不会暴击，层数和持续时间仍按各项效果说明计算。
 travel:
   - id: RKF04-TRAVEL-BATTLE-COINS
     trigger: battle_node_complete
@@ -141,7 +141,7 @@ travel:
     consumes: []
     replaces: []
     limit: {scope: node, count: 1}
-    text: 活着完成战斗、精英或首领节点后获得3灵石；只在战斗节点结算完成时触发一次，不在战斗动作中重复发放。
+    text: 存活完成普通战、精英战或首领战节点后获得3枚灵石；每个战斗节点只获得一次。
 talents:
   - id: RKF04-J1-A
     tier: 1
@@ -164,7 +164,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 本门新施加燃烧的持续时间增加1轮；不追溯已经结束的tick，不突破公共层数上限。
+        text: 御火诀新施加的燃烧持续时间增加1轮；已结束的燃烧不会恢复，燃烧层数仍受上限约束。
   - id: RKF04-J1-B
     tier: 1
     branch: B
@@ -186,7 +186,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 引火灼身的基础直接火伤提高15%；不提高燃烧tick或其它派生伤害。
+        text: 引火灼身造成的直接火焰伤害提高15%；不提高燃烧或其他追加伤害。
   - id: RKF04-J1-C
     tier: 1
     branch: C
@@ -208,7 +208,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 引火灼身完成后按防御的0.20倍造盾；护盾只负责生存，不把防御转为火焰伤害。
+        text: 引火灼身完成后获得防御0.20倍的护盾。
   - id: RKF04-J2-A
     tier: 2
     branch: A
@@ -231,7 +231,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 本门燃烧层数上限从10提高到12；持续时间和tick顺序仍按公共规则，不凭空追加额外主动作。
+        text: 御火诀施加的燃烧最多叠加12层；每层的持续时间和结算次数不变。
   - id: RKF04-J2-B
     tier: 2
     branch: B
@@ -254,7 +254,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: round, count: 1}
-        text: 本门燃烧在轮尾实际造成正伤害时，每轮最多登记额外5点怒气；未tick、被护盾完全吸收或空转状态不返怒。
+        text: 御火诀施加的燃烧每轮首次对气血或护盾造成伤害时，额外获得5点怒气；每轮最多触发一次，未造成伤害时不触发。
   - id: RKF04-J2-C
     tier: 2
     branch: C
@@ -276,7 +276,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 炎心爆发的基础直接火伤提高22%；不提高燃烧持续伤害或其它派生段。
+        text: 炎心爆发造成的直接火焰伤害提高22%；不提高燃烧或其他追加伤害。
   - id: RKF04-J3-A
     tier: 3
     branch: A
@@ -305,7 +305,7 @@ talents:
         consumes: [burn_up_to_3_stacks]
         replaces: [RKF04-RAGE-BURN]
         limit: {scope: action, count: 1}
-        text: 取代怒技施加燃烧段；怒技保留基础直接火伤，先消费敌方最多3层已有燃烧，每层按攻击0.18倍追加一次派生火伤，消费后不再给本次怒技补新燃烧，无火层时只结算基础怒技。
+        text: 怒技不再施加燃烧，改为先消耗敌方已有的最多3层燃烧；每消耗1层，额外造成攻击0.18倍的火焰伤害。没有燃烧可消耗时，仍造成怒技原有伤害。
   - id: RKF04-J3-B
     tier: 3
     branch: B
@@ -328,7 +328,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 敌人至少有1层本门燃烧时，受到的敌方直接伤害乘以0.88；燃烧tick、毒、事件扣血不受影响。
+        text: 敌方至少有1层御火诀施加的燃烧时，受到的直接攻击伤害降低12%；燃烧、中毒和事件扣血不受影响。
   - id: RKF04-J3-C
     tier: 3
     branch: C
@@ -351,7 +351,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 本门普攻或怒技施加燃烧时额外加入1层，仍受公共燃烧上限约束，不能刷新旧层或递归追加。
+        text: 普攻或怒技施加燃烧时，额外增加1层；仍受燃烧层数上限限制，不会刷新已有燃烧或重复触发此效果。
   - id: RKF04-J4-A
     tier: 4
     branch: A
@@ -375,7 +375,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 将炎心爆发直接伤害改为同一怒技内两段、每段攻击0.88倍的可暴击火伤；两段不是额外主动作，燃烧施加仍只按对应效果结算一次。
+        text: 炎心爆发改为同一次怒技内造成两段火焰伤害，每段为攻击的0.88倍且可暴击；两段仍只算一次行动，燃烧只施加一次。
   - id: RKF04-J4-B
     tier: 4
     branch: B
@@ -398,7 +398,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 本门新燃烧持续时间再增加2轮；旧层不因选择天赋追溯刷新，仍按各层独立tick和公共清除规则处理。
+        text: 御火诀新施加的燃烧持续时间再增加2轮；已施加的燃烧不会延长，每层仍分别结算和消失。
   - id: RKF04-J4-C
     tier: 4
     branch: C
@@ -422,14 +422,14 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: round, count: 1}
-        text: 本门燃烧在轮尾实际造成伤害后，按实际燃烧伤害的30%造盾；只读取已结算伤害，不消费燃烧、不把护盾再转成伤害。
+        text: 御火诀施加的燃烧每轮造成伤害后，获得相当于该次伤害30%的护盾；燃烧不会因此消失。
 routes:
   - name: 长燃不灭
-    summary: 提高燃烧层数和持续时间，靠长线tick与燃烧护身积累优势；代价是短战中未兑现的燃烧不计入输出。
+    summary: 提高燃烧层数和持续时间，以持续伤害压制敌人；代价是战斗过短时，尚未结算的燃烧伤害不会计入输出。
     talents: [RKF04-J1-A, RKF04-J2-A, RKF04-J3-B, RKF04-J4-B]
   - name: 耗火爆燃
-    summary: 以怒技消费已有燃烧换即时派生伤害，并强化怒技本体；代价是消费后失去后续燃烧tick。
+    summary: 以怒技消耗已有燃烧换取额外伤害，并强化怒技本身；代价是被消耗的燃烧不再造成后续伤害。
     talents: [RKF04-J1-B, RKF04-J2-C, RKF04-J3-A, RKF04-J4-A]
   - name: 火盾护身
-    summary: 普攻先造盾、燃烧时减伤并把实际燃烧伤害转为护盾；代价是燃烧未实际tick时护盾出口也没有输入。
+    summary: 普攻先获得护盾，敌人带有燃烧时降低所受直接伤害，并在燃烧造成伤害后获得护盾；代价是燃烧没有造成伤害时，无法触发燃烧转护盾。
     talents: [RKF04-J1-C, RKF04-J2-B, RKF04-J3-C, RKF04-J4-C]

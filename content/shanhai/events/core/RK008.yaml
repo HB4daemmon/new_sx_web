@@ -4,7 +4,7 @@ kind: event
 id: RK008
 name: 禹守堤回访
 status: design_target
-summary: 让出的修为要在堤口前用一次守堤挑战兑现；成功取长明灯，安全路线则借一层临时护堤盾。
+summary: 让出的修为可在堤口换一次守堤挑战；胜利取长明灯，不挑战则得一层临时护堤盾。
 description: 禹把堤口的冲击和失手后的退路都摆明；若未曾让出修为，这里只会看见普通道路。
 tags: [core, character_encounter, yu, follow_up, endurance]
 source:
@@ -19,33 +19,33 @@ balance:
   measured: null
 event_type: core
 acts: [4]
-scene: 堤口的水声像一面连续的鼓，禹先指出，守堤失手只会留下已经付出的代价，不会另送斗法战利品。
+scene: 堤口的水声像一面连续的鼓，禹说明守堤挑战会损失约138点气血，失手后仅剩1点；不挑战也可得一层护堤盾。
 options:
   - id: RK008-hold-dike
     label: 迎水守堤
-    quick: 支付 12% 气血，胜利取长明灯
+    quick: 损失约138点气血挑战，胜利取长明灯；失手后仅剩1点气血。
     requirements:
       - {type: flag, id: RS04-promised, value: true}
     costs:
       - {type: resource, resource: hp, amount: 0.12, basis: reference_hp, must_survive: true}
     rewards:
       - {type: artifact, id: RR06, count: 1}
-    outcome: 你把水势导回旧河床，胜利后取走长明灯；它的最大气血加成立即计入，下一场真实斗法完成后才会触发战后恢复。
+    outcome: 你把水势导回旧河床，胜利后取走长明灯；它的最大气血加成立即计入，下一场战斗结束后才会触发战后恢复。
     encounter:
       enemy_id: EN-A4-B1
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 堤口冲垮了你的阵脚，禹关上水闸；已付的 12% 气血留在堤边，长明灯没有到手。
+      failure_outcome: 堤口冲垮了你的阵脚，禹关上水闸；损失的约138点气血留在堤边，气血仅剩1点，长明灯没有到手。
   - id: RK008-pay-work
     label: 借一层护堤盾
-    quick: 不挑战，获得下一场真实战斗前的临时护盾
+    quick: 不挑战，获得一层护堤盾，护住下一场战斗。
     requirements:
       - {type: flag, id: RS04-promised, value: true}
     costs: []
     rewards:
       - {type: preparation, effect: shield, amount: 0.1, basis: reference_hp}
-    outcome: 禹把水势引开，先替你立下一层护堤盾；它只护住下一场真实战斗，长明灯留在堤口。
+    outcome: 禹把水势引开，先替你立下一层护堤盾；它只护住下一场战斗，长明灯留在堤口。
   - id: RK008-withdraw
     label: 放下堤绳
     quick: 放下堤绳，保留当前资源和气血

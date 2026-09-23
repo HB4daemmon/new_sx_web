@@ -22,7 +22,7 @@ scene: 赤砂灼热，两枚法片在砂下泛光。你可以忍痛取宝，也�
 options:
   - id: RE021-A
     label: 取蛇纹瓶
-    quick: 付出一成半气血代价，带走两层蛇纹瓶，增强中毒伤害。
+    quick: 损失约143点气血（第四幕约173点），带走两层蛇纹瓶，增强中毒伤害。
     requirements:
       - {type: capacity, id: RC14, count: 2}
     costs:
@@ -32,7 +32,7 @@ options:
     outcome: 你忍痛从赤砂里取出两层蛇纹瓶，瓶中毒意随之苏醒。
   - id: RE021-B
     label: 取赤炎珠
-    quick: 付出一成半气血代价，带走两层赤炎珠，增强燃烧伤害。
+    quick: 损失约143点气血（第四幕约173点），带走两层赤炎珠，增强燃烧伤害。
     requirements:
       - {type: capacity, id: RC15, count: 2}
     costs:

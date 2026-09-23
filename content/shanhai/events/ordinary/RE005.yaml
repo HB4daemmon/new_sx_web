@@ -5,7 +5,7 @@ id: RE005
 name: 散修赌斗
 status: design_target
 summary: 在散修擂台上赌两层青锋石，或付灵石带走玄铁甲。
-description: 散修把两枚法片压在石上，约好点到为止。败者会被逼退到只剩一线气血。
+description: 散修把两枚法片压在石上，约好点到为止。失手会被逼下擂台，气血仅剩1点。
 tags: [ordinary, nonlethal, encounter, artifact]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [1]
-scene: 散修把青锋石压在石面，笑着邀你过招。胜者带走法片，败者只需退到安全线。
+scene: 散修把青锋石压在石面，笑着邀你过招。胜者带走法片，失手后会被逼下擂台，气血仅剩1点。
 options:
   - id: RE005-A
     label: 接下比试
-    quick: 参加非致命比试，胜者带走两层青锋石；败了只剩一线气血。
+    quick: 参加比试，胜利带走两层青锋石；失手后保留1点气血。
     requirements:
       - {type: capacity, id: RC01, count: 2}
     costs: []
@@ -33,7 +33,7 @@ options:
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 你被逼退到安全线，气血只剩一线，青锋石仍留在散修手中。
+      failure_outcome: 你被逼下擂台，气血仅剩1点，青锋石仍留在散修手中。
     outcome: 你在石线内分出胜负，带走两层青锋石。
   - id: RE005-B
     label: 出价交换

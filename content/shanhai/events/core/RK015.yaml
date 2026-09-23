@@ -20,11 +20,11 @@ balance:
   measured: null
 event_type: core
 acts: [3]
-scene: 倒悬的扶桑火把海潮照成金色，石碑写明只有学过御火诀的人才能读卷；攀树要承受 15% 气血损耗，支付 36 灵石可直接取金乌真经，失手则两手空空。
+scene: 倒悬的扶桑火把海潮照成金色，石碑写明只有学过御火诀的人才能读卷；攀树损失约143点气血，失手后仅剩1点。付36灵石可直接取金乌真经。
 options:
   - id: RK015-climb-fusang
     label: 登树取真经
-    quick: 学过御火诀，支付 15% 气血，胜利取金乌真经
+    quick: 学过御火诀，损失约143点气血挑战；胜利取金乌真经，失手后仅剩1点气血。
     requirements:
       - {type: known_method, id: RKF04}
     costs:
@@ -37,7 +37,7 @@ options:
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 你没能登上扶桑，火卷重新闭合；已付的 15% 气血留在火潮里，金乌真经没有到手。
+      failure_outcome: 你没能登上扶桑，火卷重新闭合；损失的约143点气血留在火潮里，气血仅剩1点，金乌真经没有到手。
   - id: RK015-buy-sun-path
     label: 付石问真经
     quick: 学过御火诀，支付 36 灵石，稳妥取金乌真经

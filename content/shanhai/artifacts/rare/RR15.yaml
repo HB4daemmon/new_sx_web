@@ -5,7 +5,7 @@ id: RR15
 name: 定心佩
 status: design_target
 summary: 最大气血 +30；受到的外来削怒量减半
-description: 佩中定心之意削弱外来冲击，只作用于外来的削怒请求。
+description: 来自其他来源的削怒效果减半。
 tags: [max_hp, rage_drain_resist, combat, rare]
 source:
   basis: original
@@ -36,6 +36,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: permanent, count: 1}
-    text: 外来削怒请求按50%抗性处理；多个明示抗性先相加并封顶100%，不影响回怒收入或受击段数。
+    text: 受到来自其他来源的削怒效果降低50%；多项削怒抗性相加，最高降低100%，不影响获得怒气或受击回怒。
 acquisition:
   pools: [rare_artifact]

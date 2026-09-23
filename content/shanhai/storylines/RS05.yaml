@@ -4,7 +4,7 @@ kind: storyline
 id: RS05
 name: 哪吒过阵
 status: design_target
-summary: 先用一次公开的过阵证明自己，后段再决定是否承受第二阵换取如意钱，或用灵石取雷纹印。
+summary: 先损失约62点气血挑战第一阵，胜利后才有资格再战；后段可再损失约138点气血争取如意钱，或付24灵石取雷纹印。
 description: 哪吒把阵门分成轻重两路，主角初遇时不是领宝，而是先承担一段可收手的阵试；后段的力量来自是否继续把第二阵走完。
 tags: [character_line, nezha, two_stage_trial, combat_artifact]
 source:
@@ -20,18 +20,18 @@ balance:
     high_investment_total_U: [3.0, 4.5]
   measured: null
 character: 哪吒
-premise: 阵门一重一快，安全路线能马上拿一笔小资源，另一条路要求先过一阵再谈后面的力量。
+premise: 阵门一重一快；不接阵可立即领取一笔修为，若想在后段再战第二阵，就要先赢下第一阵。
 encounters: [RK009, RK010]
 commitment:
   id: RS05-promised
   form: staged_trial
-  text: 初遇时承受一次公开的阵试，胜利后才留下后段继续接第二阵的资格。
+  text: 初遇损失约62点气血挑战第一阵；胜利后才留下后段继续接第二阵的资格。
   requirement: 初遇第一阵获胜，并保留后段承诺
   cancellation: 初遇离阵、挑战失败或错过回访时，保留已发生的事件结果，但不补第二阵奖励。
 resolution:
   condition: 初遇第一阵胜利且承诺仍在，后段再选择第二阵、支付 24 灵石或收手。
   reward_shape: 第二阵成功取如意钱；支付 24 灵石取雷纹印，收手不再取器物。
-  tradeoff: 第二阵不回血，第一阵伤势会继续压在身上；支付路线用盘缷取确定的普通补足。
+  tradeoff: 第二阵前不会恢复气血或护盾，第一阵留下的伤势会延续；付24灵石可直接取雷纹印，收手则不再得到法宝。
 selection:
   planned_per_run: 1
   optional: true

@@ -391,7 +391,7 @@ async function run() {
       assert.equal(await desktop.locator('[data-action="battle-finish"]').evaluate(element => element.tagName), 'BUTTON');
       assert.equal(await desktop.locator('.replay-progress > i').evaluate(element => element.style.width), '100%');
       const diagnostics = desktop.locator('details[data-details="battle-diagnostics"]');
-      assert.equal(await diagnostics.getAttribute('open'), null, '战斗来源应默认折叠');
+      assert.equal(await diagnostics.getAttribute('open'), null, '斗法详录应默认折叠');
       await noOverflow(desktop, 'desktop battle');
       await desktop.screenshot({ path: path.join(reportDir, 'battle-desktop.png'), fullPage: true });
     });
@@ -440,12 +440,12 @@ async function run() {
       await forceZeroContribution(desktop);
       await desktop.locator('[data-action="battle-skip"]').click();
       const details = desktop.locator('details[data-details="battle-diagnostics"]');
-      assert.equal(await details.getAttribute('open'), null, '战斗来源应默认折叠');
+      assert.equal(await details.getAttribute('open'), null, '斗法详录应默认折叠');
       await details.locator('summary').click();
       assert.equal(await details.getAttribute('open'), '');
       const diagnostics = await details.textContent();
       assert.match(diagnostics, /属性已生效/);
-      assert.match(diagnostics, /本局未满足触发条件/);
+      assert.match(diagnostics, /本局没有遇到合适时机/);
       assert.doesNotMatch(diagnostics, /permanent|conditional|invalid|absent/i);
     });
 

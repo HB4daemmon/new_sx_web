@@ -120,7 +120,18 @@ async function clickAndWaitForDispatch(page, command, beforePhase, beforeSaveTex
   switch (command.type) {
     case 'enter':
       assert.ok(command.id, '地图命令没有 route node key');
-      await clickMatchingAction(page, 'enter', { id: command.id });
+      await clickMatchingAction(page, 'preview-node', { id: command.id });
+      await page.locator('.node-preview-dialog').waitFor({ state: 'visible' });
+      assert.equal(await currentPhase(page), beforePhase,
+        '打开地图预览不应推进命途阶段');
+      assert.equal(await page.evaluate(key => window.localStorage.getItem(key), saveKey), beforeSaveText,
+        '打开地图预览不应改写自动存档');
+      const previewType = await page.locator('.node-preview-dialog').getAttribute('data-node-type');
+      if (previewType === 'E' || previewType === 'K') {
+        assert.equal(await page.locator('.node-preview-dialog .event-option, .node-preview-dialog .story-choices').count(), 0,
+          '事件预览不应提前显示选项');
+      }
+      await clickMatchingAction(page, 'confirm-node');
       break;
     case 'fight':
       await clickMatchingAction(page, 'fight');
@@ -274,6 +285,32 @@ async function setupRun(page, record) {
   assert.deepEqual(saved.state.nodes, [], '新命途开局不应伪造已选行迹');
   assert.equal(await page.locator('.map-node.available:not([disabled])').count(), 1,
     '新命途开局没有唯一的合法首格');
+  const firstNode = page.locator('.map-node.available:not([disabled])').first();
+  const firstNodeKey = await firstNode.getAttribute('data-id');
+  assert.ok(firstNodeKey, '开局候选缺少 route key');
+  await clickMatchingAction(page, 'preview-node', { id: firstNodeKey });
+  const preview = page.locator('.node-preview-dialog');
+  await preview.waitFor({ state: 'visible' });
+  assert.equal(await preview.getAttribute('aria-modal'), 'true',
+    `${record.viewport}: 节点预览未作为可访问对话框打开`);
+  assert.equal(await preview.locator('[data-action="confirm-node"]').evaluate(element => element === document.activeElement),
+    true, `${record.viewport}: 节点预览未将焦点移至确认按钮`);
+  assert.equal(await currentPhase(page), 'map',
+    `${record.viewport}: 预览节点时不应进入游戏阶段`);
+  assert.equal((await readSave(page)).text, saved.text,
+    `${record.viewport}: 打开预览时存档发生变化`);
+  const mapNode = saved.state.routeMap.nodes.find(node => node.key === firstNodeKey);
+  const enemy = record.content.byId[mapNode.id];
+  assert.match(await preview.innerText(), new RegExp(enemy.name));
+  assert.match(await preview.innerText(), new RegExp(record.content.byId[enemy.method].name));
+  assert.equal(await preview.locator('.event-option, .story-choices, .preview-stat-line').count(), 0,
+    `${record.viewport}: 敌人预览泄露了完整选项或战力详录`);
+  await page.keyboard.press('Escape');
+  await preview.waitFor({ state: 'detached' });
+  assert.equal(await currentPhase(page), 'map',
+    `${record.viewport}: 关闭预览时不应推进游戏阶段`);
+  assert.equal((await readSave(page)).text, saved.text,
+    `${record.viewport}: 关闭预览时存档发生变化`);
   await assertRenderedState(page, restoreDecisionModel(record.content, saved.text), `${record.viewport} setup`);
   await takeScreenshot(page, record, 'setup');
 }

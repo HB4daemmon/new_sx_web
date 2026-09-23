@@ -4,8 +4,8 @@ kind: method
 id: RKF07
 name: 奔雷诀
 status: design_target
-summary: 以有限连雷判定制造多段爆发并用蓄运补偿失手的雷修功法。
-description: 普攻一段、怒技三段，追加雷击只在原始雷段上逐段判定，失败会留下唯一的蓄运状态。
+summary: 以连雷增加攻击段数，并用蓄势补偿连雷未成的雷修功法。
+description: 普攻造成一段雷击，怒技造成三段雷击；基础雷击有机会追加攻击，未能追加时会积累蓄势。
 tags: [method, rare, lightning, original]
 source:
   basis: original
@@ -49,7 +49,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按攻击的0.90倍造成一段可暴击直接雷伤。
+        text: 按攻击的0.90倍造成一段可暴击直接雷击伤害。
       - id: RKF07-BASIC-CHAIN
         trigger: basic_hit
         operation: chance_damage
@@ -59,7 +59,7 @@ actions:
         consumes: [charge_luck]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 基础雷段命中后只判定一次35%连雷；有未预约给护盾的蓄运时，消费一层使本次概率提高20个百分点。成功追加一段，失败留下一层蓄运，不增加检定次数或主动作。
+        text: 普攻命中后有35%概率追加一段雷击；若已有未用于护盾的蓄势，消耗1层使本次概率提高20个百分点。追加成功时多造成一段雷击，失败时获得1层蓄势；追加雷击不会再次判定。
   rage:
     name: 九霄雷劫
     quick: 三段雷击并逐段判定连雷
@@ -73,7 +73,7 @@ actions:
         consumes: [rage_locked_action_cost]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按攻击的0.45倍造成三段可暴击直接雷伤，三段属于同一怒技主动作。
+        text: 按攻击的0.45倍造成三段可暴击直接雷击伤害；三段均属于这一次怒技。
       - id: RKF07-RAGE-CHAIN
         trigger: rage_action
         operation: chance_damage
@@ -83,7 +83,7 @@ actions:
         consumes: [charge_luck]
         replaces: []
         limit: {scope: segment, count: 4}
-        text: 怒技每个基础雷段各判定一次40%连雷；未预约的蓄运可使下一次判定提高20个百分点，随后被消费。此前雷段失败留下的蓄运可供后段使用，追加段不再判定。
+        text: 怒技的每段基础雷击各有40%概率追加一段；已有且未用于护盾的蓄势使下一次概率提高20个百分点，并在判定后消耗。前段未能追加时积累的蓄势可供后续雷击使用，追加雷击不会再次判定。
 travel:
   - id: RKF07-TRAVEL-NEXT-NONBATTLE-COINS
     trigger: battle_node_complete
@@ -105,7 +105,7 @@ travel:
     consumes: []
     replaces: []
     limit: {scope: node, count: 1}
-    text: 活着完成战斗节点后，为下一次非战斗节点准备4灵石；最多待领一份，连续战斗不叠加，下一次休整、事件或商店节点完成时只领取一次。
+    text: 存活完成战斗节点后，准备在下一个休整、事件或商店节点完成时额外获得4枚灵石；连续完成战斗节点也只准备一份。
 talents:
   - id: RKF07-J1-A
     tier: 1
@@ -123,7 +123,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 奔雷诀普攻基础直接段攻击比增加0.12。
+        text: 奔雷诀普攻直接伤害提高攻击的0.12倍。
   - id: RKF07-J1-B
     tier: 1
     branch: B
@@ -140,7 +140,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 每次完成一次基础普攻后在公共+25之外额外获得8点怒气，不读取命中也不放大其它回怒来源。
+        text: 每次普攻完成后额外获得8点怒气；无论是否命中，都在普攻原有的25点回怒之外生效。
   - id: RKF07-J1-C
     tier: 1
     branch: C
@@ -157,7 +157,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: battle, count: 1}
-        text: 每场战斗开始时防御提高12，只负责承伤，不改变雷段数量。
+        text: 每场战斗开始时防御提高12；雷击段数不变。
   - id: RKF07-J2-A
     tier: 2
     branch: A
@@ -174,7 +174,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 当前主修奔雷诀时怒气上限降低10，并按公共规则同步降低怒技门槛与实际怒耗。
+        text: 选择奔雷诀为主修时，怒气上限及怒技所需怒气各降低10点。
   - id: RKF07-J2-B
     tier: 2
     branch: B
@@ -191,7 +191,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 本门怒技三段基础直接段的每段攻击比增加0.22，不提高追加雷击的检定次数。
+        text: 奔雷诀怒技每段基础雷击的伤害提高攻击的0.22倍；追加雷击的判定次数不变。
   - id: RKF07-J2-C
     tier: 2
     branch: C
@@ -208,7 +208,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 本门已有连雷判定概率各增加0.15并封顶100%，不增加判定次数，追加雷击不递归。
+        text: 连雷概率提高15个百分点，最高为100%；不会增加判定次数，追加雷击不会再次触发连雷。
   - id: RKF07-J3-A
     tier: 3
     branch: A
@@ -225,7 +225,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 怒技基础雷段由3段增加为4段，新增段仍只参加一次已有连雷判定。
+        text: 怒技基础雷击由3段增加为4段；新增一段也可触发一次连雷判定。
   - id: RKF07-J3-B
     tier: 3
     branch: B
@@ -242,7 +242,7 @@ talents:
         consumes: [charge_luck]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 动作开始时将已有蓄运优先留给护盾，结束且存活后消费并按防御0.22倍造盾；同一层不再提高连雷概率，新失败不在同一动作转盾。
+        text: 普攻或怒技开始时，已有蓄势优先用于护盾；行动结束且自身存活时，每消耗1层蓄势获得防御0.22倍的护盾。用于护盾的蓄势不提高连雷概率，行动中新增的蓄势留待之后使用。
   - id: RKF07-J3-C
     tier: 3
     branch: C
@@ -259,7 +259,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 本主动作至少有一段追加雷击实际命中时额外获得8点怒气，不增加主动作。
+        text: 普攻或怒技至少有一段追加雷击命中时，额外获得8点怒气；每次行动最多触发一次。
   - id: RKF07-J4-A
     tier: 4
     branch: A
@@ -276,7 +276,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 本门已有连雷判定概率各增加0.18并封顶100%，仍按原始基础段逐段判定。
+        text: 连雷概率再提高18个百分点，最高为100%；仍只由基础雷击触发判定。
   - id: RKF07-J4-B
     tier: 4
     branch: B
@@ -293,7 +293,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 本门怒技每个基础雷段攻击比再增加0.30，追加雷击仍读取自己的攻击比。
+        text: 奔雷诀怒技每段基础雷击的伤害再提高攻击的0.30倍；追加雷击的伤害不变。
   - id: RKF07-J4-C
     tier: 4
     branch: C
@@ -310,14 +310,14 @@ talents:
         consumes: [charge_luck]
         replaces: [RKF07-J3-B-SHIELD]
         limit: {scope: action, count: 1}
-        text: 动作开始时将已有蓄运优先留给护盾，结束且存活后按防御0.30倍造盾；取代较弱的护盾出口，同一层不再提高连雷概率，不需要先选蓄运护身。
+        text: 普攻或怒技开始时，已有蓄势优先用于护盾；行动结束且自身存活时，获得防御0.30倍的护盾。此效果取代较弱的蓄势护盾；用于护盾的蓄势不提高连雷概率，也不需要先选择蓄运护身。
 passives: []
 routes:
   - name: 连雷追击
-    summary: 提高连雷概率与怒技基础段数，靠多次有限判定放大直接输出；代价是追加雷击仍受每个基础段一次的上限约束。
+    summary: 提高连雷概率与怒技段数，靠更多追加雷击提高输出；代价是每段基础雷击至多触发一次追加判定。
     talents: [RKF07-J1-A, RKF07-J2-C, RKF07-J3-A, RKF07-J4-A]
   - name: 雷怒重击
-    summary: 强化怒技每段伤害并用额外积怒维持雷劫循环；代价是普攻积怒和额外雷段都不保证每次立刻兑现。
+    summary: 强化怒技每段伤害并提高普攻回怒；代价是怒技追加雷击与其带来的回怒仍受连雷概率影响。
     talents: [RKF07-J1-B, RKF07-J2-B, RKF07-J3-C, RKF07-J4-B]
   - name: 失败护身
     summary: 把连雷失败留下的蓄运转成护盾，减少失手后的承伤压力；代价是消费蓄运后不再同时获得下一次连雷加成。

@@ -22,7 +22,7 @@ scene: 灰烬石匣仍在发烫，匣底压着青锋石与玄铁甲。外沿的�
 options:
   - id: RE003-A
     label: 探入匣底取锋
-    quick: 付出当前幕参考气血的12%代价，带走两层青锋石。
+    quick: 损失约75点气血（第二幕约93点），带走两层青锋石。
     requirements:
       - {type: capacity, id: RC01, count: 2}
     costs:
@@ -32,7 +32,7 @@ options:
     outcome: 你忍住灼痛取出两层青锋石，锋芒沾着灰烬。
   - id: RE003-B
     label: 探入匣底取甲
-    quick: 付出当前幕参考气血的12%代价，带走两层玄铁甲。
+    quick: 损失约75点气血（第二幕约93点），带走两层玄铁甲。
     requirements:
       - {type: capacity, id: RC03, count: 2}
     costs:

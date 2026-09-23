@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A1-B2
 name: 河伯试潮遗影
 status: design_target
-summary: 以可见自疗和溢疗转伤延长第一幕首领战。
-description: 这是借用河伯试潮意象制作的原创试炼残影，不声称神话人物本人现身或被击杀。它的恢复只来自回春功；长生结与回春瓶只抬高最大气血和治疗输入，不提供护盾或隐藏阶段。
+summary: 退潮后的河心泛起微光，旧水府的轮廓若隐若现。
+description: 河心浅滩浮着零星灯火，潮痕间留有古老宫阙的影子。
 tags: [enemy, act1, boss, myth_adaptation, water, healing]
 source:
   basis: myth_adaptation
@@ -21,7 +21,7 @@ balance:
   measured: null
 acts: [1]
 tier: boss
-identity: 河伯试潮遗影站在退潮水纹中央，以每一次回身试探潮势。它是原创试炼残影，自疗先填当前气血，真实溢疗按回春功默认出口转成直接伤害，不声称神话本人被击败。
+identity: 河伯旧府的石阶没入浅水，退潮时才显出通往深处的路。
 method: RKF03
 n: 1
 talents: [RKF03-J1-C]

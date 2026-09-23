@@ -4,8 +4,8 @@ kind: artifact
 id: RR02
 name: 甘露盏
 status: design_target
-summary: 最大气血 +30；首次有效自疗按比例加盾
-description: 盏中甘露在自身有效治疗落定时凝成护盾，治疗本身仍然保留。
+summary: 最大气血 +30；普攻或怒技回复气血后按比例获得护盾
+description: 自身治疗回复气血后，按回复量的35%获得护盾。
 tags: [max_hp, heal, shield, rare]
 source:
   basis: original
@@ -36,6 +36,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: action, count: 1}
-    text: 每个自身主动作首次有效自疗后，按有效自疗量的35%生成护盾；治疗不被消耗，满血溢出不计入输入。
+    text: 每次普攻或怒技首次回复气血后，按回复量的35%获得护盾，护盾最多累积到最大气血；治疗溢出不计入。
 acquisition:
   pools: [rare_artifact]

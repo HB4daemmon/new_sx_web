@@ -5,7 +5,7 @@ id: RKF06
 name: 五毒经
 status: design_target
 summary: 叠加中毒并以毒压制敌手的持续战斗功法。
-description: 普攻与怒技都以攻击造成直接伤害并施加公共中毒，天赋在毒层、减益和续战之间分化。
+description: 普攻与怒技造成直接伤害并施加中毒；天赋可强化毒伤、削弱敌方或增强续战能力。
 tags: [method, rare, poison, original]
 source:
   basis: original
@@ -50,7 +50,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 基础直接段实际命中后施加一层中毒，毒伤按施加时攻击快照并在轮尾结算。
+        text: 普攻命中后施加1层中毒；每层伤害按施加时的攻击计算，并在每轮结束时结算。
   rage:
     name: 五毒蚀心
     quick: 重击并叠两层中毒
@@ -64,7 +64,7 @@ actions:
         consumes: [rage_locked_action_cost]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按攻击的1.30倍造成一段可暴击直接伤害，不另发放基础普攻怒气。
+        text: 按攻击的1.30倍造成一段可暴击直接伤害；怒技不会获得普攻的基础回怒。
       - id: RKF06-RAGE-POISON
         trigger: rage_action
         operation: apply_status
@@ -74,7 +74,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 怒技直接段结算后施加两层中毒，保留原有毒层，不把同一层毒重复消费。
+        text: 怒技命中后施加2层中毒；已有的中毒层不会因此消失。
 passives:
   - id: RKF06-PASSIVE-TOXIN-RESIST
     trigger: battle_start
@@ -85,7 +85,7 @@ passives:
     consumes: []
     replaces: []
     limit: {scope: battle, count: 1}
-    text: 每场战斗开始时防御提高8，只影响承伤与本门明确读取防御的效果。
+    text: 每场战斗开始时防御提高8。
 travel:
   - id: RKF06-TRAVEL-XP
     trigger: node_complete
@@ -96,7 +96,7 @@ travel:
     consumes: []
     replaces: []
     limit: {scope: node, count: 1}
-    text: 以本门主修完成节点并存活时额外获得6点修为。
+    text: 选择五毒经为主修，存活完成节点后额外获得6点修为。
   - id: RKF06-TRAVEL-COST
     trigger: event_cost_paid
     operation: reduce_event_cost
@@ -106,7 +106,7 @@ travel:
     consumes: []
     replaces: []
     limit: {scope: node, count: 1}
-    text: 毒瘴行旅使一次主动扣血事件的气血代价按0.85倍计算，单次最多少付当前参考气血的8%。
+    text: 主动选择扣除气血的行旅选项时，该事件首次气血代价降低15%；最多减免：第1幕50点、第2幕62点、第3幕76点、第4幕92点。
 talents:
   - id: RKF06-J1-A
     tier: 1
@@ -124,7 +124,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 本门普攻和怒技每次实际施毒的初始层数各增加1，不增加中毒上限。
+        text: 普攻和怒技各自施加的中毒层数增加1；中毒仍最多叠加10层。
   - id: RKF06-J1-B
     tier: 1
     branch: B
@@ -141,7 +141,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 本门两种基础施毒效果的每层攻击比各增加0.02，只修正持续毒伤。
+        text: 五毒经施加的每层中毒伤害增加攻击0.02倍；只提高持续毒伤。
   - id: RKF06-J1-C
     tier: 1
     branch: C
@@ -158,7 +158,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 本门新施加的每份中毒持续时间增加1轮，仍按每份毒层独立记录tick。
+        text: 五毒经新施加的每层中毒多持续1轮；每层中毒分别结算伤害和消失。
   - id: RKF06-J2-A
     tier: 2
     branch: A
@@ -175,7 +175,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 五毒经普攻直接段攻击比增加0.10。
+        text: 五毒经普攻直接伤害提高攻击的0.10倍。
       - id: RKF06-J2-A-RAGE
         trigger: always
         operation: modify_effect
@@ -185,7 +185,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 五毒经怒技直接段攻击比增加0.10。
+        text: 五毒经怒技直接伤害提高攻击的0.10倍。
   - id: RKF06-J2-B
     tier: 2
     branch: B
@@ -202,7 +202,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 本门直接段命中至少有一层中毒的敌人时，额外施加一层虚弱，不读取毒层数量。
+        text: 普攻或怒技命中中毒的敌方时，额外施加1层虚弱；不因中毒层数增加而重复施加。
   - id: RKF06-J2-C
     tier: 2
     branch: C
@@ -219,7 +219,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 本门主动作结束时若敌方仍有中毒，按防御的0.24倍获得护盾。
+        text: 普攻或怒技结束时，若敌方仍有中毒，获得防御0.24倍的护盾。
   - id: RKF06-J3-A
     tier: 3
     branch: A
@@ -236,7 +236,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 五毒经怒技的实际施毒层数增加2，不增加怒技主动作或额外普攻回怒。
+        text: 五毒经怒技施加的中毒层数增加2；不会额外增加行动或普攻回怒。
   - id: RKF06-J3-B
     tier: 3
     branch: B
@@ -253,7 +253,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 直接段命中带毒敌人时额外登记一层虚弱，实际层数仍受公共五层上限约束。
+        text: 普攻或怒技命中中毒的敌方时，额外施加1层虚弱；虚弱最多叠加5层。
   - id: RKF06-J3-C
     tier: 3
     branch: C
@@ -270,7 +270,7 @@ talents:
         consumes: [poison_up_to_2_stacks]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 每个自身主动作最多消费动作开始前敌方已有的两层中毒，并记录实际消费层数。
+        text: 每次普攻或怒技最多消耗敌方已有的2层中毒；行动中新增的中毒不会被这次消耗。
       - id: RKF06-J3-C-HEAL
         trigger: direct_hit
         operation: heal
@@ -280,7 +280,7 @@ talents:
         consumes: [RKF06-J3-C-CONSUME]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 只把同一次实际消费的中毒层按每层最大气血5%转为治疗，溢出不再触发其它出口。
+        text: 每消耗1层中毒，恢复最大气血5%的气血；超过气血上限的部分不触发其他效果。
   - id: RKF06-J4-A
     tier: 4
     branch: A
@@ -297,7 +297,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 本门每层中毒的攻击比再增加0.04，只影响窗口内实际tick。
+        text: 五毒经施加的每层中毒伤害再增加攻击0.04倍。
   - id: RKF06-J4-B
     tier: 4
     branch: B
@@ -314,7 +314,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 直接段命中带毒敌人时额外施加一层破甲，破甲实际影响后续直接段防御结算。
+        text: 普攻或怒技命中中毒的敌方时，额外施加1层破甲；破甲会降低敌方受到后续直接攻击时的防御。
   - id: RKF06-J4-C
     tier: 4
     branch: C
@@ -331,10 +331,10 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 敌方带毒时主动作结束获得防御0.28倍加最大气血0.04倍的护盾。
+        text: 普攻或怒技结束时，若敌方带有中毒，获得防御0.28倍加最大气血0.04倍的护盾。
 routes:
   - name: 叠毒蚀骨
-    summary: 迅速堆高毒层并提高每次中毒的实际持续伤害；代价是需要时间让毒层真实跳伤。
+    summary: 迅速堆高毒层并提高每层中毒伤害；代价是需要时间让中毒反复造成伤害。
     talents: [RKF06-J1-A, RKF06-J2-A, RKF06-J3-A, RKF06-J4-A]
   - name: 毒压减攻
     summary: 以虚弱和破甲压低敌人有效输出并保持直接段压力；代价是必须先让敌人带毒，短战覆盖较低。

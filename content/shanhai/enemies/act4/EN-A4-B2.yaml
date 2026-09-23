@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A4-B2
 name: 开明镇阶
 status: design_target
-summary: 以毒层、虚弱和破甲把终幕首领战的持续压制公开化。
-description: 开明镇阶采用神话意象，具体五毒配装、毒层与破甲输入为游戏原创。
+summary: 雪岭尽头的巨兽俯视山道，六道影子投向石阶。
+description: 昆仑山道被云雾遮住，石阶旁的古木枝叶垂落。
 tags: [enemy, act4, boss, myth_adaptation, poison, dot, weakness, armor_break]
 source:
   basis: myth_adaptation
@@ -19,7 +19,7 @@ balance:
   measured: null
 acts: [4]
 tier: boss
-identity: 开明镇阶
+identity: 开明镇阶立于雪岭之间，层叠身影映在终年不散的云雾中。
 method: RKF06
 n: 4
 talents: [RKF06-J1-A, RKF06-J2-B, RKF06-J3-C, RKF06-J4-B]
@@ -33,9 +33,9 @@ stats:
   max_hp: 830
   crit_rate: 0.12
   speed: 9
-pressure: [长DOT, 虚弱/破甲]
+pressure: [持续伤害, 虚弱/破甲]
 counterplay:
-  - 战前选短战爆发或高防御构筑，减少毒层和虚弱持续时间，并在J3-C消费毒层前压出缺口。
+  - 以迅猛攻势或坚实防御减少毒伤与虚弱影响，并在它疗伤前尽量压低气血。
   - 战前选护盾与稳定治疗构筑拉长战斗，利用毒层触发的虚弱和破甲读法调整自己的输出顺序。
 preview: >-
   J1-A提高普攻与怒技的初始施毒层数，J2-B在带毒目标上追加虚弱，J4-B在带毒目标上追加破甲；

@@ -4,8 +4,8 @@ kind: artifact
 id: RR06
 name: 长明灯
 status: design_target
-summary: 最大气血 +30；完成战斗节点后恢复气血
-description: 灯火在战后不灭，为真实战斗节点提供一次战外恢复。
+summary: 最大气血 +30；完成战斗节点后恢复最大气血的8%
+description: 每完成一次普通战、精英战或首领战节点，恢复最大气血的8%。
 tags: [max_hp, travel, heal, battle_node, rare]
 source:
   basis: original
@@ -38,6 +38,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: node, count: 1}
-    text: 每个真实普通战、精英战或幕首领节点完成后恢复最大气血的8%；节点内多战只结算一次，非战斗节点不触发。
+    text: 完成普通战、精英战或首领战节点后，恢复最大气血的8%；每个节点只触发一次，非战斗节点不触发。
 acquisition:
   pools: [rare_artifact]

@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A2-L2
 name: 玄甲截流将
 status: design_target
-summary: 以有来源护盾和开场削怒组成第二幕第二名精英。
-description: 截流将的双压力来自金刚功护盾、震岳鼓的真实盾返回怒以及封元镜的开场削怒，三者都不改变公共动作次数。它要求玩家在破盾、回怒和承伤之间取舍，不会读取玩家配置动态增强，也不承诺静态胜率。
+summary: 旧桥铁片叠在肩甲上，来路被它的身影截断。
+description: 断桥前散落着旧甲片，风过时发出轻微的碰撞声。
 tags: [enemy, act2, elite, shield, rage_drain]
 source:
   basis: original
@@ -21,7 +21,7 @@ balance:
   measured: null
 acts: [2]
 tier: elite
-identity: 玄甲截流将把旧桥铁片扣在肩上，在入战时先截断对手一段气机。它只在真实护盾吸收并触发盾返后按卡面回怒，是可查的原创精英，不含永久锁怒。
+identity: 玄甲截流将守着桥头，肩上旧铁片层层相叠，脚下水流绕行。
 method: RKF01
 n: 2
 talents: [RKF01-J1-A, RKF01-J2-B]

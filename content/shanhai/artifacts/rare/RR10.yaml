@@ -4,8 +4,8 @@ kind: artifact
 id: RR10
 name: 引雷针
 status: design_target
-summary: 攻击 +8；直接暴击每次回怒 5，每己方主动作最多两次
-description: 针尖牵引雷意，在直接攻击暴击结算后补回少量怒气。
+summary: 攻击 +8；直接攻击暴击后获得5点怒气，每次行动最多两次
+description: 基础或追加直接攻击暴击后，额外获得5点怒气。
 tags: [attack, crit_rate, rage_gain, direct, rare]
 source:
   basis: original
@@ -36,6 +36,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: action, count: 2}
-    text: 每次基础或追加直接攻击暴击登记5点怒气，每个己方主动作最多两次；持续伤害和反震不触发。
+    text: 每次基础或追加直接攻击暴击后获得5点怒气；每次普攻或怒技最多触发两次，中毒、燃烧和反击不触发。
 acquisition:
   pools: [rare_artifact]

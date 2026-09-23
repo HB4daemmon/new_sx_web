@@ -19,24 +19,24 @@ balance:
   measured: null
 event_type: core
 acts: [3]
-scene: 药棚还在，但潮痕已经逼到门槛；神农把长明灯和行医囊摆在门边，守药失手会留下气血损耗，20 灵石则可绕开险路。
+scene: 药棚还在，但潮痕已经逼到门槛；神农把长明灯和行医囊摆在门边。守药挑战损失约114点气血，失手后仅剩1点；付20灵石可稳妥取行医囊。
 options:
   - id: RK002-enter-trial
     label: 守住药棚
-    quick: 支付 12% 气血，胜利取长明灯
+    quick: 损失约114点气血挑战，胜利取长明灯；失手后仅剩1点气血。
     requirements:
       - {type: flag, id: RS01-promised, value: true}
     costs:
       - {type: resource, resource: hp, amount: 0.12, basis: reference_hp, must_survive: true}
     rewards:
       - {type: artifact, id: RR06, count: 1}
-    outcome: 你顶住药棚前的冲击，胜利后神农把长明灯交到你手里；它的最大气血加成立即计入，下一场真实斗法完成后才会点亮战后恢复。
+    outcome: 你顶住药棚前的冲击，胜利后神农把长明灯交到你手里；它的最大气血加成立即计入，下一场战斗结束后才会触发战后恢复。
     encounter:
       enemy_id: EN-A3-L1
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 你守不住药棚，神农收起药匣；已付的 12% 气血留在潮痕里，长明灯没有到手。
+      failure_outcome: 你守不住药棚，神农收起药匣；损失的约114点气血留在潮痕里，气血仅剩1点，长明灯没有到手。
   - id: RK002-pay-safe
     label: 付石取药
     quick: 支付 20 灵石，稳妥取行医囊
@@ -47,7 +47,7 @@ options:
       - {type: resource, resource: coins, amount: 20, basis: flat}
     rewards:
       - {type: artifact, id: RC17, count: 1}
-    outcome: 你用盘缠换下行医囊；它的最大气血加成立即计入，走过下一处真实地点后才会补回气血。
+    outcome: 你用盘缠换下行医囊；它的最大气血加成立即计入，走过下一处地点后才会补回气血。
   - id: RK002-walk-away
     label: 放弃回访
     quick: 不再投入，保留剩余资源和法宝，回到普通道路

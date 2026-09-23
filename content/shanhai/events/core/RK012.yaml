@@ -19,24 +19,24 @@ balance:
   measured: null
 event_type: core
 acts: [4]
-scene: 风止石前火根还在吐息，铁扇公主把薪火宝炉和余烬盏摆在石台上：除火要承受 15% 气血损耗，支付 32 灵石即可取余烬盏。
+scene: 风止石前火根还在吐息，铁扇公主把薪火宝炉和余烬盏摆在石台上：除火挑战损失约173点气血，失手后仅剩1点；支付32灵石可取余烬盏。
 options:
   - id: RK012-extinguish-fire-root
     label: 除掉火根
-    quick: 再付 15% 气血，胜利取薪火宝炉
+    quick: 再损失约173点气血挑战，胜利取薪火宝炉；失手后仅剩1点气血。
     requirements:
       - {type: flag, id: RS06-promised, value: true}
     costs:
       - {type: resource, resource: hp, amount: 0.15, basis: reference_hp, must_survive: true}
     rewards:
       - {type: artifact, id: RL02, count: 1}
-    outcome: 你把火根压回山腹，胜利后取走薪火宝炉；它的攻击与防御从此刻计入，下一场真实战斗的燃烧伤害可回馈气血。
+    outcome: 你把火根压回山腹，胜利后取走薪火宝炉；它的攻击与防御从此刻计入，下一场战斗的燃烧伤害可回馈气血。
     encounter:
       enemy_id: EN-A4-L1
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 火根没有熄灭，铁扇公主收回炉火；已付的 15% 气血留在风止石，薪火宝炉没有到手。
+      failure_outcome: 火根没有熄灭，铁扇公主收回炉火；损失的约173点气血留在风止石，气血仅剩1点，薪火宝炉没有到手。
   - id: RK012-pay-wind
     label: 付石借稳风
     quick: 支付 32 灵石，稳妥取余烬盏
@@ -47,7 +47,7 @@ options:
       - {type: resource, resource: coins, amount: 32, basis: flat}
     rewards:
       - {type: artifact, id: RR11, count: 1}
-    outcome: 你用盘缠换下余烬盏；它的最大气血加成立即计入，下一场真实战斗中毒火造成真实伤害时会回响怒气，传奇火器仍留在火根旁。
+    outcome: 你用盘缠换下余烬盏；它的最大气血加成立即计入，下一场战斗中毒火造成真实伤害时会回响怒气，传奇火器仍留在火根旁。
   - id: RK012-release
     label: 放弃风止石
     quick: 放弃风止石，保留当前气血和构筑

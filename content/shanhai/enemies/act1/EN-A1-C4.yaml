@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A1-C4
 name: 岩汐甲蜥
 status: design_target
-summary: 以有来源的短护盾和盾返制造可读防守压力的后段普通敌人。
-description: 甲蜥的护盾、盾返和护盾加成分别来自金刚功、铁壁符与震山环的现有卡面。它的直接攻击保持克制，玩家可以破盾后爆发，也可以用持续伤害换取稳定正反馈，不承诺静态胜率。
+summary: 潮湿岩坡上留着甲片摩擦的痕迹。
+description: 海潮漫过岩坡，潮退后只剩一道蜿蜒的甲痕。
 tags: [enemy, act1, normal, shield, reflect]
 source:
   basis: original
@@ -21,7 +21,7 @@ balance:
   measured: null
 acts: [1]
 tier: normal
-identity: 岩汐甲蜥把潮湿岩片叠在背上，每次出手后都会收拢一层短护盾，真实吸收直接攻击时才可能触发盾返，不凭空获得永久防护。
+identity: 岩汐甲蜥伏在潮湿的岩坡上，背甲混着碎石，远看几乎与礁壁连成一片。
 method: RKF01
 n: 1
 talents: [RKF01-J1-A]

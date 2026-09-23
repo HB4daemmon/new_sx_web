@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A3-C1
 name: 沉甲巡谷
 status: design_target
-summary: 以金刚功护盾和真实盾返建立承伤压力的普通敌人。
-description: 裂谷沉甲巡守是原创匿名敌人，配装只展示现有金刚功与法宝输入。
+summary: 裂谷风急，沉重甲影在谷口缓缓移动。
+description: 谷壁留下层叠刮痕，碎石间散落着暗色鳞甲。
 tags: [enemy, act3, normal, shield, direct]
 source:
   basis: original
@@ -19,7 +19,7 @@ balance:
   measured: null
 acts: [3]
 tier: normal
-identity: 裂谷沉甲巡守
+identity: 沉甲巡谷沿着裂谷巡行，甲片与岩壁擦过，发出低沉回响。
 method: RKF01
 n: 2
 talents: [RKF01-J1-A, RKF01-J2-A]

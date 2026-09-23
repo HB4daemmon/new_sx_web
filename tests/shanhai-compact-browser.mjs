@@ -125,7 +125,14 @@ async function startRealRun(page, width, height) {
   assert.equal(mapMetrics.nodeCount, 29, `${width}: 第一幕路线图不是 29 节点`);
   assert.equal(mapMetrics.availableCount, 1, `${width}: 开局可选路线不是唯一首格`);
   await route.scrollIntoViewIfNeeded();
+  const saveBeforePreview = await page.evaluate(key => localStorage.getItem(key), saveKey);
   await route.click();
+  await page.locator('.node-preview-dialog').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('.game-page').getAttribute('data-phase'), 'map',
+    `${width}: 打开节点预览时不应推进命途`);
+  assert.equal(await page.evaluate(key => localStorage.getItem(key), saveKey), saveBeforePreview,
+    `${width}: 打开节点预览时不应写入存档`);
+  await page.locator('[data-action="confirm-node"]').click();
   await waitForPhase(page, 'preview');
   const save = await page.evaluate(key => JSON.parse(localStorage.getItem(key) || 'null'), saveKey);
   assert.equal(save?.state?.routeMap?.path?.[0], routeKey,
@@ -133,9 +140,19 @@ async function startRealRun(page, width, height) {
   assert.equal(save?.state?.nodes?.[0]?.id, save?.state?.routeMap?.nodes
     ?.find(node => node.key === routeKey)?.id,
   `${width}: 已选行迹与首格不一致`);
+  const preparationDetails = page.locator('details[data-details="battle-preparation-details"]');
+  assert.equal(await preparationDetails.getAttribute('open'), null,
+    `${width}: 战前详录应默认折叠`);
+  assert.ok(await page.locator('.preview-enemy-brief').isVisible(),
+    `${width}: 战前首屏缺少对手简要信息`);
   await noOverflow(page, `${width} preview`);
   await assertNoVisibleEnglish(page, `${width} preview`);
   await screenshot(page, width, 'preview');
+  await preparationDetails.locator('summary').click();
+  assert.equal(await preparationDetails.getAttribute('open'), '',
+    `${width}: 战前详录无法展开`);
+  assert.ok(await page.locator('.counterplay-list li').count() > 0,
+    `${width}: 战前详录缺少应对依据`);
 
   await page.locator('[data-action="fight"]').click();
   await waitForPhase(page, 'battle');
@@ -149,7 +166,7 @@ async function startRealRun(page, width, height) {
   assert.equal(await log.getAttribute('open'), null,
     `${width}: 战报应在进入战斗时默认折叠`);
   assert.equal(await page.locator('[data-details="battle-diagnostics"]').getAttribute('open'), null,
-    `${width}: 战斗来源应默认折叠`);
+    `${width}: 斗法详录应默认折叠`);
   await screenshot(page, width, 'battle-compact');
   await log.locator('summary').click();
   assert.equal(await log.getAttribute('open'), '',
@@ -170,7 +187,12 @@ async function startRealRun(page, width, height) {
   assert.equal(await choices.count(), 3, `${width}: 第一战后没有三个可选节点`);
   const key = await choices.last().getAttribute('data-id');
   await screenshot(page, width, 'map-branch');
+  const branchSaveBeforePreview = await page.evaluate(key => localStorage.getItem(key), saveKey);
   await choices.last().click();
+  await page.locator('.node-preview-dialog').waitFor({ state: 'visible' });
+  assert.equal(await page.evaluate(key => localStorage.getItem(key), saveKey), branchSaveBeforePreview,
+    `${width}: 打开分岔预览时不应写入存档`);
+  await page.locator('[data-action="confirm-node"]').click();
   const branchSave = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), saveKey);
   assert.equal(branchSave.state.routeMap.path[1], key);
 }

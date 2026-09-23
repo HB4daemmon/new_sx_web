@@ -4,8 +4,8 @@ kind: artifact
 id: RR12
 name: 回生佩
 status: design_target
-summary: 最大气血 +30；有效自疗每己方主动作额外回怒 10
-description: 佩中生机在自身有效治疗后回流，每个主动作最多登记一次。
+summary: 最大气血 +30；普攻或怒技回复气血后额外获得10点怒气
+description: 自身普攻或怒技回复气血时，额外获得10点怒气。
 tags: [max_hp, heal, rage_gain, rare]
 source:
   basis: original
@@ -37,6 +37,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: action, count: 1}
-    text: 每个自身主动作发生有效自疗时额外登记10点怒气；满血溢出、战外治疗和开场不触发。
+    text: 每次普攻或怒技只要实际回复了气血，就额外获得10点怒气；治疗溢出、战外治疗和战斗开场不触发。
 acquisition:
   pools: [rare_artifact]

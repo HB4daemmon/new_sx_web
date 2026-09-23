@@ -108,8 +108,9 @@ test('enemy cards do not claim removed shield outlets or inflated player-facing 
   assert.doesNotMatch(b2Text, /治疗后护盾|溢疗转盾|有效治疗转盾|护盾出口/);
 
   const c1 = content.byId['EN-A1-C1'];
-  assert.match(c1.description, /低于.*玩家/);
-  assert.equal(c1.stats.max_hp < 500, true);
+  const c1Text = [c1.summary, c1.description, c1.identity, ...c1.counterplay, c1.preview].join('\n');
+  assert.equal(c1.stats.max_hp, 280);
+  assert.doesNotMatch(c1Text, /(?:气血|生命值).{0,12}(?:低于|高于).{0,12}(?:玩家|行者)/);
 
   const l1 = content.byId['EN-A4-L1'];
   const l1Text = [l1.summary, l1.description, l1.identity, ...l1.counterplay, l1.preview].join('\n');

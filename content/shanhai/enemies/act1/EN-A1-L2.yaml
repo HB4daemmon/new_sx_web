@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A1-L2
 name: 月蚀断脉客
 status: design_target
-summary: 以虚弱和公开削怒组成第一名精英的双压力交互。
-description: 断脉客只按太阴经、截脉针和封元镜的现有来源施加减益与削怒，削怒在公共窗口结算，不取消本轮已锁动作。它要求玩家在承受属性下降前主动选择输出或回怒路线，不承诺静态胜率。
+summary: 月色落在断崖，崖边针影若隐若现。
+description: 断崖上的古树早已枯尽，枝间挂着几枚冷光银针。
 tags: [enemy, act1, elite, weakness, rage_drain]
 source:
   basis: original
@@ -21,7 +21,7 @@ balance:
   measured: null
 acts: [1]
 tier: elite
-identity: 月蚀断脉客用阴光在对手经脉上留下一层短暂虚弱，再以针影截断回气。它是公开减益与延后削怒的原创精英，不拥有免疫或隐藏阶段。
+identity: 月蚀断脉客立于崖边，衣袖垂落，月光在银针上凝成寒芒。
 method: RKF08
 n: 1
 talents: [RKF08-J1-A]

@@ -4,8 +4,8 @@ kind: artifact
 id: RR13
 name: 截脉针
 status: design_target
-summary: 攻击 +8；普攻命中削减敌方怒气 10，每主动作一次
-description: 针尖截断气脉，在普攻首个有效基础命中时登记敌方削怒请求。
+summary: 攻击 +8；普攻命中后削减敌方怒气10点，每次普攻一次
+description: 普攻首次命中后，使敌方本轮怒气减少10点。
 tags: [attack, rage_drain, basic, rare]
 source:
   basis: original
@@ -39,6 +39,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: action, count: 1}
-    text: 普攻首个有效基础命中登记敌方本轮削怒请求10，轮尾统一结算并受目标每轮外来削怒20上限约束。
+    text: 普攻首段基础攻击命中后，使敌方本轮怒气最多减少10点，并在本轮结束时结算；来自我方的削怒每轮最多减少20点，且会受敌方削怒抗性影响。
 acquisition:
   pools: [rare_artifact]

@@ -23,20 +23,20 @@ scene: 第二面阵旗已经升起，哪吒明说第一阵留下的伤势和护�
 options:
   - id: RK010-enter-second-array
     label: 接第二阵
-    quick: 再付 12% 气血，胜利取如意钱
+    quick: 再损失约138点气血挑战，胜利取如意钱；失手后仅剩1点气血。
     requirements:
       - {type: flag, id: RS05-promised, value: true}
     costs:
       - {type: resource, resource: hp, amount: 0.12, basis: reference_hp, must_survive: true}
     rewards:
       - {type: artifact, id: RR04, count: 1}
-    outcome: 你把两阵都走完，胜利后取下如意钱；它的攻击与暴击属性立即计入，下一场真实战斗可触发追加一击。
+    outcome: 你把两阵都走完，胜利后取下如意钱；它的攻击与暴击属性立即计入，下一场战斗可触发追加一击。
     encounter:
       enemy_id: EN-A4-L1
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 第二阵压住了你的出手，哪吒收阵；已付的 12% 气血留在阵前，如意钱没有到手。
+      failure_outcome: 第二阵压住了你的出手，哪吒收阵；损失的约138点气血留在阵前，气血仅剩1点，如意钱没有到手。
   - id: RK010-pay-artifact
     label: 付石收锋
     quick: 支付 24 灵石，稳妥取雷纹印
@@ -47,7 +47,7 @@ options:
       - {type: resource, resource: coins, amount: 24, basis: flat}
     rewards:
       - {type: artifact, id: RC10, count: 1}
-    outcome: 你用盘缠换下雷纹印；它的攻击提升立即计入，下一场真实战斗的怒技会更强，你不再接第二阵。
+    outcome: 你用盘缠换下雷纹印；它的攻击提升立即计入，下一场战斗的怒技会更强，你不再接第二阵。
   - id: RK010-stop
     label: 收手离阵
     quick: 收手离阵，保留第一阵的伤势与经历

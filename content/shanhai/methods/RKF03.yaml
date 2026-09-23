@@ -4,8 +4,8 @@ kind: method
 id: RKF03
 name: 回春功
 status: design_target
-summary: 以最大气血支撑自疗和溢疗出口的普通医修功法。
-description: 回春功的攻击读取攻击属性，治疗读取最大气血；先结算有效治疗，再把同一份真实溢疗交给互斥出口选择器，不能重复消费。
+summary: 以最大气血强化自疗，并将溢出的治疗转为其他效果的医修功法。
+description: 回春功的攻击按攻击属性计算，治疗量按最大气血计算；超出气血上限的治疗会依所学天赋转为伤害或中毒，佩戴琉璃法印时则转为护盾。
 tags: [method, common, healing, max_hp, overflow]
 source:
   basis: original
@@ -49,7 +49,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按攻击的0.88倍对敌人造成一段可暴击直接伤害。
+        text: 按攻击的0.88倍对敌方造成一段可暴击直接伤害。
       - id: RKF03-BASIC-HEAL
         trigger: action_end
         operation: heal
@@ -70,7 +70,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 普攻完成后按最大气血的10%进行自疗；先填补当前气血缺口，真实溢疗再交给溢出出口选择器，RL01与默认伤害出口互斥。
+        text: 普攻完成后恢复最大气血10%的气血；先填补气血缺口，超出气血上限的部分按所学天赋转为伤害或中毒。佩戴琉璃法印时，溢疗改为护盾。
   rage:
     name: 枯木回天
     quick: 怒技攻击并强化自疗
@@ -89,7 +89,7 @@ actions:
         consumes: [rage_locked_action_cost]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按公共规则支付本轮锁定怒耗后，按攻击的1.35倍对敌人造成一段可暴击直接伤害。
+        text: 消耗本次怒技所需的怒气后，按攻击的1.35倍对敌方造成一段可暴击直接伤害。
       - id: RKF03-RAGE-HEAL
         trigger: action_end
         operation: heal
@@ -110,7 +110,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 怒技完成后按最大气血的24%进行自疗；先结算有效治疗，再把同一份真实溢疗交给互斥出口，不同时转伤和转盾。
+        text: 怒技完成后恢复最大气血24%的气血；先填补气血缺口，超出气血上限的部分按所学天赋转化，不会同时转为伤害、中毒和护盾。
 passives:
   - id: RKF03-PASSIVE-OVERFLOW
     trigger: overflow_resolved
@@ -137,7 +137,7 @@ passives:
     consumes: [actual_heal_overflow]
     replaces: []
     limit: {scope: action, count: 1}
-    text: 默认把本门治疗产生的真实溢疗按70%转为一次派生伤害；若选择RL01，则同一份溢疗改走RL01护盾出口，二者互斥且只消费一次。
+    text: 治疗超出气血上限的部分，默认有70%转为一次追加伤害；佩戴琉璃法印时，这部分改为转成护盾，不会重复转化。
 travel:
   - id: RKF03-TRAVEL-NONBATTLE-HEAL
     trigger: node_complete
@@ -156,7 +156,7 @@ travel:
     consumes: []
     replaces: []
     limit: {scope: node, count: 1}
-    text: 完成非战斗节点后恢复最大气血的6%，只填当前气血缺口，不生成战斗怒气、不触发溢疗出口，也不重复结算同一节点。
+    text: 完成非战斗节点后恢复最大气血6%的气血；只填补当前气血缺口，不触发溢疗效果。
 talents:
   - id: RKF03-J1-A
     tier: 1
@@ -179,7 +179,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 默认伤害出口把实际溢疗转伤比例从0.70提高25个百分点；选择RL01时仍保持互斥，不把同一溢疗重复转化。
+        text: 治疗溢出转为伤害的比例从70%提高到95%；佩戴琉璃法印时，溢疗仍只转为护盾。
   - id: RKF03-J1-B
     tier: 1
     branch: B
@@ -201,7 +201,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 回春引气的基础治疗增加最大气血的6%，仍先结算有效治疗，再按同一个溢疗出口处理剩余量。
+        text: 回春引气恢复的气血增加最大气血的6%；超过气血上限的部分仍按所学天赋转化。
   - id: RKF03-J1-C
     tier: 1
     branch: C
@@ -223,7 +223,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 最大气血提高10%；该属性同时提高起始最大气血和本门按最大气血读取的治疗输入，但不自动补齐当前气血。
+        text: 最大气血提高10%；开局最大气血和回春功按最大气血计算的治疗量随之提高，但当前气血不会自动恢复。
   - id: RKF03-J2-A
     tier: 2
     branch: A
@@ -257,7 +257,7 @@ talents:
         consumes: [actual_heal_overflow]
         replaces: [RKF03-PASSIVE-OVERFLOW]
         limit: {scope: action, count: 1}
-        text: 取代默认溢疗伤害出口，把同一份实际溢疗按每点0.012层施加中毒，最多10层、持续3轮；选择RL01时仍改走RL01护盾且不同时施毒。
+        text: 治疗溢出时，每点溢疗施加0.012层中毒，最多10层、持续3轮；佩戴琉璃法印时，溢疗转为护盾，不再施加中毒。
   - id: RKF03-J2-B
     tier: 2
     branch: B
@@ -279,7 +279,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 枯木回天的基础治疗增加最大气血的10%，溢疗仍只交给一个已选择的出口。
+        text: 枯木回天恢复的气血增加最大气血的10%；超过气血上限的部分仍按一种溢疗效果转化。
   - id: RKF03-J2-C
     tier: 2
     branch: C
@@ -303,7 +303,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 每次自身主动作首次产生至少1点有效治疗时，按有效治疗量的25%登记额外怒气；溢疗和战外治疗不计入。
+        text: 每次普攻或怒技首次实际回复气血后，按回复量的25%额外获得怒气；治疗溢出和战外治疗不计入。
   - id: RKF03-J3-A
     tier: 3
     branch: A
@@ -325,7 +325,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 结算治疗时若当前气血不高于最大气血50%，本次基础治疗量乘以1.25，再按有效治疗与溢疗顺序拆账。
+        text: 治疗时若当前气血不高于最大气血的50%，本次基础治疗量提高25%；超出气血上限的部分仍按所学天赋转化。
   - id: RKF03-J3-B
     tier: 3
     branch: B
@@ -349,7 +349,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 产生有效治疗后，后续1轮受到的敌方直接伤害乘以0.88；持续伤害和事件扣血不受影响，当前治疗动作不追溯减免。
+        text: 实际回复气血后，接下来1轮受到的敌方直接伤害降低12%；持续伤害、事件扣血和触发前已受的伤害不受影响。
   - id: RKF03-J3-C
     tier: 3
     branch: C
@@ -372,7 +372,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 每次有效治疗后按该次有效治疗量的35%造盾；只读取已记录结果，不消费治疗、不读取溢疗，也不重复触发治疗。
+        text: 每次普攻或怒技首次实际回复气血后，获得相当于回复量35%的护盾；治疗溢出不计入，气血回复照常保留。
   - id: RKF03-J4-A
     tier: 4
     branch: A
@@ -394,7 +394,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 枯木回天的基础治疗增加最大气血的14%，真实溢疗仍只沿已选择出口结算，不把治疗和溢疗重复计入。
+        text: 枯木回天恢复的气血增加最大气血的14%；超过气血上限的部分仍只触发一种溢疗效果。
   - id: RKF03-J4-B
     tier: 4
     branch: B
@@ -416,7 +416,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 结算治疗时若当前气血不高于最大气血30%，本次治疗量乘以1.30，再按同一出口拆分有效治疗与溢疗。
+        text: 治疗时若当前气血不高于最大气血的30%，本次治疗量提高30%；超过气血上限的部分仍按所学天赋转化。
   - id: RKF03-J4-C
     tier: 4
     branch: C
@@ -449,7 +449,7 @@ talents:
         consumes: [actual_heal_overflow]
         replaces: [RKF03-PASSIVE-OVERFLOW, RKF03-J2-A-POISON]
         limit: {scope: action, count: 1}
-        text: 取代本门较低层溢疗出口，把同一份真实溢疗按110%转为一次派生直接伤害；与余春化毒、RL01互斥，不同时造成伤害、施毒或造盾。
+        text: 治疗溢出时，每点溢疗转为1.1点追加直接伤害，并取代较低阶的溢疗天赋；佩戴琉璃法印时，溢疗改为护盾，不造成伤害或中毒。
 routes:
   - name: 溢疗转伤
     summary: 提高最大气血和治疗量，把满血后的真实溢疗转成伤害；代价是持续掉血或治疗不足时溢疗出口覆盖下降。

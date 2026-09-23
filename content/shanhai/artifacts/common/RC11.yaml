@@ -33,6 +33,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: permanent, count: 1}
-    text: 每层使自身获得的护盾量提高6%，只修正实际护盾输入。
+    text: 每层使自身最终获得的护盾量提高6%。
 acquisition:
   pools: [common_artifact]

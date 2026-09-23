@@ -19,23 +19,23 @@ balance:
   measured: null
 event_type: core
 acts: [2]
-scene: 月门的门缝只开一刻，里面的压制阵会先削弱你的怒气；石牌写着挑战要承受 14% 气血损耗，支付 28 灵石可取回元佩，失手就关门。
+scene: 月门的门缝只开一刻，里面的压制阵会先削弱你的怒气；挑战损失约109点气血，失手后仅剩1点。付28灵石可取回元佩。
 options:
   - id: RK014-enter-moon-gate
     label: 承受月门压制
-    quick: 支付 14% 气血，胜利取回澜印
+    quick: 损失约109点气血挑战，胜利取回澜印；失手后仅剩1点气血。
     requirements: []
     costs:
       - {type: resource, resource: hp, amount: 0.14, basis: reference_hp, must_survive: true}
     rewards:
       - {type: artifact, id: RL05, count: 1}
-    outcome: 你在怒气被压低前完成破门，胜利后取走回澜印；它的攻击与防御从此刻计入，下一场真实战斗的怒技完成后可返怒。
+    outcome: 你在怒气被压低前完成破门，胜利后取走回澜印；它的攻击与防御从此刻计入，下一场战斗的怒技完成后可返怒。
     encounter:
       enemy_id: EN-A2-L2
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 月门压制住了你的节奏，回澜印留在门内；已付的 14% 气血留在门槛，回澜印没有到手。
+      failure_outcome: 月门压制住了你的节奏，回澜印留在门内；损失的约109点气血留在门槛，气血仅剩1点，回澜印没有到手。
   - id: RK014-pay-quietly
     label: 付石取稳
     quick: 支付 28 灵石，稳妥取回元佩
@@ -45,7 +45,7 @@ options:
       - {type: resource, resource: coins, amount: 28, basis: flat}
     rewards:
       - {type: artifact, id: RR07, count: 1}
-    outcome: 你用盘缠换下回元佩；它的防御立即计入，下一场真实战斗的首个怒技完成后会改变怒气上限，你不进月门。
+    outcome: 你用盘缠换下回元佩；它的防御立即计入，下一场战斗的首个怒技完成后会改变怒气上限，你不进月门。
   - id: RK014-close-gate
     label: 关门离开
     quick: 关门离开，不付石、不挑战

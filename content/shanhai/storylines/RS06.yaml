@@ -4,8 +4,8 @@ kind: storyline
 id: RS06
 name: 铁扇借风
 status: design_target
-summary: 先带着公开的火伤走过一段路，再决定是否用更高代价换薪火宝炉，或用灵石取余烬盏。
-description: 铁扇公主只肯给一阵短风，主角要么立即拿盘缠，要么承受一段明示火伤，把这笔代价带到后段再求真正的风。
+summary: 初遇损失约78点气血换取借风机会；后段可再损失约173点气血挑战火根取薪火宝炉，或付32灵石取余烬盏。
+description: 铁扇公主只肯给一阵短风；主角要么立即拿盘缠，要么损失约78点气血并存活，把这笔代价带到后段再挑战火根。
 tags: [character_line, princess_iron_fan, hp_commitment, fire]
 source:
   basis: myth_adaptation
@@ -20,18 +20,18 @@ balance:
     high_investment_total_U: [3.0, 4.5]
   measured: null
 character: 铁扇公主
-premise: 山腹火根堵住去路，短风只能带你走一段；若现在不肯承受火伤，后段就没有资格再问真正的风。
+premise: 山腹火根堵住去路，短风只能带你走一段；若现在不肯承受火伤，后段就不能挑战火根、争取熄灭它的强风。
 encounters: [RK011, RK012]
 commitment:
   id: RS06-promised
   form: carry_visible_hp_cost
-  text: 初遇时支付一笔仍能存活的气血代价，把火伤承诺带到第四幕的风止石。
+  text: 初遇损失约78点气血并存活，换取第四幕风止石的挑战机会。
   requirement: 初遇时支付火伤并存活穿过风口
   cancellation: 未支付、未存活或错过回访时，火山线只回到普通道路，传奇器物不会随后出现。
 resolution:
   condition: 初遇承诺仍在，并在风止石选择除火挑战或支付 32 灵石取余烬盏。
   reward_shape: 除火成功取薪火宝炉；支付 32 灵石取余烬盏，不承担挑战风险。
-  tradeoff: 除火挑战再承受 15% 气血损耗，成功才有薪火宝炉；支付路线保留气血，却放弃传奇法宝。
+  tradeoff: 除火挑战再损失约173点气血，失手后仅剩1点；胜利才有薪火宝炉。付32灵石可保留气血取余烬盏，却拿不到传奇法宝。
 selection:
   planned_per_run: 1
   optional: true

@@ -4,7 +4,7 @@ kind: artifact
 id: RC18
 name: 聚财钱
 status: design_target
-summary: 防御 +2；完成真实节点后额外灵石 +2
+summary: 防御 +2；完成节点后额外获得2枚灵石
 description: 钱面刻着聚拢财气的纹路，沿途积攒可实际使用的灵石。
 tags: [defense, travel, coins, node]
 source:
@@ -34,6 +34,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: node, count: 1}
-    text: 每层在一个真实冒险节点完成后额外获得2枚灵石；取得节点不追溯结算。
+    text: 获得此物后，每完成一个行旅节点，每层额外获得2枚灵石。
 acquisition:
   pools: [common_artifact]

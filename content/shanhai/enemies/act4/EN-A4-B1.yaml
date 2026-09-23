@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A4-B1
 name: 陆吾守门
 status: design_target
-summary: 以剑势积累、护盾和两段怒技守住终幕入口。
-description: 陆吾守门采用神话意象，具体养剑配装和剑势路线为游戏原创。
+summary: 昆仑山门前风雪未停，守门的身影巍然不动。
+description: 高山石阶直通云间，古老的门阙立在风雪之中。
 tags: [enemy, act4, boss, myth_adaptation, sword, stacking, multi_segment]
 source:
   basis: myth_adaptation
@@ -19,7 +19,7 @@ balance:
   measured: null
 acts: [4]
 tier: boss
-identity: 陆吾守门
+identity: 陆吾守在山门前，身后云雾翻涌，石阶尽头传来悠远钟声。
 method: RKF05
 n: 4
 talents: [RKF05-J1-C, RKF05-J2-A, RKF05-J3-B, RKF05-J4-A]
@@ -33,7 +33,7 @@ stats:
   max_hp: 790
   crit_rate: 0.16
   speed: 12
-pressure: [多段, 叠buff]
+pressure: [多段, 攻势渐强]
 counterplay:
   - 战前选防御或护盾构筑承受剑势满层后的两段怒技，利用受击回怒渡过其守门窗口。
   - 战前选先手高暴击或持续直伤构筑，在剑势达到五层前缩短战斗，避免满层增伤与追剑叠加。

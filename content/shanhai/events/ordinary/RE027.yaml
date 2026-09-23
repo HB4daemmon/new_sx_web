@@ -22,7 +22,7 @@ scene: 毒火沿阵纹游走，太阴经静静躺在阵心。阵师让你闯阵�
 options:
   - id: RE027-A
     label: 入阵试太阴
-    quick: 参加非致命问阵，胜者带走太阴经；败了只剩一线气血。
+    quick: 参加问阵，胜利带走太阴经；失手后保留1点气血。
     requirements: []
     costs: []
     rewards:

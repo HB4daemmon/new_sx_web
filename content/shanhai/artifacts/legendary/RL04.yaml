@@ -5,7 +5,7 @@ id: RL04
 name: 启明玉
 status: design_target
 summary: 攻击 +12、速度 +1；开场额外回怒 50
-description: 玉面在开战前先亮，为开场怒气加入一次额外的高额储备。
+description: 每场战斗开始时，额外获得50点怒气。
 tags: [attack, speed, rage_gain, battle_start, legendary]
 source:
   basis: original
@@ -36,6 +36,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: battle, count: 1}
-    text: 每场真实战斗在独立开场窗口额外登记50点怒气，与基础50及其它开场来源合并后只截断一次，不直接宣称开场必满。
+    text: 每场战斗开始时额外获得50点怒气；这份怒气与基础开场怒气及其他开场回怒一并计入怒气上限。
 acquisition:
   pools: [legendary_artifact]

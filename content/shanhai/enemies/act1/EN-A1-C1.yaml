@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A1-C1
 name: 浅滩石鼋
 status: design_target
-summary: 以低攻击和单段直接伤害形成第一幕前段普通压力。
-description: 石鼋只使用现有归元诀的普攻和怒技，不读取玩家配置，也没有隐藏阶段。它的攻击较低、最大气血低于第一幕基础玩家参考，实际压力集中在稳定的单段直接伤害，不承诺固定胜率。
+summary: 退潮时，半露的礁石旁总有一道缓慢移动的影子。
+description: 滩涂风静，石鼋伏在礁石之间，背甲覆着一层薄沙。
 tags: [enemy, act1, normal, direct]
 source:
   basis: original
@@ -21,7 +21,7 @@ balance:
   measured: null
 acts: [1]
 tier: normal
-identity: 浅滩石鼋伏在半露的礁石旁，只以沉稳的拳脚和一次怒技造成直接压力。它是最大气血低于基础玩家参考的原创妖物。
+identity: 浅滩石鼋伏在半露的礁石旁，偶尔抬头望向潮声传来的方向。
 method: RKF02
 n: 0
 talents: []

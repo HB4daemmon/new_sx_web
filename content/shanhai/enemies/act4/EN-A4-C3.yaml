@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A4-C3
 name: 玄门再铸
 status: design_target
-summary: 以高防御、多次造盾、真实盾返和一次破盾续护制造普通战后段压力。
-description: 玄甲再铸守是原创匿名敌人，所有盾返与续护都来自金刚功和已有法宝。
+summary: 玄门遗址深处，散落的甲片仍泛着冷光。
+description: 古门倾颓，石阶上留着重新铸造的痕迹。
 tags: [enemy, act4, normal, shield, shield_reflect, stacking]
 source:
   basis: original
@@ -19,7 +19,7 @@ balance:
   measured: null
 acts: [4]
 tier: normal
-identity: 玄甲再铸守
+identity: 玄门再铸守立于旧门之前，甲片拼合处映出细碎寒光。
 method: RKF01
 n: 4
 talents: [RKF01-J1-C, RKF01-J2-C, RKF01-J3-B, RKF01-J4-C]

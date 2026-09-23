@@ -4,8 +4,8 @@ kind: artifact
 id: RR05
 name: 镇心玉
 status: design_target
-summary: 防御 +8；自身主动作完成后攻击提高，最多三层
-description: 玉心压住杂念，每次自身主动作完成后累积一层后续攻击。
+summary: 防御 +8；普攻或怒技完成后攻击 +4，最多三层
+description: 每次普攻或怒技完成后，攻击提高4点，最多叠加3层。
 tags: [defense, attack, stacking, rare]
 source:
   basis: original
@@ -39,6 +39,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: action, count: 1}
-    text: 每次自身主动作完成后获得1层攻击+4，最多3层；增益从下一次主动作生效，战斗结束清除。
+    text: 每次普攻或怒技完成后，攻击提高4点，最多叠加3层；加成从下次行动起生效，战斗结束时清除。
 acquisition:
   pools: [rare_artifact]

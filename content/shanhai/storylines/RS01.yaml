@@ -4,7 +4,7 @@ kind: storyline
 id: RS01
 name: 神农留药
 status: design_target
-summary: 先留下一笔灵石渡过药荒，再以公开风险换回长明灯，或用更多灵石取行医囊。
+summary: 先留下8枚灵石约定回访；药棚挑战损失约114点气血争取长明灯，也可付20灵石稳妥取行医囊。
 description: 神农在潮口分药，主角必须在眼前的盘缠和一份延后的救命药之间作决定；后段的回访只认初遇时确实留下的灵石。
 tags: [character_line, shennong, resource_reserve, healing]
 source:
@@ -31,7 +31,7 @@ commitment:
 resolution:
   condition: 初遇承诺仍在，并在药棚选择守药挑战或支付 20 灵石取行医囊。
   reward_shape: 守药成功取长明灯；支付 20 灵石取行医囊，不承担挑战风险。
-  tradeoff: 守药挑战承受 12% 气血损耗并承担失手风险；支付路线保留气血，但会减少后段盘缠。
+  tradeoff: 守药挑战需损失约114点气血，失手后仅剩1点且拿不到长明灯；付20灵石可保留气血，但会减少后段盘缠。
 selection:
   planned_per_run: 1
   optional: true

@@ -5,7 +5,7 @@ id: RC23
 name: 返气环
 status: design_target
 summary: 防御 +2；怒技完成后固定返怒 5
-description: 环身受怒气冲击后回弹，在怒技主动作完成时返还固定怒气。
+description: 怒技完成后，每层固定返还5点怒气。
 tags: [defense, rage_gain, rage, combat]
 source:
   basis: original
@@ -34,6 +34,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: action, count: 1}
-    text: 每层在怒技实际执行并完成后登记固定5点返怒，不按支付比例计算，也不在普攻后触发。
+    text: 每层在怒技完成时固定返还5点怒气，在本轮结束时结算；与怒技消耗的怒气无关，普攻不触发。
 acquisition:
   pools: [common_artifact]

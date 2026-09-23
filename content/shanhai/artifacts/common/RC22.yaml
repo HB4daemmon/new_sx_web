@@ -5,7 +5,7 @@ id: RC22
 name: 先机符
 status: design_target
 summary: 攻击 +2；开场额外回怒 15
-description: 符上先机二字在入战时发亮，为第一次动作准备额外怒气。
+description: 每层在战斗开始时额外带来15点怒气。
 tags: [attack, rage_gain, battle_start, combat]
 source:
   basis: original
@@ -34,6 +34,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: battle, count: 1}
-    text: 每层在独立开场窗口额外登记15点怒气，每场真实战斗一次，读档不重发。
+    text: 每层在每场战斗开始时额外获得15点怒气；与基础开场怒气一并计入怒气上限。
 acquisition:
   pools: [common_artifact]

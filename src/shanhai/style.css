@@ -7030,3 +7030,939 @@ small {
     display: none;
   }
 }
+
+/* Compact decision surfaces for phone viewports. */
+.event-page {
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+}
+
+.event-scene-head {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 76px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.event-portrait {
+  width: 76px;
+  height: 76px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  background: #10211c;
+}
+
+.event-portrait .portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.event-scene-head > div:last-child {
+  min-width: 0;
+}
+
+.event-scene-head h2 {
+  margin: 3px 0;
+  color: var(--paper);
+  font: 20px/1.35 var(--serif);
+  overflow-wrap: anywhere;
+}
+
+.event-phase-caption {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.story-text,
+.event-result {
+  color: var(--paper-muted);
+  font: 13px/1.7 var(--serif);
+  overflow-wrap: anywhere;
+}
+
+.story-choices {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
+.story-choice-wrap {
+  min-width: 0;
+}
+
+.event-option {
+  min-width: 0;
+  padding: 9px 11px;
+}
+
+.event-option-main {
+  gap: 3px;
+}
+
+.event-option-main > b {
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.event-option-main > small {
+  font-size: 11px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.event-costs i,
+.event-rewards i,
+.disabled-reason {
+  font-size: 11px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.event-result {
+  padding: 10px 12px;
+  border-left: 2px solid var(--gold);
+  background: #17271f;
+}
+
+@media (max-width: 760px) {
+  .game-layout,
+  .game-layout.in-combat {
+    padding-top: 10px;
+    padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .main-stage,
+  .event-page,
+  .preview-column,
+  .shop-item-copy {
+    min-width: 0;
+  }
+
+  .stage-heading {
+    margin: 0 0 10px;
+  }
+
+  .stage-heading h1 {
+    margin: 2px 0 0;
+    font-size: 22px;
+    line-height: 1.3;
+  }
+
+  .stage-heading > p:not(.eyebrow) {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .stage-actions {
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .stage-actions > .button {
+    min-height: 44px;
+  }
+
+  .inline-notice,
+  .inline-error {
+    margin-top: 10px;
+  }
+
+  .map-goal {
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 8px;
+    padding: 8px 9px;
+  }
+
+  .map-goal b {
+    min-width: 0;
+    flex: 1 1 auto;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .map-scroll {
+    min-height: clamp(220px, 31svh, 270px);
+    max-height: min(calc(55svh - 80px), 380px);
+  }
+
+  .map-key {
+    margin-top: 2px;
+  }
+
+  .map-key > summary {
+    min-height: 44px;
+    padding: 8px 2px;
+  }
+
+  .fate-detail > summary,
+  .side-section-title {
+    min-height: 44px;
+  }
+
+  .map-legend {
+    gap: 6px 10px;
+    padding-bottom: 7px;
+    font-size: 11px;
+  }
+
+  .preview-arena {
+    position: relative;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 7px;
+    padding: 8px;
+  }
+
+  .preview-side {
+    grid-template-columns: 48px minmax(0, 1fr);
+    align-items: start;
+    gap: 6px;
+  }
+
+  .preview-side .portrait {
+    width: 48px;
+    height: 60px;
+  }
+
+  .preview-side h2 {
+    margin: 2px 0 4px;
+    font-size: 13px;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .preview-side .eyebrow {
+    font-size: 10px;
+  }
+
+  .preview-stat-line {
+    gap: 2px 6px;
+    font-size: 11px;
+  }
+
+  .preview-stat-line > span {
+    white-space: nowrap;
+  }
+
+  .versus-seal {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    background: #10231de8;
+    font: 11px var(--serif);
+    transform: translate(-50%, -50%);
+  }
+
+  .versus-seal .sigil {
+    width: 30px;
+  }
+
+  .preview-details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    margin-top: 8px;
+  }
+
+  .preview-column {
+    padding: 8px 9px;
+  }
+
+  .detail-heading {
+    gap: 7px;
+    padding-bottom: 5px;
+  }
+
+  .detail-heading span {
+    font-size: 11px;
+  }
+
+  .detail-heading b {
+    font-size: 13px;
+    overflow-wrap: anywhere;
+    text-align: right;
+  }
+
+  .preview-column > p {
+    margin: 6px 0;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .loadout-row {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 6px;
+    padding: 5px 0;
+    font-size: 11px;
+  }
+
+  .mini-chip,
+  .pressure-tag,
+  .artifact-chip {
+    font-size: 11px;
+    overflow-wrap: anywhere;
+  }
+
+  .artifact-chip {
+    display: inline-flex;
+    flex-direction: row;
+    gap: 4px;
+  }
+
+  .tag-row {
+    gap: 4px;
+    margin: 6px 0;
+  }
+
+  .counterplay-list {
+    gap: 3px;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  .reward-card,
+  .talent-card,
+  .compact-choice-card {
+    position: relative;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .reward-card > :not(.choice-emblem),
+  .talent-card > :not(.choice-emblem) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .choice-emblem {
+    position: absolute;
+    top: 27px;
+    right: 2px;
+    z-index: 0;
+    width: 76px;
+    height: 76px;
+    color: var(--jade);
+    opacity: .15;
+    pointer-events: none;
+  }
+
+  .choice-emblem > .sigil {
+    width: 100%;
+    height: 100%;
+  }
+
+  .compact-choice-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 3px;
+  }
+
+  .compact-choice-actions > .button {
+    min-width: 44px;
+    min-height: 44px;
+    margin: 0;
+    padding: 5px 4px;
+    font-size: 11px;
+    white-space: normal;
+  }
+
+  .compact-choice-actions > .button.primary {
+    order: 0;
+  }
+
+  .compact-choice-actions > .button.quiet {
+    order: 1;
+    align-self: flex-end;
+    min-width: 52px;
+    border-color: transparent;
+    color: var(--gold-bright);
+  }
+
+  .reward-card .rarity-chip,
+  .stack-note,
+  .talent-tier {
+    font-size: 11px;
+  }
+
+  .reward-card h2,
+  .talent-card h2 {
+    font-size: 14px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .reward-card > p,
+  .talent-card > p,
+  .talent-card > b {
+    font-size: 11px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .reward-card .attribute-list span,
+  .reward-card .effect-list p,
+  .talent-card details > div {
+    font-size: 11px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .event-page {
+    gap: 9px;
+  }
+
+  .event-scene-head {
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 9px;
+    padding-bottom: 7px;
+  }
+
+  .event-portrait {
+    width: 58px;
+    height: 58px;
+  }
+
+  .event-scene-head h2 {
+    font-size: 17px;
+  }
+
+  .story-text,
+  .event-result {
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .story-choices {
+    gap: 6px;
+  }
+
+  .event-option {
+    gap: 6px;
+    padding: 7px 8px;
+  }
+
+  .event-option-main > b {
+    font-size: 13px;
+  }
+
+  .event-option-main > small {
+    font-size: 11px;
+  }
+
+  .shop-balance {
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 11px;
+  }
+
+  .shop-balance b {
+    font-size: 15px;
+  }
+
+  .shop-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 7px;
+  }
+
+  .shop-item {
+    min-height: 0;
+    grid-template-columns: 36px minmax(0, 1fr);
+    align-content: start;
+    align-items: center;
+    gap: 5px 7px;
+    padding: 8px;
+  }
+
+  .shop-item-art {
+    width: 34px;
+  }
+
+  .shop-item-copy h2 {
+    margin: 3px 0;
+    font-size: 13px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .shop-item-copy p {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .shop-item .rarity-chip {
+    min-height: 20px;
+    font-size: 11px;
+  }
+
+  .shop-item > .button {
+    grid-column: 2;
+    width: auto;
+    min-width: 72px;
+    justify-self: start;
+    margin-top: 2px;
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+
+  .shop-item.sold .sold-stamp {
+    top: auto;
+    right: 7px;
+    bottom: 8px;
+  }
+
+  .build-focus {
+    padding: 9px 10px;
+  }
+
+  .build-focus-title {
+    gap: 4px 8px;
+  }
+
+  .build-focus-title strong {
+    font-size: 16px;
+  }
+
+  .build-focus-title span {
+    font-size: 11px;
+  }
+
+  .build-description {
+    margin-top: 5px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .build-focus .method-actions {
+    gap: 5px;
+    margin-top: 7px;
+  }
+
+  .build-focus .method-actions article {
+    gap: 2px;
+    padding: 6px;
+  }
+
+  .build-focus .method-actions article strong {
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+
+  .build-focus .method-actions article p {
+    font-size: 11px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .build-section {
+    margin-top: 9px;
+    padding: 9px 10px;
+  }
+
+  .section-heading {
+    margin-bottom: 7px;
+    padding-bottom: 6px;
+  }
+
+  .section-heading h2 {
+    font-size: 16px;
+  }
+
+  .talent-ledger article {
+    padding: 7px;
+  }
+
+  .talent-ledger article p,
+  .artifact-entry small {
+    font-size: 11px;
+    line-height: 1.45;
+  }
+
+  .deck-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .deck-grid > .ability-card {
+    padding: 8px;
+  }
+
+  .deck-grid .card-heading .card-title {
+    font-size: 16px;
+    line-height: 1.35;
+  }
+
+  .deck-grid .ability-effects,
+  .deck-grid .ability-behavior {
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .deck-grid .ability-effects > p,
+  .deck-grid .ability-behavior > p {
+    margin-bottom: 4px;
+  }
+
+  .deck-grid .card-foot {
+    gap: 4px;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .karma-ledger {
+    grid-template-columns: minmax(0, 1fr) 110px;
+  }
+
+  .karma-summary {
+    padding: 9px;
+  }
+
+  .karma-summary strong {
+    font-size: 15px;
+  }
+
+  .karma-summary p,
+  .timeline-item p {
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .timeline {
+    gap: 7px;
+    margin-top: 9px;
+  }
+
+  .timeline-item {
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 7px;
+    padding: 9px;
+  }
+
+  .timeline-item h3 {
+    font-size: 15px;
+    overflow-wrap: anywhere;
+  }
+
+  .timeline-item small {
+    font-size: 11px;
+  }
+
+  .combat-arena {
+    min-height: clamp(250px, 34svh, 280px);
+  }
+
+  .battle-stage-core {
+    margin-bottom: 22px;
+  }
+
+  .battle-context {
+    margin: 0 0 5px;
+    font-size: 11px;
+  }
+
+  .battle-controls {
+    gap: 6px;
+    margin: 7px 0 5px;
+  }
+
+  .battle-controls > .button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .battle-log-disclosure > summary,
+  .battle-loadout > summary {
+    min-height: 44px;
+    padding: 8px 2px;
+    font-size: 12px;
+  }
+
+  .battle-log-head {
+    gap: 6px;
+    margin-top: 6px;
+    padding-bottom: 4px;
+    font-size: 13px;
+  }
+
+  .battle-log-head .log-follow,
+  .battle-log-head .log-mode {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 8px 5px;
+    font-size: 11px;
+  }
+
+  .battle-log-head .log-mode {
+    margin-left: auto;
+  }
+
+  .battle-log {
+    max-height: 190px;
+  }
+
+  .battle-log-row {
+    grid-template-columns: minmax(58px, .55fr) minmax(0, 1fr);
+    font-size: 11px;
+    line-height: 1.45;
+  }
+
+  .profile-build {
+    gap: 7px;
+  }
+
+  .battle-data .battle-loadout.profile-build {
+    padding-top: 6px;
+  }
+
+  .battle-loadout .profile-action b {
+    font-size: 11px;
+  }
+
+  .battle-loadout .profile-action small {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .item-dialog-art {
+    width: 64px;
+    margin: 5px auto;
+  }
+}
+
+@media (max-width: 390px) {
+  .landing-copy {
+    flex-wrap: wrap;
+  }
+
+  .landing-copy h1 {
+    font-size: 20px;
+  }
+
+  .landing-subtitle {
+    font-size: 11px;
+  }
+
+  .resume-card {
+    width: 100%;
+  }
+
+  .setup {
+    padding: 6px 7px 8px;
+  }
+
+  .setup-fields {
+    gap: 5px;
+    margin: 5px 0 6px;
+  }
+
+  .method-grid {
+    gap: 3px;
+  }
+
+  .method-choice {
+    min-height: 68px;
+    padding: 4px 2px;
+  }
+
+  .method-mark {
+    width: 21px;
+  }
+
+  .method-copy b,
+  .method-copy em {
+    font-size: 11px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .method-detail {
+    margin-top: 5px;
+    padding: 6px;
+  }
+
+  .method-detail > p,
+  .method-quick-actions > span,
+  .method-quick-actions small,
+  .method-actions > article,
+  .method-actions b,
+  .method-actions small {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .landing-inner .actions {
+    margin-top: 5px;
+  }
+
+  .landing-inner .actions .button {
+    min-height: 44px;
+  }
+
+  .preview-side {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .preview-side .portrait {
+    width: 42px;
+    height: 54px;
+  }
+
+  .preview-side h2 {
+    font-size: 12px;
+  }
+
+  .preview-stat-line {
+    gap: 1px 4px;
+    font-size: 11px;
+  }
+
+  .preview-column {
+    padding: 7px 8px;
+  }
+
+  .map-scroll {
+    min-height: clamp(210px, 30svh, 250px);
+  }
+
+  .combat-arena {
+    grid-template-columns: minmax(0, 1fr) minmax(48px, .52fr) minmax(0, 1fr);
+    gap: 3px;
+    padding-right: 5px;
+    padding-left: 5px;
+  }
+
+  .fighter-art {
+    max-width: 96px;
+  }
+
+  .fighter-identity h2 {
+    font-size: 12px;
+  }
+
+  .fighter-numbers,
+  .fighter-core-stats,
+  .combat-statuses > span {
+    font-size: 11px;
+  }
+
+  .speeds {
+    gap: 0;
+    grid-template-columns: repeat(4, minmax(40px, 1fr));
+  }
+
+  .battle-controls > .button {
+    padding-right: 5px;
+    padding-left: 5px;
+    font-size: 11px;
+  }
+
+  .modal-backdrop {
+    padding: 10px;
+  }
+
+  .modal {
+    width: 100%;
+    max-height: calc(100dvh - 20px);
+    padding: 48px 13px 14px;
+  }
+
+  .modal h2 {
+    font-size: 20px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .modal > p:not(.eyebrow),
+  .character-detail p {
+    font-size: 12px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+  }
+
+  .character-stats {
+    gap: 5px;
+    margin-top: 9px;
+  }
+
+  .character-stats > div {
+    padding: 7px;
+  }
+
+  .character-stats span {
+    font-size: 11px;
+  }
+
+  .character-stats strong {
+    font-size: 14px;
+  }
+
+  .dialog-actions {
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .dialog-actions .button {
+    min-height: 44px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .reward-card-top {
+    gap: 2px;
+  }
+
+  .reward-card .rarity-chip {
+    max-width: 100%;
+    min-height: 22px;
+    padding: 2px 4px;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+
+  .reward-card .stack-note {
+    max-width: 100%;
+    font-size: 11px;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+    text-align: left;
+  }
+
+  .reward-card .choice-emblem {
+    top: 35px;
+    right: 0;
+    width: 64px;
+    height: 64px;
+  }
+
+  .reward-card .attribute-list span {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .compact-choice-actions > .button.quiet {
+    width: 52px;
+    min-width: 52px;
+    min-height: 44px;
+    justify-content: center;
+    padding: 4px 2px;
+    line-height: 1.3;
+  }
+}

@@ -4,8 +4,8 @@ kind: artifact
 id: RR08
 name: 血勇佩
 status: design_target
-summary: 最大气血 +30；每敌方主动作真实掉血额外回怒 10
-description: 佩面血纹在真正受伤时回应，每个敌方主动作最多登记一次额外怒气。
+summary: 最大气血 +30；敌方行动造成气血损失后额外获得10点怒气
+description: 敌方行动造成气血损失时，额外获得10点怒气；每次敌方行动最多触发一次。
 tags: [max_hp, rage_gain, enemy_action, rare]
 source:
   basis: original
@@ -37,6 +37,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: enemy_action, count: 1}
-    text: 每个敌方主动作若造成真实气血损失，额外登记10点怒气；护盾完全吸收、持续伤害、反震和事件扣血不触发。
+    text: 敌方一次行动造成气血损失后，额外获得10点怒气；同次行动最多触发一次。伤害被护盾完全吸收，或来自中毒、燃烧、反击、事件扣血时不触发。
 acquisition:
   pools: [rare_artifact]

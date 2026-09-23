@@ -228,8 +228,8 @@ async function assertNoAlerts(page, label) {
   assert.deepEqual(alerts, [], `${label}: 出现可见错误 ${alerts.join(' | ')}`);
 }
 
-async function createFixture(page, target, seed = `classic-ui-${target}`) {
-  await page.evaluate(async ({ target, seed }) => {
+async function createFixture(page, target, seed = `classic-ui-${target}`, options = {}) {
+  await page.evaluate(async ({ target, seed, selectedTalent, coins }) => {
     const [{ loadContent }, { ShanhaiGame }, { saveRun }] = await Promise.all([
       import('/shanhai/content.js'),
       import('/shanhai/run.js'),
@@ -241,6 +241,16 @@ async function createFixture(page, target, seed = `classic-ui-${target}`) {
       name: `经典UI${target}`,
       method: 'RKF01',
     });
+    if (selectedTalent) {
+      const method = content.byId[game.state.method];
+      const talent = method.talents.find(candidate => candidate && candidate.tier === 1);
+      const cumulative = content.byId.RULES?.cultivation?.cumulative;
+      const requiredXp = Number.isFinite(cumulative?.[0]) ? cumulative[0] : 120;
+      if (!talent) throw new Error('Battle fixture has no starting-method talent');
+      game.state.n = Math.max(game.state.n, 1);
+      game.state.xp = Math.max(game.state.xp, requiredXp);
+      game.state.talents[game.state.method] = [talent.id];
+    }
 
     const advance = () => {
       if (game.state.phase === 'map') {
@@ -289,9 +299,10 @@ async function createFixture(page, target, seed = `classic-ui-${target}`) {
     if (game.state.phase !== target) {
       throw new Error(`Fixture ${target} ended at ${game.state.phase}`);
     }
+    if (Number.isFinite(coins)) game.state.coins = coins;
     saveRun(game);
     localStorage.removeItem('suishi-shanhai-replay-v1');
-  }, { target, seed });
+  }, { target, seed, selectedTalent: Boolean(options.selectedTalent), coins: options.coins });
   await page.reload({ waitUntil: 'networkidle' });
   await waitForApp(page);
   await page.waitForTimeout(80);
@@ -576,6 +587,31 @@ async function assertBuildSurface(page, width) {
   assert.ok(await page.locator('.deck-grid, .build-focus, .profile-build').count() > 0,
     `${width}: 命盘页缺少构筑内容区域`);
 
+  const railTalentTrigger = page.locator('.player-rail .profile-talent').first();
+  const talentTrigger = await railTalentTrigger.isVisible()
+    ? railTalentTrigger
+    : page.locator('.talent-ledger .talent-record-trigger').first();
+  assert.equal(await talentTrigger.evaluate(element => element.tagName), 'BUTTON',
+    `${width}: 玩家栏天赋详录入口不是按钮`);
+  assert.match(await talentTrigger.getAttribute('aria-label') || '', /详录/,
+    `${width}: 玩家栏天赋入口缺少明确的无障碍名称`);
+  await talentTrigger.focus();
+  await page.keyboard.press('Enter');
+  const talentDialog = page.locator('.talent-dialog[role="dialog"][aria-modal="true"]');
+  await talentDialog.waitFor({ state: 'visible' });
+  assert.match(await talentDialog.locator('#dialog-title').textContent() || '',
+    new RegExp(seeded.talentName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+    `${width}: 天赋详录没有展示对应天赋`);
+  assert.ok(await talentDialog.locator('.effect-list p').count() > 0,
+    `${width}: 天赋详录缺少完整效果`);
+  await talentDialog.locator('[data-action="modal-close"][data-autofocus]').click();
+  await page.locator('.talent-dialog').waitFor({ state: 'detached' });
+  assert.ok(await page.evaluate((talentName) => {
+    const active = document.activeElement;
+    return active?.getAttribute('data-action') === 'inspect-talent' &&
+      active?.textContent?.trim() === talentName;
+  }, seeded.talentName), `${width}: 关闭天赋详录后焦点没有返回原入口`);
+
   const filters = page.locator('[data-action="build-filter"]');
   assert.equal(await filters.count(), 2, `${width}: 命盘缺少 owned/all 筛选`);
   const filterValues = await filters.evaluateAll(buttons =>
@@ -598,6 +634,28 @@ async function assertBuildSurface(page, width) {
     .waitFor({ state: 'visible' });
   assert.equal(await page.locator('.deck-grid > .ability-card:visible').count(), ownedEntries,
     `${width}: owned 筛选返回后可见法宝数量改变`);
+
+  const rarityGroup = page.locator('[role="group"][aria-label="按品阶筛选"]');
+  assert.equal(await rarityGroup.locator('[data-action="build-rarity-filter"]').count(), 4,
+    `${width}: 法宝图鉴缺少品阶筛选`);
+  await allFilter.click();
+  await page.locator('[data-action="build-filter"][data-filter="all"][aria-pressed="true"]')
+    .waitFor({ state: 'visible' });
+  await clickVisibleAction(page, 'build-rarity-filter', { rarity: 'rare' });
+  await page.locator('[data-action="build-rarity-filter"][data-rarity="rare"][aria-pressed="true"]')
+    .waitFor({ state: 'visible' });
+  const rareCards = page.locator('.deck-grid > .ability-card:visible');
+  assert.ok(await rareCards.count() > 0, `${width}: 稀有品阶筛选没有法宝`);
+  assert.ok(await rareCards.evaluateAll(cards =>
+    cards.every(card => card.classList.contains('rarity-rare'))),
+  `${width}: 稀有筛选显示了其它品阶的法宝`);
+  await clickVisibleAction(page, 'build-rarity-filter', { rarity: 'all' });
+  await page.locator('[data-action="build-rarity-filter"][data-rarity="all"][aria-pressed="true"]')
+    .waitFor({ state: 'visible' });
+
+  const visibleCopy = await page.locator('#shanhai-app').innerText();
+  assert.doesNotMatch(visibleCopy, /行为|五维|有限坊市|节点休整|新入库|故事线|选项配置异常/,
+    `${width}: 玩家界面仍包含内部术语`);
 }
 
 async function assertBottomNavDoesNotCoverLastChoice(page, width) {
@@ -643,6 +701,9 @@ async function assertKarmaHistory(page) {
     '因缘页缺少履历容器');
   assert.ok(karmaText?.includes(latest.title) || karmaText?.includes(latest.text),
     '因缘页没有展示最新真实履历');
+  assert.match(await page.locator('.timeline-item').first().locator('small').textContent() || '',
+    new RegExp(`节点\\s*${Number(latest.step) + 1}`),
+    '因缘履历仍显示 0 起始的节点序号');
 }
 
 async function assertCombatSurface(page, width) {
@@ -858,6 +919,46 @@ async function toggleDetailedBattleLog(page) {
   '详略战报开关没有切换到详录');
 }
 
+async function assertBattleTalentDetails(page) {
+  await createFixture(page, 'battle', 'classic-ui-battle-talent-details', { selectedTalent: true });
+  await waitForPhase(page, 'battle');
+  await setReplayCursor(page, 0, true, true);
+  const currentBuild = page.locator('details[data-details="battle-loadout"]');
+  assert.equal(await currentBuild.getAttribute('open'), null,
+    '战斗当前构筑应默认折叠');
+  await currentBuild.locator('summary').click();
+  const battleTalent = currentBuild.locator('.profile-talent').first();
+  assert.equal(await battleTalent.evaluate(element => element.tagName), 'BUTTON',
+    '战斗构筑天赋详录入口不是按钮');
+  await battleTalent.focus();
+  await page.keyboard.press('Enter');
+  const talentDialog = page.locator('.talent-dialog[role="dialog"][aria-modal="true"]');
+  await talentDialog.waitFor({ state: 'visible' });
+  assert.ok(await talentDialog.locator('.effect-list p').count() > 0,
+    '战斗构筑天赋详录缺少完整效果');
+  await talentDialog.locator('[data-action="modal-close"][data-autofocus]').click();
+  await page.locator('.talent-dialog').waitFor({ state: 'detached' });
+  assert.ok(await page.evaluate(() => document.activeElement?.getAttribute('data-action') === 'inspect-talent'),
+    '关闭战斗天赋详录后焦点没有返回天赋入口');
+  assert.equal(await page.locator('[data-action="battle-pause"]').getAttribute('aria-pressed'), 'true',
+    '查看天赋详录后战斗没有保持暂停');
+}
+
+async function assertShopUnavailableReason(page) {
+  await createFixture(page, 'shop', 'classic-ui-shop-unavailable', { coins: 0 });
+  await waitForPhase(page, 'shop');
+  const disabledPurchase = page.locator('.shop-item:not(.sold) [data-action="buy"][disabled]').first();
+  await disabledPurchase.waitFor({ state: 'visible' });
+  assert.equal(await disabledPurchase.getAttribute('title'), '灵石不足',
+    '坊市禁购原因没有保留辅助说明');
+  const visibleReason = await disabledPurchase.evaluate(button =>
+    button.closest('.shop-item')?.querySelector('.shop-item-unavailable')?.textContent?.trim());
+  assert.equal(visibleReason, '灵石不足',
+    '坊市禁购原因只放在 title 中，没有可见文案');
+  const copy = await page.locator('#shanhai-app').innerText();
+  assert.doesNotMatch(copy, /有限坊市/, '坊市仍显示内部阶段用语');
+}
+
 async function runViewport(browser, width, height) {
   const context = await browser.newContext({
     viewport: { width, height },
@@ -895,6 +996,8 @@ async function runViewport(browser, width, height) {
       await check(`${width} combat controls`, () => assertCombatSurface(page, width));
     }
     if (width === 390) {
+      await check(`${width} battle loadout talent details`, () => assertBattleTalentDetails(page));
+      await check(`${width} shop explains unavailable purchases`, () => assertShopUnavailableReason(page));
       await check(`${width} detailed battle log`, () => toggleDetailedBattleLog(page));
     }
     await page.screenshot({

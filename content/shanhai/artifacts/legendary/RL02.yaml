@@ -4,8 +4,8 @@ kind: artifact
 id: RL02
 name: 薪火宝炉
 status: design_target
-summary: 攻击 +12、防御 +6；燃烧实际伤害后按比例治疗
-description: 炉中薪火在燃烧造成真实气血损失后回馈治疗，燃烧伤害本身不被消耗。
+summary: 攻击 +12、防御 +6；燃烧造成气血损失后按比例治疗
+description: 自身施加的燃烧造成气血损失后，按损失量回复气血；燃烧伤害照常结算。
 tags: [attack, defense, burn, heal, legendary]
 source:
   basis: original
@@ -37,6 +37,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: round, count: 1}
-    text: 每轮首次自身燃烧造成实际气血伤害后，按该次实际伤害的25%治疗自身；燃烧伤害保留，每轮最多一次。
+    text: 每轮首次由自身施加的燃烧造成气血损失后，按该次损失量的25%恢复气血，不超过最大气血；每轮最多触发一次。
 acquisition:
   pools: [legendary_artifact]

@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A1-C3
 name: 灰潮火螭
 status: design_target
-summary: 以轮尾燃烧和较长持续伤害形成第一幕后段普通压力。
-description: 火螭的持续伤害全部来自御火诀、天赋和赤炎珠的公开卡面。它的攻击不高于玩家首测攻击参考，实际压力来自燃烧在轮尾重复结算，不静态承诺胜率。
+summary: 潮线留下焦黑泥痕，灰羽掠过时带起几点火星。
+description: 退潮泥滩上散落着灰色羽片，夜色中常有火光掠过。
 tags: [enemy, act1, normal, burn, dot]
 source:
   basis: original
@@ -21,7 +21,7 @@ balance:
   measured: null
 acts: [1]
 tier: normal
-identity: 灰潮火螭沿着退潮泥线吐出细小火星，火星会在轮尾留下短暂灼痕。它以施火后的持续掉血形成后段普通压力。
+identity: 灰潮火螭沿着退潮泥线游过，灰羽间落下几点细小火星。
 method: RKF04
 n: 1
 talents: [RKF04-J1-A]
@@ -35,7 +35,7 @@ stats:
   max_hp: 315
   crit_rate: 0.05
   speed: 9
-pressure: [长DOT]
+pressure: [持续伤害]
 counterplay:
   - 用前几轮的爆发或破甲尽快结束战斗，减少燃烧在轮尾重复结算的次数。
   - 以治疗或护盾承接燃烧覆盖期间的直接段，避免把未定义的净化效果当成必需条件。

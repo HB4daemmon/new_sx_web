@@ -31,7 +31,7 @@ commitment:
 resolution:
   condition: 初遇承诺仍在，试射时仍持有明目珠。
   reward_shape: 试射成功取引雷针；支付 24 灵石取剑穗，不承担挑战风险。
-  tradeoff: 明目珠不会妨碍你再取得别的法宝，但必须一路保留到试射；挑战有 12% 气血损耗，支付路线则减少后段盘缠。
+  tradeoff: 明目珠不会妨碍你取得别的法宝，但要一路保留到试射；挑战需损失约138点气血，失手后仅剩1点。付24灵石可保留气血，但会减少后段盘缠。
 selection:
   planned_per_run: 1
   optional: true

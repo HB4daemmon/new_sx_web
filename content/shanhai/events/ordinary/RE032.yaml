@@ -22,7 +22,7 @@ scene: 云阶上风声猎猎，虎纹佩、厚土环和雷纹印摆在三道石�
 options:
   - id: RE032-A
     label: 试虎纹双片
-    quick: 参加非致命试锋，胜者带走两层虎纹佩；败了只剩一线气血。
+    quick: 参加试锋，胜利带走两层虎纹佩；失手后保留1点气血。
     requirements:
       - {type: capacity, id: RC02, count: 2}
     costs: []
@@ -37,7 +37,7 @@ options:
     outcome: 你赢下云阶试锋，带走两层虎纹佩。
   - id: RE032-B
     label: 试厚土双片
-    quick: 参加非致命试锋，胜者带走两层厚土环；败了只剩一线气血。
+    quick: 参加试锋，胜利带走两层厚土环；失手后保留1点气血。
     requirements:
       - {type: capacity, id: RC04, count: 2}
     costs: []

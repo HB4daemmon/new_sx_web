@@ -26,40 +26,40 @@
 ### 蓄气珠
 
 - 开发标识：`RR01`
-攻击 +8；普攻或怒技基础命中回怒 10，每主动作一次
+攻击 +8；普攻或怒技首段命中后额外获得10点怒气
 
-- 玩家看到：珠中气息在基础攻击命中时回流，补足普攻和怒技之间的节奏。
+- 玩家看到：普攻或怒技的首段基础攻击命中后，额外获得10点怒气。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR01-BASE-HIT-RAGE-GAIN`；普攻或怒技的基础直接段首次有效命中时登记10点额外怒气，每个主动作最多一次。；操作：获得怒气；触发：直接命中；目标：自身；参数：数量=10；时机=round_end；action_types=basic_action、rage_action；hit_scope=base_direct；result=positive_hp_damage_or_shield_absorption；one_per_main_action=是；excludes=artifact_followup、reflect、poison、burn；限制：范围=action；次数=1
+- `RR01-BASE-HIT-RAGE-GAIN`；普攻或怒技的首段基础攻击命中敌方或被护盾吸收时，额外获得10点怒气；每次行动最多触发一次，追加攻击、反击、中毒和燃烧不触发。；操作：获得怒气；触发：直接命中；目标：自身；参数：数量=10；时机=round_end；action_types=basic_action、rage_action；hit_scope=base_direct；result=positive_hp_damage_or_shield_absorption；one_per_main_action=是；excludes=artifact_followup、reflect、poison、burn；限制：范围=action；次数=1
 :::
 
 ### 甘露盏
 
 - 开发标识：`RR02`
-最大气血 +30；首次有效自疗按比例加盾
+最大气血 +30；普攻或怒技回复气血后按比例获得护盾
 
-- 玩家看到：盏中甘露在自身有效治疗落定时凝成护盾，治疗本身仍然保留。
+- 玩家看到：自身治疗回复气血后，按回复量的35%获得护盾。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR02-FIRST-SELF-HEAL-SHIELD`；每个自身主动作首次有效自疗后，按有效自疗量的35%生成护盾；治疗不被消耗，满血溢出不计入输入。；操作：生成护盾；触发：治疗结算；目标：自身；参数：比例=0.35；basis=effective_self_heal；first_effective_self_heal_per_action=是；preserve_effective_heal=是；shield_cap=max_hp；first_test_value=0.35；前置：effective_self_heal；限制：范围=action；次数=1
+- `RR02-FIRST-SELF-HEAL-SHIELD`；每次普攻或怒技首次回复气血后，按回复量的35%获得护盾，护盾最多累积到最大气血；治疗溢出不计入。；操作：生成护盾；触发：治疗结算；目标：自身；参数：比例=0.35；basis=effective_self_heal；first_effective_self_heal_per_action=是；preserve_effective_heal=是；shield_cap=max_hp；first_test_value=0.35；前置：effective_self_heal；限制：范围=action；次数=1
 :::
 
 ### 毒牙钉
 
 - 开发标识：`RR03`
-攻击 +8；普攻首个基础命中施加中毒
+攻击 +8；普攻首次命中后施加1层中毒
 
-- 玩家看到：细钉藏着毒纹，在普攻的首个有效基础命中时添上一层中毒。
+- 玩家看到：普攻首次命中后，施加1层中毒。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR03-FIRST-BASIC-HIT-POISON`；每个普攻主动作的首个有效基础命中施加1层中毒，多段普攻只施加一次。；操作：施加状态；触发：直接命中；目标：敌人；参数：状态=中毒；层数=1；持续轮数=3；action_type=basic_action；hit_scope=first_effective_base_direct_hit；one_per_action=是；excludes=artifact_followup、reflect、poison、burn；前置：effective_basic_base_hit；限制：范围=action；次数=1
+- `RR03-FIRST-BASIC-HIT-POISON`；普攻首次命中后施加1层中毒；多段普攻只触发一次。；操作：施加状态；触发：直接命中；目标：敌人；参数：状态=中毒；层数=1；持续轮数=3；action_type=basic_action；hit_scope=first_effective_base_direct_hit；one_per_action=是；excludes=artifact_followup、reflect、poison、burn；前置：effective_basic_base_hit；限制：范围=action；次数=1
 :::
 
 ### 如意钱
@@ -67,38 +67,38 @@
 - 开发标识：`RR04`
 攻击 +6、暴击率 +2 个百分点；普攻首命中概率追加一击
 
-- 玩家看到：钱面两侧刻着如意纹，普攻首个有效命中有机会牵出一次追加攻击。
+- 玩家看到：普攻首段命中后有25%概率追加一段攻击。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR04-BASIC-HIT-CHANCE-FOLLOWUP`；每个普攻主动作首个有效基础命中只检定一次；首测25%概率追加一段攻击倍率0.5的直接伤害，追加段不再触发追加。；操作：概率伤害；触发：直接命中；目标：敌人；参数：概率=0.25；攻击倍率=0.5；段数=1；can_crit=否；action_type=basic_action；hit_scope=first_effective_base_direct_hit；rolls_per_action=1；append_after_base_hit=是；does_not_chain=是；first_test_value=概率=0.25；攻击倍率=0.5；前置：effective_basic_base_hit；限制：范围=action；次数=1
+- `RR04-BASIC-HIT-CHANCE-FOLLOWUP`；普攻首段基础攻击命中后，有25%概率追加一段攻击倍率0.5的直接伤害；追加段不会再次触发本效果。；操作：概率伤害；触发：直接命中；目标：敌人；参数：概率=0.25；攻击倍率=0.5；段数=1；can_crit=否；action_type=basic_action；hit_scope=first_effective_base_direct_hit；rolls_per_action=1；append_after_base_hit=是；does_not_chain=是；first_test_value=概率=0.25；攻击倍率=0.5；前置：effective_basic_base_hit；限制：范围=action；次数=1
 :::
 
 ### 镇心玉
 
 - 开发标识：`RR05`
-防御 +8；自身主动作完成后攻击提高，最多三层
+防御 +8；普攻或怒技完成后攻击 +4，最多三层
 
-- 玩家看到：玉心压住杂念，每次自身主动作完成后累积一层后续攻击。
+- 玩家看到：每次普攻或怒技完成后，攻击提高4点，最多叠加3层。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR05-ACTION-END-ATTACK-LAYER`；每次自身主动作完成后获得1层攻击+4，最多3层；增益从下一次主动作生效，战斗结束清除。；操作：修改属性；触发：动作结束；目标：自身；参数：属性=attack；固定值=4；stacking=是；最大层数=3；layer_value=4；action_scope=own_main_action；apply_after_action=是；reset=battle_end；first_test_value=attack_per_layer=4；最大层数=3；前置：own_main_action_completed；限制：范围=action；次数=1
+- `RR05-ACTION-END-ATTACK-LAYER`；每次普攻或怒技完成后，攻击提高4点，最多叠加3层；加成从下次行动起生效，战斗结束时清除。；操作：修改属性；触发：动作结束；目标：自身；参数：属性=attack；固定值=4；stacking=是；最大层数=3；layer_value=4；action_scope=own_main_action；apply_after_action=是；reset=battle_end；first_test_value=attack_per_layer=4；最大层数=3；前置：own_main_action_completed；限制：范围=action；次数=1
 :::
 
 ### 长明灯
 
 - 开发标识：`RR06`
-最大气血 +30；完成战斗节点后恢复气血
+最大气血 +30；完成战斗节点后恢复最大气血的8%
 
-- 玩家看到：灯火在战后不灭，为真实战斗节点提供一次战外恢复。
+- 玩家看到：每完成一次普通战、精英战或首领战节点，恢复最大气血的8%。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR06-BATTLE-NODE-HEAL`；每个真实普通战、精英战或幕首领节点完成后恢复最大气血的8%；节点内多战只结算一次，非战斗节点不触发。；操作：治疗；触发：战斗节点完成；目标：自身；参数：比例=0.08；basis=max_hp；combat=否；battle_types=C、L、B；real_battle_node_only=是；once_per_node=是；上限=max_hp；first_test_value=最大气血倍率=0.08；前置：real_battle_node_completed；限制：范围=node；次数=1
+- `RR06-BATTLE-NODE-HEAL`；完成普通战、精英战或首领战节点后，恢复最大气血的8%；每个节点只触发一次，非战斗节点不触发。；操作：治疗；触发：战斗节点完成；目标：自身；参数：比例=0.08；basis=max_hp；combat=否；battle_types=C、L、B；real_battle_node_only=是；once_per_node=是；上限=max_hp；first_test_value=最大气血倍率=0.08；前置：real_battle_node_completed；限制：范围=node；次数=1
 :::
 
 ### 回元佩
@@ -106,103 +106,103 @@
 - 开发标识：`RR07`
 防御 +8；首个怒技完成后本战怒气上限 -15
 
-- 玩家看到：佩中回元之力在首个怒技落定后压低本战上限，换取后续节奏。
+- 玩家看到：首个怒技完成后，本场战斗的怒气上限降低15点。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR07-FIRST-RAGE-CAP-REDUCTION`；首个怒技实际完成后登记本战怒气上限-15，轮尾生效；首怒已锁定和已支付的成本不追溯改变。；操作：修改怒气上限；触发：怒技动作；目标：自身；参数：delta=-15；first_rage_action_only=是；范围=current_battle；apply_at=round_end；cost_uses_pre_change_cap=是；lower_bound=60；前置：rage_action_completed；限制：范围=battle；次数=1
+- `RR07-FIRST-RAGE-CAP-REDUCTION`；首个怒技完成后，本场战斗的怒气上限降低15点，并在本轮结束时生效；不改变这次怒技已确定并支付的怒气。；操作：修改怒气上限；触发：怒技动作；目标：自身；参数：delta=-15；first_rage_action_only=是；范围=current_battle；apply_at=round_end；cost_uses_pre_change_cap=是；lower_bound=60；前置：rage_action_completed；限制：范围=battle；次数=1
 :::
 
 ### 血勇佩
 
 - 开发标识：`RR08`
-最大气血 +30；每敌方主动作真实掉血额外回怒 10
+最大气血 +30；敌方行动造成气血损失后额外获得10点怒气
 
-- 玩家看到：佩面血纹在真正受伤时回应，每个敌方主动作最多登记一次额外怒气。
+- 玩家看到：敌方行动造成气血损失时，额外获得10点怒气；每次敌方行动最多触发一次。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR08-ENEMY-ACTION-RAGE-GAIN`；每个敌方主动作若造成真实气血损失，额外登记10点怒气；护盾完全吸收、持续伤害、反震和事件扣血不触发。；操作：获得怒气；触发：敌方动作结束；目标：自身；参数：数量=10；时机=round_end；requires_actual_hp_damage=是；shield_only_does_not_trigger=是；来源=enemy_main_action_and_derived_damage；one_per_enemy_action=是；excludes=poison、burn、reflect、self_damage、event_damage；前置：positive_actual_hp_damage；限制：范围=enemy_action；次数=1
+- `RR08-ENEMY-ACTION-RAGE-GAIN`；敌方一次行动造成气血损失后，额外获得10点怒气；同次行动最多触发一次。伤害被护盾完全吸收，或来自中毒、燃烧、反击、事件扣血时不触发。；操作：获得怒气；触发：敌方动作结束；目标：自身；参数：数量=10；时机=round_end；requires_actual_hp_damage=是；shield_only_does_not_trigger=是；来源=enemy_main_action_and_derived_damage；one_per_enemy_action=是；excludes=poison、burn、reflect、self_damage、event_damage；前置：positive_actual_hp_damage；限制：范围=enemy_action；次数=1
 :::
 
 ### 震岳鼓
 
 - 开发标识：`RR09`
-防御 +8；盾返有效后每敌方主动作额外回怒 10
+防御 +8；盾返造成伤害后，敌方每次行动结束时你额外获得10点怒气
 
-- 玩家看到：鼓面在已有护盾反击生效时震动，为后续敌方主动作积蓄怒气。
+- 玩家看到：护盾成功反击后，每次敌方行动额外带来10点怒气。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR09-REFLECT-ENEMY-ACTION-RAGE`；只有已有护盾实际完成正向盾返时，每个敌方主动作额外登记10点怒气；本效果不授予盾返。；操作：获得怒气；触发：敌方动作结束；目标：自身；参数：数量=10；时机=round_end；来源=existing_shield_reflect；requires_effective_reflect=是；reflect_must_be_positive=是；one_per_enemy_action=是；does_not_grant_shield_reflect=是；前置：effective_existing_shield_reflect；限制：范围=enemy_action；次数=1
+- `RR09-REFLECT-ENEMY-ACTION-RAGE`；敌方行动中，若已有护盾反击造成伤害，该次敌方行动结束时额外获得10点怒气；此法宝不提供反击效果。；操作：获得怒气；触发：敌方动作结束；目标：自身；参数：数量=10；时机=round_end；来源=existing_shield_reflect；requires_effective_reflect=是；reflect_must_be_positive=是；one_per_enemy_action=是；does_not_grant_shield_reflect=是；前置：effective_existing_shield_reflect；限制：范围=enemy_action；次数=1
 :::
 
 ### 引雷针
 
 - 开发标识：`RR10`
-攻击 +8；直接暴击每次回怒 5，每己方主动作最多两次
+攻击 +8；直接攻击暴击后获得5点怒气，每次行动最多两次
 
-- 玩家看到：针尖牵引雷意，在直接攻击暴击结算后补回少量怒气。
+- 玩家看到：基础或追加直接攻击暴击后，额外获得5点怒气。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR10-DIRECT-CRIT-RAGE`；每次基础或追加直接攻击暴击登记5点怒气，每个己方主动作最多两次；持续伤害和反震不触发。；操作：获得怒气；触发：直接暴击；目标：自身；参数：数量=5；时机=round_end；来源=direct_attack；include=base_direct、artifact_followup；excludes=poison、burn、reflect；per_action_cap=2；前置：effective_direct_critical_hit；限制：范围=action；次数=2
+- `RR10-DIRECT-CRIT-RAGE`；每次基础或追加直接攻击暴击后获得5点怒气；每次普攻或怒技最多触发两次，中毒、燃烧和反击不触发。；操作：获得怒气；触发：直接暴击；目标：自身；参数：数量=5；时机=round_end；来源=direct_attack；include=base_direct、artifact_followup；excludes=poison、burn、reflect；per_action_cap=2；前置：effective_direct_critical_hit；限制：范围=action；次数=2
 :::
 
 ### 余烬盏
 
 - 开发标识：`RR11`
-最大气血 +30；毒火造成实际掉血时每轮额外回怒 10
+最大气血 +30；中毒或燃烧造成气血损失时，每轮额外获得10点怒气
 
-- 玩家看到：盏底余烬在毒火造成真实伤害时复燃，每轮只回响一次。
+- 玩家看到：自身施加的中毒或燃烧每轮首次造成气血损失后，额外获得10点怒气。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR11-DOT-ROUND-RAGE`；自身施加的毒或火在一轮内首次造成实际气血损失时额外登记10点怒气；护盾吸收不算，整轮最多一次。；操作：获得怒气；触发：持续伤害结算；目标：自身；参数：数量=10；时机=round_end；来源=self_applied_dot；statuses=poison、burn；requires_actual_hp_damage=是；once_per_round=是；excludes=shield_only、reflect、self_damage；前置：positive_actual_hp_damage_from_own_poison_or_burn；限制：范围=round；次数=1
+- `RR11-DOT-ROUND-RAGE`；自身施加的中毒或燃烧每轮首次对敌方气血造成伤害后，额外获得10点怒气；伤害被护盾完全吸收时不触发，每轮最多一次。；操作：获得怒气；触发：持续伤害结算；目标：自身；参数：数量=10；时机=round_end；来源=self_applied_dot；statuses=poison、burn；requires_actual_hp_damage=是；once_per_round=是；excludes=shield_only、reflect、self_damage；前置：positive_actual_hp_damage_from_own_poison_or_burn；限制：范围=round；次数=1
 :::
 
 ### 回生佩
 
 - 开发标识：`RR12`
-最大气血 +30；有效自疗每己方主动作额外回怒 10
+最大气血 +30；普攻或怒技回复气血后额外获得10点怒气
 
-- 玩家看到：佩中生机在自身有效治疗后回流，每个主动作最多登记一次。
+- 玩家看到：自身普攻或怒技回复气血时，额外获得10点怒气。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR12-SELF-HEAL-RAGE`；每个自身主动作发生有效自疗时额外登记10点怒气；满血溢出、战外治疗和开场不触发。；操作：获得怒气；触发：治疗结算；目标：自身；参数：数量=10；时机=round_end；来源=self_heal；requires_effective_amount=是；owning_action=own_main_action；excludes=battle_start、travel、full_health_overflow；one_per_own_action=是；前置：effective_self_heal；限制：范围=action；次数=1
+- `RR12-SELF-HEAL-RAGE`；每次普攻或怒技只要实际回复了气血，就额外获得10点怒气；治疗溢出、战外治疗和战斗开场不触发。；操作：获得怒气；触发：治疗结算；目标：自身；参数：数量=10；时机=round_end；来源=self_heal；requires_effective_amount=是；owning_action=own_main_action；excludes=battle_start、travel、full_health_overflow；one_per_own_action=是；前置：effective_self_heal；限制：范围=action；次数=1
 :::
 
 ### 截脉针
 
 - 开发标识：`RR13`
-攻击 +8；普攻命中削减敌方怒气 10，每主动作一次
+攻击 +8；普攻命中后削减敌方怒气10点，每次普攻一次
 
-- 玩家看到：针尖截断气脉，在普攻首个有效基础命中时登记敌方削怒请求。
+- 玩家看到：普攻首次命中后，使敌方本轮怒气减少10点。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR13-FIRST-BASIC-RAGE-DRAIN`；普攻首个有效基础命中登记敌方本轮削怒请求10，轮尾统一结算并受目标每轮外来削怒20上限约束。；操作：削减怒气；触发：直接命中；目标：敌人；参数：数量=10；request_only=是；deferred=round_end；action_type=basic_action；hit_scope=first_effective_base_direct_hit；one_per_action=是；counts_toward_target_round_cap=是；target_round_cap=20；excludes=rage_action、artifact_followup、reflect、poison、burn；前置：effective_basic_base_hit；限制：范围=action；次数=1
+- `RR13-FIRST-BASIC-RAGE-DRAIN`；普攻首段基础攻击命中后，使敌方本轮怒气最多减少10点，并在本轮结束时结算；来自我方的削怒每轮最多减少20点，且会受敌方削怒抗性影响。；操作：削减怒气；触发：直接命中；目标：敌人；参数：数量=10；request_only=是；deferred=round_end；action_type=basic_action；hit_scope=first_effective_base_direct_hit；one_per_action=是；counts_toward_target_round_cap=是；target_round_cap=20；excludes=rage_action、artifact_followup、reflect、poison、burn；前置：effective_basic_base_hit；限制：范围=action；次数=1
 :::
 
 ### 封元镜
 
 - 开发标识：`RR14`
-防御 +8；开场使敌方怒气 -30，一次
+防御 +8；每场战斗开始时削减敌方最多30点怒气
 
-- 玩家看到：镜面封住对手入战时的气机，在独立开场窗口登记一次削怒请求。
+- 玩家看到：镜面封住对手入战时的气机，使其在战斗开始时失去怒气。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR14-OPENING-RAGE-DRAIN`；每场真实战斗在独立开场窗口向敌方登记30点削怒请求，不占用R1常规每目标20额度，读档不重发。；操作：削减怒气；触发：战斗开始；目标：敌人；参数：数量=30；request_only=是；deferred=opening_window；independent_from_round_cap=是；opening_cap=50；once_per_battle=是；read_save_once=是；限制：范围=battle；次数=1
+- `RR14-OPENING-RAGE-DRAIN`；每场战斗开始时削减敌方最多30点怒气，实际削减量受敌方削怒抗性影响；此效果不占用每轮来自我方的20点削怒限额。；操作：削减怒气；触发：战斗开始；目标：敌人；参数：数量=30；request_only=是；deferred=opening_window；independent_from_round_cap=是；opening_cap=50；once_per_battle=是；read_save_once=是；限制：范围=battle；次数=1
 :::
 
 ### 定心佩
@@ -210,12 +210,12 @@
 - 开发标识：`RR15`
 最大气血 +30；受到的外来削怒量减半
 
-- 玩家看到：佩中定心之意削弱外来冲击，只作用于外来的削怒请求。
+- 玩家看到：来自其他来源的削怒效果减半。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR15-EXTERNAL-RAGE-DRAIN-RESIST`；外来削怒请求按50%抗性处理；多个明示抗性先相加并封顶100%，不影响回怒收入或受击段数。；操作：抵抗怒气削减；触发：始终；目标：自身；参数：比例=0.5；来源=external_rage_drain_only；combine=additive；上限=1；rounding=floor_after_resistance；excludes=rage_gain、incoming_segments；限制：范围=permanent；次数=1
+- `RR15-EXTERNAL-RAGE-DRAIN-RESIST`；受到来自其他来源的削怒效果降低50%；多项削怒抗性相加，最高降低100%，不影响获得怒气或受击回怒。；操作：抵抗怒气削减；触发：始终；目标：自身；参数：比例=0.5；来源=external_rage_drain_only；combine=additive；上限=1；rounding=floor_after_resistance；excludes=rage_gain、incoming_segments；限制：范围=permanent；次数=1
 :::
 
 ::: details 开发边界

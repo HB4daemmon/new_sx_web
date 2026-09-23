@@ -29,7 +29,7 @@ options:
     costs: []
     rewards:
       - {type: artifact, id: RR03, count: 1}
-    outcome: 你把礁口清成一条窄路，胜利后得到毒牙钉；它的攻击提升立即计入，下一场真实战斗的普攻首击会带毒。
+    outcome: 你把礁口清成一条窄路，胜利后得到毒牙钉；它的攻击提升立即计入，下一场战斗的普攻首击会带毒。
     encounter:
       enemy_id: EN-A3-B1
       mode: nonlethal
@@ -46,7 +46,7 @@ options:
       - {type: resource, resource: coins, amount: 20, basis: flat}
     rewards:
       - {type: artifact, id: RC14, count: 1}
-    outcome: 你用盘缠买到蛇纹瓶；它的攻击提升立即计入，下一场真实战斗中的中毒会更猛烈。
+    outcome: 你用盘缠买到蛇纹瓶；它的攻击提升立即计入，下一场战斗中的中毒会更猛烈。
   - id: RK004-stop
     label: 收手回公共路
     quick: 收手回公共道路，不再追这份器物

@@ -28,7 +28,7 @@ options:
     costs: []
     rewards:
       - {type: resource, resource: coins, amount: 0.1, basis: common_price}
-    outcome: 你把药棚让给更急的人，先收下公开的一小笔盘缠。
+    outcome: 你把药棚让给更急的人，先收下一小笔盘缠。
   - id: RK001-reserve-medicine
     label: 留下八枚灵石
     quick: 支付 8 灵石，保留后段药棚约定

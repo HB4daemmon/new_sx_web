@@ -22,7 +22,7 @@ scene: 石桥风急，守桥人抬手亮出雷纹印。想拿走它，先在白�
 options:
   - id: RE014-A
     label: 线上试雷纹
-    quick: 参加非致命试招，胜者带走两层雷纹印；败了只剩一线气血。
+    quick: 参加试招，胜利带走两层雷纹印；失手后保留1点气血。
     requirements:
       - {type: capacity, id: RC10, count: 2}
     costs: []

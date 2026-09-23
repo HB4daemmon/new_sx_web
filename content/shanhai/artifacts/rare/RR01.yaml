@@ -4,8 +4,8 @@ kind: artifact
 id: RR01
 name: 蓄气珠
 status: design_target
-summary: 攻击 +8；普攻或怒技基础命中回怒 10，每主动作一次
-description: 珠中气息在基础攻击命中时回流，补足普攻和怒技之间的节奏。
+summary: 攻击 +8；普攻或怒技首段命中后额外获得10点怒气
+description: 普攻或怒技的首段基础攻击命中后，额外获得10点怒气。
 tags: [attack, rage_gain, basic, rage, rare]
 source:
   basis: original
@@ -37,6 +37,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: action, count: 1}
-    text: 普攻或怒技的基础直接段首次有效命中时登记10点额外怒气，每个主动作最多一次。
+    text: 普攻或怒技的首段基础攻击命中敌方或被护盾吸收时，额外获得10点怒气；每次行动最多触发一次，追加攻击、反击、中毒和燃烧不触发。
 acquisition:
   pools: [rare_artifact]

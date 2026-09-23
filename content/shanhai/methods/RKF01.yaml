@@ -4,8 +4,8 @@ kind: method
 id: RKF01
 name: 金刚功
 status: design_target
-summary: 以防御造盾、承伤反震并把护盾转成攻势的普通护法功法。
-description: 金刚功以攻击完成直接输出，以防御生成护盾并触发固定盾返；天赋可分别强化护盾、怒技、反震或护盾消费。
+summary: 以防御造盾、承伤反击并把护盾转为攻势的护法功法。
+description: 金刚功以普攻和怒技攻击敌方，并按防御获得护盾；护盾能反击敌方攻击，天赋可强化护盾、怒技或反击。
 tags: [method, common, defense, shield, direct]
 source:
   basis: original
@@ -49,7 +49,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按攻击的0.95倍对敌人造成一段可暴击直接伤害。
+        text: 按攻击的0.95倍对敌方造成一段可暴击直接伤害。
       - id: RKF01-BASIC-SHIELD
         trigger: action_end
         operation: shield
@@ -65,7 +65,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 金刚镇岳完成伤害后，按防御的0.42倍生成护盾；护盾入池不等于已吸收伤害。
+        text: 普攻完成后获得相当于防御0.42倍的护盾。
   rage:
     name: 撼岳怒印
     quick: 怒技攻击并按防御造盾
@@ -84,7 +84,7 @@ actions:
         consumes: [rage_locked_action_cost]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按公共规则支付本轮锁定怒耗后，按攻击的1.35倍对敌人造成一段可暴击直接伤害。
+        text: 消耗本次怒技所需的怒气后，按攻击的1.35倍对敌方造成一段可暴击直接伤害。
       - id: RKF01-RAGE-SHIELD
         trigger: action_end
         operation: shield
@@ -101,7 +101,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 撼岳怒印完成伤害后，按防御的0.55倍生成护盾；默认不消费已有护盾。
+        text: 怒技完成后获得相当于防御0.55倍的护盾，不消耗已有护盾。
 passives:
   - id: RKF01-PASSIVE-RECOIL
     trigger: shield_absorbed
@@ -120,7 +120,7 @@ passives:
     consumes: []
     replaces: []
     limit: {scope: action, count: 1}
-    text: 当前护盾实际吸收敌方主动直接攻击的正伤害时，按防御的0.38倍反震一次；每个敌方主动作最多一次，反震不再次触发本效果。
+    text: 护盾吸收敌方主动直接攻击时，反击造成防御0.38倍的伤害；每次敌方行动最多触发一次，反击不会再次触发此效果。
 travel:
   - id: RKF01-TRAVEL-XP
     trigger: rest_complete
@@ -136,7 +136,7 @@ travel:
     consumes: []
     replaces: []
     limit: {scope: node, count: 1}
-    text: 完成休整后额外获得24修为；只在该休整节点结算一次，不在战斗中触发。
+    text: 完成休整节点后额外获得24点修为，每个休整节点只触发一次。
   - id: RKF01-TRAVEL-SHIELD
     trigger: rest_complete
     operation: prepare_next_battle
@@ -152,7 +152,7 @@ travel:
     consumes: []
     replaces: []
     limit: {scope: node, count: 1}
-    text: 完成休整后为下一场战斗准备相当于参考气血0.12倍的护盾；只兑现到下一场且不在当前节点重复结算。
+    text: 完成休整后，为下一场战斗准备护盾；第1幕75点、第2幕93点、第3幕114点、第4幕138点，仅在下一场战斗生效。
 talents:
   - id: RKF01-J1-A
     tier: 1
@@ -174,7 +174,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 本门普攻和怒技的实际造盾量各增加18%，与其它合法护盾加成相加。
+        text: 普攻和怒技获得的护盾量各提高18%，可与其他护盾加成叠加。
   - id: RKF01-J1-B
     tier: 1
     branch: B
@@ -197,7 +197,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 每次完整完成基础普攻时，在公共普攻回怒25之外登记额外10点；未命中也按完成动作登记，不放大其它来源。
+        text: 每次普攻完成后，除普攻原有的25点回怒外，再获得10点怒气；即使没有命中也会触发。
   - id: RKF01-J1-C
     tier: 1
     branch: C
@@ -218,7 +218,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 金刚镇岳的基础直接段额外提高16%；不提高盾返、燃烧或其它派生伤害。
+        text: 金刚镇岳的直接伤害提高16%；不提高盾返、燃烧或其他追加伤害。
   - id: RKF01-J2-A
     tier: 2
     branch: A
@@ -240,7 +240,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 持有护盾时防御提高14%；防御再按公共规则读取造盾与盾返，无盾时不保留这项增防。
+        text: 持有护盾时防御提高14%，失去护盾后此加成消失。
   - id: RKF01-J2-B
     tier: 2
     branch: B
@@ -261,7 +261,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 撼岳怒印的基础直接段额外提高22%；不提高怒技造盾或盾返。
+        text: 撼岳怒印的直接伤害提高22%；不提高怒技获得的护盾或盾返伤害。
   - id: RKF01-J2-C
     tier: 2
     branch: C
@@ -283,7 +283,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 金刚镇岳的实际造盾额外加入最大气血的12%，保留原有防御项；它不是只扩大护盾容量。
+        text: 金刚镇岳获得的护盾额外增加最大气血的12%；按防御计算的护盾仍保留。
       - id: RKF01-J2-C-RAGE-HP-SHIELD
         trigger: always
         operation: modify_effect
@@ -298,7 +298,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 撼岳怒印的实际造盾额外加入最大气血的12%，保留原有防御项；该项可被J4-B单独取代。
+        text: 撼岳怒印获得的护盾额外增加最大气血的12%；按防御计算的护盾仍保留。选择盾转破阵后，此项对怒技不再生效。
   - id: RKF01-J3-A
     tier: 3
     branch: A
@@ -319,7 +319,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 护体反震的实际反震伤害提高28%；不提高每个敌方主动作的触发次数。
+        text: 护体反震的伤害提高28%，每次敌方行动仍最多触发一次。
   - id: RKF01-J3-B
     tier: 3
     branch: B
@@ -342,7 +342,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: battle, count: 1}
-        text: 每场首次被敌方直接攻击完全击破护盾且自身仍存活时，按最大气血24%补盾一次；主动耗盾不触发。
+        text: 每场战斗首次被敌方直接攻击打破护盾且自身仍存活时，获得最大气血24%的护盾；主动消耗护盾不触发。
   - id: RKF01-J3-C
     tier: 3
     branch: C
@@ -366,7 +366,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 怒技完成后把下一轮主动作固定为一次强化普攻，普攻直接段提高20%；不增加主动作，也不改变公共普攻回怒25。
+        text: 怒技完成后，下一轮必须先使用一次强化普攻，直接伤害提高20%；这次普攻仍只算一次行动，基础回怒仍为25点。
   - id: RKF01-J4-A
     tier: 4
     branch: A
@@ -389,7 +389,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 持有护盾时，敌方直接攻击最终伤害乘以0.82；燃烧、中毒和事件扣血不受影响，护盾仍按正常顺序承伤。
+        text: 持有护盾时，受到的敌方直接攻击伤害降低18%；燃烧、中毒和事件扣血不受影响，护盾仍照常承受攻击。
   - id: RKF01-J4-B
     tier: 4
     branch: B
@@ -416,7 +416,7 @@ talents:
         consumes: [shield_current_ratio]
         replaces: [RKF01-RAGE-SHIELD, RKF01-J2-C-RAGE-HP-SHIELD]
         limit: {scope: action, count: 1}
-        text: 取代怒技全部造盾段，包括法相护体的怒技最大气血项，但保留法相护体对普攻的最大气血造盾；若有护盾，怒技先一次性消费已有护盾的75%，按实际消费量的50%转为同一直接段额外伤害，且不再造怒技护盾；无盾时保留基础怒技伤害但没有转换伤害。
+        text: 取代怒技原有的造盾效果，包括法相护体增加的怒技护盾；法相护体增加的普攻护盾仍生效。怒技开始时若有护盾，先消耗当前护盾的75%，再将所消耗护盾的50%转为额外直接伤害，且不再获得怒技护盾；没有护盾时只造成怒技原有伤害。
   - id: RKF01-J4-C
     tier: 4
     branch: C
@@ -441,7 +441,7 @@ talents:
         consumes: []
         replaces: [RKF01-PASSIVE-RECOIL]
         limit: {scope: action, count: 1}
-        text: 取代基础盾返公式但保留其触发条件和次数，改为防御0.38倍加攻击0.22倍的单次盾返；已选反震定势或法宝盾返加成继续只合加一次。
+        text: 护体反震改为造成防御0.38倍加攻击0.22倍的伤害，触发条件和次数不变；反震定势与法宝的盾返加成仍各计算一次。
       - id: RKF01-J4-C-ARMOR-BREAK
         trigger: shield_absorbed
         operation: apply_status
@@ -457,14 +457,14 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 新盾返实际命中后给敌人施加1层破甲，持续2轮；破甲按公共状态规则处理，不增加第二次反震。
+        text: 护体反震命中敌方后施加1层破甲，持续2轮；此效果不会额外触发一次反震。
 routes:
   - name: 护法金刚
-    summary: 以防御和护盾维持承伤，持盾时减伤并靠固定盾返反击；代价是失盾后部分增益暂时没有输入。
+    summary: 以防御和护盾维持承伤，持盾时减伤并靠固定盾返反击；代价是失去护盾后，部分加成会暂时失效。
     talents: [RKF01-J1-A, RKF01-J2-A, RKF01-J3-A, RKF01-J4-A]
   - name: 降魔武僧
     summary: 强化普攻和怒技，怒后插入强化普攻，再以攻防并取的盾返施加破甲；代价是防御不足时护盾更薄。
     talents: [RKF01-J1-C, RKF01-J2-B, RKF01-J3-C, RKF01-J4-C]
   - name: 护体法僧
-    summary: 用最大气血增加实际造盾，破盾后续护，最后把一份护盾换成怒技爆发；代价是主动耗盾会减少后续承伤窗口。
+    summary: 用最大气血提高护盾量，破盾后还能补盾，再消耗部分护盾强化怒技；代价是主动消耗护盾会降低后续承伤能力。
     talents: [RKF01-J1-A, RKF01-J2-C, RKF01-J3-B, RKF01-J4-B]

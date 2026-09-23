@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A1-C2
 name: 风穴雷獭
 status: design_target
-summary: 以较快速度和三段雷怒技形成第一幕前段多段压力。
-description: 雷獭的压力来自奔雷诀本身的三段怒技和公开速度，而不是动态读取玩家 build。它的生命与攻击保持前段普通范围，主要风险是多段直接伤害在同一怒技内连续兑现，不承诺静态胜率。
+summary: 风穴深处雷声不止，石缝间闪过一抹青光。
+description: 风从岩穴穿行，洞口常有细碎电光一闪而过。
 tags: [enemy, act1, normal, multihit]
 source:
   basis: original
@@ -21,7 +21,7 @@ balance:
   measured: null
 acts: [1]
 tier: normal
-identity: 风穴雷獭从石缝窜出，尾端的电光在蓄怒时变亮。它以三段雷击和有限连雷形成短促直接压力，不包含未公开的免疫。
+identity: 风穴雷獭藏在石缝间，尾尖的微光映着洞壁，远雷随风忽近忽远。
 method: RKF07
 n: 0
 talents: []

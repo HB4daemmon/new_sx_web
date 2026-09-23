@@ -5,7 +5,7 @@ id: RE018
 name: 落雷门槛
 status: design_target
 summary: 参加落雷试诀争取奔雷诀，或付灵石带走先机符。
-description: 断桥上方雷声低鸣，雷影守着一卷奔雷诀，石阶边画着退回的安全线。
+description: 断桥上方雷声低鸣，雷影守着一卷奔雷诀；试诀失手后只保留1点气血，并退回石阶。
 tags: [ordinary, nonlethal, encounter, rare_method, act2]
 source:
   basis: original
@@ -22,7 +22,7 @@ scene: 雷影立在断桥尽头，奔雷诀被压在它身后的石台上。你�
 options:
   - id: RE018-A
     label: 踏阶试奔雷
-    quick: 参加非致命试诀，胜者带走奔雷诀；败了只剩一线气血。
+    quick: 参加试诀，胜利带走奔雷诀；失手后保留1点气血。
     requirements: []
     costs: []
     rewards:

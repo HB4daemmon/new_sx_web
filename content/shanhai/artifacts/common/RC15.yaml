@@ -33,6 +33,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: permanent, count: 1}
-    text: 每层使自身燃烧持续伤害提高6%，按燃烧层快照修正，不改变施火次数。
+    text: 每层使自身施加的燃烧伤害提高6%；不增加燃烧层数。
 acquisition:
   pools: [common_artifact]

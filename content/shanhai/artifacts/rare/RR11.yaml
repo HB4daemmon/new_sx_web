@@ -4,8 +4,8 @@ kind: artifact
 id: RR11
 name: 余烬盏
 status: design_target
-summary: 最大气血 +30；毒火造成实际掉血时每轮额外回怒 10
-description: 盏底余烬在毒火造成真实伤害时复燃，每轮只回响一次。
+summary: 最大气血 +30；中毒或燃烧造成气血损失时，每轮额外获得10点怒气
+description: 自身施加的中毒或燃烧每轮首次造成气血损失后，额外获得10点怒气。
 tags: [max_hp, poison, burn, rage_gain, rare]
 source:
   basis: original
@@ -37,6 +37,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: round, count: 1}
-    text: 自身施加的毒或火在一轮内首次造成实际气血损失时额外登记10点怒气；护盾吸收不算，整轮最多一次。
+    text: 自身施加的中毒或燃烧每轮首次对敌方气血造成伤害后，额外获得10点怒气；伤害被护盾完全吸收时不触发，每轮最多一次。
 acquisition:
   pools: [rare_artifact]

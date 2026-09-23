@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A4-C4
 name: 归元石台
 status: design_target
-summary: 以高上限怒技、轮尾回怒和动作后攻击叠层制造终幕普通战节奏。
-description: 石台回气客是原创匿名敌人，攻击叠层和怒气输入均来自现有功法与法宝。
+summary: 山门旁的石台静立多年，台前留着磨损的脚印。
+description: 石台上刻着旧日行旅的印记，山风吹过时草木低伏。
 tags: [enemy, act4, normal, rage, stacking, direct]
 source:
   basis: original
@@ -19,7 +19,7 @@ balance:
   measured: null
 acts: [4]
 tier: normal
-identity: 石台回气客
+identity: 归元石台旁有行客歇脚，旧石上刻着一行已被风雨磨淡的字。
 method: RKF02
 n: 4
 talents: [RKF02-J1-C, RKF02-J2-B, RKF02-J3-A, RKF02-J4-B]
@@ -34,9 +34,9 @@ stats:
   max_hp: 593
   crit_rate: 0.11
   speed: 13
-pressure: [叠buff]
+pressure: [攻势渐强]
 counterplay:
-  - 战前选先手直接伤害，在RR05攻击层数和高上限怒技兑现前压低其气血。
+  - 抢先出手，在镇心玉助长攻势、高怒技出手前尽快压低它的气血。
   - 战前选高防御或护盾构筑，接受普攻回气并在其怒技结束后的轮尾回怒窗口反击。
 preview: >-
   J3-A把怒气上限提高20并同步提高支付，J2-B提供轮尾额外回怒，RC23在怒技完成后返怒，

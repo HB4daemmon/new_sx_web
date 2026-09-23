@@ -4,8 +4,8 @@ kind: event
 id: RK013
 name: 玄龟断桥
 status: design_target
-summary: 断桥后的琉璃法印只在挑战成功后到手；支付 32 灵石可坐渡取甘露盏。
-description: 断桥下的水势会把人卷回岸边，桥后有琉璃法印，旁边也有支付灵石取甘露盏的稳妥门。
+summary: 损失约94点气血挑战断桥，胜利取琉璃法印；付32灵石可坐渡取甘露盏。
+description: 断桥下的水势会把人卷回岸边；踏桥损失约94点气血，失手后仅剩1点。付32灵石可稳妥取甘露盏。
 tags: [core, independent_core, high_risk, healing, legendary_artifact]
 source:
   basis: original
@@ -19,23 +19,23 @@ balance:
   measured: null
 event_type: core
 acts: [1]
-scene: 玄龟背上的断桥只剩一截，桥后浮着琉璃法印；石牌写着踏桥要承受 15% 气血损耗，支付 32 灵石即可取甘露盏，失手就回到岸边。
+scene: 玄龟背上的断桥只剩一截，桥后浮着琉璃法印；踏桥损失约94点气血，失手后仅剩1点。付32灵石可取甘露盏，失手则回到岸边。
 options:
   - id: RK013-cross-broken-bridge
     label: 踏桥取印
-    quick: 支付 15% 气血，胜利取琉璃法印
+    quick: 损失约94点气血挑战，胜利取琉璃法印；失手后仅剩1点气血。
     requirements: []
     costs:
       - {type: resource, resource: hp, amount: 0.15, basis: reference_hp, must_survive: true}
     rewards:
       - {type: artifact, id: RL01, count: 1}
-    outcome: 你踏过断桥，胜利后取得琉璃法印；它的防御与最大气血加成从此刻计入，下一场真实战斗可把治疗溢出化成护盾。
+    outcome: 你踏过断桥，胜利后取得琉璃法印；它的防御与最大气血加成从此刻计入，下一场战斗可把治疗溢出化成护盾。
     encounter:
       enemy_id: EN-A1-B2
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 断桥把你逼回岸边，琉璃法印沉入水下；已付的 15% 气血留在桥上，琉璃法印没有到手。
+      failure_outcome: 断桥把你逼回岸边，琉璃法印沉入水下；损失的约94点气血留在桥上，气血仅剩1点，琉璃法印没有到手。
   - id: RK013-pay-ferry
     label: 付石坐渡
     quick: 支付 32 灵石，稳妥取甘露盏
@@ -45,7 +45,7 @@ options:
       - {type: resource, resource: coins, amount: 32, basis: flat}
     rewards:
       - {type: artifact, id: RR02, count: 1}
-    outcome: 你买下渡石，取到甘露盏；它的最大气血加成立即计入，下一场真实战斗的有效自疗可凝成护盾，桥后的琉璃法印不再开放。
+    outcome: 你买下渡石，取到甘露盏；它的最大气血加成立即计入，下一场战斗的有效自疗可凝成护盾，桥后的琉璃法印不再开放。
   - id: RK013-return-shore
     label: 退回岸边
     quick: 退回岸边，保留当前气血、灵石和法宝

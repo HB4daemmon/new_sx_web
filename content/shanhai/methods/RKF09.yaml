@@ -4,8 +4,8 @@ kind: method
 id: RKF09
 name: 金乌真经
 status: design_target
-summary: 以逐段燃烧和多段火攻制造传奇级爆发的御日功法。
-description: 普攻引燃，怒技三段逐段附加燃烧，天赋在多段、强燃和火护身之间分化。
+summary: 以多段火攻和逐段燃烧造成爆发伤害的御日功法。
+description: 普攻施加燃烧，怒技造成三段火焰伤害并逐段施加燃烧；天赋可强化火攻、燃烧或护身。
 tags: [method, legendary, fire, original]
 source:
   basis: original
@@ -50,7 +50,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 基础直接段实际命中后施加一层燃烧，燃烧按施加时攻击快照在轮尾结算。
+        text: 普攻命中并造成伤害后施加1层燃烧；每层伤害按施加时的攻击计算，并在每轮结束时结算。
   rage:
     name: 三足焚天
     quick: 三段火攻并逐段引燃
@@ -64,7 +64,7 @@ actions:
         consumes: [rage_locked_action_cost]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按攻击的0.52倍造成三段可暴击直接火伤，三段属于同一怒技主动作。
+        text: 按攻击的0.52倍造成三段可暴击直接火焰伤害；三段均属于这一次怒技。
       - id: RKF09-RAGE-BURN
         trigger: rage_action
         operation: apply_status
@@ -74,7 +74,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: segment, count: 4}
-        text: 怒技每个实际火伤段各施加一层燃烧；附燃烧不增加主动作，也不由燃烧tick递归产生新燃烧。
+        text: 怒技每段火焰攻击造成伤害后施加1层燃烧；燃烧本身不会再次施加燃烧。
 passives:
   - id: RKF09-PASSIVE-SUN-VEIL
     trigger: battle_start
@@ -85,7 +85,7 @@ passives:
     consumes: []
     replaces: []
     limit: {scope: battle, count: 1}
-    text: 每场战斗开始时防御提高10，为御日者提供基础火衣容错但不改变火段数量。
+    text: 每场战斗开始时防御提高10；此效果不改变攻击段数。
 travel:
   - id: RKF09-TRAVEL-XP
     trigger: node_complete
@@ -96,7 +96,7 @@ travel:
     consumes: []
     replaces: []
     limit: {scope: node, count: 1}
-    text: 以本门主修完成开阔节点并存活时额外获得10点修为。
+    text: 选择金乌真经为主修并存活完成开阔节点后，获得10点修为。
 talents:
   - id: RKF09-J1-A
     tier: 1
@@ -114,7 +114,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 金乌真经普攻直接段攻击比增加0.15。
+        text: 金乌真经普攻直接伤害提高攻击的0.15倍。
   - id: RKF09-J1-B
     tier: 1
     branch: B
@@ -131,7 +131,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 怒技基础火伤和逐段燃烧由3段增加为4段，新增段仍只算本动作的一段。
+        text: 怒技由3段增加为4段；新增的一段也能造成火焰伤害并施加1层燃烧。
   - id: RKF09-J1-C
     tier: 1
     branch: C
@@ -148,7 +148,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 每次完成基础普攻后在公共+25之外额外获得8点怒气，不因火焰tick重复发放。
+        text: 每次普攻完成后，除原有的25点回怒外，再获得8点怒气；燃烧不会重复触发此效果。
   - id: RKF09-J2-A
     tier: 2
     branch: A
@@ -165,7 +165,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 普攻实际命中时施加的燃烧层数增加1。
+        text: 普攻命中后施加的燃烧层数增加1。
       - id: RKF09-J2-A-RAGE
         trigger: always
         operation: modify_effect
@@ -175,7 +175,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 怒技每个实际火伤段施加的燃烧层数增加1，不改变段数。
+        text: 怒技每段火焰攻击施加的燃烧层数增加1；怒技段数不变。
   - id: RKF09-J2-B
     tier: 2
     branch: B
@@ -192,7 +192,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 本门怒技每个基础直接火伤段攻击比增加0.20，不自动放大燃烧tick。
+        text: 金乌真经怒技每段基础火焰伤害提高攻击的0.20倍；不提高燃烧伤害。
   - id: RKF09-J2-C
     tier: 2
     branch: C
@@ -209,7 +209,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 主动作结束时敌方仍有燃烧，则按最大气血0.16倍获得护盾。
+        text: 普攻或怒技结束时，若敌方仍有燃烧，获得最大气血16%的护盾。
   - id: RKF09-J3-A
     tier: 3
     branch: A
@@ -226,7 +226,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 怒技结算后进行一次50%追加火段判定，成功至多追加一段并施加一层燃烧，不递归判定。
+        text: 怒技结束后进行一次判定；有50%概率追加一段攻击0.46倍的可暴击火焰伤害，并施加1层燃烧。追加段不会再次判定。
   - id: RKF09-J3-B
     tier: 3
     branch: B
@@ -243,7 +243,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 本门每层燃烧的攻击比增加0.025，只计窗口内真实发生的燃烧tick。
+        text: 金乌真经施加的每层燃烧伤害提高攻击的0.025倍。
   - id: RKF09-J3-C
     tier: 3
     branch: C
@@ -260,7 +260,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: round, count: 1}
-        text: 每轮首次燃烧tick实际改变敌方护盾或气血后额外获得6点怒气，未兑现或过量燃烧不触发。
+        text: 每轮首次燃烧对敌方气血或护盾造成伤害后，额外获得6点怒气；未造成伤害时不触发。
   - id: RKF09-J4-A
     tier: 4
     branch: A
@@ -277,7 +277,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 本门怒技每个基础直接火伤段攻击比再增加0.32，仍按实际段数计账。
+        text: 金乌真经怒技每段基础火焰伤害再提高攻击的0.32倍。
   - id: RKF09-J4-B
     tier: 4
     branch: B
@@ -294,7 +294,7 @@ talents:
         consumes: [burn_up_to_3_stacks]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 怒技主动作结算后最多消费动作开始前已有的三层燃烧，并记录实际消费层数；被消费的层不再继续tick。
+        text: 怒技结束时消耗出手前已有的最多3层燃烧；被消耗的燃烧不会再造成后续伤害。
       - id: RKF09-J4-B-DAMAGE
         trigger: rage_action
         operation: damage
@@ -304,7 +304,7 @@ talents:
         consumes: [RKF09-J4-B-CONSUME]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 只把同一次实际消费的燃烧层按每层攻击0.16倍转成一段派生直接伤害，不重复计算原燃烧tick。
+        text: 每消耗1层燃烧，额外造成攻击0.16倍的不可暴击伤害；被消耗的燃烧不再造成后续伤害。
   - id: RKF09-J4-C
     tier: 4
     branch: C
@@ -321,14 +321,14 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 怒技主动作结束后按防御0.26倍加最大气血0.06倍获得护盾。
+        text: 怒技结束后，获得防御0.26倍加最大气血0.06倍的护盾。
 routes:
   - name: 多段爆发
-    summary: 增加基础段和概率追加段，集中提高怒技的实际直接输出；代价是多段攻击仍按逐段命中和燃烧兑现计账。
+    summary: 增加怒技基础段数和概率追加段，集中提高怒技伤害；代价是多段攻击每段都要单独命中，额外段只有50%概率出现。
     talents: [RKF09-J1-B, RKF09-J2-B, RKF09-J3-A, RKF09-J4-A]
   - name: 强燃灼心
     summary: 叠高燃烧并提高持续伤害，末段可把部分燃烧转成爆发；代价是消费旧燃烧后会失去对应的后续持续伤害。
     talents: [RKF09-J1-A, RKF09-J2-A, RKF09-J3-B, RKF09-J4-B]
   - name: 火衣护体
-    summary: 以燃烧覆盖换取护盾、回怒和怒技后的稳定容错；代价是短战或未实际跳燃烧时这些出口没有输入。
+    summary: 利用敌方燃烧获得护盾，并在燃烧造成伤害后额外回怒；代价是战斗过短时，这份额外回怒可能来不及触发。
     talents: [RKF09-J1-C, RKF09-J2-C, RKF09-J3-C, RKF09-J4-C]

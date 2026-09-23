@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A3-C3
 name: 春庭采药人
 status: design_target
-summary: 以真实自疗、有效治疗回怒和治疗后护盾延长战斗的普通敌人。
-description: 回春谷采药人是原创匿名敌人，所有恢复均来自回春功的现有治疗输入。
+summary: 春庭药香未散，采药人正整理背篓中的草木。
+description: 石阶两旁长满药草，泉边的木架挂着刚采下的枝叶。
 tags: [enemy, act3, normal, recovery, heal, shield]
 source:
   basis: original
@@ -19,7 +19,7 @@ balance:
   measured: null
 acts: [3]
 tier: normal
-identity: 回春谷采药人
+identity: 春庭采药人行走在药圃之间，竹篓里装着沾露的新叶。
 method: RKF03
 n: 3
 talents: [RKF03-J1-B, RKF03-J2-C, RKF03-J3-C]

@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A2-L1
 name: 养元桥守
 status: design_target
-summary: 以动作后攻击成长和公开自疗组成第二幕第一名精英。
-description: 桥守的双压力分别来自镇心玉的动作后攻击层和回春功的有效自疗，层数与治疗顺序均可在预览中查到。它是精英参考配置，不根据玩家 build 动态提高恢复，也不承诺静态胜率。
+summary: 断桥中央坐着一名闭目调息的守桥人。
+description: 桥心落满枯叶，守桥人始终静坐在风口。
 tags: [enemy, act2, elite, healing, stacking]
 source:
   basis: original
@@ -21,7 +21,7 @@ balance:
   measured: null
 acts: [2]
 tier: elite
-identity: 养元桥守在断桥中央反复调整呼吸，受伤后会先把回春之力填入缺口。它把治疗和动作后攻击成长并列公开，属于原创精英而非神话人物。
+identity: 养元桥守盘膝坐在断桥中央，衣袂随风轻动，呼吸与潮声相和。
 method: RKF03
 n: 2
 talents: [RKF03-J1-C, RKF03-J2-C]
@@ -35,7 +35,7 @@ stats:
   max_hp: 300
   crit_rate: 0.07
   speed: 10
-pressure: [恢复, 叠buff]
+pressure: [恢复, 攻势渐强]
 counterplay:
   - 用开场爆发或破甲在它完成多次动作前制造缺口，减少治疗和镇心玉攻击层共同成长的时间。
   - 用持续伤害维持压力，同时用护盾或治疗承受它逐步变高的直接段，不等待不存在的净化。

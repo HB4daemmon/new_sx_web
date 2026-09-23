@@ -4,8 +4,8 @@ kind: enemy
 id: EN-F2
 name: 昼夜劫相
 status: design_target
-summary: 以昼夜切换、白昼护盾和长夜怒技作为终战候选之一。
-description: 昼夜劫相采用昼夜劫变意象，阶段读法来自烛龙真经，配装与强度为游戏原创。
+summary: 长夜将至，日月交界处浮现一道身影。
+description: 山河间白昼渐尽，远处的天际仍残留一线光明。
 tags: [enemy, final, myth_adaptation, phase, shield, direct]
 source:
   basis: myth_adaptation
@@ -19,7 +19,7 @@ balance:
   measured: null
 acts: [5]
 tier: final
-identity: 昼夜劫相
+identity: 昼夜劫相立于明暗交界，身后天色轮转不息。
 method: RKF10
 n: 4
 talents: [RKF10-J1-C, RKF10-J2-B, RKF10-J3-B, RKF10-J4-B]

@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A2-C2
 name: 断桥回气魈
 status: design_target
-summary: 以基础命中削怒压缩第二幕前段普通战的怒气窗口。
-description: 回气魈的削怒只有截脉针的公开首个基础命中请求，归元诀的 J1-B 只影响敌方自身普攻回气。它的攻击和生命仍是普通档输入，玩家可以用普攻、轮尾回怒或短战取得正反馈，不承诺静态胜率。
+summary: 断桥回音未散，桥桩旁总有一团灰影守候。
+description: 旧桥桩上的铜铃被风吹响，回声久久不散。
 tags: [enemy, act2, normal, rage_drain]
 source:
   basis: original
@@ -21,7 +21,7 @@ balance:
   measured: null
 acts: [2]
 tier: normal
-identity: 断桥回气魈守着一截仍在回响的桥桩，专门截断过路者最先聚起的一口气。削怒请求延后到轮尾结算，不会取消已经锁定的动作。
+identity: 断桥回气魈守着一截旧桥桩，铃声响起时，桥下便传来一阵低低回应。
 method: RKF02
 n: 1
 talents: [RKF02-J1-B]

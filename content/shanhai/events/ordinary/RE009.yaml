@@ -5,7 +5,7 @@ id: RE009
 name: 河灯试诀
 status: design_target
 summary: 参加河灯试诀争取五毒经，或付灵石带走青锋石。
-description: 河灯照亮临时擂台，擂主拿出五毒经作彩头；败者会被送回安全线。
+description: 河灯照亮临时擂台，擂主拿出五毒经作彩头；失手后会被送回台下，气血仅剩1点。
 tags: [ordinary, nonlethal, encounter, rare_method]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [1, 2]
-scene: 河灯在水面摇曳，擂主把五毒经放上擂台。想拿走它，先在安全线内赢下这场试诀。
+scene: 河灯在水面摇曳，擂主把五毒经放上擂台。想拿走它，先在擂台上赢下这场试诀；失手后只保留1点气血。
 options:
   - id: RE009-A
     label: 上台试诀
-    quick: 参加非致命试诀，胜者带走五毒经；败了只剩一线气血。
+    quick: 参加试诀，胜利带走五毒经；失手后保留1点气血。
     requirements: []
     costs: []
     rewards:
@@ -32,7 +32,7 @@ options:
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 你被擂主逼回安全线，气血只剩一线，五毒经没有交到你手上。
+      failure_outcome: 你被擂主逼回台下，气血仅剩1点，五毒经没有交到你手上。
     outcome: 你赢下擂台，五毒经落入囊中，暂时仍可沿用原先功法。
   - id: RE009-B
     label: 付石取青锋

@@ -232,7 +232,14 @@ async function assertSteadyFirstBattle(page, width) {
   const firstNodeKey = await firstNode.getAttribute('data-id');
   assert.ok(firstNodeKey, `${width}: 开局地图首格缺少 route key`);
   await firstNode.scrollIntoViewIfNeeded();
+  const saveBeforePreview = await page.evaluate(key => localStorage.getItem(key), saveKey);
   await firstNode.click();
+  await page.locator('.node-preview-dialog').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('.game-page').getAttribute('data-phase'), 'map',
+    `${width}: 地图预览不应进入战前阶段`);
+  assert.equal(await page.evaluate(key => localStorage.getItem(key), saveKey), saveBeforePreview,
+    `${width}: 地图预览不应改变存档`);
+  await page.locator('[data-action="confirm-node"]').click();
   await waitForPhase(page, 'preview');
   await clickAction(page, 'fight');
   await waitForPhase(page, 'battle');

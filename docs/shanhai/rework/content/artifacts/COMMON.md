@@ -172,7 +172,7 @@
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RC11-SHIELD-GAIN-BONUS`；每层使自身获得的护盾量提高6%，只修正实际护盾输入。；操作：修改效果；触发：始终；目标：自身；参数：effect_selector=操作=生成护盾；direction=received_by_self；比例=0.06；stacking=linear；限制：范围=permanent；次数=1
+- `RC11-SHIELD-GAIN-BONUS`；每层使自身最终获得的护盾量提高6%。；操作：修改效果；触发：始终；目标：自身；参数：effect_selector=操作=生成护盾；direction=received_by_self；比例=0.06；stacking=linear；限制：范围=permanent；次数=1
 :::
 
 ### 回春瓶
@@ -185,7 +185,7 @@
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RC12-SELF-HEAL-BONUS`；每层使自身治疗量提高6%，先修正治疗总量再拆分有效治疗与溢出。；操作：修改效果；触发：始终；目标：自身；参数：effect_selector=操作=治疗；来源=self；比例=0.06；stacking=linear；限制：范围=permanent；次数=1
+- `RC12-SELF-HEAL-BONUS`；每层使自身治疗量提高6%；提高后的治疗先用于回复气血，超出上限的部分仍计为治疗溢出。；操作：修改效果；触发：始终；目标：自身；参数：effect_selector=操作=治疗；来源=self；比例=0.06；stacking=linear；限制：范围=permanent；次数=1
 :::
 
 ### 震山环
@@ -198,7 +198,7 @@
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RC13-SHIELD-REFLECT-BONUS`；每层使已有盾返伤害提高6%，不授予盾返也不改变有效返伤触发边界。；操作：修改效果；触发：始终；目标：自身；参数：effect_selector=操作=造成伤害；伤害范围=existing_shield_reflect；比例=0.06；stacking=linear；限制：范围=permanent；次数=1
+- `RC13-SHIELD-REFLECT-BONUS`；每层使已有盾返伤害提高6%；没有盾返效果时，此法宝不会赋予盾返。；操作：修改效果；触发：始终；目标：自身；参数：effect_selector=操作=造成伤害；伤害范围=existing_shield_reflect；比例=0.06；stacking=linear；限制：范围=permanent；次数=1
 :::
 
 ### 蛇纹瓶
@@ -211,7 +211,7 @@
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RC14-SELF-POISON-BONUS`；每层使自身中毒持续伤害提高6%，按毒层快照修正，不改变施毒次数。；操作：修改效果；触发：始终；目标：自身；参数：effect_selector=操作=造成伤害；状态=中毒；来源=self；比例=0.06；stacking=linear；限制：范围=permanent；次数=1
+- `RC14-SELF-POISON-BONUS`；每层使自身施加的中毒伤害提高6%；不增加中毒层数。；操作：修改效果；触发：始终；目标：自身；参数：effect_selector=操作=造成伤害；状态=中毒；来源=self；比例=0.06；stacking=linear；限制：范围=permanent；次数=1
 :::
 
 ### 赤炎珠
@@ -224,46 +224,46 @@
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RC15-SELF-BURN-BONUS`；每层使自身燃烧持续伤害提高6%，按燃烧层快照修正，不改变施火次数。；操作：修改效果；触发：始终；目标：自身；参数：effect_selector=操作=造成伤害；状态=燃烧；来源=self；比例=0.06；stacking=linear；限制：范围=permanent；次数=1
+- `RC15-SELF-BURN-BONUS`；每层使自身施加的燃烧伤害提高6%；不增加燃烧层数。；操作：修改效果；触发：始终；目标：自身；参数：effect_selector=操作=造成伤害；状态=燃烧；来源=self；比例=0.06；stacking=linear；限制：范围=permanent；次数=1
 :::
 
 ### 采气袋
 
 - 开发标识：`RC16`
-攻击 +2；完成真实节点后额外修为 +1
+攻击 +2；完成节点后额外获得1点修为
 
-- 玩家看到：小袋收纳沿途灵息，兼顾少量攻击与每个真实节点的修为积累。
+- 玩家看到：小袋收纳沿途灵息，兼顾攻击与行旅中的修为积累。
 - 获取池：common_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RC16-NODE-XP`；每层在一个真实冒险节点完成后额外获得1点修为；取得节点不追溯结算。；操作：获得资源；触发：节点完成；目标：本局；参数：resource=修为；数量=1；node_scope=real_node；extra_only=是；限制：范围=node；次数=1
+- `RC16-NODE-XP`；获得此物后，每完成一个行旅节点，每层额外获得1点修为。；操作：获得资源；触发：节点完成；目标：本局；参数：resource=修为；数量=1；node_scope=real_node；extra_only=是；限制：范围=node；次数=1
 :::
 
 ### 行医囊
 
 - 开发标识：`RC17`
-最大气血 +10；完成真实节点后治疗 2 点
+最大气血 +10；完成节点后恢复2点气血
 
 - 玩家看到：行医囊收着便携药材，提升最大气血并在节点结束时补回少量气血。
 - 获取池：common_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RC17-NODE-HEAL`；每层在一个真实冒险节点完成后治疗2点气血；只结算一次，不生成怒气或战斗护盾。；操作：治疗；触发：节点完成；目标：自身；参数：数量=2；basis=固定值；combat=否；node_scope=real_node；上限=max_hp；限制：范围=node；次数=1
+- `RC17-NODE-HEAL`；获得此物后，每完成一个行旅节点，每层恢复2点气血；每个节点只触发一次。；操作：治疗；触发：节点完成；目标：自身；参数：数量=2；basis=固定值；combat=否；node_scope=real_node；上限=max_hp；限制：范围=node；次数=1
 :::
 
 ### 聚财钱
 
 - 开发标识：`RC18`
-防御 +2；完成真实节点后额外灵石 +2
+防御 +2；完成节点后额外获得2枚灵石
 
 - 玩家看到：钱面刻着聚拢财气的纹路，沿途积攒可实际使用的灵石。
 - 获取池：common_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RC18-NODE-COINS`；每层在一个真实冒险节点完成后额外获得2枚灵石；取得节点不追溯结算。；操作：获得资源；触发：节点完成；目标：本局；参数：resource=灵石；数量=2；node_scope=real_node；extra_only=是；限制：范围=node；次数=1
+- `RC18-NODE-COINS`；获得此物后，每完成一个行旅节点，每层额外获得2枚灵石。；操作：获得资源；触发：节点完成；目标：本局；参数：resource=灵石；数量=2；node_scope=real_node；extra_only=是；限制：范围=node；次数=1
 :::
 
 ### 凝气珠
@@ -276,7 +276,7 @@
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RC19-RAGE-CAP-REDUCTION`；每层使本战怒气上限降低5；总上限不低于公共下限60，移除后只恢复后续容量不补怒。；操作：修改怒气上限；触发：始终；目标：自身；参数：delta=-5；stacking=linear；lower_bound=60；范围=current_battle；限制：范围=permanent；次数=1
+- `RC19-RAGE-CAP-REDUCTION`；每层使本场战斗的怒气上限降低5点，最低降至60点；失去此法宝后只提高怒气上限，不补充怒气。；操作：修改怒气上限；触发：始终；目标：自身；参数：delta=-5；stacking=linear；lower_bound=60；范围=current_battle；限制：范围=permanent；次数=1
 :::
 
 ### 引气符
@@ -284,12 +284,12 @@
 - 开发标识：`RC20`
 攻击 +2；普攻完成后额外回怒 5
 
-- 玩家看到：符纸牵引散气，在每次普攻主动作结束时补回少量怒气。
+- 玩家看到：每次普攻完成后，符纸额外补回5点怒气。
 - 获取池：common_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RC20-BASIC-RAGE-GAIN`；每层在一次普攻主动作完成时登记额外5点怒气，不替代公共普攻完成回怒。；操作：获得怒气；触发：普攻动作；目标：自身；参数：数量=5；时机=round_end；action_scope=own_basic_action；replaces_public_basic_gain=否；限制：范围=action；次数=1
+- `RC20-BASIC-RAGE-GAIN`；每层在普攻完成后额外获得5点怒气；普攻原有的回怒照常获得。；操作：获得怒气；触发：普攻动作；目标：自身；参数：数量=5；时机=round_end；action_scope=own_basic_action；replaces_public_basic_gain=否；限制：范围=action；次数=1
 :::
 
 ### 调息玉
@@ -302,7 +302,7 @@
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RC21-ROUND-RAGE-GAIN`；每层在角色存活且战斗未结束的轮尾、公共自然回怒登记后额外登记5点怒气。；操作：获得怒气；触发：轮末；目标：自身；参数：数量=5；时机=round_end；requires_self_alive=是；requires_battle_active=是；after_public_natural_gain=是；限制：范围=round；次数=1
+- `RC21-ROUND-RAGE-GAIN`；每轮结束时，若自身仍存活且战斗尚未结束，每层额外获得5点怒气。；操作：获得怒气；触发：轮末；目标：自身；参数：数量=5；时机=round_end；requires_self_alive=是；requires_battle_active=是；after_public_natural_gain=是；限制：范围=round；次数=1
 :::
 
 ### 先机符
@@ -310,12 +310,12 @@
 - 开发标识：`RC22`
 攻击 +2；开场额外回怒 15
 
-- 玩家看到：符上先机二字在入战时发亮，为第一次动作准备额外怒气。
+- 玩家看到：每层在战斗开始时额外带来15点怒气。
 - 获取池：common_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RC22-OPENING-RAGE-GAIN`；每层在独立开场窗口额外登记15点怒气，每场真实战斗一次，读档不重发。；操作：获得怒气；触发：战斗开始；目标：自身；参数：数量=15；时机=opening_window；once_per_battle=是；read_save_once=是；限制：范围=battle；次数=1
+- `RC22-OPENING-RAGE-GAIN`；每层在每场战斗开始时额外获得15点怒气；与基础开场怒气一并计入怒气上限。；操作：获得怒气；触发：战斗开始；目标：自身；参数：数量=15；时机=opening_window；once_per_battle=是；read_save_once=是；限制：范围=battle；次数=1
 :::
 
 ### 返气环
@@ -323,25 +323,25 @@
 - 开发标识：`RC23`
 防御 +2；怒技完成后固定返怒 5
 
-- 玩家看到：环身受怒气冲击后回弹，在怒技主动作完成时返还固定怒气。
+- 玩家看到：怒技完成后，每层固定返还5点怒气。
 - 获取池：common_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RC23-RAGE-ACTION-RETURN`；每层在怒技实际执行并完成后登记固定5点返怒，不按支付比例计算，也不在普攻后触发。；操作：获得怒气；触发：怒技动作；目标：自身；参数：数量=5；时机=round_end；completed_action_only=是；fixed_return=是；限制：范围=action；次数=1
+- `RC23-RAGE-ACTION-RETURN`；每层在怒技完成时固定返还5点怒气，在本轮结束时结算；与怒技消耗的怒气无关，普攻不触发。；操作：获得怒气；触发：怒技动作；目标：自身；参数：数量=5；时机=round_end；completed_action_only=是；fixed_return=是；限制：范围=action；次数=1
 :::
 
 ### 血气石
 
 - 开发标识：`RC24`
-最大气血 +10；每有效受击段额外回怒 2
+最大气血 +10；敌方每段主动直接攻击造成伤害或被护盾吸收时，额外获得2点怒气
 
-- 玩家看到：石中血光随受击闪动，在每个有效敌方主动直接攻击段登记少量怒气。
+- 玩家看到：敌方直接攻击造成伤害时，石中血光随受击闪动，为每一段攻击补充怒气。
 - 获取池：common_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RC24-INCOMING-SEGMENT-RAGE`；每层对每个有效敌方主动直接攻击段额外登记2点怒气，与公共每段5点共用同一段边界。；操作：获得怒气；触发：直接命中；目标：自身；参数：数量=2；时机=round_end；来源=enemy_active_direct_attack；result=positive_hp_damage_or_shield_absorption；segment_scope=each_effective_segment；excludes=poison、burn、reflect、self_damage、event_damage；限制：范围=segment；次数=1
+- `RC24-INCOMING-SEGMENT-RAGE`；每层在敌方每段主动直接攻击造成气血或护盾损失时，额外获得2点怒气。；操作：获得怒气；触发：直接命中；目标：自身；参数：数量=2；时机=round_end；来源=enemy_active_direct_attack；result=positive_hp_damage_or_shield_absorption；segment_scope=each_effective_segment；excludes=poison、burn、reflect、self_damage、event_damage；限制：范围=segment；次数=1
 :::
 
 ::: details 开发边界

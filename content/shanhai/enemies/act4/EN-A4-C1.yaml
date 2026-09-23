@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A4-C1
 name: 金焰巡天
 status: design_target
-summary: 以燃烧回怒和带火造盾在终幕前段提供传奇火压的普通敌人。
-description: 赤羽巡天者是原创匿名敌人，金乌真经的火焰与法宝输入均来自现有卡面。
+summary: 金色火羽落在山巅，云层被映成赤红。
+description: 山巅的焦枝间散落金羽，风过时火光微微摇曳。
 tags: [enemy, act4, normal, burn, dot, shield]
 source:
   basis: original
@@ -19,7 +19,7 @@ balance:
   measured: null
 acts: [4]
 tier: normal
-identity: 赤羽巡天者
+identity: 金焰巡天穿行在云层之间，羽光映红远处的雪峰。
 method: RKF09
 n: 3
 talents: [RKF09-J1-A, RKF09-J2-C, RKF09-J3-C]
@@ -33,7 +33,7 @@ stats:
   max_hp: 450
   crit_rate: 0.13
   speed: 12
-pressure: [长DOT, 稳打护盾]
+pressure: [持续伤害, 稳定护盾]
 counterplay:
   - 战前选高防御或护盾构筑承受燃烧，并用不依赖怒技的持续输出减少其火衣护盾收益。
   - 战前选先手直接爆发，在燃烧层数和火焰回怒形成循环前压低生命，再处理剩余护盾。

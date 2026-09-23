@@ -4,8 +4,8 @@ kind: artifact
 id: RR09
 name: 震岳鼓
 status: design_target
-summary: 防御 +8；盾返有效后每敌方主动作额外回怒 10
-description: 鼓面在已有护盾反击生效时震动，为后续敌方主动作积蓄怒气。
+summary: 防御 +8；盾返造成伤害后，敌方每次行动结束时你额外获得10点怒气
+description: 护盾成功反击后，每次敌方行动额外带来10点怒气。
 tags: [defense, shield_reflect, rage_gain, rare]
 source:
   basis: original
@@ -37,6 +37,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: enemy_action, count: 1}
-    text: 只有已有护盾实际完成正向盾返时，每个敌方主动作额外登记10点怒气；本效果不授予盾返。
+    text: 敌方行动中，若已有护盾反击造成伤害，该次敌方行动结束时额外获得10点怒气；此法宝不提供反击效果。
 acquisition:
   pools: [rare_artifact]

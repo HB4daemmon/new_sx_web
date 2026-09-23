@@ -33,6 +33,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: permanent, count: 1}
-    text: 每层使自身治疗量提高6%，先修正治疗总量再拆分有效治疗与溢出。
+    text: 每层使自身治疗量提高6%；提高后的治疗先用于回复气血，超出上限的部分仍计为治疗溢出。
 acquisition:
   pools: [common_artifact]

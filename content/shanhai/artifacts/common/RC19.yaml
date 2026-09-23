@@ -34,6 +34,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: permanent, count: 1}
-    text: 每层使本战怒气上限降低5；总上限不低于公共下限60，移除后只恢复后续容量不补怒。
+    text: 每层使本场战斗的怒气上限降低5点，最低降至60点；失去此法宝后只提高怒气上限，不补充怒气。
 acquisition:
   pools: [common_artifact]

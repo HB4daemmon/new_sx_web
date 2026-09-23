@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A2-C3
 name: 断桥赤羽
 status: design_target
-summary: 以较快叠燃烧形成第二幕后段普通战的成长压力。
-description: 赤羽的每次火攻多叠燃烧来自金乌真经的已装备 J1-A/J2-A，余烬盏只按真实毒火伤害回怒。它没有免疫和隐藏阶段，主要风险是燃烧层数在多个轮尾持续兑现，不承诺静态胜率。
+summary: 赤羽掠过断桥，火星落在裂开的桥面上。
+description: 断桥的裂缝间散落着焦黑羽片，夜里仍闪着红光。
 tags: [enemy, act2, normal, burn, dot]
 source:
   basis: original
@@ -21,7 +21,7 @@ balance:
   measured: null
 acts: [2]
 tier: normal
-identity: 断桥赤羽在裂开的桥梁上振翅，羽尖的火星会在同一轮留下两道灼痕。它以燃烧层数和轮尾 tick 造成持续压力，不代表金乌神话本体。
+identity: 断桥赤羽在桥梁上方盘旋，振翅时洒下几点明灭火星。
 method: RKF09
 n: 2
 talents: [RKF09-J1-A, RKF09-J2-A]
@@ -35,7 +35,7 @@ stats:
   max_hp: 390
   crit_rate: 0.08
   speed: 9
-pressure: [长DOT]
+pressure: [持续伤害]
 counterplay:
   - 在燃烧层数尚未累积前用爆发或破甲结束战斗，减少轮尾的连续真实伤害。
   - 用护盾、治疗或能承受多轮的防御路线维持气血，同时以普攻持续制造有效缺口。

@@ -5,7 +5,7 @@ id: RL05
 name: 回澜印
 status: design_target
 summary: 攻击 +12、防御 +6；怒技完成固定返怒 50
-description: 印中回澜之力在怒技落定后回卷，固定返还一大段怒气供下一轮使用。
+description: 怒技完成后固定返还50点怒气，留待下一轮使用。
 tags: [attack, defense, rage_gain, rage, legendary]
 source:
   basis: original
@@ -37,6 +37,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: action, count: 1}
-    text: 怒技实际执行并完成后固定登记50点返怒，仍参加轮尾统一结算，只供下一轮，不在动作中生成第二次怒技。
+    text: 怒技完成后固定返还50点怒气，在本轮结束时结算，下一轮才可使用。
 acquisition:
   pools: [legendary_artifact]

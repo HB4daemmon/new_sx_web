@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A1-B1
 name: 共工遗影试炼
 status: design_target
-summary: 以昼夜护盾和普攻追加段组合成第一幕首领候选。
-description: 这是借用共工水势意象制作的原创遗影试炼，不声称击败或复现神话人物本人。它的多段与护盾压力均来自烛龙真经和裂空宝轮的公开输入，配置不会读取玩家 build 动态增强。
+summary: 潮门前的水幕忽明忽暗，古老洪声仍在崖间回荡。
+description: 潮门两侧立着残破石柱，涨落之间，水声仿佛来自远古。
 tags: [enemy, act1, boss, myth_adaptation, water, multihit, shield]
 source:
   basis: myth_adaptation
@@ -21,7 +21,7 @@ balance:
   measured: null
 acts: [1]
 tier: boss
-identity: 共工遗影试炼在潮门前展开一面不断变换明暗的水幕，水幕后的身影只是一段供修行者检验的残影。它把护持与多段冲击写成公开卡面组合，不声称杀死神话中的共工。
+identity: 潮门前，水幕映出一道身影，断崖深处的洪声久久不散。
 method: RKF10
 n: 1
 talents: [RKF10-J1-A]

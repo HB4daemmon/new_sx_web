@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A3-L1
 name: 养锋试剑者
 status: design_target
-summary: 以剑势叠层、暴击追剑和多段怒技造成中段精英压力。
-description: 三脉试剑者是原创匿名敌人，剑势与追剑均来自养剑诀和现有法宝。
+summary: 三岔山道尽头传来剑鸣，一名试剑者静立崖边。
+description: 三条山脉交会处立着石台，剑痕布满台面。
 tags: [enemy, act3, elite, sword, stacking, multi_segment]
 source:
   basis: original
@@ -19,7 +19,7 @@ balance:
   measured: null
 acts: [3]
 tier: elite
-identity: 三脉试剑者
+identity: 养锋试剑者守在三脉交汇处，剑身映着高处的云光。
 method: RKF05
 n: 3
 talents: [RKF05-J1-B, RKF05-J2-B, RKF05-J3-C]
@@ -33,10 +33,10 @@ stats:
   max_hp: 455
   crit_rate: 0.12
   speed: 13
-pressure: [叠buff, 多段]
+pressure: [攻势渐强, 多段]
 counterplay:
   - 战前选高防御或护盾构筑，承受其剑势成长并把多段怒技转化为稳定受击回怒。
-  - 战前选高暴击或持续直伤构筑，尽早压低其剑势和RR05攻击层数，避免长战进入追剑循环。
+  - 以高暴击或持续伤害尽早压低它的剑势与镇心玉攻势，避免久战后追剑连发。
 preview: >-
   普攻会积累剑势，怒技保留剑势并可消费最多三层追加追剑；J3-C只在基础直接段真实暴击后追加一次追剑，
   RR05的攻击层数在主动作结束后才从下一次动作生效。预览显示剑势、攻击层数和当前怒技段数，

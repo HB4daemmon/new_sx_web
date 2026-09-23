@@ -4,8 +4,8 @@ kind: event
 id: RE036
 name: 雷门终试
 status: design_target
-summary: 付门票挑战震岳鼓，或付灵石直接带走震山环。
-description: 雷门终试把震岳鼓挂在门后，石碑写着门票和安全线；普通震山环则可直接买下。
+summary: 付60灵石挑战震岳鼓，或付30灵石直接带走震山环。
+description: 雷门终试把震岳鼓挂在门后；挑战需付60灵石，失手后只保留1点气血。震山环可付30灵石直接买下。
 tags: [ordinary, rare_artifact, nonlethal, encounter, act4]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [4]
-scene: 雷门石碑上刻着门票和退场线，门后的震岳鼓在雷声中震动。你可以闯门，也可以付灵石带走震山环。
+scene: 雷门石碑刻明挑战费用与失手后果，门后的震岳鼓在雷声中震动。付60灵石可闯门争取震岳鼓，付30灵石可直接带走震山环。
 options:
   - id: RE036-A
-    label: 付门票试震岳鼓
-    quick: 付门票参加非致命试炼，胜者带走震岳鼓；败了只剩一线气血。
+    label: 付60灵石试震岳鼓
+    quick: 支付60灵石挑战；胜利带走震岳鼓，失手后保留1点气血，灵石不退。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RR09, count: 1}
@@ -35,8 +35,8 @@ options:
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 雷声将你逼退到安全线，气血只剩一线，门票不退，震岳鼓仍留在门后。
-    outcome: 门票交出后你踏入雷门；胜利时震岳鼓归你，失败则只带着伤势退场。
+      failure_outcome: 雷声将你逼出雷门，气血仅剩1点；60灵石不退，震岳鼓仍留在门后。
+    outcome: 你付出60灵石踏入雷门，胜利后震岳鼓归你。
   - id: RE036-B
     label: 付石取震山环
     quick: 付出标价灵石，带走一层震山环，避开雷门试炼。
@@ -50,7 +50,7 @@ options:
     outcome: 你接过震山环，雷门里的轰鸣被隔在身后。
   - id: RE036-C
     label: 关门留石
-    quick: 关门离开，不付门票，保留灵石与气血。
+    quick: 不参加挑战，保留灵石与气血。
     requirements: []
     costs: []
     rewards: []

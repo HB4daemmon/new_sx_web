@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A3-B1
 name: 毕方烈羽
 status: design_target
-summary: 以有限连雷、多段怒技和公开削怒请求构成幕首领压力。
-description: 毕方烈羽采用神话意象，具体配装、雷段参数和削怒输入均为游戏原创。
+summary: 毕方掠过山脊，赤羽映亮了暮色。
+description: 山脊上的焦木直指长空，赤色羽影在云间一闪而过。
 tags: [enemy, act3, boss, myth_adaptation, lightning, multi_segment, rage_drain]
 source:
   basis: myth_adaptation
@@ -19,7 +19,7 @@ balance:
   measured: null
 acts: [3]
 tier: boss
-identity: 毕方烈羽
+identity: 毕方烈羽现于山巅，风过焦林，远处传来清越长鸣。
 method: RKF07
 n: 3
 talents: [RKF07-J1-B, RKF07-J2-B, RKF07-J3-A]

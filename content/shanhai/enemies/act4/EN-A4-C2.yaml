@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A4-C2
 name: 晨昏守碑
 status: design_target
-summary: 以昼夜轮替和白昼护盾构成可预读的终幕相位普通敌人。
-description: 晨昏守碑人是原创匿名敌人，昼夜状态只读取烛龙真经的现有相位机制。
+summary: 日影与月色交替落在古碑两侧。
+description: 山路旁的石碑一半受日光照耀，一半浸在月影中。
 tags: [enemy, act4, normal, phase, shield, direct]
 source:
   basis: original
@@ -19,7 +19,7 @@ balance:
   measured: null
 acts: [4]
 tier: normal
-identity: 晨昏守碑人
+identity: 晨昏守碑静立于古道旁，碑上日月纹路随着天光缓缓变色。
 method: RKF10
 n: 3
 talents: [RKF10-J1-B, RKF10-J2-C, RKF10-J3-A]

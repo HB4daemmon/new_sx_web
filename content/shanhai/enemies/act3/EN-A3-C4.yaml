@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A3-C4
 name: 赤砂引火客
 status: design_target
-summary: 以燃烧持续伤害、真实燃烧回怒和普攻后护盾制造混合压力的普通敌人。
-description: 赤砂引火客是原创匿名敌人，毒牙钉与御火诀的毒火输入均为已有卡面效果。
+summary: 赤砂漫过荒坡，一盏旧灯在风中摇曳。
+description: 荒坡上留着熄灭的火盆，赤砂堆成一条蜿蜒小路。
 tags: [enemy, act3, normal, burn, poison, dot, shield]
 source:
   basis: original
@@ -19,7 +19,7 @@ balance:
   measured: null
 acts: [3]
 tier: normal
-identity: 赤砂引火客
+identity: 赤砂引火客沿坡而行，手边的旧灯映出摇晃的影子。
 method: RKF04
 n: 3
 talents: [RKF04-J1-C, RKF04-J2-B, RKF04-J3-B]
@@ -33,7 +33,7 @@ stats:
   max_hp: 353
   crit_rate: 0.09
   speed: 12
-pressure: [长DOT, 稳打护盾]
+pressure: [持续伤害, 稳定护盾]
 counterplay:
   - 战前选高防御或护盾构筑承受毒火，并用持续直伤让其燃烧回怒不至于滚成短周期爆发。
   - 战前选先手直接输出，优先压过第一轮燃烧，再在其护盾变薄后安排怒技爆发。

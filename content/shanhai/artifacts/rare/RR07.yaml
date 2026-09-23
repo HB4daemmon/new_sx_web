@@ -5,7 +5,7 @@ id: RR07
 name: 回元佩
 status: design_target
 summary: 防御 +8；首个怒技完成后本战怒气上限 -15
-description: 佩中回元之力在首个怒技落定后压低本战上限，换取后续节奏。
+description: 首个怒技完成后，本场战斗的怒气上限降低15点。
 tags: [defense, rage_cap, rage, rare]
 source:
   basis: original
@@ -36,6 +36,6 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: battle, count: 1}
-    text: 首个怒技实际完成后登记本战怒气上限-15，轮尾生效；首怒已锁定和已支付的成本不追溯改变。
+    text: 首个怒技完成后，本场战斗的怒气上限降低15点，并在本轮结束时生效；不改变这次怒技已确定并支付的怒气。
 acquisition:
   pools: [rare_artifact]

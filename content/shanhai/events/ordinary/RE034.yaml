@@ -22,7 +22,7 @@ scene: 换法台上的血纹正在亮起，石座上的灵息却安静平和。�
 options:
   - id: RE034-A
     label: 以血开换法台
-    quick: 付出约一成气血，获得一次从已学功法中重新选择的机会。
+    quick: 损失约115点气血，获得一次从已学功法中重新选择的机会。
     requirements:
       - {type: known_method, id: RKF05}
     costs:

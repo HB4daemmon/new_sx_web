@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A3-C2
 name: 归元行客
 status: design_target
-summary: 以普攻回气和动作后攻击叠层制造节奏压力的普通敌人。
-description: 断桥回气客是原创匿名敌人，压力来自公开的回怒和法宝攻击叠层。
+summary: 山道边坐着一名行客，身旁放着旧行囊。
+description: 荒草掩着小径，行客的草鞋边沾满远路尘土。
 tags: [enemy, act3, normal, rage, stacking]
 source:
   basis: original
@@ -19,7 +19,7 @@ balance:
   measured: null
 acts: [3]
 tier: normal
-identity: 断桥回气客
+identity: 归元行客歇在山道旁，旧行囊靠着石碑，目光望向远处云海。
 method: RKF02
 n: 2
 talents: [RKF02-J1-B, RKF02-J2-B]
@@ -33,7 +33,7 @@ stats:
   max_hp: 320
   crit_rate: 0.08
   speed: 11
-pressure: [叠buff]
+pressure: [攻势渐强]
 counterplay:
   - 战前选高直接伤害或暴击构筑，在其攻击层数尚未累积前缩短战斗。
   - 战前选高防御或稳定护盾构筑，接受较慢节奏并用普攻回怒维持自己的怒技窗口。

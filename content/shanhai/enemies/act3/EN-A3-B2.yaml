@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A3-B2
 name: 祝融试火
 status: design_target
-summary: 以虚弱、破甲和开场削怒把火试炼压缩成可读的首领节奏。
-description: 祝融试火采用神话意象，具体阴咒配装、减益和削怒行为均为游戏原创。
+summary: 火光照亮山门，门前留下焦黑的古老印记。
+description: 山门之外热浪翻涌，石阶上的纹路仿佛被烈火重塑。
 tags: [enemy, act3, boss, myth_adaptation, weakness, armor_break, rage_drain]
 source:
   basis: myth_adaptation
@@ -19,7 +19,7 @@ balance:
   measured: null
 acts: [3]
 tier: boss
-identity: 祝融试火
+identity: 祝融试火立于赤色山门前，身后火光映着层叠的岩壁。
 method: RKF08
 n: 3
 talents: [RKF08-J1-B, RKF08-J2-B, RKF08-J3-B]

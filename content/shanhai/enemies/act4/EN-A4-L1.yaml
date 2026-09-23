@@ -4,8 +4,8 @@ kind: enemy
 id: EN-A4-L1
 name: 春脉护谷
 status: design_target
-summary: 以大额怒技治疗和治疗后直接减伤延长第四幕精英战。
-description: 百草关医修是原创匿名敌人，回春功的治疗先填气血再处理溢疗。
+summary: 百草关外药圃苍翠，一名医修守在山门前。
+description: 药圃沿石阶铺展，清泉旁挂着几只褪色药囊。
 tags: [enemy, act4, elite, recovery, heal, damage_reduction]
 source:
   basis: original
@@ -19,7 +19,7 @@ balance:
   measured: null
 acts: [4]
 tier: elite
-identity: 百草关医修
+identity: 春脉护谷的医修守在百草关外，衣袖间带着淡淡草木清香。
 method: RKF03
 n: 4
 talents: [RKF03-J1-C, RKF03-J2-B, RKF03-J3-B, RKF03-J4-A]
