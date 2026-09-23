@@ -223,13 +223,14 @@ async function assertSteadyFirstBattle(page, width) {
   await page.reload({ waitUntil: 'networkidle' });
   await page.locator('.method-choice[data-id="RKF01"]').waitFor({ state: 'visible' });
   await page.locator('[name="player-name"]').fill(`动画验收${width}`);
+  await page.locator('details[data-details="seed-options"] summary').click();
   await page.locator('[name="seed"]').fill(`motion-real-opening-${width}`);
   await page.locator('.method-choice[data-id="RKF01"]').click();
   await clickAction(page, 'start');
-  await waitForPhase(page, 'route');
-  await clickAction(page, 'route', { id: 'steady' });
   await waitForPhase(page, 'map');
   const firstNode = page.locator('.map-node.available:not([disabled])').first();
+  const firstNodeKey = await firstNode.getAttribute('data-id');
+  assert.ok(firstNodeKey, `${width}: 开局地图首格缺少 route key`);
   await firstNode.scrollIntoViewIfNeeded();
   await firstNode.click();
   await waitForPhase(page, 'preview');
@@ -241,7 +242,11 @@ async function assertSteadyFirstBattle(page, width) {
   assert.equal(snapshot.state.method, 'RKF01', `${width}: 非预期开局功法`);
   assert.equal(snapshot.state.phase, 'battle', `${width}: 首次进入的不是战斗阶段`);
   assert.equal(snapshot.state.step, 0, `${width}: 不是 steady 首节点`);
-  assert.equal(snapshot.state.routes[0], 'steady', `${width}: 首幕路线不是 steady`);
+  assert.equal(snapshot.state.routeMap?.path[0], firstNodeKey,
+    `${width}: 战斗没有记录刚才实际选择的 route key`);
+  assert.equal(snapshot.state.nodes[0]?.id, snapshot.state.routeMap?.nodes
+    .find(node => node.key === firstNodeKey)?.id,
+  `${width}: 已选历史与地图首格不一致`);
   assert.equal(snapshot.raw.replay, 'deterministic-input-v1',
     `${width}: 自动存档未使用确定性战斗输入`);
   assert.deepEqual(snapshot.raw.state.battle.frames, [],
@@ -554,8 +559,9 @@ async function createRuntimeBattleFixture(page, method, seed, hpRatio = 1) {
     localStorage.clear();
     const content = await loadContent('/content/');
     const game = ShanhaiGame.create(content, { seed, name: `动画表现${method}`, method });
-    game.dispatch({ type: 'route', id: 'steady' });
-    game.dispatch({ type: 'enter' });
+    const firstNode = game.availableNodes()[0];
+    if (!firstNode) throw new Error('Fixture has no available opening node');
+    game.dispatch({ type: 'enter', id: firstNode.key });
     if (game.state.phase !== 'preview') throw new Error(`Fixture did not enter preview: ${game.state.phase}`);
     if (hpRatio < 1) {
       game.state.hp = Math.max(1, Math.floor(game.state.hp * hpRatio));
@@ -570,8 +576,12 @@ async function createRuntimeBattleFixture(page, method, seed, hpRatio = 1) {
   await waitForApp(page);
   await waitForPhase(page, 'battle');
   const snapshot = await battleSnapshot(page);
+  const selectedKey = snapshot.state.routeMap?.path[0];
+  assert.ok(selectedKey, `${method}: route map 没有记录首格 key`);
   assert.equal(snapshot.state.method, method, `${method}: fixture 功法错误`);
-  assert.equal(snapshot.state.routes[0], 'steady', `${method}: fixture 未选择 steady`);
+  assert.equal(snapshot.state.nodes[0]?.id, snapshot.state.routeMap?.nodes
+    .find(node => node.key === selectedKey)?.id,
+  `${method}: fixture 已选历史与地图不一致`);
   assert.equal(snapshot.state.step, 0, `${method}: fixture 不是首节点`);
   assert.deepEqual(snapshot.raw.state.battle.frames, [],
     `${method}: serialized fixture 应依靠 replay 重建帧`);
@@ -726,6 +736,9 @@ async function assertControlTimingAndReplay(page, snapshot, width) {
 
   const logModeBefore = await page.locator('[data-action="battle-log-mode"]')
     .getAttribute('aria-pressed');
+  const logDisclosure = page.locator('details[data-details="battle-log"]');
+  if (!(await logDisclosure.getAttribute('open'))) await logDisclosure.locator('summary').click();
+  assert.equal(await logDisclosure.getAttribute('open'), '');
   await clickAction(page, 'battle-log-mode');
   assert.notEqual(await page.locator('[data-action="battle-log-mode"]')
     .getAttribute('aria-pressed'), logModeBefore, `${width}: 战报模式没有切换`);
@@ -829,6 +842,10 @@ async function assertSkipIsPresentationOnly(page, snapshot, width) {
   const beforeSkip = await battleSnapshot(page);
   const expectedResult = beforeSkip.result;
   const runSave = beforeSkip.rawText;
+  const logDisclosure = page.locator('details[data-details="battle-log"]');
+  if (!(await logDisclosure.getAttribute('open'))) await logDisclosure.locator('summary').click();
+  assert.equal(await logDisclosure.getAttribute('open'), '',
+    `${width}: 战报摘要没有展开完整回放`);
   await clickAction(page, 'battle-skip');
   await page.locator('[data-action="battle-finish"], [data-action="continue-battle"]')
     .first().waitFor({ state: 'visible' });
@@ -842,8 +859,11 @@ async function assertSkipIsPresentationOnly(page, snapshot, width) {
   assert.equal(await log.locator('.battle-log-row').count(), afterSkip.frames.length,
     `${width}: 结算战报行数与重建帧数不一致`);
   const text = await log.textContent();
-  const missing = afterSkip.frames.map(frame => frame.text)
-    .filter(frameText => frameText && !text?.includes(frameText));
+  const displayTexts = await page.evaluate(async frames => {
+    const { localizeBattleText } = await import('/shanhai/localization.js');
+    return frames.map(frame => localizeBattleText(frame.text));
+  }, afterSkip.frames);
+  const missing = displayTexts.filter(frameText => frameText && !text?.includes(frameText));
   assert.deepEqual(missing, [], `${width}: 完整战报遗漏真实 runtime 帧`);
   const savedAgain = await battleSnapshot(page);
   assert.deepEqual(savedAgain.result, expectedResult,
@@ -1044,6 +1064,10 @@ async function runViewport(browser, width, height, includeDeepChecks) {
         assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true');
         const before = await battleSnapshot(page);
         await clickAction(page, 'battle-speed', { speed: 2 });
+        const logDisclosure = page.locator('details[data-details="battle-log"]');
+        assert.equal(await logDisclosure.getAttribute('open'), null,
+          `${width}: 战报应默认折叠`);
+        await logDisclosure.locator('summary').click();
         await clickAction(page, 'battle-log-mode');
         const after = await battleSnapshot(page);
         assert.equal(after.replay?.cursor, before.replay?.cursor,

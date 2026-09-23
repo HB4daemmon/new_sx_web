@@ -5,6 +5,7 @@ import {
   validateRunState,
   simulateBattle,
 } from './run.js';
+import { validateRouteMap } from './route-map.js';
 
 export const SHANHAI_SAVE_KEY = 'suishi-shanhai-run-v1';
 export const SHANHAI_BUILD_KEY = 'suishi-shanhai-build-v1';
@@ -156,6 +157,16 @@ function assertStateShapeWithoutContent(state: RunState): void {
     !isObject(node) || !NODE_TYPES.has(node.type) || typeof node.id !== 'string' ||
     typeof node.completed !== 'boolean')) {
     throw new Error('Invalid Shanhai nodes');
+  }
+  if (state._routeMapVersion !== undefined && state._routeMapVersion !== 1) {
+    throw new Error('Invalid saved route map version');
+  }
+  if (state._routeMapLegacy !== undefined && typeof state._routeMapLegacy !== 'boolean') {
+    throw new Error('Invalid saved legacy route map marker');
+  }
+  if (state._routeMapVersion === 1 && !state.routeMap) throw new Error('Saved route map is missing');
+  if (state.routeMap) {
+    validateRouteMap(state.routeMap, state.act, state.nodes, state.step, state.phase, state._routeMapLegacy === true);
   }
   if (!Array.isArray(state.routes) || state.routes.some(route => typeof route !== 'string')) {
     throw new Error('Invalid Shanhai routes');
@@ -388,8 +399,9 @@ export function parseRunSave(content: Content, text: string): RunState {
   } catch {
     throw new Error('Corrupted Shanhai save: invalid JSON');
   }
-  const state = extractState(payload);
+  let state = extractState(payload);
   validateRunState(content, state);
+  state = new ShanhaiGame(content, state).state;
   if (isObject(payload) && payload.replay !== undefined) {
     if (payload.replay !== 'deterministic-input-v1' || !state.battleInput || !state.battle) {
       throw new Error('Corrupted Shanhai replay input');

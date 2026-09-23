@@ -152,7 +152,7 @@ async function battleSnapshot(page) {
   });
 }
 
-async function setReplayCursor(page, cursor, reload = true) {
+async function setReplayCursor(page, cursor, reload = true, pauseImmediately = false) {
   const snapshot = await battleSnapshot(page);
   await page.evaluate(({ replayKey, cursor, key, length }) => {
     localStorage.setItem(replayKey, JSON.stringify({
@@ -164,6 +164,10 @@ async function setReplayCursor(page, cursor, reload = true) {
     await page.reload({ waitUntil: 'domcontentloaded' });
     await waitForApp(page);
     await waitForPhase(page, 'battle');
+    if (pauseImmediately) {
+      await clickVisibleAction(page, 'battle-pause');
+      await page.locator('.battle-shell[data-paused="true"]').waitFor();
+    }
   }
 }
 
@@ -237,13 +241,16 @@ async function createFixture(page, target, seed = `classic-ui-${target}`) {
       name: `经典UI${target}`,
       method: 'RKF01',
     });
-    game.dispatch({ type: 'route', id: 'steady' });
 
     const advance = () => {
-      if (game.state.phase === 'route') {
-        game.dispatch({ type: 'route', id: game.availableRoutes()[0].id });
-      } else if (game.state.phase === 'map') {
-        game.dispatch({ type: 'enter' });
+      if (game.state.phase === 'map') {
+        const available = game.availableNodes();
+        const preferredTypes = target === 'event' && game.state.step === 1
+          ? ['E', 'K']
+          : [];
+        const node = available.find(candidate => preferredTypes.includes(candidate.type)) || available[0];
+        if (!node) throw new Error(`Fixture has no reachable node at step ${game.state.step}`);
+        game.dispatch({ type: 'enter', id: node.key });
       } else if (game.state.phase === 'preview') {
         game.dispatch({ type: 'fight' });
       } else if (game.state.phase === 'battle') {
@@ -255,7 +262,7 @@ async function createFixture(page, target, seed = `classic-ui-${target}`) {
       } else if (game.state.phase === 'reward') {
         game.dispatch({ type: 'reward', id: null });
       } else if (game.state.phase === 'event') {
-        const event = content.byId[game.state.nodes[game.state.step].id];
+        const event = content.byId[game.node.id];
         const option = event.options.find(candidate => game.optionAvailability(candidate).available);
         if (!option) throw new Error(`Fixture event has no available option for ${event.id}`);
         game.dispatch({ type: 'event', id: option.id });
@@ -276,16 +283,9 @@ async function createFixture(page, target, seed = `classic-ui-${target}`) {
       }
     };
 
-    if (target === 'event') {
-      game.state.nodes.slice(0, 1).forEach(node => { node.completed = true; });
-      game.state.step = 1;
-      game.dispatch({ type: 'enter' });
-      let guard = 0;
-      while (game.state.phase !== 'event' && guard++ < 20) advance();
-    } else {
-      let guard = 0;
-      while (game.state.phase !== target && guard++ < 260) advance();
-    }
+    let guard = 0;
+    while (game.state.phase !== target && !['won', 'lost'].includes(game.state.phase) &&
+      guard++ < 260) advance();
     if (game.state.phase !== target) {
       throw new Error(`Fixture ${target} ended at ${game.state.phase}`);
     }
@@ -303,18 +303,20 @@ async function setupRun(page, seed = 'classic-ui-navigation') {
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: 'networkidle' });
   await page.locator('.method-choice').first().waitFor({ state: 'visible' });
+  const seedOptions = page.locator('details[data-details="seed-options"]');
+  assert.equal(await seedOptions.getAttribute('open'), null, '命数设置应默认折叠');
+  await seedOptions.locator('summary').click();
   await page.locator('[name="player-name"]').fill('经典UI行者');
   await page.locator('[name="seed"]').fill(seed);
   const method = await page.locator('.method-choice').first().getAttribute('data-id');
   assert.ok(method, '开局功法没有 data-id');
   await page.locator('.method-choice').first().click();
   await clickVisibleAction(page, 'start');
-  await waitForPhase(page, 'route');
+  await waitForPhase(page, 'map');
   return { method, save: await savedState(page) };
 }
 
 async function enterMap(page) {
-  await clickVisibleAction(page, 'route');
   await waitForPhase(page, 'map');
 }
 
@@ -368,9 +370,10 @@ async function assertMapSurface(page, width) {
     `${width}: map-scroll 没有纵向滚动空间 ${JSON.stringify(metrics)}`);
   assert.ok(metrics.wrapHeight > metrics.clientHeight,
     `${width}: map-wrap 没有纵向山河路线 ${JSON.stringify(metrics)}`);
-  assert.ok(metrics.nodeCount >= 3, `${width}: 地图节点过少 ${JSON.stringify(metrics)}`);
+  assert.equal(metrics.nodeCount, 29, `${width}: 第一幕完整地图节点数不正确 ${JSON.stringify(metrics)}`);
   assert.ok(metrics.available >= 1, `${width}: 当前节点不可进入 ${JSON.stringify(metrics)}`);
-  assert.ok(metrics.future >= 1, `${width}: 未来节点未禁用 ${JSON.stringify(metrics)}`);
+  assert.equal(metrics.available, 1, `${width}: 开局应只有一个首格可达 ${JSON.stringify(metrics)}`);
+  assert.equal(metrics.future, 28, `${width}: 未选路线节点应全部禁用 ${JSON.stringify(metrics)}`);
   assert.ok(metrics.diamonds >= 1, `${width}: 地图节点不是菱形视觉结构`);
 
   const current = page.locator('.map-node.available:not([disabled])').first();
@@ -671,6 +674,13 @@ async function assertCombatSurface(page, width) {
   assert.ok(await page.locator('[data-action="battle-speed"][data-speed="2"]:visible').count() > 0,
     `${width}: 缺少二倍速按钮`);
 
+  const logDisclosure = page.locator('details[data-details="battle-log"]');
+  assert.equal(await logDisclosure.getAttribute('open'), null,
+    `${width}: 战报应默认折叠`);
+  await logDisclosure.locator('summary').click();
+  assert.equal(await logDisclosure.getAttribute('open'), '',
+    `${width}: 战报摘要没有展开战报`);
+
   await setReplayCursor(page, 0);
   const before = await savedState(page);
   const beforeText = before.text;
@@ -715,11 +725,11 @@ async function assertCombatSurface(page, width) {
   // A tab render must not advance the cursor while the battle view is away.
   await clickVisibleAction(page, 'battle-pause');
   await page.locator('[data-action="battle-pause"][aria-pressed="false"]').waitFor();
-  const beforeTabCursor = (await replayState(page))?.cursor ?? 0;
   await clickVisibleAction(page, 'tab', { id: 'build' });
   await page.locator('.game-layout.view-build').waitFor({ state: 'visible' });
+  const awayCursor = (await replayState(page))?.cursor ?? 0;
   await page.waitForTimeout(1100);
-  assert.equal((await replayState(page))?.cursor ?? 0, beforeTabCursor,
+  assert.equal((await replayState(page))?.cursor ?? 0, awayCursor,
     `${width}: 切到命盘后战斗游标仍在推进`);
   await clickVisibleAction(page, 'tab', { id: 'journey' });
   await waitForPhase(page, 'battle');
@@ -732,7 +742,7 @@ async function assertCombatSurface(page, width) {
     } catch {
       return false;
     }
-  }, { replayKey, previous: beforeTabCursor });
+  }, { replayKey, previous: awayCursor });
   await clickVisibleAction(page, 'battle-pause');
   await page.locator('[data-action="battle-pause"][aria-pressed="true"]').waitFor();
 
@@ -765,6 +775,7 @@ async function assertCombatSurface(page, width) {
   }, { replayKey, previous: middleCursor });
   assert.ok(Math.abs(await log.evaluate(element => element.scrollTop) - historyTop) <= 2,
     `${width}: 新帧渲染抢走了用户的战报滚动位置`);
+  if (!(await logDisclosure.getAttribute('open'))) await logDisclosure.locator('summary').click();
   await clickVisibleAction(page, 'battle-log-mode');
   assert.ok(Math.abs(await log.evaluate(element => element.scrollTop) - historyTop) <= 2,
     `${width}: 战报模式重渲染抢走了历史滚动位置`);
@@ -811,14 +822,17 @@ async function assertCombatSurface(page, width) {
     return element && element.scrollHeight - element.clientHeight - element.scrollTop < 2;
   });
 
-  const ordinaryIndex = recordedFrames.findIndex(frame =>
+  const ordinaryIndex = recordedFrames.findIndex((frame, index) =>
+    index > 0 &&
     frame.kind === 'damage' &&
     frame.target === 'enemy' &&
     Number(frame.amount) > 0 &&
+    frame.enemy.hp < recordedFrames[index - 1].enemy.hp &&
     !/暴击/.test(String(frame.text)));
   assert.ok(ordinaryIndex >= 1, `${width}: 没有可验证的普通非暴击伤害帧`);
-  await setReplayCursor(page, ordinaryIndex);
-  await clickVisibleAction(page, 'battle-pause');
+  await setReplayCursor(page, ordinaryIndex, true, true);
+  assert.equal(Number(await page.locator('.combat-arena').getAttribute('data-frame-index')),
+    ordinaryIndex, `${width}: 普通伤害回放帧未能及时暂停`);
   assert.equal(await page.locator('[data-frame-kind="damage"]').count(), 1,
     `${width}: 普通伤害帧没有渲染`);
   assert.equal(await page.locator('.combat-float.damage.crit').count(), 0,
@@ -835,6 +849,9 @@ async function assertCombatSurface(page, width) {
 async function toggleDetailedBattleLog(page) {
   await createFixture(page, 'battle', 'classic-ui-log-mode');
   await clickVisibleAction(page, 'battle-pause');
+  const logDisclosure = page.locator('details[data-details="battle-log"]');
+  assert.equal(await logDisclosure.getAttribute('open'), null, '战报应默认折叠');
+  await logDisclosure.locator('summary').click();
   await clickVisibleAction(page, 'battle-log-mode');
   assert.ok(await page.locator('.battle-log.detailed-mode').count() === 1 ||
     (await page.locator('.log-mode').textContent()).includes('详录'),

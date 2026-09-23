@@ -53,6 +53,9 @@ async function noOverflow(page, label) {
   }));
   assert.ok(result.documentWidth <= result.width + 1, `${label}: document overflow ${JSON.stringify(result)}`);
   assert.ok(result.bodyWidth <= result.width + 1, `${label}: body overflow ${JSON.stringify(result)}`);
+  const englishLines = (await page.locator('#shanhai-app').innerText())
+    .split(/\r?\n/).filter(line => /[A-Za-z]/.test(line));
+  assert.deepEqual(englishLines, [], `${label}: 玩家界面包含英文`);
   return result;
 }
 
@@ -72,8 +75,7 @@ async function createFixture(page, target, seed = `browser-${target}`) {
       import('/shanhai/persistence.js'),
     ]);
     const content = await loadContent('/content/');
-    const game = ShanhaiGame.create(content, { seed, name: `浏览器${target}`, method: 'RKF01' });
-    game.dispatch({ type: 'route', id: 'steady' });
+    const game = ShanhaiGame.create(content, { seed, name: '浏览器行者', method: 'RKF01' });
 
     const finishBattle = () => {
       if (game.state.phase !== 'battle') return;
@@ -84,10 +86,18 @@ async function createFixture(page, target, seed = `browser-${target}`) {
       if (game.state.phase === 'reward') game.dispatch({ type: 'reward', id: null });
     };
     const advance = () => {
-      if (game.state.phase === 'route') {
-        game.dispatch({ type: 'route', id: game.availableRoutes()[0].id });
-      } else if (game.state.phase === 'map') {
-        game.dispatch({ type: 'enter' });
+      if (game.state.phase === 'map') {
+        const available = game.availableNodes();
+        const preferredTypes = target === 'event' && game.state.step === 1
+          ? ['E', 'K']
+          : target === 'rest' && game.state.step === 3
+            ? ['R']
+            : target === 'shop' && game.state.step === 5
+              ? ['S']
+              : [];
+        const node = available.find(candidate => preferredTypes.includes(candidate.type)) || available[0];
+        if (!node) throw new Error(`No reachable node for ${target} at step ${game.state.step}`);
+        game.dispatch({ type: 'enter', id: node.key });
       } else if (game.state.phase === 'preview') {
         game.dispatch({ type: 'fight' });
       } else if (game.state.phase === 'battle') {
@@ -122,25 +132,30 @@ async function createFixture(page, target, seed = `browser-${target}`) {
       }
     };
 
-    if (['event', 'shop', 'rest', 'talent'].includes(target)) {
-      const step = target === 'event' || target === 'talent' ? 1 : target === 'rest' ? 3 : 5;
-      game.state.nodes.slice(0, step).forEach(node => { node.completed = true; });
-      game.state.step = step;
-      if (target === 'talent') game.state.xp = 120;
-      game.dispatch({ type: 'enter' });
-      if (target === 'talent') {
-        let guard = 0;
-        while (game.state.phase !== 'talent' && guard++ < 20) advance();
-      }
-    } else if (target === 'won') {
+    if (target === 'talent') game.state.xp = 120;
+    if (target === 'won') {
       const finalEnemy = content.entities.find(entity =>
         entity.kind === 'enemy' && entity.tier === 'final');
       if (!finalEnemy) throw new Error('Content has no final enemy');
       game.state.act = 5;
       game.state.step = 0;
       game.state.nodes = [{ type: 'F', id: finalEnemy.id, completed: true }];
-      game.state.routes = ['final'];
-      game.state._routeHistory = ['final'];
+      game.state.routeMap = {
+        nodes: [{
+          key: 'a5-d0-l1',
+          depth: 0,
+          lane: 1,
+          type: 'F',
+          id: finalEnemy.id,
+          completed: true,
+          next: [],
+        }],
+        path: ['a5-d0-l1'],
+      };
+      game.state._routeMapVersion = 1;
+      game.state._routeMapLegacy = false;
+      game.state.routes = [];
+      game.state._routeHistory = [];
       game.state.history = [{
         act: 5,
         step: 0,
@@ -153,7 +168,7 @@ async function createFixture(page, target, seed = `browser-${target}`) {
     }
 
     let guard = 0;
-    while (!['event', 'shop', 'rest', 'talent', 'won'].includes(target) &&
+    while (!['won'].includes(target) &&
       game.state.phase !== target && !['won', 'lost'].includes(game.state.phase) && guard++ < 260) {
       advance();
     }
@@ -169,7 +184,7 @@ async function createFixture(page, target, seed = `browser-${target}`) {
 }
 
 async function setReplayFrame(page, kind, target) {
-  await page.evaluate(async ({ kind, target }) => {
+  const selectedIndex = await page.evaluate(async ({ kind, target }) => {
     const [{ loadContent }, { loadRun }] = await Promise.all([
       import('/shanhai/content.js'),
       import('/shanhai/persistence.js'),
@@ -177,15 +192,27 @@ async function setReplayFrame(page, kind, target) {
     const content = await loadContent('/content/');
     const game = loadRun(content);
     if (!game?.state.battle) throw new Error('Replay frame fixture has no battle');
-    const index = game.state.battle.frames.findIndex(frame =>
-      frame.kind === kind && frame.amount > 0 && (!target || frame.target === target));
+    const frames = game.state.battle.frames;
+    const index = frames.findIndex((frame, cursor) =>
+      cursor > 0 && frame.kind === kind && frame.amount > 0 &&
+      (!target || frame.target === target) &&
+      (kind !== 'damage' || !frame.target ||
+        frame[frame.target].hp < frames[cursor - 1][frame.target].hp));
     if (index < 0) throw new Error(`Replay has no ${kind} frame for ${target || 'any target'}`);
     const state = game.state;
     const key = `${state.id}:${state.act}:${state.step}:${state.battle.frames.length}`;
     localStorage.setItem('suishi-shanhai-replay-v1', JSON.stringify({ key, cursor: index }));
+    return index;
   }, { kind, target });
-  await page.reload({ waitUntil: 'networkidle' });
+  await page.reload({ waitUntil: 'domcontentloaded' });
   await page.locator('#shanhai-app').waitFor();
+  // Pin the fixture before Playwright's animation-stability wait can advance it.
+  await page.locator('[data-action="battle-pause"]').evaluate(button => button.click());
+  await page.waitForFunction(() =>
+    document.querySelector('.battle-shell')?.getAttribute('data-paused') === 'true');
+  const renderedIndex = Number(await page.locator('.combat-arena').getAttribute('data-frame-index'));
+  assert.equal(renderedIndex, selectedIndex,
+    `Replay ${kind} fixture在暂停前推进到了另一帧`);
   await page.waitForTimeout(80);
 }
 
@@ -252,6 +279,12 @@ async function forceMissingArtifactEvent(page) {
     const game = loadRun(content);
     if (!game) throw new Error('Event reason fixture has no run');
     const state = game.state;
+    const key = state.routeMap?.path[state.step];
+    const routeNode = state.routeMap?.nodes.find(node => node.key === key);
+    if (!routeNode) throw new Error('Event reason fixture has no selected route node');
+    routeNode.type = 'K';
+    routeNode.id = 'RK005';
+    routeNode.completed = false;
     state.nodes[state.step] = { type: 'K', id: 'RK005', completed: false };
     state.phase = 'event';
     state.eventOption = undefined;
@@ -344,9 +377,12 @@ async function run() {
       assert.match(await desktop.locator('[data-amount-kind="damage"]').textContent(), /^-/);
       assert.doesNotMatch(await desktop.locator('[data-frame-kind]').textContent(), /\b(action|damage|dot|heal|shield|status|rage|phase|start|round|draw|end|summary)\b/i);
       await setReplayFrame(desktop, 'shield', 'player');
-      assert.match(await desktop.locator('[data-amount-kind="shield"]').textContent(), /^\+/);
+      assert.equal(await desktop.locator('.combat-arena').getAttribute('data-frame-kind'), 'shield');
+      assert.match(await desktop.locator('[data-battle-amount]').textContent(), /护盾/);
       await desktop.locator('[data-action="battle-speed"][data-speed="2"]').click();
       assert.equal(await desktop.locator('[data-action="battle-speed"][data-speed="2"]').getAttribute('aria-pressed'), 'true');
+      await desktop.locator('[data-action="battle-pause"]').click();
+      assert.equal(await desktop.locator('[data-action="battle-pause"]').getAttribute('aria-pressed'), 'false');
       await desktop.locator('[data-action="battle-pause"]').click();
       assert.equal(await desktop.locator('[data-action="battle-pause"]').getAttribute('aria-pressed'), 'true');
       await desktop.locator('[data-action="battle-skip"]').click();
@@ -354,7 +390,8 @@ async function run() {
       assert.equal(await desktop.locator('[data-action="battle-finish"]').count(), 1);
       assert.equal(await desktop.locator('[data-action="battle-finish"]').evaluate(element => element.tagName), 'BUTTON');
       assert.equal(await desktop.locator('.replay-progress > i').evaluate(element => element.style.width), '100%');
-      assert.equal(await desktop.locator('details[data-details="battle-diagnostics"]').getAttribute('open'), '');
+      const diagnostics = desktop.locator('details[data-details="battle-diagnostics"]');
+      assert.equal(await diagnostics.getAttribute('open'), null, '战斗来源应默认折叠');
       await noOverflow(desktop, 'desktop battle');
       await desktop.screenshot({ path: path.join(reportDir, 'battle-desktop.png'), fullPage: true });
     });
@@ -403,7 +440,9 @@ async function run() {
       await forceZeroContribution(desktop);
       await desktop.locator('[data-action="battle-skip"]').click();
       const details = desktop.locator('details[data-details="battle-diagnostics"]');
-      if (!(await details.getAttribute('open'))) await details.locator('summary').click();
+      assert.equal(await details.getAttribute('open'), null, '战斗来源应默认折叠');
+      await details.locator('summary').click();
+      assert.equal(await details.getAttribute('open'), '');
       const diagnostics = await details.textContent();
       assert.match(diagnostics, /属性已生效/);
       assert.match(diagnostics, /本局未满足触发条件/);
@@ -416,6 +455,8 @@ async function run() {
       await desktop.reload({ waitUntil: 'networkidle' });
       await createFixture(desktop, 'event', 'browser-event-reason');
       await forceMissingArtifactEvent(desktop);
+      assert.match(await desktop.locator('[data-action="event"][data-id="RK005-leave"] .event-rewards').innerText(), /灵石/);
+      assert.match(await desktop.locator('[data-action="event"][data-id="RK005-take-xp"] .event-rewards').innerText(), /修为/);
       assert.equal(await phase(desktop), 'event');
       const option = desktop.locator('.event-option[data-id="RK005-carry-sight"]');
       assert.equal(await option.count(), 1);

@@ -9,10 +9,12 @@ import {
   SHANHAI_SAVE_KEY,
   loadRun,
   loadWinningBuilds,
+  parseRunSave,
   saveRun,
   saveWinningBuild,
   serializeRun,
 } from '../build/shanhai/persistence.js';
+import { nextCommand } from './shanhai-policy.mjs';
 
 const loaded = await loadContent();
 const content = {
@@ -54,41 +56,97 @@ function installCombat({ outcome = 'player', drawUntil = 0, playerHp = null, onB
   });
 }
 
-function make(seed = 'run-test') {
-  return ShanhaiGame.create(content, { seed, name: '测试者', method: 'RKF01' });
+function make(seed = 'run-test', method = 'RKF01') {
+  return ShanhaiGame.create(content, { seed, name: '测试者', method });
 }
 
 function enterFirstBattle(game) {
-  game.dispatch({ type: 'route', id: 'steady' });
-  while (game.node?.type !== 'C') {
-    game.dispatch({ type: 'enter' });
-    if (game.state.phase === 'event') {
+  const first = game.availableNodes();
+  assert.equal(first.length, 1);
+  game.dispatch({ type: 'enter', id: first[0].key });
+}
+
+function resolveCurrentNode(game) {
+  let guard = 0;
+  while (game.state.phase !== 'map' && !['won', 'lost'].includes(game.state.phase) && guard++ < 32) {
+    if (game.state.phase === 'preview') game.dispatch({ type: 'fight' });
+    else if (game.state.phase === 'battle') {
+      if (game.state.battle.outcome === 'draw') game.dispatch({ type: 'continue_battle' });
+      else game.dispatch({ type: 'battle_done' });
+    } else if (game.state.phase === 'reward') game.dispatch({ type: 'reward', id: null });
+    else if (game.state.phase === 'event') {
       const event = content.byId.get(game.node.id);
-      const option = event.options.find(candidate => game.optionAvailability(candidate).available);
+      const option = event.options.find(candidate =>
+        !candidate.encounter &&
+        !candidate.rewards?.some(reward => ['method', 'swap_method'].includes(reward.type)) &&
+        game.optionAvailability(candidate).available) ??
+        event.options.find(candidate =>
+          !candidate.encounter && game.optionAvailability(candidate).available) ??
+        event.options.find(candidate => game.optionAvailability(candidate).available);
+      assert.ok(option, `expected ${event.id} to expose an available option`);
       game.dispatch({ type: 'event', id: option.id });
-      if (game.state.phase === 'event_result') game.dispatch({ type: 'continue' });
-    } else if (game.state.phase === 'shop') {
-      game.dispatch({ type: 'leave_shop' });
-    } else if (game.state.phase === 'rest') {
+    } else if (game.state.phase === 'event_result') game.dispatch({ type: 'continue' });
+    else if (game.state.phase === 'shop') game.dispatch({ type: 'leave_shop' });
+    else if (game.state.phase === 'rest') {
       if (game.state._restFromEvent) {
         const method = game.state.ownedMethods.find(id => id !== game.state.method);
-        if (method) game.dispatch({ type: 'rest', choice: 'swap_method', method });
-        else throw new Error('event offered a swap without another method');
-      } else {
-        game.dispatch({ type: 'rest', choice: 'heal' });
-      }
-    }
+        assert.ok(method, 'event offered a swap without another method');
+        game.dispatch({ type: 'rest', choice: 'swap_method', method });
+      } else game.dispatch({ type: 'rest', choice: 'heal' });
+    } else if (game.state.phase === 'talent') {
+      game.dispatch({ type: 'talent', id: game.availableTalents()[0].id });
+    } else if (game.state.phase === 'transition') game.dispatch({ type: 'continue' });
+    else throw new Error(`Unhandled phase ${game.state.phase}`);
   }
-  game.dispatch({ type: 'enter' });
+  assert.ok(guard < 32, 'node did not resolve');
+}
+
+function routeToNode(game, predicate) {
+  for (let guard = 0; guard < 80; guard++) {
+    if (game.state.phase !== 'map') resolveCurrentNode(game);
+    if (['won', 'lost'].includes(game.state.phase)) break;
+    const starts = game.availableNodes();
+    const nodes = game.state.routeMap.nodes;
+    const byKey = new Map(nodes.map(node => [node.key, node]));
+    const queue = starts.map(node => [node.key]);
+    const seen = new Set();
+    let path;
+    while (queue.length && !path) {
+      const current = queue.shift();
+      const key = current.at(-1);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const node = byKey.get(key);
+      if (node && predicate(node)) path = current;
+      else for (const next of node?.next ?? []) queue.push([...current, next]);
+    }
+    assert.ok(path, 'no reachable node matches the requested predicate');
+    const key = path[0];
+    const target = starts.find(node => node.key === key);
+    assert.ok(target, 'planned node is no longer reachable');
+    game.dispatch({ type: 'enter', id: target.key });
+    if (predicate(target)) return target;
+    resolveCurrentNode(game);
+  }
+  throw new Error('Node target was not reached');
+}
+
+function reachAct(game, act) {
+  while (game.state.act < act) {
+    assert.equal(game.state.phase, 'map');
+    const previousAct = game.state.act;
+    const boss = routeToNode(game, node => node.type === 'B');
+    assert.equal(boss.type, 'B');
+    resolveCurrentNode(game);
+    assert.equal(game.state.act, previousAct + 1);
+  }
+  assert.equal(game.state.act, act);
 }
 
 function runToTerminal(game) {
   while (!['won', 'lost'].includes(game.state.phase)) {
-    if (game.state.phase === 'route') {
-      game.dispatch({ type: 'route', id: game.availableRoutes()[0].id });
-    } else if (game.state.phase === 'map') {
-      game.dispatch({ type: 'enter' });
-    } else if (game.state.phase === 'preview') {
+    if (game.state.phase === 'map') game.dispatch(nextCommand(game, 'balanced'));
+    else if (game.state.phase === 'preview') {
       game.dispatch({ type: 'fight' });
     } else if (game.state.phase === 'battle') {
       if (game.state.battle.outcome === 'draw') game.dispatch({ type: 'continue_battle' });
@@ -115,29 +173,160 @@ function runToTerminal(game) {
   }
 }
 
-test('route generation is deterministic and uses frozen pool draws', () => {
+test('new runs open a deterministic branching map without preselecting a route', () => {
   installCombat();
   const a = make('same-seed');
   const b = make('same-seed');
-  a.dispatch({ type: 'route', id: 'steady' });
-  b.dispatch({ type: 'route', id: 'steady' });
-  assert.deepEqual(a.state.nodes, b.state.nodes);
-  assert.equal(a.state.nodes.length, 11);
-  assert.equal(a.state.nodes.some(node => node.type === 'C' && node.id !== 'EN-A1-C1'), true);
-  assert.equal(a.state.ordinaryCount, a.state.nodes.filter(node => node.type === 'C' || node.type === 'E').length);
+  assert.equal(a.state.phase, 'map');
+  assert.deepEqual(a.state.routeMap, b.state.routeMap);
+  assert.equal(a.state.routeMap.nodes.length, 29);
+  assert.deepEqual(a.state.routeMap.path, []);
+  assert.deepEqual(a.state.nodes, []);
+  assert.deepEqual(a.state.routes, []);
+  assert.equal(a.state.ordinaryCount, 0);
+  assert.deepEqual(a.state._seenEnemyIds, []);
+  assert.equal(a.availableNodes().length, 1);
+  assert.throws(() => a.dispatch({ type: 'route', id: 'steady' }), /no longer selectable/);
+
+  a.dispatch({ type: 'enter', id: a.availableNodes()[0].key });
+  assert.equal(a.state.nodes.length, 1);
+  assert.equal(a.state.ordinaryCount, 1);
+  assert.equal(a.state._seenEnemyIds.length, 1);
+  assert.equal(a.availableNodes().length, 0);
+  a.dispatch({ type: 'back' });
+  assert.equal(a.availableNodes().length, 1);
+  a.dispatch({ type: 'enter', id: a.availableNodes()[0].key });
+  assert.equal(a.state.ordinaryCount, 1);
+  assert.equal(a.state._seenEnemyIds.length, 1);
+});
+
+test('only connected branch choices can be entered and the chosen path is retained', () => {
+  installCombat();
+  const left = make('branch-left');
+  const right = make('branch-right');
+  for (const game of [left, right]) {
+    game.dispatch({ type: 'enter', id: game.availableNodes()[0].key });
+    resolveCurrentNode(game);
+    const next = game.availableNodes();
+    assert.equal(next.length, 3);
+    assert.ok(next.every(node => node.depth === 1));
+    const skipped = game.state.routeMap.nodes.find(node => node.depth === 2);
+    assert.ok(skipped);
+    assert.throws(() => game.dispatch({ type: 'enter', id: skipped.key }), /not reachable/);
+  }
+
+  left.dispatch({ type: 'enter', id: left.availableNodes().find(node => node.lane === 0).key });
+  right.dispatch({ type: 'enter', id: right.availableNodes().find(node => node.lane === 2).key });
+  assert.equal(left.state.nodes.length, 2);
+  assert.equal(right.state.nodes.length, 2);
+  assert.notDeepEqual(left.state.routeMap.path, right.state.routeMap.path);
+  assert.equal(left.state.routeMap.path.at(-1), 'a1-d1-l0');
+  assert.equal(right.state.routeMap.path.at(-1), 'a1-d1-l2');
+});
+
+test('legacy linear saves retain only visited nodes and roll back future counters', () => {
+  installCombat();
+  const game = make('legacy-map-seed');
+  const legacy = structuredClone(game.state);
+  delete legacy.routeMap;
+  delete legacy._routeMapVersion;
+  delete legacy._routeMapLegacy;
+  legacy.phase = 'map';
+  legacy.step = 2;
+  legacy.routes = ['steady'];
+  legacy._routeHistory = ['steady'];
+  legacy.nodes = [
+    { type: 'C', id: 'EN-A1-C1', completed: true },
+    { type: 'E', id: 'RE001', completed: true },
+    { type: 'C', id: 'EN-A1-C2', completed: false },
+    { type: 'E', id: 'RE002', completed: false },
+    { type: 'C', id: 'EN-A1-C3', completed: false },
+    { type: 'E', id: 'RE003', completed: false },
+    { type: 'C', id: 'EN-A1-C4', completed: false },
+    { type: 'E', id: 'RE004', completed: false },
+    { type: 'E', id: 'RE005', completed: false },
+    { type: 'E', id: 'RE006', completed: false },
+    { type: 'B', id: 'EN-A1-B1', completed: false },
+  ];
+  legacy.ordinaryCount = legacy.nodes.filter(node => node.type === 'C' || node.type === 'E').length;
+  legacy._seenEnemyIds = legacy.nodes
+    .filter(node => ['C', 'L', 'B', 'F'].includes(node.type))
+    .map(node => node.id);
+  legacy._lastEnemyId = legacy._seenEnemyIds.at(-1);
+
+  const migrated = parseRunSave(content, serializeRun(legacy));
+  assert.equal(migrated._routeMapLegacy, true);
+  assert.equal(migrated.nodes.length, 2);
+  assert.deepEqual(migrated.routeMap.path, ['a1-d0-l1', 'a1-d1-l1']);
+  assert.equal(migrated.ordinaryCount, 2);
+  assert.deepEqual(migrated._seenEnemyIds, ['EN-A1-C1']);
+});
+
+test('the first elite in every act does not consume the extra elite allowance', () => {
+  installCombat();
+  const game = make('baseline-elites');
+  game.state.extraElites = 3;
+  for (let act = 1; act <= 4; act++) {
+    reachAct(game, act);
+    const target = routeToNode(game, node => node.type === 'L');
+    assert.equal(game.state._actEliteCount, 1);
+    assert.equal(game.state.extraElites, 3);
+    game.dispatch({ type: 'back' });
+    game.dispatch({ type: 'enter', id: target.key });
+    assert.equal(game.state._actEliteCount, 1, 'reentry must not count the same elite twice');
+    assert.equal(game.state.extraElites, 3);
+    resolveCurrentNode(game);
+  }
+});
+
+test('linear save migration preserves active phases and does not select a node during breakthrough', () => {
+  installCombat();
+  const game = make('legacy-active-boundaries');
+  function checkMigration() {
+    const before = structuredClone(game.state);
+    const legacy = structuredClone(before);
+    const unvisited = before.routeMap.nodes.filter(node => node.depth >= before.nodes.length && node.lane === 1)
+      .map(({ type, id }) => ({ type, id, completed: false }));
+    legacy.nodes.push(...unvisited);
+    legacy.ordinaryCount += unvisited.filter(node => ['C', 'E'].includes(node.type)).length;
+    legacy._seenEnemyIds.push(...unvisited.filter(node => ['C', 'L', 'B', 'F'].includes(node.type)).map(node => node.id));
+    legacy._lastEnemyId = legacy._seenEnemyIds.at(-1);
+    delete legacy.routeMap;
+    delete legacy._routeMapVersion;
+    delete legacy._routeMapLegacy;
+    const migrated = parseRunSave(content, serializeRun(legacy));
+    assert.equal(migrated.phase, before.phase);
+    assert.equal(migrated.step, before.step);
+    assert.deepEqual(migrated.nodes, before.nodes);
+    assert.equal(migrated.hp, before.hp);
+    assert.equal(migrated.ordinaryCount, before.ordinaryCount);
+    assert.deepEqual(migrated.rewardCandidates, before.rewardCandidates);
+  }
+  game.dispatch({ type: 'enter', id: game.availableNodes()[0].key });
+  checkMigration();
+  game.dispatch({ type: 'fight' });
+  checkMigration();
+  game.dispatch({ type: 'battle_done' });
+  checkMigration();
+  game.state.xp = 120;
+  game.dispatch({ type: 'reward', id: null });
+  assert.equal(game.state.phase, 'talent');
+  checkMigration();
+  game.dispatch({ type: 'talent', id: game.availableTalents()[0].id });
+  checkMigration();
 });
 
 test('save/reload keeps frozen map and does not touch the legacy key', () => {
   installCombat();
   const game = make('save-seed');
-  game.dispatch({ type: 'route', id: 'steady' });
-  game.dispatch({ type: 'enter' });
+  game.dispatch({ type: 'enter', id: game.availableNodes()[0].key });
   const before = structuredClone(game.state);
   const store = storage();
   saveRun(game, store);
   assert.ok(store.getItem(SHANHAI_SAVE_KEY));
   const loadedGame = loadRun(content, store);
   assert.deepEqual(loadedGame.state.nodes, before.nodes);
+  assert.deepEqual(loadedGame.state.routeMap, before.routeMap);
   assert.equal(loadedGame.state.phase, before.phase);
   assert.equal(store.getItem('fengshen-run'), null);
 });
@@ -151,10 +340,9 @@ test('every major dispatch boundary survives serialize and reload', () => {
     game = loadRun(content, store);
   };
 
-  game.dispatch({ type: 'route', id: 'steady' });
   reload();
   assert.equal(game.state.phase, 'map');
-  game.dispatch({ type: 'enter' });
+  game.dispatch({ type: 'enter', id: game.availableNodes()[0].key });
   reload();
   assert.equal(game.state.phase, 'preview');
   game.dispatch({ type: 'fight' });
@@ -171,12 +359,8 @@ test('every major dispatch boundary survives serialize and reload', () => {
 test('shop inventory and node entry snapshot remain frozen across back and re-entry', () => {
   installCombat();
   const game = make('shop-freeze-seed');
-  game.dispatch({ type: 'route', id: 'steady' });
-  const shopIndex = game.state.nodes.findIndex(node => node.type === 'S');
-  assert.notEqual(shopIndex, -1);
-  game.state.step = shopIndex;
   game.state.coins = 100;
-  game.dispatch({ type: 'enter' });
+  const shop = routeToNode(game, node => node.type === 'S');
   assert.equal(game.state.phase, 'shop');
   const beforeEntry = structuredClone(game.state.nodeEntry);
   const service = game.state.shop.find(item => item.kind === 'recovery');
@@ -186,7 +370,7 @@ test('shop inventory and node entry snapshot remain frozen across back and re-en
   game.dispatch({ type: 'back' });
   assert.equal(game.state.phase, 'map');
   assert.deepEqual(game.state.nodeEntry, beforeEntry);
-  game.dispatch({ type: 'enter' });
+  game.dispatch({ type: 'enter', id: shop.key });
   assert.equal(game.state.phase, 'shop');
   assert.equal(game.state.shop.find(item => item.id === service.id)?.sold, true);
   assert.deepEqual(game.state.nodeEntry, beforeEntry);
@@ -195,10 +379,8 @@ test('shop inventory and node entry snapshot remain frozen across back and re-en
 test('invalid event options and costs are atomic', () => {
   installCombat();
   const game = make('event-atomic');
-  game.dispatch({ type: 'route', id: 'steady' });
-  const eventIndex = game.state.nodes.findIndex(node => node.type === 'E');
-  game.state.step = eventIndex;
-  game.dispatch({ type: 'enter' });
+  const routeNode = routeToNode(game, node => node.type === 'E' &&
+    content.byId.get(node.id).options?.some(option => option.costs?.length));
   const event = content.byId.get(game.node.id);
   const paid = event.options.find(option => option.costs?.length);
   assert.ok(paid, `expected ${event.id} to expose a paid option`);
@@ -229,22 +411,16 @@ test('draw continuation reuses the same input and seed without charging twice', 
 });
 
 test('non-lethal encounter loss floors HP and grants no event reward', () => {
-  installCombat({ outcome: 'enemy', playerHp: 0 });
+  installCombat();
   const game = make('nonlethal-seed');
-  game.dispatch({ type: 'route', id: 'steady' });
-  const index = game.state.nodes.findIndex(node => {
-    if (node.type !== 'E') return false;
-    const event = content.byId.get(node.id);
-    return event.options?.some(option => option.encounter);
-  });
-  assert.notEqual(index, -1);
-  game.state.step = index;
-  game.dispatch({ type: 'enter' });
+  const routeNode = routeToNode(game, node => node.type === 'E' &&
+    content.byId.get(node.id).options?.some(option => option.encounter));
   const event = content.byId.get(game.node.id);
   const option = event.options.find(candidate =>
     candidate.encounter && game.optionAvailability(candidate).available);
   assert.ok(option, `expected ${event.id} to expose an available encounter option`);
   const artifacts = structuredClone(game.state.artifacts);
+  installCombat({ outcome: 'enemy', playerHp: 0 });
   game.dispatch({ type: 'event', id: option.id });
   game.dispatch({ type: 'fight' });
   game.dispatch({ type: 'battle_done' });
@@ -297,57 +473,45 @@ test('RKF05 prepares first strike on nodes 2 and 4, preserves it across a method
   game.state.ownedMethods.push('RKF05');
   game.state.talents.RKF05 = [];
   game.state.method = 'RKF05';
-  game.state.nodes = [
-    { type: 'R', id: 'R-1', completed: false },
-    { type: 'R', id: 'R-2', completed: false },
-    { type: 'C', id: 'EN-A1-C1', completed: false },
-    { type: 'R', id: 'R-3', completed: false },
-    { type: 'R', id: 'R-4', completed: false },
-    { type: 'C', id: 'EN-A1-C2', completed: false },
-  ];
-  game.state.step = 0;
-  game.state.phase = 'map';
-
-  game.dispatch({ type: 'enter' });
-  game.dispatch({ type: 'rest', choice: 'heal' });
-  assert.equal(game.state.firstStrike, 0);
-  game.dispatch({ type: 'enter' });
-  game.dispatch({ type: 'rest', choice: 'heal' });
+  const first = routeToNode(game, node => node.type === 'C');
+  assert.equal(first.depth, 0);
+  resolveCurrentNode(game);
+  routeToNode(game, node => node.type === 'E');
+  resolveCurrentNode(game);
   assert.ok(game.state.firstStrike > 0);
 
-  game.dispatch({ type: 'enter' });
+  const firstStrikeBattle = routeToNode(game, node => node.type === 'C');
+  assert.equal(firstStrikeBattle.depth, 2);
   game.dispatch({ type: 'fight' });
-  assert.ok(battles[0].player.firstStrike > 0);
+  assert.equal(battles[0].player.firstStrike, 0);
+  assert.ok(battles[1].player.firstStrike > 0);
   assert.equal(game.state.firstStrike, 0);
   game.dispatch({ type: 'battle_done' });
   game.dispatch({ type: 'reward', id: null });
+  assert.equal(game.state.firstStrike, 0);
 
-  game.dispatch({ type: 'enter' });
-  game.dispatch({ type: 'rest', choice: 'heal' });
-  assert.ok(game.state.firstStrike > 0);
-  game.dispatch({ type: 'enter' });
+  const rest = routeToNode(game, node => node.type === 'R');
+  assert.equal(rest.depth, 3);
   game.dispatch({ type: 'rest', choice: 'swap_method', method: 'RKF01' });
   assert.ok(game.state.firstStrike > 0);
-  game.dispatch({ type: 'enter' });
+  const secondStrikeBattle = routeToNode(game, node => node.type === 'C');
+  assert.equal(secondStrikeBattle.depth, 5);
   game.dispatch({ type: 'fight' });
-  assert.ok(battles[1].player.firstStrike > 0);
+  assert.ok(battles[2].player.firstStrike > 0);
   assert.equal(game.state.firstStrike, 0);
 });
 
 test('preparation rewards and rest preparation are additive', () => {
   installCombat();
   const game = make('preparation-seed');
-  game.state.nodes = [
-    { type: 'R', id: 'R-1', completed: false },
-    { type: 'R', id: 'R-2', completed: false },
-  ];
-  game.state.step = 0;
-  game.state.phase = 'map';
-  game.dispatch({ type: 'enter' });
+  const firstRest = routeToNode(game, node => node.type === 'R');
+  assert.equal(firstRest.depth, 3);
   game.dispatch({ type: 'rest', choice: 'preparation' });
   const first = game.state.preparation;
   assert.ok(first > 0);
-  game.dispatch({ type: 'enter' });
+  reachAct(game, 2);
+  const secondRest = routeToNode(game, node => node.type === 'R');
+  assert.equal(secondRest.depth, 3);
   game.dispatch({ type: 'rest', choice: 'preparation' });
   assert.ok(game.state.preparation > first);
 });
@@ -361,21 +525,16 @@ test('travel artifacts use their authored stack and max-hp parameters', () => {
     { id: 'RC18', stacks: 3 },
     { id: 'RR06', stacks: 1 },
   ];
+  const rest = routeToNode(game, node => node.type === 'R');
+  assert.equal(rest.depth, 3);
   game.state.hp = 100;
   game.state.xp = 0;
   game.state.coins = 0;
-  game.state.nodes = [
-    { type: 'R', id: 'R-1', completed: false },
-    { type: 'C', id: 'EN-A1-C1', completed: false },
-  ];
-  game.state.step = 0;
-  game.state.phase = 'map';
-  game.dispatch({ type: 'enter' });
   game.dispatch({ type: 'rest', choice: 'preparation' });
   assert.equal(game.state.xp, 26);
   assert.equal(game.state.coins, 6);
   assert.equal(game.state.hp, 102);
-  game.dispatch({ type: 'enter' });
+  routeToNode(game, node => node.type === 'C');
   game.dispatch({ type: 'fight' });
   game.dispatch({ type: 'battle_done' });
   const afterBattle = game.state.hp;
@@ -387,16 +546,22 @@ test('travel artifacts use their authored stack and max-hp parameters', () => {
 test('RKF06 reduces one HP event cost and RKF08 refunds the actual paid amount', () => {
   const setup = method => {
     installCombat();
-    const game = make(`event-cost-${method}`);
-    game.state.ownedMethods.push(method);
-    game.state.talents[method] = [];
-    game.state.method = method;
-    game.state.act = 3;
+    let game;
+    for (let seed = 0; seed < 20; seed++) {
+      const candidate = make(`event-cost-${method}-${seed}`);
+      candidate.state.ownedMethods.push(method);
+      candidate.state.talents[method] = [];
+      candidate.state.method = method;
+      reachAct(candidate, 3);
+      if (candidate.state.routeMap.nodes.some(node => node.type === 'E' && node.id === 'RE021')) {
+        game = candidate;
+        break;
+      }
+    }
+    assert.ok(game, `expected to freeze RE021 on an act-three map for ${method}`);
+    routeToNode(game, node => node.type === 'E' && node.id === 'RE021');
+    assert.equal(game.state.method, method);
     game.state.hp = 500;
-    game.state.nodes = [{ type: 'E', id: 'RE021', completed: false }];
-    game.state.step = 0;
-    game.state.phase = 'map';
-    game.dispatch({ type: 'enter' });
     return game;
   };
   const reduced = setup('RKF06');
@@ -413,7 +578,6 @@ test('RKF06 reduces one HP event cost and RKF08 refunds the actual paid amount',
 test('malformed serialized internals and outer save headers are rejected', () => {
   installCombat();
   const game = make('corrupt-save-seed');
-  game.dispatch({ type: 'route', id: 'steady' });
   const store = storage();
   const valid = JSON.parse(serializeRun(game));
 
@@ -421,6 +585,14 @@ test('malformed serialized internals and outer save headers are rejected', () =>
   badHeader.key = 'wrong-key';
   store.setItem(SHANHAI_SAVE_KEY, JSON.stringify(badHeader));
   assert.throws(() => loadRun(content, store), /record header/);
+
+  const badEdge = structuredClone(valid);
+  badEdge.state.routeMap.nodes[0].next = ['a1-d2-l1'];
+  assert.throws(() => parseRunSave(content, JSON.stringify(badEdge)), /Invalid route map/);
+
+  const badPath = structuredClone(valid);
+  badPath.state.routeMap.path = ['a1-d1-l0'];
+  assert.throws(() => parseRunSave(content, JSON.stringify(badPath)), /Invalid route map/);
 
   const badQueue = structuredClone(valid);
   badQueue.state._talentQueue = [{ method: 'RKF99', tier: 1, advance: false }];
@@ -464,8 +636,9 @@ test('reward selection is single-use and respects artifact capacity', () => {
 
   const capped = make('capacity-seed');
   capped.state.artifacts = [{ id: 'RC01', stacks: 5 }];
-  capped.state.nodes = [{ type: 'C', id: 'EN-A1-C1', completed: false }];
-  capped.state.phase = 'reward';
+  routeToNode(capped, node => node.type === 'C');
+  capped.dispatch({ type: 'fight' });
+  capped.dispatch({ type: 'battle_done' });
   capped.state.battle = {
     outcome: 'player',
     rounds: 1,

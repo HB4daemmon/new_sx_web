@@ -3,6 +3,7 @@ import {
   calculateStats as combatCalculateStats,
   simulateBattle as combatSimulateBattle,
 } from './combat.js';
+import { createRouteMapNodes, validateRouteMap } from './route-map.js';
 import type {
   ArtifactStack,
   BattleResult,
@@ -13,6 +14,7 @@ import type {
   RunNode,
   RunPhase,
   RunState,
+  RouteMapNode,
   ShopItem,
   Stats,
 } from './types.js';
@@ -393,6 +395,11 @@ export class ShanhaiGame {
     this.content = normalizeContent(content);
     this.state = state;
     ensureStateInternals(this.content, this.state as RunStateInternals);
+    if (this.state._routeMapVersion !== undefined && this.state._routeMapVersion !== 1) {
+      throw new Error('Invalid route map version');
+    }
+    if (!this.state.routeMap) this.migrateLegacyRouteMap();
+    else (this.state as RunStateInternals)._routeMapVersion ??= 1;
     validateRunState(this.content, this.state);
   }
 
@@ -415,7 +422,7 @@ export class ShanhaiGame {
       id: `shanhai-${hashSeed(`${options.seed}:${options.name}:${options.method}`).toString(16)}`,
       seed: options.seed,
       name: options.name.slice(0, 32) || '无名',
-      phase: 'route',
+      phase: 'map',
       act: 1,
       step: 0,
       nodes: [],
@@ -503,18 +510,237 @@ export class ShanhaiGame {
     return entity;
   }
 
+  private createRouteMap(legacyPath: RunNode[] = []): RouteMapNode[] {
+    const act = this.state.act;
+    const coreSlots = new Map<number, string>();
+    for (const depth of [1, 4, 7]) {
+      const candidates = this.coreCandidatesAt(depth);
+      if (!candidates.length) continue;
+      const lane = Math.floor(seededRandom(`${this.state.seed}:route-map:${act}:core-lane:${depth}`)() * 3);
+      const pick = Math.floor(seededRandom(`${this.state.seed}:route-map:${act}:core-id:${depth}`)() * candidates.length);
+      coreSlots.set(depth * 3 + lane, candidates[pick] ?? candidates[0]!);
+    }
+    const restLane = Math.floor(seededRandom(`${this.state.seed}:route-map:${act}:rest-lane`)() * 3);
+    const shopLane = Math.floor(seededRandom(`${this.state.seed}:route-map:${act}:shop-lane`)() * 3);
+    const eliteLane = Math.floor(seededRandom(`${this.state.seed}:route-map:${act}:elite-lane`)() * 3);
+    const eliteLimit = this.maxElitesPerAct();
+    const actElites = (this.state as RunStateInternals)._actEliteCount ?? 0;
+    const hasElite = act < 5 &&
+      actElites < eliteLimit &&
+      (actElites === 0 || this.state.extraElites < this.maxExtraElites());
+    const nodes = createRouteMapNodes(act, (depth, lane, key) => {
+      if (act === 5) {
+        return { type: 'F', id: this.freezeEnemy('F', depth, key), completed: false, label: '终战' };
+      }
+      if (depth === 10) {
+        const id = this.freezeEnemy('B', depth, key);
+        return { type: 'B', id, completed: false, label: '首领', description: contentEntity(this.content, id)?.name };
+      }
+      let type: RunNode['type'] = 'C';
+      if (depth === 1 || depth === 4 || depth === 7) type = 'E';
+      if (depth === 1 || depth === 4 || depth === 7) {
+        const coreId = coreSlots.get(depth * 3 + lane);
+        if (coreId) type = 'K';
+        const id = coreId ?? this.selectOrdinaryEvent(depth, key);
+        return {
+          type,
+          id,
+          completed: false,
+          label: type === 'K' ? '机缘' : '事件',
+          description: contentEntity(this.content, id)?.name,
+        };
+      }
+      if (depth === 3 && lane === restLane) {
+        return { type: 'R', id: `R-A${act}-${key}`, completed: false, label: '休整' };
+      }
+      if (depth === 5 && lane === shopLane) {
+        return { type: 'S', id: `SHOP-A${act}-${key}`, completed: false, label: '商店' };
+      }
+      if (depth === 9 && hasElite && lane === eliteLane) type = 'L';
+      if (type === 'C' || type === 'L') {
+        const id = this.freezeEnemy(type, depth, key);
+        return {
+          type,
+          id,
+          completed: false,
+          label: type === 'L' ? '精英' : '普通战',
+          description: contentEntity(this.content, id)?.name,
+        };
+      }
+      if (type === 'E') {
+        const id = this.selectOrdinaryEvent(depth, key);
+        return { type, id, completed: false, label: '事件', description: contentEntity(this.content, id)?.name };
+      }
+      if (type === 'F') {
+        const id = this.freezeEnemy(type, depth, key);
+        return { type, id, completed: false, label: '终战', description: contentEntity(this.content, id)?.name };
+      }
+      throw new Error(`Unsupported route map node at ${key}`);
+    });
+
+    for (let depth = 0; depth < legacyPath.length; depth++) {
+      const selected = legacyPath[depth];
+      const candidate = nodes.find(node => node.depth === depth && node.lane === 1);
+      if (!selected || !candidate) throw new Error('Invalid legacy route path');
+      candidate.type = selected.type;
+      candidate.id = selected.id;
+      candidate.completed = selected.completed;
+      candidate.label = this.routeNodeLabel(selected.type);
+      candidate.description = contentEntity(this.content, selected.id)?.name;
+    }
+    return nodes;
+  }
+
+  private routeNodeLabel(type: RunNode['type']): string {
+    return ({
+      C: '普通战',
+      E: '事件',
+      K: '机缘',
+      L: '精英',
+      S: '商店',
+      R: '休整',
+      B: '首领',
+      F: '终战',
+    })[type];
+  }
+
+  private maxExtraElites(): number {
+    const rules = rulesOf(this.content);
+    const filter = rules.adventure?.filters ?? rules.run_selection?.filters ?? this.actContent.run_selection?.filters ?? {};
+    return integer(filter.global_extra_elite_max) ? filter.global_extra_elite_max :
+      integer(rules.adventure?.max_extra_elites_per_run) ? rules.adventure.max_extra_elites_per_run : 3;
+  }
+
+  private maxElitesPerAct(): number {
+    const rules = rulesOf(this.content);
+    const filter = rules.adventure?.filters ?? rules.run_selection?.filters ?? this.actContent.run_selection?.filters ?? {};
+    const extra = integer(filter.per_act_extra_elite_max) ? filter.per_act_extra_elite_max :
+      integer(rules.adventure?.max_extra_elites_per_act) ? rules.adventure.max_extra_elites_per_act : 1;
+    return Math.min(2, 1 + extra);
+  }
+
+  private coreCandidatesAt(depth: number): string[] {
+    const state = this.state as RunStateInternals;
+    const candidates = routeTemplates(this.content, this.state.act)
+      .flatMap(route => {
+        const source = route.nodes[depth];
+        if (!isObject(source) || source.type !== 'K') return [];
+        return Array.isArray(source.candidate_ids)
+          ? source.candidate_ids.filter((id: unknown): id is string => typeof id === 'string')
+          : typeof source.id === 'string' ? [source.id] : [];
+      });
+    const [firstLine, secondLine] = coreEventIds(this.content, state._plannedStoryline);
+    const eligible = [...new Set(candidates)].filter(id => {
+      const event = contentEntity(this.content, id);
+      if (!event || event.kind !== 'event' || event.event_type !== 'core' || !event.acts?.includes(this.state.act)) return false;
+      if (id === secondLine && !this.followUpCoreUnlocked(firstLine, secondLine)) return false;
+      if (id !== firstLine && id !== secondLine && id !== state._independentCore) return false;
+      if (id === state._independentCore && state.completedCore?.includes(id)) return false;
+      return this.coreCanBeClaimed(id, depth);
+    });
+    return eligible;
+  }
+
+  private coreCanBeClaimed(id: string, depth: number): boolean {
+    const state = this.state as RunStateInternals;
+    if ((state._actCoreCount ?? 0) >= 1 || (state._coreCount ?? 0) >= 3) return false;
+    const position = (this.state.act - 1) * 11 + depth;
+    const lastPosition = state._corePositions?.at(-1);
+    return lastPosition === undefined || position - lastPosition >= 3;
+  }
+
+  private nodeCanBeEntered(node: RouteMapNode): boolean {
+    if (node.type === 'K' && (!this.coreCanBeClaimed(node.id, node.depth) ||
+      !this.coreCandidatesAt(node.depth).includes(node.id))) return false;
+    if (node.type === 'L') {
+      const state = this.state as RunStateInternals;
+      const actElites = state._actEliteCount ?? 0;
+      return actElites < this.maxElitesPerAct() &&
+        (actElites === 0 || this.state.extraElites < this.maxExtraElites());
+    }
+    return true;
+  }
+
+  private migrateLegacyRouteMap(): void {
+    const state = this.state as RunStateInternals;
+    if (state._routeMapVersion === 1) throw new Error('Saved route map is missing');
+    const oldNodes = clone(state.nodes);
+    const isLegacy = state.phase === 'route' || state.routes.length > 0 || oldNodes.length > 0;
+    const activePhases: RunPhase[] = [
+      'preview', 'battle', 'reward', 'event', 'event_result', 'shop', 'rest', 'lost', 'won',
+    ];
+    const mapHasActiveNode = ['map', 'talent'].includes(state.phase) && oldNodes[state.step] &&
+      !oldNodes[state.step]!.completed && (!!state.nodeEntry || !!state._nodeEntry);
+    const legacyPathLength = state.phase === 'transition'
+      ? Math.min(oldNodes.length, 11)
+      : activePhases.includes(state.phase) || mapHasActiveNode
+        ? Math.min(oldNodes.length, state.step + 1)
+        : Math.min(oldNodes.length, state.step);
+    const selected = oldNodes.slice(0, legacyPathLength);
+    const unvisited = oldNodes.slice(legacyPathLength);
+    const futureOrdinary = unvisited.filter(node => node.type === 'C' || node.type === 'E').length;
+    state.ordinaryCount = Math.max(0, state.ordinaryCount - futureOrdinary);
+
+    const futureCores = unvisited.filter(node => node.type === 'K').length;
+    state._coreCount = Math.max(0, (state._coreCount ?? 0) - futureCores);
+    state._actCoreCount = selected.filter(node => node.type === 'K').length;
+    const currentActStart = (state.act - 1) * 11;
+    state._corePositions = (state._corePositions ?? []).filter(position =>
+      position < currentActStart || position - currentActStart < legacyPathLength);
+    state._lastCorePosition = state._corePositions.at(-1);
+
+    const futureEnemies = unvisited.filter(node => ['C', 'L', 'B', 'F'].includes(node.type));
+    for (const node of futureEnemies) {
+      const index = state._seenEnemyIds?.indexOf(node.id) ?? -1;
+      if (index >= 0) state._seenEnemyIds!.splice(index, 1);
+    }
+    state._lastEnemyId = state._seenEnemyIds?.at(-1);
+    state._actEliteCount = selected.filter(node => node.type === 'L').length;
+    const oldCurrentExtras = Math.max(0, oldNodes.filter(node => node.type === 'L').length - 1);
+    const selectedCurrentExtras = Math.max(0, selected.filter(node => node.type === 'L').length - 1);
+    state.extraElites = Math.max(0, state.extraElites - oldCurrentExtras + selectedCurrentExtras);
+
+    state.nodes = selected;
+    if (state.phase === 'route') state.phase = 'map';
+    state.routeMap = { nodes: this.createRouteMap(selected), path: selected.map((_node, depth) => `a${state.act}-d${depth}-l1`) };
+    state._routeMapVersion = 1;
+    state._routeMapLegacy = isLegacy;
+    if (state.phase === 'won' && state.act === 5) {
+      state.step = 0;
+    } else if (selected.length && !selected.at(-1)?.completed) {
+      state.step = selected.length - 1;
+    } else {
+      state.step = selected.length;
+    }
+  }
+
   get node(): RunNode | undefined {
     return this.state.nodes[this.state.step];
   }
 
   availableRoutes(): AnyRecord[] {
-    if (this.state.phase !== 'route') return [];
-    return routeTemplates(this.content, this.state.act).filter(route => this.routeIsEligible(route)).map(route => ({
-      id: route.id,
-      name: route.name,
-      summary: route.summary,
-      nodes: clone(route.nodes),
-    }));
+    return [];
+  }
+
+  availableNodes(): RouteMapNode[] {
+    const state = this.state as RunStateInternals;
+    const map = state.routeMap;
+    if (this.state.phase !== 'map' || !map) return [];
+
+    const active = this.state.nodes[this.state.step];
+    if (active && !active.completed) {
+      const key = map.path[this.state.step];
+      const current = map.nodes.find(candidate => candidate.key === key);
+      return current ? [clone(current)] : [];
+    }
+
+    const keys = map.path.length
+      ? map.nodes.find(candidate => candidate.key === map.path.at(-1))?.next ?? []
+      : map.nodes.filter(candidate => candidate.depth === 0).map(candidate => candidate.key);
+    return keys
+      .map(key => map.nodes.find(candidate => candidate.key === key))
+      .filter((node): node is RouteMapNode => !!node && this.nodeCanBeEntered(node))
+      .map(clone);
   }
 
   availableTalents(): Entity[] {
@@ -545,10 +771,9 @@ export class ShanhaiGame {
       if (!isObject(command) || typeof command.type !== 'string') throw new Error('Unknown command');
       switch (command.type) {
         case 'route':
-          this.chooseRoute(command.id);
-          break;
+          throw new Error('Whole-act routes are no longer selectable');
         case 'enter':
-          this.enterNode();
+          this.enterNode(command.id);
           break;
         case 'back':
           this.back();
@@ -595,143 +820,7 @@ export class ShanhaiGame {
     }
   }
 
-  private chooseRoute(id: string): void {
-    if (this.state.phase !== 'route') throw new Error('Route is not selectable now');
-    if (typeof id !== 'string') throw new Error('Invalid route ID');
-    const template = routeTemplates(this.content, this.state.act).find(route => route.id === id);
-    if (!template) throw new Error(`Unknown route: ${id}`);
-    if (!this.routeIsEligible(template)) throw new Error(`Route is not available: ${id}`);
-    const state = this.state as RunStateInternals;
-    state._routeId = id;
-    state._routeHistory ??= [];
-    state._routeHistory.push(id);
-    this.state.routes.push(id);
-    this.materializeRoute(template);
-    this.state.phase = 'map';
-  }
-
-  private routeIsEligible(route: RouteTemplate): boolean {
-    const act = this.state.act;
-    if (act === 5) return route.id === 'final' && route.nodes.length === 1 &&
-      route.nodes[0]?.type === 'F';
-    if (route.nodes.length !== 11) return false;
-    const nodes = route.nodes.filter(isObject);
-    if (nodes.some(node => typeof node.type !== 'string' ||
-      !['C', 'E', 'K', 'L', 'S', 'R', 'B'].includes(node.type))) return false;
-    const filter = rulesOf(this.content).adventure?.filters ??
-      rulesOf(this.content).run_selection?.filters ??
-      this.actContent.run_selection?.filters ??
-      {};
-    const maxPerAct = integer(filter.per_act_extra_elite_max)
-      ? filter.per_act_extra_elite_max
-      : integer(rulesOf(this.content).adventure?.max_extra_elites_per_act)
-        ? rulesOf(this.content).adventure.max_extra_elites_per_act
-        : 1;
-    const maxGlobal = integer(filter.global_extra_elite_max)
-      ? filter.global_extra_elite_max
-      : integer(rulesOf(this.content).adventure?.max_extra_elites_per_run)
-        ? rulesOf(this.content).adventure.max_extra_elites_per_run
-        : 3;
-    const eliteCount = nodes.filter(node => node.type === 'L').length;
-    const extraElites = Math.max(0, eliteCount - 1);
-    if (extraElites > maxPerAct || this.state.extraElites + extraElites > maxGlobal) return false;
-    const minCPlusE = integer(filter.global_C_plus_E_min)
-      ? filter.global_C_plus_E_min
-      : integer(rulesOf(this.content).adventure?.min_C_plus_E_per_run)
-        ? rulesOf(this.content).adventure.min_C_plus_E_per_run
-        : 22;
-    const minCommon = integer(filter.per_act_common_battle_min)
-      ? filter.per_act_common_battle_min
-      : integer(rulesOf(this.content).adventure?.min_common_battles_per_act)
-        ? rulesOf(this.content).adventure.min_common_battles_per_act
-        : 3;
-    if (nodes.filter(node => node.type === 'C').length < minCommon) return false;
-    const cPlusE = nodes.filter(node => node.type === 'C' || node.type === 'E').length;
-    // The floor is a run-level constraint.  It is only possible to fail it
-    // when selecting the last ordinary-act route, so earlier choices do not
-    // get rejected merely because future routes are not materialized yet.
-    if (act === 4 && this.state.ordinaryCount + cPlusE < minCPlusE) return false;
-    return true;
-  }
-
-  private materializeRoute(template: RouteTemplate): void {
-    const state = this.state as RunStateInternals;
-    const act = this.state.act;
-    const usedAtStart = state._seenEnemyIds ?? [];
-    const nodes: RunNode[] = [];
-    state._actCoreCount = 0;
-    state._actEliteCount = 0;
-    state._lastCorePosition = undefined;
-    const sourceNodes = template.nodes;
-    if (sourceNodes.length !== (act === 5 ? 1 : 11)) throw new Error(`Invalid route length for ${template.id}`);
-    for (let index = 0; index < sourceNodes.length; index++) {
-      const source = sourceNodes[index];
-      if (!isObject(source) || typeof source.type !== 'string') throw new Error('Invalid route node');
-      let type = source.type as RunNode['type'];
-      if (!['C', 'E', 'K', 'L', 'S', 'R', 'B', 'F'].includes(type)) throw new Error(`Invalid node type: ${type}`);
-      if (act < 5 && type === 'L') {
-        state._actEliteCount = (state._actEliteCount ?? 0) + 1;
-        const isExtra = (state._actEliteCount ?? 0) > 1;
-        if (isExtra) {
-          this.state.extraElites += 1;
-        }
-      }
-      if (type === 'C' || type === 'L' || type === 'B' || type === 'F') {
-        const encounter = this.selectEnemy(type, index, typeof source.id === 'string' ? source.id : String(index));
-        nodes.push({ type, id: encounter, completed: false });
-        if (type === 'C') this.state.ordinaryCount += 1;
-        continue;
-      }
-      if (type === 'K') {
-        const core = this.selectCore(source, index);
-        if (core) {
-          nodes.push({ type: 'K', id: core, completed: false });
-          this.state.ordinaryCount = this.state.ordinaryCount;
-          continue;
-        }
-        type = 'E';
-      }
-      if (type === 'E') {
-        const eventId = this.selectOrdinaryEvent(index, typeof source.id === 'string' ? source.id : undefined);
-        nodes.push({ type: 'E', id: eventId, completed: false });
-        this.state.ordinaryCount += 1;
-        continue;
-      }
-      if (type === 'S') {
-        nodes.push({ type: 'S', id: typeof source.id === 'string' ? source.id : `SHOP-A${act}-${index + 1}`, completed: false });
-        continue;
-      }
-      if (type === 'R') {
-        nodes.push({ type: 'R', id: typeof source.id === 'string' ? source.id : `R-A${act}-${index + 1}`, completed: false });
-        continue;
-      }
-    }
-    if (act < 5 && nodes.length !== 11) throw new Error(`Route did not produce 11 nodes: ${template.id}`);
-    this.state.nodes = nodes;
-    this.state.step = 0;
-    this.state.shop = [];
-    this.state.rewardCandidates = [];
-    state._battleSettled = false;
-    state._eventSettled = false;
-    state._previewKind = undefined;
-    state._nodeEnemyByKey ??= {};
-    state._nodeEnemyByKey = {
-      ...state._nodeEnemyByKey,
-      ...Object.fromEntries(nodes.filter(node => ['C', 'L', 'B', 'F'].includes(node.type))
-        .map((node, nodeIndex) => [`${act}:${nodeIndex}`, node.id])),
-    };
-    if (this.state.ordinaryCount < 0) this.state.ordinaryCount = 0;
-    // Content authored routes already satisfy the adventure arithmetic.  Keep
-    // this check here so a malformed custom content pack cannot silently
-    // reduce the run below the public floor.
-    if (act <= 4) {
-      const commonAndEvents = nodes.filter(node => node.type === 'C' || node.type === 'E').length;
-      if (commonAndEvents < 5) throw new Error(`Route ${template.id} has too few ordinary nodes`);
-    }
-    void usedAtStart;
-  }
-
-  private selectEnemy(type: RunNode['type'], index: number, displayId: string): string {
+  private freezeEnemy(type: RunNode['type'], index: number, key: string): string {
     const state = this.state as RunStateInternals;
     const act = this.state.act;
     const actContent = actEntity(this.content, act);
@@ -748,7 +837,6 @@ export class ShanhaiGame {
     }
     candidates = candidates.filter(id => typeof id === 'string' && !!contentEntity(this.content, id));
     if (!candidates.length) throw new Error(`No ${type} enemy pool for act ${act}`);
-    const key = `${act}:${index}:${type}:${displayId}`;
     if (type === 'B' || type === 'F') {
       const stored = type === 'B' ? state._bossEnemyByAct?.[String(act)] : state._nodeEnemyByKey?.[`final:${index}`];
       if (stored && candidates.includes(stored)) return stored;
@@ -761,17 +849,6 @@ export class ShanhaiGame {
     if (selected === state._lastEnemyId && pool.length > 1) {
       selected = pool[(pool.indexOf(selected) + 1) % pool.length];
     }
-    if (type === 'B') {
-      state._bossEnemyByAct ??= {};
-      state._bossEnemyByAct[String(act)] = selected;
-    }
-    if (type === 'F') {
-      state._nodeEnemyByKey ??= {};
-      state._nodeEnemyByKey[`final:${index}`] = selected;
-    }
-    state._seenEnemyIds ??= [];
-    state._seenEnemyIds.push(selected);
-    state._lastEnemyId = selected;
     return selected;
   }
 
@@ -789,35 +866,15 @@ export class ShanhaiGame {
     return choices[Math.floor(random() * choices.length)] ?? choices[0];
   }
 
-  private selectCore(source: AnyRecord, index: number): string | undefined {
+  private claimCore(node: RouteMapNode): void {
     const state = this.state as RunStateInternals;
-    const candidates = Array.isArray(source.candidate_ids)
-      ? source.candidate_ids.filter((id: unknown): id is string => typeof id === 'string')
-      : typeof source.id === 'string' ? [source.id] : [];
-    const lineIds = coreEventIds(this.content, state._plannedStoryline);
-    const firstLine = lineIds[0];
-    const secondLine = lineIds[1];
-    const eligible = candidates.filter(id => {
-      const event = contentEntity(this.content, id);
-      if (!event || event.kind !== 'event' || event.event_type !== 'core' || !event.acts?.includes(this.state.act)) return false;
-      if (id === secondLine && !this.followUpCoreUnlocked(firstLine, secondLine)) return false;
-      if (id === firstLine || id === secondLine) return true;
-      return id === state._independentCore;
-    }).filter(id => {
-      if ((state._actCoreCount ?? 0) >= 1 || (state._coreCount ?? 0) >= 3) return false;
-      const position = (this.state.act - 1) * 11 + index;
-      const lastPosition = state._corePositions?.at(-1);
-      if (lastPosition !== undefined && position - lastPosition < 3) return false;
-      return true;
-    });
-    if (!eligible.length) return undefined;
-    const selected = eligible[Math.floor(seededRandom(`${this.state.seed}:core:${this.state.act}:${index}`)() * eligible.length)] ?? eligible[0];
+    if (node.type !== 'K' || !this.nodeCanBeEntered(node)) throw new Error('Core node is no longer available');
+    const position = (this.state.act - 1) * 11 + node.depth;
     state._actCoreCount = (state._actCoreCount ?? 0) + 1;
     state._coreCount = (state._coreCount ?? 0) + 1;
-    state._lastCorePosition = index;
+    state._lastCorePosition = node.depth;
     state._corePositions ??= [];
-    state._corePositions.push((this.state.act - 1) * 11 + index);
-    return selected;
+    state._corePositions.push(position);
   }
 
   private followUpCoreUnlocked(firstId: string | undefined, _secondId: string | undefined): boolean {
@@ -836,11 +893,54 @@ export class ShanhaiGame {
     return unlockFlags.length === 0 || unlockFlags.some(id => state.flags[id] === true);
   }
 
-  private enterNode(): void {
+  private enterNode(id?: string): void {
     if (this.state.phase !== 'map') throw new Error('No map node can be entered');
-    const node = this.node;
-    if (!node || node.completed) throw new Error('No reachable node');
     const state = this.state as RunStateInternals;
+    const routeMap = state.routeMap;
+    if (!routeMap) throw new Error('No route map');
+    const reachable = this.availableNodes();
+    if (!reachable.length) throw new Error('No reachable route map node');
+    const target = id === undefined
+      ? reachable.length === 1 ? reachable[0] : undefined
+      : reachable.find(candidate => candidate.key === id);
+    if (!target) {
+      if (id === undefined) throw new Error('A route map node ID is required');
+      throw new Error(`Route map node is not reachable: ${id}`);
+    }
+
+    let node = this.state.nodes[this.state.step];
+    const reentry = !!node && !node.completed;
+    if (reentry) {
+      if (routeMap.path[this.state.step] !== target.key || node!.type !== target.type || node!.id !== target.id) {
+        throw new Error('A selected route map node must be resumed before advancing');
+      }
+    } else {
+      if (target.depth !== this.state.step) throw new Error('Route map node is not on the next layer');
+      if (target.type === 'K') this.claimCore(target);
+      if (target.type === 'L') {
+        if (!this.nodeCanBeEntered(target)) throw new Error('Elite node is no longer available');
+        state._actEliteCount = (state._actEliteCount ?? 0) + 1;
+        if (state._actEliteCount > 1) this.state.extraElites += 1;
+      }
+      if (target.type === 'C' || target.type === 'E') this.state.ordinaryCount += 1;
+      if (['C', 'L', 'B', 'F'].includes(target.type)) {
+        state._seenEnemyIds ??= [];
+        state._seenEnemyIds.push(target.id);
+        state._lastEnemyId = target.id;
+        if (target.type === 'B') {
+          state._bossEnemyByAct ??= {};
+          state._bossEnemyByAct[String(this.state.act)] = target.id;
+        } else if (target.type === 'F') {
+          state._nodeEnemyByKey ??= {};
+          state._nodeEnemyByKey.final = target.id;
+        }
+      }
+      node = { type: target.type, id: target.id, completed: false };
+      this.state.nodes.push(node);
+      routeMap.path.push(target.key);
+      this.state.step = this.state.nodes.length - 1;
+    }
+
     const firstEntry = !state._nodeEntry && !this.state.nodeEntry;
     if (firstEntry) {
       state._nodeEntry = snapshotEntry(state);
@@ -1160,20 +1260,32 @@ export class ShanhaiGame {
     }
     if (this.state.phase === 'transition') {
       if (this.state.act < 4) {
-        this.state.act += 1;
-        this.state.step = 0;
-        this.state.nodes = [];
-        this.state.rewardCandidates = [];
-        this.state.shop = [];
-        this.state.phase = 'route';
+        this.startAct(this.state.act + 1);
         return;
       }
-      this.state.act = 5;
-      this.state.phase = 'route';
-      this.chooseRoute('final');
+      this.startAct(5);
       return;
     }
     throw new Error('Nothing to continue');
+  }
+
+  private startAct(act: number): void {
+    const state = this.state as RunStateInternals;
+    this.state.act = act;
+    this.state.step = 0;
+    this.state.nodes = [];
+    state._actCoreCount = 0;
+    state._actEliteCount = 0;
+    state._lastCorePosition = undefined;
+    this.state.routeMap = { nodes: this.createRouteMap(), path: [] };
+    this.state.rewardCandidates = [];
+    this.state.shop = [];
+    state._routeMapVersion = 1;
+    state._routeMapLegacy = false;
+    state._battleSettled = false;
+    state._eventSettled = false;
+    state._previewKind = undefined;
+    this.state.phase = 'map';
   }
 
   private generateShop(): void {
@@ -1600,6 +1712,10 @@ export class ShanhaiGame {
     const node = this.node;
     if (!node || node.completed) return;
     node.completed = true;
+    const state = this.state as RunStateInternals;
+    const key = state.routeMap?.path[this.state.step];
+    const routeNode = state.routeMap?.nodes.find(candidate => candidate.key === key);
+    if (routeNode) routeNode.completed = true;
   }
 
   private completeNode(): void {
@@ -1607,6 +1723,13 @@ export class ShanhaiGame {
     const node = this.node;
     if (!node || node.completed) throw new Error('Node already completed or missing');
     if (node.type === 'F') {
+      const entity = contentEntity(this.content, node.id);
+      this.state.history.push({
+        act: this.state.act,
+        step: this.state.step,
+        title: entity?.name ?? node.id,
+        text: this.state.resultText || entity?.summary || '',
+      });
       this.markNodeCompleteWithoutTravel();
       this.state.phase = 'won';
       return;
@@ -1629,6 +1752,9 @@ export class ShanhaiGame {
       text: this.state.resultText || entity?.summary || '',
     });
     node.completed = true;
+    const routeKey = state.routeMap?.path[this.state.step];
+    const routeNode = state.routeMap?.nodes.find(candidate => candidate.key === routeKey);
+    if (routeNode) routeNode.completed = true;
     if (node.type === 'K' && !this.state.completedCore.includes(node.id)) {
       this.state.completedCore.push(node.id);
     }
@@ -1650,11 +1776,12 @@ export class ShanhaiGame {
     this.state.nodeEntry = undefined;
     state._nodeEntry = undefined;
     if (state._talentQueue?.length) {
-      state._returnPhase = this.state.step >= this.state.nodes.length ? 'transition' : 'map';
+      state._returnPhase = (state.routeMap?.path.length ?? this.state.nodes.length) >=
+        (this.state.act === 5 ? 1 : 11) ? 'transition' : 'map';
       this.state.phase = 'talent';
       return;
     }
-    if (this.state.step >= this.state.nodes.length) {
+    if ((state.routeMap?.path.length ?? this.state.nodes.length) >= (this.state.act === 5 ? 1 : 11)) {
       if (this.state.act < 5 && node.type === 'B') {
         this.state.phase = 'transition';
       } else if (this.state.act === 5) {
@@ -2145,6 +2272,16 @@ export function validateRunState(content: Content, raw: RunState): void {
   }
   if (!Array.isArray(state.nodes) || !Array.isArray(state.routes) || !Array.isArray(state.artifacts) ||
     !Array.isArray(state.history)) throw new Error('Invalid run collections');
+  if (state._routeMapVersion !== undefined && state._routeMapVersion !== 1) {
+    throw new Error('Invalid route map version');
+  }
+  if (state._routeMapLegacy !== undefined && typeof state._routeMapLegacy !== 'boolean') {
+    throw new Error('Invalid legacy route map marker');
+  }
+  if (state._routeMapVersion === 1 && !state.routeMap) throw new Error('Saved route map is missing');
+  if (state.routeMap) {
+    validateRouteMap(state.routeMap, state.act, state.nodes, state.step, state.phase, state._routeMapLegacy === true);
+  }
   if (!integer(state.extraElites) || state.extraElites < 0 || state.extraElites > 3 ||
     !integer(state.ordinaryCount) || state.ordinaryCount < 0) throw new Error('Invalid run counters');
   if (state.returnPhase !== undefined && !PHASES.includes(state.returnPhase)) throw new Error('Invalid public return phase');
@@ -2294,6 +2431,19 @@ export function validateRunState(content: Content, raw: RunState): void {
       const event = contentEntity(content, node.id);
       if (!event || event.kind !== 'event' || (node.type === 'K' && event.event_type !== 'core') ||
         (node.type === 'E' && event.event_type !== 'ordinary')) throw new Error('Invalid saved event node');
+    }
+  }
+  if (state.routeMap) {
+    for (const node of state.routeMap.nodes) {
+      if (['C', 'L', 'B', 'F'].includes(node.type)) {
+        const enemy = contentEntity(content, node.id);
+        const tier = node.type === 'C' ? 'normal' : node.type === 'L' ? 'elite' : node.type === 'B' ? 'boss' : 'final';
+        if (!enemy || enemy.kind !== 'enemy' || enemy.tier !== tier) throw new Error('Invalid route map enemy');
+      } else if (node.type === 'E' || node.type === 'K') {
+        const event = contentEntity(content, node.id);
+        if (!event || event.kind !== 'event' || (node.type === 'K' && event.event_type !== 'core') ||
+          (node.type === 'E' && event.event_type !== 'ordinary')) throw new Error('Invalid route map event');
+      }
     }
   }
   if (state._travelSnapshots) {

@@ -75,6 +75,14 @@ export interface BattleResult {
 }
 export type NodeType = 'C' | 'E' | 'K' | 'L' | 'S' | 'R' | 'B' | 'F';
 export interface RunNode { type: NodeType; id: string; completed: boolean }
+export interface RouteMapNode extends RunNode {
+  key: string;
+  depth: number;
+  lane: number;
+  next: string[];
+  label?: string;
+  description?: string;
+}
 export type RunPhase = 'route' | 'map' | 'preview' | 'battle' | 'reward' | 'event' |
   'event_result' | 'shop' | 'rest' | 'talent' | 'transition' | 'won' | 'lost';
 export interface ShopItem {
@@ -94,6 +102,7 @@ export interface RunState {
   step: number;
   nodes: RunNode[];
   routes: string[];
+  routeMap?: { nodes: RouteMapNode[]; path: string[] };
   method: string;
   ownedMethods: string[];
   talents: Record<string, string[]>;
@@ -124,7 +133,7 @@ export interface RunState {
 }
 export type RunCommand =
   | { type: 'route'; id: string }
-  | { type: 'enter' }
+  | { type: 'enter'; id?: string }
   | { type: 'back' }
   | { type: 'fight' }
   | { type: 'battle_done' }

@@ -118,11 +118,9 @@ async function clickMatchingAction(page, action, attributes = {}) {
 
 async function clickAndWaitForDispatch(page, command, beforePhase, beforeSaveText) {
   switch (command.type) {
-    case 'route':
-      await clickMatchingAction(page, 'route', { id: command.id });
-      break;
     case 'enter':
-      await clickMatchingAction(page, 'enter');
+      assert.ok(command.id, '地图命令没有 route node key');
+      await clickMatchingAction(page, 'enter', { id: command.id });
       break;
     case 'fight':
       await clickMatchingAction(page, 'fight');
@@ -221,6 +219,7 @@ function stateSnapshot(game) {
     artifacts: state.artifacts.map(item => ({ id: item.id, stacks: item.stacks })),
     history: state.history.length,
     routes: [...state.routes],
+    routeMapPath: [...(state.routeMap?.path ?? [])],
     battle: battle ? {
       outcome: battle.outcome,
       rounds: battle.rounds,
@@ -256,6 +255,9 @@ async function setupRun(page, record) {
   await page.reload({ waitUntil: 'networkidle' });
   await page.locator('.landing-page').waitFor({ state: 'visible' });
   await page.locator('.method-choice').nth(4).waitFor({ state: 'visible' });
+  const seedOptions = page.locator('details[data-details="seed-options"]');
+  assert.equal(await seedOptions.getAttribute('open'), null, `${record.viewport}: 命数设置应默认折叠`);
+  await seedOptions.locator('summary').click();
   assert.equal(await page.locator('.method-choice').count(), 5, `${record.viewport}: 开局功法不是五门`);
   await page.locator('[name="player-name"]').fill(playerName);
   await page.locator('[name="seed"]').fill(seed);
@@ -263,10 +265,15 @@ async function setupRun(page, record) {
   assert.ok(method, '开局功法没有 data-id');
   await page.locator('.method-choice').first().click();
   await clickMatchingAction(page, 'start');
-  await waitForPhase(page, 'route');
+  await waitForPhase(page, 'map');
   const saved = await readSave(page);
   assert.equal(saved.state.method, method, '真实开局选择的功法没有写入自动存档');
   assert.equal(saved.state.seed, seed, '真实开局种子没有写入自动存档');
+  assert.equal(saved.state.routeMap?.nodes.length, 29, '新命途没有完整的 29 节点地图');
+  assert.deepEqual(saved.state.routeMap?.path, [], '新命途开局不应预选路径');
+  assert.deepEqual(saved.state.nodes, [], '新命途开局不应伪造已选行迹');
+  assert.equal(await page.locator('.map-node.available:not([disabled])').count(), 1,
+    '新命途开局没有唯一的合法首格');
   await assertRenderedState(page, restoreDecisionModel(record.content, saved.text), `${record.viewport} setup`);
   await takeScreenshot(page, record, 'setup');
 }
@@ -343,6 +350,9 @@ async function runJourney(page, record, stopAfterFirstTransition) {
     const phase = await currentPhase(page);
     assert.equal(phase, model.state.phase, `${record.viewport}: 第 ${actionCount} 步页面与存档阶段不一致`);
     await assertRenderedState(page, model, `${record.viewport} ${phase} a${model.state.act} s${model.state.step}`);
+    const visibleText = await page.locator('#shanhai-app').innerText();
+    assert.doesNotMatch(visibleText, /[A-Za-z]/,
+      `${record.viewport} ${phase}: 玩家可见页面不应包含英文`);
     await recordStage(record, model);
 
     if (phase === 'transition' && model.state.act === 1) {
@@ -479,10 +489,12 @@ async function run() {
             phase: state.phase,
             act: state.act,
             step: state.step,
+            nodeKey: state.routeMap?.path?.[state.step] ?? null,
             nodeId: state.nodes?.[state.step]?.id ?? null,
             nodeType: state.nodes?.[state.step]?.type ?? null,
             history: state.history?.length ?? null,
             routes: state.routes ?? null,
+            routeMapPath: state.routeMap?.path ?? null,
             routeHistory: state._routeHistory ?? null,
             runId: state.id ?? null,
           } : null;

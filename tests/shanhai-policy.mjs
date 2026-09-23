@@ -38,11 +38,39 @@ export function amount(game, reward) {
   return reward.amount * basis;
 }
 
-export function nextCommand(game, route = 'steady') {
+export function nextCommand(game, preference = 'balanced') {
   const state = game.state;
   switch (state.phase) {
-    case 'route': return { type: 'route', id: game.availableRoutes().find(item => item.id === route)?.id ?? 'steady' };
-    case 'map': return { type: 'enter' };
+    case 'map': {
+      const available = game.availableNodes();
+      if (!available.length) throw new Error('No reachable route map nodes');
+      const rank = node => {
+        if (preference === 'tracking') return ({ K: 0, E: 1, C: 2, R: 3, S: 4, L: 5 })[node.type] ?? 6;
+        if (preference === 'avoid') return ({ R: 0, S: 1, E: 2, C: 3, K: 8, L: 9 })[node.type] ?? 6;
+        return ({ C: 0, E: 1, R: 2, S: 3, K: 4, L: 8 })[node.type] ?? 6;
+      };
+      if (preference === 'avoid' && game.state.routeMap) {
+        const nodesByKey = new Map(game.state.routeMap.nodes.map(item => [item.key, item]));
+        const costs = new Map();
+        const pathCost = item => {
+          if (costs.has(item.key)) return costs.get(item.key);
+          const children = item.next
+            .map(key => nodesByKey.get(key))
+            .filter(Boolean);
+          const cost = rank(item) + (children.length
+            ? Math.min(...children.map(pathCost))
+            : 0);
+          costs.set(item.key, cost);
+          return cost;
+        };
+        const node = available.slice().sort((left, right) =>
+          pathCost(left) - pathCost(right) || left.lane - right.lane)[0];
+        return { type: 'enter', id: node.key };
+      }
+      const node = available.slice().sort((left, right) =>
+        rank(left) - rank(right) || left.lane - right.lane)[0];
+      return { type: 'enter', id: node.key };
+    }
     case 'preview': return { type: 'fight' };
     case 'battle':
       return { type: state.battle.outcome !== 'draw' ? 'battle_done' :

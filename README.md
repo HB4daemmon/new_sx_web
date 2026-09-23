@@ -24,9 +24,12 @@ npm run dev
 - 44 件法宝，不设全局槽位，按各卡自身叠层上限累计，附带战斗或旅途能力。
 - 36 个普通事件、16 个核心事件、6 条两遇人物线。
 - 34 套敌方构筑，与玩家共用功法、天赋和法宝规则。
-- 每幕六种路线，战前预览，冻结的奖励三选一与有限商店，休整和换法。
+- 每幕逐节点自由选路，三列分支与合流；不在幕前预选整条路线。
+  战前预览、冻结的奖励三选一、有限商店、休整和换法仍按实际进入的节点结算。
 - 突破手选天赋，过幕与突破不补满当前气血。
 - 自动斗法回放、倍速、暂停、跳过、来源贡献与未触发反馈。
+- 手机开局默认精简，奖励与天赋保持横向三选一；战报、构筑与贡献默认折叠，
+  玩家界面和战报采用中文，完整效果可按需展开。
 - 确定性种子、逐步自动存档、通关构筑归档与 JSON 导出。
 
 内容参数已经过首轮可玩性校准，仍是设计输入，不代表完成全面平衡。
@@ -43,9 +46,11 @@ npm run dev
 | --- | --- |
 | `src/shanhai/combat.ts` | 战斗、状态、怒气、效果与回放 |
 | `src/shanhai/run.ts` | 节点、事件、经济、旅途与境界 |
+| `src/shanhai/route-map.ts` | 冻结的分支地图、可达边与已选路径校验 |
 | `src/shanhai/persistence.ts` | 存档校验、确定性回放重建与通关记录 |
 | `src/shanhai/app.ts`、`style.css` | 浏览器界面 |
 | `src/shanhai/battle-presentation.ts` | 回放节奏与动作反馈，不参与战斗结算 |
+| `src/shanhai/localization.ts` | 状态、效果来源、卡面术语与错误提示的中文展示 |
 | `src/shanhai/types.ts` | 共享运行时契约 |
 | `src/art.ts` | 原创游戏图形组件 |
 | `tools/content-kit/` | 内容校验与文档生成 |
@@ -63,6 +68,7 @@ npm run simulate
 npm run test:browser
 npm run test:journey
 npm run test:motion
+node tests/shanhai-compact-browser.mjs
 npm run calibrate
 ```
 
@@ -79,6 +85,8 @@ npm run calibrate
 - `test:motion` 检查战斗节点原位更新、血条插值、动作位移、暂停与倍速、完整战报及
   减少动态效果模式；使用真实战斗生成的表现层 fixture，不作为通关或平衡结论。
   默认报告写入临时目录，可通过 `BROWSER_REPORT_DIR` 指定位置。
+- `shanhai-compact-browser.mjs` 检查 390、360、320 像素宽的手机首屏、横向三选一、
+  自由节点点击、默认折叠和展开战报的中文；报告目录可通过 `BROWSER_REPORT_DIR` 指定。
 - `calibrate` 记录固定敌人参考盘与真实节点对局，保留输入哈希、胜负、轮数、净损血、
   最低血线和单轮损耗。输出 `verification/shanhai/calibration-*.json`，不回写内容的实测字段。
 - 游戏构建只产生 `dist/`，不会触发文档站发布，也不会提交或推送 Git。
