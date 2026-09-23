@@ -124,7 +124,7 @@ svg {
 
 .button {
   display: inline-flex;
-  min-height: 42px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -135,12 +135,6 @@ svg {
   transition: border-color .18s ease, background .18s ease, transform .18s ease;
 }
 
-.button:hover:not(:disabled) {
-  border-color: var(--gold);
-  background: #223a30;
-  transform: translateY(-1px);
-}
-
 .button.primary {
   border-color: var(--gold-bright);
   color: #15221b;
@@ -148,10 +142,6 @@ svg {
   box-shadow: 0 4px 0 #705d35;
   font-weight: 700;
   letter-spacing: 1px;
-}
-
-.button.primary:hover:not(:disabled) {
-  background: var(--gold-bright);
 }
 
 .button.danger {
@@ -166,34 +156,52 @@ svg {
   background: transparent;
 }
 
-.button.quiet:hover:not(:disabled) {
-  border-color: var(--line);
-}
-
 .button.small {
-  min-height: 34px;
+  min-height: 44px;
   padding: 6px 11px;
   font-size: 12px;
 }
 
 .icon-button {
   display: inline-grid;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   place-items: center;
   border: 1px solid transparent;
   color: var(--paper-muted);
-}
-
-.icon-button:hover:not(:disabled) {
-  border-color: var(--line-strong);
-  color: var(--gold-bright);
 }
 
 .icon-button[aria-pressed="true"] {
   border-color: var(--gold);
   color: var(--gold-bright);
   background: #382e1c;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .button:hover:not(:disabled) {
+    border-color: var(--gold);
+    background: #223a30;
+    transform: translateY(-1px);
+  }
+
+  .button.primary:hover:not(:disabled) {
+    background: var(--gold-bright);
+  }
+
+  .button.quiet:hover:not(:disabled) {
+    border-color: var(--line);
+  }
+
+  .icon-button:hover:not(:disabled) {
+    border-color: var(--line-strong);
+    color: var(--gold-bright);
+  }
+}
+
+.button:active:not(:disabled),
+.icon-button:active:not(:disabled) {
+  transform: translateY(1px);
+  transition-duration: 120ms;
 }
 
 .loading-screen,
@@ -436,8 +444,10 @@ svg {
   text-align: left;
 }
 
-.resume-line:hover {
-  background: #25382d;
+@media (hover: hover) and (pointer: fine) {
+  .resume-line:hover {
+    background: #25382d;
+  }
 }
 
 .resume-line span {
@@ -543,15 +553,17 @@ svg {
 
 .seed-action {
   align-self: end;
-  width: 42px;
-  height: 40px;
+  width: 43px;
+  height: 44px;
   border: 1px solid var(--line);
   color: var(--gold);
 }
 
-.seed-action:hover {
-  border-color: var(--gold);
-  background: #2a3120;
+@media (hover: hover) and (pointer: fine) {
+  .seed-action:hover {
+    border-color: var(--gold);
+    background: #2a3120;
+  }
 }
 
 .section-label {
@@ -595,10 +607,16 @@ svg {
   transition: border-color .18s ease, background .18s ease, transform .18s ease;
 }
 
-.method-choice:hover,
 .method-choice.selected {
   border-color: var(--gold);
   background: #20382e;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .method-choice:hover {
+    border-color: var(--gold);
+    background: #20382e;
+  }
 }
 
 .method-choice.selected {
@@ -1319,9 +1337,11 @@ svg {
   transition: border-color .18s ease, background .18s ease;
 }
 
-.route-card:hover {
-  border-color: var(--line-strong);
-  background: #192d25;
+@media (hover: hover) and (pointer: fine) {
+  .route-card:hover {
+    border-color: var(--line-strong);
+    background: #192d25;
+  }
 }
 
 .route-card.route-recommended {
@@ -2075,10 +2095,12 @@ svg {
   transition: border-color .18s ease, background .18s ease, transform .18s ease;
 }
 
-.reward-card:hover {
-  border-color: var(--gold);
-  background: #1b3329;
-  transform: translateY(-3px);
+@media (hover: hover) and (pointer: fine) {
+  .reward-card:hover {
+    border-color: var(--gold);
+    background: #1b3329;
+    transform: translateY(-3px);
+  }
 }
 
 .reward-card.rarity-rare {
@@ -2219,9 +2241,11 @@ svg {
   text-align: left;
 }
 
-.event-option:hover:not(:disabled) {
-  border-color: var(--gold);
-  background: #20382e;
+@media (hover: hover) and (pointer: fine) {
+  .event-option:hover:not(:disabled) {
+    border-color: var(--gold);
+    background: #20382e;
+  }
 }
 
 .event-option-main {
@@ -2413,9 +2437,11 @@ svg {
   text-align: left;
 }
 
-.rest-choice:hover {
-  border-color: var(--gold);
-  background: #1c352b;
+@media (hover: hover) and (pointer: fine) {
+  .rest-choice:hover {
+    border-color: var(--gold);
+    background: #1c352b;
+  }
 }
 
 .rest-choice > span {
@@ -2476,8 +2502,10 @@ svg {
   text-align: left;
 }
 
-.method-swap:not(:disabled):hover {
-  border-color: var(--gold);
+@media (hover: hover) and (pointer: fine) {
+  .method-swap:not(:disabled):hover {
+    border-color: var(--gold);
+  }
 }
 
 .method-swap b {
@@ -2500,10 +2528,12 @@ svg {
   transition: border-color .18s ease, background .18s ease, transform .18s ease;
 }
 
-.talent-card:hover {
-  border-color: var(--gold-bright);
-  background: #1c352a;
-  transform: translateY(-3px);
+@media (hover: hover) and (pointer: fine) {
+  .talent-card:hover {
+    border-color: var(--gold-bright);
+    background: #1c352a;
+    transform: translateY(-3px);
+  }
 }
 
 .talent-tier {
@@ -3767,8 +3797,10 @@ small {
   text-align: left;
 }
 
-.mini-card:hover {
-  border-color: var(--gold);
+@media (hover: hover) and (pointer: fine) {
+  .mini-card:hover {
+    border-color: var(--gold);
+  }
 }
 
 .mini-card .slot-glyph {
@@ -3832,11 +3864,13 @@ small {
   background: #142722;
 }
 
-.route-card:hover,
-.reward-card:hover,
-.talent-card:hover,
-.shop-item:hover {
-  border-color: var(--gold);
+@media (hover: hover) and (pointer: fine) {
+  .route-card:hover,
+  .reward-card:hover,
+  .talent-card:hover,
+  .shop-item:hover {
+    border-color: var(--gold);
+  }
 }
 
 /* Vertical classic route map. */
@@ -4120,9 +4154,14 @@ small {
   text-align: left;
 }
 
-.artifact-entry:hover,
 .artifact-entry.owned {
   border-color: var(--gold);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .artifact-entry:hover {
+    border-color: var(--gold);
+  }
 }
 
 .artifact-entry-icon {
@@ -4384,6 +4423,10 @@ small {
   background: #020807aa;
 }
 
+.fighter-bars .bar.hp > span {
+  transition: width 240ms cubic-bezier(.2, .7, .2, 1);
+}
+
 .fighter-bars .bar span {
   display: block;
   height: 100%;
@@ -4391,11 +4434,16 @@ small {
 }
 
 .fighter-bars .bar.rage {
-  height: 4px;
+  height: 6px;
 }
 
 .fighter-bars .bar.rage span {
   background: var(--gold);
+  transition: width 220ms ease-out;
+}
+
+.fighter-bars .shield-count {
+  color: #9cddea;
 }
 
 .fighter-core-stats {
@@ -4540,6 +4588,275 @@ small {
   background: #0b1815;
 }
 
+.combat-arena[data-frame-kind="action"][data-action-kind="basic"] .round-seal {
+  border-color: #dfc67d;
+}
+
+.combat-arena[data-frame-kind="action"][data-action-kind="rage"] .round-seal {
+  border-color: var(--gold-bright);
+  color: #fff0b5;
+  box-shadow: 0 0 0 2px #c7a96724, 0 0 16px #c7a96735;
+}
+
+.combatant[data-side="player"],
+.combatant.side-p {
+  --motion-forward: 10px;
+  --motion-rage-forward: 15px;
+  --motion-rage-settle: 6px;
+  --motion-recoil: -4px;
+  --motion-recoil-settle: -1px;
+}
+
+.combatant[data-side="enemy"],
+.combatant.side-e {
+  --motion-forward: -10px;
+  --motion-rage-forward: -15px;
+  --motion-rage-settle: -6px;
+  --motion-recoil: 4px;
+  --motion-recoil-settle: 1px;
+}
+
+.combatant[data-motion="strike"] {
+  --motion-x: var(--motion-forward);
+  --motion-name-a: shanhai-strike-a;
+  --motion-name-b: shanhai-strike-b;
+}
+
+.combatant[data-motion="rage"] {
+  --motion-x: var(--motion-rage-forward);
+  --motion-settle-x: var(--motion-rage-settle);
+  --motion-name-a: shanhai-rage-a;
+  --motion-name-b: shanhai-rage-b;
+}
+
+.combatant[data-motion="hit"] {
+  --motion-x: var(--motion-recoil);
+  --motion-settle-x: var(--motion-recoil-settle);
+  --motion-name-a: shanhai-hit-a;
+  --motion-name-b: shanhai-hit-b;
+}
+
+.combatant[data-motion="block"],
+.combatant[data-motion="shield"],
+.combatant[data-motion="heal"],
+.combatant[data-motion="dot"],
+.combatant[data-motion="buff"] {
+  --motion-name-a: shanhai-feedback-a;
+  --motion-name-b: shanhai-feedback-b;
+}
+
+.combatant[data-motion="block"] {
+  --motion-scale: 1.018;
+}
+
+.combatant[data-motion="shield"] {
+  --motion-scale: 1.03;
+}
+
+.combatant[data-motion="heal"],
+.combatant[data-motion="buff"] {
+  --motion-scale: 1.025;
+}
+
+.combatant[data-motion="dot"] {
+  --motion-scale: 1.012;
+}
+
+.combatant[data-motion="block"] .fighter-art {
+  border-color: #9dbec4;
+  box-shadow: inset 0 0 0 1px #9dbec455, 0 18px 36px #000a;
+}
+
+.combatant[data-motion="shield"] .fighter-art {
+  border-color: #9cddea;
+  box-shadow: inset 0 0 0 1px #9cddea66, 0 0 16px #66c5d633, 0 18px 36px #000a;
+}
+
+.combatant[data-motion="heal"] .fighter-art {
+  border-color: #8be1b8;
+  box-shadow: inset 0 0 0 1px #8be1b855, 0 0 14px #5fcf9730, 0 18px 36px #000a;
+}
+
+.combatant[data-motion="dot"] .fighter-art {
+  border-color: var(--violet);
+  box-shadow: inset 0 0 0 1px #ad91b955, 0 0 12px #ad91b92b, 0 18px 36px #000a;
+}
+
+.combatant[data-motion="buff"] .fighter-art,
+.combatant[data-motion="rage"] .fighter-art {
+  border-color: var(--gold-bright);
+  box-shadow: inset 0 0 0 1px #eed49655, 0 0 15px #c7a96735, 0 18px 36px #000a;
+}
+
+.combatant[data-motion="hit"] .fighter-art {
+  border-color: var(--vermilion-soft);
+  box-shadow: inset 0 0 0 1px #dfa19555, 0 0 12px #c9776930, 0 18px 36px #000a;
+}
+
+.combatant.low-health .fighter-bars .bar.hp,
+.combatant[low-health] .fighter-bars .bar.hp {
+  border-color: #dfa195;
+  box-shadow: inset 0 0 0 1px #c9776940;
+}
+
+.combatant.low-health .fighter-numbers:first-child b,
+.combatant[low-health] .fighter-numbers:first-child b {
+  color: #ffd0c1;
+}
+
+.combatant.rage-ready .fighter-numbers:nth-child(3),
+.combatant[rage-ready] .fighter-numbers:nth-child(3) {
+  color: var(--gold-bright);
+}
+
+.combatant.rage-ready .fighter-numbers:nth-child(3) span:last-child,
+.combatant[rage-ready] .fighter-numbers:nth-child(3) span:last-child {
+  color: #fff0b5;
+}
+
+.combatant.rage-ready .fighter-bars .bar.rage,
+.combatant[rage-ready] .fighter-bars .bar.rage {
+  border-color: #eed496;
+  box-shadow: inset 0 0 0 1px #eed49666, 0 0 9px #c7a96766;
+}
+
+.combatant.low-health.rage-ready .fighter-art,
+.combatant[low-health][rage-ready] .fighter-art {
+  border-color: #eed496;
+}
+
+.combatant[data-motion="block"] .fighter-art,
+.combatant[data-motion="shield"] .fighter-art,
+.combatant[data-motion="heal"] .fighter-art,
+.combatant[data-motion="dot"] .fighter-art,
+.combatant[data-motion="buff"] .fighter-art,
+.combatant[data-motion="rage"] .fighter-art,
+.combatant[data-motion="hit"] .fighter-art {
+  transition: border-color 160ms ease, box-shadow 180ms ease;
+}
+
+.combatant[data-motion-beat="0"] .fighter-art,
+.combatant[data-motion-trigger="0"] .fighter-art,
+.combatant[data-motion-beat="even"] .fighter-art {
+  animation-name: var(--motion-name-a, none);
+}
+
+.combatant[data-motion-beat="1"] .fighter-art,
+.combatant[data-motion-trigger="1"] .fighter-art,
+.combatant[data-motion-beat="odd"] .fighter-art {
+  animation-name: var(--motion-name-b, none);
+}
+
+.combatant[data-motion="strike"] .fighter-art,
+.combatant[data-motion="rage"] .fighter-art,
+.combatant[data-motion="hit"] .fighter-art,
+.combatant[data-motion="block"] .fighter-art,
+.combatant[data-motion="shield"] .fighter-art,
+.combatant[data-motion="heal"] .fighter-art,
+.combatant[data-motion="dot"] .fighter-art,
+.combatant[data-motion="buff"] .fighter-art {
+  animation-duration: min(var(--beat-duration, 220ms), 280ms);
+  animation-timing-function: cubic-bezier(.2, .72, .25, 1);
+  animation-fill-mode: both;
+}
+
+.battle-shell[data-paused]:not([data-paused="false"]) .combatant .fighter-art,
+.battle-shell[data-paused]:not([data-paused="false"]) .combat-vfx .vfx-sprite,
+.battle-shell[data-paused]:not([data-paused="false"]) .combat-float {
+  animation-play-state: paused;
+}
+
+.battle-shell[data-paused]:not([data-paused="false"]) .combatant .fighter-art {
+  transition: none;
+}
+
+.battle-shell[data-paused]:not([data-paused="false"]) .fighter-bars .bar > span {
+  transition: none;
+}
+
+.reward-grid > .reward-card {
+  animation: shanhai-reward-entry 220ms cubic-bezier(.2, .7, .2, 1) both;
+}
+
+.reward-grid > .reward-card:nth-child(3n + 2) {
+  animation-delay: 22ms;
+}
+
+.reward-grid > .reward-card:nth-child(3n) {
+  animation-delay: 44ms;
+}
+
+.modal-backdrop {
+  animation: shanhai-backdrop-entry 160ms ease-out both;
+}
+
+.modal {
+  animation: shanhai-modal-entry 200ms cubic-bezier(.2, .7, .2, 1) both;
+}
+
+@keyframes shanhai-strike-a {
+  0%, 100% { transform: translateX(0) scale(1); }
+  42% { transform: translateX(var(--motion-x)) scale(1.018); }
+}
+
+@keyframes shanhai-strike-b {
+  0%, 100% { transform: translateX(0) scale(1); }
+  42% { transform: translateX(var(--motion-x)) scale(1.018); }
+}
+
+@keyframes shanhai-rage-a {
+  0%, 100% { transform: translateX(0) scale(1); }
+  34% { transform: translateX(0) scale(1.04); }
+  62% { transform: translateX(var(--motion-x)) scale(1.035); }
+  82% { transform: translateX(var(--motion-settle-x)) scale(1.01); }
+}
+
+@keyframes shanhai-rage-b {
+  0%, 100% { transform: translateX(0) scale(1); }
+  34% { transform: translateX(0) scale(1.04); }
+  62% { transform: translateX(var(--motion-x)) scale(1.035); }
+  82% { transform: translateX(var(--motion-settle-x)) scale(1.01); }
+}
+
+@keyframes shanhai-hit-a {
+  0%, 100% { transform: translateX(0) scale(1); }
+  20% { transform: translateX(var(--motion-x)) scale(.992); }
+  46% { transform: translateX(var(--motion-settle-x)) scale(1); }
+}
+
+@keyframes shanhai-hit-b {
+  0%, 100% { transform: translateX(0) scale(1); }
+  20% { transform: translateX(var(--motion-x)) scale(.992); }
+  46% { transform: translateX(var(--motion-settle-x)) scale(1); }
+}
+
+@keyframes shanhai-feedback-a {
+  0%, 100% { transform: scale(1); }
+  34% { transform: scale(var(--motion-scale, 1.02)); }
+  68% { transform: scale(.998); }
+}
+
+@keyframes shanhai-feedback-b {
+  0%, 100% { transform: scale(1); }
+  34% { transform: scale(var(--motion-scale, 1.02)); }
+  68% { transform: scale(.998); }
+}
+
+@keyframes shanhai-reward-entry {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shanhai-backdrop-entry {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shanhai-modal-entry {
+  from { opacity: 0; transform: translateY(6px) scale(.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 .battle-log-row {
   display: grid;
   grid-template-columns: 76px minmax(0, 1fr) minmax(0, 1fr);
@@ -4619,7 +4936,7 @@ small {
   z-index: 9;
   color: #ffd0a4;
   font: 800 20px/1 var(--sans);
-  animation: classic-float .76s ease-out both;
+  animation: classic-float 260ms ease-out both;
 }
 
 .combat-float.side-p {
@@ -4645,10 +4962,10 @@ small {
 }
 
 @keyframes classic-float {
-  0% { opacity: 0; transform: translateY(12px) scale(.8); }
-  18% { opacity: 1; transform: translateY(0) scale(1.06); }
+  0% { opacity: 0; transform: translateY(5px) scale(.92); }
+  18% { opacity: 1; transform: translateY(0) scale(1.04); }
   72% { opacity: 1; }
-  100% { opacity: 0; transform: translateY(-26px) scale(.96); }
+  100% { opacity: 0; transform: translateY(-14px) scale(.99); }
 }
 
 /* Cover and dialog details. */
@@ -4846,10 +5163,16 @@ small {
   text-align: left;
 }
 
-.method-choice:hover,
 .method-choice.selected {
   border-color: var(--gold);
   background: #20382e;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .method-choice:hover {
+    border-color: var(--gold);
+    background: #20382e;
+  }
 }
 
 .method-mark {
@@ -6143,7 +6466,7 @@ small {
   background-size: 192px 256px;
   background-position-y: calc(var(--row) * -32px);
   background-repeat: no-repeat;
-  animation: classic-vfx-strip var(--fx-duration) steps(5, end) both;
+  animation: classic-vfx-strip min(var(--fx-duration, 220ms), 280ms) steps(5, end) both;
 }
 
 @keyframes classic-vfx-strip {
@@ -6160,11 +6483,29 @@ small {
   *,
   *::before,
   *::after {
-    animation-duration: .001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .001ms !important;
+    animation: none !important;
+    transition: none !important;
     scroll-behavior: auto !important;
   }
 
-  .combat-vfx { display: none; }
+  .button:hover:not(:disabled),
+  .button:active:not(:disabled),
+  .icon-button:active:not(:disabled),
+  .reward-card:hover,
+  .talent-card:hover {
+    transform: none !important;
+  }
+
+  .combatant[data-motion] .fighter-art {
+    transform: none !important;
+  }
+
+  .combat-float {
+    opacity: 1;
+    transform: none;
+  }
+
+  .combat-vfx {
+    display: none;
+  }
 }

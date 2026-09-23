@@ -161,7 +161,7 @@ async function setReplayCursor(page, cursor, reload = true) {
     }));
   }, { replayKey, cursor, key: snapshot.key, length: snapshot.frames.length });
   if (reload) {
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'domcontentloaded' });
     await waitForApp(page);
     await waitForPhase(page, 'battle');
   }
@@ -818,6 +818,7 @@ async function assertCombatSurface(page, width) {
     !/暴击/.test(String(frame.text)));
   assert.ok(ordinaryIndex >= 1, `${width}: 没有可验证的普通非暴击伤害帧`);
   await setReplayCursor(page, ordinaryIndex);
+  await clickVisibleAction(page, 'battle-pause');
   assert.equal(await page.locator('[data-frame-kind="damage"]').count(), 1,
     `${width}: 普通伤害帧没有渲染`);
   assert.equal(await page.locator('.combat-float.damage.crit').count(), 0,

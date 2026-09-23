@@ -1,5 +1,6 @@
 import { loadContent } from './content.js';
 import { calculateStats } from './combat.js';
+import { battleBeatDuration, battlePresentationCue } from './battle-presentation.js';
 import { ShanhaiGame } from './run.js';
 import {
   clearSavedRun,
@@ -254,6 +255,7 @@ class ShanhaiApp {
   private mapScrollTop = 0;
   private mapScrollKey = '';
   private renderedModal: ModalKind = null;
+  private logScrollElement: HTMLElement | null = null;
   private restoreScrollTop = 0;
   private scrollToStageTop = false;
 
@@ -835,14 +837,21 @@ class ShanhaiApp {
   private advancePlayback(time: number): void {
     this.rafId = 0;
     if (!this.playbackEligible() || this.battlePaused || this.battleFinished) return;
-    const delay = 920 / this.battleSpeed;
+    const frames = this.battleResult()?.frames || [];
+    const nextCursor = Math.min(Math.max(0, frames.length - 1), this.battleCursor + 1);
+    const delay = battleBeatDuration(frames[this.battleCursor] || frames[nextCursor], this.battleSpeed);
     if (time - this.frameClock >= delay) {
       this.frameClock = time;
-      const frames = this.battleResult()?.frames || [];
-      this.battleCursor = Math.min(Math.max(0, frames.length - 1), this.battleCursor + 1);
+      this.battleCursor = nextCursor;
       this.battleFinished = this.battleCursor >= frames.length - 1;
       this.saveReplay();
-      this.render();
+      const state = this.gameState();
+      if (state && this.canRenderBattleInPlace(state)) {
+        this.updateBattlePresentation(true);
+        this.ensurePlayback();
+      } else {
+        this.render();
+      }
       return;
     }
     this.rafId = requestAnimationFrame((next) => this.advancePlayback(next));
@@ -884,7 +893,8 @@ class ShanhaiApp {
 
   private syncModalIsolation(): void {
     const backdrop = this.root.querySelector<HTMLElement>('.modal-backdrop');
-    const page = backdrop?.parentElement;
+    const page = backdrop?.parentElement ||
+      this.root.querySelector<HTMLElement>('.game-page, .landing-page');
     if (!page) return;
     for (const child of Array.from(page.children)) {
       if (child === backdrop) child.removeAttribute('inert');
@@ -979,15 +989,16 @@ class ShanhaiApp {
     }
     const log = this.root.querySelector<HTMLElement>('.battle-log');
     if (log) {
+      if (log !== this.logScrollElement) {
+        this.logScrollElement = log;
+        log.addEventListener('scroll', () => {
+          this.battleLogTop = log.scrollTop;
+          this.battleLogFollow = this.isAtLogEnd(log);
+          const follow = this.root.querySelector<HTMLElement>('.log-follow');
+          if (follow) follow.hidden = this.battleLogFollow;
+        }, { passive: true });
+      }
       log.scrollTop = this.battleLogFollow ? log.scrollHeight : this.battleLogTop;
-      const update = () => {
-        this.battleLogTop = log.scrollTop;
-        this.battleLogFollow = this.isAtLogEnd(log);
-        const follow = this.root.querySelector<HTMLElement>('.log-follow');
-        if (follow) follow.hidden = this.battleLogFollow;
-      };
-      log.addEventListener('scroll', update, { passive: true });
-      update();
     }
     const map = this.root.querySelector<HTMLElement>('.map-scroll');
     if (map) {
@@ -1012,29 +1023,242 @@ class ShanhaiApp {
     if (!this.playbackEligible()) this.stopPlayback();
     this.captureUiState();
     if (this.loading) {
-      this.root.innerHTML = `<div class="loading-screen">${landscape()}<div class="loading-mark">${sigil('gate', 'gold')}</div><p>山海卷轴载入中</p></div>`;
+      this.replaceRoot(`<div class="loading-screen">${landscape()}<div class="loading-mark">${sigil('gate', 'gold')}</div><p>山海卷轴载入中</p></div>`);
       return;
     }
     if (this.error && !this.content) {
-      this.root.innerHTML = `<main class="fatal-screen" role="alert"><div class="seal">${sigil('close', 'fire')}</div><h1>山海卷无法展开</h1><p>${esc(this.error)}</p><button class="button primary" data-action="retry">${icon('arrow', 16)}重试</button></main>`;
+      this.replaceRoot(`<main class="fatal-screen" role="alert"><div class="seal">${sigil('close', 'fire')}</div><h1>山海卷无法展开</h1><p>${esc(this.error)}</p><button class="button primary" data-action="retry">${icon('arrow', 16)}重试</button></main>`);
       return;
     }
     if (!this.game) {
       this.stopPlayback();
-      this.root.innerHTML = this.renderLanding();
+      this.replaceRoot(this.renderLanding());
       this.syncModalIsolation();
       this.restoreUiState();
       return;
     }
     const state = this.gameState();
     if (!state) {
-      this.root.innerHTML = this.renderErrorState('这一局没有可显示的状态。');
+      this.replaceRoot(this.renderErrorState('这一局没有可显示的状态。'));
       return;
     }
-    this.root.innerHTML = this.renderGame(state);
+    if (this.canRenderBattleInPlace(state)) {
+      this.updateBattlePresentation(false);
+      this.syncModalMarkupInPlace();
+      this.syncModalIsolation();
+      this.restoreUiState();
+      if (state.phase === 'battle') this.ensurePlayback();
+      return;
+    }
+    this.replaceRoot(this.renderGame(state));
     this.syncModalIsolation();
     if (state.phase === 'battle') this.ensurePlayback();
     this.restoreUiState();
+  }
+
+  private replaceRoot(markup: string): void {
+    this.logScrollElement = null;
+    this.root.innerHTML = markup;
+  }
+
+  private canRenderBattleInPlace(state: RunState): boolean {
+    const shell = this.root.querySelector<HTMLElement>('.battle-shell');
+    return this.view === 'journey' && state.phase === 'battle' &&
+      this.root.querySelector('.game-page.phase-battle') !== null &&
+      shell?.dataset.battleKey === this.battleKey;
+  }
+
+  private syncModalMarkupInPlace(): void {
+    const page = this.root.querySelector<HTMLElement>('.game-page');
+    if (!page) return;
+    const current = page.querySelector<HTMLElement>(':scope > .modal-backdrop');
+    if (!this.modal) {
+      current?.remove();
+      return;
+    }
+    const template = document.createElement('template');
+    template.innerHTML = this.modalMarkup();
+    const next = template.content.firstElementChild;
+    if (next) {
+      if (current?.outerHTML === next.outerHTML) return;
+      if (current) current.replaceWith(next);
+      else page.append(next);
+    }
+  }
+
+  private updateBattlePresentation(frameChanged: boolean): void {
+    const frames = this.battleResult()?.frames || [];
+    const cursor = Math.min(this.battleCursor, Math.max(0, frames.length - 1));
+    const frame = frames[cursor];
+    if (!frame) return;
+    const shell = this.root.querySelector<HTMLElement>('.battle-shell');
+    const arena = shell?.querySelector<HTMLElement>('.combat-arena');
+    const log = shell?.querySelector<HTMLElement>('.battle-log');
+    if (!shell || !arena || !log) return;
+
+    const domCursor = Number(arena.dataset.frameIndex);
+    const cursorChanged = Number.isInteger(domCursor) && domCursor !== cursor;
+    const changed = frameChanged || cursorChanged;
+    const previous = cursor > 0 ? frames[cursor - 1] : undefined;
+    const cue = battlePresentationCue(frame, previous);
+    shell.dataset.paused = String(this.battlePaused || Boolean(this.modal));
+    shell.style.setProperty('--beat-duration', `${battleBeatDuration(frame, this.battleSpeed)}ms`);
+    if (!changed) {
+      this.updateBattleControls(shell);
+      this.updateBattleLog(shell, log, frames, cursor, false);
+      return;
+    }
+
+    const heading = shell.parentElement?.querySelector<HTMLElement>('.stage-heading[data-battle-heading]');
+    if (heading) {
+      const kicker = heading.querySelector<HTMLElement>('.eyebrow');
+      const title = heading.querySelector<HTMLElement>('h1');
+      if (kicker) kicker.textContent = `第 ${formatNumber(frame.round)} 回合`;
+      if (title) title.textContent = this.battleFinished
+        ? this.battleResult()?.outcome === 'player' ? '此战告捷'
+          : this.battleResult()?.outcome === 'draw' ? '胜负未分' : '此身入劫'
+        : '斗法';
+    }
+    const context = shell.querySelector<HTMLElement>('[data-battle-round]');
+    if (context) context.textContent = this.battleFinished
+      ? `历 ${formatNumber(this.battleResult()?.rounds)} 回合`
+      : `第 ${formatNumber(frame.round)} 回合`;
+    const contextText = shell.querySelector<HTMLElement>('[data-battle-context]');
+    if (contextText) {
+      contextText.textContent = `${FRAME_KIND_LABEL[asText(frame.kind)] || '战斗'}${
+        frame.actor ? ` · ${frame.actor === 'player' ? '行者' : '敌手'}出手` : ''
+      }`;
+    }
+
+    const core = arena.querySelector<HTMLElement>('.battle-stage-core');
+    if (core) {
+      const seal = core.querySelector<HTMLElement>('.round-seal');
+      const text = core.querySelector<HTMLElement>('[data-frame-text]');
+      const source = core.querySelector<HTMLElement>('[data-frame-source]');
+      const amount = core.querySelector<HTMLElement>('[data-battle-amount]');
+      if (seal) seal.textContent = this.battleFinished
+        ? this.battleResult()?.outcome === 'player' ? '胜' : '劫'
+        : String(frame.round);
+      if (text) text.textContent = asText(frame.text, '双方试探');
+      if (frame.source) {
+        if (source) source.textContent = this.sourceLabel(frame.source);
+        else text?.insertAdjacentHTML('afterend',
+          `<small data-frame-source>${esc(this.sourceLabel(frame.source))}</small>`);
+      } else {
+        source?.remove();
+      }
+      if (amount) amount.innerHTML = this.battleAmountMarkup(frame, previous);
+    }
+
+    arena.dataset.frameIndex = String(cursor);
+    arena.dataset.frameKind = asText(frame.kind);
+    arena.dataset.actionKind = cue.actionKind;
+    arena.dataset.motionTrigger = String(cursor % 2);
+    arena.querySelectorAll<HTMLElement>('.combatant').forEach((combatant) => {
+      const side = combatant.dataset.side === 'player' ? 'player' : 'enemy';
+      this.updateCombatant(combatant, frame[side], side, frame, cue, cursor, changed);
+    });
+    if (changed) {
+      arena.querySelectorAll('.combat-vfx, .combat-feedback-layer').forEach(element => element.remove());
+      arena.insertAdjacentHTML('beforeend',
+        this.battleVfx(frame, previous) + this.battleFeedback(frame, previous));
+    }
+
+    const progress = shell.querySelector<HTMLElement>('.replay-progress i');
+    if (progress) {
+      progress.style.width = `${frames.length <= 1 ? 100 : Math.round(cursor / Math.max(1, frames.length - 1) * 100)}%`;
+    }
+    this.updateBattleControls(shell);
+    this.updateBattleSettlement(shell);
+    this.updateBattleLog(shell, log, frames, cursor, changed);
+  }
+
+  private updateBattleControls(shell: HTMLElement): void {
+    const speeds = shell.querySelectorAll<HTMLElement>('[data-action="battle-speed"]');
+    speeds.forEach(button => {
+      const pressed = String(asNumber(button.dataset.speed, 1) === this.battleSpeed);
+      if (button.getAttribute('aria-pressed') !== pressed) button.setAttribute('aria-pressed', pressed);
+    });
+    const pause = shell.querySelector<HTMLElement>('[data-action="battle-pause"]');
+    if (pause) {
+      const pressed = String(this.battlePaused);
+      const label = this.battlePaused ? '继续播放' : '暂停播放';
+      const text = this.battlePaused ? '继续' : '暂停';
+      if (pause.getAttribute('aria-pressed') !== pressed) pause.setAttribute('aria-pressed', pressed);
+      if (pause.getAttribute('aria-label') !== label) pause.setAttribute('aria-label', label);
+      if (pause.textContent !== text) pause.textContent = text;
+    }
+    const action = shell.querySelector<HTMLElement>('[data-control-cta]');
+    const state = this.gameState();
+    if (!action || !state) return;
+    const template = document.createElement('template');
+    template.innerHTML = this.battleControlAction(state);
+    const expected = template.content.firstElementChild as HTMLElement | null;
+    if (!expected) return;
+    for (const attribute of ['data-action', 'class', 'aria-label', 'data-focus-key', 'data-autofocus']) {
+      const value = expected.getAttribute(attribute);
+      if (value === null) action.removeAttribute(attribute);
+      else if (action.getAttribute(attribute) !== value) action.setAttribute(attribute, value);
+    }
+    const disabled = expected.hasAttribute('disabled');
+    if (action.hasAttribute('disabled') !== disabled) action.toggleAttribute('disabled', disabled);
+    if (action.innerHTML !== expected.innerHTML) action.innerHTML = expected.innerHTML;
+  }
+
+  private updateBattleSettlement(shell: HTMLElement): void {
+    const existing = shell.querySelector<HTMLElement>('.battle-settlement');
+    if (!this.battleFinished) {
+      existing?.remove();
+      return;
+    }
+    if (existing) return;
+    const logHead = shell.querySelector<HTMLElement>('.battle-log-head');
+    if (logHead) logHead.insertAdjacentHTML('beforebegin', this.battleSettlementMarkup());
+  }
+
+  private updateBattleLog(
+    shell: HTMLElement,
+    log: HTMLElement,
+    frames: BattleFrame[],
+    cursor: number,
+    cursorChanged: boolean,
+  ): void {
+    const previousCursor = Number(log.dataset.frameIndex);
+    const modeChanged = log.dataset.logMode !== String(this.detailedLog);
+    const rewound = Number.isInteger(previousCursor) && cursor < previousCursor;
+    const rebuild = modeChanged || log.dataset.logKey !== this.battleKey || rewound;
+    const oldTop = log.scrollTop;
+    const wasAtEnd = this.isAtLogEnd(log);
+    if (rebuild) {
+      const visible = frames.slice(0, cursor + 1).map((frame, index) => {
+        return this.battleLogRow(frame, index > 0 ? frames[index - 1] : undefined);
+      }).join('');
+      log.innerHTML = visible || '<p class="simple-log-empty">双方蓄势。</p>';
+      log.classList.toggle('detailed-mode', this.detailedLog);
+      log.classList.toggle('simple-mode', !this.detailedLog);
+    } else if (cursorChanged) {
+      for (let index = Math.max(0, Number.isInteger(previousCursor) ? previousCursor + 1 : cursor); index <= cursor; index += 1) {
+        const row = this.battleLogRow(frames[index], index > 0 ? frames[index - 1] : undefined);
+        log.insertAdjacentHTML('beforeend', row);
+      }
+      log.querySelector('.simple-log-empty')?.remove();
+    }
+    log.dataset.logKey = this.battleKey;
+    log.dataset.frameIndex = String(cursor);
+    log.dataset.logMode = String(this.detailedLog);
+    const followButton = shell.querySelector<HTMLElement>('.log-follow');
+    if (cursorChanged && !rebuild) {
+      this.battleLogFollow = wasAtEnd;
+      if (!this.battleLogFollow) this.battleLogTop = oldTop;
+    }
+    if (cursorChanged && this.battleLogFollow) log.scrollTop = log.scrollHeight;
+    else if (rebuild && !this.battleLogFollow) log.scrollTop = oldTop || this.battleLogTop;
+    if (followButton) followButton.hidden = this.battleLogFollow;
+    const modeButton = shell.querySelector<HTMLElement>('.log-mode');
+    if (modeButton) {
+      modeButton.setAttribute('aria-pressed', String(this.detailedLog));
+      modeButton.textContent = this.detailedLog ? '详录' : '简录';
+    }
   }
 
   private renderLanding(): string {
@@ -1323,8 +1547,8 @@ class ShanhaiApp {
     }
   }
 
-  private stageHeading(kicker: string, title: string, description = ''): string {
-    return `<div class="stage-heading"><p class="eyebrow">${esc(kicker)}</p><h1>${esc(title)}</h1>${description ? `<p>${esc(description)}</p>` : ''}</div>`;
+  private stageHeading(kicker: string, title: string, description = '', battle = false): string {
+    return `<div class="stage-heading" ${battle ? 'data-battle-heading' : ''}><p class="eyebrow">${esc(kicker)}</p><h1>${esc(title)}</h1>${description ? `<p>${esc(description)}</p>` : ''}</div>`;
   }
 
   private routeView(state: RunState): string {
@@ -1426,8 +1650,8 @@ class ShanhaiApp {
       return `${this.stageHeading('斗法载入', '双方蓄势')}<div class="empty-state">${icon('help', 34)}<p>暂无战斗记录。</p><button class="button" data-action="continue-battle">继续</button></div>`;
     }
     const frameKind = FRAME_KIND_LABEL[asText(frame.kind)] || '战斗';
-    const canContinue = result?.outcome === 'draw' && asNumber(state.battleInput?.roundLimit) < 4096;
     const previous = this.battleCursor > 0 ? frames[this.battleCursor - 1] : undefined;
+    const cue = battlePresentationCue(frame, previous);
     const feedback = this.battleVfx(frame, previous) + this.battleFeedback(frame, previous);
     const visibleFrames = frames.slice(0, this.battleCursor + 1);
     const logRows = visibleFrames.map((item, index) => {
@@ -1435,17 +1659,35 @@ class ShanhaiApp {
       const previousFrame = absolute > 0 ? frames[absolute - 1] : undefined;
       return this.battleLogRow(item, previousFrame);
     }).join('');
-    return `${this.stageHeading(`第 ${frame.round} 回合`, this.battleFinished ? (result?.outcome === 'player' ? '此战告捷' : result?.outcome === 'draw' ? '胜负未分' : '此身入劫') : '斗法')}
-      <section class="battle-shell">
-        <div class="battle-context"><span>${this.battleFinished ? `历 ${formatNumber(result?.rounds)} 回合` : `第 ${formatNumber(frame.round)} 回合`}</span><strong>${esc(frameKind)}${frame.actor ? ` · ${frame.actor === 'player' ? '行者' : '敌手'}出手` : ''}</strong></div>
-        <div class="combat-arena">${landscape()}<span class="arena-vignette" aria-hidden="true"></span>${this.fighterMarkup(frame.player, 'player', frame.actor === 'player', frame)}<div class="battle-stage-core"><span class="round-seal">${this.battleFinished ? (result?.outcome === 'player' ? '胜' : '劫') : frame.round}</span><strong data-frame-kind="${esc(asText(frame.kind))}">${esc(asText(frame.text, '双方试探'))}</strong>${frame.source ? `<small>${esc(this.sourceLabel(frame.source))}</small>` : ''}${this.battleAmountMarkup(frame, previous)}</div>${this.fighterMarkup(frame.enemy, 'enemy', frame.actor === 'enemy', frame)}${feedback}</div>
-        <div class="battle-controls"><div class="speeds" role="group" aria-label="战斗速度"><button data-action="battle-speed" data-speed="1" data-focus-key="battle-speed-1" aria-pressed="${this.battleSpeed === 1}" aria-label="一倍速">1×</button><button data-action="battle-speed" data-speed="2" data-focus-key="battle-speed-2" aria-pressed="${this.battleSpeed === 2}" aria-label="二倍速">2×</button><button data-action="battle-speed" data-speed="4" data-focus-key="battle-speed-4" aria-pressed="${this.battleSpeed === 4}" aria-label="四倍速">4×</button><button data-action="battle-pause" data-focus-key="battle-pause" aria-pressed="${this.battlePaused}" aria-label="${this.battlePaused ? '继续播放' : '暂停播放'}">${this.battlePaused ? '继续' : '暂停'}</button></div>${this.battleFinished ? result?.outcome === 'draw' ? `<button class="button primary small" data-action="continue-battle" data-autofocus ${canContinue ? '' : 'disabled'}>${canContinue ? '继续战斗' : '已达 4096 轮上限'} ${icon('arrow', 15)}</button>` : `<button class="button primary small" data-action="battle-finish" data-autofocus>${result?.outcome === 'player' ? '收下战果' : '回望此局'} ${icon('arrow', 15)}</button>` : `<button class="button small" data-action="battle-skip" data-focus-key="battle-skip" aria-label="跳过播放，跳至结算">跳至结算 ${icon('arrow', 15)}</button>`}</div>
+    return `${this.stageHeading(`第 ${frame.round} 回合`, this.battleFinished ? (result?.outcome === 'player' ? '此战告捷' : result?.outcome === 'draw' ? '胜负未分' : '此身入劫') : '斗法', '', true)}
+      <section class="battle-shell" data-battle-key="${esc(this.battleKey)}" data-paused="${this.battlePaused || Boolean(this.modal)}" style="--beat-duration:${battleBeatDuration(frame, this.battleSpeed)}ms">
+        <div class="battle-context"><span data-battle-round>${this.battleFinished ? `历 ${formatNumber(result?.rounds)} 回合` : `第 ${formatNumber(frame.round)} 回合`}</span><strong data-battle-context>${esc(frameKind)}${frame.actor ? ` · ${frame.actor === 'player' ? '行者' : '敌手'}出手` : ''}</strong></div>
+        <div class="combat-arena" data-frame-index="${this.battleCursor}" data-frame-kind="${esc(asText(frame.kind))}" data-action-kind="${cue.actionKind}" data-motion-trigger="${this.battleCursor % 2}">${landscape()}<span class="arena-vignette" aria-hidden="true"></span>${this.fighterMarkup(frame.player, 'player', frame.actor === 'player', frame, cue)}<div class="battle-stage-core"><span class="round-seal">${this.battleFinished ? (result?.outcome === 'player' ? '胜' : '劫') : frame.round}</span><strong data-frame-text>${esc(asText(frame.text, '双方试探'))}</strong>${frame.source ? `<small data-frame-source>${esc(this.sourceLabel(frame.source))}</small>` : ''}<span data-battle-amount>${this.battleAmountMarkup(frame, previous)}</span></div>${this.fighterMarkup(frame.enemy, 'enemy', frame.actor === 'enemy', frame, cue)}${feedback}</div>
+        <div class="battle-controls"><div class="speeds" role="group" aria-label="战斗速度"><button data-action="battle-speed" data-speed="1" data-focus-key="battle-speed-1" aria-pressed="${this.battleSpeed === 1}" aria-label="一倍速">1×</button><button data-action="battle-speed" data-speed="2" data-focus-key="battle-speed-2" aria-pressed="${this.battleSpeed === 2}" aria-label="二倍速">2×</button><button data-action="battle-speed" data-speed="4" data-focus-key="battle-speed-4" aria-pressed="${this.battleSpeed === 4}" aria-label="四倍速">4×</button><button data-action="battle-pause" data-focus-key="battle-pause" aria-pressed="${this.battlePaused}" aria-label="${this.battlePaused ? '继续播放' : '暂停播放'}">${this.battlePaused ? '继续' : '暂停'}</button></div>${this.battleControlAction(state)}</div>
         <div class="replay-progress" aria-label="战斗播放进度"><i style="width:${frames.length <= 1 ? 100 : Math.round(this.battleCursor / Math.max(1, frames.length - 1) * 100)}%"></i></div>
         ${this.battleLoadout(state)}
-        ${this.battleFinished ? `<section class="battle-settlement" aria-label="战斗结算"><article><h3>本场结果</h3><p>${result?.outcome === 'player' ? '胜局已定，奖励将在确认后写入命途。' : result?.outcome === 'draw' ? '双方仍在僵持，可继续推演或收手。' : '此战失利，命途在此止步。'}</p></article><article><h3>战报摘要</h3><p>第 ${formatNumber(result?.rounds)} 回合结束；${formatNumber(result?.playerHp)} 气血留存。</p></article><details class="end-diagnostics" data-details="battle-diagnostics" open><summary>来源诊断</summary>${this.battleDiagnostics(result)}</details></section>` : ''}
+        ${this.battleSettlementMarkup()}
         <div class="battle-log-head"><span>战痕</span><button class="text-link log-follow" data-action="battle-log-follow" ${this.battleLogFollow ? 'hidden' : ''} aria-label="回到最新战报">回到最新 ↓</button><button class="text-link log-mode" data-action="battle-log-mode" aria-pressed="${this.detailedLog}">${this.detailedLog ? '详录' : '简录'}</button></div>
-        <div class="battle-log ${this.detailedLog ? 'detailed-mode' : 'simple-mode'}" data-log-key="${esc(this.battleKey)}" tabindex="0" role="region" aria-label="可滚动战报">${logRows || '<p class="simple-log-empty">双方蓄势。</p>'}</div>
+        <div class="battle-log ${this.detailedLog ? 'detailed-mode' : 'simple-mode'}" data-log-key="${esc(this.battleKey)}" data-frame-index="${this.battleCursor}" data-log-mode="${this.detailedLog}" tabindex="0" role="region" aria-label="可滚动战报">${logRows || '<p class="simple-log-empty">双方蓄势。</p>'}</div>
       </section>${this.inlineMessage()}`;
+  }
+
+  private battleControlAction(state: RunState): string {
+    const result = this.battleResult();
+    const canContinue = result?.outcome === 'draw' && asNumber(state.battleInput?.roundLimit) < 4096;
+    if (!this.battleFinished) {
+      return `<button class="button small" data-control-cta data-action="battle-skip" data-focus-key="battle-skip" aria-label="跳过播放，跳至结算">跳至结算 ${icon('arrow', 15)}</button>`;
+    }
+    if (result?.outcome === 'draw') {
+      return `<button class="button primary small" data-control-cta data-action="continue-battle" data-autofocus ${canContinue ? '' : 'disabled'}>${canContinue ? '继续战斗' : '已达 4096 轮上限'} ${icon('arrow', 15)}</button>`;
+    }
+    return `<button class="button primary small" data-control-cta data-action="battle-finish" data-autofocus>${result?.outcome === 'player' ? '收下战果' : '回望此局'} ${icon('arrow', 15)}</button>`;
+  }
+
+  private battleSettlementMarkup(): string {
+    if (!this.battleFinished) return '';
+    const result = this.battleResult();
+    return `<section class="battle-settlement" aria-label="战斗结算"><article><h3>本场结果</h3><p>${result?.outcome === 'player' ? '胜局已定，奖励将在确认后写入命途。' : result?.outcome === 'draw' ? '双方仍在僵持，可继续推演或收手。' : '此战失利，命途在此止步。'}</p></article><article><h3>战报摘要</h3><p>第 ${formatNumber(result?.rounds)} 回合结束；${formatNumber(result?.playerHp)} 气血留存。</p></article><details class="end-diagnostics" data-details="battle-diagnostics" open><summary>来源诊断</summary>${this.battleDiagnostics(result)}</details></section>`;
   }
 
   private battleLoadout(state: RunState): string {
@@ -1464,33 +1706,108 @@ class ShanhaiApp {
     </details>`;
   }
 
-  private fighterMarkup(fighter: FighterView, side: 'player' | 'enemy', acting: boolean, frame?: BattleFrame): string {
+  private fighterStatusMarkup(fighter: FighterView): string {
     const status = fighter.statuses || {};
-    const art = side === 'player' ? this.visualKind(this.game?.player, this.methodEntity(this.gameState()?.method)) : this.visualKind((this.gameState() as any)?.battleInput?.enemy, this.enemyEntity());
-    const statusMarkup = Object.entries(status)
+    return Object.entries(status)
       .filter(([key, value]) => asNumber(value) > 0 && !(key === 'day_night' && fighter.method !== 'RKF10'))
       .map(([key, value]) => {
         const label = STATUS_LABEL[key] || key;
         const display = key === 'day_night' ? (asNumber(value) === 2 ? '昼' : '夜') : formatNumber(value);
         return `<span title="${esc(label)}">${icon(STATUS_ICON[key] || 'star', 11)}${esc(label)} ${display}</span>`;
       }).join('') || '<span class="muted">无战斗状态</span>';
+  }
+
+  private fighterLockedMarkup(fighter: FighterView): string {
     const locked = fighter.lockedAction ? [fighter.lockedAction] : [];
-    const lockedMarkup = locked.length ? `<div class="locked-actions"><span>锁定</span>${locked.map(action => `<b>${esc(this.actionLabel(fighter.method, action))}</b>`).join('')}</div>` : '';
+    return locked.length ? `<div class="locked-actions"><span>锁定</span>${locked.map(action => `<b>${esc(this.actionLabel(fighter.method, action))}</b>`).join('')}</div>` : '';
+  }
+
+  private fighterMarkup(
+    fighter: FighterView,
+    side: 'player' | 'enemy',
+    acting: boolean,
+    frame?: BattleFrame,
+    cue = battlePresentationCue(frame || { kind: '', text: '', round: 0 } as BattleFrame),
+  ): string {
+    const art = side === 'player' ? this.visualKind(this.game?.player, this.methodEntity(this.gameState()?.method)) : this.visualKind((this.gameState() as any)?.battleInput?.enemy, this.enemyEntity());
     const action = acting ? (fighter.lockedAction || this.frameAction(frame, side)) : undefined;
     const turnLabel = action === 'rage_action' ? '怒技' : action === 'basic_action' ? '普攻' : '出手';
     const stats = this.previewStats(this.game?.state.battleInput?.[side] || {}, this.methodEntity(fighter.method));
-    return `<article class="combatant ${side === 'player' ? 'side-p' : 'side-e enemy'} ${acting ? 'acting' : ''}" aria-label="${esc(`${side === 'player' ? '我方' : '敌方'}战斗信息：${fighter.name}`)}">
+    const motion = cue[side === 'player' ? 'playerMotion' : 'enemyMotion'];
+    const lowHealth = pct(fighter.hp, fighter.maxHp) <= 30;
+    const rageReady = fighter.rageCap > 0 && fighter.rage >= fighter.rageCap;
+    return `<article class="combatant ${side === 'player' ? 'side-p' : 'side-e enemy'} ${acting ? 'acting' : ''} ${lowHealth ? 'low-health' : ''} ${rageReady ? 'rage-ready' : ''}" data-side="${side}" data-motion="${motion}" data-motion-trigger="${this.battleCursor % 2}" data-frame-index="${this.battleCursor}" data-low-health="${lowHealth}" data-rage-ready="${rageReady}" aria-label="${esc(`${side === 'player' ? '我方' : '敌方'}战斗信息：${fighter.name}`)}">
       <div class="fighter-art"><span class="fighter-side-badge">${side === 'player' ? '我方' : '敌方'}</span>${portrait(art, true)}</div>
       <div class="fighter-identity"><h2>${esc(asText(fighter.name, side === 'player' ? '行者' : '敌手'))}</h2>${acting ? `<span class="turn-mark">${turnLabel}</span>` : ''}</div>
       <div class="fighter-bars">
-        <div class="fighter-numbers"><span>生命 <b>${formatNumber(fighter.hp)}</b> / ${formatNumber(fighter.maxHp)}</span><span class="shield-count">${icon('shield', 12)}护盾 <b>${formatNumber(fighter.shield)}</b></span></div>
+        <div class="fighter-numbers"><span>生命 <b data-value="hp">${formatNumber(fighter.hp)}</b> / ${formatNumber(fighter.maxHp)}</span><span class="shield-count">${icon('shield', 12)}护盾 <b data-value="shield">${formatNumber(fighter.shield)}</b></span></div>
         <div class="bar hp" role="progressbar" aria-label="${esc(`${fighter.name}生命`)}" aria-valuemin="0" aria-valuemax="${fighter.maxHp}" aria-valuenow="${fighter.hp}"><span style="width:${pct(fighter.hp, fighter.maxHp)}%"></span></div>
-        <div class="fighter-numbers"><span>怒气</span><span>${formatNumber(fighter.rage)} / ${formatNumber(fighter.rageCap)}</span></div>
+        <div class="fighter-numbers"><span>怒气</span><span data-value="rage">${formatNumber(fighter.rage)} / ${formatNumber(fighter.rageCap)}</span></div>
         <div class="bar rage" role="progressbar" aria-label="${esc(`${fighter.name}怒气`)}" aria-valuemin="0" aria-valuemax="${fighter.rageCap}" aria-valuenow="${fighter.rage}"><span style="width:${pct(fighter.rage, fighter.rageCap)}%"></span></div>
       </div>
       <div class="fighter-core-stats"><span>攻 <b>${formatNumber(stats.attack)}</b></span><span>防 <b>${formatNumber(stats.defense)}</b></span><span>速 <b>${formatNumber(stats.speed)}</b></span></div>
-      <div class="combat-statuses">${statusMarkup}</div>${lockedMarkup}
+      <div class="combat-statuses">${this.fighterStatusMarkup(fighter)}</div>${this.fighterLockedMarkup(fighter)}
     </article>`;
+  }
+
+  private updateCombatant(
+    element: HTMLElement,
+    fighter: FighterView,
+    side: 'player' | 'enemy',
+    frame: BattleFrame,
+    cue: ReturnType<typeof battlePresentationCue>,
+    cursor: number,
+    changed: boolean,
+  ): void {
+    const hp = element.querySelector<HTMLElement>('[data-value="hp"]');
+    const shield = element.querySelector<HTMLElement>('[data-value="shield"]');
+    const rage = element.querySelector<HTMLElement>('[data-value="rage"]');
+    if (hp) hp.textContent = formatNumber(fighter.hp);
+    if (shield) shield.textContent = formatNumber(fighter.shield);
+    if (rage) rage.textContent = `${formatNumber(fighter.rage)} / ${formatNumber(fighter.rageCap)}`;
+    const hpBar = element.querySelector<HTMLElement>('.bar.hp');
+    const rageBar = element.querySelector<HTMLElement>('.bar.rage');
+    if (hpBar) {
+      hpBar.setAttribute('aria-valuemax', String(fighter.maxHp));
+      hpBar.setAttribute('aria-valuenow', String(fighter.hp));
+      const fill = hpBar.querySelector<HTMLElement>('span');
+      if (fill) fill.style.width = `${pct(fighter.hp, fighter.maxHp)}%`;
+    }
+    if (rageBar) {
+      rageBar.setAttribute('aria-valuemax', String(fighter.rageCap));
+      rageBar.setAttribute('aria-valuenow', String(fighter.rage));
+      const fill = rageBar.querySelector<HTMLElement>('span');
+      if (fill) fill.style.width = `${pct(fighter.rage, fighter.rageCap)}%`;
+    }
+    const lowHealth = String(pct(fighter.hp, fighter.maxHp) <= 30);
+    const rageReady = String(fighter.rageCap > 0 && fighter.rage >= fighter.rageCap);
+    element.classList.toggle('low-health', lowHealth === 'true');
+    element.classList.toggle('rage-ready', rageReady === 'true');
+    if (element.dataset.lowHealth !== lowHealth) element.dataset.lowHealth = lowHealth;
+    if (element.dataset.rageReady !== rageReady) element.dataset.rageReady = rageReady;
+    if (!changed) return;
+
+    const acting = frame.actor === side;
+    element.classList.toggle('acting', acting);
+    element.dataset.frameIndex = String(cursor);
+    element.dataset.motion = cue[side === 'player' ? 'playerMotion' : 'enemyMotion'];
+    element.dataset.motionTrigger = String(cursor % 2);
+    const identity = element.querySelector<HTMLElement>('.fighter-identity');
+    if (identity) {
+      const turnMark = identity.querySelector<HTMLElement>('.turn-mark');
+      const action = acting ? (fighter.lockedAction || this.frameAction(frame, side)) : undefined;
+      const label = action === 'rage_action' ? '怒技' : action === 'basic_action' ? '普攻' : '出手';
+      if (acting && turnMark) turnMark.textContent = label;
+      else if (acting) identity.insertAdjacentHTML('beforeend', `<span class="turn-mark">${label}</span>`);
+      else turnMark?.remove();
+    }
+    const statuses = element.querySelector<HTMLElement>('.combat-statuses');
+    if (statuses) statuses.innerHTML = this.fighterStatusMarkup(fighter);
+    const locked = element.querySelector<HTMLElement>('.locked-actions');
+    const lockedMarkup = this.fighterLockedMarkup(fighter);
+    if (locked && lockedMarkup) locked.outerHTML = lockedMarkup;
+    else if (locked) locked.remove();
+    else if (lockedMarkup) element.insertAdjacentHTML('beforeend', lockedMarkup);
   }
 
   private frameAction(frame: BattleFrame | undefined, side: 'player' | 'enemy'): 'basic_action' | 'rage_action' | undefined {
@@ -1564,7 +1881,7 @@ class ShanhaiApp {
     }
     if (!target) return '';
     const critical = kind === 'attack' && this.trustedCrit(frame);
-    return `<div class="combat-vfx target-${target === 'player' ? 'p' : 'e'} kind-${kind} ${critical ? 'critical' : ''}" style="--fx-duration:${Math.max(170, 620 / this.battleSpeed)}ms" aria-hidden="true"><span class="vfx-sprite" style="--row:${row};background-image:url('./assets/generated/combat-vfx-atlas.webp')"></span></div>`;
+    return `<div class="combat-vfx target-${target === 'player' ? 'p' : 'e'} kind-${kind} ${critical ? 'critical' : ''}" style="--fx-duration:${Math.max(170, battleBeatDuration(frame, this.battleSpeed))}ms" aria-hidden="true"><span class="vfx-sprite" style="--row:${row};background-image:url('./assets/generated/combat-vfx-atlas.webp')"></span></div>`;
   }
 
   private battleFeedback(frame: BattleFrame, previous?: BattleFrame): string {
@@ -1577,7 +1894,7 @@ class ShanhaiApp {
       const hpDelta = after.hp - before.hp;
       const shieldDelta = after.shield - before.shield;
       if (hpDelta < 0) changes.push({ side, kind: 'damage', text: `-${formatNumber(-hpDelta)}`, crit: damageFrame && this.trustedCrit(frame) && frame.actor !== key });
-      if (hpDelta > 0) changes.push({ side, kind: 'heal', text: `+${hpDelta}` });
+      if (hpDelta > 0) changes.push({ side, kind: 'heal', text: `+${formatNumber(hpDelta)}` });
       if (shieldDelta > 0) changes.push({ side, kind: 'shield', text: `护盾 +${formatNumber(shieldDelta)}` });
       if (shieldDelta < 0) {
         const absorbed = damageFrame && frame.target === key;

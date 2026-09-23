@@ -12,6 +12,7 @@ const DIST = path.join(ROOT, 'dist');
 const EXPECTED_ENTITY_COUNT = 152;
 const SHANHAI_MODULES = [
   'app.js',
+  'battle-presentation.js',
   'combat.js',
   'content.js',
   'persistence.js',

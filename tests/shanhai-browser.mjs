@@ -353,7 +353,7 @@ async function run() {
       await desktop.locator('[data-action="battle-finish"]').waitFor();
       assert.equal(await desktop.locator('[data-action="battle-finish"]').count(), 1);
       assert.equal(await desktop.locator('[data-action="battle-finish"]').evaluate(element => element.tagName), 'BUTTON');
-      assert.equal(await desktop.locator('.replay-progress > i').getAttribute('style'), 'width:100%');
+      assert.equal(await desktop.locator('.replay-progress > i').evaluate(element => element.style.width), '100%');
       assert.equal(await desktop.locator('details[data-details="battle-diagnostics"]').getAttribute('open'), '');
       await noOverflow(desktop, 'desktop battle');
       await desktop.screenshot({ path: path.join(reportDir, 'battle-desktop.png'), fullPage: true });

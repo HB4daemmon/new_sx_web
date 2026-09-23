@@ -12,6 +12,7 @@
     "simulate": "node tests/shanhai-simulate.mjs",
     "test:browser": "node tests/shanhai-browser.mjs",
     "test:journey": "node tests/shanhai-browser-journey.mjs",
+    "test:motion": "node tests/shanhai-motion-browser.mjs",
     "calibrate": "node tests/shanhai-calibrate.mjs"
   },
   "devDependencies": {

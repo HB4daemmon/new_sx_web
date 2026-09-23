@@ -45,6 +45,7 @@ npm run dev
 | `src/shanhai/run.ts` | 节点、事件、经济、旅途与境界 |
 | `src/shanhai/persistence.ts` | 存档校验、确定性回放重建与通关记录 |
 | `src/shanhai/app.ts`、`style.css` | 浏览器界面 |
+| `src/shanhai/battle-presentation.ts` | 回放节奏与动作反馈，不参与战斗结算 |
 | `src/shanhai/types.ts` | 共享运行时契约 |
 | `src/art.ts` | 原创游戏图形组件 |
 | `tools/content-kit/` | 内容校验与文档生成 |
@@ -61,6 +62,7 @@ npm run test:content
 npm run simulate
 npm run test:browser
 npm run test:journey
+npm run test:motion
 npm run calibrate
 ```
 
@@ -74,6 +76,9 @@ npm run calibrate
 - `test:journey` 从角色创建开始，仅点击浏览器可见控件：桌面走完 45 节点并检查通关归档，
   手机完成第一幕；同时检查战斗操作、刷新恢复、页面错误和整体横向溢出。
   输出 `verification/shanhai/browser-journey/`。
+- `test:motion` 检查战斗节点原位更新、血条插值、动作位移、暂停与倍速、完整战报及
+  减少动态效果模式；使用真实战斗生成的表现层 fixture，不作为通关或平衡结论。
+  默认报告写入临时目录，可通过 `BROWSER_REPORT_DIR` 指定位置。
 - `calibrate` 记录固定敌人参考盘与真实节点对局，保留输入哈希、胜负、轮数、净损血、
   最低血线和单轮损耗。输出 `verification/shanhai/calibration-*.json`，不回写内容的实测字段。
 - 游戏构建只产生 `dist/`，不会触发文档站发布，也不会提交或推送 Git。
