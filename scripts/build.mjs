@@ -20,6 +20,11 @@ await mkdir('dist/content', { recursive: true });
 await cp('build/shanhai', 'dist/shanhai', { recursive: true });
 await copyFile('build/art.js', 'dist/art.js');
 await copyFile('src/shanhai/style.css', 'dist/shanhai/style.css');
+await mkdir('dist/assets/generated', { recursive: true });
+await copyFile(
+  'assets/generated/combat-vfx-atlas.webp',
+  'dist/assets/generated/combat-vfx-atlas.webp',
+);
 await copyFile('index.html', 'dist/index.html');
 await writeFile('dist/.nojekyll', '');
 

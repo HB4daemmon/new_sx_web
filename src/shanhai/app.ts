@@ -113,7 +113,17 @@ const ARTIFACT_ICONS = ['jade', 'pearl', 'mirror', 'bell', 'gourd', 'ring', 'sea
 
 type RuntimeGame = ShanhaiGame;
 
-type ModalKind = 'restart' | 'corrupt-save' | 'archives' | 'error' | null;
+type ModalKind =
+  | 'restart'
+  | 'corrupt-save'
+  | 'archives'
+  | 'settings'
+  | 'character'
+  | 'artifact'
+  | 'method'
+  | 'help'
+  | 'error'
+  | null;
 
 function isRecord(value: unknown): value is Record<string, any> {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
@@ -212,6 +222,7 @@ class ShanhaiApp {
   private readonly root: HTMLElement;
   private content: Content | null = null;
   private game: RuntimeGame | null = null;
+  private view: 'journey' | 'build' | 'karma' = 'journey';
   private selectedMethod = '';
   private playerName = '';
   private seed = '';
@@ -221,6 +232,8 @@ class ShanhaiApp {
   private archiveIssue = '';
   private archives: ShanhaiBuildRecord[] = [];
   private modal: ModalKind = null;
+  private modalId = '';
+  private buildFilter: 'owned' | 'all' = 'owned';
   private loading = true;
   private battleCursor = 0;
   private battleSpeed = 1;
@@ -232,6 +245,15 @@ class ShanhaiApp {
   private busy = false;
   private preserveDetails = new Set<string>();
   private focusKey = '';
+  private focusSelector = '';
+  private focusReturn = '';
+  private battleLogTop = 0;
+  private battleLogFollow = true;
+  private battleLogKey = '';
+  private detailedLog = false;
+  private mapScrollTop = 0;
+  private mapScrollKey = '';
+  private renderedModal: ModalKind = null;
   private restoreScrollTop = 0;
   private scrollToStageTop = false;
 
@@ -240,6 +262,13 @@ class ShanhaiApp {
     this.root.addEventListener('click', (event) => this.onClick(event));
     this.root.addEventListener('input', (event) => this.onInput(event));
     this.root.addEventListener('keydown', (event) => this.onKeyDown(event));
+    window.addEventListener('resize', () => {
+      const map = this.root.querySelector<HTMLElement>('.map-scroll');
+      if (!map) return;
+      this.fitMapScroller(map);
+      this.mapScrollTop = map.scrollTop;
+      this.mapScrollKey = map.dataset.mapKey || this.mapScrollKey;
+    }, { passive: true });
     window.addEventListener('beforeunload', () => this.stopPlayback());
   }
 
@@ -417,6 +446,8 @@ class ShanhaiApp {
 
   private restart(): void {
     this.modal = null;
+    this.modalId = '';
+    this.view = 'journey';
     this.stopPlayback();
     this.game = null;
     this.notice = '';
@@ -750,19 +781,52 @@ class ShanhaiApp {
     return this.gameState()?.battle;
   }
 
+  private battleIdentity(state = this.gameState(), battle = this.battleResult()): string {
+    return [
+      asText(state?.id, 'run'),
+      asNumber(state?.act),
+      asNumber(state?.step),
+      battle?.frames.length || 0,
+    ].join(':');
+  }
+
+  private mapIdentity(state = this.gameState()): string {
+    if (!state || state.phase !== 'map') return '';
+    return [
+      asText(state.id, 'run'),
+      asNumber(state.act),
+      asNumber(state.step),
+      asText((state as any)._routeId || (state as any).route || listOf<string>(state.routes).at(-1)),
+      state.nodes.map((node) => `${node.id}:${node.completed ? 1 : 0}`).join(','),
+    ].join(':');
+  }
+
+  private playbackEligible(): boolean {
+    return this.view === 'journey' && this.gameState()?.phase === 'battle' && !this.modal;
+  }
+
+  private syncBattleState(): void {
+    const state = this.gameState();
+    const battle = this.battleResult();
+    const frames = battle?.frames || [];
+    const key = this.battleIdentity(state, battle);
+    if (!key || this.battleKey === key) return;
+    this.stopPlayback();
+    this.battleKey = key;
+    this.battleCursor = this.restoreReplay(key, frames.length);
+    this.battleFinished = frames.length <= 1 || this.battleCursor >= frames.length - 1;
+    this.battleLogTop = 0;
+    this.battleLogFollow = true;
+    this.battleLogKey = key;
+    this.battlePaused = false;
+  }
+
   private ensurePlayback(): void {
     const state = this.gameState();
     const battle = this.battleResult();
     const frames = battle?.frames || [];
-    const key = `${asText(state?.id, 'run')}:${asNumber(state?.act)}:${asNumber(state?.step)}:${frames.length}`;
-    if (this.battleKey !== key) {
-      this.stopPlayback();
-      this.battleKey = key;
-      this.battleCursor = this.restoreReplay(key, frames.length);
-      this.battleFinished = frames.length <= 1 || this.battleCursor >= frames.length - 1;
-      this.battlePaused = false;
-    }
-    if (!this.battleFinished && !this.battlePaused && frames.length > 1 && !this.rafId) {
+    this.syncBattleState();
+    if (this.playbackEligible() && !this.battleFinished && !this.battlePaused && frames.length > 1 && !this.rafId) {
       this.frameClock = performance.now();
       this.rafId = requestAnimationFrame((time) => this.advancePlayback(time));
     }
@@ -770,7 +834,7 @@ class ShanhaiApp {
 
   private advancePlayback(time: number): void {
     this.rafId = 0;
-    if (!this.gameState() || this.gameState()?.phase !== 'battle' || this.battlePaused || this.battleFinished) return;
+    if (!this.playbackEligible() || this.battlePaused || this.battleFinished) return;
     const delay = 920 / this.battleSpeed;
     if (time - this.frameClock >= delay) {
       this.frameClock = time;
@@ -789,6 +853,46 @@ class ShanhaiApp {
     this.rafId = 0;
   }
 
+  private isAtLogEnd(log: HTMLElement): boolean {
+    return log.scrollHeight - log.clientHeight - log.scrollTop < 32;
+  }
+
+  private focusSelectorFor(element: HTMLElement): string {
+    const action = element.dataset.action;
+    if (!action) return '';
+    const selector = [`[data-action="${CSS.escape(action)}"]`];
+    for (const key of ['id', 'filter', 'speed', 'choice', 'index'] as const) {
+      const value = element.dataset[key];
+      if (value !== undefined) selector.push(`[data-${key}="${CSS.escape(value)}"]`);
+    }
+    return selector.join('');
+  }
+
+  private focusTarget(selector: string): HTMLElement | undefined {
+    return Array.from(this.root.querySelectorAll<HTMLElement>(selector))
+      .find((target) => !target.hasAttribute('disabled') && target.getClientRects().length > 0);
+  }
+
+  private focusModal(): void {
+    const modal = this.root.querySelector<HTMLElement>('.modal[role="dialog"]');
+    if (!modal) return;
+    const focusable = Array.from(modal.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), input:not([disabled]), summary, [href], [tabindex]:not([tabindex="-1"])',
+    )).filter((element) => element.getClientRects().length > 0);
+    (modal.querySelector<HTMLElement>('[data-autofocus]') || focusable[0])?.focus({ preventScroll: true });
+  }
+
+  private syncModalIsolation(): void {
+    const backdrop = this.root.querySelector<HTMLElement>('.modal-backdrop');
+    const page = backdrop?.parentElement;
+    if (!page) return;
+    for (const child of Array.from(page.children)) {
+      if (child === backdrop) child.removeAttribute('inert');
+      else if (this.modal) child.setAttribute('inert', '');
+      else child.removeAttribute('inert');
+    }
+  }
+
   private captureUiState(): void {
     this.preserveDetails = new Set(
       Array.from(this.root.querySelectorAll<HTMLDetailsElement>('details[data-details]'))
@@ -797,7 +901,56 @@ class ShanhaiApp {
     );
     const active = document.activeElement as HTMLElement | null;
     this.focusKey = active?.dataset.focusKey || '';
+    this.focusSelector = active?.closest('.modal') ? this.focusSelectorFor(active) : '';
+    const log = this.root.querySelector<HTMLElement>('.battle-log');
+    if (log) {
+      if (log.dataset.logKey === this.battleKey) {
+        this.battleLogTop = log.scrollTop;
+        this.battleLogFollow = this.isAtLogEnd(log);
+      } else {
+        this.battleLogTop = 0;
+        this.battleLogFollow = true;
+        this.battleLogKey = this.battleKey;
+      }
+    }
+    const map = this.root.querySelector<HTMLElement>('.map-scroll');
+    if (map) {
+      this.mapScrollTop = map.scrollTop;
+      this.mapScrollKey = map.dataset.mapKey || this.mapScrollKey;
+    }
     this.restoreScrollTop = window.scrollY;
+  }
+
+  private fitMapScroller(map: HTMLElement): void {
+    const bottomNav = this.root.querySelector<HTMLElement>('.bottom-nav');
+    if (!bottomNav?.getClientRects().length) {
+      map.style.maxHeight = '';
+      map.style.minHeight = '';
+      return;
+    }
+
+    const scrollTop = map.scrollTop;
+    const availableHeight = Math.floor(
+      bottomNav.getBoundingClientRect().top - map.getBoundingClientRect().top - 8,
+    );
+    if (availableHeight <= 0) return;
+
+    map.style.maxHeight = '';
+    map.style.minHeight = '';
+    const styles = window.getComputedStyle(map);
+    const naturalMax = Number.parseFloat(styles.maxHeight);
+    const naturalMin = Number.parseFloat(styles.minHeight);
+    const maxHeight = Math.max(1, Math.min(
+      availableHeight,
+      Number.isFinite(naturalMax) ? naturalMax : availableHeight,
+    ));
+    const minHeight = Math.max(1, Math.min(
+      Number.isFinite(naturalMin) ? naturalMin : 0,
+      maxHeight,
+    ));
+    map.style.maxHeight = `${maxHeight}px`;
+    map.style.minHeight = `${minHeight}px`;
+    map.scrollTop = scrollTop;
   }
 
   private restoreUiState(): void {
@@ -811,14 +964,52 @@ class ShanhaiApp {
     } else if (Number.isFinite(this.restoreScrollTop)) {
       window.scrollTo({ top: this.restoreScrollTop, behavior: 'auto' });
     }
-    if (this.focusKey) {
+    const openingModal = Boolean(this.modal) && this.renderedModal !== this.modal;
+    const closingModal = !this.modal && Boolean(this.renderedModal);
+    if (openingModal) {
+      this.focusModal();
+    } else if (closingModal && this.focusReturn) {
+      const selector = this.focusReturn;
+      this.focusReturn = '';
+      this.focusTarget(selector)?.focus({ preventScroll: true });
+    } else if (this.focusSelector) {
+      this.focusTarget(this.focusSelector)?.focus({ preventScroll: true });
+    } else if (this.focusKey) {
       this.root.querySelector<HTMLElement>(`[data-focus-key="${CSS.escape(this.focusKey)}"]`)?.focus({ preventScroll: true });
-    } else {
-      this.root.querySelector<HTMLElement>('[data-autofocus]')?.focus({ preventScroll: true });
     }
+    const log = this.root.querySelector<HTMLElement>('.battle-log');
+    if (log) {
+      log.scrollTop = this.battleLogFollow ? log.scrollHeight : this.battleLogTop;
+      const update = () => {
+        this.battleLogTop = log.scrollTop;
+        this.battleLogFollow = this.isAtLogEnd(log);
+        const follow = this.root.querySelector<HTMLElement>('.log-follow');
+        if (follow) follow.hidden = this.battleLogFollow;
+      };
+      log.addEventListener('scroll', update, { passive: true });
+      update();
+    }
+    const map = this.root.querySelector<HTMLElement>('.map-scroll');
+    if (map) {
+      this.fitMapScroller(map);
+      const key = this.mapIdentity();
+      if (key && key === this.mapScrollKey && Number.isFinite(this.mapScrollTop)) {
+        map.scrollTop = this.mapScrollTop;
+      } else {
+        const available = map.querySelector<HTMLElement>('.map-node.available:not([disabled])');
+        if (available) map.scrollTop = Math.max(0, available.offsetTop - map.clientHeight * 0.6);
+      }
+    }
+    this.renderedModal = this.modal;
   }
 
   private render(): void {
+    if (this.gameState()?.phase === 'battle') {
+      this.syncBattleState();
+    } else {
+      this.stopPlayback();
+    }
+    if (!this.playbackEligible()) this.stopPlayback();
     this.captureUiState();
     if (this.loading) {
       this.root.innerHTML = `<div class="loading-screen">${landscape()}<div class="loading-mark">${sigil('gate', 'gold')}</div><p>山海卷轴载入中</p></div>`;
@@ -831,16 +1022,17 @@ class ShanhaiApp {
     if (!this.game) {
       this.stopPlayback();
       this.root.innerHTML = this.renderLanding();
+      this.syncModalIsolation();
       this.restoreUiState();
       return;
     }
     const state = this.gameState();
     if (!state) {
-      this.root.innerHTML = this.renderErrorState('运行时没有可显示的状态。');
+      this.root.innerHTML = this.renderErrorState('这一局没有可显示的状态。');
       return;
     }
-    if (state.phase !== 'battle') this.stopPlayback();
     this.root.innerHTML = this.renderGame(state);
+    this.syncModalIsolation();
     if (state.phase === 'battle') this.ensurePlayback();
     this.restoreUiState();
   }
@@ -853,35 +1045,25 @@ class ShanhaiApp {
     } catch {
       hasSaved = Boolean(this.storageIssue.startsWith('存档无法读取'));
     }
-    return `<div class="landing-page">
+    const selected = methods.find((method) => method.id === this.selectedMethod) || methods[0];
+    return `<div class="landing-page immersion-cover">
       <div class="landing-atmosphere">${landscape()}</div>
-      <header class="landing-bar">
-        <div class="brand-lockup"><span class="brand-seal">${icon('mountain', 22)}</span><span><b>随时修仙</b><em>山海行</em></span></div>
-        <div class="landing-actions">${this.archiveIssue ? `<span class="status-alert">${icon('help', 14)}${esc(this.archiveIssue)}</span>` : '<span class="status-ok"><i></i>山海行</span>'}<button class="icon-button" data-action="archives" title="历届通关构筑" aria-label="历届通关构筑">${icon('book', 18)}</button></div>
+      <header class="topbar landing-topbar">
+        <button class="brand" aria-label="山海封面"><span class="brand-mark">${icon('mountain', 22)}</span><strong>随时修仙<span class="gold">·</span>山海行</strong></button>
+        <div class="top-tools">${this.archiveIssue ? `<span class="save-warning" role="status">${esc(this.archiveIssue)}</span>` : ''}<button class="icon-button" data-action="archives" title="历届通关构筑" aria-label="历届通关构筑">${icon('book', 19)}</button></div>
       </header>
-      <main class="landing-main">
-        <section class="setup-board" aria-labelledby="setup-title">
-          <div class="setup-heading"><div><p class="eyebrow">山海行 · 新局</p><h1 id="setup-title">择一门功法</h1></div><span class="setup-index">01 / 01</span></div>
-          <div class="setup-fields">
-            <label class="field"><span>道号</span><input name="player-name" maxlength="24" value="${esc(this.playerName)}" placeholder="给这一局留个名字" autocomplete="nickname"></label>
-            <label class="field"><span>命数种子</span><input name="seed" maxlength="48" value="${esc(this.seed)}" placeholder="可复制、可复现"></label>
-            <button class="seed-action" data-action="copy-seed" title="复制命数种子" aria-label="复制命数种子">${icon('mirror', 16)}</button>
-          </div>
-          <div class="section-label"><span>开局功法</span><small>五门普通功法，先定方向</small></div>
-          <div class="method-grid">${methods.map((method, index) => this.methodChoice(method, index)).join('')}</div>
-          <div class="method-detail">${this.methodDetail(methods.find((method) => method.id === this.selectedMethod) || methods[0])}</div>
-          <div class="setup-footer"><button class="button primary" data-action="start" data-autofocus>入山海 ${icon('arrow', 17)}</button></div>
+      <main class="landing-inner">
+        <section class="landing-copy"><p class="eyebrow">山海行 · 新局</p><h1>随时修仙</h1><p class="landing-subtitle">山海行</p><p class="landing-desc">潮声起，山门开。以一门功法入山，走到终战。</p>
+          ${hasSaved && !this.storageIssue?.startsWith('存档无法读取') ? `<button class="resume-card" data-action="continue"><span><b>继续未完命途</b><small>${esc(asText(this.playerName, '上一局山海行'))}</small></span>${icon('arrow', 19)}</button>` : ''}
         </section>
-        <section class="landing-intro">
-          <p class="eyebrow">随时修仙 · 山海行</p>
-          <h2>潮声起，山门开。</h2>
-          <p class="landing-tagline">从一门功法起步，沿四幕山河走到终战。</p>
-          <div class="landing-principles">
-            <span>${icon('mountain', 16)}四幕 · 十一节点</span>
-            <span>${icon('jade', 16)}构筑可携 · 选择有代价</span>
-          </div>
-          ${hasSaved && !this.storageIssue?.startsWith('存档无法读取') ? `<button class="resume-line" data-action="continue"><span><b>继续未完命途</b><small>${esc(asText(this.gameState()?.name, '上一次山海行'))}</small></span>${icon('arrow', 19)}</button>` : ''}
-          <div class="landing-archive"><div class="section-label"><span>通关构筑</span><small>${this.archives.length} 份</small></div>${this.archiveMarkup()}</div>
+        <div class="hero-card-stage"><div class="hero-back"></div><div class="hero-card">${portrait(this.visualKind({}, selected), true)}<div class="hero-card-label">${esc(asText(selected?.name, '开局功法'))}</div></div></div>
+        <section class="setup" aria-labelledby="setup-title">
+          <div class="setup-top"><div><p class="eyebrow">前尘</p><h2 class="setup-title" id="setup-title">择一门功法</h2></div><span class="setup-index">01 / 01</span></div>
+          <div class="setup-fields"><label class="field name-input"><span>道号</span><input name="player-name" maxlength="24" value="${esc(this.playerName)}" placeholder="给这一局留个名字" autocomplete="nickname"></label><label class="field"><span>命数种子</span><input class="seed-input" name="seed" maxlength="48" value="${esc(this.seed)}" placeholder="可复制、可复现"></label><button class="seed-action" data-action="shuffle-seed" title="另择命数" aria-label="另择命数">${icon('mirror', 16)}</button></div>
+          <div class="section-label"><span>五门起手功法</span><small>五门功法，各有路数</small></div>
+          <div class="method-grid">${methods.map((method, index) => this.methodChoice(method, index)).join('')}</div>
+          <div class="method-detail">${this.methodDetail(selected)}</div>
+          <div class="actions"><button class="button primary" data-action="start" data-autofocus>入山海 ${icon('arrow', 17)}</button></div>
         </section>
       </main>
       ${this.modalMarkup()}
@@ -909,15 +1091,67 @@ class ShanhaiApp {
       <div class="method-actions"><span><b>基础</b>${esc(asText(basic?.name, '基础动作'))}<small>${esc(asText(basic?.quick, '稳定推进'))}</small></span><span><b>怒技</b>${esc(asText(rage?.name, '怒技'))}<small>${esc(asText(rage?.quick, '积攒怒气后释放'))}</small></span><span><b>行旅</b><span class="method-travel-list">${travel.length ? travel.map((effect) => `<small>${esc(asText(effect?.text, '完成节点后兑现门派行旅'))}</small>`).join('') : '<small>完成节点后兑现门派行旅</small>'}</span></span></div>`;
   }
 
+  private topbar(state: RunState): string {
+    const tabs: Array<['journey' | 'build' | 'karma', string, string]> = [
+      ['journey', 'mountain', '山河'],
+      ['build', 'book', '命盘'],
+      ['karma', 'lotus', '因缘'],
+    ];
+    return `<header class="topbar">
+      <button class="brand" data-action="home" aria-label="返回山海封面"><span class="brand-mark">${icon('mountain', 22)}</span><strong>随时修仙<span class="gold">·</span>山海行</strong></button>
+      <nav class="desktop-nav" aria-label="主导航">${tabs.map(([id, art, label]) => `<button class="nav-button ${this.view === id ? 'active' : ''}" data-action="tab" data-id="${id}" ${this.view === id ? 'aria-current="page"' : ''}>${icon(art, 19)}${label}</button>`).join('')}</nav>
+      <div class="top-tools header-actions">
+        ${this.storageIssue ? `<span class="save-warning" role="status">存档需留意</span>` : ''}
+        <button class="icon-button" data-action="archives" title="历届通关构筑" aria-label="历届通关构筑">${icon('book', 19)}</button>
+        <button class="icon-button" data-action="settings" title="设置" aria-label="设置">${icon('gear', 20)}</button>
+      </div>
+    </header>`;
+  }
+
+  private chapterStrip(state: RunState): string {
+    const names = ['一', '二', '三', '四', '终'];
+    const total = Math.max(5, state.act);
+    return `<div class="chapter-strip" aria-label="幕次进度">${names.slice(0, total).map((name, index) => {
+      const active = state.act === index + 1;
+      const done = state.act > index + 1;
+      const act = index === 4 ? this.byId('RF01') : this.byId(`RA0${index + 1}`);
+      return `<span class="chapter ${active ? 'active' : ''} ${done ? 'done' : ''}" ${active ? 'aria-current="step"' : ''}><span>${name}</span><span class="chapter-name">${esc(asText(act?.name, index === 4 ? '终局' : `第${index + 1}幕`))}</span></span>`;
+    }).join('<span class="chapter-separator">—</span>')}</div>`;
+  }
+
+  private mobileHud(state: RunState): string {
+    if (this.view !== 'journey' || state.phase === 'battle') return '';
+    const stats = this.stats();
+    const hp = asNumber(state.hp, stats.max_hp);
+    return `<div class="mobile-hud">
+      <button class="hud-character" data-action="character" aria-label="查看人物全部属性"><span>${esc(state.name)}<small>${esc(this.realmName(state.n))}</small></span><strong>${formatNumber(hp)}<small> / ${formatNumber(stats.max_hp)}</small></strong><div class="bar"><span style="width:${pct(hp, stats.max_hp)}%"></span></div></button>
+      <button class="hud-stats" data-action="character" aria-label="查看人物属性"><span>攻 <b>${formatNumber(stats.attack)}</b></span><span>防 <b>${formatNumber(stats.defense)}</b></span><span>速 <b>${formatNumber(stats.speed)}</b></span></button>
+      <span class="mobile-gold">${icon('coin', 17)} ${formatNumber(state.coins)}</span>
+    </div>`;
+  }
+
+  private bottomNav(): string {
+    const tabs: Array<['journey' | 'build' | 'karma', string, string]> = [
+      ['journey', 'mountain', '山河'],
+      ['build', 'book', '命盘'],
+      ['karma', 'lotus', '因缘'],
+    ];
+    return `<nav class="bottom-nav" aria-label="主导航">${tabs.map(([id, art, label]) => `<button class="${this.view === id ? 'active' : ''}" data-action="tab" data-id="${id}" ${this.view === id ? 'aria-current="page"' : ''}>${icon(art, 22)}${label}</button>`).join('')}</nav>`;
+  }
+
   private renderGame(state: RunState): string {
     const phase = state.phase;
-    return `<div class="game-page phase-${esc(phase)}">
-      ${this.gameHeader(state)}
-      <div class="game-grid">
-        <aside class="profile-rail">${this.profileRail(state)}</aside>
-        <main class="main-stage">${this.phaseView(state)}${state.phase === 'battle' && state.battle?.outcome === 'draw' ? '<div class="stage-actions"><button class="button quiet" data-action="retire">收手，结束本局</button></div>' : ''}</main>
-        <aside class="context-rail">${this.contextRail(state)}</aside>
+    const combat = this.view === 'journey' && phase === 'battle';
+    const stage = this.view === 'build' ? this.buildView(state) : this.view === 'karma' ? this.karmaView(state) : this.phaseView(state);
+    return `<div class="game-page phase-${esc(phase)} view-${this.view}" data-phase="${esc(phase)}">
+      ${this.topbar(state)}
+      ${this.chapterStrip(state)}
+      ${this.mobileHud(state)}
+      <div class="game-layout ${combat ? 'in-combat' : ''} ${this.view === 'build' ? 'view-build' : ''}">
+        ${combat ? '' : `<aside class="sidebar player-rail">${this.profileRail(state)}</aside>`}
+        <main class="main-stage">${stage}${phase === 'battle' && state.battle?.outcome === 'draw' && this.view === 'journey' ? '<div class="stage-actions"><button class="button quiet" data-action="retire">收手，结束本局</button></div>' : ''}</main>
       </div>
+      ${this.bottomNav()}
       ${this.modalMarkup()}
     </div>`;
   }
@@ -949,21 +1183,107 @@ class ShanhaiApp {
       { label: '普攻', action: method?.actions?.basic },
       { label: '怒技', action: method?.actions?.rage },
     ].filter((item) => isRecord(item.action));
-    return `<section class="profile-panel">
-      <div class="profile-portrait">${portrait(this.visualKind(player, method), true)}<span class="portrait-caption"><b>${esc(asText(state.name, '无名行者'))}</b><small>${esc(asText(method?.name, state.method))}</small></span></div>
-      <div class="profile-body">
-        <div class="vital-row"><span>气血</span><b>${formatNumber(hp)} <i>/ ${formatNumber(maxHp)}</i></b></div><div class="bar hp"><i style="width:${pct(hp, maxHp)}%"></i></div>
-        <div class="vital-row muted-row"><span>修为 · ${esc(this.realmName(state.n))}</span><b>${xpComplete ? '圆满' : `${formatNumber(state.xp)} / ${formatNumber(xpThreshold)}`}</b></div><div class="bar xp"><i style="width:${xpComplete ? 100 : pct(asNumber(state.xp), xpThreshold)}%"></i></div>
-        <div class="stats-row">${(['attack', 'defense', 'crit_rate', 'speed'] as const).map((key) => `<span><small>${STAT_LABEL[key]}</small><b>${key === 'crit_rate' ? `${Math.round(asNumber(stats[key]) * 100)}%` : formatNumber(stats[key])}</b></span>`).join('')}</div>
-        <div class="resource-row"><span>${icon('coin', 15)}灵石</span><b>${formatNumber(state.coins)}</b><span class="prep">${icon('shield', 14)}预备护盾 ${formatNumber(state.preparation)}</span>${firstStrike > 0 ? `<span class="prep first-strike">${icon('sword', 14)}首击 ${formatNumber(firstStrike)}</span>` : ''}</div>
-        <div class="method-mini"><span class="eyebrow">CURRENT METHOD</span><b>${esc(asText(method?.name, state.method))}</b><small>${esc(asText(method?.role, '修行方向'))}</small></div>
+    return `<section class="panel player-compact">
+      <button class="player-identity" data-action="character" aria-label="查看人物属性">${portrait(this.visualKind(player, method))}<span><small>山海行者</small><strong>${esc(asText(state.name, '无名行者'))}</strong><em>${esc(this.realmName(state.n))}</em></span></button>
+      <div class="panel-body">
+        <div class="vital-title"><span>气血</span><strong>${formatNumber(hp)} / ${formatNumber(maxHp)}</strong></div><div class="bar hp"><span style="width:${pct(hp, maxHp)}%"></span></div>
+        <div class="vital-title xp-label"><span>修为</span><span>${xpComplete ? '圆满' : `${formatNumber(state.xp)} / ${formatNumber(xpThreshold)}`}</span></div><div class="bar xp"><span style="width:${xpComplete ? 100 : pct(asNumber(state.xp), xpThreshold)}%"></span></div>
+        <div class="stats-grid detailed">${(['attack', 'defense', 'crit_rate', 'speed'] as const).map((key) => `<div class="stat detailed-stat"><span>${icon(key === 'attack' ? 'sword' : key === 'defense' ? 'shield' : key === 'speed' ? 'feather' : 'star', 13)}${STAT_LABEL[key]}</span><b>${key === 'crit_rate' ? `${Math.round(asNumber(stats[key]) * 100)}%` : formatNumber(stats[key])}</b></div>`).join('')}</div>
+        <div class="resource-box"><span>${icon('coin', 15)}灵石</span><strong>${formatNumber(state.coins)}</strong></div>
+        <details class="disclosure fate-detail" data-details="method-detail"><summary>${icon('book', 17)}${esc(asText(method?.name, state.method))}</summary><p>${esc(asText(method?.summary, entitySummary(method)))}</p></details>
         <div class="profile-build">
           <div class="profile-talents"><span class="eyebrow">已选天赋</span><div class="profile-talent-list">${selectedTalents.length ? selectedTalents.map((talent) => `<span class="profile-talent" title="${esc(asText(talent.quick, talent.description))}">${esc(asText(talent.name, talent.id))}</span>`).join('') : '<span class="muted">未选天赋</span>'}</div></div>
           <div class="profile-actions"><span class="eyebrow">当前功法动作</span>${actionDetails.map(({ label, action }) => `<div class="profile-action"><b>${esc(label)} · ${esc(asText(action?.name, '动作'))}</b><small>${esc(asText(action?.quick, asText(action?.description, '暂无说明')))}</small></div>`).join('')}</div>
         </div>
       </div>
     </section>
-    <section class="inventory-panel"><div class="rail-heading"><span>法宝库存</span><small>${artifacts.length} 类</small></div>${this.inventoryMarkup(artifacts)}</section>`;
+    <section class="rail-board"><button class="side-section-title" data-action="tab" data-id="build">命盘 <span>${artifacts.length} 类 ${icon('arrow', 13)}</span></button><div class="mini-build">${artifacts.slice(0, 8).map((stack) => this.artifactMini(stack)).join('') || '<p class="empty-note">尚未收纳法宝。</p>'}</div></section>`;
+  }
+
+  private artifactMini(stack: ArtifactStack): string {
+    const artifact = this.artifactEntity(stack.id);
+    const rarity = entityRarity(artifact);
+    return `<button class="mini-card ${rarity === 'legendary' ? 'mythic' : rarity === 'rare' ? 'shield' : 'jade'} rarity-${esc(rarity)}" data-action="inspect-artifact" data-id="${esc(stack.id)}" aria-label="${esc(asText(artifact?.name, stack.id))}，叠层 ${formatNumber(stack.stacks)}"><span class="slot-glyph">${sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : 'jade')}</span><span class="name">${esc(asText(artifact?.name, stack.id))}</span><span class="rank">×${formatNumber(stack.stacks)}</span></button>`;
+  }
+
+  private buildView(state: RunState): string {
+    const method = this.methodEntity(state.method);
+    const talents = listOf<string>(state.talents?.[state.method]).map((id) => this.talentEntity(state.method, id)).filter((item): item is Entity => Boolean(item));
+    const owned = new Map(state.artifacts.map((item) => [item.id, item.stacks]));
+    const artifacts = this.buildFilter === 'owned'
+      ? state.artifacts.map((stack) => this.artifactEntity(stack.id)).filter((item): item is Entity => Boolean(item))
+      : this.entities('artifact');
+    const actions = [method?.actions?.basic, method?.actions?.rage].filter((item) => isRecord(item));
+    return `<section class="codex-page">
+      ${this.stageHeading('当前命盘', asText(method?.name, state.method), '此身所习的功法、天赋与法宝。')}
+      <section class="build-focus"><div class="build-focus-title"><strong>${esc(asText(method?.name, state.method))}</strong><span>${esc(asText(method?.role, '修行方向'))}</span><span class="gold">境界 · ${esc(this.realmName(state.n))}</span></div>
+        <p class="build-description">${esc(asText(method?.description, entitySummary(method)))}</p>
+        <div class="method-actions">${actions.map((action, index) => `<article><b>${index === 0 ? '基础动作' : '怒技'}</b><strong>${esc(asText(action?.name, '动作'))}</strong><p>${esc(asText(action?.quick, asText(action?.description, '按功法规则结算。')))}</p></article>`).join('')}</div>
+      </section>
+      <section class="build-section"><div class="section-heading"><h2>已选天赋</h2><span>${talents.length} 项</span></div><div class="talent-ledger">${talents.length ? talents.map((talent) => `<article><b>${esc(asText(talent.name, talent.id))}</b><p>${esc(asText(talent.quick, asText(talent.description, '')))}</p></article>`).join('') : '<p class="empty-note">尚未选择天赋。</p>'}</div></section>
+      <section class="build-section"><div class="section-heading"><h2>法宝图鉴</h2><span>${state.artifacts.length} 类持有 / ${this.entities('artifact').length} 件收录</span></div>
+        <div class="filters" role="group" aria-label="法宝范围"><button class="${this.buildFilter === 'owned' ? 'active' : ''}" data-action="build-filter" data-filter="owned" aria-pressed="${this.buildFilter === 'owned'}">此身所习</button><button class="${this.buildFilter === 'all' ? 'active' : ''}" data-action="build-filter" data-filter="all" aria-pressed="${this.buildFilter === 'all'}">此途道藏</button></div>
+        <div class="deck-grid">${artifacts.map((artifact) => {
+        const stacks = owned.get(artifact.id) || 0;
+        return this.artifactCard(artifact, stacks);
+      }).join('') || '<p class="empty-note">尚未收纳法宝。</p>'}</div></section>
+      ${this.inlineMessage()}
+    </section>`;
+  }
+
+  private artifactCard(artifact: Entity, stacks: number): string {
+    const rarity = entityRarity(artifact);
+    const attributes = isRecord(artifact.attributes) ? artifact.attributes : {};
+    const flat = isRecord(attributes.flat) ? attributes.flat : {};
+    const percent = isRecord(attributes.percent) ? attributes.percent : {};
+    const effects = listOf<any>(artifact.effects).map(effectText).filter(Boolean);
+    const behavior = listOf<any>(artifact.behavior || artifact.behaviors || artifact.triggers).map(effectText).filter(Boolean);
+    const attributeLines = [
+      ...Object.entries(flat).map(([key, value]) => `${STAT_LABEL[key] || key} +${key === 'crit_rate' ? `${formatPercentPoints(value)}%` : formatNumber(value)}`),
+      ...Object.entries(percent).map(([key, value]) => `${STAT_LABEL[key] || key} +${formatPercentPoints(value)}%`),
+    ];
+    const effectLines = [...attributeLines, ...effects].slice(0, 5);
+    const behaviorLines = behavior.length ? behavior : [entitySummary(artifact) || '随行生效。'];
+    return `<button class="ability-card rarity-${esc(rarity)} ${stacks ? 'owned' : ''}" data-action="inspect-artifact" data-id="${esc(artifact.id)}">
+      <div class="card-top"><span class="rarity-label rarity-${esc(rarity)}">${esc(RARITY_LABEL[rarity] || rarity)}</span><span class="card-rank">${stacks ? `×${formatNumber(stacks)}` : '未持有'}</span></div>
+      <div class="card-heading">${sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : rarity === 'rare' ? 'shield' : 'jade')}<h3 class="card-title rarity-${esc(rarity)}">${esc(artifact.name)}</h3></div>
+      <div class="ability-sections" aria-label="效果与行为"><section class="ability-section ability-effect-section"><h4>效果</h4><div class="ability-effects">${effectLines.map((line) => `<p>${esc(line)}</p>`).join('') || '<p>暂无属性变化。</p>'}</div></section><section class="ability-section ability-behavior-section"><h4>行为</h4><div class="ability-behavior">${behaviorLines.map((line) => `<p>${esc(line)}</p>`).join('')}</div></section></div>
+      <div class="card-foot"><span class="gain">${stacks ? `此身所持 · ×${formatNumber(stacks)}` : '尚未纳入命盘'}</span>${icon('arrow', 14)}</div>
+    </button>`;
+  }
+
+  private karmaView(state: RunState): string {
+    const history = listOf<any>(state.history).slice().reverse();
+    const seenEvents = new Set(listOf<string>(state.seenEvents));
+    const encounteredStories = this.entities('storyline').filter((story) =>
+      listOf<string>(story.encounters).some((id) => seenEvents.has(id)) ||
+      history.some((item) => asText(item.title) === asText(story.name)),
+    );
+    const storyline = encounteredStories.find((story) => story.id === state.storyline) || encounteredStories[0];
+    const encounteredPeople = unique(encounteredStories.map((story) => asText(story.character, story.name))).filter(Boolean);
+    const flagLabels = Object.entries(state.flags || {})
+      .filter(([, value]) => value)
+      .map(([id]) => this.flagLabel(id))
+      .filter(Boolean);
+    return `<section class="karma-page">
+      ${this.stageHeading('因缘', '行迹与因果', '走过的路，遇见的人，留下的约定。')}
+      <section class="karma-ledger"><div class="karma-summary"><span>故事线</span><strong>${esc(asText(storyline?.name, '尚未相逢'))}</strong><p>${esc(entitySummary(storyline) || '山河尚未留下这段因缘。')}</p></div><div class="karma-summary"><span>行迹记录</span><strong>${history.length}</strong><p>走过的节点与已经落定的选择。</p></div></section>
+      ${encounteredPeople.length ? `<section class="build-section karma-characters"><div class="section-heading"><h2>相逢人物</h2><span>${encounteredPeople.length} 位</span></div><div class="build-tags">${encounteredPeople.map((name) => `<span>${esc(name)}</span>`).join('')}</div></section>` : ''}
+      <section class="build-section"><div class="section-heading"><h2>留下的约定</h2><span>${flagLabels.length} 项</span></div><div class="build-tags">${flagLabels.map((label) => `<span>${esc(label)}</span>`).join('') || '<span>尚无约定</span>'}</div></section>
+      <section class="timeline" aria-label="行迹记录">${history.length ? history.map((item, index) => `<article class="timeline-item"><span class="timeline-index">${String(history.length - index).padStart(2, '0')}</span><div><small>第${esc(asText(item.act))}幕 · 节点 ${esc(asText(item.step))}</small><h3>${esc(asText(item.title, '山海一刻'))}</h3><p>${esc(asText(item.text, ''))}</p></div></article>`).join('') : '<p class="empty-note">山河初展，尚待第一笔记录。</p>'}</section>
+      ${this.inlineMessage()}
+    </section>`;
+  }
+
+  private flagLabel(id: string): string {
+    const storyline = this.entities('storyline').find((story) => id === story.id || id.startsWith(`${story.id}-`));
+    if (storyline) return `与${asText(storyline.character, storyline.name)}的约定`;
+    for (const event of this.entities('event')) {
+      if (listOf<any>(event.options).some((option) => isRecord(option?.set_flags) && option.set_flags[id] === true)) {
+        return `${event.name}留下的约定`;
+      }
+    }
+    return '';
   }
 
   private contextRail(state: RunState): string {
@@ -1030,11 +1350,30 @@ class ShanhaiApp {
     const act = this.currentAct();
     const nodes = listOf<RunNode>(state.nodes);
     const currentIndex = clamp(asNumber(state.step, 0), 0, Math.max(0, nodes.length - 1));
-    return `${this.stageHeading(`第${state.act}幕 · 山河图`, asText(act.name, `第${state.act}幕`), '先看完整一幕，再决定是否踏入眼前这一格。')}
-      <div class="map-goal"><span>${icon('flag', 17)}幕目标</span><b>${esc(asText(act.story?.goal, act.summary))}</b></div>
-      <section class="map-panel"><div class="map-route-meta"><span>已选路线</span><b>${esc(this.routeName(state))}</b><span class="map-step">${Math.max(0, currentIndex) + 1} / ${nodes.length || 11}</span></div>
-        <div class="map-list">${nodes.map((node, index) => this.mapNode(node, index, index === currentIndex, index < currentIndex)).join('')}</div>
-      </section>
+    const orderedNodes = nodes
+      .map((node, index) => ({ node, index }))
+      .sort((left, right) => Number(right.index === currentIndex) - Number(left.index === currentIndex));
+    const height = Math.max(760, nodes.length * 118);
+    const y = (index: number): number => 58 + (nodes.length - 1 - index) * 112;
+    const x = (index: number): number => 400 + (index % 2 === 0 ? -54 : 54);
+    const connectors = nodes.slice(0, -1).map((node, index) => {
+      const done = index < currentIndex || node.completed;
+      return `<path d="M${x(index)} ${y(index)} C${x(index)} ${y(index) - 44} ${x(index + 1)} ${y(index + 1) + 44} ${x(index + 1)} ${y(index + 1)}" fill="none" stroke="${done ? '#d7bd7a' : '#9b9e75'}" stroke-width="${done ? 2.4 : 1.3}" stroke-dasharray="${done ? 'none' : '5 8'}" opacity="${done ? '.78' : '.35'}"/>`;
+    }).join('');
+    return `${this.stageHeading(`第${state.act}幕 · 山河图`, asText(act.name, `第${state.act}幕`), asText(act.story?.goal || act.summary, '沿山河前行，眼前节点完成后才会开放下一步。'))}
+      <div class="map-goal"><span>${icon('flag', 17)}已选路线</span><b>${esc(this.routeName(state))}</b><span class="map-step">${Math.max(0, currentIndex) + 1} / ${nodes.length || 0}</span></div>
+      <div class="map-scroll" data-map-key="${esc(this.mapIdentity(state))}" tabindex="0" aria-label="本幕路线，可上下滚动"><div class="map-wrap" style="height:${height}px">${landscape()}<svg class="map-lines" viewBox="0 0 800 ${height}" preserveAspectRatio="none" aria-hidden="true">${connectors}</svg>
+        ${orderedNodes.map(({ node, index }) => {
+          const meta = nodeMeta(node.type);
+          const entity = this.byId(node.id);
+          const label = asText(entity?.name, meta.label);
+          const available = index === currentIndex && !node.completed;
+          const done = index < currentIndex || node.completed;
+          return `<button class="map-node ${available ? 'available' : ''} ${done ? 'done' : ''} ${node.type === 'B' || node.type === 'F' ? 'boss' : ''}" style="left:${x(index) / 8}%;top:${y(index) / height * 100}%" data-action="enter" data-id="${esc(node.id)}" ${available ? '' : 'disabled'} aria-label="${esc(`${label}，${meta.label}`)}" title="${esc(meta.label)}"><span class="node-disc">${icon(done ? 'check' : meta.icon, node.type === 'B' || node.type === 'F' ? 28 : 22)}</span><span class="node-label">${esc(label)}</span></button>`;
+        }).join('')}
+        <div class="map-note"><span>${esc(asText(act.name, `第${state.act}幕`))}</span><span class="node-count">${Math.min(nodes.length, currentIndex + (nodes[currentIndex]?.completed ? 1 : 0))} / ${nodes.length}</span></div>
+      </div></div>
+      <details class="disclosure map-key" data-details="map-key"><summary>山河图记</summary><div class="map-legend">${Object.entries(NODE_META).slice(0, 7).map(([key, meta]) => `<span>${icon(meta.icon, 14)}${esc(meta.label)}</span>`).join('')}</div></details>
       ${this.inlineMessage()}`;
   }
 
@@ -1087,21 +1426,47 @@ class ShanhaiApp {
       return `${this.stageHeading('斗法载入', '双方蓄势')}<div class="empty-state">${icon('help', 34)}<p>暂无战斗记录。</p><button class="button" data-action="continue-battle">继续</button></div>`;
     }
     const frameKind = FRAME_KIND_LABEL[asText(frame.kind)] || '战斗';
-    const damageFrame = frame.kind === 'damage' || frame.kind === 'dot';
-    const positiveFrame = frame.kind === 'heal' || frame.kind === 'shield';
-    const amountClass = damageFrame ? 'damage' : positiveFrame ? 'gain' : 'neutral';
-    const amountPrefix = damageFrame ? '-' : positiveFrame ? '+' : '';
     const canContinue = result?.outcome === 'draw' && asNumber(state.battleInput?.roundLimit) < 4096;
-    return `${this.stageHeading(`斗法 · ${this.battleFinished ? '结算帧' : `第 ${frame.round} 回合`}`, this.battleFinished ? (result?.outcome === 'player' ? '此战告捷' : '战局已定') : asText(frame.text, '气机交锋'))}
-      <section class="arena-panel"><div class="arena-topline"><span>${this.battleFinished ? 'REPLAY COMPLETE' : `FRAME ${this.battleCursor + 1} / ${frames.length}`}</span><span data-frame-kind="${esc(asText(frame.kind))}">${esc(frameKind)}${frame.actor ? ` · ${frame.actor === 'player' ? '行者' : '敌手'}出手` : ''}</span></div><div class="battle-arena">${landscape()}<div class="arena-vignette"></div>${this.fighterMarkup(frame.player, 'player', frame.actor === 'player') }<div class="arena-center"><span class="round-emblem">${this.battleFinished ? (result?.outcome === 'player' ? '胜' : '劫') : frame.round}</span><b>${esc(asText(frame.text, '双方试探'))}</b>${frame.source ? `<small>${esc(this.sourceLabel(frame.source))}</small>` : ''}${frame.amount !== undefined ? `<strong class="${amountClass}" data-amount-kind="${esc(asText(frame.kind))}">${amountPrefix}${formatNumber(frame.amount)}</strong>` : ''}</div>${this.fighterMarkup(frame.enemy, 'enemy', frame.actor === 'enemy')}</div></section>
-      <div class="playback-controls"><div class="playback-group"><button class="icon-button" data-action="battle-speed" data-speed="1" data-focus-key="battle-speed-1" aria-pressed="${this.battleSpeed === 1}" title="一倍速">1×</button><button class="icon-button" data-action="battle-speed" data-speed="2" data-focus-key="battle-speed-2" aria-pressed="${this.battleSpeed === 2}" title="二倍速">2×</button><button class="icon-button" data-action="battle-speed" data-speed="4" data-focus-key="battle-speed-4" aria-pressed="${this.battleSpeed === 4}" title="四倍速">4×</button><button class="icon-button" data-action="battle-pause" data-focus-key="battle-pause" aria-pressed="${this.battlePaused}" title="${this.battlePaused ? '继续播放' : '暂停播放'}">${icon(this.battlePaused ? 'arrow' : 'sound', 16)}</button><button class="icon-button" data-action="battle-skip" data-focus-key="battle-skip" title="跳到结算">${icon('arrow', 16)}</button></div><span class="replay-progress"><i style="width:${pct(this.battleCursor, Math.max(1, frames.length - 1))}%"></i></span>${this.battleFinished ? result?.outcome === 'draw' ? `<button class="button primary small" data-action="continue-battle" data-autofocus ${canContinue ? '' : 'disabled'} title="${canContinue ? '继续推演' : '已达 4096 轮上限，请收手'}">${canContinue ? '继续战斗' : '已达 4096 轮上限'} ${icon('arrow', 15)}</button>` : `<button class="button primary small" data-action="battle-finish" data-autofocus>${result?.outcome === 'player' ? '收下战果' : '回望此局'} ${icon('arrow', 15)}</button>` : ''}</div>
-      <details class="battle-log-disclosure" data-details="battle-diagnostics" ${this.battleFinished && result?.outcome !== 'draw' ? 'open' : ''}><summary>详细战报与诊断</summary><div class="battle-log">${frames.slice(0, this.battleCursor + 1).slice(-12).map((item) => `<p><span>第${item.round}回合</span><b>${esc(item.text)}</b>${item.amount !== undefined ? `<em>${formatNumber(item.amount)}</em>` : ''}</p>`).join('')}</div>${this.battleDiagnostics(result)}</details>${this.inlineMessage()}`;
+    const previous = this.battleCursor > 0 ? frames[this.battleCursor - 1] : undefined;
+    const feedback = this.battleVfx(frame, previous) + this.battleFeedback(frame, previous);
+    const visibleFrames = frames.slice(0, this.battleCursor + 1);
+    const logRows = visibleFrames.map((item, index) => {
+      const absolute = Math.max(0, this.battleCursor - visibleFrames.length + 1 + index);
+      const previousFrame = absolute > 0 ? frames[absolute - 1] : undefined;
+      return this.battleLogRow(item, previousFrame);
+    }).join('');
+    return `${this.stageHeading(`第 ${frame.round} 回合`, this.battleFinished ? (result?.outcome === 'player' ? '此战告捷' : result?.outcome === 'draw' ? '胜负未分' : '此身入劫') : '斗法')}
+      <section class="battle-shell">
+        <div class="battle-context"><span>${this.battleFinished ? `历 ${formatNumber(result?.rounds)} 回合` : `第 ${formatNumber(frame.round)} 回合`}</span><strong>${esc(frameKind)}${frame.actor ? ` · ${frame.actor === 'player' ? '行者' : '敌手'}出手` : ''}</strong></div>
+        <div class="combat-arena">${landscape()}<span class="arena-vignette" aria-hidden="true"></span>${this.fighterMarkup(frame.player, 'player', frame.actor === 'player', frame)}<div class="battle-stage-core"><span class="round-seal">${this.battleFinished ? (result?.outcome === 'player' ? '胜' : '劫') : frame.round}</span><strong data-frame-kind="${esc(asText(frame.kind))}">${esc(asText(frame.text, '双方试探'))}</strong>${frame.source ? `<small>${esc(this.sourceLabel(frame.source))}</small>` : ''}${this.battleAmountMarkup(frame, previous)}</div>${this.fighterMarkup(frame.enemy, 'enemy', frame.actor === 'enemy', frame)}${feedback}</div>
+        <div class="battle-controls"><div class="speeds" role="group" aria-label="战斗速度"><button data-action="battle-speed" data-speed="1" data-focus-key="battle-speed-1" aria-pressed="${this.battleSpeed === 1}" aria-label="一倍速">1×</button><button data-action="battle-speed" data-speed="2" data-focus-key="battle-speed-2" aria-pressed="${this.battleSpeed === 2}" aria-label="二倍速">2×</button><button data-action="battle-speed" data-speed="4" data-focus-key="battle-speed-4" aria-pressed="${this.battleSpeed === 4}" aria-label="四倍速">4×</button><button data-action="battle-pause" data-focus-key="battle-pause" aria-pressed="${this.battlePaused}" aria-label="${this.battlePaused ? '继续播放' : '暂停播放'}">${this.battlePaused ? '继续' : '暂停'}</button></div>${this.battleFinished ? result?.outcome === 'draw' ? `<button class="button primary small" data-action="continue-battle" data-autofocus ${canContinue ? '' : 'disabled'}>${canContinue ? '继续战斗' : '已达 4096 轮上限'} ${icon('arrow', 15)}</button>` : `<button class="button primary small" data-action="battle-finish" data-autofocus>${result?.outcome === 'player' ? '收下战果' : '回望此局'} ${icon('arrow', 15)}</button>` : `<button class="button small" data-action="battle-skip" data-focus-key="battle-skip" aria-label="跳过播放，跳至结算">跳至结算 ${icon('arrow', 15)}</button>`}</div>
+        <div class="replay-progress" aria-label="战斗播放进度"><i style="width:${frames.length <= 1 ? 100 : Math.round(this.battleCursor / Math.max(1, frames.length - 1) * 100)}%"></i></div>
+        ${this.battleLoadout(state)}
+        ${this.battleFinished ? `<section class="battle-settlement" aria-label="战斗结算"><article><h3>本场结果</h3><p>${result?.outcome === 'player' ? '胜局已定，奖励将在确认后写入命途。' : result?.outcome === 'draw' ? '双方仍在僵持，可继续推演或收手。' : '此战失利，命途在此止步。'}</p></article><article><h3>战报摘要</h3><p>第 ${formatNumber(result?.rounds)} 回合结束；${formatNumber(result?.playerHp)} 气血留存。</p></article><details class="end-diagnostics" data-details="battle-diagnostics" open><summary>来源诊断</summary>${this.battleDiagnostics(result)}</details></section>` : ''}
+        <div class="battle-log-head"><span>战痕</span><button class="text-link log-follow" data-action="battle-log-follow" ${this.battleLogFollow ? 'hidden' : ''} aria-label="回到最新战报">回到最新 ↓</button><button class="text-link log-mode" data-action="battle-log-mode" aria-pressed="${this.detailedLog}">${this.detailedLog ? '详录' : '简录'}</button></div>
+        <div class="battle-log ${this.detailedLog ? 'detailed-mode' : 'simple-mode'}" data-log-key="${esc(this.battleKey)}" tabindex="0" role="region" aria-label="可滚动战报">${logRows || '<p class="simple-log-empty">双方蓄势。</p>'}</div>
+      </section>${this.inlineMessage()}`;
   }
 
-  private fighterMarkup(fighter: FighterView, side: 'player' | 'enemy', acting: boolean): string {
+  private battleLoadout(state: RunState): string {
+    const method = this.methodEntity(state.method);
+    const selectedTalents = listOf<string>(state.talents?.[state.method])
+      .map((id) => this.talentEntity(state.method, id))
+      .filter((value): value is Entity => Boolean(value));
+    const actions = [
+      { label: '普攻', action: method?.actions?.basic },
+      { label: '怒技', action: method?.actions?.rage },
+    ];
+    return `<details class="battle-loadout disclosure" data-details="battle-loadout" aria-label="当前构筑">
+      <summary>当前构筑 · ${esc(asText(method?.name, state.method))}</summary>
+      <div class="profile-build"><div class="profile-talents"><span class="eyebrow">已选天赋</span><div class="profile-talent-list">${selectedTalents.length ? selectedTalents.map((talent) => `<span class="profile-talent" title="${esc(asText(talent.quick, talent.description))}">${esc(asText(talent.name, talent.id))}</span>`).join('') : '<span class="muted">未选天赋</span>'}</div></div>
+      <div class="profile-actions"><span class="eyebrow">当前功法动作</span>${actions.map(({ label, action }) => `<div class="profile-action"><b>${esc(label)} · ${esc(asText(action?.name, '动作'))}</b><small>${esc(asText(action?.quick, asText(action?.description, '按功法规则结算。')))}</small></div>`).join('')}</div></div>
+    </details>`;
+  }
+
+  private fighterMarkup(fighter: FighterView, side: 'player' | 'enemy', acting: boolean, frame?: BattleFrame): string {
     const status = fighter.statuses || {};
     const art = side === 'player' ? this.visualKind(this.game?.player, this.methodEntity(this.gameState()?.method)) : this.visualKind((this.gameState() as any)?.battleInput?.enemy, this.enemyEntity());
-    const method = this.methodEntity(fighter.method);
     const statusMarkup = Object.entries(status)
       .filter(([key, value]) => asNumber(value) > 0 && !(key === 'day_night' && fighter.method !== 'RKF10'))
       .map(([key, value]) => {
@@ -1111,7 +1476,133 @@ class ShanhaiApp {
       }).join('') || '<span class="muted">无战斗状态</span>';
     const locked = fighter.lockedAction ? [fighter.lockedAction] : [];
     const lockedMarkup = locked.length ? `<div class="locked-actions"><span>锁定</span>${locked.map(action => `<b>${esc(this.actionLabel(fighter.method, action))}</b>`).join('')}</div>` : '';
-    return `<article class="fighter ${side} ${acting ? 'acting' : ''}"><div class="fighter-art">${portrait(art, true)}<span class="fighter-side">${side === 'player' ? '行者' : '敌手'}</span></div><div class="fighter-name"><h2>${esc(asText(fighter.name, side === 'player' ? '行者' : '敌手'))}</h2><small>${esc(asText(method?.name, fighter.method))}</small></div><div class="fighter-vitals"><div class="vital-row"><span>气血</span><b>${formatNumber(fighter.hp)} / ${formatNumber(fighter.maxHp)}</b></div><div class="bar hp"><i style="width:${pct(fighter.hp, fighter.maxHp)}%"></i></div><div class="vital-row"><span>${icon('shield', 12)}护盾</span><b>${formatNumber(fighter.shield)}</b></div><div class="bar shield"><i style="width:${pct(fighter.shield, fighter.maxHp)}%"></i></div><div class="vital-row"><span>怒气</span><b>${formatNumber(fighter.rage)} / ${formatNumber(fighter.rageCap)}</b></div><div class="bar rage"><i style="width:${pct(fighter.rage, fighter.rageCap)}%"></i></div></div><div class="status-row">${statusMarkup}</div>${lockedMarkup}</article>`;
+    const action = acting ? (fighter.lockedAction || this.frameAction(frame, side)) : undefined;
+    const turnLabel = action === 'rage_action' ? '怒技' : action === 'basic_action' ? '普攻' : '出手';
+    const stats = this.previewStats(this.game?.state.battleInput?.[side] || {}, this.methodEntity(fighter.method));
+    return `<article class="combatant ${side === 'player' ? 'side-p' : 'side-e enemy'} ${acting ? 'acting' : ''}" aria-label="${esc(`${side === 'player' ? '我方' : '敌方'}战斗信息：${fighter.name}`)}">
+      <div class="fighter-art"><span class="fighter-side-badge">${side === 'player' ? '我方' : '敌方'}</span>${portrait(art, true)}</div>
+      <div class="fighter-identity"><h2>${esc(asText(fighter.name, side === 'player' ? '行者' : '敌手'))}</h2>${acting ? `<span class="turn-mark">${turnLabel}</span>` : ''}</div>
+      <div class="fighter-bars">
+        <div class="fighter-numbers"><span>生命 <b>${formatNumber(fighter.hp)}</b> / ${formatNumber(fighter.maxHp)}</span><span class="shield-count">${icon('shield', 12)}护盾 <b>${formatNumber(fighter.shield)}</b></span></div>
+        <div class="bar hp" role="progressbar" aria-label="${esc(`${fighter.name}生命`)}" aria-valuemin="0" aria-valuemax="${fighter.maxHp}" aria-valuenow="${fighter.hp}"><span style="width:${pct(fighter.hp, fighter.maxHp)}%"></span></div>
+        <div class="fighter-numbers"><span>怒气</span><span>${formatNumber(fighter.rage)} / ${formatNumber(fighter.rageCap)}</span></div>
+        <div class="bar rage" role="progressbar" aria-label="${esc(`${fighter.name}怒气`)}" aria-valuemin="0" aria-valuemax="${fighter.rageCap}" aria-valuenow="${fighter.rage}"><span style="width:${pct(fighter.rage, fighter.rageCap)}%"></span></div>
+      </div>
+      <div class="fighter-core-stats"><span>攻 <b>${formatNumber(stats.attack)}</b></span><span>防 <b>${formatNumber(stats.defense)}</b></span><span>速 <b>${formatNumber(stats.speed)}</b></span></div>
+      <div class="combat-statuses">${statusMarkup}</div>${lockedMarkup}
+    </article>`;
+  }
+
+  private frameAction(frame: BattleFrame | undefined, side: 'player' | 'enemy'): 'basic_action' | 'rage_action' | undefined {
+    if (!frame || frame.actor !== side) return undefined;
+    if (frame.kind === 'action' && /怒技/.test(asText(frame.text))) return 'rage_action';
+    if (frame.kind === 'action' && /普攻/.test(asText(frame.text))) return 'basic_action';
+    return undefined;
+  }
+
+  private trustedCrit(frame: BattleFrame): boolean {
+    return /暴击|会心|critical|crit/i.test(asText(frame.text));
+  }
+
+  private frameDeltas(frame: BattleFrame, previous?: BattleFrame): string[] {
+    if (!previous) return [];
+    const deltas: string[] = [];
+    for (const [key, name] of [['player', '行者'], ['enemy', '敌手']] as const) {
+      const hp = frame[key].hp - previous[key].hp;
+      const shield = frame[key].shield - previous[key].shield;
+      const rage = frame[key].rage - previous[key].rage;
+      if (hp < 0) deltas.push(`${name} 气血 -${formatNumber(-hp)}`);
+      if (hp > 0) deltas.push(`${name} 治疗 +${formatNumber(hp)}`);
+      if (shield < 0) deltas.push(`${name} ${frame.target === key && (frame.kind === 'damage' || frame.kind === 'dot') ? '护盾吸收' : '护盾'} ${formatNumber(-shield)}`);
+      if (shield > 0) deltas.push(`${name} 护盾 +${formatNumber(shield)}`);
+      if (rage < 0) deltas.push(`${name} 怒气 -${formatNumber(-rage)}`);
+      if (rage > 0) deltas.push(`${name} 怒气 +${formatNumber(rage)}`);
+    }
+    return deltas;
+  }
+
+  private battleAmountMarkup(frame: BattleFrame, previous?: BattleFrame): string {
+    if (!previous) return '';
+    const deltas = this.frameDeltas(frame, previous);
+    const hpLoss = (previous.player.hp - frame.player.hp) + (previous.enemy.hp - frame.enemy.hp);
+    const shieldLoss = frame.target
+      ? Math.max(0, previous[frame.target].shield - frame[frame.target].shield)
+      : (previous.player.shield - frame.player.shield) + (previous.enemy.shield - frame.enemy.shield);
+    const hpGain = (frame.player.hp - previous.player.hp) + (frame.enemy.hp - previous.enemy.hp);
+    const shieldGain = (frame.player.shield - previous.player.shield) + (frame.enemy.shield - previous.enemy.shield);
+    if (hpLoss > 0 && shieldLoss > 0) {
+      return `<b class="battle-amount damage" data-amount-kind="${esc(asText(frame.kind))}">-${formatNumber(hpLoss)} · 护盾吸收 ${formatNumber(shieldLoss)}</b>`;
+    }
+    if (hpLoss > 0) return `<b class="battle-amount damage" data-amount-kind="${esc(asText(frame.kind))}">-${formatNumber(hpLoss)}</b>`;
+    if (shieldLoss > 0) return `<b class="battle-amount shield-loss" data-amount-kind="${esc(asText(frame.kind))}">护盾吸收 ${formatNumber(shieldLoss)}</b>`;
+    if (hpGain > 0) return `<b class="battle-amount gain" data-amount-kind="${esc(asText(frame.kind))}">+${formatNumber(hpGain)}</b>`;
+    if (shieldGain > 0) return `<b class="battle-amount gain" data-amount-kind="${esc(asText(frame.kind))}">+${formatNumber(shieldGain)} 护盾</b>`;
+    if (frame.kind === 'rage' && frame.amount !== undefined) {
+      return `<b class="battle-amount neutral" data-amount-kind="rage">怒气 ${formatNumber(frame.amount)}</b>`;
+    }
+    return deltas.length ? '' : frame.amount === undefined ? '' : `<b class="battle-amount neutral" data-amount-kind="${esc(asText(frame.kind))}">${formatNumber(frame.amount)}</b>`;
+  }
+
+  private battleVfx(frame: BattleFrame, previous?: BattleFrame): string {
+    if (!previous || this.battleFinished) return '';
+    let target: 'player' | 'enemy' | undefined;
+    let row = 0;
+    let kind = '';
+    for (const side of ['player', 'enemy'] as const) {
+      const before = previous[side];
+      const after = frame[side];
+      if (after.hp < before.hp || (frame.target === side &&
+          ['damage', 'dot'].includes(frame.kind) && after.shield < before.shield)) {
+        target = side; kind = 'attack'; row = 0; break;
+      }
+      if (after.hp > before.hp) {
+        target = side; kind = 'heal'; row = 1; break;
+      }
+      if (after.shield > before.shield) {
+        target = side; kind = 'shield'; row = 2; break;
+      }
+    }
+    if (!target) return '';
+    const critical = kind === 'attack' && this.trustedCrit(frame);
+    return `<div class="combat-vfx target-${target === 'player' ? 'p' : 'e'} kind-${kind} ${critical ? 'critical' : ''}" style="--fx-duration:${Math.max(170, 620 / this.battleSpeed)}ms" aria-hidden="true"><span class="vfx-sprite" style="--row:${row};background-image:url('./assets/generated/combat-vfx-atlas.webp')"></span></div>`;
+  }
+
+  private battleFeedback(frame: BattleFrame, previous?: BattleFrame): string {
+    if (!previous) return '';
+    const changes: Array<{ side: 'p' | 'e'; kind: string; text: string; crit?: boolean }> = [];
+    const damageFrame = frame.kind === 'damage' || frame.kind === 'dot';
+    for (const [key, side] of [['player', 'p'], ['enemy', 'e']] as const) {
+      const before = previous[key];
+      const after = frame[key];
+      const hpDelta = after.hp - before.hp;
+      const shieldDelta = after.shield - before.shield;
+      if (hpDelta < 0) changes.push({ side, kind: 'damage', text: `-${formatNumber(-hpDelta)}`, crit: damageFrame && this.trustedCrit(frame) && frame.actor !== key });
+      if (hpDelta > 0) changes.push({ side, kind: 'heal', text: `+${hpDelta}` });
+      if (shieldDelta > 0) changes.push({ side, kind: 'shield', text: `护盾 +${formatNumber(shieldDelta)}` });
+      if (shieldDelta < 0) {
+        const absorbed = damageFrame && frame.target === key;
+        changes.push({ side, kind: 'shield-loss', text: absorbed ? `护盾吸收 ${formatNumber(-shieldDelta)}` : `护盾 -${formatNumber(-shieldDelta)}` });
+      }
+      for (const status of new Set([...Object.keys(before.statuses), ...Object.keys(after.statuses)])) {
+        const delta = asNumber(after.statuses[status]) - asNumber(before.statuses[status]);
+        if (delta > 0) changes.push({ side, kind: 'status-add', text: `${STATUS_LABEL[status] || status} +${delta}` });
+        if (delta < 0) changes.push({ side, kind: 'status-use', text: `${STATUS_LABEL[status] || status} ${delta}` });
+      }
+    }
+    const stacks = { p: 0, e: 0 };
+    return `<div class="combat-feedback-layer" aria-hidden="true">${changes.slice(0, 10).map((item) => `<span class="combat-float side-${item.side} ${item.kind} ${item.crit ? 'crit' : ''}" style="--stack:${stacks[item.side]++}"><b>${esc(item.text)}</b></span>`).join('')}</div>`;
+  }
+
+  private battleLogRow(frame: BattleFrame, previous?: BattleFrame): string {
+    const kind = FRAME_KIND_LABEL[asText(frame.kind)] || '战斗';
+    const actor = frame.actor === 'player' ? '我方' : frame.actor === 'enemy' ? '敌方' : '天道';
+    const source = frame.source ? ` · ${this.sourceLabel(frame.source)}` : '';
+    const deltas = this.frameDeltas(frame, previous);
+    const outcome = deltas.join('；') || (frame.kind === 'rage' && frame.amount !== undefined ? `怒气 ${formatNumber(frame.amount)}` : '');
+    if (!this.detailedLog) {
+      return `<p class="battle-log-row simple"><span>第${formatNumber(frame.round)}回合</span><b>${esc(actor)} · ${esc(kind)}${esc(source)}</b><em>${esc(asText(frame.text, '气机交锋'))}${outcome ? ` · ${esc(outcome)}` : ''}</em></p>`;
+    }
+    return `<p class="battle-log-row detailed"><span>第${formatNumber(frame.round)}回合</span><b>${esc(actor)} · ${esc(kind)}${esc(source)} · ${esc(asText(frame.text, '气机交锋'))}</b><em>${esc(outcome)}</em></p>`;
   }
 
   private actionLabel(methodIdValue: unknown, action: any): string {
@@ -1179,9 +1670,9 @@ class ShanhaiApp {
     if (!event) return this.renderErrorState('找不到当前事件内容。');
     const resultPhase = state.phase === 'event_result';
     const options = listOf<Entity>(event.options);
-    return `${this.stageHeading(`${event.event_type === 'core' ? '人物机缘' : '行旅事件'}`, asText(event.name, '山海一刻'), asText(event.scene || event.description, '在此停步，做一个明白的选择。'))}
-      <section class="event-scene"><div class="event-art">${portrait(this.visualKind(event, event), true)}</div><div class="event-copy"><span class="eyebrow">${esc(event.event_type === 'core' ? 'CORE ENCOUNTER' : 'ORDINARY EVENT')}</span><p>${esc(asText(event.scene || event.description, '风声停在你面前。'))}</p>${resultPhase ? `<div class="event-outcome"><span class="eyebrow">SETTLEMENT</span><p>${esc(asText(state.resultText, '选择已经落定。'))}</p></div>` : `<div class="event-options">${options.map((option) => this.eventOption(option)).join('')}</div>`}</div></section>
-      ${resultPhase ? `<div class="stage-actions"><button class="button primary" data-action="continue" data-autofocus>继续前行 ${icon('arrow', 16)}</button></div>` : ''}${this.inlineMessage()}`;
+    return `<section class="event-page"><div class="event-scene-head"><div class="event-portrait">${portrait(this.visualKind(event, event), true)}</div><div><span class="eyebrow">${esc(event.event_type === 'core' ? '人物机缘' : '行旅事件')}</span><h2>${esc(asText(event.name, '山海一刻'))}</h2><small class="event-phase-caption">${resultPhase ? '结果已落定' : '请选择你的行旅'}</small></div></div>
+      ${resultPhase ? `<div class="event-result"><p>${esc(asText(state.resultText, '选择已经落定。'))}</p></div>` : `<p class="story-text">${esc(asText(event.scene || event.description, '风声停在你面前。'))}</p><div class="story-choices">${options.map((option) => `<div class="story-choice-wrap">${this.eventOption(option)}</div>`).join('')}</div>`}
+      ${resultPhase ? `<div class="actions"><button class="button primary" data-action="continue" data-autofocus>继续前行 ${icon('arrow', 16)}</button></div>` : ''}${this.inlineMessage()}</section>`;
   }
 
   private currentEvent(): Entity | undefined {
@@ -1292,7 +1783,35 @@ class ShanhaiApp {
   private modalMarkup(): string {
     if (!this.modal) return '';
     if (this.modal === 'archives') {
-      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog dialog-wide" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">山海行 · 归档</p><h2 id="dialog-title">通关构筑</h2><p>这里保存每一局真正走到终点的功法、天赋与法宝。</p>${this.archiveMarkup()}<div class="dialog-actions"><button class="button primary" data-action="modal-close">返回</button></div></section></div>`;
+      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal dialog-wide" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">山海行 · 归档</p><h2 id="dialog-title">通关构筑</h2><p>这里保存每一局走到终点的功法、天赋与法宝。</p>${this.archiveMarkup()}<div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
+    }
+    const state = this.gameState();
+    if (this.modal === 'settings') {
+      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">静室</p><h2 id="dialog-title">设置</h2><div class="setting-row"><span>战报显示</span><button class="button small" data-action="battle-log-mode" aria-pressed="${this.detailedLog}">${this.detailedLog ? '详细' : '简明'}</button></div><div class="setting-row"><span>命途存档</span><div class="row"><button class="button small" data-action="export" ${state ? '' : 'disabled'}>导出</button><button class="button small" data-action="restart">重开</button></div></div><div class="setting-row"><span>帮助</span><button class="button small" data-action="help">查看</button></div><div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
+    }
+    if (this.modal === 'character' && state) {
+      const method = this.methodEntity(state.method);
+      const selectedTalents = listOf<string>(state.talents?.[state.method]).map((id) => this.talentEntity(state.method, id)).filter((item): item is Entity => Boolean(item));
+      const stats = this.stats();
+      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">人物</p><h2 id="dialog-title">${esc(state.name)}</h2><p>${esc(asText(method?.name, state.method))} · ${esc(this.realmName(state.n))}</p><div class="character-stats">${(['max_hp', 'attack', 'defense', 'crit_rate', 'speed'] as const).map((key) => `<div><span>${STAT_LABEL[key]}</span><strong>${key === 'crit_rate' ? `${Math.round(asNumber(stats[key]) * 100)}%` : formatNumber(stats[key])}</strong></div>`).join('')}</div><div class="character-detail"><p>气血 ${formatNumber(state.hp)} / ${formatNumber(stats.max_hp)} · 修为 ${formatNumber(state.xp)} · 灵石 ${formatNumber(state.coins)}</p><p>已拥有功法：${state.ownedMethods.map((id) => esc(asText(this.methodEntity(id)?.name, id))).join('、') || '无'}</p><p>已选天赋：${selectedTalents.map((talent) => esc(asText(talent.name, talent.id))).join('、') || '无'}</p></div><div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
+    }
+    if (this.modal === 'artifact') {
+      const artifact = this.artifactEntity(this.modalId);
+      if (!artifact) return '';
+      const owned = listOf<ArtifactStack>(state?.artifacts).find((item) => item.id === artifact.id);
+      const attrs = isRecord(artifact.attributes) ? artifact.attributes : {};
+      const flat = isRecord(attrs.flat) ? attrs.flat : {};
+      const percent = isRecord(attrs.percent) ? attrs.percent : {};
+      const effects = listOf<any>(artifact.effects);
+      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow item-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">法宝详录</p><h2 id="dialog-title">${esc(artifact.name)}</h2><p>${esc(RARITY_LABEL[entityRarity(artifact)] || entityRarity(artifact))}${owned ? ` · 当前叠层 ×${formatNumber(owned.stacks)}` : ' · 尚未持有'}</p><div class="item-dialog-art">${sigil(this.artifactIcon(artifact), entityRarity(artifact) === 'legendary' ? 'mythic' : 'jade')}</div><p>${esc(entitySummary(artifact))}</p><div class="attribute-list">${Object.entries(flat).map(([key, value]) => `<span>${esc(STAT_LABEL[key] || key)} <b>+${key === 'crit_rate' ? `${formatPercentPoints(value)}%` : formatNumber(value)}</b></span>`).join('')}${Object.entries(percent).map(([key, value]) => `<span>${esc(STAT_LABEL[key] || key)} <b>+${formatPercentPoints(value)}%</b></span>`).join('')}</div><div class="effect-list">${effects.map((effect) => `<p>${esc(effectText(effect))}</p>`).join('') || '<p class="muted">没有额外触发效果。</p>'}</div><div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
+    }
+    if (this.modal === 'method') {
+      const method = this.methodEntity(this.modalId || state?.method);
+      if (!method) return '';
+      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">功法详录</p><h2 id="dialog-title">${esc(method.name)}</h2>${this.methodDetail(method)}<div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
+    }
+    if (this.modal === 'help') {
+      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">山海札</p><h2 id="dialog-title">行旅札记</h2><div class="help-text"><h3>山河</h3><p>路线和节点来自当前命途，完成眼前节点后才会推进。</p><h3>命盘</h3><p>这里查看当前功法的基础动作、怒技、天赋和法宝叠层。</p><h3>斗法</h3><p>战痕会随斗法展开；暂停、倍速和跳过只影响眼前回放。</p><h3>因缘</h3><p>此页只显示已经走过的行迹和留下的约定。</p></div><div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
     }
     const title = this.modal === 'restart' ? '重新起笔？' : this.modal === 'corrupt-save' ? '存档没有被覆盖' : '山海行提示';
     const body = this.modal === 'restart'
@@ -1300,7 +1819,7 @@ class ShanhaiApp {
       : this.modal === 'corrupt-save'
         ? `${this.storageIssue || '自动存档无法通过校验。'} 你可以导出当前可见记录，或明确开始一局新的命途。`
         : this.error || '发生了一个未命名问题。';
-    return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">SHANHAI NOTICE</p><h2 id="dialog-title">${esc(title)}</h2><p>${esc(body)}</p><div class="dialog-actions">${this.modal === 'restart' ? `<button class="button quiet" data-action="modal-close">先不重来</button><button class="button danger" data-action="confirm-restart">确认重开</button>` : this.modal === 'corrupt-save' ? `<button class="button quiet" data-action="discard-save">清理损坏存档</button><button class="button primary" data-action="modal-close">我知道了</button>` : `<button class="button primary" data-action="modal-close">知道了</button>`}</div></section></div>`;
+    return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">SHANHAI NOTICE</p><h2 id="dialog-title">${esc(title)}</h2><p>${esc(body)}</p><div class="dialog-actions">${this.modal === 'restart' ? `<button class="button quiet" data-action="modal-close">先不重来</button><button class="button danger" data-action="confirm-restart" data-autofocus>确认重开</button>` : this.modal === 'corrupt-save' ? `<button class="button quiet" data-action="discard-save">清理损坏存档</button><button class="button primary" data-action="modal-close" data-autofocus>我知道了</button>` : `<button class="button primary" data-action="modal-close" data-autofocus>知道了</button>`}</div></section></div>`;
   }
 
   private visualKind(value: any, entity?: Entity): string {
@@ -1333,10 +1852,44 @@ class ShanhaiApp {
     if (target.name === 'seed') this.seed = target.value;
   }
 
+  private rememberModalTrigger(target: HTMLElement): void {
+    if (this.modal && this.renderedModal) return;
+    const selector = this.focusSelectorFor(target);
+    if (selector) this.focusReturn = selector;
+  }
+
+  private closeModal(): void {
+    this.modal = null;
+    this.modalId = '';
+    this.render();
+  }
+
   private onKeyDown(event: KeyboardEvent): void {
+    const modal = this.root.querySelector<HTMLElement>('.modal[role="dialog"]');
+    if (modal && event.key === 'Tab') {
+      const focusable = Array.from(modal.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), summary, [href], [tabindex]:not([tabindex="-1"])')).filter((element) => element.getClientRects().length > 0);
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (first && last && (!modal.contains(document.activeElement) ||
+        (event.shiftKey && document.activeElement === first) ||
+        (!event.shiftKey && document.activeElement === last))) {
+        event.preventDefault();
+        (modal.contains(document.activeElement) && event.shiftKey ? last : first).focus();
+      }
+      return;
+    }
     if (event.key === 'Escape' && this.modal) {
-      this.modal = null;
-      this.render();
+      event.preventDefault();
+      this.closeModal();
+      return;
+    }
+    if (event.code === 'Space' && !event.repeat && !this.modal && this.view === 'journey' && this.gameState()?.phase === 'battle') {
+      const target = event.target as HTMLElement | null;
+      if (!target?.matches('input, textarea, select, button, summary, [contenteditable="true"]')) {
+        event.preventDefault();
+        this.battlePaused = !this.battlePaused;
+        this.render();
+      }
     }
   }
 
@@ -1345,9 +1898,26 @@ class ShanhaiApp {
     if (!target || target.hasAttribute('disabled')) return;
     const action = target.dataset.action;
     if (!action) return;
+    if (this.modal && !target.closest('.modal') && action !== 'modal-backdrop') return;
     event.preventDefault();
     this.notice = '';
     switch (action) {
+      case 'home':
+        this.stopPlayback();
+        this.view = 'journey';
+        this.game = null;
+        this.modal = null;
+        this.modalId = '';
+        this.render();
+        break;
+      case 'tab': {
+        const next = asText(target.dataset.id);
+        if (next === 'journey' || next === 'build' || next === 'karma') {
+          this.view = next;
+          this.render();
+        }
+        break;
+      }
       case 'retry':
         this.loading = true;
         this.error = '';
@@ -1376,7 +1946,39 @@ class ShanhaiApp {
         }
         break;
       case 'restart':
+        this.rememberModalTrigger(target);
         this.modal = 'restart';
+        this.modalId = '';
+        this.render();
+        break;
+      case 'settings':
+        this.rememberModalTrigger(target);
+        this.modal = 'settings';
+        this.modalId = '';
+        this.render();
+        break;
+      case 'character':
+        this.rememberModalTrigger(target);
+        this.modal = 'character';
+        this.modalId = '';
+        this.render();
+        break;
+      case 'inspect-artifact':
+        this.rememberModalTrigger(target);
+        this.modal = 'artifact';
+        this.modalId = asText(target.dataset.id);
+        this.render();
+        break;
+      case 'inspect-method':
+        this.rememberModalTrigger(target);
+        this.modal = 'method';
+        this.modalId = asText(target.dataset.id, this.gameState()?.method);
+        this.render();
+        break;
+      case 'help':
+        this.rememberModalTrigger(target);
+        this.modal = 'help';
+        this.modalId = '';
         this.render();
         break;
       case 'confirm-restart':
@@ -1389,10 +1991,10 @@ class ShanhaiApp {
         } catch {
           this.storageIssue = '浏览器拒绝删除损坏存档，请在浏览器设置中手动清理。';
         }
-        this.modal = null;
-        this.render();
+        this.closeModal();
         break;
       case 'archives':
+        this.rememberModalTrigger(target);
         this.openArchives();
         break;
       case 'export-archive':
@@ -1401,8 +2003,7 @@ class ShanhaiApp {
       case 'modal-close':
       case 'modal-backdrop':
         if (action === 'modal-backdrop' && event.target !== target) return;
-        this.modal = null;
-        this.render();
+        this.closeModal();
         break;
       case 'route':
         this.send({ type: 'route', id: asText(target.dataset.id) });
@@ -1423,6 +2024,27 @@ class ShanhaiApp {
       case 'battle-pause':
         this.battlePaused = !this.battlePaused;
         this.render();
+        break;
+      case 'battle-log-mode':
+        this.detailedLog = !this.detailedLog;
+        this.render();
+        break;
+      case 'battle-log-follow':
+        this.battleLogFollow = true;
+        {
+          const log = this.root.querySelector<HTMLElement>('.battle-log');
+          if (log) {
+            log.scrollTop = log.scrollHeight;
+            this.battleLogTop = log.scrollTop;
+          }
+          target.hidden = true;
+        }
+        break;
+      case 'build-filter':
+        if (target.dataset.filter === 'owned' || target.dataset.filter === 'all') {
+          this.buildFilter = target.dataset.filter;
+          this.render();
+        }
         break;
       case 'battle-skip':
         this.stopPlayback();
@@ -1467,6 +2089,8 @@ class ShanhaiApp {
       case 'new-run':
         this.game = null;
         this.modal = null;
+        this.modalId = '';
+        this.view = 'journey';
         this.seed = '';
         this.selectedMethod = this.startMethods()[0]?.id || this.selectedMethod;
         try {

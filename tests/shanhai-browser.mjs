@@ -6,7 +6,10 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const url = process.env.BROWSER_URL || 'http://localhost:4173/';
-const reportDir = path.join(root, 'verification', 'shanhai', 'browser');
+const reportOverride = process.env.BROWSER_REPORT_DIR || process.env.BROWSER_OUTPUT_DIR;
+const reportDir = reportOverride
+  ? path.resolve(reportOverride)
+  : path.join(root, 'verification', 'shanhai', 'browser');
 
 function playwrightModule() {
   const require = createRequire(import.meta.url);

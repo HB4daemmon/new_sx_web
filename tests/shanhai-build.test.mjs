@@ -138,6 +138,7 @@ test('dist contains only the Shanhai Pages artifact and all 152 manifest entitie
   const staticFiles = [
     '.nojekyll',
     'art.js',
+    'assets/generated/combat-vfx-atlas.webp',
     'index.html',
     'content/manifest.json',
     ...SHANHAI_MODULES.map(file => `shanhai/${file}`),
@@ -175,6 +176,16 @@ test('dist contains only the Shanhai Pages artifact and all 152 manifest entitie
   for (const forbiddenRootFile of ['PLAY.html', 'data/game.json']) {
     await assert.rejects(readFile(path.join(ROOT, forbiddenRootFile)), error => error?.code === 'ENOENT');
   }
+});
+
+test('combat VFX atlas is copied intact to its runtime asset path', async () => {
+  const source = await readFile(path.join(ROOT, 'assets/generated/combat-vfx-atlas.webp'));
+  const output = await readFile(path.join(DIST, 'assets/generated/combat-vfx-atlas.webp'));
+
+  assert.ok(source.byteLength > 0, 'source combat VFX atlas is empty');
+  assert.deepEqual(output, source, 'built combat VFX atlas differs from its source');
+  assert.equal(output.toString('ascii', 0, 4), 'RIFF');
+  assert.equal(output.toString('ascii', 8, 12), 'WEBP');
 });
 
 test('index and ESM content URLs remain relative under a GitHub Pages subpath', async () => {
@@ -230,6 +241,12 @@ test('temporary HTTP server serves public assets and rejects private or traverse
     const stylesheet = await fetch(`${base}/shanhai/style.css`);
     assert.equal(stylesheet.status, 200);
     assert.equal(stylesheet.headers.get('content-type'), 'text/css; charset=utf-8');
+
+    const atlasSource = await readFile(path.join(ROOT, 'assets/generated/combat-vfx-atlas.webp'));
+    const atlas = await fetch(`${base}/assets/generated/combat-vfx-atlas.webp`);
+    assert.equal(atlas.status, 200);
+    assert.equal(atlas.headers.get('content-type'), 'image/webp');
+    assert.deepEqual(Buffer.from(await atlas.arrayBuffer()), atlasSource);
 
     for (const privatePath of [
       '/docs/shanhai/README.md',

@@ -11,7 +11,10 @@ import { nextCommand } from './shanhai-policy.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const url = process.env.BROWSER_URL || 'http://localhost:4173/';
-const reportDir = path.join(root, 'verification', 'shanhai', 'browser-journey');
+const reportOverride = process.env.BROWSER_REPORT_DIR || process.env.BROWSER_OUTPUT_DIR;
+const reportDir = reportOverride
+  ? path.resolve(reportOverride)
+  : path.join(root, 'verification', 'shanhai', 'browser-journey');
 const screenshotDir = path.join(reportDir, 'screenshots');
 const saveKey = 'suishi-shanhai-run-v1';
 const buildKey = 'suishi-shanhai-build-v1';
