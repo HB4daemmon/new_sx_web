@@ -368,6 +368,7 @@ class ShanhaiApp {
       const restored = loadRun(this.content);
       if (restored) {
         this.game = restored;
+        this.scrollToStageTop = true;
         const restoredState = this.gameStateOf(restored);
         if (!restoredState) throw new Error('存档没有有效状态');
         this.playerName = restoredState.name;
@@ -473,6 +474,7 @@ class ShanhaiApp {
       this.modal = null;
       this.error = '';
       this.notice = '命途已落笔。';
+      this.scrollToStageTop = true;
       this.saveRun();
       this.render();
     } catch (cause) {
@@ -486,6 +488,7 @@ class ShanhaiApp {
     this.modalId = '';
     this.view = 'journey';
     this.stopPlayback();
+    this.scrollToStageTop = true;
     this.game = null;
     this.notice = '';
     this.error = '';
@@ -533,9 +536,10 @@ class ShanhaiApp {
     talent: Entity,
     methodIdValue: unknown,
     className = 'profile-talent',
+    label?: string,
   ): string {
     const name = asText(talent.name, '未名天赋');
-    return `<button type="button" class="${esc(className)}" data-action="inspect-talent" data-id="${esc(talent.id)}" data-method="${esc(asText(methodIdValue))}" aria-label="查看${esc(name)}详录" aria-haspopup="dialog">${esc(name)}</button>`;
+    return `<button type="button" class="${esc(className)}" data-action="inspect-talent" data-id="${esc(talent.id)}" data-method="${esc(asText(methodIdValue))}" aria-label="查看${esc(name)}详录" aria-haspopup="dialog">${esc(label || name)}</button>`;
   }
 
   private talentDetailMarkup(talent: Entity, methodIdValue: unknown): string {
@@ -940,16 +944,26 @@ class ShanhaiApp {
     const action = element.dataset.action;
     if (!action) return '';
     const selector = [`[data-action="${CSS.escape(action)}"]`];
-    for (const key of ['id', 'filter', 'speed', 'choice', 'index'] as const) {
+    for (const key of ['id', 'method', 'filter', 'speed', 'choice', 'index'] as const) {
       const value = element.dataset[key];
       if (value !== undefined) selector.push(`[data-${key}="${CSS.escape(value)}"]`);
     }
-    return selector.join('');
+    const scopes = ['modal', 'main-stage', 'player-rail', 'topbar', 'bottom-nav', 'landing-page'];
+    const region = element.closest<HTMLElement>(scopes.map(scope => `.${scope}`).join(','));
+    const scope = scopes.find(name => region?.classList.contains(name));
+    return `${scope ? `.${scope} ` : ''}${selector.join('')}`;
   }
 
   private focusTarget(selector: string): HTMLElement | undefined {
     return Array.from(this.root.querySelectorAll<HTMLElement>(selector))
-      .find((target) => !target.hasAttribute('disabled') && target.getClientRects().length > 0);
+      .find((target) => {
+        if (target.hasAttribute('disabled') || target.closest('[inert]') || !target.getClientRects().length) return false;
+        for (let parent = target.parentElement; parent; parent = parent.parentElement) {
+          if (parent instanceof HTMLDetailsElement && !parent.open &&
+            !parent.querySelector(':scope > summary')?.contains(target)) return false;
+        }
+        return getComputedStyle(target).visibility === 'visible';
+      });
   }
 
   private focusModal(): void {
@@ -1183,7 +1197,7 @@ class ShanhaiApp {
     if (heading) {
       const kicker = heading.querySelector<HTMLElement>('.eyebrow');
       const title = heading.querySelector<HTMLElement>('h1');
-      if (kicker) kicker.textContent = `第 ${formatNumber(frame.round)} 回合`;
+      if (kicker) kicker.textContent = '交锋';
       if (title) title.textContent = this.battleFinished
         ? this.battleResult()?.outcome === 'player' ? '此战告捷'
           : this.battleResult()?.outcome === 'draw' ? '胜负未分' : '此身入劫'
@@ -1195,9 +1209,7 @@ class ShanhaiApp {
       : `第 ${formatNumber(frame.round)} 回合`;
     const contextText = shell.querySelector<HTMLElement>('[data-battle-context]');
     if (contextText) {
-      contextText.textContent = `${FRAME_KIND_LABEL[asText(frame.kind)] || '战斗'}${
-        frame.actor ? ` · ${frame.actor === 'player' ? '行者' : '敌手'}出手` : ''
-      }`;
+      contextText.textContent = FRAME_KIND_LABEL[asText(frame.kind)] || '战斗';
     }
 
     const core = arena.querySelector<HTMLElement>('.battle-stage-core');
@@ -1207,7 +1219,7 @@ class ShanhaiApp {
       const source = core.querySelector<HTMLElement>('[data-frame-source]');
       const amount = core.querySelector<HTMLElement>('[data-battle-amount]');
       if (seal) seal.textContent = this.battleFinished
-        ? this.battleResult()?.outcome === 'player' ? '胜' : '劫'
+        ? this.battleResult()?.outcome === 'player' ? '胜' : this.battleResult()?.outcome === 'draw' ? '平' : '劫'
         : String(frame.round);
       if (text) text.textContent = localizeBattleText(asText(frame.text, '双方试探'));
       if (frame.source) {
@@ -1359,7 +1371,7 @@ class ShanhaiApp {
           </div>
           <div class="method-grid">${methods.map((method, index) => this.methodChoice(method, index)).join('')}</div>
           <div class="method-detail">${this.methodQuickDetail(selected)}<details class="method-full-detail disclosure" data-details="landing-method"><summary>功法详录</summary>${this.methodDetail(selected)}</details></div>
-          <div class="actions"><button class="button primary" data-action="start" data-autofocus>入山海 ${icon('arrow', 17)}</button></div>
+          <div class="actions"><button class="button primary small" data-action="start" data-autofocus>入山海 ${icon('arrow', 17)}</button></div>
         </section>
       </main>
       ${this.modalMarkup()}
@@ -1381,8 +1393,7 @@ class ShanhaiApp {
     if (!method) return '<p class="empty-note">暂无开局功法。</p>';
     const basic = method.actions?.basic;
     const rage = method.actions?.rage;
-    return `<p class="method-feature">${esc(this.displayText(asText(method.summary, entitySummary(method))))}</p>
-      <div class="method-quick-actions"><span><b>普攻</b><small>${esc(this.displayText(asText(basic?.quick, '稳步出手。')))}</small></span><span><b>怒技</b><small>${esc(this.displayText(asText(rage?.quick, '蓄满怒气后释放。')))}</small></span></div>`;
+    return `<div class="method-quick-actions"><span><b>普攻</b><small>${esc(this.displayText(asText(basic?.quick, '稳步出手。')))}</small></span><span><b>怒技</b><small>${esc(this.displayText(asText(rage?.quick, '蓄满怒气后释放。')))}</small></span></div>`;
   }
 
   private methodDetail(method?: Entity): string {
@@ -1492,16 +1503,18 @@ class ShanhaiApp {
       <div class="panel-body">
         <div class="vital-title"><span>气血</span><strong>${formatNumber(hp)} / ${formatNumber(maxHp)}</strong></div><div class="bar hp"><span style="width:${pct(hp, maxHp)}%"></span></div>
         <div class="vital-title xp-label"><span>修为</span><span>${xpComplete ? '圆满' : `${formatNumber(state.xp)} / ${formatNumber(xpThreshold)}`}</span></div><div class="bar xp"><span style="width:${xpComplete ? 100 : pct(asNumber(state.xp), xpThreshold)}%"></span></div>
-        <div class="stats-grid detailed">${(['attack', 'defense', 'crit_rate', 'speed'] as const).map((key) => `<div class="stat detailed-stat"><span>${icon(key === 'attack' ? 'sword' : key === 'defense' ? 'shield' : key === 'speed' ? 'feather' : 'star', 13)}${STAT_LABEL[key]}</span><b>${key === 'crit_rate' ? `${Math.round(asNumber(stats[key]) * 100)}%` : formatNumber(stats[key])}</b></div>`).join('')}</div>
         <div class="resource-box"><span>${icon('coin', 15)}灵石</span><strong>${formatNumber(state.coins)}</strong></div>
         <details class="disclosure fate-detail" data-details="method-detail"><summary>${icon('book', 17)}${esc(asText(method?.name, '未知功法'))}</summary><p>${esc(this.displayText(asText(method?.summary, entitySummary(method))))}</p></details>
-        <div class="profile-build">
-          <div class="profile-talents"><span class="eyebrow">已选天赋</span><div class="profile-talent-list">${selectedTalents.length ? selectedTalents.map((talent) => this.talentButton(talent, state.method)).join('') : '<span class="muted">未选天赋</span>'}</div></div>
-          <div class="profile-actions"><span class="eyebrow">当前功法动作</span>${actionDetails.map(({ label, action }) => `<div class="profile-action"><b>${esc(label)} · ${esc(asText(action?.name, '动作'))}</b><small>${esc(this.displayText(asText(action?.quick, asText(action?.description, '暂无说明'))))}</small></div>`).join('')}</div>
-        </div>
+        <details class="disclosure" data-details="profile-details"><summary>属性与构筑</summary>
+          <div class="stats-grid detailed">${(['attack', 'defense', 'crit_rate', 'speed'] as const).map((key) => `<div class="stat detailed-stat"><span>${icon(key === 'attack' ? 'sword' : key === 'defense' ? 'shield' : key === 'speed' ? 'feather' : 'star', 13)}${STAT_LABEL[key]}</span><b>${key === 'crit_rate' ? `${Math.round(asNumber(stats[key]) * 100)}%` : formatNumber(stats[key])}</b></div>`).join('')}</div>
+          <div class="profile-build">
+            <div class="profile-talents"><span class="eyebrow">已选天赋</span><div class="profile-talent-list">${selectedTalents.length ? selectedTalents.map((talent) => this.talentButton(talent, state.method)).join('') : '<span class="muted">未选天赋</span>'}</div></div>
+            <div class="profile-actions"><span class="eyebrow">当前功法动作</span>${actionDetails.map(({ label, action }) => `<div class="profile-action"><b>${esc(label)} · ${esc(asText(action?.name, '动作'))}</b><small>${esc(this.displayText(asText(action?.quick, asText(action?.description, '暂无说明'))))}</small></div>`).join('')}</div>
+          </div>
+        </details>
       </div>
     </section>
-    <section class="rail-board"><button class="side-section-title" data-action="tab" data-id="build">命盘 <span>${artifacts.length} 类 ${icon('arrow', 13)}</span></button><div class="mini-build">${artifacts.slice(0, 8).map((stack) => this.artifactMini(stack)).join('') || '<p class="empty-note">尚未收纳法宝。</p>'}</div></section>`;
+    <section class="rail-board"><button class="side-section-title" data-action="tab" data-id="build">命盘 <span>${artifacts.length} 类 ${icon('arrow', 13)}</span></button><details class="disclosure" data-details="profile-artifacts"><summary>持有法宝</summary><div class="mini-build">${artifacts.slice(0, 8).map((stack) => this.artifactMini(stack)).join('') || '<p class="empty-note">尚未收纳法宝。</p>'}</div></details></section>`;
   }
 
   private artifactMini(stack: ArtifactStack): string {
@@ -1523,13 +1536,13 @@ class ShanhaiApp {
     const actions = [method?.actions?.basic, method?.actions?.rage].filter((item) => isRecord(item));
     return `<section class="codex-page">
       ${this.stageHeading('当前命盘', asText(method?.name, state.method))}
-      <section class="build-focus"><div class="build-focus-title"><strong>${esc(asText(method?.name, state.method))}</strong><span>${esc(asText(method?.role, '修行方向'))}</span><span class="gold">境界 · ${esc(this.realmName(state.n))}</span></div>
+      <section class="build-focus"><div class="build-focus-title"><strong>${esc(asText(method?.role, '修行方向'))}</strong><span class="gold">境界 · ${esc(this.realmName(state.n))}</span></div>
         <p class="build-description">${esc(this.displayText(asText(method?.description, entitySummary(method))))}</p>
         <div class="method-actions">${actions.map((action, index) => `<article><b>${index === 0 ? '普攻' : '怒技'}</b><strong>${esc(asText(action?.name, '动作'))}</strong><p>${esc(this.displayText(asText(action?.quick, asText(action?.description, '按功法规则结算。'))))}</p></article>`).join('')}</div>
       </section>
       <section class="build-section"><div class="section-heading"><h2>已选天赋</h2><span>${talents.length} 项</span></div><div class="talent-ledger">${talents.length ? talents.map((talent) => `<article><b>${this.talentButton(talent, state.method, 'talent-record-trigger')}</b><p>${esc(this.displayText(asText(talent.quick, asText(talent.description, ''))))}</p></article>`).join('') : '<p class="empty-note">尚未选择天赋。</p>'}</div></section>
-      <section class="build-section"><div class="section-heading"><h2>法宝图鉴</h2><span>${state.artifacts.length} 类持有 / ${this.entities('artifact').length} 件收录</span></div>
-        <div class="filters" role="group" aria-label="法宝范围"><button class="${this.buildFilter === 'owned' ? 'active' : ''}" data-action="build-filter" data-filter="owned" aria-pressed="${this.buildFilter === 'owned'}">此身所习</button><button class="${this.buildFilter === 'all' ? 'active' : ''}" data-action="build-filter" data-filter="all" aria-pressed="${this.buildFilter === 'all'}">此途道藏</button></div>
+      <section class="build-section"><div class="section-heading"><h2>法宝图鉴</h2><span>已持有 ${state.artifacts.length} 类 · 收录 ${this.entities('artifact').length} 件</span></div>
+        <div class="filters" role="group" aria-label="法宝范围"><button class="${this.buildFilter === 'owned' ? 'active' : ''}" data-action="build-filter" data-filter="owned" aria-pressed="${this.buildFilter === 'owned'}">已持有</button><button class="${this.buildFilter === 'all' ? 'active' : ''}" data-action="build-filter" data-filter="all" aria-pressed="${this.buildFilter === 'all'}">全部法宝</button></div>
         <div class="filters" role="group" aria-label="按品阶筛选">${([
           ['all', '全部品阶'],
           ['common', '普通'],
@@ -1550,22 +1563,11 @@ class ShanhaiApp {
 
   private artifactCard(artifact: Entity, stacks: number): string {
     const rarity = entityRarity(artifact);
-    const attributes = isRecord(artifact.attributes) ? artifact.attributes : {};
-    const flat = isRecord(attributes.flat) ? attributes.flat : {};
-    const percent = isRecord(attributes.percent) ? attributes.percent : {};
-    const effects = listOf<any>(artifact.effects).map((effect) => effectText(effect)).filter(Boolean);
-    const behavior = listOf<any>(artifact.behavior || artifact.behaviors || artifact.triggers).map((effect) => effectText(effect)).filter(Boolean);
-    const attributeLines = [
-      ...Object.entries(flat).map(([key, value]) => `${statLabel(key)} +${key === 'crit_rate' ? `${formatPercentPoints(value)}%` : formatNumber(value)}`),
-      ...Object.entries(percent).map(([key, value]) => `${statLabel(key)} +${formatPercentPoints(value)}%`),
-    ];
-    const effectLines = [...attributeLines, ...effects].slice(0, 5);
-    const behaviorLines = behavior.length ? behavior.map((line) => this.displayText(line)) : [this.displayText(entitySummary(artifact)) || '随行生效。'];
     return `<button type="button" class="ability-card rarity-${esc(rarity)} ${stacks ? 'owned' : ''}" data-action="inspect-artifact" data-id="${esc(artifact.id)}">
       <div class="card-top"><span class="rarity-label rarity-${esc(rarity)}">${esc(rarityLabel(rarity))}</span><span class="card-rank">${stacks ? `×${formatNumber(stacks)}` : '未持有'}</span></div>
       <div class="card-heading">${sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : rarity === 'rare' ? 'shield' : 'jade')}<h3 class="card-title rarity-${esc(rarity)}">${esc(artifact.name)}</h3></div>
-      <div class="ability-sections" aria-label="效果与触发方式"><section class="ability-section ability-effect-section"><h4>效果</h4><div class="ability-effects">${effectLines.map((line) => `<p>${esc(line)}</p>`).join('') || '<p>暂无属性变化。</p>'}</div></section><section class="ability-section ability-behavior-section"><h4>触发方式</h4><div class="ability-behavior">${behaviorLines.map((line) => `<p>${esc(line)}</p>`).join('')}</div></section></div>
-      <div class="card-foot"><span class="gain">${stacks ? `此身所持 · ×${formatNumber(stacks)}` : '尚未纳入命盘'}</span>${icon('arrow', 14)}</div>
+      <p class="ability-overview">${esc(this.displayText(entitySummary(artifact)) || '法宝效果详录可查看。')}</p>
+      <div class="card-foot"><span class="gain">${stacks ? '已纳入命盘' : '尚未纳入命盘'}</span><span>查看详录 ${icon('arrow', 14)}</span></div>
     </button>`;
   }
 
@@ -1583,7 +1585,7 @@ class ShanhaiApp {
       .map(([id]) => this.flagLabel(id))
       .filter(Boolean);
     return `<section class="karma-page">
-      ${this.stageHeading('因缘', '行迹与因果', '山海留痕。')}
+      ${this.stageHeading('因缘', '行迹与因果')}
       <section class="karma-ledger"><div class="karma-summary"><span>因缘</span><strong>${esc(asText(storyline?.name, '尚未相逢'))}</strong><p>${esc(this.displayText(entitySummary(storyline)) || '山河尚未留下这段因缘。')}</p></div><div class="karma-summary"><span>行迹记录</span><strong>${history.length}</strong><p>走过的节点与已经落定的选择。</p></div></section>
       ${encounteredPeople.length ? `<section class="build-section karma-characters"><div class="section-heading"><h2>相逢人物</h2><span>${encounteredPeople.length} 位</span></div><div class="build-tags">${encounteredPeople.map((name) => `<span>${esc(name)}</span>`).join('')}</div></section>` : ''}
       <section class="build-section"><div class="section-heading"><h2>留下的约定</h2><span>${flagLabels.length} 项</span></div><div class="build-tags">${flagLabels.map((label) => `<span>${esc(label)}</span>`).join('') || '<span>尚无约定</span>'}</div></section>
@@ -1872,10 +1874,10 @@ class ShanhaiApp {
       const previousFrame = absolute > 0 ? frames[absolute - 1] : undefined;
       return this.battleLogRow(item, previousFrame);
     }).join('');
-    return `${this.stageHeading(`第 ${frame.round} 回合`, this.battleFinished ? (result?.outcome === 'player' ? '此战告捷' : result?.outcome === 'draw' ? '胜负未分' : '此身入劫') : '斗法', '', true)}
+    return `${this.stageHeading('交锋', this.battleFinished ? (result?.outcome === 'player' ? '此战告捷' : result?.outcome === 'draw' ? '胜负未分' : '此身入劫') : '斗法', '', true)}
       <section class="battle-shell" data-battle-key="${esc(this.battleKey)}" data-paused="${this.battlePaused || Boolean(this.modal)}" style="--beat-duration:${battleBeatDuration(frame, this.battleSpeed)}ms">
-        <div class="battle-context"><span data-battle-round>${this.battleFinished ? `历 ${formatNumber(result?.rounds)} 回合` : `第 ${formatNumber(frame.round)} 回合`}</span><strong data-battle-context>${esc(frameKind)}${frame.actor ? ` · ${frame.actor === 'player' ? '行者' : '敌手'}出手` : ''}</strong></div>
-        <div class="combat-arena" data-frame-index="${this.battleCursor}" data-frame-kind="${esc(asText(frame.kind))}" data-action-kind="${cue.actionKind}" data-motion-trigger="${this.battleCursor % 2}">${landscape()}<span class="arena-vignette" aria-hidden="true"></span>${this.fighterMarkup(frame.player, 'player', frame.actor === 'player', frame, cue)}<div class="battle-stage-core"><span class="round-seal">${this.battleFinished ? (result?.outcome === 'player' ? '胜' : '劫') : frame.round}</span><strong data-frame-text>${esc(localizeBattleText(asText(frame.text, '双方试探')))}</strong>${frame.source ? `<small data-frame-source>${esc(this.sourceLabel(frame.source))}</small>` : ''}<span data-battle-amount>${this.battleAmountMarkup(frame, previous)}</span></div>${this.fighterMarkup(frame.enemy, 'enemy', frame.actor === 'enemy', frame, cue)}${feedback}</div>
+        <div class="battle-context"><span data-battle-round>${this.battleFinished ? `历 ${formatNumber(result?.rounds)} 回合` : `第 ${formatNumber(frame.round)} 回合`}</span><strong data-battle-context>${esc(frameKind)}</strong></div>
+        <div class="combat-arena" data-frame-index="${this.battleCursor}" data-frame-kind="${esc(asText(frame.kind))}" data-action-kind="${cue.actionKind}" data-motion-trigger="${this.battleCursor % 2}">${landscape()}<span class="arena-vignette" aria-hidden="true"></span>${this.fighterMarkup(frame.player, 'player', frame.actor === 'player', frame, cue)}<div class="battle-stage-core"><span class="round-seal">${this.battleFinished ? (result?.outcome === 'player' ? '胜' : result?.outcome === 'draw' ? '平' : '劫') : frame.round}</span><strong data-frame-text>${esc(localizeBattleText(asText(frame.text, '双方试探')))}</strong>${frame.source ? `<small data-frame-source>${esc(this.sourceLabel(frame.source))}</small>` : ''}<span data-battle-amount>${this.battleAmountMarkup(frame, previous)}</span></div>${this.fighterMarkup(frame.enemy, 'enemy', frame.actor === 'enemy', frame, cue)}${feedback}</div>
         <div class="battle-controls"><div class="speeds" role="group" aria-label="战斗速度"><button data-action="battle-speed" data-speed="1" data-focus-key="battle-speed-1" aria-pressed="${this.battleSpeed === 1}" aria-label="一倍速">1×</button><button data-action="battle-speed" data-speed="2" data-focus-key="battle-speed-2" aria-pressed="${this.battleSpeed === 2}" aria-label="二倍速">2×</button><button data-action="battle-speed" data-speed="4" data-focus-key="battle-speed-4" aria-pressed="${this.battleSpeed === 4}" aria-label="四倍速">4×</button><button data-action="battle-pause" data-focus-key="battle-pause" aria-pressed="${this.battlePaused}" aria-label="${this.battlePaused ? '继续播放' : '暂停播放'}">${this.battlePaused ? '继续' : '暂停'}</button></div>${this.battleControlAction(state)}</div>
         <div class="replay-progress" aria-label="战斗播放进度"><i style="width:${frames.length <= 1 ? 100 : Math.round(this.battleCursor / Math.max(1, frames.length - 1) * 100)}%"></i></div>
         ${this.battleLoadout(state)}
@@ -1902,7 +1904,14 @@ class ShanhaiApp {
   private battleSettlementMarkup(): string {
     if (!this.battleFinished) return '';
     const result = this.battleResult();
-    return `<section class="battle-settlement" aria-label="斗法结算"><p>${result?.outcome === 'player' ? `胜局 · ${formatNumber(result?.rounds)} 回合 · 留存气血 ${formatNumber(result?.playerHp)}` : result?.outcome === 'draw' ? `僵持 · ${formatNumber(result?.rounds)} 回合 · 可继续推演` : `败局 · ${formatNumber(result?.rounds)} 回合`}</p><details class="end-diagnostics" data-details="battle-diagnostics"><summary>斗法详录</summary>${this.battleDiagnostics(result)}</details></section>`;
+    const note = result?.outcome === 'player'
+      ? `留存气血 ${formatNumber(result?.playerHp)}`
+      : result?.outcome === 'draw'
+        ? asNumber(this.gameState()?.battleInput?.roundLimit) < 4096
+          ? '胜负未分，可继续交锋。'
+          : '僵持已久，可收手离去。'
+        : '';
+    return `<section class="battle-settlement" aria-label="斗法结算">${note ? `<p>${note}</p>` : ''}<details class="end-diagnostics" data-details="battle-diagnostics"><summary>斗法详录</summary>${this.battleDiagnostics(result)}</details></section>`;
   }
 
   private battleLoadout(state: RunState): string {
@@ -2190,19 +2199,11 @@ class ShanhaiApp {
     const artifact = this.artifactEntity(id);
     const rarity = entityRarity(artifact);
     const owned = listOf<ArtifactStack>(this.gameState()?.artifacts).find((stack) => stack.id === id);
-    const attributes = isRecord(artifact?.attributes) ? artifact.attributes : {};
-    const flat = isRecord(attributes.flat) ? attributes.flat : {};
-    const percent = isRecord(attributes.percent) ? attributes.percent : {};
-    const attributesLines = [
-      ...Object.entries(flat).map(([key, value]) => `${statLabel(key)} +${key === 'crit_rate' ? `${formatPercentPoints(value)}%` : formatNumber(value)}`),
-      ...Object.entries(percent).map(([key, value]) => `${statLabel(key)} +${formatPercentPoints(value)}%`),
-    ].slice(0, 3);
     return `<article class="reward-card compact-choice-card rarity-${esc(rarity)}" data-id="${esc(id)}">
       <div class="reward-card-top"><span class="rarity-chip ${esc(rarity)}">${esc(RARITY_LABEL[rarity] || '普通')}</span>${owned ? `<span class="stack-note">已有 ×${formatNumber(owned.stacks)} · 叠加后 ×${formatNumber(owned.stacks + 1)}</span>` : '<span class="stack-note">首次获得</span>'}</div>
       <span class="choice-emblem" aria-hidden="true">${sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : rarity === 'rare' ? 'gold' : 'jade')}</span>
       <h2>${esc(asText(artifact?.name, '未名法宝'))}</h2><p>${esc(localizeVisibleText(entitySummary(artifact)))}</p>
-      <div class="attribute-list">${attributesLines.map((line) => `<span>${esc(line)}</span>`).join('') || '<span>随行生效</span>'}</div>
-      <div class="compact-choice-actions"><button class="button small quiet" data-action="inspect-artifact" data-id="${esc(id)}">详录</button><button class="button small primary" data-action="reward" data-id="${esc(id)}">纳入 ${icon('arrow', 14)}</button></div>
+      <div class="compact-choice-actions"><button class="button small primary" data-action="reward" data-id="${esc(id)}">纳入命盘 ${icon('arrow', 14)}</button><button class="button small quiet" data-action="inspect-artifact" data-id="${esc(id)}">查看详录</button></div>
     </article>`;
   }
 
@@ -2211,7 +2212,7 @@ class ShanhaiApp {
     if (!event) return this.renderErrorState('找不到当前事件内容。');
     const resultPhase = state.phase === 'event_result';
     const options = listOf<Entity>(event.options);
-    return `<section class="event-page"><div class="event-scene-head"><div class="event-portrait">${portrait(this.visualKind(event, event), true)}</div><div><span class="eyebrow">${esc(event.event_type === 'core' ? '人物机缘' : '行旅事件')}</span><h2>${esc(asText(event.name, '山海一刻'))}</h2><small class="event-phase-caption">${resultPhase ? '结果已落定' : '请选择你的行旅'}</small></div></div>
+    return `<section class="event-page"><div class="event-scene-head"><div class="event-portrait">${portrait(this.visualKind(event, event), true)}</div><div><span class="eyebrow">${esc(event.event_type === 'core' ? '人物机缘' : '行旅事件')}</span><h2>${esc(asText(event.name, '山海一刻'))}</h2></div></div>
       ${resultPhase ? `<div class="event-result"><p>${esc(this.displayText(asText(state.resultText, '选择已经落定。')))}</p></div>` : `<p class="story-text">${esc(this.displayText(asText(event.scene || event.description, '风声停在你面前。')))}</p><div class="story-choices">${options.map((option) => `<div class="story-choice-wrap">${this.eventOption(option)}</div>`).join('')}</div>`}
       ${resultPhase ? `<div class="actions"><button class="button primary" data-action="continue" data-autofocus>继续前行 ${icon('arrow', 16)}</button></div>` : ''}${this.inlineMessage()}</section>`;
   }
@@ -2258,7 +2259,7 @@ class ShanhaiApp {
 
   private shopView(state: RunState): string {
     const items = listOf<any>(state.shop);
-    return `${this.stageHeading('坊市', '云游坊市')}<div class="shop-balance"><span>${icon('coin', 18)}当前灵石 <b>${formatNumber(state.coins)}</b></span><span>库存 ${items.filter((item) => !item.sold).length} / ${items.length || 5}</span></div>
+    return `${this.stageHeading('沿途补给', '坊市')}<div class="shop-balance"><span>${icon('coin', 18)}当前灵石 <b>${formatNumber(state.coins)}</b></span><span>库存 ${items.filter((item) => !item.sold).length} / ${items.length || 5}</span></div>
       <div class="shop-grid">${items.map((item) => this.shopItem(item)).join('') || '<p class="empty-note">坊市没有可展示的库存。</p>'}</div><div class="stage-actions"><button class="button primary" data-action="leave-shop" data-autofocus>离开坊市 ${icon('arrow', 16)}</button></div>${this.inlineMessage()}`;
   }
 
@@ -2274,7 +2275,11 @@ class ShanhaiApp {
     const amount = kind === 'recovery' ? 0.12 * this.referenceHp() : kind === 'preparation' ? 0.10 * this.referenceHp() : 0;
     const description = artifact ? entitySummary(artifact) : kind === 'recovery' ? `恢复 ${formatNumber(amount)} 气血。` : `为下一场战斗准备 ${formatNumber(amount)} 护盾。`;
     const disabledReason = sold ? '' : preparationHeld ? `已有 ${formatNumber(state?.preparation)} 预备护盾` : asNumber(state?.coins) < price ? '灵石不足' : '';
-    return `<article class="shop-item ${sold ? 'sold' : ''} ${artifact ? `rarity-${esc(entityRarity(artifact))}` : 'service-item'}"><div class="shop-item-art">${sigil(artifact ? this.artifactIcon(artifact) : kind === 'recovery' ? 'gourd' : 'shield', artifact ? 'jade' : 'shield')}</div><div class="shop-item-copy"><span class="rarity-chip ${artifact ? esc(entityRarity(artifact)) : ''}">${artifact ? esc(RARITY_LABEL[entityRarity(artifact)] || entityRarity(artifact)) : '服务'}</span><h2>${esc(label)}</h2><p>${esc(description)}</p>${!sold && !canBuy ? `<small class="shop-item-unavailable" role="status">${esc(disabledReason || '暂不可购买')}</small>` : ''}</div>${sold ? '<span class="sold-stamp">售罄</span>' : `<button class="button small" data-action="buy" data-id="${esc(asText(item.id))}" title="${esc(disabledReason)}" ${canBuy ? '' : 'disabled'}>${icon('coin', 13)}${formatNumber(price)}</button>`}</article>`;
+    const detailButton = artifact
+      ? `<button class="button small quiet" data-action="inspect-artifact" data-id="${esc(asText(item.id))}">查看详录</button>`
+      : '';
+    const buyButton = sold ? '<span class="sold-stamp">售罄</span>' : `<button class="button small" data-action="buy" data-id="${esc(asText(item.id))}" title="${esc(disabledReason)}" ${canBuy ? '' : 'disabled'}>${icon('coin', 13)}${formatNumber(price)}</button>`;
+    return `<article class="shop-item ${sold ? 'sold' : ''} ${artifact ? `rarity-${esc(entityRarity(artifact))}` : 'service-item'}"><div class="shop-item-art">${sigil(artifact ? this.artifactIcon(artifact) : kind === 'recovery' ? 'gourd' : 'shield', artifact ? 'jade' : 'shield')}</div><div class="shop-item-copy"><span class="rarity-chip ${artifact ? esc(entityRarity(artifact)) : ''}">${artifact ? esc(RARITY_LABEL[entityRarity(artifact)] || entityRarity(artifact)) : '服务'}</span><h2>${esc(label)}</h2><p>${esc(description)}</p>${!sold && !canBuy ? `<small class="shop-item-unavailable" role="status">${esc(disabledReason || '暂不可购买')}</small>` : ''}</div>${detailButton}${buyButton}</article>`;
   }
 
   private restView(state: RunState): string {
@@ -2290,7 +2295,7 @@ class ShanhaiApp {
     const choices = fromEvent
       ? `<div class="rest-event-note">这份机缘只留下换法的机会。</div>${swapList}`
       : `<div class="rest-grid"><button class="rest-choice" data-action="rest" data-choice="heal"><span>${sigil('gourd', 'shield')}</span><b>调息</b><p>恢复 ${formatNumber(healAmount)} 气血，不增加怒气。</p><small>占用本次休整</small></button><button class="rest-choice" data-action="rest" data-choice="preparation" ${state.preparation > 0 ? 'disabled' : ''}><span>${sigil('shield', 'jade')}</span><b>备战</b><p>为下一场战斗准备 ${formatNumber(prepAmount)} 护盾。</p><small>${state.preparation > 0 ? `已有 ${formatNumber(state.preparation)} 护盾` : '占用本次休整'}</small></button><button class="rest-choice" data-action="rest" data-choice="swap_method" ${swapDisabled ? 'disabled' : ''}><span>${sigil('book', 'gold')}</span><b>换法</b><p>${swapDisabled ? '还没有第二门已拥有的功法。' : '切换已拥有的功法，天赋各自保留。'}</p><small>${swapDisabled ? '暂不可用' : '先选换法，再点一门功法'}</small></button></div>${swapList}`;
-    return `${this.stageHeading('途中歇息', '山中一息', fromEvent ? '风停在山腰。' : '')}
+    return `${this.stageHeading('途中歇息', '山中一息')}
       <section class="rest-summary"><div><span>当前气血</span><b>${formatNumber((this.game?.player as any)?.hp, 0)} / ${formatNumber(this.stats().max_hp)}</b></div><div><span>预备护盾</span><b>${formatNumber(state.preparation)}</b></div><div><span>当前功法</span><b>${esc(asText(currentMethod?.name, state.method))}</b></div></section>
       ${choices}${this.inlineMessage()}`;
   }
@@ -2298,14 +2303,12 @@ class ShanhaiApp {
   private talentView(state: RunState): string {
     const talents = this.talentObjects();
     return `${this.stageHeading('修为突破', '一念悟道')}<div class="talent-grid">${talents.map((talent) => {
-      const effects = listOf<any>(talent.effects);
       return `<article class="talent-card compact-choice-card" data-id="${esc(talent.id)}">
         <span class="talent-tier">第 ${asNumber(talent.tier, 1)} 层 · ${localizeBranch(talent.branch)}</span>
         <span class="choice-emblem" aria-hidden="true">${sigil('book', 'gold')}</span>
         <h2>${esc(asText(talent.name, '未名天赋'))}</h2>
         <b>${esc(this.displayText(asText(talent.quick, '长久修行所得')))}</b>
-        <details class="talent-full-detail" data-details="talent-${esc(talent.id)}"><summary>完整效果</summary><div>${effects.map((effect) => `<p>${esc(effectText(effect, (value) => this.displayText(value)))}</p>`).join('') || `<p>${esc(this.displayText(asText(talent.description)))}</p>`}</div></details>
-        <button class="button small primary talent-select" data-action="talent" data-id="${esc(talent.id)}">悟得此法 ${icon('arrow', 14)}</button>
+        <div class="compact-choice-actions">${this.talentButton(talent, state.method, 'button small quiet talent-detail-trigger', '查看详录')}<button class="button small primary talent-select" data-action="talent" data-id="${esc(talent.id)}">悟得此法 ${icon('arrow', 14)}</button></div>
       </article>`;
     }).join('') || '<p class="empty-note">暂无可用天赋。</p>'}</div>${this.inlineMessage()}`;
   }
@@ -2313,16 +2316,16 @@ class ShanhaiApp {
   private transitionView(state: RunState): string {
     const act = this.currentAct();
     const story = isRecord(act.story) ? act.story : {};
-    return `${this.stageHeading('幕间', asText(story.title || act.name, `第${state.act}幕`))}<section class="transition-scene">${landscape()}<div><span class="eyebrow">幕间</span><p>${esc(this.displayText(story.passage || story.boss_after || act.description, '你踏上下一段山海路。'))}</p></div></section><div class="stage-actions"><button class="button primary" data-action="continue" data-autofocus>进入下一幕 ${icon('arrow', 16)}</button></div>${this.inlineMessage()}`;
+    return `${this.stageHeading('幕间', asText(story.title || act.name, `第${state.act}幕`))}<section class="transition-scene">${landscape()}<div><p>${esc(this.displayText(story.passage || story.boss_after || act.description, '你踏上下一段山海路。'))}</p></div></section><div class="stage-actions"><button class="button primary" data-action="continue" data-autofocus>进入下一幕 ${icon('arrow', 16)}</button></div>${this.inlineMessage()}`;
   }
 
   private endView(state: RunState): string {
     const win = state.phase === 'won';
     const result = state.battle;
     const artifacts = listOf<ArtifactStack>(state.artifacts);
-    return `${this.stageHeading(win ? '山海行完成' : '此局止步', win ? '你写下了自己的道' : '这一次，山海先记住你')}
+    return `${this.stageHeading('行旅归档', asText(state.name, '无名行者'))}
       <p class="end-result-text">${esc(this.displayText(state.resultText, win ? '终战已毕。' : '失败不会抹去此行的选择。'))}</p>
-      <section class="end-seal ${win ? 'win' : 'loss'}">${sigil(win ? 'sun' : 'moon', win ? 'gold' : 'fire')}<b>${win ? '通关' : '退场'}</b><span>${esc(asText(state.name, '无名行者'))}</span></section>
+      <section class="end-seal ${win ? 'win' : 'loss'}">${sigil(win ? 'sun' : 'moon', win ? 'gold' : 'fire')}<b>${win ? '通关' : '退场'}</b></section>
       <div class="end-summary"><div><span>行过节点</span><b>${state.history.length}</b></div><div><span>修为</span><b>${formatNumber(state.xp)}</b></div><div><span>灵石</span><b>${formatNumber(state.coins)}</b></div><div><span>法宝</span><b>${artifacts.reduce((total, item) => total + asNumber(item.stacks, 1), 0)}</b></div></div>
       ${result ? `<details class="end-diagnostics" data-details="end-diagnostics"><summary>最终斗法来源</summary>${this.battleDiagnostics(result)}</details>` : ''}<div class="stage-actions"><button class="button primary" data-action="export">${icon('arrow', 16)}导出命途记录</button><button class="button quiet" data-action="archives">查看通关构筑</button><button class="button quiet" data-action="new-run">重新起笔</button></div>${this.inlineMessage()}`;
   }
@@ -2472,6 +2475,7 @@ class ShanhaiApp {
         this.game = null;
         this.modal = null;
         this.modalId = '';
+        this.scrollToStageTop = true;
         this.render();
         break;
       case 'tab': {
@@ -2687,11 +2691,13 @@ class ShanhaiApp {
         this.send({ type: 'talent', id: asText(target.dataset.id) });
         break;
       case 'new-run':
+        this.stopPlayback();
         this.game = null;
         this.modal = null;
         this.modalId = '';
         this.view = 'journey';
         this.seed = '';
+        this.scrollToStageTop = true;
         this.selectedMethod = this.startMethods()[0]?.id || this.selectedMethod;
         try {
           clearSavedRun();

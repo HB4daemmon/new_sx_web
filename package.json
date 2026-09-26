@@ -13,6 +13,7 @@
     "test:browser": "node tests/shanhai-browser.mjs",
     "test:journey": "node tests/shanhai-browser-journey.mjs",
     "test:motion": "node tests/shanhai-motion-browser.mjs",
+    "test:ui": "node tests/shanhai-mature-ui.mjs",
     "calibrate": "node tests/shanhai-calibrate.mjs"
   },
   "devDependencies": {

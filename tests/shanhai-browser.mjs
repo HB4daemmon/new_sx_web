@@ -3,6 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { pauseNextReplay } from './shanhai-replay-fixture.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const url = process.env.BROWSER_URL || 'http://localhost:4173/';
@@ -204,10 +205,9 @@ async function setReplayFrame(page, kind, target) {
     localStorage.setItem('suishi-shanhai-replay-v1', JSON.stringify({ key, cursor: index }));
     return index;
   }, { kind, target });
+  await pauseNextReplay(page);
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.locator('#shanhai-app').waitFor();
-  // Pin the fixture before Playwright's animation-stability wait can advance it.
-  await page.locator('[data-action="battle-pause"]').evaluate(button => button.click());
   await page.waitForFunction(() =>
     document.querySelector('.battle-shell')?.getAttribute('data-paused') === 'true');
   const renderedIndex = Number(await page.locator('.combat-arena').getAttribute('data-frame-index'));
@@ -406,6 +406,9 @@ async function run() {
       const continueButton = desktop.locator('[data-action="continue-battle"]');
       assert.equal(await continueButton.isDisabled(), true);
       assert.match(await continueButton.textContent(), /4096/);
+      assert.equal(await desktop.locator('.round-seal').textContent(), '平');
+      assert.match(await desktop.locator('.battle-settlement > p').textContent(), /收手/);
+      assert.doesNotMatch(await desktop.locator('.battle-settlement > p').textContent(), /继续/);
       assert.ok(await desktop.locator('[data-action="retire"]').isVisible());
       await noOverflow(desktop, 'desktop max draw');
     });
@@ -431,7 +434,10 @@ async function run() {
       await desktop.reload({ waitUntil: 'networkidle' });
       await createFixture(desktop, 'reward', 'browser-copy');
       await forceRewardCandidate(desktop, 'RC07');
-      assert.match(await desktop.locator('.reward-card .attribute-list').textContent(), /暴击\s*\+2%/);
+      assert.match(await desktop.locator('.reward-card > p').textContent(), /暴击率\s*\+2\s*个百分点/);
+      await desktop.locator('.reward-card [data-action="inspect-artifact"]').click();
+      assert.match(await desktop.locator('.item-dialog .attribute-list').textContent(), /暴击\s*\+2%/);
+      await desktop.locator('.item-dialog [data-action="modal-close"][data-autofocus]').click();
 
       await desktop.goto(url, { waitUntil: 'networkidle' });
       await clearStorage(desktop);

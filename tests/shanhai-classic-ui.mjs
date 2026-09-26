@@ -3,6 +3,7 @@ import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
+import { pauseNextReplay } from './shanhai-replay-fixture.mjs';
 
 const url = process.env.BROWSER_URL || 'http://localhost:4173/';
 const saveKey = 'suishi-shanhai-run-v1';
@@ -161,11 +162,11 @@ async function setReplayCursor(page, cursor, reload = true, pauseImmediately = f
     }));
   }, { replayKey, cursor, key: snapshot.key, length: snapshot.frames.length });
   if (reload) {
+    if (pauseImmediately) await pauseNextReplay(page);
     await page.reload({ waitUntil: 'domcontentloaded' });
     await waitForApp(page);
     await waitForPhase(page, 'battle');
     if (pauseImmediately) {
-      await clickVisibleAction(page, 'battle-pause');
       await page.locator('.battle-shell[data-paused="true"]').waitFor();
     }
   }
@@ -182,6 +183,41 @@ async function noOverflow(page, label) {
   assert.ok(result.bodyWidth <= result.viewport + 1,
     `${label}: body 横向溢出 ${JSON.stringify(result)}`);
   return result;
+}
+
+async function assertReadable(page, selector, label, minimum = 12) {
+  const metrics = await page.locator(selector).evaluateAll(elements => elements
+    .filter(element => element.getClientRects().length > 0)
+    .map(element => ({
+      text: (element.textContent || '').trim().slice(0, 36),
+      fontSize: Number.parseFloat(getComputedStyle(element).fontSize),
+    })));
+  assert.ok(metrics.length > 0, `${label}: 缺少可见文本 ${selector}`);
+  const small = metrics.filter(item => item.fontSize < minimum);
+  assert.deepEqual(small, [],
+    `${label}: 可读字号低于 ${minimum}px ${JSON.stringify(small)}`);
+  return metrics;
+}
+
+async function assertTouchTarget(locator, label) {
+  await locator.waitFor({ state: 'visible' });
+  await locator.scrollIntoViewIfNeeded();
+  const rect = await locator.boundingBox();
+  assert.ok(rect && rect.width >= 44 && rect.height >= 44,
+    `${label}: 点击区域不足 44px ${JSON.stringify(rect)}`);
+  const navRect = await locator.evaluate(element => {
+    if (element.closest('.bottom-nav')) return null;
+    const nav = document.querySelector('.bottom-nav');
+    if (!nav || !nav.getClientRects().length) return null;
+    const value = nav.getBoundingClientRect();
+    return { x: value.x, y: value.y, width: value.width, height: value.height };
+  });
+  assert.ok(!navRect || rect.y + rect.height <= navRect.y + 1,
+    `${label}: 底部导航遮住了操作入口 ${JSON.stringify({ rect, navRect })}`);
+  const fontSize = await locator.evaluate(element =>
+    Number.parseFloat(getComputedStyle(element).fontSize));
+  assert.ok(fontSize >= 13, `${label}: 按钮文字字号低于 13px (${fontSize}px)`);
+  return rect;
 }
 
 async function assertVisualAssets(page, label) {
@@ -257,7 +293,11 @@ async function createFixture(page, target, seed = `classic-ui-${target}`, option
         const available = game.availableNodes();
         const preferredTypes = target === 'event' && game.state.step === 1
           ? ['E', 'K']
-          : [];
+          : target === 'rest' && game.state.step === 3
+            ? ['R']
+            : target === 'shop' && game.state.step === 5
+              ? ['S']
+              : [];
         const node = available.find(candidate => preferredTypes.includes(candidate.type)) || available[0];
         if (!node) throw new Error(`Fixture has no reachable node at step ${game.state.step}`);
         game.dispatch({ type: 'enter', id: node.key });
@@ -517,12 +557,15 @@ async function assertTabReadOnly(page, width) {
     journey: /山河|第一幕|地图/,
   };
   for (const id of ['build', 'karma', 'journey']) {
-    await clickVisibleAction(page, 'tab', { id });
+    const tab = await clickVisibleAction(page, 'tab', { id });
+    await assertTouchTarget(tab, `${width} ${id} 导航`);
     await page.locator(`${tabHost} [data-action="tab"][data-id="${id}"][aria-current="page"]`)
       .waitFor({ state: 'visible' });
     const stageText = await page.locator('.main-stage').textContent();
     assert.match(stageText || '', expectedHeadings[id], `${width}: ${id} tab 没有渲染对应页面`);
     assert.equal(await currentPhase(page), 'map', `${width}: 查看 ${id} 改变了游戏 phase`);
+    await noOverflow(page, `${width} ${id}`);
+    await assertReadable(page, '.main-stage h1', `${width} ${id} 标题`);
     await assertNoAlerts(page, `${width} ${id} tab`);
   }
   const after = await storageSnapshot(page);
@@ -586,6 +629,9 @@ async function assertBuildSurface(page, width) {
     `${width}: 命盘页没有展示法宝叠层`);
   assert.ok(await page.locator('.deck-grid, .build-focus, .profile-build').count() > 0,
     `${width}: 命盘页缺少构筑内容区域`);
+  await noOverflow(page, `${width} build`);
+  await assertReadable(page, '.build-focus-title, .ability-card .card-title, .talent-ledger article p',
+    `${width} build 内容`);
 
   const railTalentTrigger = page.locator('.player-rail .profile-talent').first();
   const talentTrigger = await railTalentTrigger.isVisible()
@@ -596,6 +642,11 @@ async function assertBuildSurface(page, width) {
   assert.match(await talentTrigger.getAttribute('aria-label') || '', /详录/,
     `${width}: 玩家栏天赋入口缺少明确的无障碍名称`);
   await talentTrigger.focus();
+  const talentTriggerIdentity = await talentTrigger.evaluate(element => ({
+    id: element.getAttribute('data-id'),
+    method: element.getAttribute('data-method'),
+    region: element.closest('.player-rail') ? 'rail' : 'main',
+  }));
   await page.keyboard.press('Enter');
   const talentDialog = page.locator('.talent-dialog[role="dialog"][aria-modal="true"]');
   await talentDialog.waitFor({ state: 'visible' });
@@ -606,11 +657,39 @@ async function assertBuildSurface(page, width) {
     `${width}: 天赋详录缺少完整效果`);
   await talentDialog.locator('[data-action="modal-close"][data-autofocus]').click();
   await page.locator('.talent-dialog').waitFor({ state: 'detached' });
-  assert.ok(await page.evaluate((talentName) => {
+  const restoredTalentFocus = await page.evaluate(({ id, method }) => {
     const active = document.activeElement;
-    return active?.getAttribute('data-action') === 'inspect-talent' &&
-      active?.textContent?.trim() === talentName;
-  }, seeded.talentName), `${width}: 关闭天赋详录后焦点没有返回原入口`);
+    return {
+      action: active?.getAttribute('data-action') || null,
+      id: active?.getAttribute('data-id') || null,
+      method: active?.getAttribute('data-method') || null,
+      region: active?.closest('.player-rail') ? 'rail' : 'main',
+      text: active?.textContent?.trim().slice(0, 40) || null,
+      expectedId: id,
+      expectedMethod: method,
+    };
+  }, talentTriggerIdentity);
+  assert.equal(restoredTalentFocus.action, 'inspect-talent',
+    `${width}: 关闭天赋详录后焦点没有返回原入口 ${JSON.stringify(restoredTalentFocus)}`);
+  assert.equal(restoredTalentFocus.id, talentTriggerIdentity.id,
+    `${width}: 天赋详录焦点返回了错误天赋 ${JSON.stringify(restoredTalentFocus)}`);
+  assert.equal(restoredTalentFocus.method, talentTriggerIdentity.method,
+    `${width}: 天赋详录焦点返回了错误功法入口 ${JSON.stringify(restoredTalentFocus)}`);
+  assert.equal(restoredTalentFocus.region, talentTriggerIdentity.region,
+    `${width}: 天赋详录焦点返回了错误的页面区域`);
+  const profileDetails = page.locator('.player-rail details[data-details="profile-details"]');
+  if (await profileDetails.isVisible()) {
+    await profileDetails.locator('summary').click();
+    const ledgerTalent = page.locator('.talent-ledger .talent-record-trigger').first();
+    await ledgerTalent.click();
+    await talentDialog.waitFor({ state: 'visible' });
+    await page.keyboard.press('Escape');
+    await talentDialog.waitFor({ state: 'detached' });
+    assert.equal(await ledgerTalent.evaluate(element => element === document.activeElement), true,
+      `${width}: 同一天赋的侧栏入口可见时，焦点应返回命盘原入口`);
+    await profileDetails.locator('summary').click();
+  }
+  await noOverflow(page, `${width} talent detail`);
 
   const filters = page.locator('[data-action="build-filter"]');
   assert.equal(await filters.count(), 2, `${width}: 命盘缺少 owned/all 筛选`);
@@ -619,6 +698,8 @@ async function assertBuildSurface(page, width) {
   assert.deepEqual(filterValues, ['all', 'owned'], `${width}: 命盘筛选值不是 owned/all`);
   const ownedFilter = page.locator('[data-action="build-filter"][data-filter="owned"]');
   const allFilter = page.locator('[data-action="build-filter"][data-filter="all"]');
+  await assertTouchTarget(ownedFilter, `${width} 命盘持有筛选`);
+  await assertTouchTarget(allFilter, `${width} 命盘图鉴筛选`);
   assert.equal(await ownedFilter.getAttribute('aria-pressed'), 'true',
     `${width}: 命盘默认筛选不是持有法宝`);
   const ownedEntries = await page.locator('.deck-grid > .ability-card:visible').count();
@@ -652,6 +733,24 @@ async function assertBuildSurface(page, width) {
   await clickVisibleAction(page, 'build-rarity-filter', { rarity: 'all' });
   await page.locator('[data-action="build-rarity-filter"][data-rarity="all"][aria-pressed="true"]')
     .waitFor({ state: 'visible' });
+
+  const visibleArtifact = page.locator('.deck-grid [data-action="inspect-artifact"]').first();
+  await visibleArtifact.waitFor({ state: 'visible' });
+  await assertTouchTarget(visibleArtifact, `${width} 命盘法宝详录`);
+  const saveBeforeArtifact = await savedState(page);
+  await visibleArtifact.focus();
+  await page.keyboard.press('Enter');
+  const itemDialog = page.locator('.item-dialog[role="dialog"][aria-modal="true"]');
+  await itemDialog.waitFor({ state: 'visible' });
+  assert.ok(await itemDialog.locator('.effect-list p').count() > 0,
+    `${width}: 法宝详录没有展示效果`);
+  assert.equal((await savedState(page)).text, saveBeforeArtifact.text,
+    `${width}: 查看命盘法宝详录改写了命途存档`);
+  await itemDialog.locator('[data-action="modal-close"][data-autofocus]').click();
+  await itemDialog.waitFor({ state: 'detached' });
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-action')),
+    'inspect-artifact', `${width}: 关闭命盘法宝详录后焦点没有返回入口`);
+  await noOverflow(page, `${width} build item detail`);
 
   const visibleCopy = await page.locator('#shanhai-app').innerText();
   assert.doesNotMatch(visibleCopy, /行为|五维|有限坊市|节点休整|新入库|故事线|选项配置异常/,
@@ -704,6 +803,40 @@ async function assertKarmaHistory(page) {
   assert.match(await page.locator('.timeline-item').first().locator('small').textContent() || '',
     new RegExp(`节点\\s*${Number(latest.step) + 1}`),
     '因缘履历仍显示 0 起始的节点序号');
+  await noOverflow(page, '因缘履历');
+  await assertReadable(page, '.timeline-item h3, .timeline-item p, .timeline-item small',
+    '因缘履历内容');
+}
+
+async function assertEventSurface(page, width) {
+  await createFixture(page, 'event', `mature-ui-event-${width}`, { coins: 0 });
+  await waitForPhase(page, 'event');
+  await noOverflow(page, `${width} event`);
+  await assertReadable(page, '.event-scene-head h2, .story-text, .event-option-main > b, .event-option-main > small',
+    `${width} event copy`);
+  const available = page.locator('[data-action="event"]:not([disabled])').first();
+  await assertTouchTarget(available, `${width} 行旅选项`);
+  const disabled = page.locator('[data-action="event"][disabled]');
+  if (await disabled.count()) {
+    const reason = disabled.first().locator('.disabled-reason');
+    assert.ok((await reason.textContent())?.trim(),
+      `${width}: 不可用行旅选项缺少可见原因`);
+  }
+}
+
+async function assertRestSurface(page, width) {
+  await createFixture(page, 'rest', `mature-ui-rest-${width}`);
+  await waitForPhase(page, 'rest');
+  await noOverflow(page, `${width} rest`);
+  await assertReadable(page, '.rest-summary b, .rest-choice b, .rest-choice p',
+    `${width} rest copy`);
+  const available = page.locator('.rest-choice:not([disabled])').first();
+  await assertTouchTarget(available, `${width} 休整主操作`);
+  const disabled = page.locator('.rest-choice[disabled]');
+  if (await disabled.count()) {
+    assert.ok((await disabled.first().innerText()).trim().length > 0,
+      `${width}: 不可用休整选项缺少原因`);
+  }
 }
 
 async function assertCombatSurface(page, width) {
@@ -734,6 +867,49 @@ async function assertCombatSurface(page, width) {
   }
   assert.ok(await page.locator('[data-action="battle-speed"][data-speed="2"]:visible').count() > 0,
     `${width}: 缺少二倍速按钮`);
+  const controlGeometry = await page.locator('.battle-controls').evaluate(element => {
+    const parent = element.getBoundingClientRect();
+    const buttons = [...element.querySelectorAll('button')].filter(button =>
+      button.getClientRects().length > 0).map(button => {
+      const rect = button.getBoundingClientRect();
+      return {
+        action: button.getAttribute('data-action'),
+        x: rect.x,
+        y: rect.y,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+      };
+    });
+    return {
+      parent: { x: parent.x, y: parent.y, right: parent.right, bottom: parent.bottom },
+      buttons,
+      arenaBottom: document.querySelector('.combat-arena')?.getBoundingClientRect().bottom ?? 0,
+    };
+  });
+  assert.ok(controlGeometry.buttons.length >= 5,
+    `${width}: 斗法控制组缺少速度、暂停或主要操作`);
+  assert.ok(controlGeometry.buttons.every(button =>
+    button.width >= 44 && button.height >= 44 &&
+    button.x >= controlGeometry.parent.x - 1 &&
+    button.right <= controlGeometry.parent.right + 1 &&
+    button.y >= controlGeometry.parent.y - 1 &&
+    button.bottom <= controlGeometry.parent.bottom + 1),
+  `${width}: 斗法控件触控面积不足或超出控制栏 ${JSON.stringify(controlGeometry)}`);
+  assert.ok(controlGeometry.buttons.every((button, index, buttons) =>
+    buttons.slice(index + 1).every(other =>
+      button.right <= other.x + 1 || other.right <= button.x + 1 ||
+      button.bottom <= other.y + 1 || other.bottom <= button.y + 1)),
+  `${width}: 斗法控制按钮互相覆盖 ${JSON.stringify(controlGeometry.buttons)}`);
+  assert.ok(controlGeometry.arenaBottom <= controlGeometry.parent.y + 2,
+    `${width}: 斗法控制栏覆盖战斗场地 ${JSON.stringify(controlGeometry)}`);
+  await assertReadable(page, '.combatant h2, .battle-context strong, [data-battle-round]',
+    `${width} battle resources`);
+  for (const button of await page.locator('.battle-controls button:visible').all()) {
+    await assertTouchTarget(button, `${width} 斗法控制`);
+  }
+  await noOverflow(page, `${width} battle controls`);
 
   const logDisclosure = page.locator('details[data-details="battle-log"]');
   assert.equal(await logDisclosure.getAttribute('open'), null,
@@ -947,6 +1123,10 @@ async function assertBattleTalentDetails(page) {
 async function assertShopUnavailableReason(page) {
   await createFixture(page, 'shop', 'classic-ui-shop-unavailable', { coins: 0 });
   await waitForPhase(page, 'shop');
+  await noOverflow(page, '坊市');
+  await assertReadable(page, '.shop-item-copy h2, .shop-item-copy p, .shop-item-unavailable',
+    '坊市内容');
+  await assertTouchTarget(page.locator('[data-action="leave-shop"]'), '离开坊市');
   const disabledPurchase = page.locator('.shop-item:not(.sold) [data-action="buy"][disabled]').first();
   await disabledPurchase.waitFor({ state: 'visible' });
   assert.equal(await disabledPurchase.getAttribute('title'), '灵石不足',
@@ -955,6 +1135,23 @@ async function assertShopUnavailableReason(page) {
     button.closest('.shop-item')?.querySelector('.shop-item-unavailable')?.textContent?.trim());
   assert.equal(visibleReason, '灵石不足',
     '坊市禁购原因只放在 title 中，没有可见文案');
+  const artifactDetail = page.locator('.shop-item:not(.sold) [data-action="inspect-artifact"]').first();
+  await artifactDetail.waitFor({ state: 'visible' });
+  await assertTouchTarget(artifactDetail, '坊市法宝详录');
+  const beforeDetail = await savedState(page);
+  await artifactDetail.focus();
+  await page.keyboard.press('Enter');
+  const dialog = page.locator('.item-dialog[role="dialog"][aria-modal="true"]');
+  await dialog.waitFor({ state: 'visible' });
+  assert.ok(await dialog.locator('.effect-list p').count() > 0,
+    '坊市法宝详录没有展示效果');
+  assert.equal((await savedState(page)).text, beforeDetail.text,
+    '查看坊市法宝详录改写了命途存档');
+  await dialog.locator('[data-action="modal-close"][data-autofocus]').click();
+  await dialog.waitFor({ state: 'detached' });
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-action')),
+    'inspect-artifact', '关闭坊市法宝详录后焦点没有返回入口');
+  await noOverflow(page, '坊市法宝详录');
   const copy = await page.locator('#shanhai-app').innerText();
   assert.doesNotMatch(copy, /有限坊市/, '坊市仍显示内部阶段用语');
 }
@@ -991,13 +1188,17 @@ async function runViewport(browser, width, height) {
       await assertBuildSurface(page, width);
       await assertBottomNavDoesNotCoverLastChoice(page, width);
     });
-    if ([390, 1024, 1440].includes(width)) {
+    await check(`${width} event, shop, and rest surfaces`, async () => {
+      await assertEventSurface(page, width);
+      await assertShopUnavailableReason(page);
+      await assertRestSurface(page, width);
+    });
+    if ([390, 1280, 1440].includes(width)) {
       await check(`${width} karma history`, () => assertKarmaHistory(page));
       await check(`${width} combat controls`, () => assertCombatSurface(page, width));
     }
     if (width === 390) {
       await check(`${width} battle loadout talent details`, () => assertBattleTalentDetails(page));
-      await check(`${width} shop explains unavailable purchases`, () => assertShopUnavailableReason(page));
       await check(`${width} detailed battle log`, () => toggleDetailedBattleLog(page));
     }
     await page.screenshot({
@@ -1031,10 +1232,8 @@ async function run() {
       [320, 760],
       [360, 780],
       [390, 844],
-      [430, 900],
-      [768, 900],
-      [1024, 1000],
-      [1440, 1000],
+      [1280, 720],
+      [1440, 900],
     ]) {
       await runViewport(browser, width, height);
     }
