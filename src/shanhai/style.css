@@ -8330,3 +8330,45 @@ small {
     background: #1b302955;
   }
 }
+
+.top-tools .restart-command {
+  flex: 0 0 auto;
+  padding-right: 10px;
+  padding-left: 10px;
+  white-space: nowrap;
+}
+
+@media (max-width: 360px) {
+  .topbar {
+    gap: 6px;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .topbar .brand {
+    gap: 5px;
+  }
+
+  .topbar .brand-mark {
+    width: 32px;
+    height: 36px;
+  }
+
+  .topbar .brand strong {
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .top-tools.header-actions {
+    gap: 2px;
+  }
+
+  .top-tools.header-actions .icon-button {
+    width: 44px;
+  }
+
+  .top-tools .restart-command {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+}

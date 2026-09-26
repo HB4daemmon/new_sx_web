@@ -19,6 +19,11 @@ const suites = [
     script: 'tests/shanhai-compact-browser.mjs',
     reportEnv: 'SHANHAI_COMPACT_BROWSER_REPORT_DIR',
   },
+  {
+    name: 'restart',
+    script: 'tests/shanhai-restart-browser.mjs',
+    reportEnv: 'SHANHAI_RESTART_REPORT_DIR',
+  },
 ];
 const results = [];
 

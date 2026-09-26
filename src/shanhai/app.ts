@@ -14,10 +14,12 @@ import {
 } from './localization.js';
 import {
   clearSavedRun,
+  hasSavedRun,
   loadRun,
   loadWinningBuilds,
   saveRun,
   saveWinningBuild,
+  SHANHAI_SAVE_KEY,
 } from './persistence.js';
 import type {
   ArtifactStack,
@@ -122,6 +124,7 @@ const STATUS_ICON: Record<string, string> = {
 };
 const METHOD_ART = ['swordsman', 'hermit', 'guardian', 'nezha', 'sorcerer'];
 const ARTIFACT_ICONS = ['jade', 'pearl', 'mirror', 'bell', 'gourd', 'ring', 'seal', 'feather', 'flame'];
+const DEFAULT_PLAYER_NAME = '无名行者';
 
 type RuntimeGame = ShanhaiGame;
 
@@ -167,6 +170,18 @@ function pct(value: number, total: number): number {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
+}
+
+function normalizedPlayerName(value: unknown): string {
+  return asText(value).trim().slice(0, 24) || DEFAULT_PLAYER_NAME;
+}
+
+function normalizedSeed(value: unknown): string {
+  return asText(value).trim().slice(0, 48);
+}
+
+function freshSeed(): string {
+  return `${Date.now()}${Math.floor(Math.random() * 1_000_000).toString().padStart(6, '0')}`;
 }
 
 function entityRarity(entity: Entity | undefined): string {
@@ -247,8 +262,9 @@ class ShanhaiApp {
   private game: RuntimeGame | null = null;
   private view: 'journey' | 'build' | 'karma' = 'journey';
   private selectedMethod = '';
-  private playerName = '';
+  private playerName = DEFAULT_PLAYER_NAME;
   private seed = '';
+  private restartDestination: 'setup' | 'start' = 'setup';
   private notice = '';
   private error = '';
   private storageIssue = '';
@@ -371,7 +387,7 @@ class ShanhaiApp {
         this.scrollToStageTop = true;
         const restoredState = this.gameStateOf(restored);
         if (!restoredState) throw new Error('存档没有有效状态');
-        this.playerName = restoredState.name;
+        this.playerName = normalizedPlayerName(restoredState.name);
         this.seed = restoredState.seed;
         this.selectedMethod = restoredState.method;
         this.notice = restoredState.phase === 'won'
@@ -444,22 +460,46 @@ class ShanhaiApp {
     }
   }
 
-  private createRun(force = false): void {
+  private createRun(trigger?: HTMLElement): void {
     if (!this.content) return;
     if (this.storageIssue.startsWith('存档无法读取')) {
       this.modal = 'corrupt-save';
       this.render();
       return;
     }
-    if (this.game && !force) {
+    const nameInput = this.root.querySelector<HTMLInputElement>('[name="player-name"]');
+    const seedInput = this.root.querySelector<HTMLInputElement>('[name="seed"]');
+    this.playerName = normalizedPlayerName(nameInput?.value ?? this.playerName);
+    this.seed = normalizedSeed(seedInput?.value ?? this.seed);
+    if (!this.selectedMethod) {
+      this.error = '请先选择一门开局功法。';
+      this.render();
+      return;
+    }
+    let savedRunExists = false;
+    try {
+      savedRunExists = hasSavedRun();
+    } catch {
+      this.error = '无法确认旧命途是否已保存，请检查浏览器存储后再试。';
+      this.render();
+      return;
+    }
+    if (this.game || savedRunExists) {
+      if (trigger) this.rememberModalTrigger(trigger);
+      this.restartDestination = 'start';
       this.modal = 'restart';
       this.render();
       return;
     }
+    this.beginRun();
+  }
+
+  private beginRun(): void {
+    if (!this.content) return;
     const nameInput = this.root.querySelector<HTMLInputElement>('[name="player-name"]');
     const seedInput = this.root.querySelector<HTMLInputElement>('[name="seed"]');
-    this.playerName = (nameInput?.value || this.playerName || '无名行者').trim().slice(0, 24);
-    this.seed = (seedInput?.value || this.seed || String(Date.now())).trim().slice(0, 48);
+    this.playerName = normalizedPlayerName(nameInput?.value ?? this.playerName);
+    this.seed = normalizedSeed(seedInput?.value ?? this.seed) || freshSeed();
     if (!this.selectedMethod) {
       this.error = '请先选择一门开局功法。';
       this.render();
@@ -483,24 +523,71 @@ class ShanhaiApp {
     }
   }
 
-  private restart(): void {
+  private confirmRestart(): void {
+    let previousSave: string | null | undefined;
+    let previousReplay: string | null | undefined;
+    try {
+      previousSave = localStorage.getItem(SHANHAI_SAVE_KEY);
+      previousReplay = localStorage.getItem(REPLAY_KEY);
+      clearSavedRun();
+      localStorage.removeItem(REPLAY_KEY);
+    } catch {
+      try {
+        const restore = (key: string, previous: string | null | undefined): void => {
+          if (previous === undefined) return;
+          const current = localStorage.getItem(key);
+          if (current === previous) return;
+          if (previous === null) localStorage.removeItem(key);
+          else localStorage.setItem(key, previous);
+        };
+        restore(SHANHAI_SAVE_KEY, previousSave);
+        restore(REPLAY_KEY, previousReplay);
+      } catch {
+        // Keep the in-memory run even if browser storage also rejects rollback.
+      }
+      this.error = '删除本局存档失败，当前命途仍保留，尚未重开。';
+      this.modal = 'error';
+      this.render();
+      return;
+    }
+
+    const destination = this.restartDestination;
+    this.restartDestination = 'setup';
+    this.playerName = normalizedPlayerName(this.gameState()?.name ?? this.playerName);
     this.modal = null;
     this.modalId = '';
     this.view = 'journey';
     this.stopPlayback();
-    this.scrollToStageTop = true;
     this.game = null;
     this.notice = '';
     this.error = '';
-    this.seed = '';
-    this.selectedMethod = this.startMethods()[0]?.id || this.selectedMethod;
+    this.storageIssue = '';
+    this.scrollToStageTop = true;
+    if (destination === 'setup') {
+      this.seed = '';
+      this.selectedMethod = this.startMethods()[0]?.id || this.selectedMethod;
+      this.render();
+      return;
+    }
+    this.beginRun();
+  }
+
+  private requestRestart(destination: 'setup' | 'start', trigger: HTMLElement): void {
+    this.rememberModalTrigger(trigger);
+    this.restartDestination = destination;
+    this.modal = 'restart';
+    this.modalId = '';
+    this.render();
+  }
+
+  private discardCorruptSave(): void {
     try {
       clearSavedRun();
       this.storageIssue = '';
-    } catch (cause) {
-      this.storageIssue = cause instanceof Error ? `旧命途仍在：${localizeError(cause.message)}` : '旧命途仍在。';
+    } catch {
+      this.storageIssue = '浏览器拒绝删除损坏存档，请在浏览器设置中手动清理。';
     }
-    this.render();
+    this.closeModal();
   }
 
   private nodeForState(): RunNode | undefined {
@@ -1348,7 +1435,7 @@ class ShanhaiApp {
     const methods = this.startMethods();
     let hasSaved = false;
     try {
-      hasSaved = Boolean(this.storageIssue.startsWith('存档无法读取')) || Boolean(localStorage.getItem('suishi-shanhai-run-v1'));
+      hasSaved = Boolean(this.storageIssue.startsWith('存档无法读取')) || hasSavedRun();
     } catch {
       hasSaved = Boolean(this.storageIssue.startsWith('存档无法读取'));
     }
@@ -1371,7 +1458,7 @@ class ShanhaiApp {
           </div>
           <div class="method-grid">${methods.map((method, index) => this.methodChoice(method, index)).join('')}</div>
           <div class="method-detail">${this.methodQuickDetail(selected)}<details class="method-full-detail disclosure" data-details="landing-method"><summary>功法详录</summary>${this.methodDetail(selected)}</details></div>
-          <div class="actions"><button class="button primary small" data-action="start" data-autofocus>入山海 ${icon('arrow', 17)}</button></div>
+          <div class="actions"><button class="button primary small" data-action="start" data-autofocus>入山海 ${icon('arrow', 17)}</button></div>${this.inlineMessage()}
         </section>
       </main>
       ${this.modalMarkup()}
@@ -1418,6 +1505,7 @@ class ShanhaiApp {
       <div class="top-tools header-actions">
         ${this.storageIssue ? `<span class="save-warning" role="status">存档需留意</span>` : ''}
         <button class="icon-button" data-action="archives" title="历届通关构筑" aria-label="历届通关构筑">${icon('book', 19)}</button>
+        <button class="button small restart-command" data-action="restart" title="结束当前命途并返回开局">重开</button>
         <button class="icon-button" data-action="settings" title="设置" aria-label="设置">${icon('gear', 20)}</button>
       </div>
     </header>`;
@@ -2381,11 +2469,13 @@ class ShanhaiApp {
     }
     const title = this.modal === 'restart' ? '重新起笔？' : this.modal === 'corrupt-save' ? '存档没有被覆盖' : '山海行提示';
     const body = this.modal === 'restart'
-      ? '当前命途还没有结束。确认重新开始会用新命途替换自动存档。'
+      ? this.restartDestination === 'start'
+        ? '确认后将按当前选择开启新命途，替换本局存档与回放，通关构筑保留。'
+        : '确认后将结束当前命途并返回开局，本局存档与回放会被清除，通关构筑保留。'
       : this.modal === 'corrupt-save'
         ? `${this.storageIssue || '自动存档无法通过校验。'} 你可以导出当前可见记录，或明确开始一局新的命途。`
         : this.error || '发生了一个未命名问题。';
-    return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">山海提示</p><h2 id="dialog-title">${esc(title)}</h2><p>${esc(body)}</p><div class="dialog-actions">${this.modal === 'restart' ? `<button class="button quiet" data-action="modal-close">先不重来</button><button class="button danger" data-action="confirm-restart" data-autofocus>确认重开</button>` : this.modal === 'corrupt-save' ? `<button class="button quiet" data-action="discard-save">清理损坏存档</button><button class="button primary" data-action="modal-close" data-autofocus>我知道了</button>` : `<button class="button primary" data-action="modal-close" data-autofocus>知道了</button>`}</div></section></div>`;
+    return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">山海提示</p><h2 id="dialog-title">${esc(title)}</h2><p>${esc(body)}</p><div class="dialog-actions">${this.modal === 'restart' ? `<button class="button quiet" data-action="modal-close" data-autofocus>先不重来</button><button class="button danger" data-action="confirm-restart">确认重开</button>` : this.modal === 'corrupt-save' ? `<button class="button quiet" data-action="discard-save">清理损坏存档</button><button class="button primary" data-action="modal-close" data-autofocus>我知道了</button>` : `<button class="button primary" data-action="modal-close" data-autofocus>知道了</button>`}</div></section></div>`;
   }
 
   private visualKind(value: any, entity?: Entity): string {
@@ -2500,7 +2590,7 @@ class ShanhaiApp {
         this.render();
         break;
       case 'start':
-        this.createRun();
+        this.createRun(target);
         break;
       case 'continue':
         if (this.game && ['event_result', 'transition'].includes(this.game.state.phase)) this.send({ type: 'continue' });
@@ -2514,10 +2604,7 @@ class ShanhaiApp {
         }
         break;
       case 'restart':
-        this.rememberModalTrigger(target);
-        this.modal = 'restart';
-        this.modalId = '';
-        this.render();
+        this.requestRestart('setup', target);
         break;
       case 'settings':
         this.rememberModalTrigger(target);
@@ -2557,16 +2644,10 @@ class ShanhaiApp {
         this.render();
         break;
       case 'confirm-restart':
-        this.restart();
+        this.confirmRestart();
         break;
       case 'discard-save':
-        try {
-          clearSavedRun();
-          this.storageIssue = '';
-        } catch {
-          this.storageIssue = '浏览器拒绝删除损坏存档，请在浏览器设置中手动清理。';
-        }
-        this.closeModal();
+        this.discardCorruptSave();
         break;
       case 'archives':
         this.rememberModalTrigger(target);
@@ -2691,21 +2772,7 @@ class ShanhaiApp {
         this.send({ type: 'talent', id: asText(target.dataset.id) });
         break;
       case 'new-run':
-        this.stopPlayback();
-        this.game = null;
-        this.modal = null;
-        this.modalId = '';
-        this.view = 'journey';
-        this.seed = '';
-        this.scrollToStageTop = true;
-        this.selectedMethod = this.startMethods()[0]?.id || this.selectedMethod;
-        try {
-          clearSavedRun();
-          this.storageIssue = '';
-        } catch {
-          this.storageIssue = '上一局仍保存在浏览器中，请确认后再开始新局。';
-        }
-        this.render();
+        this.requestRestart('setup', target);
         break;
       case 'export':
         this.exportRun();
