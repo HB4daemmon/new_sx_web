@@ -20,7 +20,6 @@ await mkdir('dist/content', { recursive: true });
 await cp('build/shanhai', 'dist/shanhai', { recursive: true });
 await copyFile('build/art.js', 'dist/art.js');
 await copyFile('src/shanhai/style.css', 'dist/shanhai/style.css');
-await copyFile('src/shanhai/game-theme.css', 'dist/shanhai/game-theme.css');
 await mkdir('dist/assets/generated', { recursive: true });
 await copyFile(
   'assets/generated/combat-vfx-atlas.webp',

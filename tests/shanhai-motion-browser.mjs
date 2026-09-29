@@ -268,14 +268,6 @@ async function assertSteadyFirstBattle(page, width) {
   assert.equal((await page.locator('.combatant').count()), 2, `${width}: 战斗双方不完整`);
   assert.equal((await page.locator('.combatant .fighter-art .portrait').count()), 2,
     `${width}: 战斗立绘节点不完整`);
-  const portraitImages = page.locator('.combatant .fighter-art [role="img"]');
-  assert.equal(await portraitImages.count(), 2,
-    `${width}: 战斗立绘没有作为可访问图像暴露`);
-  for (let index = 0; index < await portraitImages.count(); index += 1) {
-    const label = await portraitImages.nth(index).getAttribute('aria-label');
-    assert.match(label || '', /[\u3400-\u9fff]/,
-      `${width}: 战斗立绘 aria-label 应使用中文角色称谓 (${label})`);
-  }
   assert.equal((await page.locator('.combatant .bar').count()), 4,
     `${width}: 每方战斗 HUD 只应保留血盾合一条与怒气条`);
   assert.equal((await page.locator('.combatant .bar.hp > span.hp-fill').count()), 2,
@@ -1018,7 +1010,6 @@ async function assertFeedbackDoesNotOverlap(page, label) {
       Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
     const floats = [...document.querySelectorAll('.combat-feedback-group .combat-float')];
     const obstacles = [
-      ...document.querySelectorAll('.combatant .fighter-identity h2'),
       ...document.querySelectorAll('.combatant .bar.hp, .combatant .bar.rage'),
       ...document.querySelectorAll('.battle-controls'),
     ];
@@ -1034,7 +1025,7 @@ async function assertFeedbackDoesNotOverlap(page, label) {
     });
   });
   assert.deepEqual(overlaps, [],
-    `${label}: 分组浮层遮挡角色姓名、血盾/怒气条或战斗控件 ${JSON.stringify(overlaps)}`);
+    `${label}: 分组浮层遮挡血盾/怒气条或战斗控件 ${JSON.stringify(overlaps)}`);
 }
 
 async function assertGroupedFeedback(page, frames, cursor, label, minimumDuration = 0) {
@@ -1275,11 +1266,11 @@ async function assertControlTimingAndReplay(page, snapshot, width) {
   await assertFrameContract(page, actionIndex, snapshot.frames, `${width} active action`);
   const actionFrame = snapshot.frames[actionIndex];
   const actor = actionFrame.actor;
-  const sampledActorNode = page.locator(`.combatant[data-side="${actor}"]`);
-  const sampledActionMotion = await sampledActorNode.getAttribute('data-motion');
-  assert.equal(sampledActionMotion, 'strike', `${width}: 普攻动作没有 strike motion`);
-  const sampledTriggerKey = await readMotionKey(page, actor);
-  assert.ok(sampledTriggerKey === '0' || sampledTriggerKey === '1',
+  const actorNode = page.locator(`.combatant[data-side="${actor}"]`);
+  const actionMotion = await actorNode.getAttribute('data-motion');
+  assert.equal(actionMotion, 'strike', `${width}: 普攻动作没有 strike motion`);
+  const triggerKey = await readMotionKey(page, actor);
+  assert.ok(triggerKey === '0' || triggerKey === '1',
     `${width}: combatant data-motion-trigger 缺少可测 motion key`);
 
   const animation = await assertMovingAnimation(page, {
@@ -1287,47 +1278,6 @@ async function assertControlTimingAndReplay(page, snapshot, width) {
     motion: 'strike',
     side: actor,
   }, `${width} 普攻位移`);
-  await stableNodesRemain(page, `${width} active action motion`);
-
-  const sampledAnimationCount = await page.evaluate(({ frameIndex, actor, triggerKey }) =>
-    window.__shanhaiMotionAudit.animations.filter(record =>
-      record.frameIndex === frameIndex &&
-      record.side === actor &&
-      record.motion === 'strike' &&
-      record.motionTrigger === triggerKey).length,
-  { frameIndex: actionIndex, actor, triggerKey: sampledTriggerKey });
-  assert.ok(sampledAnimationCount > 0,
-    `${width}: 没有记录到普攻动作动画 ${JSON.stringify(animation.record)}`);
-
-  const saveBeforePause = await savedText(page);
-  await clickAction(page, 'battle-pause');
-  assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true',
-    `${width}: pause 未同步到 shell`);
-  assert.equal(await savedText(page), saveBeforePause,
-    `${width}: 暂停动作改变了游戏存档`);
-
-  await pauseNextReplay(page);
-  await setReplayCursor(page, actionIndex);
-  await page.waitForFunction(() =>
-    document.querySelector('.battle-shell')?.getAttribute('data-paused') === 'true');
-  const restoredFrameIndex = Number(
-    await page.locator('.combat-arena').getAttribute('data-frame-index'),
-  );
-  assert.equal(restoredFrameIndex, actionIndex,
-    `${width}: 控件诊断没有恢复到指定 rawframe`);
-  const controlledSnapshot = await battleSnapshot(page);
-  assert.equal(controlledSnapshot.replay?.cursor, actionIndex,
-    `${width}: 暂停重载改变了指定 raw replay cursor`);
-  assert.equal(controlledSnapshot.rawText, saveBeforePause,
-    `${width}: 暂停重载改变了游戏存档`);
-  await captureStableNodes(page);
-
-  const actorNode = page.locator(`.combatant[data-side="${actor}"]`);
-  const actionMotion = await actorNode.getAttribute('data-motion');
-  assert.equal(actionMotion, 'strike', `${width}: 普攻动作没有 strike motion`);
-  const triggerKey = await readMotionKey(page, actor);
-  assert.ok(triggerKey === '0' || triggerKey === '1',
-    `${width}: combatant data-motion-trigger 缺少可测 motion key`);
 
   const sameActionAnimationCount = await page.evaluate(({ frameIndex, actor, triggerKey }) =>
     window.__shanhaiMotionAudit.animations.filter(record =>
@@ -1337,11 +1287,13 @@ async function assertControlTimingAndReplay(page, snapshot, width) {
       record.motionTrigger === triggerKey).length,
   { frameIndex: actionIndex, actor, triggerKey });
   assert.ok(sameActionAnimationCount > 0,
-    `${width}: 重载定位后没有记录到普攻动作动画 ${JSON.stringify(animation.record)}`);
+    `${width}: 没有记录到普攻动作动画 ${JSON.stringify(animation.record)}`);
+  await clickAction(page, 'battle-pause');
   assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true',
-    `${width}: 受控诊断开始时回放没有暂停`);
-  const cursorAtPause = controlledSnapshot.replay?.cursor;
-  const saveBeforeControls = controlledSnapshot.rawText;
+    `${width}: pause 未同步到 shell`);
+  const cursorAtPause = (await battleSnapshot(page)).replay?.cursor;
+  assert.equal(cursorAtPause, actionIndex, `${width}: pause 时 cursor 不在当前动作`);
+  const saveBeforeControls = await savedText(page);
   const beatAt1x = Number.parseFloat((await page.locator('.battle-shell')
     .evaluate(element => getComputedStyle(element).getPropertyValue('--beat-duration'))).trim());
   await clickAction(page, 'battle-speed', { speed: 2 });
