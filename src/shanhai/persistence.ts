@@ -77,7 +77,7 @@ const RUN_PHASES = new Set([
   'lost',
 ]);
 const NODE_TYPES = new Set(['C', 'E', 'K', 'L', 'S', 'R', 'B', 'F']);
-const SHOP_KINDS = new Set(['artifact', 'recovery', 'preparation']);
+const SHOP_KINDS = new Set(['artifact', 'recovery', 'preparation', 'talent_reset']);
 
 function allFiniteNumbers(value: unknown): boolean {
   if (typeof value === 'number') return Number.isFinite(value);

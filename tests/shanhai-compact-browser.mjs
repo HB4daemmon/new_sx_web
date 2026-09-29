@@ -173,15 +173,18 @@ async function startRealRun(page, width, height) {
   await page.goto(url, { waitUntil: 'networkidle' });
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: 'networkidle' });
-  const seedOptions = page.locator('details[data-details="seed-options"]');
-  assert.equal(await seedOptions.getAttribute('open'), null,
-    `${width}: 命数设置没有默认折叠`);
+  const seed = page.locator('[name="seed"]');
+  assert.equal(await seed.isVisible(), true, `${width}: 命数种子输入框没有直接显示`);
+  assert.equal(await seed.isEditable(), true, `${width}: 命数种子输入框不能编辑`);
   const start = page.locator('[data-action="start"]');
   await start.waitFor({ state: 'visible' });
   const startRect = await start.boundingBox();
   assert.ok(startRect, `${width}: 开局主按钮没有布局框`);
   assert.ok(startRect.y >= 0 && startRect.y + startRect.height <= height,
     `${width}: 首屏开局主按钮不可见 ${JSON.stringify(startRect)}`);
+  const seedRect = await seed.boundingBox();
+  assert.ok(seedRect && seedRect.y >= 0 && seedRect.y + seedRect.height <= height,
+    `${width}: 首屏命数种子输入框不可见 ${JSON.stringify(seedRect)}`);
   assert.equal(await page.locator('.method-choice').count(), 5);
   for (const choice of await page.locator('.method-choice').all()) {
     const rect = await choice.boundingBox();
@@ -192,9 +195,8 @@ async function startRealRun(page, width, height) {
   await assertNoVisibleEnglish(page, `${width} landing`);
   await screenshot(page, width, 'landing');
 
-  await seedOptions.locator('summary').click();
   await page.locator('[name="player-name"]').fill('紧凑测试');
-  await page.locator('[name="seed"]').fill('compact-probe-1');
+  await seed.fill('compact-probe-1');
   await page.locator('.method-choice').first().click();
   const landingCanScroll = await page.evaluate(() =>
     document.documentElement.scrollHeight > window.innerHeight + 1);
@@ -207,6 +209,10 @@ async function startRealRun(page, width, height) {
     await start.click();
   }
   await waitForPhase(page, 'map');
+  assert.equal(await page.locator('.inline-notice').count(), 0,
+    `${width}: 进入命途后不应显示开局成功填充提示`);
+  assert.equal(await page.locator('.game-page.phase-map .map-key').count(), 0,
+    `${width}: 山河路线图不应显示节点图例`);
   if (landingCanScroll) {
     assert.equal(await page.evaluate(() => window.scrollY), 0,
       `${width}: 从滚动开局进入地图后没有回到页面顶部`);
@@ -239,8 +245,15 @@ async function startRealRun(page, width, height) {
   `${width}: 已选行迹与首格不一致`);
   assert.equal(await page.locator('[data-details="battle-preparation-details"]').count(), 0,
     `${width}: 战前界面仍渲染旧式战前详录`);
-  assert.ok(await page.locator('.preview-enemy-brief').isVisible(),
-    `${width}: 战前首屏缺少对手简要信息`);
+  const matchup = page.locator('.game-page.phase-preview .preview-matchup');
+  assert.equal(await matchup.count(), 1, `${width}: 战前首屏缺少对阵区域`);
+  assert.equal(await matchup.locator('.preview-contender').count(), 2,
+    `${width}: 战前对阵双方没有同时显示`);
+  assert.equal(await matchup.locator('.preview-contender.player-side').count(), 1,
+    `${width}: 战前对阵缺少行者一侧`);
+  assert.equal(await matchup.locator('.preview-contender.enemy-side').count(), 1,
+    `${width}: 战前对阵缺少对手一侧`);
+  await matchup.waitFor({ state: 'visible' });
   await noOverflow(page, `${width} preview`);
   await assertNoVisibleEnglish(page, `${width} preview`);
   await screenshot(page, width, 'preview');
@@ -370,7 +383,7 @@ async function seedChoiceFixture(page, target, width) {
       accepted = {
         phase: game.state.phase,
         routeKey: game.state.routeMap.path[0],
-        cardCount: target === 'reward'
+        choiceCount: target === 'reward'
           ? game.state.rewardCandidates.length
           : game.availableTalents().length,
       };
@@ -383,21 +396,19 @@ async function seedChoiceFixture(page, target, width) {
   await waitForPhase(page, target);
   assert.equal(result.phase, target);
   assert.ok(result.routeKey, `${width} ${target}: 合法首格 key 丢失`);
-  assert.equal(result.cardCount, 3, `${width} ${target}: 应有三个选择`);
+  assert.equal(result.choiceCount, 3, `${width} ${target}: 应有三个选择`);
 }
 
-async function assertThreeChoiceRow(page, target, width) {
-  const grid = page.locator(target === 'reward' ? '.reward-grid' : '.talent-grid');
-  const cardSelector = target === 'reward' ? '.reward-card' : '.talent-card';
-  const geometry = await grid.evaluate((element, selector) => {
-    const cards = [...element.querySelectorAll(selector)];
+async function assertRewardChoiceLayout(page, width) {
+  const geometry = await page.locator('.reward-grid').evaluate(element => {
+    const cards = [...element.querySelectorAll('.reward-card')];
     const gridRect = element.getBoundingClientRect();
     const rects = cards.map(card => {
       const rect = card.getBoundingClientRect();
       const emblem = card.querySelector('.choice-emblem');
       const emblemRect = emblem?.getBoundingClientRect();
       const detail = card.querySelector(
-        '.compact-choice-actions [data-action="inspect-artifact"], .compact-choice-actions [data-action="inspect-talent"]',
+        '.compact-choice-actions [data-action="inspect-artifact"]',
       );
       const detailRect = detail?.getBoundingClientRect();
       return {
@@ -424,6 +435,7 @@ async function assertThreeChoiceRow(page, target, width) {
         } : null,
       };
     });
+    const bottomNav = document.querySelector('.bottom-nav');
     return {
       display: getComputedStyle(element).display,
       columns: getComputedStyle(element).gridTemplateColumns.split(/\s+/).filter(Boolean).length,
@@ -431,42 +443,157 @@ async function assertThreeChoiceRow(page, target, width) {
       cards: rects,
       documentWidth: document.documentElement.scrollWidth,
       bodyWidth: document.body.scrollWidth,
-      visibleBottom: document.querySelector('.mobile-nav')?.getBoundingClientRect().top || window.innerHeight,
+      visibleBottom: bottomNav?.getClientRects().length
+        ? bottomNav.getBoundingClientRect().top
+        : window.innerHeight,
     };
-  }, cardSelector);
-  assert.equal(geometry.display, 'grid', `${width} ${target}: 选择区域不是 grid`);
-  assert.equal(geometry.columns, 3, `${width} ${target}: 不是三列 ${JSON.stringify(geometry)}`);
-  assert.equal(geometry.cards.length, 3, `${width} ${target}: 卡面数量不是三个`);
+  });
+  assert.equal(geometry.display, 'grid', `${width} reward: 选择区域不是 grid`);
+  assert.equal(geometry.columns, 3, `${width} reward: 不是三列 ${JSON.stringify(geometry)}`);
+  assert.equal(geometry.cards.length, 3, `${width} reward: 卡面数量不是三个`);
   assert.ok(geometry.cards.every(card => Math.abs(card.y - geometry.cards[0].y) <= 1),
-    `${width} ${target}: 三张卡没有处于同一行 ${JSON.stringify(geometry.cards)}`);
+    `${width} reward: 三张卡没有处于同一行 ${JSON.stringify(geometry.cards)}`);
   assert.ok(geometry.cards.every(card => card.x >= geometry.grid.x - 1 &&
     card.right <= geometry.grid.right + 1),
-  `${width} ${target}: 卡面超出选择区域 ${JSON.stringify(geometry)}`);
+  `${width} reward: 卡面超出选择区域 ${JSON.stringify(geometry)}`);
   assert.ok(geometry.documentWidth <= width + 1 && geometry.bodyWidth <= width + 1,
-    `${width} ${target}: 选择页发生整体横向溢出 ${JSON.stringify(geometry)}`);
+    `${width} reward: 选择页发生整体横向溢出 ${JSON.stringify(geometry)}`);
   assert.ok(geometry.cards.every(card => card.bottom <= geometry.visibleBottom),
-    `${width} ${target}: 三选一卡片超出首屏 ${JSON.stringify(geometry)}`);
+    `${width} reward: 三张奖励卡超出首屏 ${JSON.stringify(geometry)}`);
   assert.ok(geometry.cards.every(card => card.emblem?.width > 0 && card.emblem?.height > 0),
-    `${width} ${target}: 卡片背景纹样未渲染`);
+    `${width} reward: 卡片背景纹样未渲染`);
   assert.ok(geometry.cards.every(card => card.emblem.opacity > 0 &&
     card.emblem.pointerEvents === 'none'),
-  `${width} ${target}: 背景纹样遮挡卡片交互 ${JSON.stringify(geometry.cards)}`);
+  `${width} reward: 背景纹样遮挡卡片交互 ${JSON.stringify(geometry.cards)}`);
   assert.ok(geometry.cards.every(card => card.detail &&
     card.detail.width >= 44 && card.detail.height >= 44 &&
     card.detail.x + card.detail.width / 2 >= card.x + card.width / 2 &&
     card.detail.bottom <= card.bottom + 1 && card.detail.fontSize >= 11),
-  `${width} ${target}: 右下详录入口尺寸、位置或字号不合格 ${JSON.stringify(geometry.cards)}`);
-  await assertNoVisibleEnglish(page, `${width} ${target}`);
+  `${width} reward: 右下详录入口尺寸、位置或字号不合格 ${JSON.stringify(geometry.cards)}`);
+  await assertNoVisibleEnglish(page, `${width} reward`);
+  return geometry;
+}
+
+async function assertTalentTreeLayout(page, width) {
+  const geometry = await page.locator('.talent-tree-selecting').evaluate(element => {
+    const treeRect = element.getBoundingClientRect();
+    const rows = [...element.querySelectorAll('.talent-tier-row')].map(row => {
+      const rowRect = row.getBoundingClientRect();
+      const nodes = [...row.querySelectorAll('.talent-tree-node')].map(node => {
+        const rect = node.getBoundingClientRect();
+        return {
+          id: node.getAttribute('data-talent-id'),
+          selected: node.getAttribute('data-selected'),
+          choice: node.getAttribute('data-choice'),
+          x: rect.x,
+          y: rect.y,
+          right: rect.right,
+          bottom: rect.bottom,
+          width: rect.width,
+          height: rect.height,
+          action: node.getAttribute('data-action'),
+        };
+      });
+      const selectButtons = [...row.querySelectorAll('button[data-action="talent"]')]
+        .map(button => {
+          const rect = button.getBoundingClientRect();
+          return {
+            id: button.getAttribute('data-id'),
+            x: rect.x,
+            y: rect.y,
+            right: rect.right,
+            bottom: rect.bottom,
+            width: rect.width,
+            height: rect.height,
+          };
+        });
+      return {
+        tier: row.getAttribute('data-tier'),
+        current: row.getAttribute('data-current'),
+        y: rowRect.y,
+        bottom: rowRect.bottom,
+        x: rowRect.x,
+        right: rowRect.right,
+        columns: getComputedStyle(row).gridTemplateColumns.split(/\s+/).filter(Boolean).length,
+        nodes,
+        selectButtons,
+      };
+    });
+    const bottomNav = document.querySelector('.bottom-nav');
+    return {
+      display: getComputedStyle(element).display,
+      x: treeRect.x,
+      right: treeRect.right,
+      rows,
+      documentWidth: document.documentElement.scrollWidth,
+      bodyWidth: document.body.scrollWidth,
+      visibleBottom: bottomNav?.getClientRects().length
+        ? bottomNav.getBoundingClientRect().top
+        : window.innerHeight,
+    };
+  });
+  assert.equal(geometry.display, 'grid', `${width} talent: 天赋树不是 grid`);
+  assert.equal(geometry.rows.length, 4, `${width} talent: 天赋树不是四层 ${JSON.stringify(geometry)}`);
+  assert.ok(geometry.rows.every((row, index) =>
+    row.tier === String(index + 1) && row.nodes.length === 3 && row.columns === 3),
+  `${width} talent: 每层必须是顺序排列的三节点行 ${JSON.stringify(geometry.rows)}`);
+  assert.equal(geometry.rows.filter(row => row.current === 'true').length, 1,
+    `${width} talent: 当前可选层标记不唯一 ${JSON.stringify(geometry.rows)}`);
+  assert.ok(geometry.rows.every(row => row.nodes.every(node =>
+    node.action === 'inspect-talent' &&
+    ['true', 'false'].includes(node.selected) &&
+    ['', 'current'].includes(node.choice))),
+  `${width} talent: 节点选择状态或详录动作标记不完整 ${JSON.stringify(geometry.rows)}`);
+  const currentRow = geometry.rows.find(row => row.current === 'true');
+  const currentNodeIds = currentRow.nodes
+    .filter(node => node.choice === 'current')
+    .map(node => node.id).sort();
+  const selectionIds = currentRow.selectButtons.map(button => button.id).sort();
+  assert.equal(currentNodeIds.length, 3,
+    `${width} talent: 当前可选层没有三项候选 ${JSON.stringify(currentRow)}`);
+  assert.deepEqual(selectionIds, currentNodeIds,
+    `${width} talent: 独立悟得按钮没有且仅有地放在当前可选层 ${JSON.stringify(currentRow)}`);
+  assert.ok(geometry.rows.every(row => row.nodes.every((node, index, nodes) =>
+    node.width >= 44 && node.height >= 44 &&
+    node.x >= row.x - 1 && node.right <= row.right + 1 &&
+    nodes.slice(index + 1).every(other =>
+      node.right <= other.x + 1 || other.right <= node.x + 1 ||
+      node.bottom <= other.y + 1 || other.bottom <= node.y + 1))),
+  `${width} talent: 天赋节点触控框不足或互相覆盖 ${JSON.stringify(geometry.rows)}`);
+  assert.ok(currentRow.selectButtons.every(button =>
+    button.width >= 44 && button.height >= 44),
+  `${width} talent: 独立悟得按钮触控框不足 ${JSON.stringify(currentRow.selectButtons)}`);
+  assert.ok(geometry.x >= 0 && geometry.right <= width + 1 &&
+    geometry.documentWidth <= width + 1 && geometry.bodyWidth <= width + 1,
+  `${width} talent: 天赋树发生横向溢出 ${JSON.stringify(geometry)}`);
+  assert.ok(geometry.rows.every(row => row.nodes.every(node =>
+    node.bottom <= geometry.visibleBottom) &&
+    row.selectButtons.every(button => button.bottom <= geometry.visibleBottom)),
+  `${width} talent: 天赋树节点或悟得按钮被首屏底部导航遮住 ${JSON.stringify(geometry)}`);
+  await assertNoVisibleEnglish(page, `${width} talent`);
+  return geometry;
+}
+
+async function assertChoiceLayout(page, target, width) {
+  if (target === 'reward') {
+    const geometry = await assertRewardChoiceLayout(page, width);
+    await screenshot(page, width, target);
+    return geometry;
+  }
+  const geometry = await assertTalentTreeLayout(page, width);
   await screenshot(page, width, target);
   return geometry;
 }
 
 async function assertChoiceDetails(page, target, width) {
-  const card = page.locator(target === 'reward' ? '.reward-card' : '.talent-card').first();
   const action = target === 'reward' ? 'inspect-artifact' : 'inspect-talent';
-  const details = card.locator(`[data-action="${action}"]`);
+  const details = target === 'reward'
+    ? page.locator('.reward-card [data-action="inspect-artifact"]').first()
+    : page.locator('.talent-tree-node[data-action="inspect-talent"]').first();
   assert.equal(await details.count(), 1,
-    `${width} ${target}: 卡面缺少详录入口`);
+    `${width} ${target}: 选择项缺少详录入口`);
+  assert.equal(await details.evaluate(element => element.tagName), 'BUTTON',
+    `${width} ${target}: 详录入口不是按钮`);
   const beforeSave = await page.evaluate(key => localStorage.getItem(key), saveKey);
   assert.ok(beforeSave, `${width} ${target}: 详录测试前缺少自动存档`);
   await details.focus();
@@ -510,7 +637,7 @@ async function runViewport(browser, { width, height }) {
       await check(`${width} ${target} three-column compact choice layout`, async () => {
         await seedChoiceFixture(page, target, width);
         await noOverflow(page, `${width} ${target}`);
-        geometry = await assertThreeChoiceRow(page, target, width);
+        geometry = await assertChoiceLayout(page, target, width);
         await assertChoiceDetails(page, target, width);
         return geometry;
       });

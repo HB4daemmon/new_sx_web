@@ -62,7 +62,7 @@
 - references：每幕使用公开首领前境界参考气血；X*按当前境界读取下一次完整突破需求，满阶后不可折价。
 - artifact_decline_coins：4
 - exhausted_pool_fallback：明示改领4灵石，不保留原法宝；传奇候选失败不额外补传奇。
-- non_artifact_prices：recovery=price=15；currency=coins；数量=0.12；basis=当前幕参考气血；模式=raw；stock=1；preparation=price=12；currency=coins；效果=shield；数量=0.1；basis=当前幕参考气血；范围=next_battle；stock=1；inventory_rule=one_each_per_shop_visit；free_refreshes=0
+- non_artifact_prices：recovery=price=15；currency=coins；数量=0.12；basis=当前幕参考气血；模式=raw；stock=1；preparation=price=12；currency=coins；效果=shield；数量=0.1；basis=当前幕参考气血；范围=next_battle；stock=1；talent_reset=price=40；currency=coins；效果=reset_current_method_talents；stock=1；inventory_rule=one_each_per_shop_visit；free_refreshes=0
 - swap_method：fee=0；fee_currency=coins；occupies_rest_choice=是；heals=否；resets_talents=否
 - artifact_reward_sampling：ordinary_common=candidates=3；draw_once=是；freeze_on_display=是；free_refreshes=0；elite_rare=candidates=3；draw_once=是；freeze_on_display=是；free_refreshes=0；boss_rare=candidates=3；draw_once=是；freeze_on_display=是；exact_ids_before_battle=否；free_refreshes=0
 - boss_legendary_replacement：probability_by_act=0.02、0.04、0.06、0.08；max_replacements=1；replaces_candidate=是；adds_candidate=否；no_extra_reward=是；fallback_if_ineligible=rare；guaranteed=否

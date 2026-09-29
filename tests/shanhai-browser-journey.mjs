@@ -268,17 +268,23 @@ async function setupRun(page, record) {
   await page.reload({ waitUntil: 'networkidle' });
   await page.locator('.landing-page').waitFor({ state: 'visible' });
   await page.locator('.method-choice').nth(4).waitFor({ state: 'visible' });
-  const seedOptions = page.locator('details[data-details="seed-options"]');
-  assert.equal(await seedOptions.getAttribute('open'), null, `${record.viewport}: 命数设置应默认折叠`);
-  await seedOptions.locator('summary').click();
+  const seedInput = page.locator('[name="seed"]');
+  assert.equal(await seedInput.isVisible(), true,
+    `${record.viewport}: 命数种子输入框应直接显示`);
+  assert.equal(await seedInput.isEditable(), true,
+    `${record.viewport}: 命数种子输入框应可编辑`);
   assert.equal(await page.locator('.method-choice').count(), 5, `${record.viewport}: 开局功法不是五门`);
   await page.locator('[name="player-name"]').fill(playerName);
-  await page.locator('[name="seed"]').fill(seed);
+  await seedInput.fill(seed);
   const method = await page.locator('.method-choice').first().getAttribute('data-id');
   assert.ok(method, '开局功法没有 data-id');
   await page.locator('.method-choice').first().click();
   await clickMatchingAction(page, 'start');
   await waitForPhase(page, 'map');
+  assert.equal(await page.locator('.inline-notice').count(), 0,
+    `${record.viewport}: 进入命途后不应显示开局成功填充提示`);
+  assert.equal(await page.locator('.game-page.phase-map .map-key').count(), 0,
+    `${record.viewport}: 山河路线图不应显示节点图例`);
   const saved = await readSave(page);
   assert.equal(saved.state.method, method, '真实开局选择的功法没有写入自动存档');
   assert.equal(saved.state.seed, seed, '真实开局种子没有写入自动存档');

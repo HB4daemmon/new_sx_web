@@ -87,7 +87,7 @@ export type RunPhase = 'route' | 'map' | 'preview' | 'battle' | 'reward' | 'even
   'event_result' | 'shop' | 'rest' | 'talent' | 'transition' | 'won' | 'lost';
 export interface ShopItem {
   id: string;
-  kind: 'artifact' | 'recovery' | 'preparation';
+  kind: 'artifact' | 'recovery' | 'preparation' | 'talent_reset';
   price: number;
   sold: boolean;
 }

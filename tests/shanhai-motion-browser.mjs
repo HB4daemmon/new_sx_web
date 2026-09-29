@@ -3,6 +3,7 @@ import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
+import { pauseNextReplay } from './shanhai-replay-fixture.mjs';
 
 const url = process.env.BROWSER_URL || 'http://localhost:4173/';
 const saveKey = 'suishi-shanhai-run-v1';
@@ -223,7 +224,6 @@ async function assertSteadyFirstBattle(page, width) {
   await page.reload({ waitUntil: 'networkidle' });
   await page.locator('.method-choice[data-id="RKF01"]').waitFor({ state: 'visible' });
   await page.locator('[name="player-name"]').fill(`动画验收${width}`);
-  await page.locator('details[data-details="seed-options"] summary').click();
   await page.locator('[name="seed"]').fill(`motion-real-opening-${width}`);
   await page.locator('.method-choice[data-id="RKF01"]').click();
   await clickAction(page, 'start');
@@ -353,7 +353,114 @@ function expectedActionKind(frame) {
   return 'none';
 }
 
-function expectedMotion(frame, previous, side) {
+const presentationBoundaries = new Set(['action', 'round', 'start', 'end', 'draw', 'summary']);
+
+function emptyExpectedSide() {
+  return {
+    damage: 0,
+    healing: 0,
+    shieldAbsorbed: 0,
+    shieldGenerated: 0,
+    shieldConsumed: 0,
+    hits: 0,
+    dotDamage: 0,
+    dotHits: 0,
+    critical: false,
+    statuses: {},
+  };
+}
+
+function summarizeExpectedSide(summary, side, frame, previous) {
+  const hpDelta = frame[side].hp - previous[side].hp;
+  const shieldDelta = frame[side].shield - previous[side].shield;
+  const damageFrame = frame.kind === 'damage' || frame.kind === 'dot';
+  const targeted = frame.target === side || (!frame.target && hpDelta < 0);
+  if (hpDelta < 0) summary.damage += -hpDelta;
+  if (hpDelta > 0) summary.healing += hpDelta;
+  if (shieldDelta > 0) summary.shieldGenerated += shieldDelta;
+  if (shieldDelta < 0) {
+    if (damageFrame && frame.target === side) summary.shieldAbsorbed += -shieldDelta;
+    else summary.shieldConsumed += -shieldDelta;
+  }
+  if (damageFrame && targeted && (hpDelta < 0 || (frame.target === side && shieldDelta < 0))) {
+    summary.hits += 1;
+    if (frame.kind === 'dot') {
+      summary.dotHits += 1;
+      if (hpDelta < 0) summary.dotDamage += -hpDelta;
+    }
+    if (/暴击|会心|critical|crit/i.test(frame.text)) summary.critical = true;
+  }
+  for (const status of new Set([
+    ...Object.keys(previous[side].statuses || {}),
+    ...Object.keys(frame[side].statuses || {}),
+  ])) {
+    const delta = (frame[side].statuses?.[status] || 0) -
+      (previous[side].statuses?.[status] || 0);
+    if (delta) summary.statuses[status] = (summary.statuses[status] || 0) + delta;
+  }
+}
+
+function expectedPresentationAt(frames, cursor) {
+  const frame = frames[cursor];
+  if (!frame || presentationBoundaries.has(frame.kind)) return undefined;
+  let runStart = cursor;
+  while (runStart > 0) {
+    const previous = frames[runStart - 1];
+    if (presentationBoundaries.has(previous.kind) || previous.round !== frame.round) break;
+    runStart -= 1;
+  }
+  let firstDot = -1;
+  for (let index = runStart; index <= cursor; index += 1) {
+    if (frames[index].kind === 'dot') {
+      firstDot = index;
+      break;
+    }
+  }
+  const startIndex = firstDot >= 0 ? firstDot : runStart;
+  const group = {
+    startIndex,
+    endIndex: cursor,
+    round: frame.round,
+    dot: firstDot >= 0,
+    player: emptyExpectedSide(),
+    enemy: emptyExpectedSide(),
+  };
+  for (let index = startIndex; index <= cursor; index += 1) {
+    const previous = frames[index - 1];
+    if (!previous) continue;
+    summarizeExpectedSide(group.player, 'player', frames[index], previous);
+    summarizeExpectedSide(group.enemy, 'enemy', frames[index], previous);
+  }
+  return group;
+}
+
+function expectedPresentationStepEnd(frames, startIndex) {
+  const first = frames[startIndex];
+  if (!first || presentationBoundaries.has(first.kind)) return startIndex;
+  let dot = first.kind === 'dot';
+  let end = startIndex;
+  for (let index = startIndex + 1; index < frames.length; index += 1) {
+    const frame = frames[index];
+    if (presentationBoundaries.has(frame.kind) || frame.round !== first.round) break;
+    if (frame.kind === 'dot' && !dot) break;
+    if (frame.kind === 'dot') dot = true;
+    end = index;
+  }
+  return end;
+}
+
+function motionFromExpectedSummary(summary, dotPhase) {
+  if (summary.damage > 0) {
+    return dotPhase && summary.dotDamage === summary.damage ? 'dot' : 'hit';
+  }
+  if (summary.shieldAbsorbed > 0) return 'block';
+  if (summary.healing > 0) return 'heal';
+  if (summary.shieldGenerated > 0) return 'shield';
+  if (Object.values(summary.statuses).some(Boolean)) return 'buff';
+  return 'idle';
+}
+
+function expectedFrameMotion(frame, previous, side) {
   if (!previous) return 'idle';
   const before = previous[side];
   const after = frame[side];
@@ -373,9 +480,16 @@ function expectedMotion(frame, previous, side) {
   return 'idle';
 }
 
+function expectedMotionAt(frames, index, side) {
+  const group = expectedPresentationAt(frames, index);
+  if (group) return motionFromExpectedSummary(group[side], group.dot);
+  return expectedFrameMotion(frames[index], index > 0 ? frames[index - 1] : undefined, side);
+}
+
 async function assertFrameContract(page, index, frames, label) {
   const frame = frames[index];
   const previous = index > 0 ? frames[index - 1] : undefined;
+  const group = expectedPresentationAt(frames, index);
   assert.ok(frame, `${label}: fixture 缺少 frame ${index}`);
   const actual = await page.evaluate(() => {
     const arena = document.querySelector('.combat-arena');
@@ -425,9 +539,12 @@ async function assertFrameContract(page, index, frames, label) {
   });
   assert.equal(Number(actual.frameIndex), index, `${label}: arena data-frame-index 不匹配`);
   assert.equal(actual.frameKind, frame.kind, `${label}: arena data-frame-kind 不匹配`);
-  if (frame.kind === 'damage') {
+  if (group) {
+    assert.equal(actual.summary, group.dot ? '持续伤害' : '交锋结算',
+      `${label}: 分组表现标题与当前可见效果组不一致`);
+  } else if (frame.kind === 'damage') {
     const blocked = ['player', 'enemy'].some(side =>
-      expectedMotion(frame, previous, side) === 'block');
+      expectedFrameMotion(frame, previous, side) === 'block');
     assert.equal(actual.summary, blocked ? '护盾吸收' : '受到攻击',
       `${label}: 受击简讯不能将出手方误标为受击方`);
   }
@@ -443,8 +560,8 @@ async function assertFrameContract(page, index, frames, label) {
     `${label}: data-side 不完整`);
   for (const side of ['player', 'enemy']) {
     const item = actual.combatants.find(value => value.side === side);
-    assert.equal(item.motion, expectedMotion(frame, previous, side),
-      `${label}: ${side} data-motion 与帧效果不一致`);
+    assert.equal(item.motion, expectedMotionAt(frames, index, side),
+      `${label}: ${side} data-motion 与当前可见效果组不一致`);
     assert.equal(item.frameIndex, String(index), `${label}: ${side} 帧索引不匹配`);
     const fighter = frame[side];
     const capacity = Math.max(1, fighter.maxHp + fighter.shield);
@@ -597,16 +714,19 @@ async function assertRageInterpolation(page, snapshot, width) {
   const index = frames.findIndex((frame, cursor) =>
     cursor > 0 && frame.player.rage !== frames[cursor - 1].player.rage);
   assert.ok(index > 0, `${width}: 实战没有怒气变化帧`);
-  await setReplayCursor(page, index - 1);
-  await waitForFrameIndex(page, index);
-  await assertFrameContract(page, index, frames, `${width} rage interpolation`);
+  const group = expectedPresentationAt(frames, index);
+  const cursor = group ? expectedPresentationStepEnd(frames, group.startIndex) : index;
+  const before = group ? group.startIndex - 1 : index - 1;
+  await setReplayCursor(page, before);
+  await waitForFrameIndex(page, cursor);
+  await assertFrameContract(page, cursor, frames, `${width} rage interpolation`);
 
   const transition = await page.waitForFunction(expected => {
     const fill = document.querySelector('.combatant[data-side="player"] .bar.rage > span');
     return [...(fill?.getAnimations() || [])].some(animation =>
       animation.playState === 'running' &&
       animation.effect?.getTiming().duration > 0);
-  }, index, { polling: 'raf' }).catch(() => null);
+  }, cursor, { polling: 'raf' }).catch(() => null);
   assert.ok(transition, `${width}: 怒气条没有实际 width transition`);
   const movement = await page.evaluate(() => {
     const fill = document.querySelector('.combatant[data-side="player"] .bar.rage > span');
@@ -686,19 +806,24 @@ function deltaFor(frame, previous, side, field) {
   return frame[side][field] - previous[side][field];
 }
 
-function motionTarget(frame, previous, motion) {
+function motionTarget(frames, index, motion) {
   for (const side of ['player', 'enemy']) {
-    if (expectedMotion(frame, previous, side) === motion) return side;
+    if (expectedMotionAt(frames, index, side) === motion) return side;
   }
   return null;
 }
 
 async function assertFixtureMotion(page, snapshot, index, motion, label) {
-  await setReplayCursor(page, index - 1);
-  await waitForFrameIndex(page, index);
+  const group = expectedPresentationAt(snapshot.frames, index);
+  const cursor = group
+    ? expectedPresentationStepEnd(snapshot.frames, group.startIndex)
+    : index;
+  const before = group ? group.startIndex - 1 : index - 1;
+  await setReplayCursor(page, before);
+  await waitForFrameIndex(page, cursor);
   await clickAction(page, 'battle-pause');
-  const actual = await assertFrameContract(page, index, snapshot.frames, label);
-  const targetSide = motionTarget(snapshot.frames[index], snapshot.frames[index - 1], motion);
+  const actual = await assertFrameContract(page, cursor, snapshot.frames, label);
+  const targetSide = motionTarget(snapshot.frames, cursor, motion);
   assert.ok(targetSide, `${label}: runtime frame 没有 ${motion} 表现对象`);
   assert.equal(actual.combatants.find(item => item.side === targetSide)?.motion, motion,
     `${label}: ${targetSide} 未呈现 ${motion}`);
@@ -770,7 +895,171 @@ function createVitalBoundaryFixtures(baseFrame) {
   ];
 }
 
-async function loadFixedFrameFixture(page, frames, cursor) {
+function createGroupedMultiHitFrames(baseFrame) {
+  const start = structuredClone(baseFrame);
+  start.round = 1;
+  start.kind = 'start';
+  start.text = '固定分段：交锋开始';
+  start.player.shield = 0;
+  start.enemy.shield = 20;
+  delete start.actor;
+  delete start.target;
+  delete start.amount;
+  delete start.source;
+  delete start.player.lockedAction;
+  delete start.enemy.lockedAction;
+
+  const action = structuredClone(start);
+  action.kind = 'action';
+  action.text = '固定分段：我方普攻';
+  action.actor = 'player';
+  action.player.lockedAction = 'basic_action';
+
+  const damageFrame = (previous, hpLoss, shieldLoss, playerShieldGain, text) => {
+    const frame = structuredClone(previous);
+    frame.kind = 'damage';
+    frame.text = text;
+    frame.actor = 'player';
+    frame.target = 'enemy';
+    frame.amount = hpLoss + shieldLoss;
+    frame.player.shield += playerShieldGain;
+    frame.enemy.hp -= hpLoss;
+    frame.enemy.shield -= shieldLoss;
+    return frame;
+  };
+  const firstHit = damageFrame(action, 7, 0, 4, '固定分段：第一击');
+  const secondHit = damageFrame(firstHit, 11, 5, 0, '固定分段：第二击');
+  const thirdHit = damageFrame(secondHit, 13, 7, 0, '固定分段：第三击');
+
+  const nextAction = structuredClone(thirdHit);
+  nextAction.kind = 'action';
+  nextAction.text = '固定分段：未来边界动作';
+  nextAction.actor = 'enemy';
+  nextAction.enemy.lockedAction = 'basic_action';
+  const futureDamage = Math.min(97, Math.max(1, thirdHit.enemy.hp - 1));
+  const futureHit = damageFrame(
+    nextAction,
+    futureDamage,
+    0,
+    0,
+    '固定分段：未来伤害不得提前展示',
+  );
+  const end = structuredClone(futureHit);
+  end.kind = 'end';
+  end.text = '固定分段：结束';
+  delete end.actor;
+  delete end.target;
+  delete end.amount;
+  return {
+    frames: [start, action, firstHit, secondHit, thirdHit, nextAction, futureHit, end],
+    futureDamage,
+  };
+}
+
+function wholeNumber(value) {
+  return Math.round(value).toLocaleString('zh-CN');
+}
+
+function findGroupedMultiHit(frames) {
+  for (let cursor = 1; cursor < frames.length; cursor += 1) {
+    const group = expectedPresentationAt(frames, cursor);
+    if (!group || expectedPresentationStepEnd(frames, group.startIndex) !== cursor) continue;
+    const hits = group.player.hits + group.enemy.hits;
+    const damage = group.player.damage + group.enemy.damage;
+    if (hits > 1 && damage > 0) return group;
+  }
+  return undefined;
+}
+
+function expectedDamageMessage(group, summary) {
+  const label = group.dot && summary.dotDamage === summary.damage
+    ? '持续伤害 '
+    : summary.critical ? '暴击 ' : '';
+  const hitCount = summary.hits > 1 ? ` · ${wholeNumber(summary.hits)}段` : '';
+  return `${label}-${wholeNumber(summary.damage)}${hitCount}`;
+}
+
+async function readFeedbackPresentation(page) {
+  return page.evaluate(() => {
+    const side = suffix => {
+      const groups = [...document.querySelectorAll(
+        `.combat-feedback-group.side-${suffix}`,
+      )];
+      return groups.map(group => [...group.querySelectorAll('.combat-float')].map(float => ({
+        text: float.textContent?.trim() || '',
+        duration: getComputedStyle(float).animationDuration,
+        rect: (() => {
+          const { x, y, width, height, right, bottom } = float.getBoundingClientRect();
+          return { x, y, width, height, right, bottom };
+        })(),
+      })));
+    };
+    return {
+      cursor: Number(document.querySelector('.combat-arena')?.getAttribute('data-frame-index')),
+      player: side('p'),
+      enemy: side('e'),
+      centerAmount: document.querySelector('[data-battle-amount]')?.textContent?.trim() || '',
+    };
+  });
+}
+
+async function assertFeedbackDoesNotOverlap(page, label) {
+  const overlaps = await page.evaluate(() => {
+    const intersects = (a, b) =>
+      Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 &&
+      Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
+    const floats = [...document.querySelectorAll('.combat-feedback-group .combat-float')];
+    const obstacles = [
+      ...document.querySelectorAll('.combatant .bar.hp, .combatant .bar.rage'),
+      ...document.querySelectorAll('.battle-controls'),
+    ];
+    return floats.flatMap(float => {
+      const floatRect = float.getBoundingClientRect();
+      const message = float.textContent?.trim() || '';
+      return obstacles.flatMap(obstacle => {
+        const obstacleRect = obstacle.getBoundingClientRect();
+        return intersects(floatRect, obstacleRect)
+          ? [{ message, obstacle: obstacle.className || obstacle.getAttribute('data-action') }]
+          : [];
+      });
+    });
+  });
+  assert.deepEqual(overlaps, [],
+    `${label}: 分组浮层遮挡血盾/怒气条或战斗控件 ${JSON.stringify(overlaps)}`);
+}
+
+async function assertGroupedFeedback(page, frames, cursor, label, minimumDuration = 0) {
+  const group = expectedPresentationAt(frames, cursor);
+  assert.ok(group, `${label}: 当前 cursor 没有可见效果组`);
+  const actual = await readFeedbackPresentation(page);
+  assert.equal(actual.cursor, cursor, `${label}: raw replay cursor 被分组表现改写`);
+  assert.equal(actual.centerAmount, '', `${label}: 中央金额与分组伤害重复显示`);
+  for (const [key, side] of [['player', 'player'], ['enemy', 'enemy']]) {
+    const renderedGroups = actual[key];
+    assert.ok(renderedGroups.length <= 1, `${label}: ${side} 出现重复分组容器`);
+    const messages = renderedGroups.flat();
+    assert.ok(messages.length <= 2,
+      `${label}: ${side} 分组浮层超过两条 ${JSON.stringify(messages)}`);
+    const summary = group[side];
+    if (summary.damage > 0) {
+      assert.ok(messages.some(item => item.text === expectedDamageMessage(group, summary)),
+        `${label}: ${side} 总伤害/命中数不符，期望 ${expectedDamageMessage(group, summary)}，实际 ${JSON.stringify(messages)}`);
+    }
+    if (minimumDuration) {
+      for (const message of messages) {
+        const duration = Number.parseFloat(message.duration);
+        const milliseconds = message.duration.trim().endsWith('s')
+          ? duration * 1000
+          : duration;
+        assert.ok(milliseconds >= minimumDuration,
+          `${label}: ${side} 浮层显示时间不足 ${minimumDuration}ms (${message.duration})`);
+      }
+    }
+  }
+  return { group, actual };
+}
+
+async function loadFixedFrameFixture(page, frames, cursor, pauseAtCursor = false) {
   await page.evaluate(({ saveKey, replayKey, frames, cursor }) => {
     const record = JSON.parse(localStorage.getItem(saveKey) || 'null');
     if (!record?.state?.battle) throw new Error('Fixed battle fixture has no battle state');
@@ -787,6 +1076,7 @@ async function loadFixedFrameFixture(page, frames, cursor) {
       cursor,
     }));
   }, { saveKey, replayKey, frames, cursor });
+  if (pauseAtCursor) await pauseNextReplay(page);
   await page.reload({ waitUntil: 'networkidle' });
   await waitForApp(page);
   await waitForPhase(page, 'battle');
@@ -795,7 +1085,7 @@ async function loadFixedFrameFixture(page, frames, cursor) {
 async function assertFixedVitalDisplayFixtures(page, baseFrame) {
   const fixtures = createVitalBoundaryFixtures(baseFrame);
   for (const fixture of fixtures) {
-    await loadFixedFrameFixture(page, fixture.frames, fixture.index);
+    await loadFixedFrameFixture(page, fixture.frames, fixture.index, true);
     const snapshot = await battleSnapshot(page);
     assert.deepEqual(snapshot.frames, fixture.frames,
       `${fixture.label}: 固定展示帧未按测试数据还原`);
@@ -825,7 +1115,81 @@ async function assertFixedVitalDisplayFixtures(page, baseFrame) {
   }
 }
 
-async function assertFixtureCoverage(page) {
+async function assertFixedGroupedMultiHit(page, baseFrame, width) {
+  const fixture = createGroupedMultiHitFrames(baseFrame);
+  const { frames, futureDamage } = fixture;
+  const fullCursor = 4;
+  await loadFixedFrameFixture(page, frames, 1, true);
+  assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true',
+    `${width}: 固定多段回放应在动作边界暂停`);
+  await clickAction(page, 'battle-speed', { speed: 4 });
+  await clickAction(page, 'battle-pause');
+  await waitForFrameIndex(page, fullCursor);
+  await clickAction(page, 'battle-pause');
+  assert.equal((await battleSnapshot(page)).replay?.cursor, fullCursor,
+    `${width}: 多段效果组没有跳到组尾 raw cursor`);
+  const fullContract = await assertFrameContract(
+    page, fullCursor, frames, `${width} fixed grouped multi-hit`);
+  assert.ok(Number.parseFloat(fullContract.beatDuration) >= 400,
+    `${width}: 4x 多段效果组播放节拍不足 400ms (${fullContract.beatDuration})`);
+  const full = await assertGroupedFeedback(
+    page, frames, fullCursor, `${width} fixed grouped multi-hit`, 400);
+  const rawDamage = frames.slice(2, fullCursor + 1).reduce((total, frame, offset) =>
+    total + frames[1 + offset].enemy.hp - frame.enemy.hp, 0);
+  const rawHits = frames.slice(2, fullCursor + 1).filter((frame, offset) =>
+    frame.kind === 'damage' && frame.target === 'enemy' &&
+    frame.enemy.hp < frames[1 + offset].enemy.hp).length;
+  const rawShieldAbsorbed = frames.slice(2, fullCursor + 1).reduce((total, frame, offset) =>
+    total + Math.max(0, frames[1 + offset].enemy.shield - frame.enemy.shield), 0);
+  assert.equal(full.group.enemy.damage, rawDamage,
+    `${width}: 完整组总伤害没有等于 raw frame 气血差额`);
+  assert.equal(full.group.enemy.hits, rawHits,
+    `${width}: 完整组命中数没有等于 raw frame 命中数`);
+  assert.equal(full.group.enemy.shieldAbsorbed, rawShieldAbsorbed,
+    `${width}: 完整组护盾吸收没有等于 raw frame 护盾差额`);
+  const fullEnemyText = full.actual.enemy.flat().map(item => item.text);
+  const fullPlayerText = full.actual.player.flat().map(item => item.text);
+  assert.ok(fullEnemyText.includes('吸收 12'),
+    `${width}: 完整组没有展示精确护盾吸收 ${JSON.stringify(fullEnemyText)}`);
+  assert.ok(fullPlayerText.includes('护盾 +4'),
+    `${width}: 完整组没有展示精确护盾增长 ${JSON.stringify(fullPlayerText)}`);
+  assert.equal(fullEnemyText.some(text => text.includes(`-${wholeNumber(futureDamage)}`)), false,
+    `${width}: 下一组未来伤害泄漏到当前多段浮层`);
+  await assertFeedbackDoesNotOverlap(page, `${width} fixed grouped multi-hit`);
+
+  const partialCursor = 3;
+  await loadFixedFrameFixture(page, frames, partialCursor, true);
+  assert.equal((await battleSnapshot(page)).replay?.cursor, partialCursor,
+    `${width}: 任意 raw cursor 恢复被改写为组尾`);
+  await assertFrameContract(page, partialCursor, frames,
+    `${width} partial raw-cursor grouped multi-hit`);
+  const partial = await assertGroupedFeedback(
+    page, frames, partialCursor, `${width} partial raw-cursor grouped multi-hit`);
+  const partialEnemyText = partial.actual.enemy.flat().map(item => item.text);
+  assert.ok(partialEnemyText.includes('-18 · 2段'),
+    `${width}: 部分 cursor 没有只汇总前两段 ${JSON.stringify(partialEnemyText)}`);
+  assert.ok(partialEnemyText.includes('吸收 5'),
+    `${width}: 部分 cursor 没有只汇总已发生的护盾吸收 ${JSON.stringify(partialEnemyText)}`);
+  assert.equal(partialEnemyText.includes('-31 · 3段'), false,
+    `${width}: 部分 cursor 提前包含第三段伤害`);
+  assert.equal(partialEnemyText.some(text => text.includes(`-${wholeNumber(futureDamage)}`)), false,
+    `${width}: 部分 cursor 泄漏了后续效果组`);
+
+  await clickAction(page, 'battle-details', { tab: 'log' });
+  const modal = page.locator('.battle-detail-dialog');
+  await modal.waitFor({ state: 'visible' });
+  const log = modal.locator('.battle-log');
+  assert.equal(await log.getAttribute('data-frame-index'), String(partialCursor),
+    `${width}: 分组回放改写了部分 raw 战报 cursor`);
+  assert.equal(await log.locator('.battle-log-row').count(), partialCursor + 1,
+    `${width}: 部分 raw cursor 战报行数不正确`);
+  assert.equal((await log.textContent())?.includes('未来伤害不得提前展示'), false,
+    `${width}: 部分 raw cursor 战报泄漏未来帧`);
+  await clickAction(page, 'modal-close');
+  await modal.waitFor({ state: 'detached' });
+}
+
+async function assertFixtureCoverage(page, width) {
   const shieldSnapshot = await createRuntimeBattleFixture(
     page, 'RKF01', 'motion-legal-shield-rage');
   const shieldIndex = findFrame(shieldSnapshot.frames, (frame, index) =>
@@ -846,6 +1210,7 @@ async function assertFixtureCoverage(page) {
       index > 0 && frame.kind === 'action' && expectedActionKind(frame) === 'basic',
     '普攻'), 'strike', '真实普攻 fixture');
   await assertFixedVitalDisplayFixtures(page, shieldSnapshot.frames[0]);
+  await assertFixedGroupedMultiHit(page, shieldSnapshot.frames[0], width);
 
   const healSnapshot = await createRuntimeBattleFixture(
     page, 'RKF03', 'motion-legal-heal-rage', 0.2);
@@ -867,10 +1232,14 @@ async function assertFixtureCoverage(page) {
     frame.player.rage >= frame.player.rageCap,
   '怒气已满');
   await createRuntimeBattleFixture(page, 'RKF01', 'motion-legal-shield-rage');
-  await setReplayCursor(page, readyIndex - 1);
+  await pauseNextReplay(page);
+  await setReplayCursor(page, readyIndex);
   await waitForFrameIndex(page, readyIndex);
   await clickAction(page, 'battle-pause');
   await assertFrameContract(page, readyIndex, shieldSnapshot.frames, '真实怒气就绪 fixture');
+  const multiHitSnapshot = await createRuntimeBattleFixture(
+    page, 'RKF03', 'motion-group-RKF03-0');
+  await assertGroupedRuntimeFeedback(page, multiHitSnapshot, width);
   const dotSnapshot = await createRuntimeBattleFixture(
     page, 'RKF04', 'motion-legal-dot', 1);
   const dotIndex = findFrame(dotSnapshot.frames, frame => frame.kind === 'dot', '持续伤害');
@@ -884,6 +1253,7 @@ async function assertFixtureCoverage(page) {
     dotSnapshot,
     dotIndex,
     readyIndex,
+    multiHitSnapshot,
   };
 }
 
@@ -1240,11 +1610,47 @@ async function assertFloatMoves(page, snapshot, width) {
     cursor > 0 && ['damage', 'dot'].includes(frame.kind) &&
     ['player', 'enemy'].some(side => frame[side].hp < snapshot.frames[cursor - 1][side].hp),
   '实际伤害/持续伤害');
-  await setReplayCursor(page, index - 1);
-  await waitForFrameIndex(page, index);
-  const result = await motionSamples(page, { frameIndex: index, float: true });
+  const group = expectedPresentationAt(snapshot.frames, index);
+  const cursor = group ? expectedPresentationStepEnd(snapshot.frames, group.startIndex) : index;
+  await setReplayCursor(page, group ? group.startIndex - 1 : index - 1);
+  await waitForFrameIndex(page, cursor);
+  const result = await motionSamples(page, { frameIndex: cursor, float: true });
   assert.ok(result.xMovement > 0.5 || result.yMovement > 0.5,
     `${width}: 实际 combat-float 没有位移 ${JSON.stringify(result.record)}`);
+}
+
+async function assertGroupedRuntimeFeedback(page, snapshot, width) {
+  const group = findGroupedMultiHit(snapshot.frames);
+  assert.ok(group, `${width}: 真实战斗没有可验证的多段伤害组`);
+  assert.ok(group.endIndex > group.startIndex,
+    `${width}: 真实多段组没有跨越多个 raw frame`);
+  const rawDamage = snapshot.frames.slice(group.startIndex, group.endIndex + 1)
+    .reduce((total, frame, offset) =>
+      total + snapshot.frames[group.startIndex + offset - 1].enemy.hp - frame.enemy.hp, 0);
+  assert.ok(Math.abs(group.enemy.damage - rawDamage) < 1e-8,
+    `${width}: 真实组伤害总和与 raw HP 差额不一致`);
+  assert.ok(group.enemy.hits >= 2,
+    `${width}: 真实组命中数没有包含每段 raw 伤害`);
+
+  await setReplayCursor(page, group.startIndex - 1);
+  await waitForFrameIndex(page, group.endIndex);
+  assert.equal((await battleSnapshot(page)).replay?.cursor, group.endIndex,
+    `${width}: 自然回放没有落在多段效果组末尾`);
+  await assertFrameContract(page, group.endIndex, snapshot.frames,
+    `${width} real grouped multi-hit`);
+  const presentation = await assertGroupedFeedback(
+    page, snapshot.frames, group.endIndex, `${width} real grouped multi-hit`);
+  assert.equal(presentation.group.enemy.damage, rawDamage,
+    `${width}: 浮层汇总不是当前组真实伤害总和`);
+  assert.equal(presentation.group.enemy.hits, group.enemy.hits,
+    `${width}: 浮层命中数不是当前组真实命中数`);
+  await assertFeedbackDoesNotOverlap(page, `${width} real grouped multi-hit`);
+  const animation = await motionSamples(page, {
+    frameIndex: group.endIndex,
+    float: true,
+  });
+  assert.ok(animation.xMovement > 0.5 || animation.yMovement > 0.5,
+    `${width}: 普通 motion preference 下实际分组浮层没有位移 ${JSON.stringify(animation.record)}`);
 }
 
 async function sampleStableRect(page, selector, duration = 240) {
@@ -1313,13 +1719,16 @@ async function assertReducedMotion(browser, errors) {
         y: actionRange('y'),
       })}`);
 
-    await setReplayCursor(page, dotIndex - 1);
-    await waitForFrameIndex(page, dotIndex);
+    const dotGroup = expectedPresentationAt(snapshot.frames, dotIndex);
+    const dotCursor = dotGroup
+      ? expectedPresentationStepEnd(snapshot.frames, dotGroup.startIndex)
+      : dotIndex;
+    await setReplayCursor(page, dotGroup ? dotGroup.startIndex - 1 : dotIndex - 1);
+    await waitForFrameIndex(page, dotCursor);
     assert.equal(await page.evaluate(() =>
       matchMedia('(prefers-reduced-motion: reduce)').matches), true,
     'reduced-motion context 没有生效');
-    const dotSide = motionTarget(
-      snapshot.frames[dotIndex], snapshot.frames[dotIndex - 1], 'dot');
+    const dotSide = motionTarget(snapshot.frames, dotCursor, 'dot');
     assert.ok(dotSide, 'reduced-motion DOT 帧没有目标');
     assert.equal(await page.locator(`.combatant[data-side="${dotSide}"]`)
       .getAttribute('data-motion'), 'dot', 'reduced-motion 动作没有呈现 DOT 状态');
@@ -1413,7 +1822,7 @@ async function runViewport(browser, width, height, includeDeepChecks) {
         await assertSkipIsPresentationOnly(page, snapshot, width);
       });
       await check(`${width} runtime shield/heal/DOT fixtures`, async () => {
-        const fixtures = await assertFixtureCoverage(page);
+        const fixtures = await assertFixtureCoverage(page, width);
         await assertFloatMoves(page, fixtures.dotSnapshot, width);
         return {
           frames: {
@@ -1426,6 +1835,7 @@ async function runViewport(browser, width, height, includeDeepChecks) {
     } else {
       await check(`${width} responsive speed/pause/log/skip controls`, async () => {
         assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true');
+        await assertFixedGroupedMultiHit(page, snapshot.frames[0], width);
         const before = await battleSnapshot(page);
         await clickAction(page, 'battle-speed', { speed: 2 });
         assert.equal(await page.locator('.battle-log').count(), 0,

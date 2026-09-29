@@ -152,6 +152,7 @@ economy:
   non_artifact_prices:
     recovery: {price: 15, currency: coins, amount: 0.12, basis: reference_hp, mode: raw, stock: 1}
     preparation: {price: 12, currency: coins, effect: shield, amount: 0.10, basis: reference_hp, scope: next_battle, stock: 1}
+    talent_reset: {price: 40, currency: coins, effect: reset_current_method_talents, stock: 1}
     inventory_rule: one_each_per_shop_visit
     free_refreshes: 0
   swap_method:

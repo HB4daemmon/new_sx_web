@@ -64,6 +64,7 @@ const PHASES: readonly RunPhase[] = [
   'lost',
 ];
 
+const SHOP_KINDS = ['artifact', 'recovery', 'preparation', 'talent_reset'] as const;
 const METHOD_IDS = /^RKF\d\d$/;
 const ARTIFACT_IDS = /^(?:RC|RR|RL)\d\d$/;
 
@@ -1319,6 +1320,7 @@ export class ShanhaiGame {
     }
     const recovery = rulesOf(this.content).economy?.non_artifact_prices?.recovery ?? {};
     const preparation = rulesOf(this.content).economy?.non_artifact_prices?.preparation ?? {};
+    const talentReset = rulesOf(this.content).economy?.non_artifact_prices?.talent_reset ?? {};
     items.push({
       id: 'recovery',
       kind: 'recovery',
@@ -1331,6 +1333,12 @@ export class ShanhaiGame {
       price: finite(preparation.price) ? preparation.price : 12,
       sold: false,
     });
+    items.push({
+      id: 'talent_reset',
+      kind: 'talent_reset',
+      price: finite(talentReset.price) ? talentReset.price : 40,
+      sold: false,
+    });
     this.state.shop = items;
   }
 
@@ -1340,6 +1348,29 @@ export class ShanhaiGame {
     if (!item || item.sold) throw new Error('Unknown or sold shop item');
     if (!finite(item.price) || this.state.coins < item.price) throw new Error('Cannot afford shop item');
     if (item.kind === 'artifact' && !this.canAcquireArtifact(item.id, 1)) throw new Error('Artifact capacity exhausted');
+    if (item.kind === 'talent_reset') {
+      const state = this.state as RunStateInternals;
+      const chosen = state.talents[state.method] ?? [];
+      const tiers = chosen.map(talentId => talentTier(this.content, state.method, talentId));
+      if (state.n < 1 || !chosen.length) throw new Error('No earned talents to reset');
+      if (state._talentQueue?.length || state._returnPhase !== undefined || tiers.some(tier =>
+        !integer(tier) || tier < 1 || tier > state.n)) {
+        throw new Error('Talent reset is unavailable');
+      }
+      const queue: CoreQueueItem[] = Array.from({ length: state.n }, (_value, index) => ({
+        method: state.method,
+        tier: index + 1,
+        advance: false,
+      }));
+      this.state.coins -= item.price;
+      item.sold = true;
+      state.talents[state.method] = [];
+      state._talentQueue = queue;
+      state._returnPhase = 'shop';
+      this.state.phase = 'talent';
+      this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
+      return;
+    }
     this.state.coins -= item.price;
     if (item.kind === 'artifact') addArtifact(this.content, this.state, item.id, 1);
     else if (item.kind === 'recovery') this.state.hp = Math.min(this.stats.max_hp, this.state.hp + 0.12 * currentReferenceHp(this.content, this.state.act));
@@ -1395,8 +1426,9 @@ export class ShanhaiGame {
     if (state.talents[item.method].includes(id)) throw new Error('Talent already selected');
     state.talents[item.method].push(id);
     if (item.advance && item.tier === this.state.n + 1) this.state.n += 1;
+    this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
     state._talentQueue!.shift();
-    this.ensureTalentQueue();
+    if (state._talentQueue!.length || state._returnPhase !== 'shop') this.ensureTalentQueue();
     if (!state._talentQueue?.length) {
       this.state.phase = state._returnPhase ?? 'map';
       state._returnPhase = undefined;
@@ -2270,6 +2302,23 @@ export function validateRunState(content: Content, raw: RunState): void {
       }
     }
   }
+  if (state._returnPhase === 'shop') {
+    const queue = state._talentQueue ?? [];
+    const resetItem = Array.isArray(state.shop)
+      ? state.shop.find(item => item.id === 'talent_reset' && item.kind === 'talent_reset')
+      : undefined;
+    const completedTiers = (state.talents[state.method] ?? [])
+      .map(id => talentTier(content, state.method, id))
+      .filter(integer);
+    const remainingTiers = Array.from({ length: state.n }, (_value, index) => index + 1)
+      .filter(tier => !completedTiers.includes(tier));
+    if (state.phase !== 'talent' || state.n < 1 || !resetItem?.sold ||
+      !queue.length || queue.length !== remainingTiers.length ||
+      queue.some((item, index) => item.method !== state.method ||
+        item.tier !== remainingTiers[index] || item.advance)) {
+      throw new Error('Invalid shop talent reset queue');
+    }
+  }
   if (!Array.isArray(state.nodes) || !Array.isArray(state.routes) || !Array.isArray(state.artifacts) ||
     !Array.isArray(state.history)) throw new Error('Invalid run collections');
   if (state._routeMapVersion !== undefined && state._routeMapVersion !== 1) {
@@ -2516,10 +2565,10 @@ export function validateRunState(content: Content, raw: RunState): void {
     typeof id !== 'string' || contentEntity(content, id)?.kind !== 'artifact')) throw new Error('Invalid reward candidates');
   if (!Array.isArray(state.shop)) throw new Error('Invalid shop');
   for (const item of state.shop) {
-    if (!isObject(item) || typeof item.id !== 'string' || !['artifact', 'recovery', 'preparation'].includes(item.kind) ||
+    if (!isObject(item) || typeof item.id !== 'string' || !SHOP_KINDS.includes(item.kind) ||
       !finite(item.price) || item.price < 0 || typeof item.sold !== 'boolean') throw new Error('Invalid shop item');
     if (item.kind === 'artifact' && contentEntity(content, item.id)?.kind !== 'artifact') throw new Error('Invalid shop artifact');
-    if (item.kind !== 'artifact' && !['recovery', 'preparation'].includes(item.id)) throw new Error('Invalid shop service');
+    if (item.kind !== 'artifact' && item.id !== item.kind) throw new Error('Invalid shop service');
   }
   if ((state.nodeEntry === undefined) !== (state._nodeEntry === undefined)) {
     throw new Error('Node entry snapshot mismatch');

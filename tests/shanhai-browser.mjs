@@ -439,6 +439,15 @@ async function run() {
       assert.ok(shieldLog.includes(shield.text), '战报遗漏当前护盾帧原文');
       assert.ok(shield.outcome && shieldLog.includes(shield.outcome),
         `战报没有完整显示精确护盾文本：${shieldLog} / ${shield.outcome}`);
+      assert.equal(await desktop.locator('[data-battle-amount] .battle-amount').count(), 0,
+        '已由分组反馈/战报呈现的护盾效果不应重复显示中央单帧金额');
+      const groupedShieldText = (await desktop.locator('.combat-feedback-group').allInnerTexts()).join(' ');
+      const shieldGain = shield.outcome.match(/护盾 \+([\d,]+)/);
+      if (shieldGain) {
+        assert.ok(groupedShieldText.includes(`护盾 +${shieldGain[1]}`) ||
+          shieldLog.includes(`护盾 +${shieldGain[1]}`),
+        `分组反馈与战报都遗漏精确护盾增益 ${shield.outcome}`);
+      }
       await closeBattleDetail(desktop, shieldDetail, 'shield replay');
       await desktop.locator('[data-action="battle-speed"][data-speed="2"]').click();
       assert.equal(await desktop.locator('[data-action="battle-speed"][data-speed="2"]').getAttribute('aria-pressed'), 'true');
@@ -554,7 +563,9 @@ async function run() {
         }
         if (target === 'shop') assert.ok(await desktop.locator('.shop-item').count() > 0);
         if (target === 'rest') assert.ok(await desktop.locator('.rest-choice').count() > 0 || await desktop.locator('.method-swap').count() > 0);
-        if (target === 'talent') assert.ok(await desktop.locator('.talent-card').count() > 0);
+        if (target === 'talent') {
+          assert.ok(await desktop.locator('.talent-tree-selecting .talent-select').count() > 0);
+        }
         if (target === 'won') {
           assert.equal(await desktop.locator('.end-seal.win').count(), 1);
           await desktop.locator('.header-actions [data-action="archives"]').click();

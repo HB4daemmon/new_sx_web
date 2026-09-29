@@ -24,6 +24,11 @@ const suites = [
     script: 'tests/shanhai-restart-browser.mjs',
     reportEnv: 'SHANHAI_RESTART_REPORT_DIR',
   },
+  {
+    name: 'talent-tree-browser',
+    script: 'tests/shanhai-talent-tree-browser.mjs',
+    reportEnv: 'SHANHAI_TALENT_TREE_REPORT_DIR',
+  },
 ];
 const results = [];
 

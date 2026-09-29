@@ -98,6 +98,9 @@ async function clearAndOpen(page) {
 }
 
 async function startFromLanding(page) {
+  const seedInput = page.locator('[name="seed"]');
+  assert.equal(await seedInput.isVisible(), true, '首页命数种子输入框应直接显示');
+  assert.equal(await seedInput.isEditable(), true, '首页命数种子输入框应可编辑');
   const method = await page.locator('.method-choice').first().getAttribute('data-id');
   assert.ok(method, '没有可用的开局功法');
   await clickAction(page, 'start');
@@ -216,9 +219,22 @@ async function run() {
         await startFromLanding(page);
         const restart = page.locator('.topbar [data-action="restart"]');
         await restart.waitFor({ state: 'visible' });
+        assert.equal(await restart.getAttribute('aria-label'), '重开',
+          `${width}px: 重开图标缺少无障碍名称`);
         const rect = await restart.boundingBox();
         assert.ok(rect && rect.width >= 44 && rect.height >= 44,
           `重开按钮触控区域不足 44px ${JSON.stringify(rect)}`);
+        const talentTree = page.locator('.topbar .global-talent-tree');
+        await talentTree.waitFor({ state: 'visible' });
+        assert.equal(await talentTree.getAttribute('aria-label'), '查看当前功法天赋树',
+          `${width}px: 顶部天赋树图标缺少无障碍名称`);
+        const talentTreeRect = await talentTree.boundingBox();
+        assert.ok(talentTreeRect && talentTreeRect.width >= 44 && talentTreeRect.height >= 44,
+          `${width}px: 顶部天赋树入口触控区域不足 44px ${JSON.stringify(talentTreeRect)}`);
+        if (width <= 1050) {
+          assert.equal(await restart.locator('.restart-label').isVisible(), false,
+            `${width}px: 移动端重开命令应使用纯图标`);
+        }
         const controls = await page.locator('.header-actions button').evaluateAll(buttons =>
           buttons.map(button => {
             const rect = button.getBoundingClientRect();
@@ -319,9 +335,11 @@ async function run() {
       const chosenName = '新名'.repeat(14);
       const expectedName = chosenName.slice(0, 24);
       const method = await page.locator('.method-choice').nth(1).getAttribute('data-id');
-      await page.locator('details[data-details="seed-options"] summary').click();
+      const seedInput = page.locator('[name="seed"]');
+      assert.equal(await seedInput.isVisible(), true, '首页命数种子输入框应直接显示');
+      assert.equal(await seedInput.isEditable(), true, '首页命数种子输入框应可编辑');
       await page.locator('[name="player-name"]').fill(chosenName);
-      await page.locator('[name="seed"]').fill('homepage-selected-seed');
+      await seedInput.fill('homepage-selected-seed');
       await page.locator('.method-choice').nth(1).click();
       await clickAction(page, 'start');
       assert.equal(await page.locator('.modal-backdrop').count(), 1,

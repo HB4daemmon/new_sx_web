@@ -377,16 +377,20 @@ async function setupRun(page, seed = 'classic-ui-navigation') {
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: 'networkidle' });
   await page.locator('.method-choice').first().waitFor({ state: 'visible' });
-  const seedOptions = page.locator('details[data-details="seed-options"]');
-  assert.equal(await seedOptions.getAttribute('open'), null, '命数设置应默认折叠');
-  await seedOptions.locator('summary').click();
+  const seedInput = page.locator('[name="seed"]');
+  assert.equal(await seedInput.isVisible(), true, '命数种子输入框应直接显示');
+  assert.equal(await seedInput.isEditable(), true, '命数种子输入框应可编辑');
   await page.locator('[name="player-name"]').fill('经典UI行者');
-  await page.locator('[name="seed"]').fill(seed);
+  await seedInput.fill(seed);
   const method = await page.locator('.method-choice').first().getAttribute('data-id');
   assert.ok(method, '开局功法没有 data-id');
   await page.locator('.method-choice').first().click();
   await clickVisibleAction(page, 'start');
   await waitForPhase(page, 'map');
+  assert.equal(await page.locator('.inline-notice').count(), 0,
+    '进入命途后不应显示开局成功填充提示');
+  assert.equal(await page.locator('.map-key').count(), 0,
+    '山河路线图不应显示节点图例');
   return { method, save: await savedState(page) };
 }
 
