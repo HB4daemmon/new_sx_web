@@ -661,9 +661,14 @@ class ShanhaiApp {
     const effects = listOf<any>(talent.effects)
       .map((effect) => this.displayText(effectText(effect, (value) => this.displayText(value))))
       .filter(Boolean);
+    const description = asText(talent.description).trim();
+    const quick = asText(talent.quick).trim();
+    const overview = description && description !== quick
+      ? `<p>${this.textMarkup(description)}</p>`
+      : '';
     return `<p class="eyebrow">${esc(methodName)} · 第 ${formatNumber(talent.tier, 1)} 层 · ${esc(localizeBranch(talent.branch))}分支</p>
-      <p>${this.textMarkup(asText(talent.description, asText(talent.quick, '长久修行所得')))}</p>
-      <div class="effect-list" aria-label="完整效果">${effects.map((effect) => `<p>${semanticTextMarkup(effect)}</p>`).join('') || `<p>${this.textMarkup(asText(talent.quick, '暂无额外效果说明。'))}</p>`}</div>`;
+      ${overview}
+      <div class="effect-list" aria-label="完整效果">${effects.map((effect) => `<p>${this.textMarkup(effect)}</p>`).join('') || `<p>${this.textMarkup(quick)}</p>`}</div>`;
   }
 
   private sourceLabel(id: unknown): string {
@@ -1503,13 +1508,13 @@ class ShanhaiApp {
       <div class="landing-atmosphere">${landscape()}</div>
       <header class="topbar landing-topbar">
         <button class="brand" aria-label="山海行"><span class="brand-mark">${icon('mountain', 22)}</span><strong>随时修仙<span class="gold">·</span>山海行</strong></button>
-        <div class="top-tools">${this.archiveIssue ? `<span class="save-warning" role="status">${esc(this.archiveIssue)}</span>` : ''}<button class="icon-button" data-action="archives" title="历届通关构筑" aria-label="历届通关构筑">${icon('book', 19)}</button></div>
+        <div class="top-tools">${this.archiveIssue ? `<span class="save-warning" role="status">${esc(this.archiveIssue)}</span>` : ''}<button class="icon-button" data-action="archives" title="历届通关构筑" aria-label="历届通关构筑">${icon('archive', 19)}</button></div>
       </header>
       <main class="landing-inner">
         <section class="landing-copy"><p class="eyebrow">山海行</p><h1>随时修仙</h1>
           ${hasSaved && !this.storageIssue?.startsWith('存档无法读取') ? `<button class="resume-card" data-action="continue"><span><b>继续未完命途</b><small>${esc(asText(this.playerName, '上一局山海行'))}</small></span>${icon('arrow', 19)}</button>` : ''}
         </section>
-        <div class="hero-card-stage"><div class="hero-back"></div><div class="hero-card">${portrait(this.visualKind({}, selected), true)}<div class="hero-card-label">${esc(asText(selected?.name, '开局功法'))}</div></div></div>
+        <div class="hero-card-stage"><div class="hero-card">${portrait(this.visualKind({}, selected), true)}</div></div>
         <section class="setup" aria-labelledby="setup-title">
           <div class="setup-top"><div><h2 class="setup-title" id="setup-title">择一门功法</h2></div></div>
           <div class="setup-fields"><label class="field name-input"><span>道号</span><input name="player-name" maxlength="24" value="${esc(this.playerName)}" placeholder="无名行者" autocomplete="nickname"></label>
@@ -1560,13 +1565,13 @@ class ShanhaiApp {
     ];
     return `<header class="topbar">
       <button class="brand" data-action="home" aria-label="返回山海封面"><span class="brand-mark">${icon('mountain', 22)}</span><strong>随时修仙<span class="brand-edition"><span class="gold">·</span>山海行</span></strong></button>
-      <nav class="desktop-nav" aria-label="主导航">${tabs.map(([id, art, label]) => `<button class="nav-button ${this.view === id ? 'active' : ''}" data-action="tab" data-id="${id}" ${this.view === id ? 'aria-current="page"' : ''}>${icon(art, 19)}${label}</button>`).join('')}</nav>
+      <nav class="desktop-nav" aria-label="主导航">${tabs.map(([id, art, label]) => `<button class="nav-button ${this.view === id ? 'active' : ''}" data-action="tab" data-id="${id}" ${this.view === id ? 'aria-current="page"' : ''}><span class="nav-emblem">${icon(art, 19)}</span><span class="nav-label">${label}</span></button>`).join('')}</nav>
       ${this.headerRunSummary(state)}
       <div class="top-tools header-actions">
         ${this.storageIssue ? `<span class="save-warning" role="status">存档需留意</span>` : ''}
-        <button class="icon-button global-talent-tree" data-action="talent-tree" title="天赋树" aria-label="查看当前功法天赋树">${icon('book', 18)}</button>
-        <button class="icon-button" data-action="archives" title="历届通关构筑" aria-label="历届通关构筑">${icon('book', 19)}</button>
-        <button class="button small restart-command" data-action="restart" title="重开" aria-label="重开">${icon('mirror', 18)}<span class="restart-label">重开</span></button>
+        <button class="icon-button global-talent-tree" data-action="talent-tree" title="天赋树" aria-label="查看当前功法天赋树">${icon('tree', 18)}</button>
+        <button class="icon-button" data-action="archives" title="历届通关构筑" aria-label="历届通关构筑">${icon('archive', 19)}</button>
+        <button class="button small restart-command" data-action="restart" title="重开" aria-label="重开">${icon('restart', 18)}<span class="restart-label">重开</span></button>
         <button class="icon-button" data-action="settings" title="设置" aria-label="设置">${icon('gear', 20)}</button>
       </div>
     </header>`;
@@ -1616,14 +1621,19 @@ class ShanhaiApp {
       ['build', 'book', '命盘'],
       ['karma', 'lotus', '因缘'],
     ];
-    return `<nav class="bottom-nav" aria-label="主导航">${tabs.map(([id, art, label]) => `<button class="${this.view === id ? 'active' : ''}" data-action="tab" data-id="${id}" ${this.view === id ? 'aria-current="page"' : ''}>${icon(art, 22)}${label}</button>`).join('')}</nav>`;
+    return `<nav class="bottom-nav" aria-label="主导航">${tabs.map(([id, art, label]) => `<button class="${this.view === id ? 'active' : ''}" data-action="tab" data-id="${id}" ${this.view === id ? 'aria-current="page"' : ''}><span class="nav-emblem">${icon(art, 22)}</span><span class="nav-label">${label}</span></button>`).join('')}</nav>`;
   }
 
   private renderGame(state: RunState): string {
     const phase = state.phase;
     const combat = this.view === 'journey' && phase === 'battle';
+    const scenes = ['mountain', 'river', 'sky', 'storm'] as const;
+    const scene = phase === 'won' || phase === 'lost'
+      ? 'storm'
+      : scenes[Math.min(scenes.length - 1, Math.max(0, Math.trunc(asNumber(state.act, 1)) - 1))];
     const stage = this.view === 'build' ? this.buildView(state) : this.view === 'karma' ? this.karmaView(state) : this.phaseView(state);
-    return `<div class="game-page phase-${esc(phase)} view-${this.view}" data-phase="${esc(phase)}">
+    return `<div class="game-page phase-${esc(phase)} view-${this.view}" data-phase="${esc(phase)}" data-scene="${scene}">
+      <div class="game-world" aria-hidden="true" style="pointer-events:none">${landscape()}</div>
       ${this.topbar(state)}
       ${this.chapterStrip(state)}
       ${this.mobileHud(state)}
@@ -1642,7 +1652,7 @@ class ShanhaiApp {
     return `<header class="game-header">
       <div class="brand-lockup"><span class="brand-seal">${icon('mountain', 21)}</span><span><b>随时修仙</b><em>山海行</em></span></div>
       <div class="act-progress"><span class="eyebrow">第${String(state.act).padStart(2, '0')}幕</span><strong>${esc(asText(act.name, `第${state.act}幕`))}</strong><span class="phase-pill">${esc(phase)}</span></div>
-      <div class="header-actions">${this.storageIssue ? `<span class="status-alert compact" title="${esc(this.storageIssue)}">${icon('help', 14)}未保存</span>` : `<span class="status-ok compact"><i></i>已保存</span>`}<button class="icon-button" data-action="archives" title="历届通关构筑" aria-label="历届通关构筑">${icon('book', 18)}</button><button class="icon-button" data-action="export" title="导出当前命途" aria-label="导出当前命途">${icon('arrow', 19)}</button><button class="icon-button" data-action="restart" title="重新开始" aria-label="重新开始">${icon('mirror', 19)}</button></div>
+      <div class="header-actions">${this.storageIssue ? `<span class="status-alert compact" title="${esc(this.storageIssue)}">${icon('help', 14)}未保存</span>` : `<span class="status-ok compact"><i></i>已保存</span>`}<button class="icon-button" data-action="archives" title="历届通关构筑" aria-label="历届通关构筑">${icon('archive', 18)}</button><button class="icon-button" data-action="export" title="导出当前命途" aria-label="导出当前命途">${icon('arrow', 19)}</button><button class="icon-button" data-action="restart" title="重新开始" aria-label="重新开始">${icon('restart', 19)}</button></div>
     </header>`;
   }
 
@@ -1669,12 +1679,12 @@ class ShanhaiApp {
         <div class="vital-title"><span>气血</span><strong>${this.textMarkup(`${formatNumber(hp)} / ${formatNumber(maxHp)}`)}</strong></div><div class="bar hp"><span style="width:${pct(hp, maxHp)}%"></span></div>
         <div class="vital-title xp-label"><span>修为</span><span>${this.textMarkup(xpComplete ? '圆满' : `${formatNumber(state.xp)} / ${formatNumber(xpThreshold)}`)}</span></div><div class="bar xp"><span style="width:${xpComplete ? 100 : pct(asNumber(state.xp), xpThreshold)}%"></span></div>
         <div class="resource-box"><span>${icon('coin', 15)}灵石</span><strong>${this.textMarkup(state.coins)}</strong></div>
-        <details class="disclosure fate-detail" data-details="method-detail"><summary>${icon('book', 17)}${esc(asText(method?.name, '未知功法'))}</summary><p>${esc(this.displayText(asText(method?.summary, entitySummary(method))))}</p></details>
+        <details class="disclosure fate-detail" data-details="method-detail"><summary>${icon('book', 17)}${esc(asText(method?.name, '未知功法'))}</summary><p>${this.textMarkup(asText(method?.summary, entitySummary(method)))}</p></details>
         <details class="disclosure" data-details="profile-details"><summary>属性与构筑</summary>
           <div class="stats-grid detailed">${(['attack', 'defense', 'crit_rate', 'speed'] as const).map((key) => `<div class="stat detailed-stat"><span>${icon(key === 'attack' ? 'sword' : key === 'defense' ? 'shield' : key === 'speed' ? 'feather' : 'star', 13)}${STAT_LABEL[key]}</span><b>${this.textMarkup(key === 'crit_rate' ? `${Math.round(asNumber(stats[key]) * 100)}%` : formatNumber(stats[key]))}</b></div>`).join('')}</div>
           <div class="profile-build">
             <div class="profile-talents"><span class="eyebrow">已选天赋</span><div class="profile-talent-list">${selectedTalents.length ? selectedTalents.map((talent) => this.talentButton(talent, state.method)).join('') : '<span class="muted">未选天赋</span>'}</div></div>
-            <div class="profile-actions"><span class="eyebrow">当前功法动作</span>${actionDetails.map(({ label, action }) => `<div class="profile-action"><b>${esc(label)} · ${esc(asText(action?.name, '动作'))}</b><small>${esc(this.displayText(asText(action?.quick, asText(action?.description, '暂无说明'))))}</small></div>`).join('')}</div>
+            <div class="profile-actions"><span class="eyebrow">当前功法动作</span>${actionDetails.map(({ label, action }) => `<div class="profile-action"><b>${esc(label)} · ${esc(asText(action?.name, '动作'))}</b><small>${this.textMarkup(asText(action?.quick, asText(action?.description, '暂无说明')))}</small></div>`).join('')}</div>
           </div>
         </details>
       </div>
@@ -1702,10 +1712,10 @@ class ShanhaiApp {
     return `<section class="codex-page">
       ${this.stageHeading('当前命盘', asText(method?.name, state.method))}
       <section class="build-focus"><div class="build-focus-title"><strong>${esc(asText(method?.role, '修行方向'))}</strong><span class="gold">境界 · ${esc(this.realmName(state.n))}</span></div>
-        <p class="build-description">${esc(this.displayText(asText(method?.description, entitySummary(method))))}</p>
-        <div class="method-actions">${actions.map((action, index) => `<article><b>${index === 0 ? '普攻' : '怒技'}</b><strong>${esc(asText(action?.name, '动作'))}</strong><p>${esc(this.displayText(asText(action?.quick, asText(action?.description, '按功法规则结算。'))))}</p></article>`).join('')}</div>
+        <p class="build-description">${this.textMarkup(asText(method?.description, entitySummary(method)))}</p>
+        <div class="method-actions">${actions.map((action, index) => `<article><b>${index === 0 ? '普攻' : '怒技'}</b><strong>${esc(asText(action?.name, '动作'))}</strong><p>${this.textMarkup(asText(action?.quick, asText(action?.description, '按功法规则结算。')))}</p></article>`).join('')}</div>
       </section>
-      <section class="build-section"><div class="section-heading"><h2>已选天赋</h2><span>${talents.length} 项</span></div><div class="talent-ledger">${talents.length ? talents.map((talent) => `<article><b>${this.talentButton(talent, state.method, 'talent-record-trigger')}</b><p>${esc(this.displayText(asText(talent.quick, asText(talent.description, ''))))}</p></article>`).join('') : '<p class="empty-note">尚未选择天赋。</p>'}</div></section>
+      <section class="build-section"><div class="section-heading"><h2>已选天赋</h2><span>${talents.length} 项</span></div><div class="talent-ledger">${talents.length ? talents.map((talent) => `<article><b>${this.talentButton(talent, state.method, 'talent-record-trigger')}</b><p>${this.textMarkup(asText(talent.quick, asText(talent.description, '')))}</p></article>`).join('') : '<p class="empty-note">尚未选择天赋。</p>'}</div></section>
       <section class="build-section"><div class="section-heading"><h2>法宝图鉴</h2><span>已持有 ${state.artifacts.length} 类 · 收录 ${this.entities('artifact').length} 件</span></div>
         <div class="filters" role="group" aria-label="法宝范围"><button class="${this.buildFilter === 'owned' ? 'active' : ''}" data-action="build-filter" data-filter="owned" aria-pressed="${this.buildFilter === 'owned'}">已持有</button><button class="${this.buildFilter === 'all' ? 'active' : ''}" data-action="build-filter" data-filter="all" aria-pressed="${this.buildFilter === 'all'}">全部法宝</button></div>
         <div class="filters" role="group" aria-label="按品阶筛选">${([
@@ -2625,13 +2635,13 @@ class ShanhaiApp {
       : kind === 'recovery'
         ? `恢复 ${formatNumber(amount)} 气血。`
         : kind === 'talent_reset'
-          ? '重选当前功法已悟天赋。'
+          ? '仅重选当前功法已悟天赋，不提升境界或恢复气血。'
           : `为下一场战斗准备 ${formatNumber(amount)} 护盾。`;
     const disabledReason = sold ? '' : talentResetUnavailable ? '当前功法尚无已悟天赋' : preparationHeld ? `已有 ${formatNumber(state?.preparation)} 预备护盾` : asNumber(state?.coins) < price ? '灵石不足' : '';
     const detailButton = artifact
       ? `<button class="button small quiet" data-action="inspect-artifact" data-id="${esc(asText(item.id))}">查看详录</button>`
       : '';
-    const motif = artifact ? this.artifactIcon(artifact) : kind === 'recovery' ? 'gourd' : kind === 'talent_reset' ? 'book' : 'shield';
+    const motif = artifact ? this.artifactIcon(artifact) : kind === 'recovery' ? 'gourd' : kind === 'talent_reset' ? 'tree' : 'shield';
     const buyButton = sold ? '<span class="sold-stamp">售罄</span>' : `<button class="button small" data-action="buy" data-id="${esc(asText(item.id))}" title="${esc(disabledReason)}" ${canBuy ? '' : 'disabled'}>${icon('coin', 13)}${this.textMarkup(price)}</button>`;
     return `<article class="shop-item ${sold ? 'sold' : ''} ${artifact ? `rarity-${esc(entityRarity(artifact))}` : `service-item service-${esc(kind)}`}"><div class="shop-item-art">${sigil(motif, artifact ? 'jade' : 'shield')}</div><div class="shop-item-copy"><span class="rarity-chip ${artifact ? esc(entityRarity(artifact)) : ''}">${artifact ? esc(RARITY_LABEL[entityRarity(artifact)] || entityRarity(artifact)) : '服务'}</span><h2>${esc(label)}</h2><p>${this.textMarkup(description)}</p>${!sold && !canBuy ? `<small class="shop-item-unavailable" role="status">${this.textMarkup(disabledReason || '暂不可购买')}</small>` : ''}</div>${detailButton}${buyButton}</article>`;
   }
@@ -2661,6 +2671,7 @@ class ShanhaiApp {
       .sort((left, right) => asNumber(left.tier) - asNumber(right.tier) ||
         asText(left.branch).localeCompare(asText(right.branch)));
     const state = this.gameState();
+    const resetting = isRecord(state) && state._returnPhase === 'shop';
     const selectedIds = new Set(listOf<string>(state?.talents?.[methodIdValue]));
     const activeIds = new Set(activeTalents.map((talent) => talent.id));
     const maxUnlockedTier = Math.max(
@@ -2676,7 +2687,7 @@ class ShanhaiApp {
           asNumber(talents.find((talent) => talent.id === id)?.tier) === tier,
         );
         return `<div class="talent-tier-wrap">
-          <header class="talent-tier-heading"><b class="talent-tier">第 ${tier} 层</b><span>${currentTier ? '当前突破' : tier <= maxUnlockedTier ? '已解锁' : '未解锁'}</span></header>
+          <header class="talent-tier-heading"><b class="talent-tier">第 ${tier} 层</b><span>${currentTier ? resetting ? '当前重选' : '当前突破' : tier <= maxUnlockedTier ? '已解锁' : '未解锁'}</span></header>
           <section class="talent-tier-row" data-tier="${tier}" data-current="${currentTier}">
             ${['A', 'B', 'C'].map((branch) => {
             const talent = talents.find((item) => asNumber(item.tier) === tier && asText(item.branch) === branch);
@@ -2754,7 +2765,14 @@ class ShanhaiApp {
   private talentView(state: RunState): string {
     const activeTalents = this.talentObjects();
     const selectedCount = listOf<string>(state.talents?.[state.method]).length;
-    return `${this.stageHeading('修为突破', '一念悟道')}<p class="talent-method-summary"><b>${esc(asText(this.methodEntity(state.method)?.name, state.method))}</b><span>已悟 ${selectedCount} / 4 层</span></p>${this.talentTreeMarkup(state.method, true, activeTalents)}${this.inlineMessage()}`;
+    const resetting = isRecord(state) && state._returnPhase === 'shop';
+    const heading = resetting
+      ? this.stageHeading('洗髓重选', '重选天赋', '只重选当前功法已悟阶次，不增加境界、修为或气血。')
+      : this.stageHeading('修为突破', '一念悟道');
+    const progress = resetting
+      ? `已重选 ${selectedCount} / ${formatNumber(state.n)} 阶`
+      : `已悟 ${selectedCount} / 4 层`;
+    return `${heading}<p class="talent-method-summary"><b>${esc(asText(this.methodEntity(state.method)?.name, state.method))}</b><span>${progress}</span></p>${this.talentTreeMarkup(state.method, true, activeTalents)}${this.inlineMessage()}`;
   }
 
   private transitionView(state: RunState): string {
@@ -2797,7 +2815,12 @@ class ShanhaiApp {
       const method = this.methodEntity(methodIdValue);
       if (!method) return '';
       const activeTalents = state.phase === 'talent' ? this.talentObjects() : [];
-      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal dialog-wide talent-tree-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">当前功法 · 天赋树</p><h2 id="dialog-title">${esc(asText(method.name, '当前功法'))}</h2><p class="talent-tree-summary">已悟 ${listOf<string>(state.talents?.[methodIdValue]).length} / 4 层</p>${this.talentTreeMarkup(methodIdValue, false, activeTalents)}<div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
+      const resetting = isRecord(state) && state._returnPhase === 'shop';
+      const selectedCount = listOf<string>(state.talents?.[methodIdValue]).length;
+      const progress = resetting
+        ? `已重选 ${selectedCount} / ${formatNumber(state.n)} 阶`
+        : `已悟 ${selectedCount} / 4 层`;
+      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal dialog-wide talent-tree-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">当前功法 · 天赋树</p><h2 id="dialog-title">${esc(asText(method.name, '当前功法'))}</h2><p class="talent-tree-summary">${progress}</p>${this.talentTreeMarkup(methodIdValue, false, activeTalents)}<div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
     }
     if (this.modal === 'talent-reset-confirm' && state) {
       const item = listOf<any>(state.shop).find((candidate) =>
@@ -2808,10 +2831,10 @@ class ShanhaiApp {
       const selected = listOf<string>(state.talents?.[state.method])
         .map((id) => this.talentEntity(state.method, id))
         .filter((talent): talent is Entity => Boolean(talent));
-      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow talent-reset-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">坊市 · 洗髓丹</p><h2 id="dialog-title">重选已悟天赋？</h2><p>购买后会为当前功法重新开启天赋选择，不会清除其他功法的天赋。</p><div class="talent-reset-summary"><span>当前功法</span><b>${esc(asText(method?.name, state.method))}</b><span>已悟天赋</span><b>${selected.map((talent) => esc(asText(talent.name, talent.id))).join('、') || '无'}</b><span>花费</span><b>${this.textMarkup(`${formatNumber(item.price)} 灵石`)}</b></div><div class="dialog-actions"><button class="button quiet" data-action="talent-reset-cancel" data-autofocus>取消</button><button class="button primary" data-action="confirm-talent-reset">购买并重选</button></div></section></div>`;
+      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow talent-reset-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">坊市 · 洗髓丹</p><h2 id="dialog-title">重选已悟天赋？</h2><p>购买后仅可重选当前功法已悟阶次，不增加境界、修为或气血，也不影响其他功法的天赋。</p><div class="talent-reset-summary"><span>当前功法</span><b>${esc(asText(method?.name, state.method))}</b><span>已悟天赋</span><b>${selected.map((talent) => esc(asText(talent.name, talent.id))).join('、') || '无'}</b><span>花费</span><b>${this.textMarkup(`${formatNumber(item.price)} 灵石`)}</b></div><div class="dialog-actions"><button class="button quiet" data-action="talent-reset-cancel" data-autofocus>取消</button><button class="button primary" data-action="confirm-talent-reset">购买并重选</button></div></section></div>`;
     }
     if (this.modal === 'settings') {
-      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">静室</p><h2 id="dialog-title">设置</h2><div class="setting-row"><span>战报显示</span><button class="button small" data-action="battle-log-mode" aria-pressed="${this.detailedLog}">${this.detailedLog ? '详细' : '简明'}</button></div><div class="setting-row"><span>命途存档</span><div class="row"><button class="button small" data-action="export" ${state ? '' : 'disabled'}>导出</button><button class="button small" data-action="restart">重开</button></div></div><div class="setting-row"><span>帮助</span><button class="button small" data-action="help">查看</button></div><div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
+      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">静室</p><h2 id="dialog-title">设置</h2><div class="setting-row"><span>战报显示</span><button class="button small" data-action="battle-log-mode" aria-pressed="${this.detailedLog}">${this.detailedLog ? '详细' : '简明'}</button></div><div class="setting-row"><span>命途存档</span><div class="row"><button class="button small" data-action="export" ${state ? '' : 'disabled'}>导出</button><button class="button small" data-action="restart">${icon('restart', 14)}重开</button></div></div><div class="setting-row"><span>帮助</span><button class="button small" data-action="help">查看</button></div><div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
     }
     if (this.modal === 'character' && state) {
       const method = this.methodEntity(state.method);

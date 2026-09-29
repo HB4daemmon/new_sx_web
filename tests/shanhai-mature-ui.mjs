@@ -29,6 +29,11 @@ const suites = [
     script: 'tests/shanhai-talent-tree-browser.mjs',
     reportEnv: 'SHANHAI_TALENT_TREE_REPORT_DIR',
   },
+  {
+    name: 'theme-browser',
+    script: 'tests/shanhai-theme-browser.mjs',
+    reportEnv: 'SHANHAI_THEME_REPORT_DIR',
+  },
 ];
 const results = [];
 

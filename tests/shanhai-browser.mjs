@@ -193,6 +193,21 @@ async function createFixture(page, target, seed = `browser-${target}`) {
 }
 
 async function setReplayFrame(page, kind, target) {
+  const shell = page.locator('.battle-shell');
+  await shell.waitFor({ state: 'visible' });
+  if (await shell.getAttribute('data-paused') !== 'true') {
+    const saveBeforePause = await page.evaluate(() =>
+      localStorage.getItem('suishi-shanhai-run-v1'));
+    const pauseButton = page.locator('[data-action="battle-pause"]');
+    assert.equal(await pauseButton.count(), 1, '回放缺少真实暂停按钮');
+    await pauseButton.click();
+    await page.waitForFunction(() =>
+      document.querySelector('.battle-shell')?.getAttribute('data-paused') === 'true');
+    assert.equal(await page.evaluate(() =>
+      localStorage.getItem('suishi-shanhai-run-v1')), saveBeforePause,
+    '暂停旧回放改变了游戏存档');
+  }
+
   const selection = await page.evaluate(async ({ kind, target }) => {
     const [{ loadContent }, { loadRun }] = await Promise.all([
       import('/shanhai/content.js'),
@@ -241,6 +256,10 @@ async function setReplayFrame(page, kind, target) {
   const renderedIndex = Number(await page.locator('.combat-arena').getAttribute('data-frame-index'));
   assert.equal(renderedIndex, selection.index,
     `Replay ${kind} fixture在暂停前推进到了另一帧`);
+  const replayCursor = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('suishi-shanhai-replay-v1') || 'null')?.cursor);
+  assert.equal(replayCursor, selection.index,
+    `Replay ${kind} 初始暂停改变了指定 rawframe`);
   await page.waitForTimeout(80);
   return selection;
 }

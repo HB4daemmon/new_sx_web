@@ -23,6 +23,7 @@ const SHANHAI_MODULES = [
   'types.js',
   'ui-text.js',
   'style.css',
+  'game-theme.css',
 ];
 
 async function walkTree(directory, relative = '') {
@@ -197,11 +198,17 @@ test('index and ESM content URLs remain relative under a GitHub Pages subpath', 
   const pageUrl = new URL('https://example.github.io/suishi-xiuxian/index.html');
   const html = await readFile(path.join(ROOT, 'index.html'), 'utf8');
   const scriptSource = html.match(/<script\s+type="module"\s+src="([^"]+)"/)?.[1];
-  const stylesheetSource = html.match(/<link\s+rel="stylesheet"\s+href="([^"]+)"/)?.[1];
+  const stylesheetSources = [...html.matchAll(/<link\s+rel="stylesheet"\s+href="([^"]+)"/g)]
+    .map(match => match[1]);
   assert.equal(scriptSource, './shanhai/app.js');
-  assert.equal(stylesheetSource, './shanhai/style.css');
+  assert.deepEqual(stylesheetSources, ['./shanhai/style.css', './shanhai/game-theme.css']);
   assert.equal(new URL(scriptSource, pageUrl).pathname, '/suishi-xiuxian/shanhai/app.js');
-  assert.equal(new URL(stylesheetSource, pageUrl).pathname, '/suishi-xiuxian/shanhai/style.css');
+  for (const stylesheetSource of stylesheetSources) {
+    assert.equal(
+      new URL(stylesheetSource, pageUrl).pathname,
+      `/suishi-xiuxian/${stylesheetSource.slice(2)}`,
+    );
+  }
 
   const appUrl = new URL(scriptSource, pageUrl);
   const app = await readFile(path.join(DIST, 'shanhai/app.js'), 'utf8');
@@ -246,6 +253,10 @@ test('temporary HTTP server serves public assets and rejects private or traverse
     const stylesheet = await fetch(`${base}/shanhai/style.css`);
     assert.equal(stylesheet.status, 200);
     assert.equal(stylesheet.headers.get('content-type'), 'text/css; charset=utf-8');
+
+    const gameTheme = await fetch(`${base}/shanhai/game-theme.css`);
+    assert.equal(gameTheme.status, 200);
+    assert.equal(gameTheme.headers.get('content-type'), 'text/css; charset=utf-8');
 
     const atlasSource = await readFile(path.join(ROOT, 'assets/generated/combat-vfx-atlas.webp'));
     const atlas = await fetch(`${base}/assets/generated/combat-vfx-atlas.webp`);
