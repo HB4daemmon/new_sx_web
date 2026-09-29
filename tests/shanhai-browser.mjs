@@ -3,6 +3,14 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  assertBattleMainDetailContract,
+  assertBattleResultAccessible,
+  assertBattleResultUnavailable,
+  closeBattleDetail,
+  openBattleDetail,
+  selectBattleDetailTab,
+} from './shanhai-battle-detail-fixture.mjs';
 import { pauseNextReplay } from './shanhai-replay-fixture.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -185,7 +193,7 @@ async function createFixture(page, target, seed = `browser-${target}`) {
 }
 
 async function setReplayFrame(page, kind, target) {
-  const selectedIndex = await page.evaluate(async ({ kind, target }) => {
+  const selection = await page.evaluate(async ({ kind, target }) => {
     const [{ loadContent }, { loadRun }] = await Promise.all([
       import('/shanhai/content.js'),
       import('/shanhai/persistence.js'),
@@ -200,10 +208,30 @@ async function setReplayFrame(page, kind, target) {
       (kind !== 'damage' || !frame.target ||
         frame[frame.target].hp < frames[cursor - 1][frame.target].hp));
     if (index < 0) throw new Error(`Replay has no ${kind} frame for ${target || 'any target'}`);
+    const frame = frames[index];
+    const previous = frames[index - 1];
+    const formatNumber = value => Number.isInteger(value) ? String(value) : Number(value).toFixed(0);
+    const deltas = [];
+    for (const side of ['player', 'enemy']) {
+      const hpDelta = frame[side].hp - previous[side].hp;
+      const shieldDelta = frame[side].shield - previous[side].shield;
+      if (hpDelta < 0) deltas.push(`-${formatNumber(-hpDelta)}`);
+      if (shieldDelta > 0) deltas.push(`护盾 +${formatNumber(shieldDelta)}`);
+      if (shieldDelta < 0) {
+        deltas.push(kind === 'damage' && frame.target === side
+          ? `护盾吸收 ${formatNumber(-shieldDelta)}`
+          : `护盾 -${formatNumber(-shieldDelta)}`);
+      }
+    }
     const state = game.state;
     const key = `${state.id}:${state.act}:${state.step}:${state.battle.frames.length}`;
     localStorage.setItem('suishi-shanhai-replay-v1', JSON.stringify({ key, cursor: index }));
-    return index;
+    const { localizeBattleText } = await import('/shanhai/localization.js');
+    return {
+      index,
+      text: localizeBattleText(frame.text),
+      outcome: deltas.join('；'),
+    };
   }, { kind, target });
   await pauseNextReplay(page);
   await page.reload({ waitUntil: 'domcontentloaded' });
@@ -211,9 +239,10 @@ async function setReplayFrame(page, kind, target) {
   await page.waitForFunction(() =>
     document.querySelector('.battle-shell')?.getAttribute('data-paused') === 'true');
   const renderedIndex = Number(await page.locator('.combat-arena').getAttribute('data-frame-index'));
-  assert.equal(renderedIndex, selectedIndex,
+  assert.equal(renderedIndex, selection.index,
     `Replay ${kind} fixture在暂停前推进到了另一帧`);
   await page.waitForTimeout(80);
+  return selection;
 }
 
 async function forceMaxDraw(page) {
@@ -371,14 +400,46 @@ async function run() {
       await desktop.reload({ waitUntil: 'networkidle' });
       await createFixture(desktop, 'battle', 'browser-battle');
       assert.equal(await phase(desktop), 'battle');
-      assert.equal(await desktop.locator('.profile-actions .profile-action').count(), 2);
-      assert.ok((await desktop.locator('.profile-build').textContent()).includes('未选天赋'));
-      await setReplayFrame(desktop, 'damage', 'enemy');
-      assert.match(await desktop.locator('[data-amount-kind="damage"]').textContent(), /^-/);
+      await assertBattleMainDetailContract(desktop, 'desktop battle');
+      const damage = await setReplayFrame(desktop, 'damage', 'enemy');
       assert.doesNotMatch(await desktop.locator('[data-frame-kind]').textContent(), /\b(action|damage|dot|heal|shield|status|rage|phase|start|round|draw|end|summary)\b/i);
-      await setReplayFrame(desktop, 'shield', 'player');
+      const playerDetail = await openBattleDetail(desktop, 'player', 'desktop battle');
+      const playerTab = playerDetail.dialog.locator(
+        '[data-action="battle-detail-tab"][data-tab="player"]',
+      );
+      assert.equal(await playerTab.count(), 1, '我方详情 tab 缺失');
+      const playerText = await playerDetail.dialog.innerText();
+      assert.match(playerText, /普攻/, '我方详情没有展示功法普攻');
+      assert.match(playerText, /怒技/, '我方详情没有展示功法怒技');
+      assert.match(playerText, /未选天赋|暂无天赋/, '无天赋构筑状态没有说明');
+      await assertBattleResultUnavailable(desktop, playerDetail.dialog, 'desktop battle');
+      const enemySelection = await selectBattleDetailTab(
+        playerDetail.dialog, 'enemy', 'desktop battle',
+      );
+      assert.notEqual(enemySelection.after, playerText,
+        '切换敌方 tab 后仍显示我方详情');
+      await selectBattleDetailTab(playerDetail.dialog, 'log', 'desktop battle');
+      assert.equal(await playerDetail.dialog.locator('.battle-log').count(), 1,
+        '战报没有放在 log modal tab');
+      const visibleRows = playerDetail.dialog.locator('.battle-log .battle-log-row');
+      assert.equal(await visibleRows.count(), damage.index + 1,
+        '战报提前展示了尚未播放的帧');
+      const damageRow = visibleRows.nth(damage.index);
+      const damageLog = await damageRow.innerText();
+      assert.ok(damageLog.includes(damage.text), '战报遗漏当前伤害帧原文');
+      assert.ok(damage.outcome && damageLog.includes(damage.outcome),
+        `战报没有完整显示精确伤害/护盾文本：${damageLog} / ${damage.outcome}`);
+      await closeBattleDetail(desktop, playerDetail, 'desktop battle');
+
+      const shield = await setReplayFrame(desktop, 'shield', 'player');
       assert.equal(await desktop.locator('.combat-arena').getAttribute('data-frame-kind'), 'shield');
-      assert.match(await desktop.locator('[data-battle-amount]').textContent(), /护盾/);
+      const shieldDetail = await openBattleDetail(desktop, 'log', 'shield replay');
+      const shieldRow = shieldDetail.dialog.locator('.battle-log .battle-log-row').nth(shield.index);
+      const shieldLog = await shieldRow.innerText();
+      assert.ok(shieldLog.includes(shield.text), '战报遗漏当前护盾帧原文');
+      assert.ok(shield.outcome && shieldLog.includes(shield.outcome),
+        `战报没有完整显示精确护盾文本：${shieldLog} / ${shield.outcome}`);
+      await closeBattleDetail(desktop, shieldDetail, 'shield replay');
       await desktop.locator('[data-action="battle-speed"][data-speed="2"]').click();
       assert.equal(await desktop.locator('[data-action="battle-speed"][data-speed="2"]').getAttribute('aria-pressed'), 'true');
       await desktop.locator('[data-action="battle-pause"]').click();
@@ -390,8 +451,8 @@ async function run() {
       assert.equal(await desktop.locator('[data-action="battle-finish"]').count(), 1);
       assert.equal(await desktop.locator('[data-action="battle-finish"]').evaluate(element => element.tagName), 'BUTTON');
       assert.equal(await desktop.locator('.replay-progress > i').evaluate(element => element.style.width), '100%');
-      const diagnostics = desktop.locator('details[data-details="battle-diagnostics"]');
-      assert.equal(await diagnostics.getAttribute('open'), null, '斗法详录应默认折叠');
+      await assertBattleMainDetailContract(desktop, 'completed desktop battle');
+      await assertBattleResultAccessible(desktop, 'completed desktop battle');
       await noOverflow(desktop, 'desktop battle');
       await desktop.screenshot({ path: path.join(reportDir, 'battle-desktop.png'), fullPage: true });
     });
@@ -409,8 +470,15 @@ async function run() {
       assert.equal(await desktop.locator('.round-seal').textContent(), '平');
       assert.match(await desktop.locator('.battle-settlement > p').textContent(), /收手/);
       assert.doesNotMatch(await desktop.locator('.battle-settlement > p').textContent(), /继续/);
-      assert.ok(await desktop.locator('[data-action="retire"]').isVisible());
+      const drawDetail = await openBattleDetail(desktop, 'result', 'maximum draw result');
+      assert.ok(await drawDetail.dialog.locator('[data-action="retire"]').isVisible());
+      assert.equal(await drawDetail.dialog.locator('[data-action="continue-battle"]').isDisabled(), true);
       await noOverflow(desktop, 'desktop max draw');
+      desktop.once('dialog', dialog => dialog.accept());
+      await drawDetail.dialog.locator('[data-action="retire"]').click();
+      await desktop.locator('.game-page.phase-lost').waitFor();
+      assert.equal(await desktop.locator('.modal-backdrop').count(), 0,
+        'Retiring from the result dialog must close it before showing the ending');
     });
 
     await check('reward candidates remain frozen after reload', async () => {
@@ -445,11 +513,7 @@ async function run() {
       await createFixture(desktop, 'battle', 'browser-contribution-copy');
       await forceZeroContribution(desktop);
       await desktop.locator('[data-action="battle-skip"]').click();
-      const details = desktop.locator('details[data-details="battle-diagnostics"]');
-      assert.equal(await details.getAttribute('open'), null, '斗法详录应默认折叠');
-      await details.locator('summary').click();
-      assert.equal(await details.getAttribute('open'), '');
-      const diagnostics = await details.textContent();
+      const diagnostics = await assertBattleResultAccessible(desktop, 'contribution battle result');
       assert.match(diagnostics, /属性已生效/);
       assert.match(diagnostics, /本局没有遇到合适时机/);
       assert.doesNotMatch(diagnostics, /permanent|conditional|invalid|absent/i);

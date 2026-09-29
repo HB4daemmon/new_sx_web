@@ -169,6 +169,8 @@ async function clickAndWaitForDispatch(page, command, beforePhase, beforeSaveTex
       await clickMatchingAction(page, 'talent', { id: command.id });
       break;
     case 'retire': {
+      await page.locator('[data-action="battle-details"][data-tab="result"]').click();
+      await page.locator('.battle-detail-dialog').waitFor({ state: 'visible' });
       let dialogSeen = false;
       const dialogHandler = async dialog => {
         dialogSeen = true;

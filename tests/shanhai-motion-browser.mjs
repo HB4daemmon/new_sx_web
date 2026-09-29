@@ -268,14 +268,22 @@ async function assertSteadyFirstBattle(page, width) {
   assert.equal((await page.locator('.combatant').count()), 2, `${width}: 战斗双方不完整`);
   assert.equal((await page.locator('.combatant .fighter-art .portrait').count()), 2,
     `${width}: 战斗立绘节点不完整`);
-  assert.equal((await page.locator('.combatant .bar.hp > span').count()), 2,
-    `${width}: 气血条 span 不完整`);
+  assert.equal((await page.locator('.combatant .bar').count()), 4,
+    `${width}: 每方战斗 HUD 只应保留血盾合一条与怒气条`);
+  assert.equal((await page.locator('.combatant .bar.hp > span.hp-fill').count()), 2,
+    `${width}: 气血段不完整`);
+  assert.equal((await page.locator('.combatant .bar.hp > span.shield-fill').count()), 2,
+    `${width}: 护盾段不完整`);
   assert.equal((await page.locator('.combatant .bar.rage > span').count()), 2,
     `${width}: 怒气条 span 不完整`);
-  assert.equal((await page.locator('.battle-controls button').count()), 5,
-    `${width}: 战斗控制节点不完整`);
-  assert.equal((await page.locator('.battle-log').count()), 1,
-    `${width}: 战报节点不完整`);
+  assert.equal((await page.locator('.battle-controls [data-action="battle-speed"], .battle-controls [data-action="battle-pause"]').count()), 4,
+    `${width}: 倍速与暂停控制节点不完整`);
+  assert.equal((await page.locator('.battle-controls [data-control-cta]').count()), 1,
+    `${width}: 战斗主操作节点不完整`);
+  assert.equal((await page.locator('[data-action="battle-details"][data-tab="log"]').count()), 1,
+    `${width}: 战斗详情入口不完整`);
+  assert.equal((await page.locator('.battle-log, .log-mode, .log-follow, .battle-detail-dialog, .fighter-detail, .fighter-core-stats, .combat-statuses, .battle-loadout, .battle-settlement').count()), 0,
+    `${width}: 战斗主屏提前渲染了详情内容`);
 
   return snapshot;
 }
@@ -289,13 +297,18 @@ async function captureStableNodes(page) {
       arena,
       combatants,
       portraits: combatants.map(item => item.querySelector('.fighter-art .portrait')),
+      vitalValues: combatants.flatMap(item => [
+        item.querySelector('[data-value="hp"]'),
+        item.querySelector('[data-value="shield"]'),
+        item.querySelector('[data-value="rage"]'),
+      ]),
       hpBars: combatants.map(item => item.querySelector('.bar.hp')),
-      hpFills: combatants.map(item => item.querySelector('.bar.hp > span')),
+      hpFills: combatants.map(item => item.querySelector('.bar.hp > span.hp-fill')),
+      shieldFills: combatants.map(item => item.querySelector('.bar.hp > span.shield-fill')),
       rageBars: combatants.map(item => item.querySelector('.bar.rage')),
       rageFills: combatants.map(item => item.querySelector('.bar.rage > span')),
       controls: document.querySelector('.battle-controls'),
       buttons: [...document.querySelectorAll('.battle-controls button')],
-      log: document.querySelector('.battle-log'),
     };
   });
 }
@@ -311,15 +324,25 @@ async function stableNodesRemain(page, label) {
       refs.arena === document.querySelector('.combat-arena') &&
       same(refs.combatants, combatants) &&
       same(refs.portraits, combatants.map(item => item.querySelector('.fighter-art .portrait'))) &&
+      same(refs.vitalValues, combatants.flatMap(item => [
+        item.querySelector('[data-value="hp"]'),
+        item.querySelector('[data-value="shield"]'),
+        item.querySelector('[data-value="rage"]'),
+      ])) &&
       same(refs.hpBars, combatants.map(item => item.querySelector('.bar.hp'))) &&
-      same(refs.hpFills, combatants.map(item => item.querySelector('.bar.hp > span'))) &&
+      same(refs.hpFills, combatants.map(item => item.querySelector('.bar.hp > span.hp-fill'))) &&
+      same(refs.shieldFills, combatants.map(item => item.querySelector('.bar.hp > span.shield-fill'))) &&
       same(refs.rageBars, combatants.map(item => item.querySelector('.bar.rage'))) &&
       same(refs.rageFills, combatants.map(item => item.querySelector('.bar.rage > span'))) &&
       refs.controls === document.querySelector('.battle-controls') &&
-      same(refs.buttons, [...document.querySelectorAll('.battle-controls button')]) &&
-      refs.log === document.querySelector('.battle-log');
+      same(refs.buttons, [...document.querySelectorAll('.battle-controls button')]);
   });
-  assert.ok(stable, `${label}: 帧更新替换了 battle arena/combatant/portrait/bar/control/log 节点`);
+  assert.ok(stable, `${label}: 帧更新替换了 battle arena/combatant/portrait/bar/control 节点`);
+}
+
+function ariaNumberTokens(value) {
+  return [...String(value ?? '').matchAll(/\d[\d,]*/g)]
+    .map(match => Number(match[0].replaceAll(',', '')));
 }
 
 function expectedActionKind(frame) {
@@ -362,6 +385,7 @@ async function assertFrameContract(page, index, frames, label) {
       beatDuration: shell ? getComputedStyle(shell).getPropertyValue('--beat-duration').trim() : '',
       frameIndex: arena?.getAttribute('data-frame-index'),
       frameKind: arena?.getAttribute('data-frame-kind'),
+      summary: arena?.querySelector('[data-frame-text]')?.textContent,
       actionKind: arena?.getAttribute('data-action-kind'),
       motionTrigger: arena?.getAttribute('data-motion-trigger'),
       combatants: [...document.querySelectorAll('.combatant')].map(item => ({
@@ -371,16 +395,42 @@ async function assertFrameContract(page, index, frames, label) {
         frameIndex: item.getAttribute('data-frame-index'),
         lowHealth: item.getAttribute('data-low-health'),
         rageReady: item.getAttribute('data-rage-ready'),
-        hp: Number(item.querySelector('.bar.hp')?.getAttribute('aria-valuenow')),
-        hpMax: Number(item.querySelector('.bar.hp')?.getAttribute('aria-valuemax')),
+        hp: Number(item.querySelector('[data-value="hp"]')?.textContent?.replace(/[^\d.-]/g, '')),
+        shield: Number(item.querySelector('[data-value="shield"]')?.textContent?.replace(/[^\d.-]/g, '')),
+        hpCapacity: Number(item.querySelector('.bar.hp')?.getAttribute('aria-valuemax')),
+        hpNow: Number(item.querySelector('.bar.hp')?.getAttribute('aria-valuenow')),
+        hpValueText: item.querySelector('.bar.hp')?.getAttribute('aria-valuetext') || '',
+        hpFillWidth: Number.parseFloat(item.querySelector('.bar.hp > span.hp-fill')?.style.width || '0'),
+        shieldFillWidth: Number.parseFloat(item.querySelector('.bar.hp > span.shield-fill')?.style.width || '0'),
+        hpSegmentClasses: [...(item.querySelector('.bar.hp')?.children || [])]
+          .map(child => child.className),
+        hpSegmentsSideBySide: (() => {
+          const track = item.querySelector('.bar.hp');
+          const bar = track?.getBoundingClientRect();
+          const hp = item.querySelector('.bar.hp > span.hp-fill')?.getBoundingClientRect();
+          const shield = item.querySelector('.bar.hp > span.shield-fill')?.getBoundingClientRect();
+          const style = track && getComputedStyle(track);
+          const inset = style ? Number.parseFloat(style.borderLeftWidth) + Number.parseFloat(style.paddingLeft) : 0;
+          return Boolean(bar && hp && shield &&
+            Math.abs(hp.top - shield.top) < 1 &&
+            Math.abs(hp.left - bar.left - inset) < 1 &&
+            hp.right <= shield.left + 1);
+        })(),
         rage: Number(item.querySelector('.bar.rage')?.getAttribute('aria-valuenow')),
         rageMax: Number(item.querySelector('.bar.rage')?.getAttribute('aria-valuemax')),
         rageWidth: Number.parseFloat(item.querySelector('.bar.rage > span')?.style.width || '0'),
+        rageValuePresent: Boolean(item.querySelector('[data-value="rage"]')),
       })),
     };
   });
   assert.equal(Number(actual.frameIndex), index, `${label}: arena data-frame-index 不匹配`);
   assert.equal(actual.frameKind, frame.kind, `${label}: arena data-frame-kind 不匹配`);
+  if (frame.kind === 'damage') {
+    const blocked = ['player', 'enemy'].some(side =>
+      expectedMotion(frame, previous, side) === 'block');
+    assert.equal(actual.summary, blocked ? '护盾吸收' : '受到攻击',
+      `${label}: 受击简讯不能将出手方误标为受击方`);
+  }
   assert.equal(actual.actionKind, expectedActionKind(frame),
     `${label}: arena data-action-kind 不匹配`);
   assert.equal(Number(actual.motionTrigger), index % 2,
@@ -396,17 +446,47 @@ async function assertFrameContract(page, index, frames, label) {
     assert.equal(item.motion, expectedMotion(frame, previous, side),
       `${label}: ${side} data-motion 与帧效果不一致`);
     assert.equal(item.frameIndex, String(index), `${label}: ${side} 帧索引不匹配`);
-    assert.equal(Number.isFinite(item.hp) && Number.isFinite(item.hpMax), true,
-      `${label}: ${side} 气血 aria 数值无效`);
+    const fighter = frame[side];
+    const capacity = Math.max(1, fighter.maxHp + fighter.shield);
+    const expectedHpWidth = Math.min(Math.max(fighter.hp, 0), fighter.maxHp) / capacity * 100;
+    const expectedShieldWidth = Math.max(fighter.shield, 0) / capacity * 100;
+    assert.equal(Number.isFinite(item.hp) && Number.isFinite(item.shield), true,
+      `${label}: ${side} 血盾 data-value 数值无效`);
+    assert.equal(item.hp, Number(fighter.hp.toFixed(0)), `${label}: ${side} 气血展示数值未更新`);
+    assert.equal(item.shield, Number(fighter.shield.toFixed(0)), `${label}: ${side} 护盾展示数值未更新`);
+    assert.equal(item.hpCapacity, capacity, `${label}: ${side} 血盾容量不正确`);
+    assert.equal(item.hpNow, fighter.hp + fighter.shield,
+      `${label}: ${side} aria-valuenow 未合并气血与护盾`);
+    assert.deepEqual(item.hpSegmentClasses.sort(), ['hp-fill', 'shield-fill'],
+      `${label}: ${side} 血盾条应由明确的气血段与护盾段组成`);
+    assert.ok(Math.abs(item.hpFillWidth - expectedHpWidth) < 0.01,
+      `${label}: ${side} 气血段比例错误 ${item.hpFillWidth}/${expectedHpWidth}`);
+    assert.ok(Math.abs(item.shieldFillWidth - expectedShieldWidth) < 0.01,
+      `${label}: ${side} 护盾段比例错误 ${item.shieldFillWidth}/${expectedShieldWidth}`);
+    const shieldLabel = item.hpValueText.search(/护盾/);
+    const hpLabel = item.hpValueText.search(/生命|气血/);
+    const hpTokens = ariaNumberTokens(item.hpValueText.slice(hpLabel, shieldLabel));
+    const shieldTokens = ariaNumberTokens(item.hpValueText.slice(shieldLabel));
+    assert.match(item.hpValueText, /生命|气血/,
+      `${label}: ${side} aria-valuetext 未说明真实气血`);
+    assert.match(item.hpValueText, /护盾/,
+      `${label}: ${side} aria-valuetext 未说明真实护盾`);
+    assert.ok(hpTokens.includes(Number(fighter.hp.toFixed(0))) && hpTokens.includes(Number(fighter.maxHp.toFixed(0))),
+      `${label}: ${side} aria-valuetext 未在气血说明中给出 hp/maxHP (${item.hpValueText})`);
+    assert.ok(shieldTokens.includes(Number(fighter.shield.toFixed(0))),
+      `${label}: ${side} aria-valuetext 未在护盾说明中给出 shield (${item.hpValueText})`);
+    assert.equal(item.hpSegmentsSideBySide, true,
+      `${label}: ${side} 气血段与护盾段没有按 DOM 顺序横向并排`);
     assert.equal(Number.isFinite(item.rage) && Number.isFinite(item.rageMax), true,
       `${label}: ${side} 怒气 aria 数值无效`);
-    assert.equal(item.rage, frame[side].rage, `${label}: ${side} 怒气数值未更新`);
-    assert.equal(item.rageMax, frame[side].rageCap, `${label}: ${side} 怒气上限未更新`);
-    assert.ok(Math.abs(item.rageWidth - frame[side].rage / frame[side].rageCap * 100) < 0.01,
+    assert.equal(item.rageValuePresent, true, `${label}: ${side} 缺少 data-value=rage`);
+    assert.equal(item.rage, fighter.rage, `${label}: ${side} 怒气数值未更新`);
+    assert.equal(item.rageMax, fighter.rageCap, `${label}: ${side} 怒气上限未更新`);
+    assert.ok(Math.abs(item.rageWidth - fighter.rage / fighter.rageCap * 100) < 0.01,
       `${label}: ${side} 怒气条目标比例不真实`);
-    assert.equal(item.lowHealth, String(frame[side].hp / frame[side].maxHp <= 0.3),
+    assert.equal(item.lowHealth, String(fighter.hp / fighter.maxHp <= 0.3),
       `${label}: ${side} data-low-health 与气血不一致`);
-    assert.equal(item.rageReady, String(frame[side].rage >= frame[side].rageCap),
+    assert.equal(item.rageReady, String(fighter.rage >= fighter.rageCap),
       `${label}: ${side} data-rage-ready 与怒气不一致`);
     assert.equal(Number(item.motionTrigger), index % 2,
       `${label}: ${side} motion key 未随帧更新`);
@@ -627,6 +707,124 @@ async function assertFixtureMotion(page, snapshot, index, motion, label) {
   return targetSide;
 }
 
+function createVitalBoundaryFixtures(baseFrame) {
+  const player = baseFrame.player;
+  const maxHp = Math.max(1, player.maxHp);
+  const lowHp = Math.max(1, Math.floor(maxHp * 0.2));
+  const brokenHp = Math.max(0, lowHp - Math.max(1, Math.floor(lowHp * 0.3)));
+  const highShield = maxHp + Math.max(1, Math.floor(maxHp * 0.25));
+  const absorbedShield = Math.max(1, Math.floor(highShield / 3));
+  const stableRage = fighter => fighter.rageCap > 1
+    ? Math.min(fighter.rageCap - 1, Math.floor(fighter.rageCap / 2))
+    : 0;
+  const makeFighter = (fighter, hp, shield) => ({
+    ...structuredClone(fighter),
+    hp,
+    shield,
+    rage: stableRage(fighter),
+    statuses: { ...fighter.statuses },
+  });
+  const makeFrame = (kind, text, hp, shield, options = {}) => ({
+    round: 1,
+    kind,
+    text,
+    ...(options.actor ? { actor: options.actor } : {}),
+    ...(options.target ? { target: options.target } : {}),
+    ...(options.amount === undefined ? {} : { amount: options.amount }),
+    player: makeFighter(player, hp, shield),
+    enemy: makeFighter(baseFrame.enemy, baseFrame.enemy.hp, baseFrame.enemy.shield),
+  });
+  const zeroShield = makeFrame('start', '固定展示：零护盾', lowHp, 0);
+  const shieldAboveMaxHp = makeFrame('shield', '固定展示：获得护盾', lowHp, highShield, {
+    actor: 'player',
+    target: 'player',
+    amount: highShield,
+  });
+  const shieldAbsorbs = makeFrame(
+    'damage',
+    '固定展示：护盾吸收伤害',
+    lowHp,
+    absorbedShield,
+    { actor: 'enemy', target: 'player', amount: highShield - absorbedShield },
+  );
+  const shieldBroken = makeFrame(
+    'damage',
+    '固定展示：破盾后气血受损',
+    brokenHp,
+    0,
+    { actor: 'enemy', target: 'player', amount: lowHp - brokenHp },
+  );
+  const healed = makeFrame(
+    'heal',
+    '固定展示：气血回复',
+    Math.min(maxHp, brokenHp + Math.max(1, Math.floor(maxHp * 0.1))),
+    0,
+    { actor: 'player', target: 'player' },
+  );
+  return [
+    { label: 'zero shield', frames: [zeroShield], index: 0 },
+    { label: 'shield above max HP', frames: [zeroShield, shieldAboveMaxHp], index: 1 },
+    { label: 'shield absorbs damage without HP loss', frames: [shieldAboveMaxHp, shieldAbsorbs], index: 1 },
+    { label: 'broken shield permits HP loss', frames: [shieldAbsorbs, shieldBroken], index: 1 },
+    { label: 'healing restores HP', frames: [shieldBroken, healed], index: 1 },
+  ];
+}
+
+async function loadFixedFrameFixture(page, frames, cursor) {
+  await page.evaluate(({ saveKey, replayKey, frames, cursor }) => {
+    const record = JSON.parse(localStorage.getItem(saveKey) || 'null');
+    if (!record?.state?.battle) throw new Error('Fixed battle fixture has no battle state');
+    record.state.battle.frames = frames;
+    const finalFrame = frames.at(-1);
+    record.state.battle.playerHp = finalFrame.player.hp;
+    record.state.battle.enemyHp = finalFrame.enemy.hp;
+    delete record.replay;
+    record.savedAt = new Date().toISOString();
+    localStorage.setItem(saveKey, JSON.stringify(record));
+    const { id, act, step } = record.state;
+    localStorage.setItem(replayKey, JSON.stringify({
+      key: `${id}:${act}:${step}:${frames.length}`,
+      cursor,
+    }));
+  }, { saveKey, replayKey, frames, cursor });
+  await page.reload({ waitUntil: 'networkidle' });
+  await waitForApp(page);
+  await waitForPhase(page, 'battle');
+}
+
+async function assertFixedVitalDisplayFixtures(page, baseFrame) {
+  const fixtures = createVitalBoundaryFixtures(baseFrame);
+  for (const fixture of fixtures) {
+    await loadFixedFrameFixture(page, fixture.frames, fixture.index);
+    const snapshot = await battleSnapshot(page);
+    assert.deepEqual(snapshot.frames, fixture.frames,
+      `${fixture.label}: 固定展示帧未按测试数据还原`);
+    await assertFrameContract(page, fixture.index, fixture.frames, fixture.label);
+    const player = fixture.frames[fixture.index].player;
+    const previous = fixture.index > 0 ? fixture.frames[fixture.index - 1].player : undefined;
+    if (fixture.label === 'zero shield') {
+      assert.equal(player.shield, 0, 'zero shield fixture 需要零护盾');
+    } else if (fixture.label === 'shield above max HP') {
+      assert.ok(player.shield > player.maxHp, 'over-cap fixture 护盾应超过最大气血');
+      assert.ok(player.hp / player.maxHp <= 0.3,
+        'over-cap fixture 应处于低气血，以确认护盾不进入低气血判定');
+    } else if (fixture.label === 'shield absorbs damage without HP loss') {
+      assert.equal(player.hp, previous.hp, '护盾吸收伤害不应扣除气血');
+      assert.ok(player.shield < previous.shield, '护盾吸收帧必须消耗护盾');
+    } else if (fixture.label === 'broken shield permits HP loss') {
+      assert.equal(player.shield, 0, '破盾帧应显示零护盾');
+      assert.ok(player.hp < previous.hp, '破盾后本次伤害应扣除气血');
+    } else if (fixture.label === 'healing restores HP') {
+      assert.ok(player.hp > previous.hp, '治疗帧应恢复气血');
+      assert.equal(player.shield, previous.shield, '治疗帧不应误增护盾');
+    }
+    assert.equal(player.rage, previous?.rage ?? player.rage,
+      `${fixture.label}: 血盾变化不应误改怒气`);
+    assert.deepEqual(player.statuses, previous?.statuses ?? player.statuses,
+      `${fixture.label}: 血盾变化不应误报战斗属性变化`);
+  }
+}
+
 async function assertFixtureCoverage(page) {
   const shieldSnapshot = await createRuntimeBattleFixture(
     page, 'RKF01', 'motion-legal-shield-rage');
@@ -647,6 +845,7 @@ async function assertFixtureCoverage(page) {
     findFrame(shieldSnapshot.frames, (frame, index) =>
       index > 0 && frame.kind === 'action' && expectedActionKind(frame) === 'basic',
     '普攻'), 'strike', '真实普攻 fixture');
+  await assertFixedVitalDisplayFixtures(page, shieldSnapshot.frames[0]);
 
   const healSnapshot = await createRuntimeBattleFixture(
     page, 'RKF03', 'motion-legal-heal-rage', 0.2);
@@ -741,22 +940,25 @@ async function assertControlTimingAndReplay(page, snapshot, width) {
   const keyAfterSpeed = await readMotionKey(page, actor);
   assert.equal(keyAfterSpeed, triggerKey, `${width}: 改速重渲染重复触发动作 key`);
 
-  const logModeBefore = await page.locator('[data-action="battle-log-mode"]')
+  assert.equal(await page.locator('.battle-log').count(), 0,
+    `${width}: 战报不应常驻主战斗 DOM`);
+  await clickAction(page, 'battle-details', { tab: 'log' });
+  await page.locator('.battle-detail-dialog .battle-log').waitFor({ state: 'visible' });
+  const logModeBefore = await page.locator('.battle-detail-dialog [data-action="battle-log-mode"]')
     .getAttribute('aria-pressed');
-  const logDisclosure = page.locator('details[data-details="battle-log"]');
-  if (!(await logDisclosure.getAttribute('open'))) await logDisclosure.locator('summary').click();
-  assert.equal(await logDisclosure.getAttribute('open'), '');
   await clickAction(page, 'battle-log-mode');
-  assert.notEqual(await page.locator('[data-action="battle-log-mode"]')
+  assert.notEqual(await page.locator('.battle-detail-dialog [data-action="battle-log-mode"]')
     .getAttribute('aria-pressed'), logModeBefore, `${width}: 战报模式没有切换`);
+  await clickAction(page, 'modal-close');
+  await page.locator('.battle-detail-dialog').waitFor({ state: 'detached' });
   await stableNodesRemain(page, `${width} controls`);
   const afterLogToggle = await battleSnapshot(page);
   assert.equal(afterLogToggle.replay?.cursor, cursorAtPause,
-    `${width}: 暂停/改速/切战报模式改变了 cursor`);
+    `${width}: 暂停/改速/切详情战报模式改变了 cursor`);
   assert.equal(afterLogToggle.rawText, saveBeforeControls,
-    `${width}: 暂停/改速/切战报模式改变了游戏存档`);
+    `${width}: 暂停/改速/切详情战报模式改变了游戏存档`);
   assert.equal(await readMotionKey(page, actor), triggerKey,
-    `${width}: 战报切换重新发射了同一动作`);
+    `${width}: 详情战报切换重新发射了同一动作`);
   const animationCountAfterControls = await page.evaluate(({ frameIndex, actor, triggerKey }) =>
     window.__shanhaiMotionAudit.animations.filter(record =>
       record.frameIndex === frameIndex &&
@@ -765,7 +967,7 @@ async function assertControlTimingAndReplay(page, snapshot, width) {
       record.motionTrigger === triggerKey).length,
   { frameIndex: actionIndex, actor, triggerKey });
   assert.equal(animationCountAfterControls, sameActionAnimationCount,
-    `${width}: pause/speed/log 对同一普攻重复发射了动作`);
+    `${width}: pause/speed/details 对同一普攻重复发射了动作`);
 
   const pauseBehavior = await actorNode.evaluate(element => ({
     pausedAnimations: element.getAnimations({ subtree: true })
@@ -817,6 +1019,145 @@ async function waitUntilStable(page, durationFactor = 1.5) {
   });
 }
 
+function createLongLogFrames(sourceFrames, length = 80) {
+  return Array.from({ length }, (_, index) => {
+    const frame = structuredClone(sourceFrames[index % sourceFrames.length]);
+    frame.round = Math.floor(index / 4) + 1;
+    frame.kind = 'status';
+    frame.text = `固定详情日志帧 ${index + 1}`;
+    delete frame.actor;
+    delete frame.target;
+    delete frame.source;
+    delete frame.amount;
+    return frame;
+  });
+}
+
+async function assertBattleDetailsModal(page, snapshot, width) {
+  const targetIndex = Math.min(2, snapshot.frames.length - 2);
+  await setReplayCursor(page, targetIndex);
+  await waitForFrameIndex(page, targetIndex);
+  assert.equal(await page.locator('.battle-log, .battle-detail-dialog').count(), 0,
+    `${width}: 打开详情前主战斗 DOM 不应有日志或详情 modal`);
+
+  await clickAction(page, 'battle-details', { tab: 'log' });
+  const modal = page.locator('.battle-detail-dialog');
+  await modal.waitFor({ state: 'visible' });
+  assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true',
+    `${width}: 打开战斗详情没有立即暂停播放`);
+  const openedCursor = (await battleSnapshot(page)).replay?.cursor;
+  await waitUntilStable(page);
+  assert.equal((await battleSnapshot(page)).replay?.cursor, openedCursor,
+    `${width}: 详情 modal 打开后播放仍在推进`);
+  const tabs = modal.locator('[data-action="battle-detail-tab"]');
+  const availableTabs = await tabs.evaluateAll(elements =>
+    elements.map(element => element.getAttribute('data-tab')).sort());
+  assert.deepEqual(availableTabs.filter(tab => tab !== 'result'), ['enemy', 'log', 'player'],
+    `${width}: 未结束回放应开放我方、敌方与战报详情`);
+  assert.ok(availableTabs.every(tab => ['player', 'enemy', 'log', 'result'].includes(tab)),
+    `${width}: 战斗详情出现未知 tab`);
+  const resultTab = modal.locator('[data-action="battle-detail-tab"][data-tab="result"]');
+  assert.equal(await resultTab.count() === 0 || await resultTab.isDisabled(), true,
+    `${width}: 未结束回放提前开放了结算详情`);
+  const log = modal.locator('.battle-log');
+  assert.equal(await modal.locator('.log-mode, .log-follow').count(), 2,
+    `${width}: 简详与回到底部控件应只存在于战报 tab`);
+  assert.equal(await log.getAttribute('data-frame-index'), String(openedCursor),
+    `${width}: 战报 cursor 与当前播放帧不一致`);
+  assert.equal(await log.locator('.battle-log-row').count(), openedCursor + 1,
+    `${width}: 战报泄露 cursor 之后的帧或遗漏此前帧`);
+
+  await clickAction(page, 'battle-detail-tab', { tab: 'player' });
+  assert.equal(await page.locator('.battle-log, .log-mode, .log-follow').count(), 0,
+    `${width}: 玩家详情以外仍渲染了战报控件`);
+  await clickAction(page, 'battle-detail-tab', { tab: 'enemy' });
+  assert.equal(await page.locator('.battle-log, .log-mode, .log-follow').count(), 0,
+    `${width}: 敌方详情以外仍渲染了战报控件`);
+  await clickAction(page, 'battle-detail-tab', { tab: 'log' });
+  await page.locator('.battle-detail-dialog .battle-log').waitFor({ state: 'visible' });
+  await clickAction(page, 'modal-close');
+  await modal.waitFor({ state: 'detached' });
+  assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'false',
+    `${width}: 原本播放中的战斗关闭详情后没有恢复播放`);
+  const cursorAfterClose = (await battleSnapshot(page)).replay?.cursor;
+  await waitForFrameChange(page, cursorAfterClose);
+
+  const longFrames = createLongLogFrames(snapshot.frames);
+  const longCursor = 60;
+  await loadFixedFrameFixture(page, longFrames, longCursor);
+  await clickAction(page, 'battle-pause');
+  assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true',
+    `${width}: 长战报 fixture 暂停失败`);
+  const pausedCursor = (await battleSnapshot(page)).replay?.cursor;
+  assert.ok(pausedCursor < longFrames.length - 1,
+    `${width}: 长战报 fixture 意外已经结束`);
+  await clickAction(page, 'battle-details', { tab: 'log' });
+  await modal.waitFor({ state: 'visible' });
+  const pausedLog = modal.locator('.battle-log');
+  assert.equal(await pausedLog.getAttribute('data-frame-index'), String(pausedCursor),
+    `${width}: 暂停时打开详情改变了战报 cursor`);
+  assert.equal(await pausedLog.locator('.battle-log-row').count(), pausedCursor + 1,
+    `${width}: 长战报未按暂停 cursor 截断`);
+  const futureText = longFrames[pausedCursor + 1]?.text;
+  if (futureText) {
+    assert.equal((await pausedLog.textContent())?.includes(futureText), false,
+      `${width}: 战报泄露了下一帧内容`);
+  }
+
+  const modeButton = modal.locator('[data-action="battle-log-mode"]');
+  const modeBefore = await modeButton.getAttribute('aria-pressed');
+  await clickAction(page, 'battle-log-mode');
+  assert.notEqual(await modal.locator('[data-action="battle-log-mode"]')
+    .getAttribute('aria-pressed'), modeBefore, `${width}: modal 内简详切换没有生效`);
+  const scrollMetrics = await pausedLog.evaluate(element => ({
+    max: element.scrollHeight - element.clientHeight,
+    height: element.clientHeight,
+  }));
+  assert.ok(scrollMetrics.max > 30 && scrollMetrics.height > 0,
+    `${width}: 长战报没有可滚动区域 ${JSON.stringify(scrollMetrics)}`);
+  const requestedTop = Math.max(12, Math.min(scrollMetrics.max - 12, scrollMetrics.max * 0.45));
+  await pausedLog.evaluate((element, top) => {
+    element.scrollTop = top;
+    element.dispatchEvent(new Event('scroll'));
+  }, requestedTop);
+  const scrolledTop = await pausedLog.evaluate(element => element.scrollTop);
+  assert.ok(scrolledTop > 0, `${width}: modal 内手动滚动没有生效`);
+  assert.equal(await modal.locator('.log-follow').isVisible(), true,
+    `${width}: 离开战报末尾后没有显示回到底部按钮`);
+  await clickAction(page, 'battle-log-follow');
+  const followPosition = await pausedLog.evaluate(element => ({
+    top: element.scrollTop,
+    max: element.scrollHeight - element.clientHeight,
+  }));
+  assert.ok(followPosition.max - followPosition.top < 2,
+    `${width}: 回到底部没有滚至最新战报`);
+
+  await pausedLog.evaluate(element => {
+    const max = element.scrollHeight - element.clientHeight;
+    element.scrollTop = Math.max(1, max - 48);
+    element.dispatchEvent(new Event('scroll'));
+  });
+  const rememberedTop = await pausedLog.evaluate(element => element.scrollTop);
+  await clickAction(page, 'modal-close');
+  await modal.waitFor({ state: 'detached' });
+  assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true',
+    `${width}: 原本暂停的战斗关闭详情后被意外恢复`);
+  await clickAction(page, 'battle-details', { tab: 'log' });
+  await modal.waitFor({ state: 'visible' });
+  const reopenedLog = modal.locator('.battle-log');
+  const reopenedTop = await reopenedLog.evaluate(element => element.scrollTop);
+  assert.ok(Math.abs(reopenedTop - rememberedTop) <= 1,
+    `${width}: 关闭并重开详情没有记住战报位置 ${rememberedTop}/${reopenedTop}`);
+  await clickAction(page, 'modal-close');
+  await modal.waitFor({ state: 'detached' });
+
+  await createRuntimeBattleFixture(
+    page,
+    snapshot.state.method,
+    `motion-details-restore-${width}`,
+  );
+}
+
 async function assertModalAndTabPause(page, width) {
   await clickAction(page, 'settings');
   await page.locator('.modal-backdrop .modal[role="dialog"]').waitFor({ state: 'visible' });
@@ -849,10 +1190,8 @@ async function assertSkipIsPresentationOnly(page, snapshot, width) {
   const beforeSkip = await battleSnapshot(page);
   const expectedResult = beforeSkip.result;
   const runSave = beforeSkip.rawText;
-  const logDisclosure = page.locator('details[data-details="battle-log"]');
-  if (!(await logDisclosure.getAttribute('open'))) await logDisclosure.locator('summary').click();
-  assert.equal(await logDisclosure.getAttribute('open'), '',
-    `${width}: 战报摘要没有展开完整回放`);
+  assert.equal(await page.locator('.battle-log').count(), 0,
+    `${width}: 跳至结算前主屏不应渲染战报`);
   await clickAction(page, 'battle-skip');
   await page.locator('[data-action="battle-finish"], [data-action="continue-battle"]')
     .first().waitFor({ state: 'visible' });
@@ -862,7 +1201,17 @@ async function assertSkipIsPresentationOnly(page, snapshot, width) {
   assert.equal(afterSkip.rawText, runSave, `${width}: skip 改写了运行时存档`);
   assert.equal(afterSkip.replay?.cursor, afterSkip.frames.length - 1,
     `${width}: skip 没有移动到完整战斗末帧`);
-  const log = page.locator('.battle-log');
+  assert.equal(await page.locator('.battle-log').count(), 0,
+    `${width}: 结算后战报仍不应常驻主屏`);
+  await clickAction(page, 'battle-details', { tab: 'log' });
+  const modal = page.locator('.battle-detail-dialog');
+  await modal.waitFor({ state: 'visible' });
+  const resultTab = modal.locator('[data-action="battle-detail-tab"][data-tab="result"]');
+  assert.equal(await resultTab.count(), 1,
+    `${width}: 回放结束后缺少结算详情 tab`);
+  assert.equal(await resultTab.isDisabled(), false,
+    `${width}: 回放结束后仍未开放结算详情`);
+  const log = modal.locator('.battle-log');
   assert.equal(await log.locator('.battle-log-row').count(), afterSkip.frames.length,
     `${width}: 结算战报行数与重建帧数不一致`);
   const text = await log.textContent();
@@ -872,6 +1221,13 @@ async function assertSkipIsPresentationOnly(page, snapshot, width) {
   }, afterSkip.frames);
   const missing = displayTexts.filter(frameText => frameText && !text?.includes(frameText));
   assert.deepEqual(missing, [], `${width}: 完整战报遗漏真实 runtime 帧`);
+  await clickAction(page, 'battle-detail-tab', { tab: 'result' });
+  assert.equal(await page.locator('.battle-log, .log-mode, .log-follow').count(), 0,
+    `${width}: 结算 tab 仍渲染战报控件`);
+  await clickAction(page, 'battle-detail-tab', { tab: 'log' });
+  await modal.locator('.battle-log').waitFor({ state: 'visible' });
+  await clickAction(page, 'modal-close');
+  await modal.waitFor({ state: 'detached' });
   const savedAgain = await battleSnapshot(page);
   assert.deepEqual(savedAgain.result, expectedResult,
     `${width}: 结算后从空帧存档重建得到不同结果`);
@@ -1052,6 +1408,7 @@ async function runViewport(browser, width, height, includeDeepChecks) {
         return { frames: snapshot.frames.length };
       });
       await check(`${width} modal/tab pause and deterministic skip history`, async () => {
+        await assertBattleDetailsModal(page, snapshot, width);
         await assertModalAndTabPause(page, width);
         await assertSkipIsPresentationOnly(page, snapshot, width);
       });
@@ -1071,15 +1428,19 @@ async function runViewport(browser, width, height, includeDeepChecks) {
         assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true');
         const before = await battleSnapshot(page);
         await clickAction(page, 'battle-speed', { speed: 2 });
-        const logDisclosure = page.locator('details[data-details="battle-log"]');
-        assert.equal(await logDisclosure.getAttribute('open'), null,
-          `${width}: 战报应默认折叠`);
-        await logDisclosure.locator('summary').click();
+        assert.equal(await page.locator('.battle-log').count(), 0,
+          `${width}: 默认战斗主屏不应挂载战报`);
+        await clickAction(page, 'battle-details', { tab: 'log' });
+        const modal = page.locator('.battle-detail-dialog');
+        await modal.waitFor({ state: 'visible' });
+        await modal.locator('.battle-log').waitFor({ state: 'visible' });
         await clickAction(page, 'battle-log-mode');
         const after = await battleSnapshot(page);
         assert.equal(after.replay?.cursor, before.replay?.cursor,
           `${width}: 控件改变了播放 cursor`);
         assert.equal(after.rawText, before.rawText, `${width}: 控件改变了存档`);
+        await clickAction(page, 'modal-close');
+        await modal.waitFor({ state: 'detached' });
         await clickAction(page, 'battle-skip');
         await page.locator('[data-action="battle-finish"], [data-action="continue-battle"]')
           .first().waitFor({ state: 'visible' });

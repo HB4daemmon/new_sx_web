@@ -1,4 +1,4 @@
-import type { BattleFrame, Side } from './types.js';
+import type { BattleFrame, FighterView, Side } from './types.js';
 
 export type BattleMotion =
   | 'idle'
@@ -20,6 +20,15 @@ export interface BattlePresentationCue {
   critical: boolean;
 }
 
+export interface BloodShieldPresentation {
+  capacity: number;
+  hp: number;
+  shield: number;
+  hpPercent: number;
+  shieldPercent: number;
+  total: number;
+}
+
 const BASE_BEATS: Record<string, number> = {
   action: 520,
   damage: 450,
@@ -35,6 +44,24 @@ const BASE_BEATS: Record<string, number> = {
   end: 400,
   summary: 220,
 };
+
+export function bloodShieldPresentation(
+  fighter: Pick<FighterView, 'hp' | 'maxHp' | 'shield'>,
+): BloodShieldPresentation {
+  const maxHp = Math.max(0, fighter.maxHp);
+  const hp = fighter.hp;
+  const shield = fighter.shield;
+  const nonNegativeShield = Math.max(0, shield);
+  const capacity = Math.max(1, fighter.maxHp + nonNegativeShield);
+  return {
+    capacity,
+    hp,
+    shield,
+    hpPercent: Math.min(maxHp, Math.max(0, hp)) / capacity * 100,
+    shieldPercent: nonNegativeShield / capacity * 100,
+    total: hp + shield,
+  };
+}
 
 function actionKind(frame: BattleFrame): BattleActionKind {
   if (frame.kind !== 'action') return 'none';

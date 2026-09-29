@@ -1,6 +1,10 @@
 import { loadContent } from './content.js';
 import { calculateStats } from './combat.js';
-import { battleBeatDuration, battlePresentationCue } from './battle-presentation.js';
+import {
+  battleBeatDuration,
+  battlePresentationCue,
+  bloodShieldPresentation,
+} from './battle-presentation.js';
 import { ShanhaiGame } from './run.js';
 import {
   localizeBattleText,
@@ -133,6 +137,7 @@ type ModalKind =
   | 'corrupt-save'
   | 'archives'
   | 'node-preview'
+  | 'battle-details'
   | 'settings'
   | 'character'
   | 'artifact'
@@ -141,6 +146,8 @@ type ModalKind =
   | 'help'
   | 'error'
   | null;
+
+type BattleDetailTab = 'player' | 'enemy' | 'log' | 'result';
 
 function isRecord(value: unknown): value is Record<string, any> {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
@@ -273,6 +280,9 @@ class ShanhaiApp {
   private modal: ModalKind = null;
   private modalId = '';
   private modalMethodId = '';
+  private battleDetailTab: BattleDetailTab = 'enemy';
+  private battleDetailsParent: { tab: BattleDetailTab; focusSelector: string } | null = null;
+  private battleDetailReturnFocus = '';
   private buildFilter: 'owned' | 'all' = 'owned';
   private buildRarityFilter: 'all' | 'common' | 'rare' | 'legendary' = 'all';
   private loading = true;
@@ -1031,7 +1041,7 @@ class ShanhaiApp {
     const action = element.dataset.action;
     if (!action) return '';
     const selector = [`[data-action="${CSS.escape(action)}"]`];
-    for (const key of ['id', 'method', 'filter', 'speed', 'choice', 'index'] as const) {
+    for (const key of ['id', 'method', 'filter', 'speed', 'choice', 'index', 'tab'] as const) {
       const value = element.dataset[key];
       if (value !== undefined) selector.push(`[data-${key}="${CSS.escape(value)}"]`);
     }
@@ -1148,7 +1158,13 @@ class ShanhaiApp {
     const openingModal = Boolean(this.modal) && this.renderedModal !== this.modal;
     const closingModal = !this.modal && Boolean(this.renderedModal);
     if (openingModal) {
-      this.focusModal();
+      const returnTarget = this.battleDetailReturnFocus;
+      this.battleDetailReturnFocus = '';
+      if (this.modal === 'battle-details' && returnTarget && this.focusTarget(returnTarget)) {
+        this.focusTarget(returnTarget)?.focus({ preventScroll: true });
+      } else {
+        this.focusModal();
+      }
     } else if (closingModal && this.focusReturn) {
       const selector = this.focusReturn;
       this.focusReturn = '';
@@ -1264,8 +1280,9 @@ class ShanhaiApp {
     if (!frame) return;
     const shell = this.root.querySelector<HTMLElement>('.battle-shell');
     const arena = shell?.querySelector<HTMLElement>('.combat-arena');
-    const log = shell?.querySelector<HTMLElement>('.battle-log');
-    if (!shell || !arena || !log) return;
+    const details = this.root.querySelector<HTMLElement>('.battle-detail-dialog');
+    const log = details?.querySelector<HTMLElement>('.battle-log');
+    if (!shell || !arena) return;
 
     const domCursor = Number(arena.dataset.frameIndex);
     const cursorChanged = Number.isInteger(domCursor) && domCursor !== cursor;
@@ -1276,7 +1293,7 @@ class ShanhaiApp {
     shell.style.setProperty('--beat-duration', `${battleBeatDuration(frame, this.battleSpeed)}ms`);
     if (!changed) {
       this.updateBattleControls(shell);
-      this.updateBattleLog(shell, log, frames, cursor, false);
+      if (details && log) this.updateBattleLog(details, log, frames, cursor, false);
       return;
     }
 
@@ -1294,10 +1311,6 @@ class ShanhaiApp {
     if (context) context.textContent = this.battleFinished
       ? `历 ${formatNumber(this.battleResult()?.rounds)} 回合`
       : `第 ${formatNumber(frame.round)} 回合`;
-    const contextText = shell.querySelector<HTMLElement>('[data-battle-context]');
-    if (contextText) {
-      contextText.textContent = FRAME_KIND_LABEL[asText(frame.kind)] || '战斗';
-    }
 
     const core = arena.querySelector<HTMLElement>('.battle-stage-core');
     if (core) {
@@ -1308,7 +1321,7 @@ class ShanhaiApp {
       if (seal) seal.textContent = this.battleFinished
         ? this.battleResult()?.outcome === 'player' ? '胜' : this.battleResult()?.outcome === 'draw' ? '平' : '劫'
         : String(frame.round);
-      if (text) text.textContent = localizeBattleText(asText(frame.text, '双方试探'));
+      if (text) text.textContent = this.battleFrameSummary(frame, cue);
       if (frame.source) {
         if (source) source.textContent = this.sourceLabel(frame.source);
         else text?.insertAdjacentHTML('afterend',
@@ -1339,7 +1352,7 @@ class ShanhaiApp {
     }
     this.updateBattleControls(shell);
     this.updateBattleSettlement(shell);
-    this.updateBattleLog(shell, log, frames, cursor, changed);
+    if (details && log) this.updateBattleLog(details, log, frames, cursor, changed);
   }
 
   private updateBattleControls(shell: HTMLElement): void {
@@ -1375,19 +1388,26 @@ class ShanhaiApp {
   }
 
   private updateBattleSettlement(shell: HTMLElement): void {
+    const detailActions = shell.querySelector<HTMLElement>('.battle-detail-actions');
+    const resultAction = detailActions?.querySelector<HTMLElement>('[data-tab="result"]');
+    if (this.battleFinished && detailActions && !resultAction) {
+      detailActions.insertAdjacentHTML('beforeend',
+        `<button class="button small quiet" data-action="battle-details" data-tab="result" aria-label="打开战果">${icon('eye', 15)}战果</button>`);
+    } else if (!this.battleFinished) {
+      resultAction?.remove();
+    }
     const existing = shell.querySelector<HTMLElement>('.battle-settlement');
     if (!this.battleFinished) {
       existing?.remove();
       return;
     }
     if (existing) return;
-    const logDisclosure = shell.querySelector<HTMLElement>('.battle-log-disclosure');
-    if (logDisclosure) logDisclosure.insertAdjacentHTML('beforebegin', this.battleSettlementMarkup());
+    if (detailActions) detailActions.insertAdjacentHTML('beforebegin', this.battleSettlementMarkup());
     else shell.insertAdjacentHTML('beforeend', this.battleSettlementMarkup());
   }
 
   private updateBattleLog(
-    shell: HTMLElement,
+    details: HTMLElement,
     log: HTMLElement,
     frames: BattleFrame[],
     cursor: number,
@@ -1416,7 +1436,7 @@ class ShanhaiApp {
     log.dataset.logKey = this.battleKey;
     log.dataset.frameIndex = String(cursor);
     log.dataset.logMode = String(this.detailedLog);
-    const followButton = shell.querySelector<HTMLElement>('.log-follow');
+    const followButton = details.querySelector<HTMLElement>('.log-follow');
     if (cursorChanged && !rebuild) {
       this.battleLogFollow = wasAtEnd;
       if (!this.battleLogFollow) this.battleLogTop = oldTop;
@@ -1424,7 +1444,7 @@ class ShanhaiApp {
     if (cursorChanged && this.battleLogFollow) log.scrollTop = log.scrollHeight;
     else if (rebuild && !this.battleLogFollow) log.scrollTop = oldTop || this.battleLogTop;
     if (followButton) followButton.hidden = this.battleLogFollow;
-    const modeButton = shell.querySelector<HTMLElement>('.log-mode');
+    const modeButton = details.querySelector<HTMLElement>('.log-mode');
     if (modeButton) {
       modeButton.setAttribute('aria-pressed', String(this.detailedLog));
       modeButton.textContent = this.detailedLog ? '详录' : '简录';
@@ -1552,7 +1572,7 @@ class ShanhaiApp {
       ${this.mobileHud(state)}
       <div class="game-layout ${combat ? 'in-combat' : ''} ${this.view === 'build' ? 'view-build' : ''}">
         ${combat ? '' : `<aside class="sidebar player-rail">${this.profileRail(state)}</aside>`}
-        <main class="main-stage">${stage}${phase === 'battle' && state.battle?.outcome === 'draw' && this.view === 'journey' ? '<div class="stage-actions"><button class="button quiet" data-action="retire">收手，结束本局</button></div>' : ''}</main>
+        <main class="main-stage">${stage}</main>
       </div>
       ${this.bottomNav()}
       ${this.modalMarkup()}
@@ -1733,7 +1753,7 @@ class ShanhaiApp {
   }
 
   private stageHeading(kicker: string, title: string, description = '', battle = false): string {
-    return `<div class="stage-heading" ${battle ? 'data-battle-heading' : ''}><p class="eyebrow">${esc(kicker)}</p><h1>${esc(title)}</h1>${description ? `<p>${esc(description)}</p>` : ''}</div>`;
+    return `<div class="stage-heading" ${battle ? 'data-battle-heading' : ''}>${kicker ? `<p class="eyebrow">${esc(kicker)}</p>` : ''}<h1>${esc(title)}</h1>${description ? `<p>${esc(description)}</p>` : ''}</div>`;
   }
 
   private routeView(state: RunState): string {
@@ -1914,7 +1934,6 @@ class ShanhaiApp {
     const input = (state as any).battleInput || {};
     const enemyLoadout = this.enemyLoadout(enemy, input.enemy);
     const method = this.methodEntity(methodId(enemyLoadout, enemy));
-    const enemyStats = this.previewStats(enemyLoadout, enemy);
     const player = this.game?.player || {};
     const playerStats = this.stats();
     const playerHp = asNumber(state.hp, playerStats.max_hp);
@@ -1927,22 +1946,7 @@ class ShanhaiApp {
     const committedEvent = Boolean((state as any)._pendingEvent);
     return `${this.stageHeading(`战前预览 · ${profileLabel}`, asText(enemy?.name, '未知敌手'))}
       <section class="preview-arena preview-essentials"><div class="preview-side player-side">${portrait(this.visualKind(player, this.methodEntity(state.method)), true)}<div><span class="eyebrow">行者</span><h2>${esc(asText(state.name, '行者'))}</h2><small class="preview-vital">气血 ${formatNumber(playerHp)} / ${formatNumber(playerStats.max_hp)} · ${esc(asText(this.methodEntity(state.method)?.name, '当前功法'))}</small></div></div><div class="versus-seal">${sigil('swords', 'gold')}<span>斗法</span></div><div class="preview-side enemy-side">${portrait(this.visualKind(enemyLoadout, enemy), true)}<div><span class="eyebrow">${esc(profileLabel)}</span><h2>${esc(asText(enemy?.name, enemyLoadout.name || '敌手'))}</h2><small class="preview-vital">所修功法 · ${esc(asText(method?.name, '未知功法'))}</small><p class="preview-enemy-brief">${esc(enemyBrief)}</p></div></div></section>
-      <details class="preview-preparation-details disclosure" data-details="battle-preparation-details">
-        <summary>双方战力与对手招式</summary>
-        <div class="preview-details"><div class="preview-column"><div class="detail-heading"><span>行者战力</span><b>${esc(asText(this.methodEntity(state.method)?.name, '当前功法'))}</b></div><div class="preview-stat-line">${this.previewStatsLine(playerStats)}</div></div>
-        <div class="preview-column enemy-preview-column"><div class="detail-heading"><span>对手战力</span><b>${esc(asText(method?.name, '未知功法'))}</b></div><p>${esc(asText(method?.role, '修行方向'))}</p><div class="loadout-row"><span>普攻</span><div>${esc(this.displayText(method?.actions?.basic?.quick || '稳步出手。'))}</div></div><div class="loadout-row"><span>怒技</span><div>${esc(this.displayText(method?.actions?.rage?.quick || '蓄满怒气后释放。'))}</div></div><div class="loadout-row"><span>天赋</span><div>${listOf<string>(enemyLoadout.talents).map((talent) => { const item = this.talentEntity(enemyLoadout.method, talent); return `<span class="mini-chip">${esc(asText(item?.name, '未名天赋'))}</span>`; }).join('') || '<span class="muted">暂无天赋</span>'}</div></div><div class="loadout-row"><span>法宝</span><div>${loadoutArtifacts(enemyLoadout).map((stack) => this.artifactChip(stack)).join('') || '<span class="muted">未带法宝</span>'}</div></div><div class="loadout-row"><span>对手属性</span><div>${this.previewStatsLine(enemyStats)}</div></div></div>
-        <div class="preview-column pressure-column"><div class="detail-heading"><span>对手特点</span><b>${esc(profileLabel)}</b></div><div class="tag-row">${listOf<any>(enemy?.pressure).map((value) => `<span class="pressure-tag">${esc(this.displayText(value))}</span>`).join('') || '<span class="muted">暂无特点</span>'}</div><h3 class="counterplay-heading">应对之法</h3><ul class="counterplay-list">${listOf<any>(enemy?.counterplay).slice(0, 2).map((value) => `<li>${esc(this.displayText(value))}</li>`).join('') || '<li>观察敌手的怒气，安排护盾与攻势。</li>'}</ul></div></div>
-      </details>
-      ${this.inlineMessage()}<div class="stage-actions">${committedEvent ? '<span class="playback-hint">这场机缘已经承诺，战斗不可回避。</span>' : `<button class="button quiet" data-action="back">${icon('arrow', 16)}返回地图</button>`}<button class="button primary" data-action="fight" data-autofocus>开始斗法 ${icon('sword', 16)}</button></div>`;
-  }
-
-  private previewStatsLine(stats: Stats): string {
-    return `<span>攻 <b>${formatNumber(stats.attack)}</b></span><span>防 <b>${formatNumber(stats.defense)}</b></span><span>气血 <b>${formatNumber(stats.max_hp)}</b></span><span>速 <b>${formatNumber(stats.speed)}</b></span>`;
-  }
-
-  private artifactChip(stack: ArtifactStack): string {
-    const item = this.artifactEntity(stack.id);
-    return `<span class="artifact-chip"><b>${esc(asText(item?.name, '未知法宝'))}</b><small>×${formatNumber(stack.stacks)}</small></span>`;
+      ${this.inlineMessage()}<div class="stage-actions"><button class="button quiet" data-action="battle-details" data-tab="enemy" aria-label="对手战力与招式">${icon('eye', 16)}查看对手</button>${committedEvent ? '<span class="playback-hint">这场机缘已经承诺，战斗不可回避。</span>' : `<button class="button quiet" data-action="back">${icon('arrow', 16)}返回地图</button>`}<button class="button primary" data-action="fight" data-autofocus>开始斗法 ${icon('sword', 16)}</button></div>`;
   }
 
   private battleView(state: RunState): string {
@@ -1952,29 +1956,169 @@ class ShanhaiApp {
     if (!frame) {
       return `${this.stageHeading('斗法载入', '双方蓄势')}<div class="empty-state">${icon('help', 34)}<p>暂无战斗记录。</p><button class="button" data-action="continue-battle">继续</button></div>`;
     }
-    const frameKind = FRAME_KIND_LABEL[asText(frame.kind)] || '战斗';
     const previous = this.battleCursor > 0 ? frames[this.battleCursor - 1] : undefined;
     const cue = battlePresentationCue(frame, previous);
     const feedback = this.battleVfx(frame, previous) + this.battleFeedback(frame, previous);
-    const visibleFrames = frames.slice(0, this.battleCursor + 1);
-    const logRows = visibleFrames.map((item, index) => {
-      const absolute = Math.max(0, this.battleCursor - visibleFrames.length + 1 + index);
-      const previousFrame = absolute > 0 ? frames[absolute - 1] : undefined;
-      return this.battleLogRow(item, previousFrame);
-    }).join('');
-    return `${this.stageHeading('交锋', this.battleFinished ? (result?.outcome === 'player' ? '此战告捷' : result?.outcome === 'draw' ? '胜负未分' : '此身入劫') : '斗法', '', true)}
+    return `${this.stageHeading('', this.battleFinished ? (result?.outcome === 'player' ? '此战告捷' : result?.outcome === 'draw' ? '胜负未分' : '此身入劫') : '斗法', '', true)}
       <section class="battle-shell" data-battle-key="${esc(this.battleKey)}" data-paused="${this.battlePaused || Boolean(this.modal)}" style="--beat-duration:${battleBeatDuration(frame, this.battleSpeed)}ms">
-        <div class="battle-context"><span data-battle-round>${this.battleFinished ? `历 ${formatNumber(result?.rounds)} 回合` : `第 ${formatNumber(frame.round)} 回合`}</span><strong data-battle-context>${esc(frameKind)}</strong></div>
-        <div class="combat-arena" data-frame-index="${this.battleCursor}" data-frame-kind="${esc(asText(frame.kind))}" data-action-kind="${cue.actionKind}" data-motion-trigger="${this.battleCursor % 2}">${landscape()}<span class="arena-vignette" aria-hidden="true"></span>${this.fighterMarkup(frame.player, 'player', frame.actor === 'player', frame, cue)}<div class="battle-stage-core"><span class="round-seal">${this.battleFinished ? (result?.outcome === 'player' ? '胜' : result?.outcome === 'draw' ? '平' : '劫') : frame.round}</span><strong data-frame-text>${esc(localizeBattleText(asText(frame.text, '双方试探')))}</strong>${frame.source ? `<small data-frame-source>${esc(this.sourceLabel(frame.source))}</small>` : ''}<span data-battle-amount>${this.battleAmountMarkup(frame, previous)}</span></div>${this.fighterMarkup(frame.enemy, 'enemy', frame.actor === 'enemy', frame, cue)}${feedback}</div>
+        <div class="battle-context"><span data-battle-round>${this.battleFinished ? `历 ${formatNumber(result?.rounds)} 回合` : `第 ${formatNumber(frame.round)} 回合`}</span></div>
+        <div class="combat-arena" data-frame-index="${this.battleCursor}" data-frame-kind="${esc(asText(frame.kind))}" data-action-kind="${cue.actionKind}" data-motion-trigger="${this.battleCursor % 2}">${landscape()}<span class="arena-vignette" aria-hidden="true"></span>${this.fighterMarkup(frame.player, 'player', frame.actor === 'player', frame, cue)}<div class="battle-stage-core"><span class="round-seal">${this.battleFinished ? (result?.outcome === 'player' ? '胜' : result?.outcome === 'draw' ? '平' : '劫') : frame.round}</span><strong data-frame-text>${esc(this.battleFrameSummary(frame, cue))}</strong>${frame.source ? `<small data-frame-source>${esc(this.sourceLabel(frame.source))}</small>` : ''}<span data-battle-amount>${this.battleAmountMarkup(frame, previous)}</span></div>${this.fighterMarkup(frame.enemy, 'enemy', frame.actor === 'enemy', frame, cue)}${feedback}</div>
         <div class="battle-controls"><div class="speeds" role="group" aria-label="战斗速度"><button data-action="battle-speed" data-speed="1" data-focus-key="battle-speed-1" aria-pressed="${this.battleSpeed === 1}" aria-label="一倍速">1×</button><button data-action="battle-speed" data-speed="2" data-focus-key="battle-speed-2" aria-pressed="${this.battleSpeed === 2}" aria-label="二倍速">2×</button><button data-action="battle-speed" data-speed="4" data-focus-key="battle-speed-4" aria-pressed="${this.battleSpeed === 4}" aria-label="四倍速">4×</button><button data-action="battle-pause" data-focus-key="battle-pause" aria-pressed="${this.battlePaused}" aria-label="${this.battlePaused ? '继续播放' : '暂停播放'}">${this.battlePaused ? '继续' : '暂停'}</button></div>${this.battleControlAction(state)}</div>
         <div class="replay-progress" aria-label="战斗播放进度"><i style="width:${frames.length <= 1 ? 100 : Math.round(this.battleCursor / Math.max(1, frames.length - 1) * 100)}%"></i></div>
-        ${this.battleLoadout(state)}
         ${this.battleSettlementMarkup()}
-        <details class="battle-log-disclosure disclosure" data-details="battle-log"><summary>战报</summary>
-          <div class="battle-log-head"><span>战痕</span><button class="text-link log-follow" data-action="battle-log-follow" ${this.battleLogFollow ? 'hidden' : ''} aria-label="回到最新战报">回到最新 ↓</button><button class="text-link log-mode" data-action="battle-log-mode" aria-pressed="${this.detailedLog}">${this.detailedLog ? '详录' : '简录'}</button></div>
-          <div class="battle-log ${this.detailedLog ? 'detailed-mode' : 'simple-mode'}" data-log-key="${esc(this.battleKey)}" data-frame-index="${this.battleCursor}" data-log-mode="${this.detailedLog}" tabindex="0" role="region" aria-label="可滚动战报">${logRows || '<p class="simple-log-empty">双方蓄势。</p>'}</div>
-        </details>
+        <div class="battle-detail-actions"><button class="button small quiet" data-action="battle-details" data-tab="log" aria-label="打开战报">${icon('book', 15)}战报</button>${this.battleFinished ? `<button class="button small quiet" data-action="battle-details" data-tab="result" aria-label="打开战果">${icon('eye', 15)}战果</button>` : ''}</div>
       </section>${this.inlineMessage()}`;
+  }
+
+  private battleFrameSummary(
+    frame: BattleFrame,
+    cue: ReturnType<typeof battlePresentationCue>,
+  ): string {
+    const actor = frame.actor === 'player' ? '我方' : frame.actor === 'enemy' ? '敌方' : '';
+    const labels: Record<string, string> = {
+      start: '交锋开始',
+      round: '回合开始',
+      damage: cue.playerMotion === 'block' || cue.enemyMotion === 'block' ? '护盾吸收' : '受到攻击',
+      dot: '持续伤害',
+      heal: '治疗',
+      shield: '护盾',
+      status: '状态',
+      rage: '怒气',
+      phase: '昼夜流转',
+      draw: '胜负未分',
+      end: '斗法结束',
+      summary: '战报摘要',
+    };
+    const label = frame.kind === 'action'
+      ? cue.actionKind === 'rage' ? '怒技' : cue.actionKind === 'basic' ? '普攻' : '出手'
+      : labels[frame.kind] || '战斗';
+    return frame.kind === 'action' && actor ? `${actor} · ${label}` : label;
+  }
+
+  private availableBattleDetailTabs(): BattleDetailTab[] {
+    const state = this.gameState();
+    if (!state) return [];
+    if (state.phase === 'preview') return ['player', 'enemy'];
+    if (state.phase !== 'battle' && state.phase !== 'won' && state.phase !== 'lost') return [];
+    const result = this.battleResult();
+    const tabs: BattleDetailTab[] = ['player', 'enemy'];
+    if (result?.frames.length) tabs.push('log');
+    if (state.phase === 'won' || state.phase === 'lost' || this.battleFinished) tabs.push('result');
+    return tabs;
+  }
+
+  private battleDetailsMarkup(): string {
+    const tabs = this.availableBattleDetailTabs();
+    if (!tabs.length) return '';
+    if (!tabs.includes(this.battleDetailTab)) this.battleDetailTab = tabs[0];
+    const tabLabels: Record<BattleDetailTab, string> = {
+      player: '我方',
+      enemy: '敌方',
+      log: '战报',
+      result: '战果',
+    };
+    const selected = this.battleDetailTab;
+    return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal dialog-wide battle-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="battle-detail-title">
+      <button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button>
+      <p class="eyebrow">斗法详录</p><h2 id="battle-detail-title">${esc(tabLabels[selected])}</h2>
+      <div class="battle-detail-tabs" role="tablist" aria-label="斗法详情">${tabs.map((tab) => `<button type="button" role="tab" id="battle-detail-tab-${tab}" aria-controls="battle-detail-panel" aria-selected="${selected === tab}" tabindex="${selected === tab ? '0' : '-1'}" data-action="battle-detail-tab" data-tab="${tab}" ${selected === tab ? 'data-autofocus' : ''}>${esc(tabLabels[tab])}</button>`).join('')}</div>
+      <div class="battle-detail-body" id="battle-detail-panel" role="tabpanel" aria-labelledby="battle-detail-tab-${selected}">${this.battleDetailBody(selected)}</div>
+      <div class="dialog-actions"><button class="button quiet" data-action="modal-close" data-autofocus>返回</button></div>
+    </section></div>`;
+  }
+
+  private battleDetailBody(tab: BattleDetailTab): string {
+    if (tab === 'log') return this.battleLogMarkup();
+    if (tab === 'result') return this.battleResultDetails();
+    return this.battleFighterDetails(tab);
+  }
+
+  private battleFighterDetails(side: 'player' | 'enemy'): string {
+    const state = this.gameState();
+    const input = state?.battleInput;
+    const entity = side === 'enemy' ? this.enemyEntity() : undefined;
+    const loadout: any = side === 'enemy'
+      ? input?.enemy || this.enemyLoadout(entity)
+      : input?.player || this.game?.player || {};
+    const methodIdValue = asText(loadout.method, side === 'player' ? state?.method : entity?.method);
+    const method = this.methodEntity(methodIdValue);
+    const stats = this.previewStats(loadout, method);
+    const result = this.battleResult();
+    const frames = result?.frames || [];
+    const frame = state?.phase === 'preview'
+      ? undefined
+      : state?.phase === 'battle'
+        ? frames[Math.min(this.battleCursor, Math.max(0, frames.length - 1))]
+        : frames.at(-1);
+    const fighter = frame?.[side];
+    const currentHp = fighter?.hp ?? asNumber(loadout.hp, side === 'player' ? state?.hp : stats.max_hp);
+    const currentShield = fighter?.shield ?? asNumber(loadout.preparation);
+    const name = asText(fighter?.name, asText(loadout.name, side === 'player' ? '行者' : '敌手'));
+    const talents = listOf<string>(loadout.talents)
+      .map((id) => this.talentEntity(methodIdValue, id))
+      .filter((talent): talent is Entity => Boolean(talent));
+    const artifacts = loadoutArtifacts(loadout);
+    const actions = [
+      { label: '普攻', action: method?.actions?.basic },
+      { label: '怒技', action: method?.actions?.rage },
+    ];
+    const frameResources = fighter
+      ? `<div class="detail-stat-grid"><span>气血 <b>${formatNumber(fighter.hp)} / ${formatNumber(fighter.maxHp)}</b></span><span>护盾 <b>${formatNumber(fighter.shield)}</b></span><span>怒气 <b>${formatNumber(fighter.rage)} / ${formatNumber(fighter.rageCap)}</b></span></div>`
+      : `<div class="detail-stat-grid"><span>气血 <b>${formatNumber(currentHp)} / ${formatNumber(stats.max_hp)}</b></span><span>准备护盾 <b>${formatNumber(currentShield)}</b></span><span>怒气 <b>交锋开始后记录</b></span></div>`;
+    const selectedActions = actions.map(({ label, action }) =>
+      `<div class="detail-action"><b>${esc(label)} · ${esc(asText(action?.name, '动作'))}</b><span>${esc(this.displayText(asText(action?.quick, asText(action?.description, '按功法规则结算。'))))}</span></div>`,
+    ).join('');
+    const talentButtons = talents.map((talent) =>
+      this.talentButton(talent, methodIdValue, 'detail-item', `查看 ${asText(talent.name, '未名天赋')}`),
+    ).join('');
+    const artifactButtons = artifacts.map((stack) => {
+      const artifact = this.artifactEntity(stack.id);
+      const artifactName = asText(artifact?.name, stack.id);
+      return `<button type="button" class="detail-item" data-action="inspect-artifact" data-id="${esc(stack.id)}" aria-label="查看${esc(artifactName)}详录">${icon(this.artifactIcon(artifact), 15)}${esc(artifactName)} ×${formatNumber(stack.stacks)}</button>`;
+    }).join('');
+    const previewOpponent = side === 'enemy' && state?.phase === 'preview'
+      ? `<section class="detail-section"><h3>对手特点</h3><div class="tag-row">${listOf<any>(entity?.pressure).map((value) => `<span class="pressure-tag">${esc(this.displayText(value))}</span>`).join('') || '<span class="muted">暂无特点</span>'}</div><h4>应对之法</h4><ul class="counterplay-list">${listOf<any>(entity?.counterplay).slice(0, 2).map((value) => `<li>${esc(this.displayText(value))}</li>`).join('') || '<li>观察敌手的怒气，安排护盾与攻势。</li>'}</ul></section>`
+      : '';
+    return `<div class="battle-fighter-detail" data-detail-side="${side}">
+      <section class="detail-section"><h3>${esc(name)} · ${esc(asText(method?.name, '未知功法'))}</h3>${frameResources}<div class="detail-stat-grid"><span>攻击 <b>${formatNumber(stats.attack)}</b></span><span>防御 <b>${formatNumber(stats.defense)}</b></span><span>气血上限 <b>${formatNumber(stats.max_hp)}</b></span><span>速度 <b>${formatNumber(stats.speed)}</b></span><span>暴击 <b>${formatNumber(stats.crit_rate * 100)}%</b></span></div></section>
+      <section class="detail-section"><h3>战斗状态</h3><div class="combat-statuses">${fighter ? this.fighterStatusMarkup(fighter) : '<span class="muted">交锋开始后记录</span>'}</div>${fighter ? this.fighterLockedMarkup(fighter) || '<div class="locked-actions"><span>锁定动作</span><b>当前无锁定动作</b></div>' : '<div class="locked-actions"><span>锁定动作</span><b>交锋开始后记录</b></div>'}</section>
+      <section class="detail-section"><h3>功法动作</h3><div class="detail-actions-list">${selectedActions}</div></section>
+      <section class="detail-section"><h3>已选天赋</h3><div class="detail-item-list">${talentButtons || '<span class="muted">未选天赋</span>'}</div></section>
+      <section class="detail-section"><h3>法宝</h3><div class="detail-item-list">${artifactButtons || '<span class="muted">未带法宝</span>'}</div></section>
+      ${previewOpponent}
+    </div>`;
+  }
+
+  private battleLogMarkup(): string {
+    const state = this.gameState();
+    const frames = this.battleResult()?.frames || [];
+    const storedCursor = state?.phase === 'won' || state?.phase === 'lost'
+      ? Math.max(0, frames.length - 1)
+      : this.battleCursor;
+    const cursor = Math.min(storedCursor, Math.max(0, frames.length - 1));
+    const visible = frames.slice(0, cursor + 1);
+    const logRows = visible.map((frame, index) =>
+      this.battleLogRow(frame, index > 0 ? visible[index - 1] : undefined),
+    ).join('');
+    return `<div class="battle-log-panel">
+      <div class="battle-log-head"><span>战痕</span><button class="text-link log-follow" data-action="battle-log-follow" ${this.battleLogFollow ? 'hidden' : ''} aria-label="回到最新战报">回到最新 ↓</button><button class="text-link log-mode" data-action="battle-log-mode" aria-pressed="${this.detailedLog}">${this.detailedLog ? '详录' : '简录'}</button></div>
+      <div class="battle-log ${this.detailedLog ? 'detailed-mode' : 'simple-mode'}" data-log-key="${esc(this.battleKey)}" data-frame-index="${cursor}" data-log-mode="${this.detailedLog}" tabindex="0" role="region" aria-label="可滚动战报">${logRows || '<p class="simple-log-empty">双方蓄势。</p>'}</div>
+    </div>`;
+  }
+
+  private battleResultDetails(): string {
+    const state = this.gameState();
+    const result = this.battleResult();
+    if (!result || (state?.phase !== 'won' && state?.phase !== 'lost' && !this.battleFinished)) {
+      return '<p class="empty-note">斗法尚未结束。</p>';
+    }
+    const outcome = result.outcome === 'player' ? '我方取胜' : result.outcome === 'draw' ? '胜负未分' : '我方落败';
+    const resultActions = state?.phase === 'battle'
+      ? result.outcome === 'draw'
+        ? `<button class="button primary" data-action="continue-battle" ${asNumber(state.battleInput?.roundLimit) < 4096 ? '' : 'disabled'}>继续交锋 ${icon('arrow', 15)}</button><button class="button quiet" data-action="retire">收手结束本局</button>`
+        : `<button class="button primary" data-action="battle-finish">${result.outcome === 'player' ? '收下战果' : '回望此局'} ${icon('arrow', 15)}</button>`
+      : '';
+    return `<div class="battle-result-detail"><section class="detail-section"><h3>最终结果</h3><div class="detail-stat-grid"><span>胜负 <b>${outcome}</b></span><span>回合 <b>${formatNumber(result.rounds)}</b></span><span>我方气血 <b>${formatNumber(result.playerHp)}</b></span><span>敌方气血 <b>${formatNumber(result.enemyHp)}</b></span></div></section><section class="detail-section"><h3>效果来源</h3>${this.battleDiagnostics(result)}</section>${resultActions ? `<div class="battle-result-actions">${resultActions}</div>` : ''}</div>`;
   }
 
   private battleControlAction(state: RunState): string {
@@ -1999,23 +2143,7 @@ class ShanhaiApp {
           ? '胜负未分，可继续交锋。'
           : '僵持已久，可收手离去。'
         : '';
-    return `<section class="battle-settlement" aria-label="斗法结算">${note ? `<p>${note}</p>` : ''}<details class="end-diagnostics" data-details="battle-diagnostics"><summary>斗法详录</summary>${this.battleDiagnostics(result)}</details></section>`;
-  }
-
-  private battleLoadout(state: RunState): string {
-    const method = this.methodEntity(state.method);
-    const selectedTalents = listOf<string>(state.talents?.[state.method])
-      .map((id) => this.talentEntity(state.method, id))
-      .filter((value): value is Entity => Boolean(value));
-    const actions = [
-      { label: '普攻', action: method?.actions?.basic },
-      { label: '怒技', action: method?.actions?.rage },
-    ];
-    return `<details class="battle-loadout disclosure" data-details="battle-loadout" aria-label="当前构筑">
-      <summary>当前构筑 · ${esc(asText(method?.name, state.method))}</summary>
-      <div class="profile-build"><div class="profile-talents"><span class="eyebrow">已选天赋</span><div class="profile-talent-list">${selectedTalents.length ? selectedTalents.map((talent) => this.talentButton(talent, state.method)).join('') : '<span class="muted">未选天赋</span>'}</div></div>
-      <div class="profile-actions"><span class="eyebrow">当前功法动作</span>${actions.map(({ label, action }) => `<div class="profile-action"><b>${esc(label)} · ${esc(asText(action?.name, '动作'))}</b><small>${esc(this.displayText(asText(action?.quick, asText(action?.description, '按功法规则结算。'))))}</small></div>`).join('')}</div></div>
-    </details>`;
+    return `<section class="battle-settlement" aria-label="斗法结算">${note ? `<p>${note}</p>` : ''}</section>`;
   }
 
   private fighterStatusMarkup(fighter: FighterView): string {
@@ -2044,23 +2172,19 @@ class ShanhaiApp {
     const art = side === 'player' ? this.visualKind(this.game?.player, this.methodEntity(this.gameState()?.method)) : this.visualKind((this.gameState() as any)?.battleInput?.enemy, this.enemyEntity());
     const action = acting ? (fighter.lockedAction || this.frameAction(frame, side)) : undefined;
     const turnLabel = action === 'rage_action' ? '怒技' : action === 'basic_action' ? '普攻' : '出手';
-    const stats = this.previewStats(this.game?.state.battleInput?.[side] || {}, this.methodEntity(fighter.method));
+    const resources = bloodShieldPresentation(fighter);
     const motion = cue[side === 'player' ? 'playerMotion' : 'enemyMotion'];
     const lowHealth = pct(fighter.hp, fighter.maxHp) <= 30;
     const rageReady = fighter.rageCap > 0 && fighter.rage >= fighter.rageCap;
     return `<article class="combatant ${side === 'player' ? 'side-p' : 'side-e enemy'} ${acting ? 'acting' : ''} ${lowHealth ? 'low-health' : ''} ${rageReady ? 'rage-ready' : ''}" data-side="${side}" data-motion="${motion}" data-motion-trigger="${this.battleCursor % 2}" data-frame-index="${this.battleCursor}" data-low-health="${lowHealth}" data-rage-ready="${rageReady}" aria-label="${esc(`${side === 'player' ? '我方' : '敌方'}战斗信息：${fighter.name}`)}">
       <div class="fighter-art"><span class="fighter-side-badge">${side === 'player' ? '我方' : '敌方'}</span>${portrait(art, true)}</div>
-      <div class="fighter-identity"><h2>${esc(asText(fighter.name, side === 'player' ? '行者' : '敌手'))}</h2>${acting ? `<span class="turn-mark">${turnLabel}</span>` : ''}</div>
+      <div class="fighter-identity"><h2>${esc(asText(fighter.name, side === 'player' ? '行者' : '敌手'))}</h2><button type="button" class="fighter-detail-trigger" data-action="battle-details" data-tab="${side}" aria-label="${side === 'player' ? '我方详情' : '敌方详情'}" title="${side === 'player' ? '我方详情' : '敌方详情'}">${icon('eye', 16)}</button>${acting ? `<span class="turn-mark">${turnLabel}</span>` : ''}</div>
       <div class="fighter-bars">
-        <div class="fighter-numbers"><span>生命 <b data-value="hp">${formatNumber(fighter.hp)}</b> / ${formatNumber(fighter.maxHp)}</span><span class="shield-count">${icon('shield', 12)}护盾 <b data-value="shield">${formatNumber(fighter.shield)}</b></span></div>
-        <div class="bar hp" role="progressbar" aria-label="${esc(`${fighter.name}生命`)}" aria-valuemin="0" aria-valuemax="${fighter.maxHp}" aria-valuenow="${fighter.hp}"><span style="width:${pct(fighter.hp, fighter.maxHp)}%"></span></div>
+        <div class="fighter-numbers"><span>生命</span><span><b data-value="hp">${formatNumber(resources.hp)}</b> / ${formatNumber(fighter.maxHp)} <span class="shield-count">${icon('shield', 12)} +<b data-value="shield">${formatNumber(resources.shield)}</b></span></span></div>
+        <div class="bar hp" role="progressbar" aria-label="${esc(`${fighter.name}气血与护盾`)}" aria-valuemin="0" aria-valuemax="${resources.capacity}" aria-valuenow="${resources.total}" aria-valuetext="气血 ${formatNumber(resources.hp)} / ${formatNumber(fighter.maxHp)}，护盾 ${formatNumber(resources.shield)}"><span class="hp-fill" style="width:${resources.hpPercent}%"></span><span class="shield-fill" style="width:${resources.shieldPercent}%"></span></div>
         <div class="fighter-numbers"><span>怒气</span><span data-value="rage">${formatNumber(fighter.rage)} / ${formatNumber(fighter.rageCap)}</span></div>
         <div class="bar rage" role="progressbar" aria-label="${esc(`${fighter.name}怒气`)}" aria-valuemin="0" aria-valuemax="${fighter.rageCap}" aria-valuenow="${fighter.rage}"><span style="width:${pct(fighter.rage, fighter.rageCap)}%"></span></div>
       </div>
-      <details class="fighter-detail disclosure" data-details="${side}-fighter-detail"><summary>状态与战力</summary>
-        <div class="fighter-core-stats"><span>攻 <b>${formatNumber(stats.attack)}</b></span><span>防 <b>${formatNumber(stats.defense)}</b></span><span>速 <b>${formatNumber(stats.speed)}</b></span></div>
-        <div class="combat-statuses">${this.fighterStatusMarkup(fighter)}</div>${this.fighterLockedMarkup(fighter)}
-      </details>
     </article>`;
   }
 
@@ -2082,10 +2206,14 @@ class ShanhaiApp {
     const hpBar = element.querySelector<HTMLElement>('.bar.hp');
     const rageBar = element.querySelector<HTMLElement>('.bar.rage');
     if (hpBar) {
-      hpBar.setAttribute('aria-valuemax', String(fighter.maxHp));
-      hpBar.setAttribute('aria-valuenow', String(fighter.hp));
-      const fill = hpBar.querySelector<HTMLElement>('span');
-      if (fill) fill.style.width = `${pct(fighter.hp, fighter.maxHp)}%`;
+      const resources = bloodShieldPresentation(fighter);
+      hpBar.setAttribute('aria-valuemax', String(resources.capacity));
+      hpBar.setAttribute('aria-valuenow', String(resources.total));
+      hpBar.setAttribute('aria-valuetext', `气血 ${formatNumber(resources.hp)} / ${formatNumber(fighter.maxHp)}，护盾 ${formatNumber(resources.shield)}`);
+      const hpFill = hpBar.querySelector<HTMLElement>('.hp-fill');
+      const shieldFill = hpBar.querySelector<HTMLElement>('.shield-fill');
+      if (hpFill) hpFill.style.width = `${resources.hpPercent}%`;
+      if (shieldFill) shieldFill.style.width = `${resources.shieldPercent}%`;
     }
     if (rageBar) {
       rageBar.setAttribute('aria-valuemax', String(fighter.rageCap));
@@ -2115,13 +2243,6 @@ class ShanhaiApp {
       else if (acting) identity.insertAdjacentHTML('beforeend', `<span class="turn-mark">${label}</span>`);
       else turnMark?.remove();
     }
-    const statuses = element.querySelector<HTMLElement>('.combat-statuses');
-    if (statuses) statuses.innerHTML = this.fighterStatusMarkup(fighter);
-    const locked = element.querySelector<HTMLElement>('.locked-actions');
-    const lockedMarkup = this.fighterLockedMarkup(fighter);
-    if (locked && lockedMarkup) locked.outerHTML = lockedMarkup;
-    else if (locked) locked.remove();
-    else if (lockedMarkup) element.insertAdjacentHTML('beforeend', lockedMarkup);
   }
 
   private frameAction(frame: BattleFrame | undefined, side: 'player' | 'enemy'): 'basic_action' | 'rage_action' | undefined {
@@ -2415,7 +2536,7 @@ class ShanhaiApp {
       <p class="end-result-text">${esc(this.displayText(state.resultText, win ? '终战已毕。' : '失败不会抹去此行的选择。'))}</p>
       <section class="end-seal ${win ? 'win' : 'loss'}">${sigil(win ? 'sun' : 'moon', win ? 'gold' : 'fire')}<b>${win ? '通关' : '退场'}</b></section>
       <div class="end-summary"><div><span>行过节点</span><b>${state.history.length}</b></div><div><span>修为</span><b>${formatNumber(state.xp)}</b></div><div><span>灵石</span><b>${formatNumber(state.coins)}</b></div><div><span>法宝</span><b>${artifacts.reduce((total, item) => total + asNumber(item.stacks, 1), 0)}</b></div></div>
-      ${result ? `<details class="end-diagnostics" data-details="end-diagnostics"><summary>最终斗法来源</summary>${this.battleDiagnostics(result)}</details>` : ''}<div class="stage-actions"><button class="button primary" data-action="export">${icon('arrow', 16)}导出命途记录</button><button class="button quiet" data-action="archives">查看通关构筑</button><button class="button quiet" data-action="new-run">重新起笔</button></div>${this.inlineMessage()}`;
+      ${result ? `<div class="stage-actions"><button class="button quiet" data-action="battle-details" data-tab="result" aria-label="查看最终斗法战果">${icon('eye', 16)}最终斗法战果</button></div>` : ''}<div class="stage-actions"><button class="button primary" data-action="export">${icon('arrow', 16)}导出命途记录</button><button class="button quiet" data-action="archives">查看通关构筑</button><button class="button quiet" data-action="new-run">重新起笔</button></div>${this.inlineMessage()}`;
   }
 
   private renderErrorState(message: string): string {
@@ -2431,6 +2552,7 @@ class ShanhaiApp {
   private modalMarkup(): string {
     if (!this.modal) return '';
     if (this.modal === 'node-preview') return this.nodePreviewMarkup();
+    if (this.modal === 'battle-details') return this.battleDetailsMarkup();
     if (this.modal === 'archives') {
       return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal dialog-wide" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">山海行 · 归档</p><h2 id="dialog-title">通关构筑</h2><p>这里保存每一局走到终点的功法、天赋与法宝。</p>${this.archiveMarkup()}<div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
     }
@@ -2447,12 +2569,19 @@ class ShanhaiApp {
     if (this.modal === 'artifact') {
       const artifact = this.artifactEntity(this.modalId);
       if (!artifact) return '';
-      const owned = listOf<ArtifactStack>(state?.artifacts).find((item) => item.id === artifact.id);
+      const inspectingEnemy = this.battleDetailsParent?.tab === 'enemy';
+      const artifactStacks = inspectingEnemy
+        ? loadoutArtifacts(state?.battleInput?.enemy || this.enemyLoadout(this.enemyEntity()))
+        : listOf<ArtifactStack>(state?.artifacts);
+      const owned = artifactStacks.find((item) => item.id === artifact.id);
+      const ownership = owned
+        ? ` · ${inspectingEnemy ? '敌方叠层' : '当前叠层'} ×${formatNumber(owned.stacks)}`
+        : inspectingEnemy ? '' : ' · 尚未持有';
       const attrs = isRecord(artifact.attributes) ? artifact.attributes : {};
       const flat = isRecord(attrs.flat) ? attrs.flat : {};
       const percent = isRecord(attrs.percent) ? attrs.percent : {};
       const effects = listOf<any>(artifact.effects);
-      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow item-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">法宝详录</p><h2 id="dialog-title">${esc(artifact.name)}</h2><p>${esc(rarityLabel(entityRarity(artifact)))}${owned ? ` · 当前叠层 ×${formatNumber(owned.stacks)}` : ' · 尚未持有'}</p><div class="item-dialog-art">${sigil(this.artifactIcon(artifact), entityRarity(artifact) === 'legendary' ? 'mythic' : 'jade')}</div><p>${esc(this.displayText(entitySummary(artifact)))}</p><div class="attribute-list">${Object.entries(flat).map(([key, value]) => `<span>${esc(statLabel(key))} <b>+${key === 'crit_rate' ? `${formatPercentPoints(value)}%` : formatNumber(value)}</b></span>`).join('')}${Object.entries(percent).map(([key, value]) => `<span>${esc(statLabel(key))} <b>+${formatPercentPoints(value)}%</b></span>`).join('')}</div><div class="effect-list">${effects.map((effect) => `<p>${esc(effectText(effect, (value) => this.displayText(value)))}</p>`).join('') || '<p class="muted">没有额外触发效果。</p>'}</div><div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
+      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow item-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">法宝详录</p><h2 id="dialog-title">${esc(artifact.name)}</h2><p>${esc(rarityLabel(entityRarity(artifact)))}${ownership}</p><div class="item-dialog-art">${sigil(this.artifactIcon(artifact), entityRarity(artifact) === 'legendary' ? 'mythic' : 'jade')}</div><p>${esc(this.displayText(entitySummary(artifact)))}</p><div class="attribute-list">${Object.entries(flat).map(([key, value]) => `<span>${esc(statLabel(key))} <b>+${key === 'crit_rate' ? `${formatPercentPoints(value)}%` : formatNumber(value)}</b></span>`).join('')}${Object.entries(percent).map(([key, value]) => `<span>${esc(statLabel(key))} <b>+${formatPercentPoints(value)}%</b></span>`).join('')}</div><div class="effect-list">${effects.map((effect) => `<p>${esc(effectText(effect, (value) => this.displayText(value)))}</p>`).join('') || '<p class="muted">没有额外触发效果。</p>'}</div><div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
     }
     if (this.modal === 'talent') {
       const talent = this.talentEntity(this.modalMethodId, this.modalId);
@@ -2514,15 +2643,66 @@ class ShanhaiApp {
     if (selector) this.focusReturn = selector;
   }
 
-  private closeModal(): void {
+  private rememberBattleDetailParent(target: HTMLElement): void {
+    this.battleDetailsParent = {
+      tab: this.battleDetailTab,
+      focusSelector: this.focusSelectorFor(target),
+    };
+  }
+
+  private dismissBattleDetails(): void {
+    if (this.modal !== 'battle-details') return;
     this.modal = null;
     this.modalId = '';
     this.modalMethodId = '';
+    this.battleDetailsParent = null;
+    this.battleDetailReturnFocus = '';
+  }
+
+  private closeModal(): void {
+    if (this.battleDetailsParent) {
+      const parent = this.battleDetailsParent;
+      this.battleDetailsParent = null;
+      this.modal = 'battle-details';
+      this.modalId = '';
+      this.modalMethodId = '';
+      this.battleDetailTab = parent.tab;
+      this.battleDetailReturnFocus = parent.focusSelector;
+      this.render();
+      return;
+    }
+    this.modal = null;
+    this.modalId = '';
+    this.modalMethodId = '';
+    this.battleDetailsParent = null;
+    this.battleDetailReturnFocus = '';
     this.render();
   }
 
   private onKeyDown(event: KeyboardEvent): void {
     const modal = this.root.querySelector<HTMLElement>('.modal[role="dialog"]');
+    const activeTab = (event.target as HTMLElement | null)
+      ?.closest<HTMLElement>('.battle-detail-tabs [role="tab"][data-action="battle-detail-tab"]');
+    if (this.modal === 'battle-details' && activeTab &&
+      ['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
+      const tabs = this.availableBattleDetailTabs();
+      const currentIndex = tabs.indexOf(this.battleDetailTab);
+      const nextIndex = event.key === 'Home'
+        ? 0
+        : event.key === 'End'
+          ? tabs.length - 1
+          : (currentIndex + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
+      const next = tabs[nextIndex];
+      if (next) {
+        event.preventDefault();
+        this.battleDetailTab = next;
+        this.render();
+        this.root.querySelector<HTMLElement>(
+          `.battle-detail-tabs [data-tab="${next}"]`,
+        )?.focus({ preventScroll: true });
+      }
+      return;
+    }
     if (modal && event.key === 'Tab') {
       const focusable = Array.from(modal.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), summary, [href], [tabindex]:not([tabindex="-1"])')).filter((element) => element.getClientRects().length > 0);
       const first = focusable[0];
@@ -2599,6 +2779,7 @@ class ShanhaiApp {
         break;
       case 'retire':
         if (window.confirm('结束这场僵持，并结束本局行旅？')) {
+          this.dismissBattleDetails();
           this.stopPlayback();
           this.send({ type: 'retire' });
         }
@@ -2619,13 +2800,15 @@ class ShanhaiApp {
         this.render();
         break;
       case 'inspect-artifact':
-        this.rememberModalTrigger(target);
+        if (this.modal === 'battle-details') this.rememberBattleDetailParent(target);
+        else this.rememberModalTrigger(target);
         this.modal = 'artifact';
         this.modalId = asText(target.dataset.id);
         this.render();
         break;
       case 'inspect-talent':
-        this.rememberModalTrigger(target);
+        if (this.modal === 'battle-details') this.rememberBattleDetailParent(target);
+        else this.rememberModalTrigger(target);
         this.modal = 'talent';
         this.modalId = asText(target.dataset.id);
         this.modalMethodId = asText(target.dataset.method);
@@ -2661,6 +2844,26 @@ class ShanhaiApp {
         if (action === 'modal-backdrop' && event.target !== target) return;
         this.closeModal();
         break;
+      case 'battle-details': {
+        const requested = target.dataset.tab as BattleDetailTab;
+        this.rememberModalTrigger(target);
+        this.battleDetailsParent = null;
+        this.battleDetailTab = this.availableBattleDetailTabs().includes(requested)
+          ? requested
+          : 'enemy';
+        this.modal = 'battle-details';
+        this.modalId = '';
+        this.render();
+        break;
+      }
+      case 'battle-detail-tab': {
+        const requested = target.dataset.tab as BattleDetailTab;
+        if (this.availableBattleDetailTabs().includes(requested)) {
+          this.battleDetailTab = requested;
+          this.render();
+        }
+        break;
+      }
       case 'route':
         this.send({ type: 'route', id: asText(target.dataset.id) });
         break;
@@ -2740,9 +2943,11 @@ class ShanhaiApp {
         break;
       case 'battle-finish':
         this.stopPlayback();
+        this.dismissBattleDetails();
         this.send({ type: 'battle_done' });
         break;
       case 'continue-battle':
+        this.dismissBattleDetails();
         this.send({ type: 'continue_battle' });
         break;
       case 'reward':

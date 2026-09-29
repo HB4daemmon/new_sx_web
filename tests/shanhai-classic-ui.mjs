@@ -3,6 +3,17 @@ import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
+import {
+  assertBattleDetailEntryTargets,
+  assertBattleDetailFits,
+  assertBattleDetailFocusTrap,
+  assertBattleMainDetailContract,
+  assertBattleResultAccessible,
+  assertBattleResultUnavailable,
+  closeBattleDetail,
+  openBattleDetail,
+  selectBattleDetailTab,
+} from './shanhai-battle-detail-fixture.mjs';
 import { pauseNextReplay } from './shanhai-replay-fixture.mjs';
 
 const url = process.env.BROWSER_URL || 'http://localhost:4173/';
@@ -265,7 +276,7 @@ async function assertNoAlerts(page, label) {
 }
 
 async function createFixture(page, target, seed = `classic-ui-${target}`, options = {}) {
-  await page.evaluate(async ({ target, seed, selectedTalent, coins }) => {
+  await page.evaluate(async ({ target, seed, selectedTalent, selectedArtifact, coins }) => {
     const [{ loadContent }, { ShanhaiGame }, { saveRun }] = await Promise.all([
       import('/shanhai/content.js'),
       import('/shanhai/run.js'),
@@ -286,6 +297,12 @@ async function createFixture(page, target, seed = `classic-ui-${target}`, option
       game.state.n = Math.max(game.state.n, 1);
       game.state.xp = Math.max(game.state.xp, requiredXp);
       game.state.talents[game.state.method] = [talent.id];
+    }
+    if (selectedArtifact) {
+      const artifact = content.entities.find(entity =>
+        entity.kind === 'artifact' && Number.isInteger(entity.max_stacks) && entity.max_stacks >= 1);
+      if (!artifact) throw new Error('Battle fixture has no selectable artifact');
+      game.state.artifacts = [{ id: artifact.id, stacks: 1 }];
     }
 
     const advance = () => {
@@ -342,7 +359,13 @@ async function createFixture(page, target, seed = `classic-ui-${target}`, option
     if (Number.isFinite(coins)) game.state.coins = coins;
     saveRun(game);
     localStorage.removeItem('suishi-shanhai-replay-v1');
-  }, { target, seed, selectedTalent: Boolean(options.selectedTalent), coins: options.coins });
+  }, {
+    target,
+    seed,
+    selectedTalent: Boolean(options.selectedTalent),
+    selectedArtifact: Boolean(options.selectedArtifact),
+    coins: options.coins,
+  });
   await page.reload({ waitUntil: 'networkidle' });
   await waitForApp(page);
   await page.waitForTimeout(80);
@@ -861,6 +884,26 @@ async function assertCombatSurface(page, width) {
     `${width}: 双方缺少怒气条`);
   assert.equal(await page.locator('.combatant .shield-count').count(), 2,
     `${width}: 双方缺少护盾数值`);
+  await assertBattleMainDetailContract(page, `${width} battle`);
+  await assertBattleDetailEntryTargets(page, `${width} battle`);
+  const savedRunBeforeDetails = (await savedState(page)).text;
+  const playerName = (await page.locator('.combatant[data-side="player"] h2').textContent()).trim();
+  const enemyName = (await page.locator('.combatant[data-side="enemy"] h2').textContent()).trim();
+  const playerDetail = await openBattleDetail(page, 'player', `${width} battle`);
+  await assertBattleDetailFits(page, width, `${width} player detail`);
+  await assertBattleDetailFocusTrap(page, playerDetail.dialog, `${width} battle`);
+  const playerText = await playerDetail.dialog.innerText();
+  assert.ok(playerText.includes(playerName), `${width}: 我方详情没有当前行者`);
+  await assertBattleResultUnavailable(page, playerDetail.dialog, `${width} active battle`);
+  const enemyTab = await selectBattleDetailTab(
+    playerDetail.dialog, 'enemy', `${width} battle`,
+  );
+  assert.notEqual(enemyTab.after, playerText, `${width}: 切换敌方 tab 后详情内容未变化`);
+  assert.ok(enemyTab.after.includes(enemyName), `${width}: 敌方详情没有当前对手`);
+  await selectBattleDetailTab(playerDetail.dialog, 'player', `${width} battle`);
+  await closeBattleDetail(page, playerDetail, `${width} battle`);
+  assert.equal((await savedState(page)).text, savedRunBeforeDetails,
+    `${width}: 打开、切换或关闭战斗详情改写了只读存档`);
   for (const action of ['battle-speed', 'battle-pause', 'battle-skip']) {
     assert.ok(await page.locator(`[data-action="${action}"]:visible`).count() > 0,
       `${width}: 缺少战斗动作 ${action}`);
@@ -910,13 +953,6 @@ async function assertCombatSurface(page, width) {
     await assertTouchTarget(button, `${width} 斗法控制`);
   }
   await noOverflow(page, `${width} battle controls`);
-
-  const logDisclosure = page.locator('details[data-details="battle-log"]');
-  assert.equal(await logDisclosure.getAttribute('open'), null,
-    `${width}: 战报应默认折叠`);
-  await logDisclosure.locator('summary').click();
-  assert.equal(await logDisclosure.getAttribute('open'), '',
-    `${width}: 战报摘要没有展开战报`);
 
   await setReplayCursor(page, 0);
   const before = await savedState(page);
@@ -983,11 +1019,15 @@ async function assertCombatSurface(page, width) {
   await clickVisibleAction(page, 'battle-pause');
   await page.locator('[data-action="battle-pause"][aria-pressed="true"]').waitFor();
 
-  // Position the active replay in the middle so a real new frame exercises
-  // log scroll preservation, then render the complete battle history.
+  // The detail modal pauses playback, so scroll preservation is checked across
+  // in-modal mode renders and follow actions rather than hidden-page frames.
   const middle = Math.min(20, frameCount - 2);
-  await setReplayCursor(page, middle);
-  const log = page.locator('.battle-log');
+  await setReplayCursor(page, middle, true, true);
+  const partialLogDetail = await openBattleDetail(page, 'log', `${width} partial battle log`);
+  await assertBattleDetailFits(page, width, `${width} partial battle log`);
+  const log = partialLogDetail.dialog.locator('.battle-log');
+  assert.equal(await log.locator('.battle-log-row').count(), middle + 1,
+    `${width}: 战报显示了尚未播放的帧`);
   const middleLog = await log.evaluate(element => ({
     clientHeight: element.clientHeight,
     scrollHeight: element.scrollHeight,
@@ -999,23 +1039,21 @@ async function assertCombatSurface(page, width) {
     element.dispatchEvent(new Event('scroll', { bubbles: true }));
   });
   const historyTop = await log.evaluate(element => element.scrollTop);
-  const middleCursor = (await replayState(page))?.cursor ?? middle;
-  assert.equal(await page.locator('[data-action="battle-pause"]').getAttribute('aria-pressed'), 'false',
-    `${width}: 中途战报 fixture 意外处于暂停`);
-  await page.waitForFunction(({ replayKey, previous }) => {
-    try {
-      const value = JSON.parse(localStorage.getItem(replayKey) || 'null');
-      return Number.isInteger(value?.cursor) && value.cursor > previous;
-    } catch {
-      return false;
-    }
-  }, { replayKey, previous: middleCursor });
-  assert.ok(Math.abs(await log.evaluate(element => element.scrollTop) - historyTop) <= 2,
-    `${width}: 新帧渲染抢走了用户的战报滚动位置`);
-  if (!(await logDisclosure.getAttribute('open'))) await logDisclosure.locator('summary').click();
-  await clickVisibleAction(page, 'battle-log-mode');
+  const logMode = partialLogDetail.dialog.locator('[data-action="battle-log-mode"]');
+  await logMode.click();
   assert.ok(Math.abs(await log.evaluate(element => element.scrollTop) - historyTop) <= 2,
     `${width}: 战报模式重渲染抢走了历史滚动位置`);
+  assert.equal(await partialLogDetail.dialog.locator('.battle-log.detailed-mode').count(), 1,
+    `${width}: 详略开关没有在 log tab 生效`);
+  const partialFollow = partialLogDetail.dialog.locator('[data-action="battle-log-follow"]');
+  assert.ok(await partialFollow.isVisible(),
+    `${width}: 用户离开战报底部后 follow 未立即可见`);
+  await partialFollow.click();
+  await page.waitForFunction(() => {
+    const element = document.querySelector('.battle-detail-dialog .battle-log');
+    return element && element.scrollHeight - element.clientHeight - element.scrollTop < 2;
+  });
+  await closeBattleDetail(page, partialLogDetail, `${width} partial battle log`);
 
   const outcomeBeforeSkip = (await savedState(page)).state.battle.outcome;
   await clickVisibleAction(page, 'battle-skip');
@@ -1025,12 +1063,14 @@ async function assertCombatSurface(page, width) {
     `${width}: 跳过播放改变了战斗胜负`);
   assert.equal((await savedState(page)).text, beforeText,
     `${width}: 跳过播放改写了运行时存档`);
-  assert.ok(await page.locator('.battle-log').count() > 0, `${width}: 缺少战报`);
-  assert.ok(await page.locator('.battle-log .battle-log-row').count() > 0,
+  await assertBattleMainDetailContract(page, `${width} completed battle`);
+  const completeLogDetail = await openBattleDetail(page, 'log', `${width} completed battle log`);
+  const completeLog = completeLogDetail.dialog.locator('.battle-log');
+  assert.ok(await completeLog.locator('.battle-log-row').count() > 0,
     `${width}: 跳过后没有战报历史`);
 
-  const logRows = await page.locator('.battle-log .battle-log-row').count();
-  const logText = await log.textContent();
+  const logRows = await completeLog.locator('.battle-log-row').count();
+  const logText = await completeLog.textContent();
   if (logRows < recordedFrames.length) {
     const missing = recordedFrames
       .map(frame => frame.text)
@@ -1041,23 +1081,25 @@ async function assertCombatSurface(page, width) {
       `${width}: 战报行数与 recorded frames 不一致`);
   }
 
-  const logMetrics = await log.evaluate(element => ({
+  const logMetrics = await completeLog.evaluate(element => ({
     clientHeight: element.clientHeight,
     scrollHeight: element.scrollHeight,
   }));
   assert.ok(logMetrics.scrollHeight > logMetrics.clientHeight + 1,
     `${width}: 完整战报没有可滚动历史 ${JSON.stringify(logMetrics)}`);
-  await log.evaluate(element => {
+  await completeLog.evaluate(element => {
     element.scrollTop = 0;
     element.dispatchEvent(new Event('scroll', { bubbles: true }));
   });
-  const follow = page.locator('[data-action="battle-log-follow"]');
+  const follow = completeLogDetail.dialog.locator('[data-action="battle-log-follow"]');
   assert.ok(await follow.isVisible(), `${width}: 用户离开战报顶部后 follow 未立即可见`);
   await follow.click();
   await page.waitForFunction(() => {
-    const element = document.querySelector('.battle-log');
+    const element = document.querySelector('.battle-detail-dialog .battle-log');
     return element && element.scrollHeight - element.clientHeight - element.scrollTop < 2;
   });
+  await closeBattleDetail(page, completeLogDetail, `${width} completed battle log`);
+  await assertBattleResultAccessible(page, `${width} completed battle`);
 
   const ordinaryIndex = recordedFrames.findIndex((frame, index) =>
     index > 0 &&
@@ -1086,36 +1128,59 @@ async function assertCombatSurface(page, width) {
 async function toggleDetailedBattleLog(page) {
   await createFixture(page, 'battle', 'classic-ui-log-mode');
   await clickVisibleAction(page, 'battle-pause');
-  const logDisclosure = page.locator('details[data-details="battle-log"]');
-  assert.equal(await logDisclosure.getAttribute('open'), null, '战报应默认折叠');
-  await logDisclosure.locator('summary').click();
-  await clickVisibleAction(page, 'battle-log-mode');
-  assert.ok(await page.locator('.battle-log.detailed-mode').count() === 1 ||
-    (await page.locator('.log-mode').textContent()).includes('详录'),
-  '详略战报开关没有切换到详录');
+  const detail = await openBattleDetail(page, 'log', 'detailed battle log');
+  await detail.dialog.locator('[data-action="battle-log-mode"]').click();
+  assert.equal(await detail.dialog.locator('.battle-log.detailed-mode').count(), 1,
+    '详略战报开关没有切换到详录');
+  assert.ok((await detail.dialog.locator('.log-mode').textContent()).includes('详录'),
+    'log modal 没有显示当前详录模式');
+  await closeBattleDetail(page, detail, 'detailed battle log');
 }
 
 async function assertBattleTalentDetails(page) {
-  await createFixture(page, 'battle', 'classic-ui-battle-talent-details', { selectedTalent: true });
+  await createFixture(page, 'battle', 'classic-ui-battle-talent-details', {
+    selectedTalent: true,
+    selectedArtifact: true,
+  });
   await waitForPhase(page, 'battle');
   await setReplayCursor(page, 0, true, true);
-  const currentBuild = page.locator('details[data-details="battle-loadout"]');
-  assert.equal(await currentBuild.getAttribute('open'), null,
-    '战斗当前构筑应默认折叠');
-  await currentBuild.locator('summary').click();
-  const battleTalent = currentBuild.locator('.profile-talent').first();
-  assert.equal(await battleTalent.evaluate(element => element.tagName), 'BUTTON',
-    '战斗构筑天赋详录入口不是按钮');
+  const detail = await openBattleDetail(page, 'player', 'battle player details');
+  const copy = await detail.dialog.innerText();
+  assert.match(copy, /功法/, '我方详情没有展示当前功法');
+  assert.match(copy, /天赋/, '我方详情没有展示天赋列表');
+  assert.match(copy, /法宝/, '我方详情没有展示法宝');
+  assert.match(copy, /状态/, '我方详情没有展示状态信息');
+
+  const battleTalent = detail.dialog.locator('[data-action="inspect-talent"]').first();
+  assert.equal(await battleTalent.count(), 1, '我方详情缺少天赋详录入口');
   await battleTalent.focus();
   await page.keyboard.press('Enter');
   const talentDialog = page.locator('.talent-dialog[role="dialog"][aria-modal="true"]');
   await talentDialog.waitFor({ state: 'visible' });
   assert.ok(await talentDialog.locator('.effect-list p').count() > 0,
-    '战斗构筑天赋详录缺少完整效果');
+    '战斗详情中的天赋详录缺少完整效果');
   await talentDialog.locator('[data-action="modal-close"][data-autofocus]').click();
   await page.locator('.talent-dialog').waitFor({ state: 'detached' });
+  assert.equal(await detail.dialog.isVisible(), true,
+    '关闭天赋子详情后 battle detail 没有保留');
   assert.ok(await page.evaluate(() => document.activeElement?.getAttribute('data-action') === 'inspect-talent'),
-    '关闭战斗天赋详录后焦点没有返回天赋入口');
+    '关闭天赋子详情后焦点没有返回天赋入口');
+
+  const battleArtifact = detail.dialog.locator('[data-action="inspect-artifact"]').first();
+  assert.equal(await battleArtifact.count(), 1, '我方详情缺少法宝详录入口');
+  await battleArtifact.focus();
+  await page.keyboard.press('Enter');
+  const artifactDialog = page.locator('.item-dialog[role="dialog"][aria-modal="true"]');
+  await artifactDialog.waitFor({ state: 'visible' });
+  assert.ok(await artifactDialog.locator('.effect-list p').count() > 0,
+    '战斗详情中的法宝详录缺少完整效果');
+  await artifactDialog.locator('[data-action="modal-close"][data-autofocus]').click();
+  await artifactDialog.waitFor({ state: 'detached' });
+  assert.equal(await detail.dialog.isVisible(), true,
+    '关闭法宝子详情后 battle detail 没有保留');
+  assert.ok(await page.evaluate(() => document.activeElement?.getAttribute('data-action') === 'inspect-artifact'),
+    '关闭法宝子详情后焦点没有返回法宝入口');
+  await closeBattleDetail(page, detail, 'battle player details');
   assert.equal(await page.locator('[data-action="battle-pause"]').getAttribute('aria-pressed'), 'true',
     '查看天赋详录后战斗没有保持暂停');
 }

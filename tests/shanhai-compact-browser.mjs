@@ -3,6 +3,17 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  assertBattleDetailEntryTargets,
+  assertBattleDetailFits,
+  assertBattleMainDetailContract,
+  assertBattleResultAccessible,
+  assertBattleResultUnavailable,
+  assertPreviewBattleDetailTabs,
+  closeBattleDetail,
+  openBattleDetail,
+  selectBattleDetailTab,
+} from './shanhai-battle-detail-fixture.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const url = process.env.BROWSER_URL || 'http://localhost:4173/';
@@ -226,23 +237,40 @@ async function startRealRun(page, width, height) {
   assert.equal(save?.state?.nodes?.[0]?.id, save?.state?.routeMap?.nodes
     ?.find(node => node.key === routeKey)?.id,
   `${width}: 已选行迹与首格不一致`);
-  const preparationDetails = page.locator('details[data-details="battle-preparation-details"]');
-  assert.equal(await preparationDetails.getAttribute('open'), null,
-    `${width}: 战前详录应默认折叠`);
+  assert.equal(await page.locator('[data-details="battle-preparation-details"]').count(), 0,
+    `${width}: 战前界面仍渲染旧式战前详录`);
   assert.ok(await page.locator('.preview-enemy-brief').isVisible(),
     `${width}: 战前首屏缺少对手简要信息`);
   await noOverflow(page, `${width} preview`);
   await assertNoVisibleEnglish(page, `${width} preview`);
   await screenshot(page, width, 'preview');
-  await preparationDetails.locator('summary').click();
-  assert.equal(await preparationDetails.getAttribute('open'), '',
-    `${width}: 战前详录无法展开`);
-  assert.ok(await page.locator('.counterplay-list li').count() > 0,
-    `${width}: 战前详录缺少应对依据`);
+  const previewEntry = page.locator(
+    '.game-page.phase-preview [data-action="battle-details"][data-tab="enemy"]',
+  );
+  assert.equal(await previewEntry.count(), 1, `${width}: 战前缺少敌方详情入口`);
+  const previewEntryRect = await previewEntry.boundingBox();
+  assert.ok(previewEntryRect && previewEntryRect.width >= 44 && previewEntryRect.height >= 44,
+    `${width}: 战前敌方详情入口不足 44px ${JSON.stringify(previewEntryRect)}`);
+  const previewSaveBeforeDetails = await page.evaluate(key => localStorage.getItem(key), saveKey);
+  const previewDetail = await openBattleDetail(page, 'enemy', `${width} preview`);
+  await assertBattleDetailFits(page, width, `${width} preview detail`);
+  await assertPreviewBattleDetailTabs(previewDetail.dialog, `${width} preview`);
+  const previewEnemyText = await previewDetail.dialog.innerText();
+  assert.match(previewEnemyText, /交锋开始后记录/,
+    `${width}: 战前详情提前显示了斗法实时状态`);
+  const previewPlayer = await selectBattleDetailTab(previewDetail.dialog, 'player', `${width} preview`);
+  assert.notEqual(previewPlayer.after, previewEnemyText,
+    `${width}: 预览切换我方 tab 后内容未变化`);
+  await selectBattleDetailTab(previewDetail.dialog, 'enemy', `${width} preview`);
+  assert.ok(await previewDetail.dialog.locator('.counterplay-list li').count() > 0,
+    `${width}: 敌方预览详情缺少应对依据`);
+  await closeBattleDetail(page, previewDetail, `${width} preview`);
+  assert.equal(await page.evaluate(key => localStorage.getItem(key), saveKey),
+    previewSaveBeforeDetails, `${width}: 查看战前详情改写了只读命途存档`);
   const fightButton = page.locator('[data-action="fight"]');
   await fightButton.waitFor({ state: 'visible' });
   assert.equal(await fightButton.isDisabled(), false,
-    `${width}: 展开战前详录后开始斗法不可用`);
+    `${width}: 查看战前详情后开始斗法不可用`);
   const fightRect = await fightButton.boundingBox();
   assert.ok(fightRect && fightRect.width >= 44 && fightRect.height >= 44,
     `${width}: 开始斗法点击区域不足 44px ${JSON.stringify(fightRect)}`);
@@ -250,26 +278,40 @@ async function startRealRun(page, width, height) {
   await fightButton.click();
   await waitForPhase(page, 'battle');
   await page.locator('.battle-shell').waitFor({ state: 'visible' });
+  await assertBattleMainDetailContract(page, `${width} battle`);
+  await assertBattleDetailEntryTargets(page, `${width} battle`);
+  const battleSaveBeforeDetails = await page.evaluate(key => localStorage.getItem(key), saveKey);
+  const playerDetail = await openBattleDetail(page, 'player', `${width} battle`);
+  await assertBattleDetailFits(page, width, `${width} battle detail`);
+  await assertBattleResultUnavailable(page, playerDetail.dialog, `${width} active battle`);
+  const playerText = await playerDetail.dialog.innerText();
+  const enemyTab = await selectBattleDetailTab(playerDetail.dialog, 'enemy', `${width} battle`);
+  assert.notEqual(enemyTab.after, playerText, `${width}: 玩家/敌方详情没有切换`);
+  await closeBattleDetail(page, playerDetail, `${width} battle`);
+  assert.equal(await page.evaluate(key => localStorage.getItem(key), saveKey),
+    battleSaveBeforeDetails, `${width}: 查看战斗详情改写了只读命途存档`);
+  await assertBattleMainDetailContract(page, `${width} battle after details`);
   await assertBattleLayout(page, width);
   await page.waitForTimeout(400);
   const skip = page.locator('[data-action="battle-skip"]');
   if (await skip.isVisible()) await skip.click();
   await page.locator('[data-action="battle-finish"], [data-action="continue-battle"]')
     .first().waitFor({ state: 'visible' });
-  const log = page.locator('details[data-details="battle-log"]');
-  assert.equal(await log.getAttribute('open'), null,
-    `${width}: 战报应在进入战斗时默认折叠`);
-  assert.equal(await page.locator('[data-details="battle-diagnostics"]').getAttribute('open'), null,
-    `${width}: 斗法详录应默认折叠`);
+  await assertBattleMainDetailContract(page, `${width} completed battle`);
   await screenshot(page, width, 'battle-compact');
-  await log.locator('summary').click();
-  assert.equal(await log.getAttribute('open'), '',
-    `${width}: 战报摘要未能展开详录`);
-  await page.locator('[data-action="battle-log-mode"]').click();
-  await page.locator('.battle-log.detailed-mode').waitFor({ state: 'visible' });
+  const logDetail = await openBattleDetail(page, 'log', `${width} battle log`);
+  await assertBattleDetailFits(page, width, `${width} battle log`);
+  const log = logDetail.dialog.locator('.battle-log');
+  await log.waitFor({ state: 'visible' });
+  assert.ok(await log.locator('.battle-log-row').count() > 0,
+    `${width}: 完整播放后战报没有已播放帧`);
+  await logDetail.dialog.locator('[data-action="battle-log-mode"]').click();
+  await logDetail.dialog.locator('.battle-log.detailed-mode').waitFor({ state: 'visible' });
   await noOverflow(page, `${width} expanded battle log`);
   await assertNoVisibleEnglish(page, `${width} expanded battle log`);
   await screenshot(page, width, 'battle-log-detailed');
+  await closeBattleDetail(page, logDetail, `${width} battle log`);
+  await assertBattleResultAccessible(page, `${width} completed battle`);
 
   await page.locator('[data-action="battle-finish"]').click();
   await waitForPhase(page, 'reward');
