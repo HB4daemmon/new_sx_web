@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="jade" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8bc6a4"/>
+      <stop offset="0.42" stop-color="#4a947d"/>
+      <stop offset="1" stop-color="#28614f"/>
+    </linearGradient>
+    <linearGradient id="goldCord" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#edce80"/>
+      <stop offset="1" stop-color="#a16c35"/>
+    </linearGradient>
+  </defs>
+  <path d="M126 52 C113 46 111 33 119 26 C126 19 137 23 138 31
+           C139 38 132 43 126 38 C120 34 121 28 125 25
+           M130 51 C143 46 148 34 142 27"
+        fill="none" stroke="#8d302b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M124 47 C128 42 134 42 138 47 C142 52 138 58 132 59
+           C125 60 120 55 124 47 Z"
+        fill="#b44737" stroke="#792923" stroke-width="2"/>
+  <path d="M128 181 C126 190 120 192 117 197 M128 181 C130 190 136 193 139 197"
+        fill="none" stroke="#9a302c" stroke-width="5" stroke-linecap="round"/>
+  <path d="M127 190 C119 188 115 195 120 200 C124 204 131 203 135 197
+           C139 192 134 188 130 191 C127 193 128 197 131 198"
+        fill="none" stroke="#c1513b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M128 200 C120 210 121 221 116 229
+           M128 201 C126 211 128 221 127 233
+           M130 201 C135 211 134 223 140 230
+           M124 201 C115 209 111 218 109 225
+           M134 201 C143 209 146 218 148 225"
+        fill="none" stroke="#a13b31" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M108 218 C119 222 137 222 149 218 L145 230
+           C136 237 120 237 112 230 Z"
+        fill="#b94b38" stroke="#762d29" stroke-width="2"/>
+  <path d="M56 83 C57 66 70 55 87 55 L108 55
+           C112 45 119 40 128 40 C137 40 144 45 148 55
+           L169 55 C186 55 199 66 200 83
+           L204 110 L196 137 L193 159
+           C191 174 181 182 166 183 L145 187
+           L128 196 L111 187 L90 183
+           C75 182 65 174 63 159 L60 137 L52 110 Z
+           M128 86 C143 86 153 96 153 111
+           C153 126 143 136 128 136
+           C113 136 103 126 103 111
+           C103 96 113 86 128 86 Z"
+        fill="url(#jade)" fill-rule="evenodd" stroke="#24483f" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M68 84 C69 71 78 64 90 64 L109 64
+           C114 55 120 51 128 51 C136 51 142 55 147 64
+           L166 64 C178 64 187 71 188 84
+           L191 109 L184 134 L181 156
+           C179 166 173 171 163 172 L142 176 L128 184
+           L114 176 L93 172 C83 171 77 166 75 156
+           L72 134 L65 109 Z"
+        fill="none" stroke="#a9d7b5" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M79 82 C83 72 91 70 100 70 M156 70 C166 70 173 73 178 82
+           M70 113 C75 118 78 125 78 132 M178 132 C178 125 181 118 186 113"
+        fill="none" stroke="#d1e2a4" stroke-width="2" stroke-linecap="round" opacity="0.85"/>
+  <circle cx="128" cy="111" r="28" fill="none" stroke="url(#goldCord)" stroke-width="3"/>
+  <path d="M111 94 C117 89 123 87 128 87 M140 89 C148 93 152 100 153 106"
+        fill="none" stroke="#d4dfaa" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M113 111 C113 102 119 96 128 96 C137 96 143 102 143 111"
+        fill="none" stroke="#326a58" stroke-width="2" stroke-linecap="round"/>
+  <path d="M119 183 C123 186 133 186 137 183" fill="none" stroke="#e0c47a" stroke-width="3" stroke-linecap="round"/>
+</svg>

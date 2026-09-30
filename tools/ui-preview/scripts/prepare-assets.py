@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export the selected imagegen sources into compact public preview assets."""
+"""Export the active raster imagegen sources into compact public preview assets."""
 
 from __future__ import annotations
 
@@ -21,9 +21,6 @@ EXPORTS = {
     "scene-start": {"output": "scene-start.webp", "kind": "scene", "limit": 814},
     "player": {"output": "player.png", "kind": "sprite", "limit": 768},
     "enemy": {"output": "enemy.png", "kind": "sprite", "limit": 768},
-    "artifact-rr09": {"output": "artifact-rr09.png", "kind": "artifact", "limit": 512},
-    "artifact-rr11": {"output": "artifact-rr11.png", "kind": "artifact", "limit": 512},
-    "artifact-rr15": {"output": "artifact-rr15.png", "kind": "artifact", "limit": 512},
 }
 
 
@@ -92,7 +89,7 @@ def main() -> None:
         "--source-dir",
         type=Path,
         default=SOURCE_ROOT,
-        help="directory containing the seven selected source PNGs",
+        help="directory containing the four active raster source PNGs",
     )
     parser.add_argument(
         "--output-dir",

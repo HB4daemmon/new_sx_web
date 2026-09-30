@@ -16,9 +16,9 @@ const expectedAssets = [
   ['start-scene', '/assets/scene-start.webp', 'scene'],
   ['player', '/assets/player.png', 'character'],
   ['enemy', '/assets/enemy.png', 'character'],
-  ['artifact-rr09', '/assets/artifact-rr09.png', 'artifact'],
-  ['artifact-rr11', '/assets/artifact-rr11.png', 'artifact'],
-  ['artifact-rr15', '/assets/artifact-rr15.png', 'artifact'],
+  ['artifact-rr09', '/assets/artifact-rr09.svg', 'artifact'],
+  ['artifact-rr11', '/assets/artifact-rr11.svg', 'artifact'],
+  ['artifact-rr15', '/assets/artifact-rr15.svg', 'artifact'],
 ];
 
 function playwrightModule() {
@@ -50,29 +50,44 @@ assert.deepEqual(
 );
 
 const assetFiles = await readdir(assetRoot);
-assert.equal(assetFiles.some(filename => filename.endsWith('.svg')), false);
+assert.deepEqual(
+  assetFiles.filter(filename => filename.endsWith('.svg')).sort(),
+  ['artifact-rr09.svg', 'artifact-rr11.svg', 'artifact-rr15.svg'],
+);
 for (const [id, src, kind] of expectedAssets) {
   const asset = manifest.assets.find(item => item.id === id);
   const filename = src.slice('/assets/'.length);
   const file = path.join(assetRoot, filename);
   const info = await stat(file);
-  assert.ok(info.isFile() && info.size > 1024, `${id}: exported asset is missing or too small`);
+  assert.ok(info.isFile() && info.size > (kind === 'artifact' ? 100 : 1024), `${id}: exported asset is missing or too small`);
   assert.match(asset.source.sha256, /^[a-f0-9]{64}$/);
   assert.equal(asset.processed.bytes, info.size, `${id}: manifest byte count`);
-  assert.ok(asset.processed.dimensions.every(dimension => Number.isInteger(dimension) && dimension > 64));
   if (kind === 'scene') {
+    assert.ok(asset.processed.dimensions.every(dimension =>
+      Number.isInteger(dimension) && dimension > 64));
     assert.equal(asset.processed.format, 'webp');
     assert.ok(asset.processed.dimensions[0] <= 814, `${id}: scene width exceeds 814px`);
   } else if (kind === 'character') {
+    assert.ok(asset.processed.dimensions.every(dimension =>
+      Number.isInteger(dimension) && dimension > 64));
     assert.equal(asset.processed.format, 'png');
     assert.ok(Math.max(...asset.processed.dimensions) <= 768, `${id}: sprite exceeds 768px`);
     assert.equal(asset.processed.alphaExtrema[0], 0, `${id}: transparent margin was lost`);
   } else {
-    assert.equal(asset.processed.format, 'png');
-    assert.ok(Math.max(...asset.processed.dimensions) <= 512, `${id}: artifact exceeds 512px`);
-    assert.equal(asset.processed.alphaExtrema[0], 0, `${id}: transparent margin was lost`);
+    assert.equal(asset.source.origin, 'original_vector');
+    assert.equal(asset.source.mode, 'SVG');
+    assert.deepEqual(asset.processed.dimensions, [256, 256]);
+    assert.equal(asset.processed.format, 'svg');
+    assert.equal(asset.processed.background, 'transparent');
   }
 }
+
+const vectorSources = await Promise.all(expectedAssets
+  .filter(([, src]) => src.endsWith('.svg'))
+  .map(async ([id, src]) => ({
+    id,
+    source: await readFile(path.join(assetRoot, src.slice('/assets/'.length)), 'utf8'),
+  })));
 
 await mkdir(captureRoot, { recursive: true });
 const { chromium } = playwrightModule();
@@ -166,7 +181,7 @@ async function inspectScreen(page, screenName, width, { capture = true } = {}) {
     const textNodes = {
       battle: '.unit-name, .unit-method, .unit-meter-labels span, .rage-labels span',
       start: '.start-title .eyebrow, .start-title h2, .start-subtitle, .start-fields label span, .method-field legend, .method-options button, .method-cue, .start-action',
-      choice: '.choice-heading .eyebrow, .choice-heading h2, .choice-count, .artifact-name, .artifact-stat span, .artifact-stat b, .artifact-note, .artifact-details, .choice-confirm',
+      choice: '.choice-heading .eyebrow, .choice-heading h2, .choice-count, .artifact-name, .artifact-rarity, .artifact-stat span, .artifact-stat b, .artifact-seal-tag, .artifact-details, .choice-confirm',
     }[screenName];
     const textIssues = [...screen.querySelectorAll(textNodes)]
       .filter(visible)
@@ -301,6 +316,12 @@ async function assertActualImages(page) {
         visiblePixels,
         opaquePixels,
         colorBuckets: colors.size,
+        transparentCorners: [
+          pixels[3],
+          pixels[(127 * 128) * 4 + 3],
+          pixels[(128 * 128 - 128) * 4 + 3],
+          pixels[(128 * 128 - 1) * 4 + 3],
+        ].filter(alpha => alpha <= 16).length,
       });
     }
     return stats;
@@ -314,14 +335,83 @@ async function assertActualImages(page) {
       `${item.id}: decoded dimensions differ from manifest`,
     );
     assert.ok(item.visiblePixels > 500, `${item.id}: decoded pixels are effectively blank`);
-    assert.ok(item.colorBuckets > 12, `${item.id}: decoded image has insufficient pixel variation`);
+    assert.ok(
+      item.colorBuckets >= (asset.source.mode === 'SVG' ? 8 : 13),
+      `${item.id}: decoded image has insufficient pixel variation`,
+    );
     if (asset.kind === 'scene') {
       assert.equal(item.opaquePixels, item.visiblePixels, `${item.id}: scene unexpectedly has transparency`);
+    } else if (asset.source.mode === 'SVG') {
+      assert.ok(item.opaquePixels > 200, `${item.id}: vector art has no opaque subject`);
+      assert.equal(item.transparentCorners, 4, `${item.id}: SVG should retain transparent outer corners`);
+      assert.ok(item.colorBuckets >= 8, `${item.id}: SVG lacks visible color variation`);
     } else {
       assert.ok(item.opaquePixels > 250, `${item.id}: transparent art has no visible subject`);
+      assert.ok(item.colorBuckets > 12, `${item.id}: decoded image has insufficient pixel variation`);
     }
   }
   return result;
+}
+
+async function assertSafeVectorSources(page) {
+  const findings = await page.evaluate(sources => {
+    const allowedElements = new Set([
+      'svg', 'g', 'defs', 'linearGradient', 'radialGradient', 'stop',
+      'path', 'rect', 'circle', 'ellipse', 'polygon', 'polyline', 'line',
+    ]);
+    const parser = new DOMParser();
+    return sources.map(({ id, source }) => {
+      const problems = [];
+      if (/<!\s*(?:DOCTYPE|ENTITY)/i.test(source)) problems.push('doctype-or-entity');
+      const parsed = parser.parseFromString(source, 'image/svg+xml');
+      if (parsed.querySelector('parsererror')) problems.push('invalid-xml');
+      const root = parsed.documentElement;
+      if (
+        root.localName !== 'svg' ||
+        root.namespaceURI !== 'http://www.w3.org/2000/svg' ||
+        root.getAttribute('viewBox') !== '0 0 256 256'
+      ) problems.push('invalid-root-or-viewbox');
+
+      const nodes = [root, ...root.querySelectorAll('*')];
+      const ids = new Set();
+      const references = [];
+      for (const node of nodes) {
+        if (!allowedElements.has(node.localName)) problems.push(`element:${node.localName}`);
+        for (const attribute of node.attributes) {
+          const name = attribute.localName.toLowerCase();
+          const value = attribute.value.trim();
+          if (name.startsWith('on') || name === 'style') problems.push(`attribute:${name}`);
+          if (name === 'href' && !/^#[A-Za-z_][\w.-]*$/.test(value)) {
+            problems.push(`external-href:${value}`);
+          }
+          const urlTokens = [...value.matchAll(/url\s*\(/gi)];
+          const localUrls = [...value.matchAll(/url\(\s*['"]?#([A-Za-z_][\w.-]*)['"]?\s*\)/gi)];
+          if (urlTokens.length !== localUrls.length) problems.push(`external-url:${name}`);
+          references.push(...localUrls.map(match => match[1]));
+          if (name === 'id') {
+            if (ids.has(value)) problems.push(`duplicate-id:${value}`);
+            ids.add(value);
+          }
+          const namespaceDeclaration =
+            (attribute.name === 'xmlns' && value === 'http://www.w3.org/2000/svg') ||
+            (attribute.name === 'xmlns:xlink' && value === 'http://www.w3.org/1999/xlink');
+          if (!namespaceDeclaration && /(?:javascript:|data:|https?:|file:|\/\/)/i.test(value)) {
+            problems.push(`external-value:${name}`);
+          }
+        }
+      }
+      if (nodes.some(node => node.localName === 'filter')) problems.push('filter');
+      if (references.some(reference => !nodes.some(node => node.getAttribute('id') === reference))) {
+        problems.push('unresolved-local-reference');
+      }
+      return { id, problems: [...new Set(problems)] };
+    });
+  }, vectorSources);
+  assert.deepEqual(
+    findings.filter(item => item.problems.length > 0),
+    [],
+    'SVG sources must be static local illustrations without active or external content',
+  );
 }
 
 async function assertRenderedTargets(page) {
@@ -445,6 +535,10 @@ try {
     '/package.json',
     '/output/imagegen/player.png',
     '/assets/not-an-asset.svg',
+    '/assets/scene-battle.svg',
+    '/assets/player.svg',
+    '/assets/enemy.svg',
+    '/assets/artifact-unknown.svg',
   ];
   for (const privatePath of privatePaths) {
     const response = await fetch(`${origin}${privatePath}`);
@@ -505,9 +599,23 @@ try {
   ]) {
     const page = await readyPage(viewport, `workflow-${viewport.width}`);
     const decoded = await assertActualImages(page);
+    await assertSafeVectorSources(page);
     const targets = await assertRenderedTargets(page);
     await assertOverviewPreviews(page, viewport, `overview-root-${viewport.width}`);
-    assert.equal(await page.locator('svg').count(), 0, 'preview uses the actual raster assets, not SVG stand-ins');
+    assert.equal(
+      await page.locator('svg').count(),
+      0,
+      'SVG artwork must remain image content, not inline control markup',
+    );
+    const imageSources = await page.locator('img[data-asset-target]').evaluateAll(images =>
+      images.map(image => [image.dataset.assetTarget, new URL(image.src).pathname]),
+    );
+    assert.ok(imageSources.filter(([target]) => target === 'artifact-rr09' ||
+      target === 'artifact-rr11' || target === 'artifact-rr15')
+      .every(([, src]) => src.endsWith('.svg')));
+    assert.ok(imageSources.filter(([target]) => target !== 'artifact-rr09' &&
+      target !== 'artifact-rr11' && target !== 'artifact-rr15')
+      .every(([, src]) => !src.endsWith('.svg')));
     assert.equal(await page.locator('#asset-status').textContent(), '素材已载入，待视觉确认');
 
     await page.locator('.view-switcher')
@@ -546,11 +654,11 @@ try {
       .getByRole('link', { name: '开局', exact: true }).click();
     const startMetrics = await inspectScreen(page, 'start', viewport.width, { capture: false });
     const methodCues = [
-      ['RKF01', '按防御获得护盾，护盾能反击敌人。'],
-      ['RKF02', '怒技返还怒气，加快后续出手。'],
-      ['RKF03', '攻击同时治疗，气血越高回复越多。'],
-      ['RKF04', '叠加燃烧，让敌人持续受伤。'],
-      ['RKF05', '普攻积累剑势，越战越强。'],
+      ['RKF01', '防御化盾，借盾反击。'],
+      ['RKF02', '怒技返还怒气，衔接更快。'],
+      ['RKF03', '攻击兼有治疗，气血越高回复越多。'],
+      ['RKF04', '叠加燃烧，持续伤敌。'],
+      ['RKF05', '普攻积剑势，持续增强。'],
     ];
     for (const [id, cue] of methodCues) {
       await page.locator(`[data-method="${id}"]`).click();

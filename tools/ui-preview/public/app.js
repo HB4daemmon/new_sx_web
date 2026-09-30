@@ -8,39 +8,39 @@ const requiredAssetIds = [
   'artifact-rr15',
 ];
 const requiredAssets = new Map([
-  ['battle-scene', { kind: 'scene', screen: 'battle' }],
-  ['start-scene', { kind: 'scene', screen: 'start' }],
-  ['player', { kind: 'character', screen: 'battle' }],
-  ['enemy', { kind: 'character', screen: 'battle' }],
-  ['artifact-rr09', { kind: 'artifact', target: 'artifact-rr09', contentId: 'RR09' }],
-  ['artifact-rr11', { kind: 'artifact', target: 'artifact-rr11', contentId: 'RR11' }],
-  ['artifact-rr15', { kind: 'artifact', target: 'artifact-rr15', contentId: 'RR15' }],
+  ['battle-scene', { src: '/assets/scene-battle.webp', kind: 'scene', screen: 'battle' }],
+  ['start-scene', { src: '/assets/scene-start.webp', kind: 'scene', screen: 'start' }],
+  ['player', { src: '/assets/player.png', kind: 'character', screen: 'battle' }],
+  ['enemy', { src: '/assets/enemy.png', kind: 'character', screen: 'battle' }],
+  ['artifact-rr09', { src: '/assets/artifact-rr09.svg', kind: 'artifact', target: 'artifact-rr09', contentId: 'RR09' }],
+  ['artifact-rr11', { src: '/assets/artifact-rr11.svg', kind: 'artifact', target: 'artifact-rr11', contentId: 'RR11' }],
+  ['artifact-rr15', { src: '/assets/artifact-rr15.svg', kind: 'artifact', target: 'artifact-rr15', contentId: 'RR15' }],
 ]);
 const methods = {
   RKF01: {
     name: '金刚功',
-    cue: '按防御获得护盾，护盾能反击敌人。',
+    cue: '防御化盾，借盾反击。',
   },
   RKF02: {
     name: '归元诀',
-    cue: '怒技返还怒气，加快后续出手。',
+    cue: '怒技返还怒气，衔接更快。',
   },
   RKF03: {
     name: '回春功',
-    cue: '攻击同时治疗，气血越高回复越多。',
+    cue: '攻击兼有治疗，气血越高回复越多。',
   },
   RKF04: {
     name: '御火诀',
-    cue: '叠加燃烧，让敌人持续受伤。',
+    cue: '叠加燃烧，持续伤敌。',
   },
   RKF05: {
     name: '养剑诀',
-    cue: '普攻积累剑势，越战越强。',
+    cue: '普攻积剑势，持续增强。',
   },
 };
 const allowedScreens = new Set(['battle', 'start', 'choice']);
 const allowedViews = new Set(['overview', ...allowedScreens, 'compare']);
-const assetPathPattern = /^\/assets\/(?:scene-(?:battle|start)|player|enemy|artifact-[a-z0-9-]+)\.(?:png|webp)$/;
+const assetPathPattern = /^\/assets\/(?:scene-(?:battle|start)\.(?:png|webp)|(?:player|enemy)\.(?:png|webp)|artifact-[a-z0-9-]+\.(?:png|webp)|artifact-rr(?:09|11|15)\.svg)$/;
 const app = document.querySelector('#preview-app');
 const assetStatus = document.querySelector('#asset-status');
 const captureButton = document.querySelector('#capture-preview');
@@ -145,7 +145,7 @@ function validManifest(manifest) {
   return requiredAssetIds.every(id => {
     const asset = byId.get(id);
     const expected = requiredAssets.get(id);
-    return asset?.required === true && asset.kind === expected.kind &&
+    return asset?.required === true && asset.src === expected.src && asset.kind === expected.kind &&
       (!expected.screen || asset.screen === expected.screen) &&
       (!expected.target || asset.target === expected.target) &&
       (!expected.contentId || asset.contentId === expected.contentId);

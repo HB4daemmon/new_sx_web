@@ -23,11 +23,17 @@ test('static path resolver only admits public UI and manifest files', () => {
   assert.match(resolvePublicPath('/styles.css'), /\/public\/styles\.css$/);
   assert.match(resolvePublicPath('/assets/scene-battle.webp'), /\/public\/assets\/scene-battle\.webp$/);
   assert.match(resolvePublicPath('/assets/artifact-tide-mirror.png'), /\/public\/assets\/artifact-tide-mirror\.png$/);
+  assert.match(resolvePublicPath('/assets/artifact-rr09.svg'), /\/public\/assets\/artifact-rr09\.svg$/);
+  assert.match(resolvePublicPath('/assets/artifact-rr11.svg'), /\/public\/assets\/artifact-rr11\.svg$/);
+  assert.match(resolvePublicPath('/assets/artifact-rr15.svg'), /\/public\/assets\/artifact-rr15\.svg$/);
   assert.match(resolvePublicPath('/previews/start.png'), /\/public\/previews\/start\.png$/);
   assert.equal(resolvePublicPath('/package.json'), null);
   assert.equal(resolvePublicPath('/scripts/serve.mjs'), null);
   assert.equal(resolvePublicPath('/assets/CREDITS.txt'), null);
   assert.equal(resolvePublicPath('/assets/unknown.gif'), null);
+  assert.equal(resolvePublicPath('/assets/scene-battle.svg'), null);
+  assert.equal(resolvePublicPath('/assets/player.svg'), null);
+  assert.equal(resolvePublicPath('/assets/artifact-unknown.svg'), null);
   assert.equal(resolvePublicPath('/previews/unknown.png'), null);
 });
 
@@ -64,6 +70,9 @@ test('HTTP server serves only allowlisted files within public/', async () => {
     '/../package.json',
     '/%2e%2e/package.json',
     '/assets/manifest.json/../../package.json',
+    '/assets/scene-battle.svg',
+    '/assets/player.svg',
+    '/assets/artifact-unknown.svg',
     '/previews/unknown.png',
   ]) {
     const result = await fetch(`${origin}${target}`);
@@ -71,11 +80,14 @@ test('HTTP server serves only allowlisted files within public/', async () => {
   }
 });
 
-test('HTTP server serves JSON, PNG, WebP, and preview PNGs with correct MIME types for GET and HEAD', async () => {
+test('HTTP server serves JSON, PNG, WebP, approved SVGs, and preview PNGs with correct MIME types for GET and HEAD', async () => {
   for (const [target, contentType] of [
     ['/assets/manifest.json', 'application/json; charset=utf-8'],
     ['/assets/player.png', 'image/png'],
     ['/assets/scene-battle.webp', 'image/webp'],
+    ['/assets/artifact-rr09.svg', 'image/svg+xml'],
+    ['/assets/artifact-rr11.svg', 'image/svg+xml'],
+    ['/assets/artifact-rr15.svg', 'image/svg+xml'],
     ['/previews/start.png', 'image/png'],
     ['/previews/battle.png', 'image/png'],
     ['/previews/choice.png', 'image/png'],

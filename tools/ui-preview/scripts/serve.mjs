@@ -12,6 +12,7 @@ const STATIC_FILES = new Map([
   ['assets/manifest.json', 'application/json; charset=utf-8'],
 ]);
 const ASSET_NAME = /^assets\/(?:scene-(?:battle|start)|player|enemy|artifact-[a-z0-9-]+)\.(?:png|webp)$/;
+const ITEM_SVG_NAME = /^assets\/artifact-rr(?:09|11|15)\.svg$/;
 const PREVIEW_NAME = /^previews\/(?:start|battle|choice)\.png$/;
 const ROOT_MARKER = `${path.sep}public${path.sep}`;
 
@@ -41,6 +42,7 @@ export function resolvePublicPath(requestTarget, publicRoot = PUBLIC_ROOT) {
   if (
     !STATIC_FILES.has(normalizedPath) &&
     !ASSET_NAME.test(normalizedPath) &&
+    !ITEM_SVG_NAME.test(normalizedPath) &&
     !PREVIEW_NAME.test(normalizedPath)
   ) return null;
 
@@ -55,6 +57,7 @@ function contentTypeFor(filename) {
   const staticContentType = STATIC_FILES.get(relativePath);
   if (staticContentType) return staticContentType;
   if (relativePath.startsWith('assets/')) {
+    if (filename.endsWith('.svg')) return 'image/svg+xml';
     return filename.endsWith('.webp') ? 'image/webp' : 'image/png';
   }
   if (relativePath.startsWith('previews/')) return 'image/png';

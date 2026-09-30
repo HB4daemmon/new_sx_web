@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="color-scheme" content="light">
-    <title>随时修仙</title>
+    <title>随时修仙 · 山海行</title>
     <link rel="icon" type="image/png" href="/assets/artifact-rr15.png">
     <link rel="stylesheet" href="/styles.css">
     <script type="module" src="/app.js"></script>
@@ -125,13 +125,13 @@
               <fieldset class="method-field">
                 <legend>选择功法</legend>
                 <div class="method-options" role="group" aria-label="可选功法">
-                  <button type="button" data-method="RKF01" aria-pressed="true">金刚功</button>
-                  <button type="button" data-method="RKF02" aria-pressed="false">归元诀</button>
-                  <button type="button" data-method="RKF03" aria-pressed="false">回春功</button>
-                  <button type="button" data-method="RKF04" aria-pressed="false">御火诀</button>
-                  <button type="button" data-method="RKF05" aria-pressed="false">养剑诀</button>
+                  <button type="button" data-method="RKF01" aria-pressed="true"><span>金刚功</span></button>
+                  <button type="button" data-method="RKF02" aria-pressed="false"><span>归元诀</span></button>
+                  <button type="button" data-method="RKF03" aria-pressed="false"><span>回春功</span></button>
+                  <button type="button" data-method="RKF04" aria-pressed="false"><span>御火诀</span></button>
+                  <button type="button" data-method="RKF05" aria-pressed="false"><span>养剑诀</span></button>
                 </div>
-                <p id="method-cue" class="method-cue" aria-live="polite">按防御获得护盾，护盾能反击敌人。</p>
+                <p id="method-cue" class="method-cue" aria-live="polite">防御化盾，借盾反击。</p>
               </fieldset>
               <button class="start-action" type="submit">踏入山海</button>
             </form>
@@ -141,40 +141,52 @@
             <img class="scene-image" data-asset-target="battle-scene" alt="" hidden>
             <header class="choice-heading">
               <p class="eyebrow">行旅所得</p>
-              <h2>灵物现世</h2>
-              <p class="choice-count">其三择一</p>
+              <h2>择一入行</h2>
+              <p class="choice-count">三件稀有法宝</p>
             </header>
             <div class="choice-row" role="list" aria-label="选择法宝">
               <article class="artifact-option is-selected" role="listitem" data-artifact="artifact-rr09">
                 <button class="artifact-select" type="button" data-artifact-choice="artifact-rr09" aria-pressed="true">
-                  <span class="artifact-media">
+                  <span class="selection-seal" aria-hidden="true">已选</span>
+                  <span class="artifact-artwindow">
                     <img data-asset-target="artifact-rr09" alt="" hidden>
                   </span>
-                  <span class="artifact-name">震岳鼓</span>
+                  <span class="artifact-nameplate">
+                    <span class="artifact-name">震岳鼓</span>
+                    <span class="artifact-rarity">稀有</span>
+                  </span>
                   <span class="artifact-stat"><span>防御</span><b>+8</b></span>
-                  <span class="artifact-note">盾返后回怒</span>
+                  <span class="artifact-seal-tag">盾返后回怒</span>
                 </button>
                 <button class="artifact-details" type="button" data-open-dialog="artifact" data-artifact-detail="artifact-rr09" aria-label="查看震岳鼓详情">详</button>
               </article>
               <article class="artifact-option" role="listitem" data-artifact="artifact-rr11">
                 <button class="artifact-select" type="button" data-artifact-choice="artifact-rr11" aria-pressed="false">
-                  <span class="artifact-media">
+                  <span class="selection-seal" aria-hidden="true">已选</span>
+                  <span class="artifact-artwindow">
                     <img data-asset-target="artifact-rr11" alt="" hidden>
                   </span>
-                  <span class="artifact-name">余烬盏</span>
+                  <span class="artifact-nameplate">
+                    <span class="artifact-name">余烬盏</span>
+                    <span class="artifact-rarity">稀有</span>
+                  </span>
                   <span class="artifact-stat"><span>最大气血</span><b>+30</b></span>
-                  <span class="artifact-note">毒燃伤害回怒</span>
+                  <span class="artifact-seal-tag">毒燃伤害回怒</span>
                 </button>
                 <button class="artifact-details" type="button" data-open-dialog="artifact" data-artifact-detail="artifact-rr11" aria-label="查看余烬盏详情">详</button>
               </article>
               <article class="artifact-option" role="listitem" data-artifact="artifact-rr15">
                 <button class="artifact-select" type="button" data-artifact-choice="artifact-rr15" aria-pressed="false">
-                  <span class="artifact-media">
+                  <span class="selection-seal" aria-hidden="true">已选</span>
+                  <span class="artifact-artwindow">
                     <img data-asset-target="artifact-rr15" alt="" hidden>
                   </span>
-                  <span class="artifact-name">定心佩</span>
+                  <span class="artifact-nameplate">
+                    <span class="artifact-name">定心佩</span>
+                    <span class="artifact-rarity">稀有</span>
+                  </span>
                   <span class="artifact-stat"><span>最大气血</span><b>+30</b></span>
-                  <span class="artifact-note">外来削怒减半</span>
+                  <span class="artifact-seal-tag">外来削怒减半</span>
                 </button>
                 <button class="artifact-details" type="button" data-open-dialog="artifact" data-artifact-detail="artifact-rr15" aria-label="查看定心佩详情">详</button>
               </article>

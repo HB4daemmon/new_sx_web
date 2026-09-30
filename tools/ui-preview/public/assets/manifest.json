@@ -9,7 +9,11 @@
     "generationInterface": "bundled CLI",
     "promptFile": "prompts/assets.jsonl",
     "exportScript": "scripts/prepare-assets.py",
-    "promptPathsAreModuleRelative": true
+    "promptPathsAreModuleRelative": true,
+    "vectorAuthoring": {
+      "method": "original hand-authored SVG",
+      "model": null
+    }
   },
   "assets": [
     {
@@ -100,71 +104,65 @@
     },
     {
       "id": "artifact-rr09",
-      "src": "/assets/artifact-rr09.png",
+      "src": "/assets/artifact-rr09.svg",
       "kind": "artifact",
       "target": "artifact-rr09",
       "contentId": "RR09",
       "required": true,
       "source": {
-        "path": "output/imagegen/artifact-rr09.png",
-        "sha256": "fe7b77fe845bc3d8f1332ef28bc97feac81a1b04f72e7a7f388971f71193e41c",
-        "dimensions": [1312, 1199],
-        "mode": "RGBA",
-        "alphaExtrema": [0, 255]
+        "path": "public/assets/artifact-rr09.svg",
+        "sha256": "0b5d83361e6af41181a0ba7d38e31455a1d1ab81c21162fb6774fa2dd52bf4d7",
+        "dimensions": [256, 256],
+        "mode": "SVG",
+        "origin": "original_vector"
       },
       "processed": {
-        "dimensions": [512, 468],
-        "format": "png",
-        "maxDimensionPx": 512,
-        "alphaExtrema": [0, 255],
-        "alphaMethod": "premultiplied Lanczos; no thresholding",
-        "bytes": 326028
+        "dimensions": [256, 256],
+        "format": "svg",
+        "bytes": 2833,
+        "background": "transparent"
       }
     },
     {
       "id": "artifact-rr11",
-      "src": "/assets/artifact-rr11.png",
+      "src": "/assets/artifact-rr11.svg",
       "kind": "artifact",
       "target": "artifact-rr11",
       "contentId": "RR11",
       "required": true,
       "source": {
-        "path": "output/imagegen/artifact-rr11.png",
-        "sha256": "97ae2c6d99cef03606e738ffef0d0f0039ff714041ebc9a5d72008ffcaebe6b6",
-        "dimensions": [1254, 1254],
-        "mode": "RGBA",
-        "alphaExtrema": [0, 255]
+        "path": "public/assets/artifact-rr11.svg",
+        "sha256": "1699f3fd8145f7b4d0713fb645d0149263f586407275d554ac9743b97745f7b6",
+        "dimensions": [256, 256],
+        "mode": "SVG",
+        "origin": "original_vector"
       },
       "processed": {
-        "dimensions": [512, 512],
-        "format": "png",
-        "maxDimensionPx": 512,
-        "alphaExtrema": [0, 255],
-        "alphaMethod": "premultiplied Lanczos; no thresholding",
-        "bytes": 237239
+        "dimensions": [256, 256],
+        "format": "svg",
+        "bytes": 3065,
+        "background": "transparent"
       }
     },
     {
       "id": "artifact-rr15",
-      "src": "/assets/artifact-rr15.png",
+      "src": "/assets/artifact-rr15.svg",
       "kind": "artifact",
       "target": "artifact-rr15",
       "contentId": "RR15",
       "required": true,
       "source": {
-        "path": "output/imagegen/artifact-rr15.png",
-        "sha256": "4fbe471ec9ba12284962e5f6a1bc1be616434753cc411f47ccbdf44ce459ecf2",
-        "dimensions": [1222, 1287],
-        "mode": "RGBA",
-        "alphaExtrema": [0, 255]
+        "path": "public/assets/artifact-rr15.svg",
+        "sha256": "0a65e044d81dbea58193b88e03e70df19af9351893e92fbc4a42b71e8e96cd50",
+        "dimensions": [256, 256],
+        "mode": "SVG",
+        "origin": "original_vector"
       },
       "processed": {
-        "dimensions": [486, 512],
-        "format": "png",
-        "maxDimensionPx": 512,
-        "alphaExtrema": [0, 255],
-        "alphaMethod": "premultiplied Lanczos; no thresholding",
-        "bytes": 162631
+        "dimensions": [256, 256],
+        "format": "svg",
+        "bytes": 3499,
+        "background": "transparent"
       }
     }
   ]

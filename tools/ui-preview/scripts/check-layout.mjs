@@ -41,9 +41,9 @@ const fixtureManifest = {
     { id: 'start-scene', src: '/assets/scene-start.webp', kind: 'scene', screen: 'start', required: true },
     { id: 'player', src: '/assets/player.png', kind: 'character', screen: 'battle', required: true },
     { id: 'enemy', src: '/assets/enemy.png', kind: 'character', screen: 'battle', required: true },
-    { id: 'artifact-rr09', src: '/assets/artifact-rr09.png', kind: 'artifact', target: 'artifact-rr09', contentId: 'RR09', required: true },
-    { id: 'artifact-rr11', src: '/assets/artifact-rr11.png', kind: 'artifact', target: 'artifact-rr11', contentId: 'RR11', required: true },
-    { id: 'artifact-rr15', src: '/assets/artifact-rr15.png', kind: 'artifact', target: 'artifact-rr15', contentId: 'RR15', required: true },
+    { id: 'artifact-rr09', src: '/assets/artifact-rr09.svg', kind: 'artifact', target: 'artifact-rr09', contentId: 'RR09', required: true },
+    { id: 'artifact-rr11', src: '/assets/artifact-rr11.svg', kind: 'artifact', target: 'artifact-rr11', contentId: 'RR11', required: true },
+    { id: 'artifact-rr15', src: '/assets/artifact-rr15.svg', kind: 'artifact', target: 'artifact-rr15', contentId: 'RR15', required: true },
   ],
 };
 const transparentPng = Buffer.from(
@@ -305,7 +305,7 @@ try {
         ]);
         const segmentFractions = await page.locator('.combined-meter').evaluateAll(meters =>
           meters.map(meter => {
-            const width = meter.getBoundingClientRect().width;
+            const width = meter.clientWidth;
             return [...meter.querySelectorAll('.meter-segment')]
               .map(segment => segment.getBoundingClientRect().width / width);
           }),
@@ -349,11 +349,11 @@ try {
         assert.equal(await seed.inputValue(), '山海初行');
         assert.equal(await page.locator('input[name="lives"]').count(), 0);
         const cues = [
-          ['RKF01', '按防御获得护盾，护盾能反击敌人。'],
-          ['RKF02', '怒技返还怒气，加快后续出手。'],
-          ['RKF03', '攻击同时治疗，气血越高回复越多。'],
-          ['RKF04', '叠加燃烧，让敌人持续受伤。'],
-          ['RKF05', '普攻积累剑势，越战越强。'],
+          ['RKF01', '防御化盾，借盾反击。'],
+          ['RKF02', '怒技返还怒气，衔接更快。'],
+          ['RKF03', '攻击兼有治疗，气血越高回复越多。'],
+          ['RKF04', '叠加燃烧，持续伤敌。'],
+          ['RKF05', '普攻积剑势，持续增强。'],
         ];
         for (const [id, cue] of cues) {
           await page.locator(`[data-method="${id}"]`).click();
@@ -361,7 +361,7 @@ try {
         }
         await seed.fill('自定义种子-01');
         await page.getByRole('button', { name: '养剑诀', exact: true }).click();
-        assert.match(await page.locator('#method-cue').textContent(), /积累剑势/);
+        assert.match(await page.locator('#method-cue').textContent(), /剑势/);
         await page.getByRole('button', { name: '踏入山海' }).click();
         await page.locator('#detail-dialog[open]').waitFor();
         assert.match(await page.locator('#dialog-copy').textContent(), /命数种子 自定义种子-01 · 养剑诀/);
@@ -370,16 +370,28 @@ try {
         const cards = page.locator('.artifact-option');
         assert.equal(await cards.count(), 3);
         const cardText = (await cards.allTextContents()).map(text => text.replace(/\s+/g, ' '));
-        assert.match(cardText[0], /震岳鼓 防御\+8 盾返后回怒/);
-        assert.match(cardText[1], /余烬盏 最大气血\+30 毒燃伤害回怒/);
-        assert.match(cardText[2], /定心佩 最大气血\+30 外来削怒减半/);
+        assert.match(cardText[0], /震岳鼓 稀有 防御\+8 盾返后回怒/);
+        assert.match(cardText[1], /余烬盏 稀有 最大气血\+30 毒燃伤害回怒/);
+        assert.match(cardText[2], /定心佩 稀有 最大气血\+30 外来削怒减半/);
         const cardBounds = await cards.evaluateAll(options => options.map(option => {
           const { x, y, width, height } = option.getBoundingClientRect();
           return { x, y, width, height };
         }));
         assert.ok(cardBounds[0].y === cardBounds[1].y && cardBounds[1].y === cardBounds[2].y);
         assert.ok(cardBounds[0].x < cardBounds[1].x && cardBounds[1].x < cardBounds[2].x);
+        assert.deepEqual(cardBounds.map(({ height }) => height), [310, 310, 310]);
         assert.equal(await page.locator('.artifact-details').count(), 3);
+        assert.equal(await page.locator('.artifact-select .artifact-details').count(), 0);
+        await page.locator('[data-artifact-choice="artifact-rr11"]').click();
+        const afterSelection = await cards.evaluateAll(options => options.map(option => {
+          const { x, y, width, height } = option.getBoundingClientRect();
+          return { x, y, width, height };
+        }));
+        assert.deepEqual(afterSelection, cardBounds, 'selection seal must not shift card positions');
+        assert.equal(
+          await page.locator('[data-artifact="artifact-rr11"] [data-artifact-choice]').getAttribute('aria-pressed'),
+          'true',
+        );
 
         const expectedDetails = [
           ['震岳鼓', /此法宝不提供反击效果/],
@@ -394,7 +406,7 @@ try {
           await page.getByRole('button', { name: '关闭详情' }).click();
         }
         await page.getByRole('button', { name: '确认选择' }).click();
-        assert.equal(await page.locator('#dialog-title').textContent(), '震岳鼓');
+        assert.equal(await page.locator('#dialog-title').textContent(), '余烬盏');
         await page.getByRole('button', { name: '关闭详情' }).click();
       }
     }
