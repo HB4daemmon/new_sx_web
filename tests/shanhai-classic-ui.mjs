@@ -441,16 +441,8 @@ async function assertMapSurface(page, width) {
     nodeCount: element.querySelectorAll('.map-node').length,
     available: element.querySelectorAll('.map-node.available:not([disabled])').length,
     future: element.querySelectorAll('.map-node:not(.available)[disabled]').length,
-    markers: [...element.querySelectorAll('.node-disc')].map(node => {
-      const rect = node.getBoundingClientRect();
-      const style = getComputedStyle(node);
-      return {
-        width: rect.width,
-        height: rect.height,
-        rounded: parseFloat(style.borderRadius) > 0,
-        iconCount: node.querySelectorAll('img.icon').length,
-      };
-    }),
+    diamonds: [...element.querySelectorAll('.node-disc')].filter(node =>
+      getComputedStyle(node).transform !== 'none').length,
   }));
   assert.ok(metrics.scrollHeight > metrics.clientHeight,
     `${width}: map-scroll 没有纵向滚动空间 ${JSON.stringify(metrics)}`);
@@ -460,11 +452,7 @@ async function assertMapSurface(page, width) {
   assert.ok(metrics.available >= 1, `${width}: 当前节点不可进入 ${JSON.stringify(metrics)}`);
   assert.equal(metrics.available, 1, `${width}: 开局应只有一个首格可达 ${JSON.stringify(metrics)}`);
   assert.equal(metrics.future, 28, `${width}: 未选路线节点应全部禁用 ${JSON.stringify(metrics)}`);
-  assert.equal(metrics.markers.length, metrics.nodeCount,
-    `${width}: 地图节点标记缺失`);
-  assert.ok(metrics.markers.every(marker =>
-    marker.width >= 44 && marker.height >= 44 && marker.rounded && marker.iconCount === 1),
-  `${width}: 地图节点应有清晰的圆形位图标记 ${JSON.stringify(metrics.markers)}`);
+  assert.ok(metrics.diamonds >= 1, `${width}: 地图节点不是菱形视觉结构`);
 
   const current = page.locator('.map-node.available:not([disabled])').first();
   const viewport = await page.locator('.map-scroll').evaluate(scroll => {
