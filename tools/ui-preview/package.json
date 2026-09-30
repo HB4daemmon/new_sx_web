@@ -1,0 +1,15 @@
+{
+  "name": "shanhai-ui-preview",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "test": "node --test",
+    "test:layout": "node scripts/check-layout.mjs",
+    "test:art": "node scripts/check-art.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

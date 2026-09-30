@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 1,
+  "approval": {
+    "status": "pending",
+    "reviewedBy": null
+  },
+  "provenance": {
+    "model": "gpt-image-2.5",
+    "generationInterface": "bundled CLI",
+    "promptFile": "prompts/assets.jsonl",
+    "exportScript": "scripts/prepare-assets.py",
+    "promptPathsAreModuleRelative": true
+  },
+  "assets": [
+    {
+      "id": "battle-scene",
+      "src": "/assets/scene-battle.webp",
+      "kind": "scene",
+      "screen": "battle",
+      "required": true,
+      "source": {
+        "path": "output/imagegen/scene-battle.png",
+        "sha256": "73aca22972f6ae050d5dca61a010f204ec18c7234c7dc622547da34774fddc86",
+        "dimensions": [814, 1931],
+        "mode": "RGB",
+        "alpha": false
+      },
+      "processed": {
+        "dimensions": [814, 1931],
+        "format": "webp",
+        "quality": 88,
+        "maxWidthPx": 814,
+        "bytes": 322546
+      }
+    },
+    {
+      "id": "start-scene",
+      "src": "/assets/scene-start.webp",
+      "kind": "scene",
+      "screen": "start",
+      "required": true,
+      "source": {
+        "path": "output/imagegen/scene-start.png",
+        "sha256": "a468424b11761fc39cbbf9f98e6759af9cafe7c297bbdc74f3ee98f358927511",
+        "dimensions": [814, 1933],
+        "mode": "RGB",
+        "alpha": false
+      },
+      "processed": {
+        "dimensions": [814, 1933],
+        "format": "webp",
+        "quality": 88,
+        "maxWidthPx": 814,
+        "bytes": 370230
+      }
+    },
+    {
+      "id": "player",
+      "src": "/assets/player.png",
+      "kind": "character",
+      "screen": "battle",
+      "required": true,
+      "source": {
+        "path": "output/imagegen/player.png",
+        "sha256": "f5868c56e4e7b801e7d0a800035198218ebf61f2cc6cd01a80265015fd30086f",
+        "dimensions": [1024, 1536],
+        "mode": "RGBA",
+        "alphaExtrema": [0, 254]
+      },
+      "processed": {
+        "dimensions": [512, 768],
+        "format": "png",
+        "maxDimensionPx": 768,
+        "alphaExtrema": [0, 255],
+        "alphaMethod": "premultiplied Lanczos; no thresholding",
+        "bytes": 487459
+      }
+    },
+    {
+      "id": "enemy",
+      "src": "/assets/enemy.png",
+      "kind": "character",
+      "screen": "battle",
+      "required": true,
+      "source": {
+        "path": "output/imagegen/enemy.png",
+        "sha256": "5b53fcdbfad6fd6f10656c585f47ebd924d15c4a82264dcb7d1743ee1a3232e6",
+        "dimensions": [1164, 1351],
+        "mode": "RGBA",
+        "alphaExtrema": [0, 255]
+      },
+      "processed": {
+        "dimensions": [662, 768],
+        "format": "png",
+        "maxDimensionPx": 768,
+        "alphaExtrema": [0, 255],
+        "alphaMethod": "premultiplied Lanczos; no thresholding",
+        "bytes": 615242
+      }
+    },
+    {
+      "id": "artifact-rr09",
+      "src": "/assets/artifact-rr09.png",
+      "kind": "artifact",
+      "target": "artifact-rr09",
+      "contentId": "RR09",
+      "required": true,
+      "source": {
+        "path": "output/imagegen/artifact-rr09.png",
+        "sha256": "fe7b77fe845bc3d8f1332ef28bc97feac81a1b04f72e7a7f388971f71193e41c",
+        "dimensions": [1312, 1199],
+        "mode": "RGBA",
+        "alphaExtrema": [0, 255]
+      },
+      "processed": {
+        "dimensions": [512, 468],
+        "format": "png",
+        "maxDimensionPx": 512,
+        "alphaExtrema": [0, 255],
+        "alphaMethod": "premultiplied Lanczos; no thresholding",
+        "bytes": 326028
+      }
+    },
+    {
+      "id": "artifact-rr11",
+      "src": "/assets/artifact-rr11.png",
+      "kind": "artifact",
+      "target": "artifact-rr11",
+      "contentId": "RR11",
+      "required": true,
+      "source": {
+        "path": "output/imagegen/artifact-rr11.png",
+        "sha256": "97ae2c6d99cef03606e738ffef0d0f0039ff714041ebc9a5d72008ffcaebe6b6",
+        "dimensions": [1254, 1254],
+        "mode": "RGBA",
+        "alphaExtrema": [0, 255]
+      },
+      "processed": {
+        "dimensions": [512, 512],
+        "format": "png",
+        "maxDimensionPx": 512,
+        "alphaExtrema": [0, 255],
+        "alphaMethod": "premultiplied Lanczos; no thresholding",
+        "bytes": 237239
+      }
+    },
+    {
+      "id": "artifact-rr15",
+      "src": "/assets/artifact-rr15.png",
+      "kind": "artifact",
+      "target": "artifact-rr15",
+      "contentId": "RR15",
+      "required": true,
+      "source": {
+        "path": "output/imagegen/artifact-rr15.png",
+        "sha256": "4fbe471ec9ba12284962e5f6a1bc1be616434753cc411f47ccbdf44ce459ecf2",
+        "dimensions": [1222, 1287],
+        "mode": "RGBA",
+        "alphaExtrema": [0, 255]
+      },
+      "processed": {
+        "dimensions": [486, 512],
+        "format": "png",
+        "maxDimensionPx": 512,
+        "alphaExtrema": [0, 255],
+        "alphaMethod": "premultiplied Lanczos; no thresholding",
+        "bytes": 162631
+      }
+    }
+  ]
+}
