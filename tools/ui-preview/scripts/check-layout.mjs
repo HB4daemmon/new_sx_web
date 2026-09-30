@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
+import { mkdir } from 'node:fs/promises';
 import { once } from 'node:events';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createPreviewServer } from './serve.mjs';
 
 function playwrightModule() {
@@ -23,6 +26,8 @@ function playwrightModule() {
 }
 
 const { chromium } = playwrightModule();
+const moduleRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const overviewCaptureRoot = path.join(moduleRoot, 'captures', 'style-overview');
 const server = createPreviewServer();
 server.listen(0, '127.0.0.1');
 await once(server, 'listening');
@@ -75,7 +80,120 @@ async function assertNoPageErrors(page, errors) {
   assert.deepEqual(errors, []);
 }
 
+async function checkOverview(viewport, { explicit = false } = {}) {
+  const page = await browser.newPage({ viewport });
+  const pageErrors = [];
+  page.on('pageerror', error => pageErrors.push(error.message));
+  await mockAssets(page);
+  const response = await page.goto(explicit ? `${origin}/?screen=overview` : origin);
+  assert.equal(response.status(), 200);
+  await page.waitForFunction(() =>
+    document.querySelector('#preview-app')?.dataset.assetsReady === 'true',
+  );
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll('.overview-link img')]
+      .every(image => image.complete && image.naturalWidth > 0 && image.naturalHeight > 0),
+  );
+  assert.equal(new URL(page.url()).searchParams.get('screen'), 'overview');
+  assert.equal(await page.locator('#preview-app').getAttribute('data-view'), 'overview');
+
+  const metrics = await page.evaluate(() => {
+    const viewport = { width: innerWidth, height: innerHeight };
+    const getRect = node => {
+      const { x, y, width, height, right, bottom } = node.getBoundingClientRect();
+      return { x, y, width, height, right, bottom };
+    };
+    return {
+      viewport,
+      document: {
+        width: document.documentElement.scrollWidth,
+        height: document.documentElement.scrollHeight,
+        bodyWidth: document.body.scrollWidth,
+        bodyHeight: document.body.scrollHeight,
+      },
+      navLinks: [...document.querySelectorAll('.view-switcher a')].map(getRect),
+      previews: [...document.querySelectorAll('.overview-link')].map(link => {
+        const image = link.querySelector('img');
+        return {
+          label: link.getAttribute('aria-label'),
+          link: getRect(link),
+          image: {
+            ...getRect(image),
+            decoded: image.complete && image.naturalWidth === 320 && image.naturalHeight === 760,
+            alt: image.alt,
+          },
+        };
+      }),
+      activeNavigation: document.querySelector('.view-switcher [aria-current="page"]')
+        ?.dataset.viewLink,
+    };
+  });
+
+  assert.ok(metrics.document.width <= viewport.width + 1, `${viewport.width}: overview horizontal overflow`);
+  assert.ok(metrics.document.height <= viewport.height + 1, `${viewport.width}: overview vertical overflow`);
+  assert.ok(metrics.document.bodyWidth <= viewport.width + 1, `${viewport.width}: body horizontal overflow`);
+  assert.ok(metrics.document.bodyHeight <= viewport.height + 1, `${viewport.width}: body vertical overflow`);
+  assert.equal(metrics.activeNavigation, 'overview');
+  assert.equal(metrics.previews.length, 3);
+  assert.ok(metrics.navLinks.every(link =>
+    link.width >= 44 && link.height >= 44 &&
+    link.x >= -1 && link.right <= viewport.width + 1));
+  assert.ok(metrics.previews.every(item =>
+    item.image.decoded &&
+    item.image.alt.length > 0 &&
+    item.link.width >= 44 &&
+    item.link.height >= 44 &&
+    item.link.x >= -1 &&
+    item.link.right <= viewport.width + 1 &&
+    item.link.y >= -1 &&
+    item.link.bottom <= viewport.height + 1));
+
+  if (viewport.width === 1440) {
+    assert.deepEqual(metrics.previews.map(item => item.image.width), [320, 320, 320]);
+    assert.deepEqual(metrics.previews.map(item => item.image.height), [760, 760, 760]);
+  }
+
+  await mkdir(overviewCaptureRoot, { recursive: true });
+  await page.screenshot({
+    path: path.join(overviewCaptureRoot, `overview-${viewport.width}x${viewport.height}.png`),
+  });
+
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement.dataset.viewLink), 'overview');
+  assert.equal(
+    await page.locator('.view-switcher [data-view-link="overview"]').evaluate(node =>
+      getComputedStyle(node).outlineStyle),
+    'solid',
+  );
+  await page.locator('.overview-link[data-view-link="start"]').click();
+  assert.equal(new URL(page.url()).searchParams.get('screen'), 'start');
+  assert.equal(await page.locator('#preview-app').getAttribute('data-view'), 'start');
+  await page.goBack();
+  await page.waitForFunction(() =>
+    document.querySelector('#preview-app')?.dataset.view === 'overview',
+  );
+  assert.equal(new URL(page.url()).searchParams.get('screen'), 'overview');
+  await page.goForward();
+  await page.waitForFunction(() => document.querySelector('#preview-app')?.dataset.view === 'start');
+  assert.equal(new URL(page.url()).searchParams.get('screen'), 'start');
+  await page.reload();
+  await page.waitForFunction(() => document.querySelector('#preview-app')?.dataset.view === 'start');
+  assert.equal(new URL(page.url()).searchParams.get('screen'), 'start');
+  await assertNoPageErrors(page, pageErrors);
+  await page.close();
+  console.log(`Overview navigation and layout OK ${viewport.width}x${viewport.height}`);
+}
+
 try {
+  for (const viewport of [
+    { width: 320, height: 760 },
+    { width: 390, height: 844 },
+    { width: 1440, height: 900 },
+  ]) {
+    await checkOverview(viewport);
+  }
+  await checkOverview({ width: 390, height: 844 }, { explicit: true });
+
   for (const viewport of [
     { width: 320, height: 760 },
     { width: 390, height: 844 },
@@ -85,7 +203,7 @@ try {
     const pageErrors = [];
     page.on('pageerror', error => pageErrors.push(error.message));
     await mockAssets(page);
-    const response = await page.goto(origin);
+    const response = await page.goto(`${origin}/?screen=battle`);
     const csp = response.headers()['content-security-policy'];
     assert.match(csp, /style-src 'self'/);
     assert.doesNotMatch(csp, /unsafe-inline/);
@@ -127,7 +245,7 @@ try {
     assert.equal(metrics.images.filter(image => image.target === 'player').length, 2);
 
     for (const screen of ['battle', 'start', 'choice']) {
-      await page.getByRole('button', {
+      await page.locator('.view-switcher').getByRole('link', {
         name: screen === 'choice' ? '法宝' : screen === 'start' ? '开局' : '战斗',
         exact: true,
       }).click();
@@ -292,7 +410,8 @@ try {
   await captureNavigationPage.waitForFunction(() =>
     document.querySelector('#preview-app')?.dataset.assetsReady === 'false',
   );
-  await captureNavigationPage.getByRole('button', { name: '开局', exact: true }).click();
+  await captureNavigationPage.locator('.view-switcher')
+    .getByRole('link', { name: '开局', exact: true }).click();
   await captureNavigationPage.waitForFunction(() =>
     document.querySelector('#preview-app')?.dataset.assetsReady === 'true',
   );
@@ -354,7 +473,7 @@ try {
   await mockAssets(page);
   await page.goto(origin);
   await page.waitForFunction(() => document.querySelector('#preview-app')?.dataset.assetsReady === 'true');
-  await page.getByRole('button', { name: '对比' }).click();
+  await page.locator('.view-switcher').getByRole('link', { name: '对比' }).click();
   const comparison = await page.locator('.screen-deck').evaluate(node => ({
     scrollWidth: node.scrollWidth,
     clientWidth: node.clientWidth,

@@ -4,13 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="color-scheme" content="light">
-    <title>山海手机样稿</title>
+    <title>随时修仙</title>
     <link rel="icon" type="image/png" href="/assets/artifact-rr15.png">
     <link rel="stylesheet" href="/styles.css">
     <script type="module" src="/app.js"></script>
   </head>
   <body>
-    <div id="preview-app" data-view="battle">
+    <div id="preview-app" data-view="overview">
       <header class="preview-toolbar">
         <div class="toolbar-heading">
           <h1>随时修仙</h1>
@@ -18,14 +18,32 @@
           <button id="capture-preview" type="button" title="进入待确认样稿截图模式" disabled>截图样稿</button>
         </div>
         <nav class="view-switcher" aria-label="预览画面">
-          <button type="button" data-view-button="battle" aria-pressed="true">战斗</button>
-          <button type="button" data-view-button="start" aria-pressed="false">开局</button>
-          <button type="button" data-view-button="choice" aria-pressed="false">法宝</button>
-          <button type="button" data-view-button="compare" aria-pressed="false">对比</button>
+          <a href="?screen=overview" data-view-link="overview" aria-current="page">总览</a>
+          <a href="?screen=battle" data-view-link="battle">战斗</a>
+          <a href="?screen=start" data-view-link="start">开局</a>
+          <a href="?screen=choice" data-view-link="choice">法宝</a>
+          <a href="?screen=compare" data-view-link="compare">对比</a>
         </nav>
       </header>
 
       <main class="preview-stage">
+        <section class="style-overview" aria-labelledby="overview-title">
+          <h2 id="overview-title">风格总览</h2>
+          <div class="overview-gallery">
+            <a class="overview-link" href="?screen=start" data-view-link="start" aria-label="开局画面预览">
+              <img src="/previews/start.png" alt="开局界面完整样稿" loading="lazy">
+              <span>开局</span>
+            </a>
+            <a class="overview-link" href="?screen=battle" data-view-link="battle" aria-label="战斗画面预览">
+              <img src="/previews/battle.png" alt="战斗界面完整样稿" loading="lazy">
+              <span>战斗</span>
+            </a>
+            <a class="overview-link" href="?screen=choice" data-view-link="choice" aria-label="法宝三选一画面预览">
+              <img src="/previews/choice.png" alt="法宝三选一界面完整样稿" loading="lazy">
+              <span>法宝三选一</span>
+            </a>
+          </div>
+        </section>
         <div class="screen-deck">
           <section class="phone-screen battle-screen" data-screen="battle" aria-label="战斗画面">
             <img class="scene-image" data-asset-target="battle-scene" alt="" hidden>
@@ -113,7 +131,7 @@
                   <button type="button" data-method="RKF04" aria-pressed="false">御火诀</button>
                   <button type="button" data-method="RKF05" aria-pressed="false">养剑诀</button>
                 </div>
-                <p id="method-cue" class="method-cue" aria-live="polite">普攻和怒技攻击，并按防御获得护盾；护盾可反击敌方攻击。</p>
+                <p id="method-cue" class="method-cue" aria-live="polite">按防御获得护盾，护盾能反击敌人。</p>
               </fieldset>
               <button class="start-action" type="submit">踏入山海</button>
             </form>

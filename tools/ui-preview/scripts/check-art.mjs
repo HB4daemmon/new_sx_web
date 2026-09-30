@@ -9,6 +9,7 @@ import { createPreviewServer } from './serve.mjs';
 const moduleRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const assetRoot = path.join(moduleRoot, 'public', 'assets');
 const captureRoot = path.join(moduleRoot, 'captures', 'real-art');
+const overviewCaptureRoot = path.join(moduleRoot, 'captures', 'style-overview');
 const manifest = JSON.parse(await readFile(path.join(assetRoot, 'manifest.json'), 'utf8'));
 const expectedAssets = [
   ['battle-scene', '/assets/scene-battle.webp', 'scene'],
@@ -338,12 +339,105 @@ async function assertRenderedTargets(page) {
   return targets;
 }
 
+async function assertOverviewPreviews(page, viewport, label) {
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll('.overview-link img')]
+      .every(image => image.complete && image.naturalWidth > 0 && image.naturalHeight > 0),
+  );
+  const metrics = await page.evaluate(async () => {
+    const previews = [];
+    for (const link of document.querySelectorAll('.overview-link')) {
+      const image = link.querySelector('img');
+      await image.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = 128;
+      canvas.height = 128;
+      const context = canvas.getContext('2d', { willReadFrequently: true });
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+      let visiblePixels = 0;
+      const colors = new Set();
+      for (let index = 0; index < pixels.length; index += 4) {
+        const [red, green, blue, alpha] = pixels.slice(index, index + 4);
+        if (alpha > 16) {
+          visiblePixels += 1;
+          colors.add(`${red >> 4}:${green >> 4}:${blue >> 4}`);
+        }
+      }
+      const rect = link.getBoundingClientRect();
+      const imageRect = image.getBoundingClientRect();
+      previews.push({
+        label: link.getAttribute('aria-label'),
+        imageAlt: image.alt,
+        decoded: image.complete && image.naturalWidth === 320 && image.naturalHeight === 760,
+        visiblePixels,
+        colorBuckets: colors.size,
+        link: { x: rect.x, y: rect.y, width: rect.width, height: rect.height, right: rect.right, bottom: rect.bottom },
+        image: { width: imageRect.width, height: imageRect.height },
+      });
+    }
+    return {
+      view: document.querySelector('#preview-app').dataset.view,
+      document: {
+        width: document.documentElement.scrollWidth,
+        height: document.documentElement.scrollHeight,
+        bodyWidth: document.body.scrollWidth,
+        bodyHeight: document.body.scrollHeight,
+      },
+      previews,
+    };
+  });
+
+  assert.equal(metrics.view, 'overview', `${label}: expected overview view`);
+  assert.ok(metrics.document.width <= viewport.width + 1, `${label}: horizontal page overflow`);
+  assert.ok(metrics.document.height <= viewport.height + 1, `${label}: vertical page overflow`);
+  assert.ok(metrics.document.bodyWidth <= viewport.width + 1, `${label}: horizontal body overflow`);
+  assert.ok(metrics.document.bodyHeight <= viewport.height + 1, `${label}: vertical body overflow`);
+  assert.equal(metrics.previews.length, 3);
+  assert.ok(metrics.previews.every(item =>
+    item.decoded &&
+    item.imageAlt.length > 0 &&
+    item.visiblePixels > 500 &&
+    item.colorBuckets > 12 &&
+    item.link.width >= 44 &&
+    item.link.height >= 44 &&
+    item.link.x >= -1 &&
+    item.link.right <= viewport.width + 1 &&
+    item.link.y >= -1 &&
+    item.link.bottom <= viewport.height + 1),
+  `${label}: overview previews must decode, show real pixels, and fit the first viewport`);
+
+  if (viewport.width === 1440) {
+    assert.deepEqual(metrics.previews.map(item => item.image.width), [320, 320, 320]);
+    assert.deepEqual(metrics.previews.map(item => item.image.height), [760, 760, 760]);
+  }
+
+  await mkdir(overviewCaptureRoot, { recursive: true });
+  await page.screenshot({
+    path: path.join(overviewCaptureRoot, `${label}-${viewport.width}x${viewport.height}.png`),
+  });
+}
+
 try {
   browser = await chromium.launch({
     executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH ||
       '/home/ubuntu/.cache/ms-playwright/chromium-1228/chrome-linux/chrome',
     headless: true,
   });
+
+  const sharedOverview = await readyPage(
+    { width: 320, height: 760 },
+    'overview-shareable',
+    `${origin}/?screen=overview`,
+  );
+  await assertOverviewPreviews(
+    sharedOverview,
+    { width: 320, height: 760 },
+    'overview-shareable',
+  );
+  await checkPageErrors(sharedOverview, 'overview-shareable');
+  await sharedOverview.close();
+  console.log('Explicit overview URL and real screenshot pixels OK');
 
   const privatePaths = [
     '/scripts/check-art.mjs',
@@ -412,10 +506,12 @@ try {
     const page = await readyPage(viewport, `workflow-${viewport.width}`);
     const decoded = await assertActualImages(page);
     const targets = await assertRenderedTargets(page);
+    await assertOverviewPreviews(page, viewport, `overview-root-${viewport.width}`);
     assert.equal(await page.locator('svg').count(), 0, 'preview uses the actual raster assets, not SVG stand-ins');
     assert.equal(await page.locator('#asset-status').textContent(), '素材已载入，待视觉确认');
 
-    await page.getByRole('button', { name: '战斗', exact: true }).click();
+    await page.locator('.view-switcher')
+      .getByRole('link', { name: '战斗', exact: true }).click();
     await inspectScreen(page, 'battle', viewport.width, { capture: false });
     const actor = page.locator('.battle-actors img').first();
     const transforms = [];
@@ -446,7 +542,8 @@ try {
     await page.getByRole('button', { name: '关闭详情' }).click();
     console.log(`Battle animation and HUD labels OK ${viewport.width}x${viewport.height}`);
 
-    await page.getByRole('button', { name: '开局', exact: true }).click();
+    await page.locator('.view-switcher')
+      .getByRole('link', { name: '开局', exact: true }).click();
     const startMetrics = await inspectScreen(page, 'start', viewport.width, { capture: false });
     const methodCues = [
       ['RKF01', '按防御获得护盾，护盾能反击敌人。'],
@@ -471,7 +568,8 @@ try {
     await page.getByRole('button', { name: '关闭详情' }).click();
     console.log(`Method switching and seed persistence OK ${viewport.width}x${viewport.height}`);
 
-    await page.getByRole('button', { name: '法宝', exact: true }).click();
+    await page.locator('.view-switcher')
+      .getByRole('link', { name: '法宝', exact: true }).click();
     const choiceMetrics = await inspectScreen(page, 'choice', viewport.width, { capture: false });
     assert.ok(choiceMetrics.controls.length >= 7);
     for (const name of ['震岳鼓', '余烬盏', '定心佩']) {
@@ -500,7 +598,9 @@ try {
     { width: 1440, height: 900 },
     'desktop-comparison',
   );
-  await desktop.getByRole('button', { name: '对比', exact: true }).click();
+  await assertOverviewPreviews(desktop, { width: 1440, height: 900 }, 'overview-root-desktop');
+  await desktop.locator('.view-switcher')
+    .getByRole('link', { name: '对比', exact: true }).click();
   const desktopCapture = path.join(captureRoot, 'comparison-1440x900.png');
   await desktop.screenshot({ path: desktopCapture });
   const comparison = await desktop.locator('.screen-deck').evaluate(node => ({

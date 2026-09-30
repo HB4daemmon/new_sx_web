@@ -45,7 +45,8 @@ button {
 }
 
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+a:focus-visible {
   outline: 2px solid var(--vermilion);
   outline-offset: 2px;
 }
@@ -86,7 +87,7 @@ input:focus-visible {
 }
 
 .toolbar-heading button,
-.view-switcher button {
+.view-switcher a {
   min-height: 44px;
   border: 1px solid #9ba69b;
   border-radius: 4px;
@@ -108,16 +109,21 @@ input:focus-visible {
 
 .view-switcher {
   display: grid;
-  grid-template-columns: repeat(4, minmax(54px, auto));
+  grid-template-columns: repeat(5, minmax(54px, auto));
   gap: 4px;
   flex: 0 0 auto;
 }
 
-.view-switcher button {
+.view-switcher a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 0 10px;
+  color: inherit;
+  text-decoration: none;
 }
 
-.view-switcher button[aria-pressed="true"] {
+.view-switcher a[aria-current="page"] {
   color: #fff;
   border-color: var(--leaf-deep);
   background: var(--leaf-deep);
@@ -136,6 +142,56 @@ input:focus-visible {
   width: 100%;
   max-width: 1060px;
   margin: 0 auto;
+}
+
+.style-overview {
+  display: none;
+}
+
+#preview-app[data-view="overview"] .style-overview {
+  display: block;
+}
+
+#preview-app[data-view="overview"] .preview-stage {
+  padding-bottom: 0;
+}
+
+.style-overview h2 {
+  margin: 0 0 8px;
+  color: var(--leaf-deep);
+  font-size: 18px;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.overview-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 320px));
+  justify-content: center;
+  align-items: start;
+  gap: 12px;
+}
+
+.overview-link {
+  display: flex;
+  min-width: 44px;
+  min-height: 44px;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.overview-link img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 8 / 19;
+  border: 1px solid #9ba69b;
+  background: #d7dbd2;
+  object-fit: contain;
 }
 
 .phone-screen {
@@ -760,6 +816,17 @@ input:focus-visible {
   min-height: 100dvh;
 }
 
+@media (max-width: 700px) {
+  .style-overview {
+    width: calc(100% - 20px);
+    margin: 0 auto;
+  }
+
+  .overview-gallery {
+    gap: 6px;
+  }
+}
+
 @keyframes character-idle {
   0%,
   100% {
@@ -793,10 +860,11 @@ input:focus-visible {
   }
 
   .view-switcher {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
-  .view-switcher button {
+  .view-switcher a {
+    min-width: 0;
     padding: 0 4px;
   }
 

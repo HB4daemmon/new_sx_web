@@ -1,6 +1,6 @@
 # Shanhai UI Preview
 
-An isolated three-screen mobile mockup for battle, run start, and artifact choice. It uses native HTML, CSS, and JavaScript and does not import the game runtime or root dependencies. It is a presentation prototype, not a playable game; example combat values are static samples.
+An isolated style overview and three-screen mobile mockup for battle, run start, and artifact choice. It uses native HTML, CSS, and JavaScript and does not import the game runtime or root dependencies. It is a presentation prototype, not a playable game; example combat values are static samples.
 
 ## Run and verify
 
@@ -11,11 +11,14 @@ npm run dev
 npm test
 npm run test:layout
 npm run test:art
+npm run capture:previews
 ```
 
-The preview server binds to `0.0.0.0:4174`. `npm test` uses Node's built-in test runner and exercises the static-file allowlist, traversal rejection, and CSP. `npm run test:layout` uses an already-installed Playwright module when available; it starts a temporary loopback server on an ephemeral port and checks mobile layouts, interactions, capture sizes, and desktop comparison. Its temporary 1x1 PNG fixtures test loading and decoding only. `npm run test:art` uses the same cached Playwright setup and the real local assets without request interception; it checks decoded pixels, mobile captures, interactions, animation, and browser errors. It writes ignored screenshots under `captures/real-art/`. Neither browser test grants visual approval.
+The preview server binds to `0.0.0.0:4174`. Open the style overview at `http://localhost:4174/?screen=overview`; the root URL also opens this view. The three complete screenshot previews link to the existing interactive samples, and the shared navigation supports direct URLs plus browser back/forward. The desktop comparison remains available as an optional view.
 
-The external toolbar switches among the three screens or shows a desktop comparison. Ordinary preview screens are exactly 320x760 CSS pixels, have no decorative phone frame, and can be opened directly with `?screen=battle`, `?screen=start`, or `?screen=choice`. Capture mode fills the actual viewport and hides the toolbar. The desktop comparison remains three 320x760 samples side by side.
+`npm test` uses Node's built-in test runner and exercises the static-file allowlist, traversal rejection, and CSP. `npm run test:layout` uses an already-installed Playwright module when available; it starts a temporary loopback server on an ephemeral port and checks mobile layouts, interactions, capture sizes, and desktop comparison. Its temporary 1x1 PNG fixtures test loading and decoding only. `npm run test:art` uses the same cached Playwright setup and the real local assets without request interception; it checks decoded pixels, overview screenshots, mobile captures, interactions, animation, and browser errors. It writes ignored screenshots under `captures/real-art/` and `captures/style-overview/`. Neither browser test grants visual approval.
+
+The overview screenshots under `public/previews/` are captured from the real 320x760 sample screens, not miniature interactive layouts. Run `npm run capture:previews` explicitly after changing the sample UI or assets. This command starts its own temporary loopback server, uses the existing local Playwright/browser installation, and overwrites only those three screenshots; normal tests, builds, and watchers do not regenerate them. Ordinary preview screens are exactly 320x760 CSS pixels, have no decorative phone frame, and can be opened directly with `?screen=battle`, `?screen=start`, or `?screen=choice`. Capture mode fills the actual viewport and hides the toolbar. The desktop comparison remains three 320x760 samples side by side.
 
 ## Asset contract
 
@@ -42,4 +45,4 @@ Expected composition: battle and start scenes should be composed for 320x760 and
 
 ## Boundaries
 
-The preview controls only change local presentation state. They do not start a run, advance combat, or read/write game state. The server only exposes the public HTML, stylesheet, script, manifest, and approved asset filename patterns; module scripts, package metadata, and files outside `public/` are not served.
+The preview controls only change local presentation state. They do not start a run, advance combat, or read/write game state. The server only exposes the public HTML, stylesheet, script, manifest, three exact screenshot preview paths, and approved asset filename patterns; module scripts, package metadata, and files outside `public/` are not served.

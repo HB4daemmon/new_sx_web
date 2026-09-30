@@ -39,44 +39,73 @@ const methods = {
   },
 };
 const allowedScreens = new Set(['battle', 'start', 'choice']);
+const allowedViews = new Set(['overview', ...allowedScreens, 'compare']);
 const assetPathPattern = /^\/assets\/(?:scene-(?:battle|start)|player|enemy|artifact-[a-z0-9-]+)\.(?:png|webp)$/;
 const app = document.querySelector('#preview-app');
 const assetStatus = document.querySelector('#asset-status');
 const captureButton = document.querySelector('#capture-preview');
 const params = new URLSearchParams(location.search);
 const initialScreen = params.get('screen');
-let currentView = allowedScreens.has(initialScreen) ? initialScreen : 'battle';
+let currentView = allowedViews.has(initialScreen) ? initialScreen : 'overview';
 let selectedArtifact = 'artifact-rr09';
 let selectedMethod = 'RKF01';
-let captureRequested = params.get('capture') === '1';
+let captureRequested = allowedScreens.has(currentView) && params.get('capture') === '1';
 app.dataset.assetsReady = 'false';
 app.dataset.visualApproval = 'pending';
 app.dataset.previewSpeed = 'normal';
 app.dataset.previewPaused = 'false';
 
-function setView(view, { preserveCapture = false } = {}) {
-  if (view !== 'compare' && !allowedScreens.has(view)) return;
+function setView(view, { historyMode = 'push', preserveCapture = false } = {}) {
+  if (!allowedViews.has(view)) return;
+  const requestCapture = preserveCapture &&
+    allowedScreens.has(view) &&
+    new URLSearchParams(location.search).get('capture') === '1';
   currentView = view === 'compare' ? 'battle' : view;
   app.dataset.view = view;
-  document.querySelectorAll('[data-view-button]').forEach(button => {
-    button.setAttribute('aria-pressed', String(button.dataset.viewButton === view));
+  captureButton.hidden = view === 'overview' || view === 'compare';
+  document.querySelectorAll('[data-view-link]').forEach(link => {
+    if (link.dataset.viewLink === view) {
+      link.setAttribute('aria-current', 'page');
+    } else {
+      link.removeAttribute('aria-current');
+    }
   });
+
   const url = new URL(location.href);
-  if (!preserveCapture) {
-    captureRequested = false;
+  url.searchParams.set('screen', view);
+  captureRequested = requestCapture;
+  if (!captureRequested) {
     delete app.dataset.capture;
     url.searchParams.delete('capture');
+  } else if (app.dataset.assetsReady === 'true') {
+    app.dataset.capture = 'true';
   }
-  if (view === 'compare') {
-    url.searchParams.delete('screen');
-  } else {
-    url.searchParams.set('screen', view);
+
+  if (historyMode === 'push' && url.href !== location.href) {
+    history.pushState(null, '', url);
+  } else if (historyMode === 'replace' && url.href !== location.href) {
+    history.replaceState(null, '', url);
   }
-  history.replaceState(null, '', url);
 }
 
-document.querySelectorAll('[data-view-button]').forEach(button => {
-  button.addEventListener('click', () => setView(button.dataset.viewButton));
+function viewFromLocation() {
+  const view = new URLSearchParams(location.search).get('screen');
+  return allowedViews.has(view) ? view : 'overview';
+}
+
+document.querySelectorAll('[data-view-link]').forEach(link => {
+  link.addEventListener('click', event => {
+    if (
+      event.defaultPrevented || event.button !== 0 ||
+      event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
+    ) return;
+    event.preventDefault();
+    setView(link.dataset.viewLink);
+  });
+});
+
+window.addEventListener('popstate', () => {
+  setView(viewFromLocation(), { historyMode: 'none', preserveCapture: true });
 });
 
 function loadImage(src) {
@@ -295,5 +324,5 @@ dialog.addEventListener('click', event => {
   if (event.target === dialog) dialog.close();
 });
 
-setView(currentView, { preserveCapture: captureRequested });
+setView(currentView, { historyMode: 'replace', preserveCapture: true });
 loadApprovedAssets();

@@ -23,10 +23,12 @@ test('static path resolver only admits public UI and manifest files', () => {
   assert.match(resolvePublicPath('/styles.css'), /\/public\/styles\.css$/);
   assert.match(resolvePublicPath('/assets/scene-battle.webp'), /\/public\/assets\/scene-battle\.webp$/);
   assert.match(resolvePublicPath('/assets/artifact-tide-mirror.png'), /\/public\/assets\/artifact-tide-mirror\.png$/);
+  assert.match(resolvePublicPath('/previews/start.png'), /\/public\/previews\/start\.png$/);
   assert.equal(resolvePublicPath('/package.json'), null);
   assert.equal(resolvePublicPath('/scripts/serve.mjs'), null);
   assert.equal(resolvePublicPath('/assets/CREDITS.txt'), null);
   assert.equal(resolvePublicPath('/assets/unknown.gif'), null);
+  assert.equal(resolvePublicPath('/previews/unknown.png'), null);
 });
 
 test('static path resolver rejects traversal, encoded separators, and malformed escapes', () => {
@@ -62,17 +64,21 @@ test('HTTP server serves only allowlisted files within public/', async () => {
     '/../package.json',
     '/%2e%2e/package.json',
     '/assets/manifest.json/../../package.json',
+    '/previews/unknown.png',
   ]) {
     const result = await fetch(`${origin}${target}`);
     assert.equal(result.status, 404, target);
   }
 });
 
-test('HTTP server serves JSON, PNG, and WebP with correct MIME types for GET and HEAD', async () => {
+test('HTTP server serves JSON, PNG, WebP, and preview PNGs with correct MIME types for GET and HEAD', async () => {
   for (const [target, contentType] of [
     ['/assets/manifest.json', 'application/json; charset=utf-8'],
     ['/assets/player.png', 'image/png'],
     ['/assets/scene-battle.webp', 'image/webp'],
+    ['/previews/start.png', 'image/png'],
+    ['/previews/battle.png', 'image/png'],
+    ['/previews/choice.png', 'image/png'],
   ]) {
     const get = await fetch(`${origin}${target}`);
     assert.equal(get.status, 200, `${target}: GET`);
