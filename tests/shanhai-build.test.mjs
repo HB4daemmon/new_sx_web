@@ -23,6 +23,56 @@ const SHANHAI_MODULES = [
   'types.js',
   'ui-text.js',
   'style.css',
+  'casual-theme.css',
+];
+const CASUAL_ASSETS = [
+  '1f30a.png',
+  '1f319.png',
+  '1f332.png',
+  '1f3d5.png',
+  '1f3fa.png',
+  '1f441.png',
+  '1f466.png',
+  '1f472.png',
+  '1f474.png',
+  '1f479.png',
+  '1f480.png',
+  '1f48d.png',
+  '1f48e.png',
+  '1f4d6.png',
+  '1f4dc.png',
+  '1f50a.png',
+  '1f514.png',
+  '1f525.png',
+  '1f52e.png',
+  '1f6a9.png',
+  '1f6e1.png',
+  '1f98a.png',
+  '1f99a.png',
+  '1f9d1.png',
+  '1f9d8.png',
+  '1f9d9.png',
+  '1fa94.png',
+  '1fa99.png',
+  '1fa9e.png',
+  '1faa8.png',
+  '1fab6.png',
+  '1fab7.png',
+  '2600.png',
+  '2601.png',
+  '2694.png',
+  '2699.png',
+  '26a1.png',
+  '26e9.png',
+  '26f0.png',
+  '270a.png',
+  '2714.png',
+  '274c.png',
+  '2754.png',
+  '2764.png',
+  '27a1.png',
+  '2b50.png',
+  'landscape.png',
 ];
 
 async function walkTree(directory, relative = '') {
@@ -147,6 +197,9 @@ test('dist contains only the Shanhai Pages artifact and all 152 manifest entitie
     'index.html',
     'content/manifest.json',
     ...SHANHAI_MODULES.map(file => `shanhai/${file}`),
+    ...CASUAL_ASSETS.map(file => `assets/casual/${file}`),
+    'assets/casual/CREDITS.txt',
+    'assets/casual/LICENSE.txt',
   ];
   const expectedFiles = [...staticFiles, ...entityFiles].sort();
   const tree = await walkTree(DIST);
@@ -198,10 +251,18 @@ test('index and ESM content URLs remain relative under a GitHub Pages subpath', 
   const html = await readFile(path.join(ROOT, 'index.html'), 'utf8');
   const scriptSource = html.match(/<script\s+type="module"\s+src="([^"]+)"/)?.[1];
   const stylesheetSource = html.match(/<link\s+rel="stylesheet"\s+href="([^"]+)"/)?.[1];
+  const casualStylesheetSource = html.match(
+    /<link\s+rel="stylesheet"\s+href="([^"]*casual-theme\.css)"/,
+  )?.[1];
   assert.equal(scriptSource, './shanhai/app.js');
   assert.equal(stylesheetSource, './shanhai/style.css');
+  assert.equal(casualStylesheetSource, './shanhai/casual-theme.css');
   assert.equal(new URL(scriptSource, pageUrl).pathname, '/suishi-xiuxian/shanhai/app.js');
   assert.equal(new URL(stylesheetSource, pageUrl).pathname, '/suishi-xiuxian/shanhai/style.css');
+  assert.equal(
+    new URL(casualStylesheetSource, pageUrl).pathname,
+    '/suishi-xiuxian/shanhai/casual-theme.css',
+  );
 
   const appUrl = new URL(scriptSource, pageUrl);
   const app = await readFile(path.join(DIST, 'shanhai/app.js'), 'utf8');
@@ -246,6 +307,24 @@ test('temporary HTTP server serves public assets and rejects private or traverse
     const stylesheet = await fetch(`${base}/shanhai/style.css`);
     assert.equal(stylesheet.status, 200);
     assert.equal(stylesheet.headers.get('content-type'), 'text/css; charset=utf-8');
+
+    const casualStylesheet = await fetch(`${base}/shanhai/casual-theme.css`);
+    assert.equal(casualStylesheet.status, 200);
+    assert.equal(casualStylesheet.headers.get('content-type'), 'text/css; charset=utf-8');
+
+    for (const file of CASUAL_ASSETS) {
+      const asset = await fetch(`${base}/assets/casual/${file}`);
+      assert.equal(asset.status, 200, file);
+      assert.equal(asset.headers.get('content-type'), 'image/png', file);
+      const bytes = Buffer.from(await asset.arrayBuffer());
+      assert.equal(bytes.toString('hex', 0, 8), '89504e470d0a1a0a', file);
+    }
+    const credits = await fetch(`${base}/assets/casual/CREDITS.txt`);
+    assert.equal(credits.status, 200);
+    assert.match(await credits.text(), /Twemoji v17\.0\.3/);
+    const license = await fetch(`${base}/assets/casual/LICENSE.txt`);
+    assert.equal(license.status, 200);
+    assert.match(await license.text(), /Attribution 4\.0/);
 
     const atlasSource = await readFile(path.join(ROOT, 'assets/generated/combat-vfx-atlas.webp'));
     const atlas = await fetch(`${base}/assets/generated/combat-vfx-atlas.webp`);

@@ -158,6 +158,14 @@ type ModalKind =
   | null;
 
 type BattleDetailTab = 'player' | 'enemy' | 'log' | 'result';
+type ConnectorKind = 'earned' | 'next' | 'map-completed' | 'map-future';
+
+type ConnectorLine = {
+  metadata: HTMLElement;
+  from: HTMLElement;
+  to: HTMLElement;
+  kind: ConnectorKind;
+};
 
 function isRecord(value: unknown): value is Record<string, any> {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
@@ -327,6 +335,13 @@ class ShanhaiApp {
     this.root.addEventListener('click', (event) => this.onClick(event));
     this.root.addEventListener('input', (event) => this.onInput(event));
     this.root.addEventListener('keydown', (event) => this.onKeyDown(event));
+    this.root.addEventListener('animationend', (event) => {
+      if (event.animationName !== 'shanhai-modal-entry') return;
+      const modal = event.target;
+      if (!(modal instanceof HTMLElement) || !modal.matches('.modal') ||
+        !modal.querySelector('.talent-tree-connectors')) return;
+      this.syncTalentTreeConnectors();
+    });
     window.addEventListener('resize', () => {
       const map = this.root.querySelector<HTMLElement>('.map-scroll');
       if (map) {
@@ -334,6 +349,7 @@ class ShanhaiApp {
         this.mapScrollTop = map.scrollTop;
         this.mapScrollKey = map.dataset.mapKey || this.mapScrollKey;
       }
+      this.syncMapConnectors();
       this.syncTalentTreeConnectors();
     }, { passive: true });
     window.addEventListener('beforeunload', () => this.stopPlayback());
@@ -1258,6 +1274,7 @@ class ShanhaiApp {
     if (this.canRenderBattleInPlace(state)) {
       this.updateBattlePresentation(false);
       this.syncModalMarkupInPlace();
+      this.syncMapConnectors();
       this.syncTalentTreeConnectors();
       this.syncModalIsolation();
       this.restoreUiState();
@@ -1265,6 +1282,7 @@ class ShanhaiApp {
       return;
     }
     this.replaceRoot(this.renderGame(state));
+    this.syncMapConnectors();
     this.syncTalentTreeConnectors();
     this.syncModalIsolation();
     if (state.phase === 'battle') this.ensurePlayback();
@@ -1866,18 +1884,18 @@ class ShanhaiApp {
     const x = (index: number): number => 400 + (index % 2 === 0 ? -54 : 54);
     const connectors = nodes.slice(0, -1).map((node, index) => {
       const done = index < currentIndex || node.completed;
-      return `<path d="M${x(index)} ${y(index)} C${x(index)} ${y(index) - 44} ${x(index + 1)} ${y(index + 1) + 44} ${x(index + 1)} ${y(index + 1)}" fill="none" stroke="${done ? '#d7bd7a' : '#9b9e75'}" stroke-width="${done ? 2.4 : 1.3}" stroke-dasharray="${done ? 'none' : '5 8'}" opacity="${done ? '.78' : '.35'}"/>`;
+      return `<i class="map-connection" data-from-index="${index}" data-to-index="${index + 1}" data-completed="${done}"></i>`;
     }).join('');
     return `${this.stageHeading(`第${state.act}幕 · 山河图`, asText(act.name, `第${state.act}幕`))}
       <div class="map-goal"><span>${icon('flag', 17)}已选路线</span><b>${esc(this.routeName(state))}</b><span class="map-step">${Math.max(0, currentIndex) + 1} / ${nodes.length || 0}</span></div>
-      <div class="map-scroll" data-map-key="${esc(this.mapIdentity(state))}" tabindex="0" aria-label="本幕路线，可上下滚动"><div class="map-wrap" style="height:${height}px">${landscape()}<svg class="map-lines" viewBox="0 0 800 ${height}" preserveAspectRatio="none" aria-hidden="true">${connectors}</svg>
+      <div class="map-scroll" data-map-key="${esc(this.mapIdentity(state))}" tabindex="0" aria-label="本幕路线，可上下滚动"><div class="map-wrap" style="height:${height}px">${landscape()}<canvas class="map-lines" aria-hidden="true"></canvas><div class="map-connector-metadata" hidden>${connectors}</div>
         ${orderedNodes.map(({ node, index }) => {
           const meta = nodeMeta(node.type);
           const entity = this.byId(node.id);
           const label = asText(entity?.name, meta.label);
           const available = index === currentIndex && !node.completed;
           const done = index < currentIndex || node.completed;
-          return `<button class="map-node ${available ? 'available' : ''} ${done ? 'done' : ''} ${node.type === 'B' || node.type === 'F' ? 'boss' : ''}" style="left:${x(index) / 8}%;top:${y(index) / height * 100}%" data-action="preview-node" data-id="${esc(node.id)}" data-node-type="${esc(node.type)}" ${available ? '' : 'disabled'} aria-label="${esc(`${label}，${meta.label}${available ? '，查看预览' : ''}`)}" title="${esc(meta.label)}"><span class="node-disc">${icon(done ? 'check' : meta.icon, node.type === 'B' || node.type === 'F' ? 28 : 22)}</span><span class="node-label">${esc(label)}</span></button>`;
+          return `<button class="map-node ${available ? 'available' : ''} ${done ? 'done' : ''} ${node.type === 'B' || node.type === 'F' ? 'boss' : ''}" style="left:${x(index) / 8}%;top:${y(index) / height * 100}%" data-map-node-index="${index}" data-action="preview-node" data-id="${esc(node.id)}" data-node-type="${esc(node.type)}" ${available ? '' : 'disabled'} aria-label="${esc(`${label}，${meta.label}${available ? '，查看预览' : ''}`)}" title="${esc(meta.label)}"><span class="node-disc">${icon(done ? 'check' : meta.icon, node.type === 'B' || node.type === 'F' ? 28 : 22)}</span><span class="node-label">${esc(label)}</span></button>`;
         }).join('')}
         <div class="map-note"><span>${esc(asText(act.name, `第${state.act}幕`))}</span><span class="node-count">${Math.min(nodes.length, currentIndex + (nodes[currentIndex]?.completed ? 1 : 0))} / ${nodes.length}</span></div>
       </div></div>
@@ -1900,7 +1918,7 @@ class ShanhaiApp {
       .filter((next): next is RouteMapNode => Boolean(next))
       .map((next) => {
         const completed = traversed.has(asText(node.key)) && traversed.has(asText(next.key));
-        return `<path d="M${x(asNumber(node.lane))} ${y(asNumber(node.depth))} C${x(asNumber(node.lane))} ${y(asNumber(node.depth)) - 48} ${x(asNumber(next.lane))} ${y(asNumber(next.depth)) + 48} ${x(asNumber(next.lane))} ${y(asNumber(next.depth))}" fill="none" stroke="${completed ? '#d7bd7a' : '#9b9e75'}" stroke-width="${completed ? 2.4 : 1.3}" stroke-dasharray="${completed ? 'none' : '5 8'}" opacity="${completed ? '.78' : '.35'}"/>`;
+        return `<i class="map-connection" data-from-key="${esc(asText(node.key))}" data-to-key="${esc(asText(next.key))}" data-completed="${completed}"></i>`;
       })).join('');
     const nodeTypeSummary: Record<string, string> = {
       C: '前路伏着敌手',
@@ -1924,13 +1942,13 @@ class ShanhaiApp {
       const description = done ? '已走过' : canEnter && node.description
         ? this.displayText(node.description)
         : nodeTypeSummary[node.type] || '前路未明';
-      return `<button class="map-node ${canEnter ? 'available' : ''} ${done ? 'done' : ''} ${node.type === 'B' || node.type === 'F' ? 'boss' : ''}" style="left:${x(asNumber(node.lane)) / 8}%;top:${y(asNumber(node.depth)) / height * 100}%" data-action="preview-node" data-id="${esc(key)}" data-node-type="${esc(node.type)}" ${canEnter ? '' : 'disabled'} aria-label="${esc(`${label}，${description}${canEnter ? '，查看预览' : ''}`)}" title="${esc(description)}"><span class="node-disc">${icon(done ? 'check' : meta.icon, node.type === 'B' || node.type === 'F' ? 28 : 22)}</span><span class="node-label">${esc(label)}</span><small class="node-description">${esc(description)}</small></button>`;
+      return `<button class="map-node ${canEnter ? 'available' : ''} ${done ? 'done' : ''} ${node.type === 'B' || node.type === 'F' ? 'boss' : ''}" style="left:${x(asNumber(node.lane)) / 8}%;top:${y(asNumber(node.depth)) / height * 100}%" data-map-node-key="${esc(key)}" data-action="preview-node" data-id="${esc(key)}" data-node-type="${esc(node.type)}" ${canEnter ? '' : 'disabled'} aria-label="${esc(`${label}，${description}${canEnter ? '，查看预览' : ''}`)}" title="${esc(description)}"><span class="node-disc">${icon(done ? 'check' : meta.icon, node.type === 'B' || node.type === 'F' ? 28 : 22)}</span><span class="node-label">${esc(label)}</span><small class="node-description">${esc(description)}</small></button>`;
     }).join('');
     const completed = state.nodes.filter((node) => node.completed).length;
     const progress = `${completed} / ${nodes.length ? maxDepth + 1 : 0}`;
     return `${this.stageHeading(`第${state.act}幕 · 山河图`, asText(act.name, `第${state.act}幕`))}
       <div class="map-goal"><span>${icon('flag', 17)}行程</span><b>${completed ? `已行 ${completed} 格` : '山河初展'}</b><span class="map-step">${progress}</span></div>
-      <div class="map-scroll" data-map-key="${esc(this.mapIdentity(state))}" tabindex="0" aria-label="山河路线图"><div class="map-wrap" style="height:${height}px">${landscape()}<svg class="map-lines" viewBox="0 0 800 ${height}" preserveAspectRatio="none" aria-hidden="true">${connectors}</svg>${nodeMarkup}<div class="map-note"><span>${esc(asText(act.name, `第${state.act}幕`))}</span><span class="node-count">${progress}</span></div></div></div>
+      <div class="map-scroll" data-map-key="${esc(this.mapIdentity(state))}" tabindex="0" aria-label="山河路线图"><div class="map-wrap" style="height:${height}px">${landscape()}<canvas class="map-lines" aria-hidden="true"></canvas><div class="map-connector-metadata" hidden>${connectors}</div>${nodeMarkup}<div class="map-note"><span>${esc(asText(act.name, `第${state.act}幕`))}</span><span class="node-count">${progress}</span></div></div></div>
       ${this.inlineMessage()}`;
   }
 
@@ -2669,8 +2687,28 @@ class ShanhaiApp {
         asNumber(talents.find((talent) => talent.id === id)?.tier),
       ),
     );
+    const connectors: string[] = [];
+    const talentAt = (tier: number, idSet: Set<string>): Entity | undefined =>
+      talents.find((talent) =>
+        asNumber(talent.tier) === tier && idSet.has(asText(talent.id)),
+      );
+    for (let tier = 2; tier <= 4; tier += 1) {
+      const previous = talentAt(tier - 1, selectedIds);
+      const selected = talentAt(tier, selectedIds);
+      if (previous && selected) {
+        connectors.push(`<i class="talent-tree-connection" data-from-id="${esc(asText(previous.id))}" data-to-id="${esc(asText(selected.id))}" data-earned="true"></i>`);
+      }
+    }
+    for (const choice of talents.filter((talent) => activeIds.has(asText(talent.id)))) {
+      const tier = asNumber(choice.tier);
+      const previous = talentAt(tier - 1, selectedIds);
+      if (previous) {
+        connectors.push(`<i class="talent-tree-connection" data-from-id="${esc(asText(previous.id))}" data-to-id="${esc(asText(choice.id))}" data-next="true"></i>`);
+      }
+    }
     return `<div class="talent-tree ${selectable ? 'talent-tree-selecting' : 'talent-tree-readonly'}" data-method="${esc(methodIdValue)}">
-      <svg class="talent-tree-connectors" aria-hidden="true" focusable="false"></svg>
+      <canvas class="talent-tree-connectors" aria-hidden="true"></canvas>
+      <div class="talent-tree-connector-metadata" hidden>${connectors.join('')}</div>
       ${[1, 2, 3, 4].map((tier) => {
         const currentTier = [...activeIds].some((id) =>
           asNumber(talents.find((talent) => talent.id === id)?.tier) === tier,
@@ -2700,55 +2738,169 @@ class ShanhaiApp {
     </div>`;
   }
 
-  private syncTalentTreeConnectors(): void {
-    const svgNamespace = 'http://www.w3.org/2000/svg';
-    this.root.querySelectorAll<HTMLElement>('.talent-tree').forEach((tree) => {
-      const svg = tree.querySelector<SVGSVGElement>('.talent-tree-connectors');
-      if (!svg) return;
-      const treeRect = tree.getBoundingClientRect();
-      if (treeRect.width <= 0 || treeRect.height <= 0) {
-        svg.replaceChildren();
-        return;
-      }
-      svg.setAttribute('viewBox', `0 0 ${treeRect.width} ${treeRect.height}`);
-      const selectedByTier = new Map<number, HTMLElement>();
-      const choices: HTMLElement[] = [];
-      tree.querySelectorAll<HTMLElement>('.talent-tree-node[data-talent-id]').forEach((node) => {
-        const tier = asNumber(node.closest<HTMLElement>('.talent-tier-row')?.dataset.tier);
-        if (node.dataset.selected === 'true') selectedByTier.set(tier, node);
-        if (node.dataset.choice === 'current') choices.push(node);
+  private syncMapConnectors(): void {
+    this.root.querySelectorAll<HTMLCanvasElement>('.map-lines').forEach((canvas) => {
+      const mapWrap = canvas.closest<HTMLElement>('.map-wrap');
+      if (!mapWrap) return;
+      const byIndex = new Map<string, HTMLElement>();
+      const byKey = new Map<string, HTMLElement>();
+      mapWrap.querySelectorAll<HTMLElement>('.map-node[data-map-node-index]').forEach((node) => {
+        byIndex.set(asText(node.dataset.mapNodeIndex), node);
       });
-
-      const nodePoint = (node: HTMLElement, edge: 'top' | 'bottom'): { x: number; y: number } => {
-        const rect = node.getBoundingClientRect();
-        return {
-          x: rect.left + rect.width / 2 - treeRect.left,
-          y: (edge === 'top' ? rect.top : rect.bottom) - treeRect.top,
-        };
-      };
-      const paths: SVGPathElement[] = [];
-      const connect = (from: HTMLElement, to: HTMLElement, kind: 'earned' | 'next'): void => {
-        const start = nodePoint(from, 'bottom');
-        const end = nodePoint(to, 'top');
-        const middleY = (start.y + end.y) / 2;
-        const path = document.createElementNS(svgNamespace, 'path');
-        path.setAttribute('d', `M ${start.x} ${start.y} C ${start.x} ${middleY}, ${end.x} ${middleY}, ${end.x} ${end.y}`);
-        path.setAttribute(kind === 'earned' ? 'data-earned' : 'data-next', 'true');
-        paths.push(path);
-      };
-
-      for (let tier = 2; tier <= 4; tier += 1) {
-        const previous = selectedByTier.get(tier - 1);
-        const selected = selectedByTier.get(tier);
-        if (previous && selected) connect(previous, selected, 'earned');
-      }
-      for (const choice of choices) {
-        const tier = asNumber(choice.closest<HTMLElement>('.talent-tier-row')?.dataset.tier);
-        const previous = selectedByTier.get(tier - 1);
-        if (previous) connect(previous, choice, 'next');
-      }
-      svg.replaceChildren(...paths);
+      mapWrap.querySelectorAll<HTMLElement>('.map-node[data-map-node-key]').forEach((node) => {
+        byKey.set(asText(node.dataset.mapNodeKey), node);
+      });
+      const lines = Array.from(
+        mapWrap.querySelectorAll<HTMLElement>('.map-connector-metadata .map-connection'),
+      ).flatMap((metadata): ConnectorLine[] => {
+        const from = metadata.dataset.fromIndex !== undefined
+          ? byIndex.get(metadata.dataset.fromIndex)
+          : byKey.get(asText(metadata.dataset.fromKey));
+        const to = metadata.dataset.toIndex !== undefined
+          ? byIndex.get(metadata.dataset.toIndex)
+          : byKey.get(asText(metadata.dataset.toKey));
+        return from && to ? [{
+          metadata,
+          from,
+          to,
+          kind: metadata.dataset.completed === 'true' ? 'map-completed' : 'map-future',
+        }] : [];
+      });
+      this.drawConnectorCanvas(canvas, mapWrap, lines);
     });
+  }
+
+  private syncTalentTreeConnectors(): void {
+    this.root.querySelectorAll<HTMLCanvasElement>('.talent-tree-connectors').forEach((canvas) => {
+      const tree = canvas.closest<HTMLElement>('.talent-tree');
+      if (!tree) return;
+      const byId = new Map<string, HTMLElement>();
+      tree.querySelectorAll<HTMLElement>('.talent-tree-node[data-talent-id]').forEach((node) => {
+        byId.set(asText(node.dataset.talentId), node);
+      });
+      const lines = Array.from(
+        tree.querySelectorAll<HTMLElement>('.talent-tree-connector-metadata .talent-tree-connection'),
+      ).flatMap((metadata): ConnectorLine[] => {
+        const from = byId.get(asText(metadata.dataset.fromId));
+        const to = byId.get(asText(metadata.dataset.toId));
+        const kind = metadata.dataset.earned === 'true' ? 'earned'
+          : metadata.dataset.next === 'true' ? 'next'
+            : null;
+        return from && to && kind ? [{ metadata, from, to, kind }] : [];
+      });
+      this.drawConnectorCanvas(canvas, tree, lines);
+    });
+  }
+
+  private drawConnectorCanvas(
+    canvas: HTMLCanvasElement,
+    boundsElement: HTMLElement,
+    lines: ConnectorLine[],
+  ): void {
+    const bounds = boundsElement.getBoundingClientRect();
+    const width = bounds.width;
+    const height = bounds.height;
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    if (width <= 0 || height <= 0) {
+      if (canvas.width || canvas.height) {
+        canvas.width = 0;
+        canvas.height = 0;
+      }
+      canvas.dataset.renderKey = '';
+      lines.forEach(({ metadata }) => {
+        delete metadata.dataset.startX;
+        delete metadata.dataset.startY;
+        delete metadata.dataset.endX;
+        delete metadata.dataset.endY;
+        delete metadata.dataset.points;
+      });
+      return;
+    }
+
+    const pixelWidth = Math.max(1, Math.round(width * dpr));
+    const pixelHeight = Math.max(1, Math.round(height * dpr));
+    const resized = canvas.width !== pixelWidth || canvas.height !== pixelHeight;
+    if (resized) {
+      canvas.width = pixelWidth;
+      canvas.height = pixelHeight;
+    }
+
+    const styles = getComputedStyle(canvas);
+    const colors: Record<ConnectorKind, string> = {
+      earned: styles.getPropertyValue('--gold-bright').trim() || '#eed496',
+      next: styles.getPropertyValue('--jade-strong').trim() || '#b0d1b9',
+      'map-completed': styles.getPropertyValue('--gold-bright').trim() || '#eed496',
+      'map-future': styles.getPropertyValue('--jade').trim() || '#88b8a2',
+    };
+    const pointsByLine = lines.map((line) => {
+      const from = line.from.querySelector<HTMLElement>('.node-disc') || line.from;
+      const to = line.to.querySelector<HTMLElement>('.node-disc') || line.to;
+      const fromRect = from.getBoundingClientRect();
+      const toRect = to.getBoundingClientRect();
+      const fromCenterY = fromRect.top + fromRect.height / 2;
+      const toCenterY = toRect.top + toRect.height / 2;
+      const direction = toCenterY >= fromCenterY ? 1 : -1;
+      const start = {
+        x: fromRect.left + fromRect.width / 2 - bounds.left,
+        y: fromCenterY + direction * fromRect.height / 2 - bounds.top,
+      };
+      const end = {
+        x: toRect.left + toRect.width / 2 - bounds.left,
+        y: toCenterY - direction * toRect.height / 2 - bounds.top,
+      };
+      const middleY = (start.y + end.y) / 2;
+      const points = [
+        start,
+        { x: start.x, y: middleY },
+        { x: end.x, y: middleY },
+        end,
+      ];
+      line.metadata.dataset.startX = String(start.x);
+      line.metadata.dataset.startY = String(start.y);
+      line.metadata.dataset.endX = String(end.x);
+      line.metadata.dataset.endY = String(end.y);
+      line.metadata.dataset.points = JSON.stringify(points.map(({ x, y }) => [x, y]));
+      return { ...line, points };
+    });
+    const renderKey = JSON.stringify({
+      width,
+      height,
+      dpr,
+      colors,
+      lines: pointsByLine.map(({ kind, metadata, points }) => [
+        metadata.dataset.fromId || metadata.dataset.fromIndex || metadata.dataset.fromKey,
+        metadata.dataset.toId || metadata.dataset.toIndex || metadata.dataset.toKey,
+        kind,
+        points.map(({ x, y }) => [x, y]),
+      ]),
+    });
+    if (!resized && canvas.dataset.renderKey === renderKey) return;
+
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    context.clearRect(0, 0, width, height);
+    context.lineCap = 'butt';
+    context.lineJoin = 'miter';
+    for (const { kind, points } of pointsByLine) {
+      context.beginPath();
+      context.moveTo(points[0].x, points[0].y);
+      for (const point of points.slice(1)) context.lineTo(point.x, point.y);
+      context.strokeStyle = colors[kind];
+      if (kind === 'earned' || kind === 'next' || kind === 'map-completed') {
+        context.globalAlpha = kind === 'map-completed' ? 0.78 : kind === 'earned' ? 0.85 : 0.7;
+        context.lineWidth = kind === 'map-completed' ? 2.4 : 2;
+        context.setLineDash([]);
+      } else {
+        context.globalAlpha = 0.4;
+        context.lineWidth = 1.3;
+        context.setLineDash([5, 8]);
+      }
+      context.stroke();
+    }
+    context.globalAlpha = 1;
+    context.setLineDash([]);
+    canvas.dataset.renderKey = renderKey;
   }
 
   private talentView(state: RunState): string {
@@ -2811,7 +2963,7 @@ class ShanhaiApp {
       return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow talent-reset-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">坊市 · 洗髓丹</p><h2 id="dialog-title">重选已悟天赋？</h2><p>购买后会为当前功法重新开启天赋选择，不会清除其他功法的天赋。</p><div class="talent-reset-summary"><span>当前功法</span><b>${esc(asText(method?.name, state.method))}</b><span>已悟天赋</span><b>${selected.map((talent) => esc(asText(talent.name, talent.id))).join('、') || '无'}</b><span>花费</span><b>${this.textMarkup(`${formatNumber(item.price)} 灵石`)}</b></div><div class="dialog-actions"><button class="button quiet" data-action="talent-reset-cancel" data-autofocus>取消</button><button class="button primary" data-action="confirm-talent-reset">购买并重选</button></div></section></div>`;
     }
     if (this.modal === 'settings') {
-      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">静室</p><h2 id="dialog-title">设置</h2><div class="setting-row"><span>战报显示</span><button class="button small" data-action="battle-log-mode" aria-pressed="${this.detailedLog}">${this.detailedLog ? '详细' : '简明'}</button></div><div class="setting-row"><span>命途存档</span><div class="row"><button class="button small" data-action="export" ${state ? '' : 'disabled'}>导出</button><button class="button small" data-action="restart">重开</button></div></div><div class="setting-row"><span>帮助</span><button class="button small" data-action="help">查看</button></div><div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
+      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">静室</p><h2 id="dialog-title">设置</h2><div class="setting-row"><span>战报显示</span><button class="button small" data-action="battle-log-mode" aria-pressed="${this.detailedLog}">${this.detailedLog ? '详细' : '简明'}</button></div><div class="setting-row"><span>命途存档</span><div class="row"><button class="button small" data-action="export" ${state ? '' : 'disabled'}>导出</button><button class="button small" data-action="restart">重开</button></div></div><div class="setting-row"><span>帮助</span><button class="button small" data-action="help">查看</button></div><details class="art-credits"><summary>素材鸣谢</summary><p>表情图像由推特及图集贡献者创作，采用署名许可；山林背景由这些位图组合而成。</p><a href="./assets/casual/CREDITS.txt" target="_blank" rel="noopener">图像来源与授权</a></details><div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
     }
     if (this.modal === 'character' && state) {
       const method = this.methodEntity(state.method);

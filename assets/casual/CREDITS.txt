@@ -1,0 +1,11 @@
+Twemoji v17.0.3 artwork
+
+Copyright Twitter, Inc. and other contributors.
+Source: https://github.com/jdecked/twemoji/tree/v17.0.3/assets/72x72
+License: Creative Commons Attribution 4.0 International (CC BY 4.0).
+License URL: https://creativecommons.org/licenses/by/4.0/
+The full license text is available alongside this file as LICENSE.txt.
+
+The Unicode-named PNG images are unchanged upstream artwork.
+landscape.png combines upstream mountain, tree, sun, and cloud PNG artwork
+on a new background. This composition was created for this game.

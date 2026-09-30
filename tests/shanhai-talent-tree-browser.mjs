@@ -174,6 +174,21 @@ function makeShopFixture({ seed, n, methodId = 'RKF03' }) {
   };
 }
 
+function makeMapFixture() {
+  installFixtureCombat();
+  const game = ShanhaiGame.create(content, {
+    seed: 'talent-tree-map-connectors-fixture',
+    name: '路线连线浏览器行者',
+    method: 'RKF03',
+  });
+  assert.equal(game.state.phase, 'map');
+  assert.ok(game.state.routeMap?.nodes.length, 'map fixture 应生成分支路线图');
+  return {
+    save: serializeRun(game),
+    fixtureKind: 'seeded ShanhaiGame branching map fixture; not a claimed end-to-end player journey',
+  };
+}
+
 function pathToCostEvent(game) {
   const byKey = new Map(game.state.routeMap.nodes.map(node => [node.key, node]));
   const queue = game.availableNodes().map(node => [node.key]);
@@ -338,6 +353,19 @@ async function installFixture(page, fixture) {
   return run;
 }
 
+async function installMapFixture(page, fixture) {
+  await page.goto(url, { waitUntil: 'networkidle' });
+  await page.evaluate(({ saveKey, save }) => {
+    localStorage.clear();
+    localStorage.setItem(saveKey, save);
+  }, { saveKey, save: fixture.save });
+  await page.reload({ waitUntil: 'networkidle' });
+  await waitForPhase(page, 'map');
+  const run = await savedRun(page);
+  assert.equal(run.state.phase, 'map');
+  return run;
+}
+
 async function installMarkupFixture(page, fixture, { contentKind, entityId, mutate, phase }) {
   const maliciousMarkup = '<img src=x onerror="window.__shanhaiXss=1">';
   let intercepted = false;
@@ -373,6 +401,97 @@ async function openTalentTree(page) {
   const dialog = page.locator('.talent-tree-dialog');
   await dialog.waitFor({ state: 'visible' });
   return dialog;
+}
+
+async function assertMapConnectors(page) {
+  const data = await page.locator('.map-lines').evaluate(canvas => {
+    const mapWrap = canvas.closest('.map-wrap');
+    const bounds = mapWrap.getBoundingClientRect();
+    const nodesByIndex = new Map([...mapWrap.querySelectorAll('.map-node[data-map-node-index]')]
+      .map(node => [node.getAttribute('data-map-node-index'), node]));
+    const nodesByKey = new Map([...mapWrap.querySelectorAll('.map-node[data-map-node-key]')]
+      .map(node => [node.getAttribute('data-map-node-key'), node]));
+    const connections = [...mapWrap.querySelectorAll('.map-connection')].map(metadata => {
+      const from = metadata.hasAttribute('data-from-index')
+        ? nodesByIndex.get(metadata.getAttribute('data-from-index'))
+        : nodesByKey.get(metadata.getAttribute('data-from-key'));
+      const to = metadata.hasAttribute('data-to-index')
+        ? nodesByIndex.get(metadata.getAttribute('data-to-index'))
+        : nodesByKey.get(metadata.getAttribute('data-to-key'));
+      if (!from || !to) throw new Error(`地图连线没有对应节点 ${metadata.outerHTML}`);
+      const fromNode = from.querySelector('.node-disc') || from;
+      const toNode = to.querySelector('.node-disc') || to;
+      const fromRect = fromNode.getBoundingClientRect();
+      const toRect = toNode.getBoundingClientRect();
+      const fromY = fromRect.top + fromRect.height / 2;
+      const toY = toRect.top + toRect.height / 2;
+      return {
+        fromKey: metadata.getAttribute('data-from-key') || metadata.getAttribute('data-from-index'),
+        toKey: metadata.getAttribute('data-to-key') || metadata.getAttribute('data-to-index'),
+        start: [
+          Number.parseFloat(metadata.getAttribute('data-start-x')),
+          Number.parseFloat(metadata.getAttribute('data-start-y')),
+        ],
+        end: [
+          Number.parseFloat(metadata.getAttribute('data-end-x')),
+          Number.parseFloat(metadata.getAttribute('data-end-y')),
+        ],
+        points: JSON.parse(metadata.getAttribute('data-points') || '[]'),
+        expectedStart: [
+          fromRect.left + fromRect.width / 2 - bounds.left,
+          (toY >= fromY ? fromRect.bottom : fromRect.top) - bounds.top,
+        ],
+        expectedEnd: [
+          toRect.left + toRect.width / 2 - bounds.left,
+          (toY >= fromY ? toRect.top : toRect.bottom) - bounds.top,
+        ],
+      };
+    });
+    const context = canvas.getContext('2d');
+    const pixels = context?.getImageData(0, 0, canvas.width, canvas.height).data;
+    let paintedPixels = 0;
+    if (pixels) {
+      for (let alpha = 3; alpha < pixels.length; alpha += 4) {
+        if (pixels[alpha] > 0) paintedPixels += 1;
+      }
+    }
+    return {
+      width: bounds.width,
+      height: bounds.height,
+      dpr: window.devicePixelRatio || 1,
+      backingWidth: canvas.width,
+      backingHeight: canvas.height,
+      metadataCount: mapWrap.querySelectorAll('.map-connection').length,
+      paintedPixels,
+      connections,
+    };
+  });
+  assert.ok(data.connections.length > 0, '分支路线图应显示节点连接');
+  assert.equal(data.connections.length, data.metadataCount,
+    `有路线边未能解析到地图节点 ${JSON.stringify(data)}`);
+  assert.equal(data.backingWidth, Math.round(data.width * data.dpr),
+    `地图 Canvas backing 宽度未按 DPR 更新 ${JSON.stringify(data)}`);
+  assert.equal(data.backingHeight, Math.round(data.height * data.dpr),
+    `地图 Canvas backing 高度未按 DPR 更新 ${JSON.stringify(data)}`);
+  assert.ok(data.paintedPixels > 0, `地图 Canvas 像素为空 ${JSON.stringify(data)}`);
+  for (const connection of data.connections) {
+    assert.ok(connection.start.every(Number.isFinite) && connection.end.every(Number.isFinite),
+      `地图连接缺少实际端点 ${JSON.stringify(connection)}`);
+    for (let axis = 0; axis < 2; axis += 1) {
+      assert.ok(Math.abs(connection.start[axis] - connection.expectedStart[axis]) <= 1 &&
+        Math.abs(connection.end[axis] - connection.expectedEnd[axis]) <= 1,
+      `地图连接没有落在实际节点边界 ${JSON.stringify(connection)}`);
+    }
+    assert.equal(connection.points.length, 4,
+      `地图连接不是直角折线 ${JSON.stringify(connection)}`);
+    for (let index = 1; index < connection.points.length; index += 1) {
+      const [x1, y1] = connection.points[index - 1];
+      const [x2, y2] = connection.points[index];
+      assert.ok(x1 === x2 || y1 === y2,
+        `地图连线包含非直角线段 ${JSON.stringify(connection.points)}`);
+    }
+  }
+  return { connectors: data.connections.length, canvasPaintedPixels: data.paintedPixels };
 }
 
 async function assertReadOnlyTree(page, fixture, {
@@ -493,12 +612,14 @@ async function assertReadOnlyTree(page, fixture, {
     (candidateTier ? 3 : 0),
   `未解锁节点状态不正确，future=${futureCount} n=${selectedCount} candidateTier=${candidateTier}`);
 
-  const connectorData = await tree.locator('.talent-tree-connectors').evaluate(svg => {
-    const treeRect = svg.parentElement.getBoundingClientRect();
-    const positions = [...svg.parentElement.querySelectorAll('.talent-tree-node[data-talent-id]')]
+  const connectorData = await tree.locator('.talent-tree-connectors').evaluate(canvas => {
+    const treeElement = canvas.parentElement;
+    const treeRect = treeElement.getBoundingClientRect();
+    const positions = [...treeElement.querySelectorAll('.talent-tree-node[data-talent-id]')]
       .map(node => {
         const rect = node.getBoundingClientRect();
         return {
+          id: node.getAttribute('data-talent-id'),
           tier: Number(node.closest('.talent-tier-row')?.getAttribute('data-tier')),
           selected: node.getAttribute('data-selected') === 'true',
           choice: node.getAttribute('data-choice') === 'current',
@@ -507,35 +628,54 @@ async function assertReadOnlyTree(page, fixture, {
           bottomY: rect.bottom - treeRect.top,
         };
       });
-    return [...svg.querySelectorAll('path')].map(path => {
-      const earned = path.getAttribute('data-earned') === 'true';
-      const next = path.getAttribute('data-next') === 'true';
-      const match = path.getAttribute('d')?.match(
-        /^M\s*(-?[\d.]+)\s+(-?[\d.]+)\s+C\s*(-?[\d.]+)\s+(-?[\d.]+),\s*(-?[\d.]+)\s+(-?[\d.]+),\s*(-?[\d.]+)\s+(-?[\d.]+)/,
-      );
-      const viewBox = (svg.getAttribute('viewBox') || '').split(/\s+/).map(Number);
-      const scaleX = treeRect.width / viewBox[2];
-      const scaleY = treeRect.height / viewBox[3];
-      return {
-        earned,
-        next,
-        start: match ? [Number(match[1]) * scaleX, Number(match[2]) * scaleY] : null,
-        end: match ? [Number(match[7]) * scaleX, Number(match[8]) * scaleY] : null,
-        viewBox: svg.getAttribute('viewBox'),
+    const context = canvas.getContext('2d');
+    const pixels = context?.getImageData(0, 0, canvas.width, canvas.height).data;
+    let paintedPixels = 0;
+    if (pixels) {
+      for (let alpha = 3; alpha < pixels.length; alpha += 4) {
+        if (pixels[alpha] > 0) paintedPixels += 1;
+      }
+    }
+    return {
+      geometry: {
+        width: treeRect.width,
+        height: treeRect.height,
+        backingWidth: canvas.width,
+        backingHeight: canvas.height,
+        dpr: window.devicePixelRatio || 1,
+      },
+      paintedPixels,
+      connections: [...treeElement.querySelectorAll('.talent-tree-connection')].map(connection => ({
+        earned: connection.getAttribute('data-earned') === 'true',
+        next: connection.getAttribute('data-next') === 'true',
+        fromId: connection.getAttribute('data-from-id'),
+        toId: connection.getAttribute('data-to-id'),
+        start: [Number.parseFloat(connection.getAttribute('data-start-x')), Number.parseFloat(connection.getAttribute('data-start-y'))],
+        end: [Number.parseFloat(connection.getAttribute('data-end-x')), Number.parseFloat(connection.getAttribute('data-end-y'))],
+        points: JSON.parse(connection.getAttribute('data-points') || '[]'),
         treeWidth: treeRect.width,
         treeHeight: treeRect.height,
         positions,
-      };
-    });
+      })),
+    };
   });
-  const earned = connectorData.filter(path => path.earned);
-  const next = connectorData.filter(path => path.next);
+  const earned = connectorData.connections.filter(path => path.earned);
+  const next = connectorData.connections.filter(path => path.next);
   assert.equal(earned.length, Math.max(0, selectedCount - 1),
     `已悟路径连接数量错误 ${JSON.stringify(connectorData)}`);
   if (candidateTier) assert.equal(next.length, 3,
     `当前选择层应有三条分支连接 ${JSON.stringify(connectorData)}`);
-  for (const connection of [...earned, ...next]) {
-    assert.ok(connection.start && connection.end,
+  assert.equal(connectorData.geometry.backingWidth,
+    Math.round(connectorData.geometry.width * connectorData.geometry.dpr),
+    `Canvas backing 宽度未按 DPR 更新 ${JSON.stringify(connectorData.geometry)}`);
+  assert.equal(connectorData.geometry.backingHeight,
+    Math.round(connectorData.geometry.height * connectorData.geometry.dpr),
+    `Canvas backing 高度未按 DPR 更新 ${JSON.stringify(connectorData.geometry)}`);
+  if (connectorData.connections.length) assert.ok(connectorData.paintedPixels > 0,
+    `Canvas 像素为空 ${JSON.stringify(connectorData.geometry)}`);
+  for (const connection of connectorData.connections) {
+    assert.ok(connection.fromId && connection.toId &&
+      connection.start.every(Number.isFinite) && connection.end.every(Number.isFinite),
       `连接线没有有效路径坐标 ${JSON.stringify(connection)}`);
     const [start, end] = [connection.start, connection.end];
     assert.ok(start[0] >= 0 && start[0] <= connection.treeWidth &&
@@ -543,38 +683,34 @@ async function assertReadOnlyTree(page, fixture, {
       start[1] >= 0 && start[1] <= connection.treeHeight &&
       end[1] >= 0 && end[1] <= connection.treeHeight,
     `路径端点未落在天赋树范围内 ${JSON.stringify(connection)}`);
-    const expected = connection.earned
-      ? connection.positions
-        .filter(node => node.selected)
-        .sort((left, right) => left.tier - right.tier)
-        .slice(0, -1)
-        .map((node, index, rows) => {
-          const nextNode = connection.positions.find(candidate =>
-            candidate.selected && candidate.tier === node.tier + 1);
-          return nextNode && rows[index].tier + 1 === nextNode.tier
-            ? {
-              start: [node.centerX, node.bottomY],
-              end: [nextNode.centerX, nextNode.topY],
-            }
-            : null;
-        })
-        .filter(Boolean)
-      : connection.positions
-        .filter(node => node.selected && node.tier === candidateTier - 1)
-        .flatMap(node => connection.positions
-          .filter(choice => choice.choice && choice.tier === candidateTier)
-          .map(choice => ({
-            start: [node.centerX, node.bottomY],
-            end: [choice.centerX, choice.topY],
-          })));
-    assert.ok(expected.some(path =>
-      Math.abs(path.start[0] - start[0]) <= 1 &&
-      Math.abs(path.start[1] - start[1]) <= 1 &&
-      Math.abs(path.end[0] - end[0]) <= 1 &&
-      Math.abs(path.end[1] - end[1]) <= 1),
-    `连接线没有连接实际节点边界 ${JSON.stringify({ connection, expected })}`);
+    const expected = connection.positions.find(node =>
+      node.id === connection.fromId && node.selected);
+    const target = connection.positions.find(node => node.id === connection.toId &&
+      (connection.earned ? node.selected : node.choice));
+    assert.ok(expected && target,
+      `连接线端点元数据未指向对应节点 ${JSON.stringify(connection)}`);
+    assert.ok(Math.abs(expected.centerX - start[0]) <= 1 &&
+      Math.abs(expected.bottomY - start[1]) <= 1 &&
+      Math.abs(target.centerX - end[0]) <= 1 &&
+      Math.abs(target.topY - end[1]) <= 1,
+    `连接线没有连接实际节点边界 ${JSON.stringify({ connection, expected, target })}`);
+    assert.equal(connection.points.length, 4,
+      `直角折线应包含起点、两个拐点与终点 ${JSON.stringify(connection)}`);
+    for (let index = 1; index < connection.points.length; index += 1) {
+      const [x1, y1] = connection.points[index - 1];
+      const [x2, y2] = connection.points[index];
+      assert.ok(x1 === x2 || y1 === y2,
+        `连线包含非直角线段 ${JSON.stringify(connection.points)}`);
+    }
   }
-  return { nodeCount: nodes.length, selectedCount, futureCount, connectors: connectorData.length, dialogGeometry };
+  return {
+    nodeCount: nodes.length,
+    selectedCount,
+    futureCount,
+    connectors: connectorData.connections.length,
+    canvasPaintedPixels: connectorData.paintedPixels,
+    dialogGeometry,
+  };
 }
 
 async function inspectEveryTalent(page, fixture) {
@@ -668,13 +804,14 @@ async function run() {
     makeShopFixture({ seed: 'talent-tree-ui-n4', n: 4 }),
     makeShopFixture({ seed: 'talent-tree-ui-n1', n: 1 }),
   ];
+  const mapFixture = makeMapFixture();
   const battleFixture = makeBattleFixture();
   const browser = await chromium.launch({ headless: true, executablePath, args: ['--no-sandbox'] });
   try {
     const cases = [
-      { width: 320, height: 760, fixture: shopFixtures[0] },
-      { width: 390, height: 844, fixture: shopFixtures[1] },
-      { width: 1440, height: 900, fixture: shopFixtures[2] },
+      { width: 320, height: 760, fixture: shopFixtures[0], mapFixture },
+      { width: 390, height: 844, fixture: shopFixtures[1], mapFixture },
+      { width: 1440, height: 900, fixture: shopFixtures[2], mapFixture },
     ];
     for (const item of cases) {
       const context = await browser.newContext({
@@ -695,6 +832,9 @@ async function run() {
           error: message.text(),
         });
       });
+      await installMapFixture(page, item.mapFixture);
+      await check(`${item.width}x${item.height} 地图分支连线几何与 Canvas 绘制`, () =>
+        assertMapConnectors(page));
       await installFixture(page, item.fixture);
       await check(`${item.width}x${item.height} 坊市入口、全树浏览与无状态副作用`, async () => {
         const initialStorage = await storageSnapshot(page);
@@ -705,8 +845,10 @@ async function run() {
         assert.equal((await buy.textContent())?.replace(/\s+/g, ''), '40');
         assert.equal((await buy.locator('.text-number').textContent())?.trim(), '40',
           '坊市价格数字应通过安全文本格式化高亮');
-        assert.equal(await buy.locator('img,script').count(), 0,
+        assert.equal(await buy.locator('.text-number img,.text-number script,script').count(), 0,
           '坊市数字文本不能生成 HTML 元素');
+        assert.equal(await buy.locator('img.icon[data-icon="coin"]').count(), 1,
+          '价格旁只使用固定的灵石位图图标');
         assert.equal(await buy.isEnabled(), true, 'n>=1 且已有天赋时洗髓丹应可购买');
         const shopBuyBox = await buy.boundingBox();
         assert.ok(shopBuyBox && shopBuyBox.width >= 44 && shopBuyBox.height >= 44,
@@ -974,11 +1116,46 @@ async function run() {
         `.game-page.phase-event [data-action="event"][data-id="${eventFixture.optionId}"]`,
       );
       await option.waitFor({ state: 'visible' });
-      assert.ok((await option.locator('.event-costs .text-number').count()) > 0,
+      const label = option.locator('.event-option-main b');
+      assert.equal((await label.textContent())?.trim(), `${eventMarkup} 灵石 36`,
+        '事件标签中的恶意标签必须原样作为文本显示');
+      const costNumbers = option.locator('.event-costs .text-number');
+      assert.ok((await costNumbers.count()) > 0,
         '事件资源花费应将数值单独强调');
-      assert.ok((await option.locator('.event-option-main b').textContent())?.includes(eventMarkup));
-      assert.equal(await option.locator('img,script').count(), 0,
-        '事件标签不能执行或进入 DOM');
+      const protectedSubtrees = await option
+        .locator('.event-option-main b, .event-costs .text-number')
+        .evaluateAll(nodes => nodes.map(node => {
+          const elements = [node, ...node.querySelectorAll('*')];
+          return {
+            injectedElements: elements.filter(element => element.matches('img,script'))
+              .map(element => element.tagName.toLowerCase()),
+            inlineHandlers: elements.flatMap(element => [...element.attributes]
+              .filter(attribute => /^on/i.test(attribute.name))
+              .map(attribute => attribute.name)),
+          };
+        }));
+      assert.ok(protectedSubtrees.length >= 2,
+        '事件标签与花费数字都应纳入注入检查');
+      assert.ok(protectedSubtrees.every(subtree =>
+        subtree.injectedElements.length === 0 && subtree.inlineHandlers.length === 0),
+      `事件标签与花费数字不能包含可执行注入 ${JSON.stringify(protectedSubtrees)}`);
+      const optionMarkup = await option.evaluate(element => ({
+        scripts: element.querySelectorAll('script').length,
+        inlineHandlers: [element, ...element.querySelectorAll('*')].flatMap(node =>
+          [...node.attributes]
+            .filter(attribute => /^on/i.test(attribute.name))
+            .map(attribute => attribute.name)),
+      }));
+      assert.equal(optionMarkup.scripts, 0, '事件选项不能包含脚本节点');
+      assert.deepEqual(optionMarkup.inlineHandlers, [], '事件选项不能包含内联事件处理器');
+      const icons = option.locator('img');
+      assert.equal(await icons.count(), 1, '事件选项只允许现有的箭头 PNG 图标');
+      assert.deepEqual(await icons.evaluate(image => Array.from(image.classList)), ['icon'],
+        '合法箭头 PNG 必须使用 icon() 输出的 class');
+      assert.equal(await icons.getAttribute('src'), './assets/casual/27a1.png',
+        '合法箭头图标必须使用内部 arrow PNG');
+      assert.equal(await icons.getAttribute('data-icon'), 'arrow',
+        '事件选项图标必须来自 icon("arrow")');
       assert.equal(await eventPage.evaluate(() => window.__shanhaiXss), 0);
       await noOverflow(eventPage, 390, 'event-cost-markup');
       return { eventId: eventFixture.eventId, optionId: eventFixture.optionId };
