@@ -1,67 +1,69 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
-import { bones, durations, poseAt, worldBones, BattleRig } from '../public/rig.js';
+import { ObjectDataParser } from 'pixi-dragonbones-runtime';
+import { bindings, actionFrames, createSkeletonData, createTextureData } from '../src/rig-data.js';
 
-test('limbs and weapon inherit the animated shoulder and elbow', () => {
-  const idle = worldBones(poseAt('idle', 0, 0));
-  const strike = worldBones(poseAt('attack', .5, 0));
-  assert.notDeepEqual(strike.get('frontArm'), idle.get('frontArm'));
-  assert.notDeepEqual(strike.get('frontHand'), idle.get('frontHand'));
-  assert.notDeepEqual(strike.get('weapon'), idle.get('weapon'));
-  for (const bone of bones.filter(bone => bone.parent)) {
-    const parent = strike.get(bone.parent), child = strike.get(bone.id);
-    assert.ok(Number.isFinite(child.x + child.y + child.angle));
-    if (bone.id === 'weapon') {
-      assert.ok(Math.abs(Math.hypot(child.x - parent.x, child.y - parent.y) -
-        Math.hypot(bone.x, bone.y)) < .00001, 'weapon remains attached to the hand');
+const library = JSON.parse(await readFile(new URL('../public/assets/library.json', import.meta.url)));
+const skeleton = createSkeletonData(library);
+
+test('the real DragonBones parser accepts six character rigs and seven authored clips', () => {
+  const data = new ObjectDataParser().parseDragonBonesData(skeleton);
+  assert.ok(data, 'uses the dependency parser, not a mock skeleton evaluator');
+  assert.equal(data.armatureNames.length, 6);
+  for (const id of data.armatureNames) {
+    const armature = data.getArmature(id);
+    assert.equal(armature.sortedBones.length, 13);
+    assert.equal(armature.sortedSlots.length, 11);
+    assert.deepEqual(Object.keys(armature.animations).sort(), Object.keys(actionFrames).sort());
+    assert.equal(armature.getBone('grip').parent.name, 'frontHand');
+    assert.equal(armature.getBone('weapon').parent.name, 'grip');
+    assert.ok(armature.actions.some(action => action.name === 'impact'));
+  }
+  data.returnToPool();
+});
+
+test('each atlas has individual anatomical anchors and rigid joint registration', () => {
+  assert.equal(new Set(Object.values(bindings).map(bind => JSON.stringify(bind))).size, 6);
+  for (const armature of skeleton.armature) {
+    const id = armature.name;
+    const atlas = createTextureData(id, library.rigs[id]);
+    assert.equal(atlas.SubTexture.length, 9);
+    for (const slot of armature.skin[0].slot) {
+      const attachment = slot.display[0];
+      assert.ok(atlas.SubTexture.some(texture => texture.name === attachment.name));
+      assert.ok(attachment.pivot.x >= 0 && attachment.pivot.x <= 1);
+      assert.ok(attachment.pivot.y >= 0 && attachment.pivot.y <= 1);
     }
+    const bind = bindings[id];
+    for (const side of ['front', 'back']) {
+      const upper = armature.bone.find(bone => bone.name === `${side}Arm`);
+      const hand = armature.bone.find(bone => bone.name === `${side}Hand`);
+      assert.equal(upper.length, bind.reach[0]);
+      assert.equal(hand.transform.x, upper.length);
+      assert.equal(hand.length, bind.reach[1]);
+    }
+    const weapon = armature.bone.find(bone => bone.name === 'weapon');
+    assert.equal(weapon.transform.x, 0);
+    assert.equal(weapon.transform.y, 0);
   }
 });
 
-test('basic, rage, artifact, heal and hit have distinct multi-bone poses', () => {
-  const poses = ['attack', 'rage', 'artifact', 'heal', 'hit']
-    .map(action => JSON.stringify(poseAt(action, .5, 0)));
-  assert.equal(new Set(poses).size, 5);
-  for (const action of Object.keys(durations)) {
-    assert.deepEqual(poseAt(action, .5, 100, true), {});
-    assert.ok(durations[action] > 0);
-  }
-});
-
-test('impact fires once and reduced motion commits pending feedback once', () => {
-  // Use the real action clock without a DOM or renderer.
-  const rig = Object.create(BattleRig.prototype);
-  Object.assign(rig, {
-    actions: new Map(), canvas: { dataset: {} }, clock: 0, time: 0, active: false,
-    paused: false, reduced: false, speed: 1, draw() {}, frame: null,
-  });
-  const oldRaf = globalThis.requestAnimationFrame;
-  const oldCancel = globalThis.cancelAnimationFrame;
-  globalThis.requestAnimationFrame = () => 1;
-  globalThis.cancelAnimationFrame = () => {};
-  try {
-    let impacts = 0;
-    rig.play('player', 'attack', () => impacts++);
-    for (let time = 100; time <= 1000; time += 80) rig.tick(time);
-    assert.equal(impacts, 1);
-    rig.play('enemy', 'rage', () => impacts++);
-    rig.configure({ active: true, reduced: true });
-    assert.equal(impacts, 2);
-    rig.configure({ active: true, reduced: true });
-    assert.equal(impacts, 2);
-    assert.equal(rig.actions.size, 0);
-    rig.play('player', 'heal', () => impacts++);
-    assert.equal(impacts, 3);
-    rig.configure({ active: true, reduced: false });
-    rig.play('enemy', 'attack', () => impacts++);
-    rig.configure({ active: true, paused: true, reduced: true });
-    assert.equal(impacts, 3, 'reducing motion while paused must not advance a pending impact');
-    rig.configure({ active: true, paused: false, reduced: true });
-    assert.equal(impacts, 4, 'resume commits the pending static impact once');
-    rig.configure({ active: false });
-    assert.equal(rig.frame, null);
-  } finally {
-    globalThis.requestAnimationFrame = oldRaf;
-    globalThis.cancelAnimationFrame = oldCancel;
+test('clips keep feet anchored, return to rest and have exactly one authored impact event', () => {
+  for (const armature of skeleton.armature) for (const clip of armature.animation) {
+    const duration = actionFrames[clip.name];
+    assert.equal(clip.duration, duration);
+    for (const timeline of clip.bone) {
+      assert.equal(timeline.frame.reduce((sum, frame) => sum + frame.duration, 0), duration);
+      assert.deepEqual(timeline.frame.at(-1).transform, { x: 0, y: 0, skX: 0, skY: 0 });
+      if (['legL', 'legR', 'grip'].includes(timeline.name)) {
+        assert.ok(timeline.frame.every(frame =>
+          Object.values(frame.transform).every(value => value === 0)));
+      }
+    }
+    if (clip.name !== 'idle') {
+      assert.equal(clip.frame.filter(frame => frame.event === 'impact').length, 1);
+      assert.ok(Math.abs(clip.frame[0].duration / duration - .44) < .02);
+    }
   }
 });

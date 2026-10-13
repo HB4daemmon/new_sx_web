@@ -18,11 +18,12 @@ after(async () => {
   await once(server, 'close');
 });
 
-test('static path resolver only admits public UI and manifest files', () => {
+test('static path resolver only admits public UI, manifest, and license files', () => {
   assert.match(resolvePublicPath('/'), /\/public\/index\.html$/);
   assert.match(resolvePublicPath('/styles.css'), /\/public\/styles\.css$/);
   assert.match(resolvePublicPath('/cartoon.css'), /\/public\/cartoon\.css$/);
   assert.match(resolvePublicPath('/rig.js'), /\/public\/rig\.js$/);
+  assert.match(resolvePublicPath('/animation-LICENSE.txt'), /\/public\/animation-LICENSE\.txt$/);
   assert.match(resolvePublicPath('/assets/library.json'), /\/public\/assets\/library\.json$/);
   assert.match(resolvePublicPath('/assets/rig-rkf01.png'), /\/public\/assets\/rig-rkf01\.png$/);
   assert.equal(resolvePublicPath('/assets/rig-rkf99.png'), null);
@@ -44,6 +45,9 @@ test('static path resolver only admits public UI and manifest files', () => {
   assert.match(resolvePublicPath('/previews/map.png'), /\/public\/previews\/map\.png$/);
   assert.equal(resolvePublicPath('/package.json'), null);
   assert.equal(resolvePublicPath('/scripts/serve.mjs'), null);
+  assert.equal(resolvePublicPath('/animation-license.txt'), null);
+  assert.equal(resolvePublicPath('/other.txt'), null);
+  assert.equal(resolvePublicPath('/.env'), null);
   assert.equal(resolvePublicPath('/assets/CREDITS.txt'), null);
   assert.equal(resolvePublicPath('/assets/unknown.gif'), null);
   assert.equal(resolvePublicPath('/assets/ui-unknown.png'), null);
@@ -86,6 +90,9 @@ test('HTTP server serves only allowlisted files within public/', async () => {
   for (const target of [
     '/package.json',
     '/scripts/serve.mjs',
+    '/other.txt',
+    '/.env',
+    '/public/animation-LICENSE.txt',
     '/../package.json',
     '/%2e%2e/package.json',
     '/assets/manifest.json/../../package.json',
@@ -97,6 +104,28 @@ test('HTTP server serves only allowlisted files within public/', async () => {
   ]) {
     const result = await fetch(`${origin}${target}`);
     assert.equal(result.status, 404, target);
+  }
+});
+
+test('HTTP server serves only the exact animation license as UTF-8 plain text for GET and HEAD', async () => {
+  const target = '/animation-LICENSE.txt';
+  const get = await fetch(`${origin}${target}`);
+  assert.equal(get.status, 200);
+  assert.equal(get.headers.get('content-type'), 'text/plain; charset=utf-8');
+  const body = await get.text();
+  assert.match(body, /PixiJS 8\.22\.0/);
+  assert.match(body, /pixi-dragonbones-runtime 8\.0\.3/);
+  assert.match(body, /Copyright \(c\) 2012-2018 DragonBones team and other contributors/);
+  assert.equal(Number(get.headers.get('content-length')), Buffer.byteLength(body));
+
+  const head = await fetch(`${origin}${target}`, { method: 'HEAD' });
+  assert.equal(head.status, 200);
+  assert.equal(head.headers.get('content-type'), 'text/plain; charset=utf-8');
+  assert.equal(head.headers.get('content-length'), get.headers.get('content-length'));
+  assert.equal((await head.arrayBuffer()).byteLength, 0);
+
+  for (const denied of ['/animation-license.txt', '/other.txt', '/LICENSE', '/.env']) {
+    assert.equal((await fetch(`${origin}${denied}`)).status, 404, denied);
   }
 });
 

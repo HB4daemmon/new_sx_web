@@ -193,7 +193,7 @@ def main():
         "expansionApproval": {"status": "pending"},
         "provenance": {"model": "gpt-image-2.5", "prompts": "prompts/cartoon-expansion.jsonl",
                        "processing": "native alpha threshold 200; connected-component rig extraction; icon cell crop; lanczos",
-                       "animation": "Canvas2D hierarchical cutout bones; not Spine"},
+                       "animation": "DragonBones 5.5 authored armatures and keyframes; PixiJS WebGL; per-character landmarks"},
         "rigs": rigs, "map": {name: icons[f"map-{name}"] for name in MAP},
         "artifacts": artifact_map, "assets": assets,
     }

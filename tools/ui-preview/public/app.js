@@ -1,4 +1,4 @@
-import { BattleRig, drawRig } from './rig.js';
+import { BattleRig, StartRig } from './rig.js';
 
 const requiredAssetIds = [
   'battle-scene',
@@ -39,6 +39,8 @@ const poseImages = new Map();
 const libraryImages = new Map();
 let artLibrary = null;
 let battleRig = null;
+let startRig = null;
+let pendingIllustratedImpacts = [];
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const methods = {
   RKF01: { name: '金刚功', cue: '普攻、怒技后获得护盾。' },
@@ -133,11 +135,14 @@ function resetActor(image) {
   image.classList.remove('is-striking', 'is-hit');
   image.dataset.pose = 'idle';
   const asset = requiredAssets.get(image.dataset.assetTarget);
-  if (!image.hidden && asset) image.src = asset.src;
+  if (!image.hidden && asset && image.src !== new URL(asset.src, location.href).href) image.src = asset.src;
 }
 
 function syncMotionPause() {
   app.dataset.motionPaused = String(app.dataset.previewPaused === 'true' || dialog.open || document.hidden);
+  if (battleActive && app.dataset.motionPaused !== 'true') {
+    for (const impact of pendingIllustratedImpacts.splice(0)) impact();
+  }
   battleRig?.configure({
     active: battleActive, paused: app.dataset.motionPaused === 'true',
     reduced: reducedMotion.matches, speed: app.dataset.previewSpeed === 'fast' ? 2 : 1,
@@ -156,14 +161,19 @@ document.addEventListener('visibilitychange', () => {
   syncMotionPause();
   scheduleBattleBeat();
 });
-window.addEventListener('pagehide', () => {
+window.addEventListener('pagehide', event => {
   clearTimeout(battleTimer);
+  if (event.persisted) {
+    battleRig?.configure({ paused: true });
+    return;
+  }
   battleRig?.dispose();
+  startRig?.dispose();
 });
 window.addEventListener('pageshow', event => {
   if (event.persisted) {
-    battleRig = artLibrary && new BattleRig(document.querySelector('.combat-rig'), artLibrary, libraryImages);
     syncMotionPause();
+    drawStartRig();
     scheduleBattleBeat();
   }
 });
@@ -366,6 +376,7 @@ function syncBattlePlayback(view) {
   const active = view === 'battle' && app.dataset.assetsReady === 'true';
   if (active === battleActive) return;
   battleActive = active;
+  pendingIllustratedImpacts = [];
   clearTimeout(battleTimer);
   battleTimer = null;
   combat = structuredClone(initialCombat);
@@ -502,24 +513,21 @@ async function loadApprovedAssets() {
 }
 
 function drawStartRig() {
-  if (!artLibrary) return;
-  const canvas = document.querySelector('.start-rig');
-  const width = canvas.clientWidth, height = canvas.clientHeight;
-  if (!width || !height) return;
-  const ratio = Math.min(devicePixelRatio || 1, 2);
-  canvas.width = Math.round(width * ratio);
-  canvas.height = Math.round(height * ratio);
-  const context = canvas.getContext('2d');
-  if (!context) return;
-  context.setTransform(ratio, 0, 0, ratio, 0, 0);
-  const rig = artLibrary.rigs[selectedMethod];
-  drawRig(context, rig, libraryImages.get(rig.src), {
-    x: width / 2, y: height - 5, scale: Math.min(width / 230, height / 325),
-    staticMode: true,
-  });
-  canvas.dataset.skin = selectedMethod;
+  startRig?.configure(selectedMethod);
 }
-new ResizeObserver(drawStartRig).observe(document.querySelector('.start-rig'));
+
+function fallBackToIllustrations() {
+  for (const beat of battleRig?.actions.values() || []) {
+    if (!beat.impacted && beat.onImpact) pendingIllustratedImpacts.push(beat.onImpact);
+  }
+  battleRig?.dispose();
+  startRig?.dispose();
+  battleRig = null;
+  startRig = null;
+  app.dataset.libraryReady = 'false';
+  app.dataset.animationKind = 'illustrated-poses';
+  syncMotionPause();
+}
 
 async function loadArtLibrary() {
   app.dataset.libraryReady = 'false';
@@ -542,13 +550,10 @@ async function loadArtLibrary() {
     }
     const decoded = await Promise.all(paths.map(async src => [src, await loadImage(src)]));
     decoded.forEach(([src, image]) => libraryImages.set(src, image));
-    const renderer = new BattleRig(document.querySelector('.combat-rig'), library, libraryImages);
-    if (!renderer.context || !document.querySelector('.start-rig').getContext('2d')) {
-      renderer.dispose();
-      throw new Error('Canvas unavailable');
-    }
     artLibrary = library;
-    battleRig = renderer;
+    battleRig = await BattleRig.create(document.querySelector('.combat-rig'), library, libraryImages,
+      fallBackToIllustrations);
+    startRig = await StartRig.create(document.querySelector('.start-rig'), library, libraryImages);
     for (const image of document.querySelectorAll('[data-map-art]')) {
       image.src = library.map[image.dataset.mapArt];
       await image.decode();
@@ -560,7 +565,7 @@ async function loadArtLibrary() {
       await image.decode();
     }
     app.dataset.libraryReady = 'true';
-    app.dataset.animationKind = 'cutout-skeletal';
+    app.dataset.animationKind = 'dragonbones';
     app.dataset.styleApproval = 'approved';
     assetStatus.textContent = '手绘风格 · 新素材待确认';
     document.querySelector('.catalog-button').disabled = false;
@@ -568,15 +573,14 @@ async function loadArtLibrary() {
     requestAnimationFrame(drawRouteLines);
     syncMotionPause();
   } catch {
-    battleRig?.dispose();
-    battleRig = null;
+    fallBackToIllustrations();
     artLibrary = null;
     libraryImages.clear();
-    app.dataset.libraryReady = 'false';
-    app.dataset.animationKind = 'illustrated-poses';
     document.querySelectorAll('[data-map-art]').forEach(image => { image.hidden = true; });
     for (const id of ['artifact-rr09', 'artifact-rr11', 'artifact-rr15']) {
-      document.querySelector(`[data-asset-target="${id}"]`).src = requiredAssets.get(id).src;
+      const image = document.querySelector(`[data-asset-target="${id}"]`);
+      const src = requiredAssets.get(id).src;
+      if (image.src !== new URL(src, location.href).href) image.src = src;
     }
     // Retain the committed static illustrations and working HUD when a rig fails.
   }

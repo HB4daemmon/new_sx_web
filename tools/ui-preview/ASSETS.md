@@ -42,9 +42,12 @@ Screenshot exports are produced only by `capture:previews`.
 
 Action images preserve the character identity through reference edits. They remain
 whole-image poses, not layered animation rigs. Runtime switching is explicitly marked
-`illustrated-poses` only when the new rig library is unavailable.
+`illustrated-poses` only when the DragonBones renderer or rig library is unavailable.
 No Spine runtime or vendor example art is distributed here.
 See [`SPINE.md`](SPINE.md) for the separate feasibility investigation.
+The selected open-source runtime, individual pivots and authored keyframes are described
+in [`ANIMATION.md`](ANIMATION.md). This change reuses existing generated art;
+no new model generation or third-party character art was used.
 
 ## Map, Methods And Shared Items
 

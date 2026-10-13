@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build:animation": "node scripts/build-animation.mjs",
     "dev": "node scripts/serve.mjs",
-    "test": "node --test && node scripts/check-raster-assets.mjs && node scripts/check-art-library.mjs",
+    "test": "node scripts/build-animation.mjs --check && node --test && node scripts/check-raster-assets.mjs && node scripts/check-art-library.mjs",
     "prepare:assets": "uv run --with pillow python scripts/prepare-cartoon-assets.py --force",
     "test:assets": "node scripts/check-raster-assets.mjs && node scripts/check-art-library.mjs",
     "test:layout": "node scripts/check-layout.mjs",
@@ -14,9 +15,16 @@
     "capture:previews": "node scripts/capture-previews.mjs",
     "probe:spine": "node scripts/probe-spine.mjs",
     "prepare:expansion": "uv run --with pillow python scripts/prepare-expansion-assets.py && node scripts/enrich-art-library.mjs",
-    "test:rig": "node scripts/check-rig-browser.mjs"
+    "test:rig": "node scripts/check-rig-browser.mjs && node scripts/check-animation-joints.mjs"
   },
   "engines": {
     "node": ">=22"
+  },
+  "dependencies": {
+    "pixi-dragonbones-runtime": "8.0.3",
+    "pixi.js": "8.22.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
   }
 }

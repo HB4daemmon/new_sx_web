@@ -11,6 +11,7 @@ const STATIC_FILES = new Map([
   ['cartoon.css', 'text/css; charset=utf-8'],
   ['app.js', 'text/javascript; charset=utf-8'],
   ['rig.js', 'text/javascript; charset=utf-8'],
+  ['animation-LICENSE.txt', 'text/plain; charset=utf-8'],
   ['assets/manifest.json', 'application/json; charset=utf-8'],
   ['assets/library.json', 'application/json; charset=utf-8'],
 ]);

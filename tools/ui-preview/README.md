@@ -16,6 +16,8 @@ remain pending visual approval.
 From this directory:
 
 ```bash
+npm ci
+npm run build:animation
 npm run dev
 npm test
 npm run test:layout
@@ -43,7 +45,8 @@ controls are inert; the title links open the real screens. The shared router sup
 browser history. Screenshot export writes `public/previews/{start,map,battle,choice}.png`;
 these are optional external exports and are not loaded by the overview.
 
-`npm test` covers serving boundaries, traversal, headers, CSP and a PNG decoder audit.
+`npm test` checks reproducible runtime builds, notices, real DragonBones parsing,
+serving boundaries, traversal, headers, CSP and a PNG decoder audit.
 `test:layout` uses structural fixtures to check routing, touch targets, dialogs, failed
 asset loading and the full interaction flow. `test:art` uses all real image exports and
 checks decoded pixels, responsive geometry, sprite/control overlap, smooth illustration
@@ -52,7 +55,9 @@ snapshots and reduced motion.
 `test:surfaces` checks module references and the controlled text palette.
 `test:rig` checks five distinct rendered method skins, all 31 new raster exports,
 canvas movement and frozen pixels, timed impacts, six action beats, both opponents,
-catalog navigation, reduced motion, leaving battle, and texture/canvas failure fallback.
+catalog navigation, reduced motion, leaving battle, and texture/WebGL failure fallback.
+It also samples 756 real skeletal poses, checking actual sprite shoulder/elbow registration
+and weapon grips, not just bone-to-bone transforms.
 
 Browser captures beneath ignored `captures/cartoon-art/` cover 320x568, 320x760, 390x844 and
 1440x900, both toolbar-framed and full-screen phone layouts. Tests do not approve artwork.
@@ -107,21 +112,24 @@ restores idle artwork. Reduced motion removes character movement and bar transit
 one pending impact; if paused, it is committed only on resume. Method appearance is also retained
 in the preview's query string. No run state is persisted.
 
-`public/rig.js` renders the layered images with a hierarchical Canvas2D skeleton. Upper arms,
-elbows, hands and weapon attachments inherit parent transforms; attack, rage, artifact, heal,
-hit and guard have distinct joint poses. One transparent canvas renders both combatants.
+`public/rig.js` is a compiled, pinned DragonBones + PixiJS runtime, not the rejected custom
+Canvas2D skeleton. Each character has individual anatomical pivots in `src/rig-data.js`;
+DragonBones owns skeletal transforms and authored animation timelines.
+Attack, rage, artifact, heal, hit and guard have distinct clips.
+One transparent WebGL canvas renders both combatants; a separate static canvas previews the method.
 Only the presentation fixture supplies impacts; the renderer performs no damage calculation or RNG.
 The original full-body illustrations and pose swaps remain as a failure fallback.
 
-## Spine
+## Open-Source Animation
 
-The current animation is explicitly `cutout-skeletal`, not Spine. See [`SPINE.md`](SPINE.md)
-for the verified browser path, asset production checklist, version matching, license
-requirements and integration proposal. `probe:spine` evaluates the vendor's published player
-on its own website and records captures privately. It is a network-dependent optional check,
-not part of offline tests, and does not embed or redistribute vendor assets.
+The current animation is explicitly `dragonbones`, not Spine. See [`ANIMATION.md`](ANIMATION.md)
+for binding, authoring sources, clock ownership, license notices and test boundaries.
+Both the core and community Pixi adapter use MIT licenses. This is rigid cutout skeletal
+animation, not flexible mesh skinning or an animator's editor project.
+`SPINE.md` retains the prior evaluation; `probe:spine` is optional and unrelated to the selected
+runtime. No Spine runtime or vendor character is distributed.
 
 Only public HTML, `styles.css`, `cartoon.css`, application and rig scripts, manifests, exact preview exports
-and approved asset names are served. Prompts, generators, imagegen sources, package
+and approved asset names and animation notices are served. Prompts, generators, imagegen sources, package
 metadata and paths outside `public/` remain private. Production game and docs site are
 unchanged by this preview.

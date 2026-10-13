@@ -23,7 +23,10 @@ async function ready(page, query) {
 }
 async function pixelBounds(canvas) {
   return canvas.evaluate(node => {
-    const ctx = node.getContext('2d');
+    const copy = document.createElement('canvas');
+    copy.width = node.width; copy.height = node.height;
+    const ctx = copy.getContext('2d');
+    ctx.drawImage(node, 0, 0);
     const { width, height } = node;
     const data = ctx.getImageData(0, 0, width, height).data;
     const sides = [{ left: width, top: height, right: 0, bottom: 0, count: 0 },
@@ -72,7 +75,8 @@ try {
     assert.equal(await page.locator('#dialog-stats').innerText(), '地点\n古道\n功法\n养剑诀');
     await page.getByRole('button', { name: '确认前往' }).click();
     const canvas = page.locator('.combat-rig');
-    assert.equal(await page.locator('#preview-app').getAttribute('data-animation-kind'), 'cutout-skeletal');
+    assert.equal(await page.locator('#preview-app').getAttribute('data-animation-kind'), 'dragonbones');
+    assert.equal(await canvas.getAttribute('data-engine'), 'dragonbones');
     assert.equal(await page.locator('.unit-status .meter').count(), 4);
     await page.locator('[data-battle-control="pause"]').click();
     const idle = await pixelBounds(canvas);
@@ -183,6 +187,30 @@ try {
   }
   await page.getByRole('button', { name: '关闭详情' }).click();
   await page.screenshot({ path: new URL('overview.png', captures).pathname });
+  const lost = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const lossErrors = [];
+  lost.on('pageerror', error => lossErrors.push(error.message));
+  await ready(lost, 'screen=battle&capture=1');
+  await lost.waitForFunction(() => document.querySelector('.combat-rig').dataset.playerAction === 'attack' &&
+    document.querySelector('.enemy-status .health-value').textContent === '344/450');
+  await lost.evaluate(() => {
+    document.querySelector('[data-battle-control="pause"]').click();
+    const canvas = document.querySelector('.combat-rig');
+    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+    gl.getExtension('WEBGL_lose_context').loseContext();
+  });
+  await lost.waitForFunction(() => document.querySelector('#preview-app').dataset.libraryReady === 'false');
+  assert.equal(await lost.locator('.player-art').isVisible(), true);
+  assert.equal(await lost.locator('.enemy-status .health-value').textContent(), '344/450',
+    'context loss while paused must defer the pending impact');
+  await lost.locator('[data-battle-control="pause"]').click();
+  assert.equal(await lost.locator('.enemy-status .health-value').textContent(), '302/450');
+  await lost.waitForTimeout(200);
+  assert.equal(await lost.locator('.enemy-status .health-value').textContent(), '302/450');
+  await lost.locator('[data-battle-control="skip"]').click();
+  assert.deepEqual(lossErrors, []);
+  await lost.close();
+  console.log('WebGL loss falls back without losing or duplicating a paused impact');
   // Texture loading and 2D rendering failures both preserve the static fallback.
   for (const mode of ['texture', 'canvas']) {
     const fallback = await browser.newPage({ viewport: { width: 320, height: 568 } });
@@ -194,7 +222,8 @@ try {
       await fallback.addInitScript(() => {
         const original = HTMLCanvasElement.prototype.getContext;
         HTMLCanvasElement.prototype.getContext = function (...args) {
-          return this.classList.contains('combat-rig') ? null : original.apply(this, args);
+          return this.classList.contains('combat-rig') &&
+            ['webgl', 'webgl2', 'experimental-webgl'].includes(args[0]) ? null : original.apply(this, args);
         };
       });
     }

@@ -141,7 +141,7 @@ try {
       await page.goto(`${origin}/?screen=battle&capture=1`);
       await page.waitForFunction(() => document.querySelector('#preview-app').dataset.libraryReady === 'true');
       await page.locator('.battle-feedback:not([hidden])').waitFor();
-      assert.equal(await page.locator('#preview-app').getAttribute('data-animation-kind'), 'cutout-skeletal');
+      assert.equal(await page.locator('#preview-app').getAttribute('data-animation-kind'), 'dragonbones');
       assert.equal(await page.locator('.combat-rig').isVisible(), true);
       await page.screenshot({ path: new URL(`attack-${viewport.width}.png`, output).pathname });
       assert.equal(await page.locator('.battle-feedback').textContent(), '普攻 · 合计 92');
