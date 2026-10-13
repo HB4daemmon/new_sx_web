@@ -6,12 +6,13 @@
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "test": "node --test && node scripts/check-raster-assets.mjs",
-    "prepare:assets": "uv run --with pillow python scripts/prepare-pixel-assets.py --force",
+    "prepare:assets": "uv run --with pillow python scripts/prepare-cartoon-assets.py --force",
     "test:assets": "node scripts/check-raster-assets.mjs",
     "test:layout": "node scripts/check-layout.mjs",
-    "test:art": "node scripts/check-pixel-art.mjs",
-    "test:surfaces": "node scripts/check-pixel-surfaces.mjs",
-    "capture:previews": "node scripts/capture-previews.mjs"
+    "test:art": "node scripts/check-cartoon-art.mjs",
+    "test:surfaces": "node scripts/check-cartoon-surfaces.mjs",
+    "capture:previews": "node scripts/capture-previews.mjs",
+    "probe:spine": "node scripts/probe-spine.mjs"
   },
   "engines": {
     "node": ">=22"

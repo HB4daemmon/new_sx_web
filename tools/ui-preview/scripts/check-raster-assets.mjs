@@ -10,18 +10,21 @@ const assetRoot = path.join(moduleRoot, 'public', 'assets');
 const manifestPath = path.join(assetRoot, 'manifest.json');
 const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 const expectedAssets = [
-  { id: 'battle-scene', file: 'scene-battle.png', kind: 'scene', screen: 'battle', dimensions: [192, 384] },
-  { id: 'start-scene', file: 'scene-start.png', kind: 'scene', screen: 'start', dimensions: [192, 384] },
-  { id: 'map-scene', file: 'scene-map.png', kind: 'scene', screen: 'map', dimensions: [192, 384] },
-  { id: 'player', file: 'player.png', kind: 'character', screen: 'battle', dimensions: [64, 96] },
-  { id: 'enemy', file: 'enemy.png', kind: 'character', screen: 'battle', dimensions: [64, 96] },
-  { id: 'artifact-rr09', file: 'artifact-rr09.png', kind: 'artifact', target: 'artifact-rr09', contentId: 'RR09', dimensions: [32, 32] },
-  { id: 'artifact-rr11', file: 'artifact-rr11.png', kind: 'artifact', target: 'artifact-rr11', contentId: 'RR11', dimensions: [32, 32] },
-  { id: 'artifact-rr15', file: 'artifact-rr15.png', kind: 'artifact', target: 'artifact-rr15', contentId: 'RR15', dimensions: [32, 32] },
-  { id: 'ui-panel', file: 'ui-panel.png', kind: 'module', dimensions: [128, 64] },
-  { id: 'ui-button-primary', file: 'ui-button-primary.png', kind: 'module', dimensions: [160, 32] },
-  { id: 'ui-button-secondary', file: 'ui-button-secondary.png', kind: 'module', dimensions: [160, 32] },
-  { id: 'ui-meter', file: 'ui-meter.png', kind: 'module', dimensions: [160, 16] },
+  { id: 'battle-scene', file: 'scene-battle.png', kind: 'scene', screen: 'battle', dimensions: [390, 760] },
+  { id: 'start-scene', file: 'scene-start.png', kind: 'scene', screen: 'start', dimensions: [390, 760] },
+  { id: 'map-scene', file: 'scene-map.png', kind: 'scene', screen: 'map', dimensions: [390, 760] },
+  { id: 'player', file: 'player.png', kind: 'character', screen: 'battle', dimensions: [384, 576] },
+  { id: 'enemy', file: 'enemy.png', kind: 'character', screen: 'battle', dimensions: [384, 576] },
+  { id: 'artifact-rr09', file: 'artifact-rr09.png', kind: 'artifact', target: 'artifact-rr09', contentId: 'RR09', dimensions: [192, 192] },
+  { id: 'artifact-rr11', file: 'artifact-rr11.png', kind: 'artifact', target: 'artifact-rr11', contentId: 'RR11', dimensions: [192, 192] },
+  { id: 'artifact-rr15', file: 'artifact-rr15.png', kind: 'artifact', target: 'artifact-rr15', contentId: 'RR15', dimensions: [192, 192] },
+  { id: 'ui-panel', file: 'ui-panel.png', kind: 'module', dimensions: [256, 128] },
+  { id: 'ui-button-primary', file: 'ui-button-primary.png', kind: 'module', dimensions: [320, 80] },
+  { id: 'ui-button-secondary', file: 'ui-button-secondary.png', kind: 'module', dimensions: [320, 80] },
+  { id: 'ui-meter', file: 'ui-meter.png', kind: 'module', dimensions: [320, 32] },
+  { id: 'player-attack', file: 'player-attack.png', kind: 'pose', dimensions: [384, 576] },
+  { id: 'player-rage', file: 'player-rage.png', kind: 'pose', dimensions: [384, 576] },
+  { id: 'enemy-attack', file: 'enemy-attack.png', kind: 'pose', dimensions: [384, 576] },
 ];
 
 function crc32(buffer) {
@@ -183,11 +186,11 @@ const [manifestSource, html, appSource] = await Promise.all([
 const manifest = JSON.parse(manifestSource);
 assert.equal(manifest.schemaVersion, 1);
 assert.deepEqual(manifest.approval, { status: 'pending', reviewedBy: null });
-assert.equal(manifest.provenance.method, 'imagegen pixel module kit');
+assert.equal(manifest.provenance.method, 'imagegen hand-drawn cartoon kit');
 assert.equal(manifest.provenance.imageModel, 'gpt-image-2.5');
-assert.equal(manifest.provenance.generator, 'scripts/prepare-pixel-assets.py');
+assert.equal(manifest.provenance.generator, 'scripts/prepare-cartoon-assets.py');
 assert.deepEqual(manifest.assets.map(asset => asset.id), expectedAssets.map(asset => asset.id));
-assert.equal(manifest.assets.length, 12, 'eight illustrations plus four reusable UI modules');
+assert.equal(manifest.assets.length, 15, 'eight illustrations, four UI modules and three action poses');
 
 const expectedPlacements = new Map([
   ['battle-scene', 2],
@@ -230,14 +233,14 @@ for (const [index, expected] of expectedAssets.entries()) {
   const [bytes, info] = await Promise.all([readFile(filename), stat(filename)]);
   const hash = createHash('sha256').update(bytes).digest('hex');
   assert.equal(info.size, bytes.length, `${expected.id}: filesystem size`);
-  assert.match(asset.source.path, /^output\/imagegen-pixel-kit\/[a-z0-9-]+\.png$/);
+  assert.match(asset.source.path, /^output\/imagegen-cartoon-kit\/[a-z0-9-]+\.png$/);
   assert.match(asset.source.sha256, /^[a-f0-9]{64}$/);
   assert.equal(asset.processed.sha256, hash, `${expected.id}: exported hash`);
   assert.equal(asset.source.origin, 'imagegen', `${expected.id}: source origin`);
   assert.deepEqual(asset.processed.dimensions, expected.dimensions, `${expected.id}: output dimensions`);
   assert.equal(asset.processed.format, 'png', `${expected.id}: output format`);
-  assert.equal(asset.processed.pixelArt, true, `${expected.id}: pixel art`);
-  assert.equal(asset.processed.antialias, 'none', `${expected.id}: hard alpha edges`);
+  assert.equal(asset.processed.pixelArt, false, `${expected.id}: hand-drawn, not pixel art`);
+  assert.equal(asset.processed.antialias, 'lanczos', `${expected.id}: smooth illustration export`);
   assert.equal(asset.processed.bytes, bytes.length, `${expected.id}: manifest byte count`);
 
   const decoded = decodePng(bytes);
@@ -253,34 +256,33 @@ for (const [index, expected] of expectedAssets.entries()) {
   ]) {
     assert.deepEqual(asset.processed[field], pixels[field], `${expected.id}: manifest ${field}`);
   }
-  assert.ok(pixels.paletteColors >= 4 && pixels.paletteColors <= 24,
-    `${expected.id}: shared limited palette`);
-  assert.equal(pixels.alphaPartialPixels, 0, `${expected.id}: no glow or blurred alpha`);
+  assert.ok(pixels.paletteColors >= 4, `${expected.id}: nonblank colored illustration`);
 
   if (expected.kind === 'scene') {
     assert.deepEqual(pixels.alphaExtrema, [255, 255], `${expected.id}: opaque scene`);
     assert.equal(pixels.alphaZeroPixels, 0, `${expected.id}: opaque scene pixel count`);
-    assert.deepEqual(pixels.alphaNonzeroBBox, [0, 0, 192, 384], `${expected.id}: full-bleed scene bounds`);
-    const backgroundPixels = pixels.colorCounts['#e4ebe2'] ?? 0;
-    assert.ok(backgroundPixels > 192 * 384 * 0.65,
-      `${expected.id}: at least 65% plain negative space`);
-    for (let y = 0; y < 256; y += 1) {
+    assert.deepEqual(pixels.alphaNonzeroBBox, [0, 0, 390, 760], `${expected.id}: full-bleed scene bounds`);
+    const backgroundPixels = pixels.colorCounts['#f1f4ef'] ?? 0;
+    assert.ok(backgroundPixels > 390 * 760 * 0.7,
+      `${expected.id}: at least 70% plain negative space`);
+    for (let y = 0; y < 548; y += 1) {
       for (let x = 0; x < decoded.width; x += 1) {
         const offset = (y * decoded.width + x) * 4;
-        assert.equal(decoded.pixels.subarray(offset, offset + 3).toString('hex'), 'e4ebe2',
+        assert.equal(decoded.pixels.subarray(offset, offset + 3).toString('hex'), 'f1f4ef',
           `${expected.id}: the upper text region must remain perfectly plain`);
       }
     }
-  } else if (expected.kind === 'character') {
+  } else if (expected.kind === 'character' || expected.kind === 'pose') {
     assert.deepEqual(pixels.alphaExtrema, [0, 255], `${expected.id}: transparent sprite`);
-    assert.ok(pixels.alphaTransparentPaddingPx.every(value => value >= 4),
+    assert.ok(pixels.alphaTransparentPaddingPx.every(value => value >= 20),
       `${expected.id}: character has full-body transparent edge padding`);
-    assert.ok(pixels.alphaNonzeroPixels > 1200, `${expected.id}: substantial full-body silhouette`);
+    assert.ok(pixels.alphaNonzeroPixels > 15000, `${expected.id}: substantial full-body silhouette`);
+    assert.ok(pixels.alphaPartialPixels > 0, `${expected.id}: smooth, antialiased ink edges`);
   } else if (expected.kind === 'artifact') {
     assert.deepEqual(pixels.alphaExtrema, [0, 255], `${expected.id}: transparent icon`);
-    assert.ok(pixels.alphaTransparentPaddingPx.every(value => value >= 3),
+    assert.ok(pixels.alphaTransparentPaddingPx.every(value => value >= 12),
       `${expected.id}: icon has transparent edge padding`);
-    assert.ok(pixels.alphaNonzeroPixels > 120, `${expected.id}: readable artifact silhouette`);
+    assert.ok(pixels.alphaNonzeroPixels > 2000, `${expected.id}: readable artifact silhouette`);
   } else {
     assert.equal(asset.slice.length, 4, `${expected.id}: explicit inspected nine-slice margins`);
     assert.ok(pixels.alphaNonzeroPixels > 200, `${expected.id}: populated UI module`);
@@ -289,4 +291,4 @@ for (const [index, expected] of expectedAssets.entries()) {
 }
 
 console.log(`Offline raster audit passed: ${auditResults.length} imagegen PNG exports decoded; ` +
-  'hashes, hard alpha, shared palette, quiet sky and asset mappings match.');
+  'hashes, transparency, smooth ink edges, quiet sky and asset mappings match.');

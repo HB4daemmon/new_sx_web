@@ -5,13 +5,16 @@
     "reviewedBy": null
   },
   "provenance": {
-    "method": "imagegen pixel module kit",
-    "generator": "scripts/prepare-pixel-assets.py",
+    "method": "imagegen hand-drawn cartoon kit",
+    "generator": "scripts/prepare-cartoon-assets.py",
     "imageModel": "gpt-image-2.5",
-    "promptSet": "prompts/pixel-kit.jsonl",
-    "sceneRefinement": "prompts/pixel-scene-refinement.txt",
-    "pendantRefinement": "prompts/pixel-pendant-refinement.txt",
-    "processing": "native alpha threshold 220; nearest-neighbor; shared 24-color palette"
+    "promptSet": "prompts/cartoon-kit.jsonl",
+    "refinements": "prompts/cartoon-refinements.jsonl",
+    "sceneRefinement": "prompts/cartoon-scene-refinement.txt",
+    "sceneCleanup": "prompts/cartoon-scene-cleanup.txt",
+    "posePrompts": "prompts/cartoon-poses.md",
+    "processing": "native alpha threshold 200; lanczos; quiet extended sky",
+    "animation": "illustrated pose swaps; not Spine skeletal animation"
   },
   "assets": [
     {
@@ -20,36 +23,36 @@
       "kind": "scene",
       "required": true,
       "source": {
-        "path": "output/imagegen-pixel-kit/scene-quiet-v2.png",
-        "sha256": "36aa444b1ed77a319b8eb02f2be176b6a47fb6c1e00bd26edb38f713f7b83bcd",
+        "path": "output/imagegen-cartoon-kit/scene-v3.png",
+        "sha256": "a999b3018ca28eb4c5b6cd739367dc5e7044c29f9549d6b284473ac10a2cf333",
         "dimensions": [
-          887,
-          1774
+          1024,
+          1536
         ],
         "mode": "RGB",
         "origin": "imagegen"
       },
       "processed": {
         "dimensions": [
-          192,
-          384
+          390,
+          760
         ],
         "format": "png",
-        "pixelArt": true,
-        "antialias": "none",
-        "bytes": 2460,
-        "sha256": "8822156edf742b4c76a077d76e71af71af314030b6e030873bc00888212b5806",
+        "pixelArt": false,
+        "antialias": "lanczos",
+        "bytes": 72288,
+        "sha256": "a13f584526b80ac7dc938454f246834da8211c5de237926ccdba6ca916e2ae30",
         "alphaExtrema": [
           255,
           255
         ],
         "alphaZeroPixels": 0,
-        "alphaNonzeroPixels": 73728,
+        "alphaNonzeroPixels": 296400,
         "alphaNonzeroBBox": [
           0,
           0,
-          192,
-          384
+          390,
+          760
         ],
         "alphaTransparentPaddingPx": [
           0,
@@ -57,7 +60,7 @@
           0,
           0
         ],
-        "paletteColors": 7
+        "paletteColors": 2362
       },
       "screen": "battle"
     },
@@ -67,36 +70,36 @@
       "kind": "scene",
       "required": true,
       "source": {
-        "path": "output/imagegen-pixel-kit/scene-quiet-v2.png",
-        "sha256": "36aa444b1ed77a319b8eb02f2be176b6a47fb6c1e00bd26edb38f713f7b83bcd",
+        "path": "output/imagegen-cartoon-kit/scene-v3.png",
+        "sha256": "a999b3018ca28eb4c5b6cd739367dc5e7044c29f9549d6b284473ac10a2cf333",
         "dimensions": [
-          887,
-          1774
+          1024,
+          1536
         ],
         "mode": "RGB",
         "origin": "imagegen"
       },
       "processed": {
         "dimensions": [
-          192,
-          384
+          390,
+          760
         ],
         "format": "png",
-        "pixelArt": true,
-        "antialias": "none",
-        "bytes": 2460,
-        "sha256": "8822156edf742b4c76a077d76e71af71af314030b6e030873bc00888212b5806",
+        "pixelArt": false,
+        "antialias": "lanczos",
+        "bytes": 72288,
+        "sha256": "a13f584526b80ac7dc938454f246834da8211c5de237926ccdba6ca916e2ae30",
         "alphaExtrema": [
           255,
           255
         ],
         "alphaZeroPixels": 0,
-        "alphaNonzeroPixels": 73728,
+        "alphaNonzeroPixels": 296400,
         "alphaNonzeroBBox": [
           0,
           0,
-          192,
-          384
+          390,
+          760
         ],
         "alphaTransparentPaddingPx": [
           0,
@@ -104,7 +107,7 @@
           0,
           0
         ],
-        "paletteColors": 7
+        "paletteColors": 2362
       },
       "screen": "start"
     },
@@ -114,36 +117,36 @@
       "kind": "scene",
       "required": true,
       "source": {
-        "path": "output/imagegen-pixel-kit/scene-quiet-v2.png",
-        "sha256": "36aa444b1ed77a319b8eb02f2be176b6a47fb6c1e00bd26edb38f713f7b83bcd",
+        "path": "output/imagegen-cartoon-kit/scene-v3.png",
+        "sha256": "a999b3018ca28eb4c5b6cd739367dc5e7044c29f9549d6b284473ac10a2cf333",
         "dimensions": [
-          887,
-          1774
+          1024,
+          1536
         ],
         "mode": "RGB",
         "origin": "imagegen"
       },
       "processed": {
         "dimensions": [
-          192,
-          384
+          390,
+          760
         ],
         "format": "png",
-        "pixelArt": true,
-        "antialias": "none",
-        "bytes": 2460,
-        "sha256": "8822156edf742b4c76a077d76e71af71af314030b6e030873bc00888212b5806",
+        "pixelArt": false,
+        "antialias": "lanczos",
+        "bytes": 72288,
+        "sha256": "a13f584526b80ac7dc938454f246834da8211c5de237926ccdba6ca916e2ae30",
         "alphaExtrema": [
           255,
           255
         ],
         "alphaZeroPixels": 0,
-        "alphaNonzeroPixels": 73728,
+        "alphaNonzeroPixels": 296400,
         "alphaNonzeroBBox": [
           0,
           0,
-          192,
-          384
+          390,
+          760
         ],
         "alphaTransparentPaddingPx": [
           0,
@@ -151,7 +154,7 @@
           0,
           0
         ],
-        "paletteColors": 7
+        "paletteColors": 2362
       },
       "screen": "map"
     },
@@ -161,44 +164,44 @@
       "kind": "character",
       "required": true,
       "source": {
-        "path": "output/imagegen-pixel-kit/player.png",
-        "sha256": "9eaeb6b3dd37fafe84646337748a5dbd45145218d4a5b009139112c978cb9640",
+        "path": "output/imagegen-cartoon-kit/player-v2.png",
+        "sha256": "58edb969ee165f762ac2090505dd59dab82c225a7a82fc1daabebcbd5f991f23",
         "dimensions": [
-          1024,
-          1536
+          1224,
+          1285
         ],
         "mode": "RGBA",
         "origin": "imagegen"
       },
       "processed": {
         "dimensions": [
-          64,
-          96
+          384,
+          576
         ],
         "format": "png",
-        "pixelArt": true,
-        "antialias": "none",
-        "bytes": 3528,
-        "sha256": "981ee006777972226c0ab763181cafdfd473f5a4eb585a4f19ddd87227fc444e",
+        "pixelArt": false,
+        "antialias": "lanczos",
+        "bytes": 133786,
+        "sha256": "1870aa2518710cbb0737536d6f79862bc74cdab479c0f6a177026c8319849e4b",
         "alphaExtrema": [
           0,
           255
         ],
-        "alphaZeroPixels": 4271,
-        "alphaNonzeroPixels": 1873,
+        "alphaZeroPixels": 165929,
+        "alphaNonzeroPixels": 55255,
         "alphaNonzeroBBox": [
-          4,
-          20,
-          60,
-          92
+          24,
+          184,
+          360,
+          552
         ],
         "alphaTransparentPaddingPx": [
-          4,
-          20,
-          4,
-          4
+          24,
+          184,
+          24,
+          24
         ],
-        "paletteColors": 23
+        "paletteColors": 13399
       },
       "screen": "battle"
     },
@@ -208,44 +211,44 @@
       "kind": "character",
       "required": true,
       "source": {
-        "path": "output/imagegen-pixel-kit/enemy.png",
-        "sha256": "f2d3f56ae72cc001a1863a03f3b3b86918663e05a1375b4f67f83621ffff52ed",
+        "path": "output/imagegen-cartoon-kit/enemy-v2.png",
+        "sha256": "8a98c0dd073f97f08cd8bb12931db7feadf273ac39d30e5e90ac22c602487492",
         "dimensions": [
-          1024,
-          1536
+          1374,
+          1145
         ],
         "mode": "RGBA",
         "origin": "imagegen"
       },
       "processed": {
         "dimensions": [
-          64,
-          96
+          384,
+          576
         ],
         "format": "png",
-        "pixelArt": true,
-        "antialias": "none",
-        "bytes": 4147,
-        "sha256": "e6b6bf5514e45283d4a66ff9f45104382f8c0d8812a4915e49df4e217af03f31",
+        "pixelArt": false,
+        "antialias": "lanczos",
+        "bytes": 114797,
+        "sha256": "4347f5f52c42e3a45c8ad381ffff5f13ae630bb5990c7887f16fa465c7222a95",
         "alphaExtrema": [
           0,
           255
         ],
-        "alphaZeroPixels": 4351,
-        "alphaNonzeroPixels": 1793,
+        "alphaZeroPixels": 175638,
+        "alphaNonzeroPixels": 45546,
         "alphaNonzeroBBox": [
-          4,
-          21,
-          60,
-          92
+          24,
+          277,
+          360,
+          552
         ],
         "alphaTransparentPaddingPx": [
-          4,
-          21,
-          4,
-          4
+          24,
+          277,
+          24,
+          24
         ],
-        "paletteColors": 17
+        "paletteColors": 10068
       },
       "screen": "battle"
     },
@@ -255,44 +258,44 @@
       "kind": "artifact",
       "required": true,
       "source": {
-        "path": "output/imagegen-pixel-kit/artifact-rr09.png",
-        "sha256": "f6338c0307dda119077346a72ceeda973ff2dce3f8d47f22a78dfeefbb1c1ce7",
+        "path": "output/imagegen-cartoon-kit/artifact-rr09.png",
+        "sha256": "a76f329f4591a8e7deac0c8116fc1b5783e7b360fc1be4fd919c76eae6e43079",
         "dimensions": [
-          1254,
-          1254
+          1282,
+          1227
         ],
         "mode": "RGBA",
         "origin": "imagegen"
       },
       "processed": {
         "dimensions": [
-          32,
-          32
+          192,
+          192
         ],
         "format": "png",
-        "pixelArt": true,
-        "antialias": "none",
-        "bytes": 1030,
-        "sha256": "e86974faeb0ad039a168348994bb41ce65c15334ce144593ac63576dd0b3dd51",
+        "pixelArt": false,
+        "antialias": "lanczos",
+        "bytes": 32795,
+        "sha256": "18bfe2f765553fd4b994ca4bbba496aa3b7ba4304e4d1e92d44e20d7d4a704d5",
         "alphaExtrema": [
           0,
           255
         ],
-        "alphaZeroPixels": 637,
-        "alphaNonzeroPixels": 387,
+        "alphaZeroPixels": 24897,
+        "alphaNonzeroPixels": 11967,
         "alphaNonzeroBBox": [
-          3,
-          3,
-          28,
-          29
+          21,
+          16,
+          171,
+          176
         ],
         "alphaTransparentPaddingPx": [
-          3,
-          3,
-          4,
-          3
+          21,
+          16,
+          21,
+          16
         ],
-        "paletteColors": 21
+        "paletteColors": 6117
       },
       "target": "artifact-rr09",
       "contentId": "RR09"
@@ -303,44 +306,44 @@
       "kind": "artifact",
       "required": true,
       "source": {
-        "path": "output/imagegen-pixel-kit/artifact-rr11.png",
-        "sha256": "5530162f48d55bbcb9fe0d8d944d87938604ce8bc34f030664da19dd7d5876c0",
+        "path": "output/imagegen-cartoon-kit/artifact-rr11.png",
+        "sha256": "88a043edaeeed465f4b75ea6676c09e50aade2d2f8fad7c7a9f47c09b62450f2",
         "dimensions": [
-          1254,
-          1254
+          1312,
+          1199
         ],
         "mode": "RGBA",
         "origin": "imagegen"
       },
       "processed": {
         "dimensions": [
-          32,
-          32
+          192,
+          192
         ],
         "format": "png",
-        "pixelArt": true,
-        "antialias": "none",
-        "bytes": 1214,
-        "sha256": "483842296b45cf9226911863de32989b30c12aca6e4ee57edb6aecc68712d634",
+        "pixelArt": false,
+        "antialias": "lanczos",
+        "bytes": 34340,
+        "sha256": "14fc5cf5f332f40281949e3acd17a4d9fdd9a23739f6f8507bdbff3883c0f228",
         "alphaExtrema": [
           0,
           255
         ],
-        "alphaZeroPixels": 631,
-        "alphaNonzeroPixels": 393,
+        "alphaZeroPixels": 23901,
+        "alphaNonzeroPixels": 12963,
         "alphaNonzeroBBox": [
-          4,
-          3,
-          28,
-          29
+          16,
+          57,
+          176,
+          176
         ],
         "alphaTransparentPaddingPx": [
-          4,
-          3,
-          4,
-          3
+          16,
+          57,
+          16,
+          16
         ],
-        "paletteColors": 21
+        "paletteColors": 8443
       },
       "target": "artifact-rr11",
       "contentId": "RR11"
@@ -351,44 +354,44 @@
       "kind": "artifact",
       "required": true,
       "source": {
-        "path": "output/imagegen-pixel-kit/artifact-rr15-v2.png",
-        "sha256": "1739a79376adcb4b7c870a01d1f52dcc9494c88cb2115d36900ef43c1ca91051",
+        "path": "output/imagegen-cartoon-kit/artifact-rr15-v2.png",
+        "sha256": "f1a01a82561b77315b9912b9980937d547194605a7ddffec552706c75d5c0374",
         "dimensions": [
-          1254,
-          1254
+          1287,
+          1222
         ],
         "mode": "RGBA",
         "origin": "imagegen"
       },
       "processed": {
         "dimensions": [
-          32,
-          32
+          192,
+          192
         ],
         "format": "png",
-        "pixelArt": true,
-        "antialias": "none",
-        "bytes": 592,
-        "sha256": "c36f5e1e6ef160fe219593c6da1a4523519440a19b9c87082861efd0411f096f",
+        "pixelArt": false,
+        "antialias": "lanczos",
+        "bytes": 18940,
+        "sha256": "9bceddbe8bd6fe9ff1ffe94dc17f08caac7415c802dc7c913ad314836e1da335",
         "alphaExtrema": [
           0,
           255
         ],
-        "alphaZeroPixels": 760,
-        "alphaNonzeroPixels": 264,
+        "alphaZeroPixels": 28613,
+        "alphaNonzeroPixels": 8251,
         "alphaNonzeroBBox": [
-          7,
-          3,
-          25,
-          29
+          48,
+          16,
+          143,
+          176
         ],
         "alphaTransparentPaddingPx": [
-          7,
-          3,
-          7,
-          3
+          48,
+          16,
+          49,
+          16
         ],
-        "paletteColors": 15
+        "paletteColors": 2545
       },
       "target": "artifact-rr15",
       "contentId": "RR15"
@@ -399,8 +402,8 @@
       "kind": "module",
       "required": true,
       "source": {
-        "path": "output/imagegen-pixel-kit/ui-panel.png",
-        "sha256": "3068f91bbd60c991329b4b2957dd2aa65aad7133995c764646564f3e5de117cc",
+        "path": "output/imagegen-cartoon-kit/ui-panel.png",
+        "sha256": "abec0fa63a9b0e589ca5b3167f2404b55cd94c23efc94b5576a7f06dbb95ac46",
         "dimensions": [
           1774,
           887
@@ -410,25 +413,25 @@
       },
       "processed": {
         "dimensions": [
-          128,
-          64
+          256,
+          128
         ],
         "format": "png",
-        "pixelArt": true,
-        "antialias": "none",
-        "bytes": 1050,
-        "sha256": "98e8efb2bb89c8c3b9c892eef066e266aec32a812b242d1b844b414714795098",
+        "pixelArt": false,
+        "antialias": "lanczos",
+        "bytes": 33113,
+        "sha256": "b29d6b54a5b182f633e4ab3a1e81f541b72cca8becd4ac3f448b0f64e64dd156",
         "alphaExtrema": [
           0,
           255
         ],
-        "alphaZeroPixels": 332,
-        "alphaNonzeroPixels": 7860,
+        "alphaZeroPixels": 1247,
+        "alphaNonzeroPixels": 31521,
         "alphaNonzeroBBox": [
           0,
           0,
-          128,
-          64
+          256,
+          128
         ],
         "alphaTransparentPaddingPx": [
           0,
@@ -436,13 +439,13 @@
           0,
           0
         ],
-        "paletteColors": 14
+        "paletteColors": 2870
       },
       "slice": [
-        12,
-        12,
-        12,
-        12
+        24,
+        24,
+        24,
+        24
       ]
     },
     {
@@ -451,8 +454,8 @@
       "kind": "module",
       "required": true,
       "source": {
-        "path": "output/imagegen-pixel-kit/ui-button-primary.png",
-        "sha256": "91f6e0d4745e670aacb2437c73287b7ad4d8323d5bf5f45fb88660ddd0f66951",
+        "path": "output/imagegen-cartoon-kit/ui-button-primary.png",
+        "sha256": "872121dde5ad01b015d8793902a7de8129d8ebc3dab4b1c93cbce8d0d86a334c",
         "dimensions": [
           2172,
           724
@@ -462,25 +465,25 @@
       },
       "processed": {
         "dimensions": [
-          160,
-          32
+          320,
+          80
         ],
         "format": "png",
-        "pixelArt": true,
-        "antialias": "none",
-        "bytes": 578,
-        "sha256": "1ef2321b6fcb5b330274d9416f688ca03539458d233fc89c725540e6b7856902",
+        "pixelArt": false,
+        "antialias": "lanczos",
+        "bytes": 14508,
+        "sha256": "3e21c82521e0e666d6b08c681bd1a7593f4c308f83d50db192994cd634d81dd9",
         "alphaExtrema": [
           0,
           255
         ],
-        "alphaZeroPixels": 303,
-        "alphaNonzeroPixels": 4817,
+        "alphaZeroPixels": 1213,
+        "alphaNonzeroPixels": 24387,
         "alphaNonzeroBBox": [
           0,
           0,
-          160,
-          32
+          320,
+          80
         ],
         "alphaTransparentPaddingPx": [
           0,
@@ -488,13 +491,13 @@
           0,
           0
         ],
-        "paletteColors": 11
+        "paletteColors": 3046
       },
       "slice": [
-        6,
-        20,
-        6,
-        20
+        16,
+        44,
+        16,
+        44
       ]
     },
     {
@@ -503,36 +506,36 @@
       "kind": "module",
       "required": true,
       "source": {
-        "path": "output/imagegen-pixel-kit/ui-button-secondary.png",
-        "sha256": "0e543c0d7874e306ede2499782b928c92600892c4feeee4ef496cbbd48d00ec6",
+        "path": "output/imagegen-cartoon-kit/ui-button-secondary.png",
+        "sha256": "39d80b5585e9a3870c3d18c09f74905e36c2d2090a79e1380328d04476e797b4",
         "dimensions": [
-          2172,
-          724
+          2098,
+          749
         ],
         "mode": "RGBA",
         "origin": "imagegen"
       },
       "processed": {
         "dimensions": [
-          160,
-          32
+          320,
+          80
         ],
         "format": "png",
-        "pixelArt": true,
-        "antialias": "none",
-        "bytes": 831,
-        "sha256": "3cb04a77bcd4ffbf67c159922d5a16b6f16e606a579da4c772073a94408fe54c",
+        "pixelArt": false,
+        "antialias": "lanczos",
+        "bytes": 31541,
+        "sha256": "6808c51b12cdff009e1dadc454001e58d44df76becada169e1e35698b13888c5",
         "alphaExtrema": [
           0,
           255
         ],
-        "alphaZeroPixels": 352,
-        "alphaNonzeroPixels": 4768,
+        "alphaZeroPixels": 2752,
+        "alphaNonzeroPixels": 22848,
         "alphaNonzeroBBox": [
           0,
           0,
-          160,
-          32
+          320,
+          80
         ],
         "alphaTransparentPaddingPx": [
           0,
@@ -540,13 +543,13 @@
           0,
           0
         ],
-        "paletteColors": 12
+        "paletteColors": 4043
       },
       "slice": [
-        6,
-        20,
-        6,
-        20
+        16,
+        44,
+        16,
+        44
       ]
     },
     {
@@ -555,8 +558,8 @@
       "kind": "module",
       "required": true,
       "source": {
-        "path": "output/imagegen-pixel-kit/ui-meter.png",
-        "sha256": "eaae2041df744b0d335db52334f7d15a5c2f8c392579f51201056a1ba7e742d7",
+        "path": "output/imagegen-cartoon-kit/ui-meter.png",
+        "sha256": "d145e3b8044eba3f8e4f14cebaba6bfbc77de3c27f3080d77429411c33796884",
         "dimensions": [
           2172,
           724
@@ -566,25 +569,25 @@
       },
       "processed": {
         "dimensions": [
-          160,
-          16
+          320,
+          32
         ],
         "format": "png",
-        "pixelArt": true,
-        "antialias": "none",
-        "bytes": 865,
-        "sha256": "9da449d290acd04474ec5ec2450d3b8f6ef49efbfd6e6ed0e1e46c5c2b45dbc1",
+        "pixelArt": false,
+        "antialias": "lanczos",
+        "bytes": 13182,
+        "sha256": "dc022b20743b43d6734e7ecfb6742815e9748c3c7a1d475aa64cd13e66968e13",
         "alphaExtrema": [
           0,
           255
         ],
-        "alphaZeroPixels": 620,
-        "alphaNonzeroPixels": 1940,
+        "alphaZeroPixels": 109,
+        "alphaNonzeroPixels": 10131,
         "alphaNonzeroBBox": [
           0,
           0,
-          160,
-          16
+          320,
+          32
         ],
         "alphaTransparentPaddingPx": [
           0,
@@ -592,14 +595,158 @@
           0,
           0
         ],
-        "paletteColors": 12
+        "paletteColors": 2546
       },
       "slice": [
-        4,
         8,
-        4,
-        8
+        16,
+        8,
+        16
       ]
+    },
+    {
+      "id": "player-attack",
+      "src": "/assets/player-attack.png",
+      "kind": "pose",
+      "required": true,
+      "source": {
+        "path": "output/imagegen-cartoon-kit/player-attack.png",
+        "sha256": "0c4139ac85572c882ae2b54058c2d5398364fe7e492e98b0990b05bce31dc99e",
+        "dimensions": [
+          1224,
+          1285
+        ],
+        "mode": "RGBA",
+        "origin": "imagegen"
+      },
+      "processed": {
+        "dimensions": [
+          384,
+          576
+        ],
+        "format": "png",
+        "pixelArt": false,
+        "antialias": "lanczos",
+        "bytes": 114899,
+        "sha256": "15833069e51dc0229497b2a6991f28c71876285ef350fe2db8ef52b046f2c047",
+        "alphaExtrema": [
+          0,
+          255
+        ],
+        "alphaZeroPixels": 175056,
+        "alphaNonzeroPixels": 46128,
+        "alphaNonzeroBBox": [
+          24,
+          233,
+          360,
+          552
+        ],
+        "alphaTransparentPaddingPx": [
+          24,
+          233,
+          24,
+          24
+        ],
+        "paletteColors": 12871
+      },
+      "actor": "player",
+      "action": "attack"
+    },
+    {
+      "id": "player-rage",
+      "src": "/assets/player-rage.png",
+      "kind": "pose",
+      "required": true,
+      "source": {
+        "path": "output/imagegen-cartoon-kit/player-rage.png",
+        "sha256": "ad22a96ada54e0130abcc042f8df1c7bdf4e6751dd70755121fc4c1ce176cd16",
+        "dimensions": [
+          1224,
+          1285
+        ],
+        "mode": "RGBA",
+        "origin": "imagegen"
+      },
+      "processed": {
+        "dimensions": [
+          384,
+          576
+        ],
+        "format": "png",
+        "pixelArt": false,
+        "antialias": "lanczos",
+        "bytes": 169511,
+        "sha256": "6d8c2d9abc8c0ec927b390266301e7ba8145d350dc6f3dc72f1af3e38e86bc95",
+        "alphaExtrema": [
+          0,
+          255
+        ],
+        "alphaZeroPixels": 146180,
+        "alphaNonzeroPixels": 75004,
+        "alphaNonzeroBBox": [
+          24,
+          130,
+          360,
+          552
+        ],
+        "alphaTransparentPaddingPx": [
+          24,
+          130,
+          24,
+          24
+        ],
+        "paletteColors": 15053
+      },
+      "actor": "player",
+      "action": "rage"
+    },
+    {
+      "id": "enemy-attack",
+      "src": "/assets/enemy-attack.png",
+      "kind": "pose",
+      "required": true,
+      "source": {
+        "path": "output/imagegen-cartoon-kit/enemy-attack.png",
+        "sha256": "34d60a29228635585ab96280a782b0a959de291e5e04a25a439b98e60580bfc9",
+        "dimensions": [
+          1374,
+          1145
+        ],
+        "mode": "RGBA",
+        "origin": "imagegen"
+      },
+      "processed": {
+        "dimensions": [
+          384,
+          576
+        ],
+        "format": "png",
+        "pixelArt": false,
+        "antialias": "lanczos",
+        "bytes": 101295,
+        "sha256": "e54045f2455d67e4de45a5445091310853f460e5eab8c16f297f98b399ab7bb8",
+        "alphaExtrema": [
+          0,
+          255
+        ],
+        "alphaZeroPixels": 183070,
+        "alphaNonzeroPixels": 38114,
+        "alphaNonzeroBBox": [
+          24,
+          313,
+          360,
+          552
+        ],
+        "alphaTransparentPaddingPx": [
+          24,
+          313,
+          24,
+          24
+        ],
+        "paletteColors": 10150
+      },
+      "actor": "enemy",
+      "action": "attack"
     }
   ]
 }

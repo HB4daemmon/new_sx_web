@@ -11,6 +11,9 @@ const requiredAssetIds = [
   'ui-button-primary',
   'ui-button-secondary',
   'ui-meter',
+  'player-attack',
+  'player-rage',
+  'enemy-attack',
 ];
 const requiredAssets = new Map([
   ['battle-scene', { src: '/assets/scene-battle.png', kind: 'scene', screen: 'battle' }],
@@ -25,8 +28,13 @@ const requiredAssets = new Map([
   ['ui-button-primary', { src: '/assets/ui-button-primary.png', kind: 'module' }],
   ['ui-button-secondary', { src: '/assets/ui-button-secondary.png', kind: 'module' }],
   ['ui-meter', { src: '/assets/ui-meter.png', kind: 'module' }],
+  ['player-attack', { src: '/assets/player-attack.png', kind: 'pose' }],
+  ['player-rage', { src: '/assets/player-rage.png', kind: 'pose' }],
+  ['enemy-attack', { src: '/assets/enemy-attack.png', kind: 'pose' }],
 ]);
-const assetPathPattern = /^\/assets\/(?:scene-(?:battle|start|map)|player|enemy|artifact-[a-z0-9-]+|ui-(?:panel|button-primary|button-secondary|meter))\.png$/;
+const assetPathPattern = /^\/assets\/(?:scene-(?:battle|start|map)|player(?:-attack|-rage)?|enemy(?:-attack)?|artifact-[a-z0-9-]+|ui-(?:panel|button-primary|button-secondary|meter))\.png$/;
+const poseImages = new Map();
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const methods = {
   RKF01: { name: '金刚功', cue: '普攻、怒技后获得护盾。' },
   RKF02: { name: '归元诀', cue: '怒技后按实际怒耗返气。' },
@@ -110,6 +118,25 @@ app.dataset.assetsReady = 'false';
 app.dataset.visualApproval = 'pending';
 app.dataset.previewSpeed = 'normal';
 app.dataset.previewPaused = 'false';
+app.dataset.animationKind = 'illustrated-poses';
+
+function resetActor(image) {
+  image.classList.remove('is-striking', 'is-hit');
+  image.dataset.pose = 'idle';
+  const asset = requiredAssets.get(image.dataset.assetTarget);
+  if (!image.hidden && asset) image.src = asset.src;
+}
+
+function syncMotionPause() {
+  app.dataset.motionPaused = String(app.dataset.previewPaused === 'true' || dialog.open);
+}
+
+document.querySelectorAll('.battle-actors img').forEach(image => {
+  image.addEventListener('animationend', () => resetActor(image));
+});
+reducedMotion.addEventListener('change', () => {
+  document.querySelectorAll('.battle-actors img').forEach(resetActor);
+});
 
 function updateOverviewScales() {
   if (app.dataset.view !== 'overview') return;
@@ -256,8 +283,7 @@ function scheduleBattleBeat() {
 function playBattleBeat() {
   if (!battleActive || app.dataset.previewPaused === 'true' || dialog.open) return;
   const feedback = document.querySelector('.battle-feedback');
-  document.querySelectorAll('.battle-actors img').forEach(image =>
-    image.classList.remove('is-striking', 'is-hit'));
+  document.querySelectorAll('.battle-actors img').forEach(resetActor);
   if (battlePhase === battleBeats.length) {
     combat = structuredClone(initialCombat);
     battlePhase = 0;
@@ -275,8 +301,14 @@ function playBattleBeat() {
     feedback.textContent = `${beat.label} · 合计 ${damage}`;
     feedback.hidden = false;
     document.querySelector('.round-label').textContent = battlePhase === 3 ? '第四回合' : '第三回合';
-    document.querySelector(`.${beat.actor}-art`).classList.add('is-striking');
-    document.querySelector(`.${beat.target}-art`).classList.add('is-hit');
+    if (!reducedMotion.matches) {
+      const actor = document.querySelector(`.${beat.actor}-art`);
+      const pose = beat.label === '怒技' ? 'rage' : 'attack';
+      actor.src = poseImages.get(`${beat.actor}-${pose}`).src;
+      actor.dataset.pose = pose;
+      actor.classList.add('is-striking');
+      document.querySelector(`.${beat.target}-art`).classList.add('is-hit');
+    }
   }
   renderCombat();
   scheduleBattleBeat();
@@ -291,8 +323,7 @@ function syncBattlePlayback(view) {
   combat = structuredClone(initialCombat);
   battlePhase = 0;
   document.querySelector('.battle-feedback').hidden = true;
-  document.querySelectorAll('.battle-actors img').forEach(image =>
-    image.classList.remove('is-striking', 'is-hit'));
+  document.querySelectorAll('.battle-actors img').forEach(resetActor);
   document.querySelector('.round-label').textContent = '第三回合';
   renderCombat();
   scheduleBattleBeat();
@@ -351,7 +382,7 @@ function validManifest(manifest) {
     if (
       !asset || typeof asset.id !== 'string' ||
       typeof asset.src !== 'string' || !assetPathPattern.test(asset.src) ||
-      !['scene', 'character', 'artifact', 'module'].includes(asset.kind)
+      !['scene', 'character', 'artifact', 'module', 'pose'].includes(asset.kind)
     ) return false;
     if (byId.has(asset.id)) return false;
     byId.set(asset.id, asset);
@@ -369,6 +400,10 @@ function validManifest(manifest) {
 async function attachAsset(asset) {
   const decodedImage = await loadImage(asset.src);
   if (asset.kind === 'module') return;
+  if (asset.kind === 'pose') {
+    poseImages.set(asset.id, decodedImage);
+    return;
+  }
   const targets = [...document.querySelectorAll(`[data-asset-target="${asset.id}"]`)];
   if (targets.length === 0) throw new Error(`Missing asset target: ${asset.id}`);
 
@@ -408,7 +443,7 @@ async function loadApprovedAssets() {
   }
 
   app.dataset.assetsReady = 'true';
-  app.dataset.assetStyle = 'pixel';
+  app.dataset.assetStyle = 'hand-drawn-cartoon';
   app.dataset.visualApproval = 'pending';
   assetStatus.textContent = '素材已载入 · 待视觉确认';
   captureButton.disabled = false;
@@ -509,6 +544,7 @@ function openDialog(kind, artifactId = selectedArtifact) {
     settingsForm.elements.seed.value = profile.seed;
   }
   if (!dialog.open) dialog.showModal();
+  syncMotionPause();
   scheduleBattleBeat();
 }
 
@@ -576,6 +612,7 @@ dialog.addEventListener('close', () => {
   dialogKind = '';
   delete dialog.dataset.kind;
   delete dialog.dataset.nodeId;
+  syncMotionPause();
   scheduleBattleBeat();
 });
 
@@ -635,6 +672,7 @@ document.querySelectorAll('[data-battle-control="speed"], [data-battle-control="
       button.setAttribute('aria-label', active ? '继续' : '暂停');
       button.title = active ? '继续' : '暂停';
     }
+    syncMotionPause();
     scheduleBattleBeat();
   });
 });

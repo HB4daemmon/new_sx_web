@@ -1,0 +1,10 @@
+Use case: precise-object-edit. Image 1 is the background edit target.
+REMOVE BOTH characters from the lower scene completely: remove the green-robed human,
+the gray stone humanoid guardian, their clothing, weapons, limbs, outlines and shadows.
+Replace those areas with the same uninterrupted pale-gray terrace surface and the
+same pale-jade hill silhouettes behind them. The completed background must contain
+ZERO people, humanoids, creatures, faces, statues or weapons anywhere.
+Preserve the empty cool-white upper seventy percent, quiet flat terrace, pale hill
+silhouettes, tiny Chinese gate far right and two bottom-corner grass tufts.
+Keep hand-drawn flat-color cartoon style, no new elements, no paving-stone lines, text,
+UI, frames, gradient, decorative noise or watercolor detail. Output background only.

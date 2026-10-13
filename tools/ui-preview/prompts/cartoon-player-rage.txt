@@ -1,0 +1,13 @@
+Use case: identity-preserve. Asset type: hand-drawn cartoon full-body special attack pose.
+Image 1 is the approved-style reference character and identity to preserve.
+Redraw the SAME compact jade-robed cultivator beginning a powerful downward sword cut:
+face and torso toward screen RIGHT, sword raised over the right shoulder with both hands,
+feet spread in a low stable stance, white sleeves raised and robe hem slightly lifted.
+Keep identical cheerful determined face, oversized head, black topknot, jade-green robe,
+off-white sleeves, short red belt, dark boots, compact three-and-a-half-head proportions,
+thick charcoal ink contour and flat hand-painted gouache colors.
+This pose must be clearly different from a relaxed diagonal sword and a forward thrust.
+Do not make the character taller or realistic, alter clothing or add extra swords.
+Complete head, sword tip, sleeves, hands and both feet in frame with generous genuine
+transparent padding. ONE character, no sheet, comparison, text, background, glow,
+colored haze, particles, aura or grounded shadow. Opaque paint inside silhouette.

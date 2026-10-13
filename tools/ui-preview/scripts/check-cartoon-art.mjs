@@ -8,7 +8,7 @@ const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE ||
   '/opt/tools/browser-tools/node_modules/playwright');
 const manifest = JSON.parse(await readFile(new URL('../public/assets/manifest.json', import.meta.url)));
-const output = new URL('../captures/pixel-art/', import.meta.url);
+const output = new URL('../captures/cartoon-art/', import.meta.url);
 await mkdir(output, { recursive: true });
 const server = createPreviewServer();
 server.listen(0, '127.0.0.1');
@@ -111,7 +111,9 @@ try {
       const asset = manifest.assets.find(item => item.id === result.id);
       assert.deepEqual(result.dimensions, asset.processed.dimensions);
       assert.ok(result.visible > 120, `${result.id}: nonblank decoded pixels`);
-      assert.equal(result.partialAlpha, 0, `${result.id}: hard alpha`);
+      if (asset.kind === 'character' || asset.kind === 'pose') {
+        assert.ok(result.partialAlpha > 0, `${result.id}: smooth silhouette`);
+      }
     }
     assert.equal(await page.locator('.overview-screen-mount > .game-screen').count(), 4);
     assert.equal(await page.locator('iframe, svg').count(), 0);
@@ -132,20 +134,31 @@ try {
       assert.equal(await page.locator('#preview-app').getAttribute('data-visual-approval'), 'pending');
       const rendering = await page.locator(`[data-screen="${screenName}"] img`).evaluateAll(images =>
         images.map(image => getComputedStyle(image).imageRendering));
-      assert.ok(rendering.every(mode => mode === 'pixelated'));
+      assert.ok(rendering.every(mode => mode === 'auto'));
       await page.screenshot({ path: new URL(`${screenName}-${viewport.width}x${viewport.height}.png`, output).pathname });
     }
     if (viewport.width <= 390) {
       await page.goto(`${origin}/?screen=battle&capture=1`);
       await page.waitForFunction(() => document.querySelector('#preview-app').dataset.assetsReady === 'true');
       await page.locator('.battle-feedback:not([hidden])').waitFor();
+      assert.equal(await page.locator('#preview-app').getAttribute('data-animation-kind'), 'illustrated-poses');
+      assert.match(await page.locator('.player-art').getAttribute('src'), /player-attack\.png$/);
+      const attackPixels = await page.locator('.player-art').evaluate(async image => {
+        await image.decode();
+        return image.naturalWidth * image.naturalHeight;
+      });
+      assert.equal(attackPixels, 384 * 576);
+      await page.screenshot({ path: new URL(`attack-${viewport.width}.png`, output).pathname });
       assert.equal(await page.locator('.battle-feedback').textContent(), '剑击 · 合计 92');
       assert.equal(await page.locator('.enemy-status .health-value').textContent(), '302/450');
       assert.equal(await page.locator('.enemy-status .shield-value').textContent(), '0');
       await page.locator('[data-battle-control="pause"]').click();
+      const pausedPose = await page.locator('.player-art').getAttribute('src');
       const hp = await page.locator('.battle-readouts').innerText();
       await page.waitForTimeout(2600);
       assert.equal(await page.locator('.battle-readouts').innerText(), hp, 'paused playback must not advance');
+      assert.equal(await page.locator('.player-art').getAttribute('src'), pausedPose,
+        'pause freezes the pose as well as the numbers');
       await page.locator('[data-open-dialog="battle"]').click();
       await page.locator('#detail-dialog[open]').waitFor();
       assert.match(await page.locator('#dialog-stats').innerText(), /302\/450/);
@@ -155,11 +168,27 @@ try {
       await page.locator('[data-battle-control="pause"]').click();
       await page.waitForFunction(() => document.querySelector('.battle-feedback').textContent === '盾挡 · 合计 54');
       assert.equal(await page.locator('.player-status .shield-value').textContent(), '126');
+      assert.match(await page.locator('.enemy-art').getAttribute('src'), /enemy-attack\.png$/);
+      await page.locator('[data-open-dialog="battle"]').click();
+      const modalPose = await page.locator('.enemy-art').getAttribute('src');
+      const modalStats = await page.locator('.battle-readouts').innerText();
+      await page.waitForTimeout(1500);
+      assert.equal(await page.locator('.battle-readouts').innerText(), modalStats,
+        'details freeze playback without requiring manual pause');
+      assert.equal(await page.locator('.enemy-art').getAttribute('src'), modalPose,
+        'details freeze the action pose too');
+      await page.getByRole('button', { name: '关闭详情' }).click();
       await page.waitForFunction(() => document.querySelector('.battle-feedback').textContent === '怒技 · 合计 138');
+      assert.match(await page.locator('.player-art').getAttribute('src'), /player-rage\.png$/);
       await page.screenshot({ path: new URL(`rage-hit-${viewport.width}.png`, output).pathname });
       await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.waitForFunction(() =>
+        document.querySelector('.player-art').dataset.pose === 'idle' &&
+        document.querySelector('.player-art').getAttribute('src') === '/assets/player.png');
       assert.equal(await page.locator('.battle-actors img').first()
         .evaluate(image => getComputedStyle(image).animationName), 'none');
+      assert.equal(await page.locator('.player-art').getAttribute('src'), '/assets/player.png',
+        'reduced motion restores the stable idle pose');
       await page.locator('[data-battle-control="skip"]').click();
       await page.locator('[data-artifact-detail="artifact-rr09"]').click();
       assert.equal(await page.locator('.artifact-select[aria-pressed="true"]').count(), 0);
@@ -175,10 +204,10 @@ try {
     }
     assert.deepEqual(errors, [], 'no browser, CSP or network errors');
     await page.close();
-    console.log(`Pixel art, layout, controls and playback passed ${viewport.width}x${viewport.height}`);
+    console.log(`Cartoon art, poses, layout, controls and playback passed ${viewport.width}x${viewport.height}`);
   }
-  for (const privatePath of ['/output/imagegen-pixel-kit/player.png', '/prompts/pixel-kit.jsonl',
-    '/scripts/prepare-pixel-assets.py', '/assets/ui-unknown.png']) {
+  for (const privatePath of ['/output/imagegen-cartoon-kit/player-v2.png', '/prompts/cartoon-kit.jsonl',
+    '/scripts/prepare-cartoon-assets.py', '/assets/ui-unknown.png', '/assets/player-unknown.png']) {
     assert.equal((await fetch(origin + privatePath)).status, 404);
   }
 } finally {

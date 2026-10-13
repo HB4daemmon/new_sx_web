@@ -1,40 +1,49 @@
 # UI Preview Assets
 
-The active set is generated bitmap pixel art from the configured `gpt-image-2.5` model,
-using the imagegen skill's bundled CLI. Ten initial assets and two targeted refinements
-were generated on October 13, 2026. This is not the earlier hand-drawn flat renderer.
+The active set is genuine generated hand-drawn cartoon bitmap art from the configured
+`gpt-image-2.5` model, using the imagegen skill's bundled CLI. Sources and reference edits
+were generated on October 13, 2026. This is not the earlier deterministic flat renderer
+or the rejected pixel style.
 
-| Asset | Logical Dimensions | Use |
+| Asset | Export Dimensions | Use |
 | --- | ---: | --- |
-| `scene-{battle,start,map}.png` | 192x384 | Shared quiet sky/stone stage |
-| `player.png`, `enemy.png` | 64x96 | Complete, opposing full-body sprites |
-| `artifact-rr{09,11,15}.png` | 32x32 | Drum, ember cup, compact jade pendant |
-| `ui-panel.png` | 128x64 | Jade-stone frame and copper corner fittings |
-| `ui-button-{primary,secondary}.png` | 160x32 | Red lacquer / jade command modules |
-| `ui-meter.png` | 160x16 | Empty status trough; fills are runtime DOM |
+| `scene-{battle,start,map}.png` | 390x760 | Shared quiet sky/stone stage |
+| `player.png`, `enemy.png` | 384x576 | Complete, opposing cartoon characters |
+| `player-{attack,rage}.png`, `enemy-attack.png` | 384x576 | Identity-preserving action poses |
+| `artifact-rr{09,11,15}.png` | 192x192 | Drum, ember cup, compact jade pendant |
+| `ui-panel.png` | 256x128 | Ink-edged paper frame and jade corner curls |
+| `ui-button-{primary,secondary}.png` | 320x80 | Red / white painted command tokens |
+| `ui-meter.png` | 320x32 | Empty hand-inked trough; fills are runtime DOM |
 
-Source prompts are in `prompts/pixel-kit.jsonl`, `pixel-scene-refinement.txt` and
-`pixel-pendant-refinement.txt`. Ignored originals live in `output/imagegen-pixel-kit/`.
-The first scene's railings were rejected; the refined scene has just quiet sky, low
-mountain silhouettes and a shallow floor. The first pendant's long cord made its jade
-body too small; the selected refinement uses a broad pendant and short ties.
+Source prompts are in `prompts/cartoon-kit.jsonl`, `cartoon-refinements.jsonl`,
+`cartoon-scene-refinement.txt`, `cartoon-scene-cleanup.txt` and the three reference-edit prompts listed in
+`cartoon-poses.md`. Ignored originals live in `output/imagegen-cartoon-kit/`.
+The first character pair was too realistic; selected `*-v2` versions use compact,
+explicitly cartoon proportions. The first pendant was too long, so the selected version
+has a broad disc and short ties. The original detailed paving is not the final background.
+The second scene erroneously included two characters; the inspected `scene-v3` edit removes
+them completely. Only the final empty terrace is used behind separately rendered characters.
 
-`scripts/prepare-pixel-assets.py` crops the visible source silhouettes, removes generated
-low-alpha fringe with a threshold of 220, exports with nearest-neighbor, and maps colors
-without dithering to a shared 24-color palette. No invented background-removal claim:
-the transparent sources already have alpha. The primary red fill is normalized to
-`#9d3a31` for white text. Scene export extends plain `#e4ebe2` sky, not a tint overlay.
+`scripts/prepare-cartoon-assets.py` crops source silhouettes, removes translucent haze
+with an alpha threshold of 200, then resizes with Lanczos to retain smooth ink edges.
+No chroma-key claim: transparent sources already contain alpha. The primary red fill is
+normalized to `#af453a` for white text. Scene export extends plain `#f1f4ef` sky above the
+generated lower terrace; it is not a tint overlay or CSS gradient.
 
-Sprite display uses integer 2x scale in battle, 2x/3x on start, and 2x for items.
-Scalable UI borders retain their corner geometry using inspected slice margins:
-panel 12 all around, button 6/20/6/20, meter 4/8/4/8 (top/right/bottom/left).
-The live overview is intentionally a scaled thumbnail, not a pixel-perfect play surface.
+Art uses smooth browser scaling. Scalable UI borders retain corner geometry using
+inspected source slice margins: panel 24 all around, button 16/44/16/44,
+meter 8/16/8/16 (top/right/bottom/left). The live overview scales real screen DOMs.
 
 The manifest records source and export hashes, dimensions, byte counts, alpha bounds,
-palette counts and slice margins. The offline decoder validates RGBA pixels independently
+visible color counts and slice margins. The offline decoder validates RGBA pixels independently
 with chunk CRC and scanline-filter checks. Original sources are not included in Git;
 committed public exports are self-contained. Earlier SVG/WebP files are inactive.
 Screenshot exports are produced only by `capture:previews`.
+
+Action images preserve the character identity through reference edits. They remain
+whole-image poses, not layered animation rigs. Runtime switching is explicitly marked
+`illustrated-poses`; no Spine runtime or vendor example art is distributed here.
+See [`SPINE.md`](SPINE.md) for the separate feasibility investigation.
 
 **User visual approval: pending.** Main-session screenshot inspection and automated
 checks do not stand in for the user's acceptance of this direction.

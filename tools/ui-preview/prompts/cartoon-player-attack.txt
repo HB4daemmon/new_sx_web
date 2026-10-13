@@ -1,0 +1,12 @@
+Use case: identity-preserve. Asset type: hand-drawn cartoon full-body action pose.
+Image 1 is the approved-style reference character and identity to preserve, not a background.
+Redraw the SAME compact jade-robed cultivator in an unmistakable ordinary attack pose:
+face and body toward screen RIGHT, right foot forward, sword arm thrusting the simple
+straight sword toward screen right at chest height, left hand behind for balance.
+Keep the identical face, oversized head, black topknot, jade outer robe, white sleeves,
+red belt, dark boots, compact three-and-a-half-head proportions and ink/gouache style.
+Do not make him realistic, taller, change clothing or change sword identity.
+Keep full head, boots, hands and sword tip inside the frame, with generous transparent
+padding. Same front-right three-quarter view. No new objects, slash aura, background,
+ground shadow, effects, text, glow or halo. Genuine transparent alpha outside the
+opaque character silhouette. Output ONE character, not a sheet or pose comparison.

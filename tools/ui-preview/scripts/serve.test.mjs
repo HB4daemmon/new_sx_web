@@ -21,7 +21,10 @@ after(async () => {
 test('static path resolver only admits public UI and manifest files', () => {
   assert.match(resolvePublicPath('/'), /\/public\/index\.html$/);
   assert.match(resolvePublicPath('/styles.css'), /\/public\/styles\.css$/);
-  assert.match(resolvePublicPath('/pixel.css'), /\/public\/pixel\.css$/);
+  assert.match(resolvePublicPath('/cartoon.css'), /\/public\/cartoon\.css$/);
+  assert.equal(resolvePublicPath('/pixel.css'), null);
+  assert.match(resolvePublicPath('/assets/player-attack.png'), /\/public\/assets\/player-attack\.png$/);
+  assert.equal(resolvePublicPath('/assets/player-unknown.png'), null);
   assert.match(resolvePublicPath('/assets/ui-panel.png'), /\/public\/assets\/ui-panel\.png$/);
   assert.match(resolvePublicPath('/assets/scene-battle.png'), /\/public\/assets\/scene-battle\.png$/);
   assert.match(resolvePublicPath('/assets/scene-battle.webp'), /\/public\/assets\/scene-battle\.webp$/);
@@ -91,10 +94,10 @@ test('HTTP server serves only allowlisted files within public/', async () => {
   }
 });
 
-test('HTTP server serves pixel modules and retained assets with correct MIME types for GET and HEAD', async () => {
+test('HTTP server serves cartoon modules, poses and retained assets with correct MIME types for GET and HEAD', async () => {
   for (const [target, contentType] of [
     ['/assets/manifest.json', 'application/json; charset=utf-8'],
-    ['/pixel.css', 'text/css; charset=utf-8'],
+    ['/cartoon.css', 'text/css; charset=utf-8'],
     ['/assets/ui-panel.png', 'image/png'],
     ['/assets/ui-button-primary.png', 'image/png'],
     ['/assets/ui-button-secondary.png', 'image/png'],
@@ -104,6 +107,9 @@ test('HTTP server serves pixel modules and retained assets with correct MIME typ
     ['/assets/scene-map.png', 'image/png'],
     ['/assets/player.png', 'image/png'],
     ['/assets/enemy.png', 'image/png'],
+    ['/assets/player-attack.png', 'image/png'],
+    ['/assets/player-rage.png', 'image/png'],
+    ['/assets/enemy-attack.png', 'image/png'],
     ['/assets/artifact-rr09.png', 'image/png'],
     ['/assets/artifact-rr11.png', 'image/png'],
     ['/assets/artifact-rr15.png', 'image/png'],

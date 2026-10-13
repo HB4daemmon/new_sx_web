@@ -8,11 +8,11 @@ export const PUBLIC_ROOT = path.join(moduleRoot, 'public');
 const STATIC_FILES = new Map([
   ['index.html', 'text/html; charset=utf-8'],
   ['styles.css', 'text/css; charset=utf-8'],
-  ['pixel.css', 'text/css; charset=utf-8'],
+  ['cartoon.css', 'text/css; charset=utf-8'],
   ['app.js', 'text/javascript; charset=utf-8'],
   ['assets/manifest.json', 'application/json; charset=utf-8'],
 ]);
-const ASSET_NAME = /^assets\/(?:scene-(?:battle|start|map)|player|enemy|artifact-[a-z0-9-]+|ui-(?:panel|button-primary|button-secondary|meter))\.(?:png|webp)$/;
+const ASSET_NAME = /^assets\/(?:scene-(?:battle|start|map)|player(?:-attack|-rage)?|enemy(?:-attack)?|artifact-[a-z0-9-]+|ui-(?:panel|button-primary|button-secondary|meter))\.(?:png|webp)$/;
 const ITEM_SVG_NAME = /^assets\/artifact-rr(?:09|11|15)\.svg$/;
 const PREVIEW_NAME = /^previews\/(?:start|map|battle|choice)\.png$/;
 const ROOT_MARKER = `${path.sep}public${path.sep}`;

@@ -44,6 +44,9 @@ const fixtureManifest = {
     { id: 'ui-button-primary', src: '/assets/ui-button-primary.png', kind: 'module', required: true },
     { id: 'ui-button-secondary', src: '/assets/ui-button-secondary.png', kind: 'module', required: true },
     { id: 'ui-meter', src: '/assets/ui-meter.png', kind: 'module', required: true },
+    { id: 'player-attack', src: '/assets/player-attack.png', kind: 'pose', required: true },
+    { id: 'player-rage', src: '/assets/player-rage.png', kind: 'pose', required: true },
+    { id: 'enemy-attack', src: '/assets/enemy-attack.png', kind: 'pose', required: true },
   ],
 };
 const transparentPng = Buffer.from(
@@ -144,7 +147,9 @@ async function assertSurfaceRendering(screen, label) {
       const comma = color.match(/,\s*([\d.]+)\s*\)$/);
       return comma ? Number(comma[1]) : 1;
     };
-    const channels = color => (color.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number);
+    const channels = color => color.startsWith('#')
+      ? [1, 3, 5].map(offset => Number.parseInt(color.slice(offset, offset + 2), 16))
+      : (color.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number);
     const luminance = color => {
       const [red, green, blue] = channels(color).map(value => {
         const channel = value / 255;
@@ -240,8 +245,8 @@ async function assertSurfaceRendering(screen, label) {
     surface.alpha >= 0.98 && surface.texture === 'none'),
   `${label}: text must have a plain opaque backing surface`);
   assert.ok(audit.assetRendering.length > 0 &&
-    audit.assetRendering.every(image => image.rendering === 'pixelated' && image.filter === 'none'),
-  `${label}: artwork retains hard pixel rendering and its source colors`);
+    audit.assetRendering.every(image => image.rendering === 'auto' && image.filter === 'none'),
+  `${label}: artwork retains smooth ink rendering and its source colors`);
   assert.ok(audit.contentFilters.every(filter => filter === 'none'),
     `${label}: character and artifact art keeps full color`);
   assert.ok(audit.contrastPairs.length > 0 &&
@@ -720,15 +725,17 @@ async function checkFlow() {
 }
 
 async function checkMissingAssetBlocksReady() {
-  const page = await browser.newPage({ viewport: { width: 320, height: 760 } });
-  await mockAssets(page, { missing: 'scene-map.png' });
-  await page.goto(`${origin}/?screen=map`);
-  await page.waitForTimeout(100);
-  assert.equal(await page.locator('#preview-app').getAttribute('data-assets-ready'), 'false');
-  assert.equal(await page.locator('#capture-preview').isDisabled(), true);
-  assert.equal(await page.locator('#asset-status').textContent(), '待装入正式素材');
-  await page.close();
-  console.log('Missing required map art keeps capture disabled');
+  for (const missing of ['scene-map.png', 'ui-panel.png', 'player-attack.png']) {
+    const page = await browser.newPage({ viewport: { width: 320, height: 760 } });
+    await mockAssets(page, { missing });
+    await page.goto(`${origin}/?screen=map`);
+    await page.waitForTimeout(100);
+    assert.equal(await page.locator('#preview-app').getAttribute('data-assets-ready'), 'false');
+    assert.equal(await page.locator('#capture-preview').isDisabled(), true);
+    assert.equal(await page.locator('#asset-status').textContent(), '待装入正式素材');
+    await page.close();
+  }
+  console.log('Missing required scene, module or pose keeps capture disabled');
 }
 
 try {

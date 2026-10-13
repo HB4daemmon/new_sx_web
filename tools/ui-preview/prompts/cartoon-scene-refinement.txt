@@ -1,0 +1,16 @@
+Use case: stylized-concept. Asset type: quiet full-screen vertical hand-drawn CARTOON
+background for a casual Chinese cultivation game. Not a UI screenshot or splash painting.
+The upper SEVENTY percent is COMPLETELY PLAIN cool-white #f1f4ef, without any texture,
+clouds, noise, objects or mountains. In the lower THIRTY percent, depict a SIMPLE broad
+flat pale-gray stone training terrace. The terrace floor is ONE CONTINUOUS flat shape:
+no individual paving stones, cracks, tiles, busy lines or hatching. A low pale-jade hill
+silhouette and one tiny cartoon Chinese gate at the far-right horizon are the only
+scenery. Two very small grass tufts at the bottom corners only. The central terrace is
+unobstructed for two separately drawn compact cartoon fighters, feet around the upper
+edge of the terrace. Use thick gentle hand-inked dark contours only on the tiny gate and
+grass; hill silhouettes are very pale without outline. FLAT TWO-SHADE gouache color,
+almost no material grain. Match a THREE-AND-A-HALF-HEAD-TALL jade-robed cartoon cultivator
+and a similarly compact cartoon stone guardian. Color palette cool-white #f1f4ef,
+pale stone #d9e2da, gray #b7c8bb, jade #46735c, charcoal #303b36, tiny dark red accent.
+No people, characters, text, UI, borders, frames, glowing orbs, gradients, bokeh,
+photorealism, 3D, pixel art, watercolor landscape detail, elaborate mountains or watermark.
