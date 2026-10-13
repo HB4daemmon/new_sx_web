@@ -7,204 +7,218 @@
     <title>随时修仙 · 山海行</title>
     <link rel="icon" type="image/png" href="/assets/artifact-rr15.png">
     <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/pixel.css">
     <script type="module" src="/app.js"></script>
   </head>
   <body>
     <div id="preview-app" data-view="overview">
       <header class="preview-toolbar">
-        <div class="toolbar-heading">
+        <div class="toolbar-row">
           <h1>随时修仙</h1>
           <p id="asset-status" role="status" aria-live="polite">待装入正式素材</p>
-          <button id="capture-preview" type="button" title="进入待确认样稿截图模式" disabled>截图样稿</button>
+          <button id="capture-preview" type="button" title="截图预览" aria-label="截图预览" disabled>截</button>
         </div>
         <nav class="view-switcher" aria-label="预览画面">
           <a href="?screen=overview" data-view-link="overview" aria-current="page">总览</a>
-          <a href="?screen=battle" data-view-link="battle">战斗</a>
           <a href="?screen=start" data-view-link="start">开局</a>
-          <a href="?screen=choice" data-view-link="choice">法宝</a>
+          <a href="?screen=map" data-view-link="map">地图</a>
+          <a href="?screen=battle" data-view-link="battle">战斗</a>
+          <a href="?screen=choice" data-view-link="choice">择宝</a>
           <a href="?screen=compare" data-view-link="compare">对比</a>
         </nav>
       </header>
 
       <main class="preview-stage">
-        <section class="style-overview" aria-labelledby="overview-title">
-          <h2 id="overview-title">风格总览</h2>
+        <section class="style-overview" aria-label="画面总览">
           <div class="overview-gallery">
-            <a class="overview-link" href="?screen=start" data-view-link="start" aria-label="开局画面预览">
-              <img src="/previews/start.png" alt="开局界面完整样稿" loading="lazy">
-              <span>开局</span>
-            </a>
-            <a class="overview-link" href="?screen=battle" data-view-link="battle" aria-label="战斗画面预览">
-              <img src="/previews/battle.png" alt="战斗界面完整样稿" loading="lazy">
-              <span>战斗</span>
-            </a>
-            <a class="overview-link" href="?screen=choice" data-view-link="choice" aria-label="法宝三选一画面预览">
-              <img src="/previews/choice.png" alt="法宝三选一界面完整样稿" loading="lazy">
-              <span>法宝三选一</span>
-            </a>
+            <article class="overview-tile">
+              <a class="overview-link" href="?screen=start" data-view-link="start" aria-label="开局画面">开局</a>
+              <div class="overview-screen-mount" data-overview-slot="start"></div>
+            </article>
+            <article class="overview-tile">
+              <a class="overview-link" href="?screen=map" data-view-link="map" aria-label="地图画面">地图</a>
+              <div class="overview-screen-mount" data-overview-slot="map"></div>
+            </article>
+            <article class="overview-tile">
+              <a class="overview-link" href="?screen=battle" data-view-link="battle" aria-label="战斗画面">战斗</a>
+              <div class="overview-screen-mount" data-overview-slot="battle"></div>
+            </article>
+            <article class="overview-tile">
+              <a class="overview-link" href="?screen=choice" data-view-link="choice" aria-label="择宝画面">择宝</a>
+              <div class="overview-screen-mount" data-overview-slot="choice"></div>
+            </article>
           </div>
         </section>
+
         <div class="screen-deck">
-          <section class="phone-screen battle-screen" data-screen="battle" aria-label="战斗画面">
-            <img class="scene-image" data-asset-target="battle-scene" alt="" hidden>
-            <div class="battle-hud">
-              <div class="unit-status player-status">
+          <section class="game-screen start-screen" data-screen="start" aria-label="开局">
+            <img class="world-image" data-asset-target="start-scene" alt="" hidden>
+            <header class="start-heading">
+              <div>
+                <h2>随时修仙</h2>
+                <p class="start-profile"><span data-profile-name>方寄云</span><span aria-hidden="true">·</span><span data-profile-method>金刚功</span></p>
+              </div>
+              <button class="quiet-button" type="button" data-open-dialog="settings" aria-label="行旅设置" title="行旅设置">⚙</button>
+            </header>
+            <div class="start-figure" aria-hidden="true">
+              <img data-asset-target="player" alt="" hidden>
+            </div>
+            <section class="start-controls" aria-label="启程设置">
+              <fieldset class="method-field">
+                <legend>功法</legend>
+                <div class="method-options" role="group" aria-label="选择功法">
+                  <button type="button" data-method="RKF01" aria-pressed="true">金刚功</button>
+                  <button type="button" data-method="RKF02" aria-pressed="false">归元诀</button>
+                  <button type="button" data-method="RKF03" aria-pressed="false">回春功</button>
+                  <button type="button" data-method="RKF04" aria-pressed="false">御火诀</button>
+                  <button type="button" data-method="RKF05" aria-pressed="false">养剑诀</button>
+                </div>
+                <p id="method-cue" aria-live="polite">普攻、怒技后获得护盾。</p>
+              </fieldset>
+              <button class="primary-action start-action" type="button">启程</button>
+            </section>
+          </section>
+
+          <section class="game-screen map-screen" data-screen="map" aria-label="山海行地图">
+            <img class="world-image" data-asset-target="map-scene" alt="" hidden>
+            <header class="map-status" aria-label="行旅状态">
+              <span class="map-profile"><b data-map-name>方寄云</b><span data-map-method>金刚功</span></span>
+              <span class="map-health">气血 <b>640/920</b></span>
+              <span class="map-coins">灵石 <b>0</b></span>
+            </header>
+            <div class="map-inventory" id="map-inventory" hidden></div>
+            <p class="map-feedback" id="map-feedback" role="status" aria-live="polite" hidden></p>
+            <h2 class="map-title">古道</h2>
+            <div class="map-graph" aria-label="山海行路节点">
+              <canvas class="route-lines" aria-hidden="true"></canvas>
+              <span class="map-node future-node future-left" aria-label="后续节点">林隘</span>
+              <span class="map-node future-node future-right" aria-label="后续节点">山门</span>
+              <button class="map-node route-node route-left" type="button" data-map-node="coast" aria-label="沿潮路，预览养锋石卫">
+                <span class="node-mark" aria-hidden="true">战</span>
+                <span class="node-label">沿潮路</span>
+              </button>
+              <button class="map-node route-node route-right" type="button" data-map-node="stone" aria-label="绕石阶，预览养锋石卫">
+                <span class="node-mark" aria-hidden="true">战</span>
+                <span class="node-label">绕石阶</span>
+              </button>
+              <span class="map-node current-node" aria-label="当前所在">此处</span>
+            </div>
+          </section>
+
+          <section class="game-screen battle-screen" data-screen="battle" aria-label="战斗">
+            <img class="world-image" data-asset-target="battle-scene" alt="" hidden>
+            <header class="battle-heading"><h2>斗法</h2><span class="round-label">第三回合</span></header>
+            <div class="battle-actors" aria-hidden="true">
+              <img class="player-art" data-asset-target="player" alt="" hidden>
+              <img class="enemy-art" data-asset-target="enemy" alt="" hidden>
+            </div>
+            <div class="battle-readouts">
+              <section class="unit-status player-status" aria-label="方寄云战斗状态">
                 <div class="unit-heading">
-                  <span class="unit-name">方寄云</span>
-                  <span class="unit-method">金刚功</span>
+                  <span class="unit-name" data-battle-name>方寄云</span>
+                  <span class="unit-method" data-battle-method>金刚功</span>
                 </div>
                 <div class="unit-meter-labels">
                   <span>气血 <b class="health-value">640/920</b></span>
-                  <span>护盾 <b class="shield-value">180</b></span>
+                  <span>盾 <b class="shield-value">180</b></span>
                 </div>
                 <div class="meter combined-meter" role="progressbar" aria-label="方寄云气血与护盾" aria-valuemin="0" aria-valuemax="1100" aria-valuenow="820">
                   <span class="meter-segment health-fill player-health"></span>
                   <span class="meter-segment shield-fill player-shield"></span>
                 </div>
-                <div class="rage-labels">
-                  <span>怒气</span>
-                  <span><b class="rage-value">36/100</b></span>
-                </div>
+                <div class="rage-labels"><span>怒气</span><b class="rage-value">36/100</b></div>
                 <div class="meter rage-meter" role="progressbar" aria-label="方寄云怒气" aria-valuemin="0" aria-valuemax="100" aria-valuenow="36">
                   <span class="player-rage"></span>
                 </div>
-              </div>
-              <div class="unit-status enemy-status">
+              </section>
+              <section class="unit-status enemy-status" aria-label="养锋石卫战斗状态">
                 <div class="unit-heading">
                   <span class="unit-name">养锋石卫</span>
                   <span class="unit-method">养剑诀</span>
                 </div>
                 <div class="unit-meter-labels">
                   <span>气血 <b class="health-value">344/450</b></span>
-                  <span>护盾 <b class="shield-value">50</b></span>
+                  <span>盾 <b class="shield-value">50</b></span>
                 </div>
                 <div class="meter combined-meter" role="progressbar" aria-label="养锋石卫气血与护盾" aria-valuemin="0" aria-valuemax="500" aria-valuenow="394">
                   <span class="meter-segment health-fill enemy-health"></span>
                   <span class="meter-segment shield-fill enemy-shield"></span>
                 </div>
-                <div class="rage-labels">
-                  <span>怒气</span>
-                  <span><b class="rage-value">44/100</b></span>
-                </div>
+                <div class="rage-labels"><span>怒气</span><b class="rage-value">44/100</b></div>
                 <div class="meter rage-meter" role="progressbar" aria-label="养锋石卫怒气" aria-valuemin="0" aria-valuemax="100" aria-valuenow="44">
                   <span class="enemy-rage"></span>
                 </div>
-              </div>
+              </section>
             </div>
-            <div class="battle-actors" aria-hidden="true">
-              <img data-asset-target="player" alt="" hidden>
-              <img data-asset-target="enemy" alt="" hidden>
-            </div>
-            <div class="battle-controls" aria-label="战斗预览控制">
-              <button type="button" data-battle-control="speed" aria-label="切换倍速" aria-pressed="false">倍速</button>
-              <button type="button" data-battle-control="pause" aria-pressed="false">暂停</button>
-              <button type="button" data-battle-control="skip">略过</button>
-              <button type="button" data-open-dialog="battle">详</button>
+            <p class="battle-feedback" aria-live="polite" hidden></p>
+            <div class="battle-controls" aria-label="战斗画面控制">
+              <button type="button" data-battle-control="speed" aria-label="切换倍速" title="切换倍速" aria-pressed="false">1×</button>
+              <button type="button" data-battle-control="pause" aria-label="暂停" title="暂停" aria-pressed="false">Ⅱ</button>
+              <button type="button" data-battle-control="skip" aria-label="略过战斗" title="略过战斗">»</button>
+              <button type="button" data-open-dialog="battle" aria-label="战斗详情" title="战斗详情">详</button>
             </div>
           </section>
 
-          <section class="phone-screen start-screen" data-screen="start" aria-label="开局画面">
-            <img class="scene-image" data-asset-target="start-scene" alt="" hidden>
-            <img class="start-player" data-asset-target="player" alt="" hidden>
-            <div class="start-title">
-              <p class="eyebrow">山海行</p>
-              <h2>随时修仙</h2>
-              <p class="start-subtitle">从一卷功法启程</p>
-            </div>
-            <form class="start-form">
-              <div class="start-fields">
-                <label class="field-name">
-                  <span>道号</span>
-                  <input name="dao-name" value="方寄云" maxlength="12" autocomplete="nickname">
-                </label>
-                <label class="field-seed">
-                  <span>命数（种子）</span>
-                  <input name="seed" type="text" value="山海初行" maxlength="32" autocomplete="off" spellcheck="false">
-                </label>
-              </div>
-              <fieldset class="method-field">
-                <legend>选择功法</legend>
-                <div class="method-options" role="group" aria-label="可选功法">
-                  <button type="button" data-method="RKF01" aria-pressed="true"><span>金刚功</span></button>
-                  <button type="button" data-method="RKF02" aria-pressed="false"><span>归元诀</span></button>
-                  <button type="button" data-method="RKF03" aria-pressed="false"><span>回春功</span></button>
-                  <button type="button" data-method="RKF04" aria-pressed="false"><span>御火诀</span></button>
-                  <button type="button" data-method="RKF05" aria-pressed="false"><span>养剑诀</span></button>
-                </div>
-                <p id="method-cue" class="method-cue" aria-live="polite">防御化盾，借盾反击。</p>
-              </fieldset>
-              <button class="start-action" type="submit">踏入山海</button>
-            </form>
-          </section>
-
-          <section class="phone-screen choice-screen" data-screen="choice" aria-label="法宝三选一画面">
-            <img class="scene-image" data-asset-target="battle-scene" alt="" hidden>
+          <section class="game-screen choice-screen" data-screen="choice" aria-label="择宝">
+            <img class="world-image" data-asset-target="battle-scene" alt="" hidden>
             <header class="choice-heading">
-              <p class="eyebrow">行旅所得</p>
-              <h2>择一入行</h2>
-              <p class="choice-count">三件稀有法宝</p>
+              <h2>择一法宝</h2>
             </header>
-            <div class="choice-row" role="list" aria-label="选择法宝">
-              <article class="artifact-option is-selected" role="listitem" data-artifact="artifact-rr09">
-                <button class="artifact-select" type="button" data-artifact-choice="artifact-rr09" aria-pressed="true">
-                  <span class="selection-seal" aria-hidden="true">已选</span>
-                  <span class="artifact-artwindow">
-                    <img data-asset-target="artifact-rr09" alt="" hidden>
-                  </span>
-                  <span class="artifact-nameplate">
-                    <span class="artifact-name">震岳鼓</span>
-                    <span class="artifact-rarity">稀有</span>
-                  </span>
+            <div class="artifact-options" role="list" aria-label="法宝">
+              <article class="artifact-option" role="listitem" data-artifact="artifact-rr09">
+                <button class="artifact-select" type="button" data-artifact-choice="artifact-rr09" aria-pressed="false">
+                  <span class="selection-marker" aria-hidden="true"></span>
+                  <img data-asset-target="artifact-rr09" alt="" hidden>
+                  <span class="artifact-name">震岳鼓</span>
                   <span class="artifact-stat"><span>防御</span><b>+8</b></span>
-                  <span class="artifact-seal-tag">盾返后回怒</span>
+                  <span class="artifact-cue">盾返回怒</span>
                 </button>
                 <button class="artifact-details" type="button" data-open-dialog="artifact" data-artifact-detail="artifact-rr09" aria-label="查看震岳鼓详情">详</button>
               </article>
               <article class="artifact-option" role="listitem" data-artifact="artifact-rr11">
                 <button class="artifact-select" type="button" data-artifact-choice="artifact-rr11" aria-pressed="false">
-                  <span class="selection-seal" aria-hidden="true">已选</span>
-                  <span class="artifact-artwindow">
-                    <img data-asset-target="artifact-rr11" alt="" hidden>
-                  </span>
-                  <span class="artifact-nameplate">
-                    <span class="artifact-name">余烬盏</span>
-                    <span class="artifact-rarity">稀有</span>
-                  </span>
-                  <span class="artifact-stat"><span>最大气血</span><b>+30</b></span>
-                  <span class="artifact-seal-tag">毒燃伤害回怒</span>
+                  <span class="selection-marker" aria-hidden="true"></span>
+                  <img data-asset-target="artifact-rr11" alt="" hidden>
+                  <span class="artifact-name">余烬盏</span>
+                  <span class="artifact-stat"><span>气血上限</span><b>+30</b></span>
+                  <span class="artifact-cue">毒燃回怒</span>
                 </button>
                 <button class="artifact-details" type="button" data-open-dialog="artifact" data-artifact-detail="artifact-rr11" aria-label="查看余烬盏详情">详</button>
               </article>
               <article class="artifact-option" role="listitem" data-artifact="artifact-rr15">
                 <button class="artifact-select" type="button" data-artifact-choice="artifact-rr15" aria-pressed="false">
-                  <span class="selection-seal" aria-hidden="true">已选</span>
-                  <span class="artifact-artwindow">
-                    <img data-asset-target="artifact-rr15" alt="" hidden>
-                  </span>
-                  <span class="artifact-nameplate">
-                    <span class="artifact-name">定心佩</span>
-                    <span class="artifact-rarity">稀有</span>
-                  </span>
-                  <span class="artifact-stat"><span>最大气血</span><b>+30</b></span>
-                  <span class="artifact-seal-tag">外来削怒减半</span>
+                  <span class="selection-marker" aria-hidden="true"></span>
+                  <img data-asset-target="artifact-rr15" alt="" hidden>
+                  <span class="artifact-name">定心佩</span>
+                  <span class="artifact-stat"><span>气血上限</span><b>+30</b></span>
+                  <span class="artifact-cue">削怒减半</span>
                 </button>
                 <button class="artifact-details" type="button" data-open-dialog="artifact" data-artifact-detail="artifact-rr15" aria-label="查看定心佩详情">详</button>
               </article>
             </div>
-            <footer class="choice-footer">
-              <button type="button" class="choice-confirm">确认选择</button>
-            </footer>
+            <div class="choice-footer">
+              <button type="button" class="primary-action choice-confirm" disabled>收下</button>
+            </div>
           </section>
         </div>
       </main>
 
       <dialog id="detail-dialog" aria-labelledby="dialog-title">
         <form method="dialog" class="dialog-close-row">
-          <button type="submit" aria-label="关闭详情">关闭</button>
+          <button type="submit" aria-label="关闭详情" title="关闭详情">×</button>
         </form>
         <h2 id="dialog-title"></h2>
         <p id="dialog-copy"></p>
         <dl id="dialog-stats" class="dialog-stats"></dl>
+        <form id="profile-settings" class="profile-settings" hidden>
+          <label>道号<input name="dao-name" value="方寄云" maxlength="12" autocomplete="nickname"></label>
+          <label>命数（种子）<input name="seed" type="text" value="山海初行" maxlength="32" autocomplete="off" spellcheck="false"></label>
+          <button type="submit" class="primary-action">保存</button>
+        </form>
+        <div class="dialog-actions">
+          <button type="button" data-dialog-action="cancel-node" hidden>暂不前往</button>
+          <button type="button" data-dialog-action="confirm-node" class="primary-action" hidden>确认前往</button>
+        </div>
       </dialog>
     </div>
   </body>

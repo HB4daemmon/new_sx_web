@@ -21,17 +21,27 @@ after(async () => {
 test('static path resolver only admits public UI and manifest files', () => {
   assert.match(resolvePublicPath('/'), /\/public\/index\.html$/);
   assert.match(resolvePublicPath('/styles.css'), /\/public\/styles\.css$/);
+  assert.match(resolvePublicPath('/pixel.css'), /\/public\/pixel\.css$/);
+  assert.match(resolvePublicPath('/assets/ui-panel.png'), /\/public\/assets\/ui-panel\.png$/);
+  assert.match(resolvePublicPath('/assets/scene-battle.png'), /\/public\/assets\/scene-battle\.png$/);
   assert.match(resolvePublicPath('/assets/scene-battle.webp'), /\/public\/assets\/scene-battle\.webp$/);
+  assert.match(resolvePublicPath('/assets/scene-map.webp'), /\/public\/assets\/scene-map\.webp$/);
+  assert.match(resolvePublicPath('/assets/artifact-rr09.png'), /\/public\/assets\/artifact-rr09\.png$/);
   assert.match(resolvePublicPath('/assets/artifact-tide-mirror.png'), /\/public\/assets\/artifact-tide-mirror\.png$/);
   assert.match(resolvePublicPath('/assets/artifact-rr09.svg'), /\/public\/assets\/artifact-rr09\.svg$/);
   assert.match(resolvePublicPath('/assets/artifact-rr11.svg'), /\/public\/assets\/artifact-rr11\.svg$/);
   assert.match(resolvePublicPath('/assets/artifact-rr15.svg'), /\/public\/assets\/artifact-rr15\.svg$/);
   assert.match(resolvePublicPath('/previews/start.png'), /\/public\/previews\/start\.png$/);
+  assert.match(resolvePublicPath('/previews/map.png'), /\/public\/previews\/map\.png$/);
   assert.equal(resolvePublicPath('/package.json'), null);
   assert.equal(resolvePublicPath('/scripts/serve.mjs'), null);
   assert.equal(resolvePublicPath('/assets/CREDITS.txt'), null);
   assert.equal(resolvePublicPath('/assets/unknown.gif'), null);
+  assert.equal(resolvePublicPath('/assets/ui-unknown.png'), null);
+  assert.equal(resolvePublicPath('/prompts/pixel-kit.jsonl'), null);
+  assert.equal(resolvePublicPath('/output/imagegen-pixel-kit/player.png'), null);
   assert.equal(resolvePublicPath('/assets/scene-battle.svg'), null);
+  assert.equal(resolvePublicPath('/assets/scene-unknown.webp'), null);
   assert.equal(resolvePublicPath('/assets/player.svg'), null);
   assert.equal(resolvePublicPath('/assets/artifact-unknown.svg'), null);
   assert.equal(resolvePublicPath('/previews/unknown.png'), null);
@@ -71,6 +81,7 @@ test('HTTP server serves only allowlisted files within public/', async () => {
     '/%2e%2e/package.json',
     '/assets/manifest.json/../../package.json',
     '/assets/scene-battle.svg',
+    '/assets/scene-unknown.webp',
     '/assets/player.svg',
     '/assets/artifact-unknown.svg',
     '/previews/unknown.png',
@@ -80,15 +91,28 @@ test('HTTP server serves only allowlisted files within public/', async () => {
   }
 });
 
-test('HTTP server serves JSON, PNG, WebP, approved SVGs, and preview PNGs with correct MIME types for GET and HEAD', async () => {
+test('HTTP server serves pixel modules and retained assets with correct MIME types for GET and HEAD', async () => {
   for (const [target, contentType] of [
     ['/assets/manifest.json', 'application/json; charset=utf-8'],
+    ['/pixel.css', 'text/css; charset=utf-8'],
+    ['/assets/ui-panel.png', 'image/png'],
+    ['/assets/ui-button-primary.png', 'image/png'],
+    ['/assets/ui-button-secondary.png', 'image/png'],
+    ['/assets/ui-meter.png', 'image/png'],
+    ['/assets/scene-battle.png', 'image/png'],
+    ['/assets/scene-start.png', 'image/png'],
+    ['/assets/scene-map.png', 'image/png'],
     ['/assets/player.png', 'image/png'],
+    ['/assets/enemy.png', 'image/png'],
+    ['/assets/artifact-rr09.png', 'image/png'],
+    ['/assets/artifact-rr11.png', 'image/png'],
+    ['/assets/artifact-rr15.png', 'image/png'],
     ['/assets/scene-battle.webp', 'image/webp'],
     ['/assets/artifact-rr09.svg', 'image/svg+xml'],
     ['/assets/artifact-rr11.svg', 'image/svg+xml'],
     ['/assets/artifact-rr15.svg', 'image/svg+xml'],
     ['/previews/start.png', 'image/png'],
+    ['/previews/map.png', 'image/png'],
     ['/previews/battle.png', 'image/png'],
     ['/previews/choice.png', 'image/png'],
   ]) {

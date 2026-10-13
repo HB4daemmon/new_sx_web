@@ -5,165 +5,601 @@
     "reviewedBy": null
   },
   "provenance": {
-    "model": "gpt-image-2.5",
-    "generationInterface": "bundled CLI",
-    "promptFile": "prompts/assets.jsonl",
-    "exportScript": "scripts/prepare-assets.py",
-    "promptPathsAreModuleRelative": true,
-    "vectorAuthoring": {
-      "method": "original hand-authored SVG",
-      "model": null
-    }
+    "method": "imagegen pixel module kit",
+    "generator": "scripts/prepare-pixel-assets.py",
+    "imageModel": "gpt-image-2.5",
+    "promptSet": "prompts/pixel-kit.jsonl",
+    "sceneRefinement": "prompts/pixel-scene-refinement.txt",
+    "pendantRefinement": "prompts/pixel-pendant-refinement.txt",
+    "processing": "native alpha threshold 220; nearest-neighbor; shared 24-color palette"
   },
   "assets": [
     {
       "id": "battle-scene",
-      "src": "/assets/scene-battle.webp",
+      "src": "/assets/scene-battle.png",
       "kind": "scene",
-      "screen": "battle",
       "required": true,
       "source": {
-        "path": "output/imagegen/scene-battle.png",
-        "sha256": "73aca22972f6ae050d5dca61a010f204ec18c7234c7dc622547da34774fddc86",
-        "dimensions": [814, 1931],
+        "path": "output/imagegen-pixel-kit/scene-quiet-v2.png",
+        "sha256": "36aa444b1ed77a319b8eb02f2be176b6a47fb6c1e00bd26edb38f713f7b83bcd",
+        "dimensions": [
+          887,
+          1774
+        ],
         "mode": "RGB",
-        "alpha": false
+        "origin": "imagegen"
       },
       "processed": {
-        "dimensions": [814, 1931],
-        "format": "webp",
-        "quality": 88,
-        "maxWidthPx": 814,
-        "bytes": 322546
-      }
+        "dimensions": [
+          192,
+          384
+        ],
+        "format": "png",
+        "pixelArt": true,
+        "antialias": "none",
+        "bytes": 2460,
+        "sha256": "8822156edf742b4c76a077d76e71af71af314030b6e030873bc00888212b5806",
+        "alphaExtrema": [
+          255,
+          255
+        ],
+        "alphaZeroPixels": 0,
+        "alphaNonzeroPixels": 73728,
+        "alphaNonzeroBBox": [
+          0,
+          0,
+          192,
+          384
+        ],
+        "alphaTransparentPaddingPx": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "paletteColors": 7
+      },
+      "screen": "battle"
     },
     {
       "id": "start-scene",
-      "src": "/assets/scene-start.webp",
+      "src": "/assets/scene-start.png",
       "kind": "scene",
-      "screen": "start",
       "required": true,
       "source": {
-        "path": "output/imagegen/scene-start.png",
-        "sha256": "a468424b11761fc39cbbf9f98e6759af9cafe7c297bbdc74f3ee98f358927511",
-        "dimensions": [814, 1933],
+        "path": "output/imagegen-pixel-kit/scene-quiet-v2.png",
+        "sha256": "36aa444b1ed77a319b8eb02f2be176b6a47fb6c1e00bd26edb38f713f7b83bcd",
+        "dimensions": [
+          887,
+          1774
+        ],
         "mode": "RGB",
-        "alpha": false
+        "origin": "imagegen"
       },
       "processed": {
-        "dimensions": [814, 1933],
-        "format": "webp",
-        "quality": 88,
-        "maxWidthPx": 814,
-        "bytes": 370230
-      }
+        "dimensions": [
+          192,
+          384
+        ],
+        "format": "png",
+        "pixelArt": true,
+        "antialias": "none",
+        "bytes": 2460,
+        "sha256": "8822156edf742b4c76a077d76e71af71af314030b6e030873bc00888212b5806",
+        "alphaExtrema": [
+          255,
+          255
+        ],
+        "alphaZeroPixels": 0,
+        "alphaNonzeroPixels": 73728,
+        "alphaNonzeroBBox": [
+          0,
+          0,
+          192,
+          384
+        ],
+        "alphaTransparentPaddingPx": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "paletteColors": 7
+      },
+      "screen": "start"
+    },
+    {
+      "id": "map-scene",
+      "src": "/assets/scene-map.png",
+      "kind": "scene",
+      "required": true,
+      "source": {
+        "path": "output/imagegen-pixel-kit/scene-quiet-v2.png",
+        "sha256": "36aa444b1ed77a319b8eb02f2be176b6a47fb6c1e00bd26edb38f713f7b83bcd",
+        "dimensions": [
+          887,
+          1774
+        ],
+        "mode": "RGB",
+        "origin": "imagegen"
+      },
+      "processed": {
+        "dimensions": [
+          192,
+          384
+        ],
+        "format": "png",
+        "pixelArt": true,
+        "antialias": "none",
+        "bytes": 2460,
+        "sha256": "8822156edf742b4c76a077d76e71af71af314030b6e030873bc00888212b5806",
+        "alphaExtrema": [
+          255,
+          255
+        ],
+        "alphaZeroPixels": 0,
+        "alphaNonzeroPixels": 73728,
+        "alphaNonzeroBBox": [
+          0,
+          0,
+          192,
+          384
+        ],
+        "alphaTransparentPaddingPx": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "paletteColors": 7
+      },
+      "screen": "map"
     },
     {
       "id": "player",
       "src": "/assets/player.png",
       "kind": "character",
-      "screen": "battle",
       "required": true,
       "source": {
-        "path": "output/imagegen/player.png",
-        "sha256": "f5868c56e4e7b801e7d0a800035198218ebf61f2cc6cd01a80265015fd30086f",
-        "dimensions": [1024, 1536],
+        "path": "output/imagegen-pixel-kit/player.png",
+        "sha256": "9eaeb6b3dd37fafe84646337748a5dbd45145218d4a5b009139112c978cb9640",
+        "dimensions": [
+          1024,
+          1536
+        ],
         "mode": "RGBA",
-        "alphaExtrema": [0, 254]
+        "origin": "imagegen"
       },
       "processed": {
-        "dimensions": [512, 768],
+        "dimensions": [
+          64,
+          96
+        ],
         "format": "png",
-        "maxDimensionPx": 768,
-        "alphaExtrema": [0, 255],
-        "alphaMethod": "premultiplied Lanczos; no thresholding",
-        "bytes": 487459
-      }
+        "pixelArt": true,
+        "antialias": "none",
+        "bytes": 3528,
+        "sha256": "981ee006777972226c0ab763181cafdfd473f5a4eb585a4f19ddd87227fc444e",
+        "alphaExtrema": [
+          0,
+          255
+        ],
+        "alphaZeroPixels": 4271,
+        "alphaNonzeroPixels": 1873,
+        "alphaNonzeroBBox": [
+          4,
+          20,
+          60,
+          92
+        ],
+        "alphaTransparentPaddingPx": [
+          4,
+          20,
+          4,
+          4
+        ],
+        "paletteColors": 23
+      },
+      "screen": "battle"
     },
     {
       "id": "enemy",
       "src": "/assets/enemy.png",
       "kind": "character",
-      "screen": "battle",
       "required": true,
       "source": {
-        "path": "output/imagegen/enemy.png",
-        "sha256": "5b53fcdbfad6fd6f10656c585f47ebd924d15c4a82264dcb7d1743ee1a3232e6",
-        "dimensions": [1164, 1351],
+        "path": "output/imagegen-pixel-kit/enemy.png",
+        "sha256": "f2d3f56ae72cc001a1863a03f3b3b86918663e05a1375b4f67f83621ffff52ed",
+        "dimensions": [
+          1024,
+          1536
+        ],
         "mode": "RGBA",
-        "alphaExtrema": [0, 255]
+        "origin": "imagegen"
       },
       "processed": {
-        "dimensions": [662, 768],
+        "dimensions": [
+          64,
+          96
+        ],
         "format": "png",
-        "maxDimensionPx": 768,
-        "alphaExtrema": [0, 255],
-        "alphaMethod": "premultiplied Lanczos; no thresholding",
-        "bytes": 615242
-      }
+        "pixelArt": true,
+        "antialias": "none",
+        "bytes": 4147,
+        "sha256": "e6b6bf5514e45283d4a66ff9f45104382f8c0d8812a4915e49df4e217af03f31",
+        "alphaExtrema": [
+          0,
+          255
+        ],
+        "alphaZeroPixels": 4351,
+        "alphaNonzeroPixels": 1793,
+        "alphaNonzeroBBox": [
+          4,
+          21,
+          60,
+          92
+        ],
+        "alphaTransparentPaddingPx": [
+          4,
+          21,
+          4,
+          4
+        ],
+        "paletteColors": 17
+      },
+      "screen": "battle"
     },
     {
       "id": "artifact-rr09",
-      "src": "/assets/artifact-rr09.svg",
+      "src": "/assets/artifact-rr09.png",
       "kind": "artifact",
-      "target": "artifact-rr09",
-      "contentId": "RR09",
       "required": true,
       "source": {
-        "path": "public/assets/artifact-rr09.svg",
-        "sha256": "0b5d83361e6af41181a0ba7d38e31455a1d1ab81c21162fb6774fa2dd52bf4d7",
-        "dimensions": [256, 256],
-        "mode": "SVG",
-        "origin": "original_vector"
+        "path": "output/imagegen-pixel-kit/artifact-rr09.png",
+        "sha256": "f6338c0307dda119077346a72ceeda973ff2dce3f8d47f22a78dfeefbb1c1ce7",
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "origin": "imagegen"
       },
       "processed": {
-        "dimensions": [256, 256],
-        "format": "svg",
-        "bytes": 2833,
-        "background": "transparent"
-      }
+        "dimensions": [
+          32,
+          32
+        ],
+        "format": "png",
+        "pixelArt": true,
+        "antialias": "none",
+        "bytes": 1030,
+        "sha256": "e86974faeb0ad039a168348994bb41ce65c15334ce144593ac63576dd0b3dd51",
+        "alphaExtrema": [
+          0,
+          255
+        ],
+        "alphaZeroPixels": 637,
+        "alphaNonzeroPixels": 387,
+        "alphaNonzeroBBox": [
+          3,
+          3,
+          28,
+          29
+        ],
+        "alphaTransparentPaddingPx": [
+          3,
+          3,
+          4,
+          3
+        ],
+        "paletteColors": 21
+      },
+      "target": "artifact-rr09",
+      "contentId": "RR09"
     },
     {
       "id": "artifact-rr11",
-      "src": "/assets/artifact-rr11.svg",
+      "src": "/assets/artifact-rr11.png",
       "kind": "artifact",
-      "target": "artifact-rr11",
-      "contentId": "RR11",
       "required": true,
       "source": {
-        "path": "public/assets/artifact-rr11.svg",
-        "sha256": "1699f3fd8145f7b4d0713fb645d0149263f586407275d554ac9743b97745f7b6",
-        "dimensions": [256, 256],
-        "mode": "SVG",
-        "origin": "original_vector"
+        "path": "output/imagegen-pixel-kit/artifact-rr11.png",
+        "sha256": "5530162f48d55bbcb9fe0d8d944d87938604ce8bc34f030664da19dd7d5876c0",
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "origin": "imagegen"
       },
       "processed": {
-        "dimensions": [256, 256],
-        "format": "svg",
-        "bytes": 3065,
-        "background": "transparent"
-      }
+        "dimensions": [
+          32,
+          32
+        ],
+        "format": "png",
+        "pixelArt": true,
+        "antialias": "none",
+        "bytes": 1214,
+        "sha256": "483842296b45cf9226911863de32989b30c12aca6e4ee57edb6aecc68712d634",
+        "alphaExtrema": [
+          0,
+          255
+        ],
+        "alphaZeroPixels": 631,
+        "alphaNonzeroPixels": 393,
+        "alphaNonzeroBBox": [
+          4,
+          3,
+          28,
+          29
+        ],
+        "alphaTransparentPaddingPx": [
+          4,
+          3,
+          4,
+          3
+        ],
+        "paletteColors": 21
+      },
+      "target": "artifact-rr11",
+      "contentId": "RR11"
     },
     {
       "id": "artifact-rr15",
-      "src": "/assets/artifact-rr15.svg",
+      "src": "/assets/artifact-rr15.png",
       "kind": "artifact",
-      "target": "artifact-rr15",
-      "contentId": "RR15",
       "required": true,
       "source": {
-        "path": "public/assets/artifact-rr15.svg",
-        "sha256": "0a65e044d81dbea58193b88e03e70df19af9351893e92fbc4a42b71e8e96cd50",
-        "dimensions": [256, 256],
-        "mode": "SVG",
-        "origin": "original_vector"
+        "path": "output/imagegen-pixel-kit/artifact-rr15-v2.png",
+        "sha256": "1739a79376adcb4b7c870a01d1f52dcc9494c88cb2115d36900ef43c1ca91051",
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "origin": "imagegen"
       },
       "processed": {
-        "dimensions": [256, 256],
-        "format": "svg",
-        "bytes": 3499,
-        "background": "transparent"
-      }
+        "dimensions": [
+          32,
+          32
+        ],
+        "format": "png",
+        "pixelArt": true,
+        "antialias": "none",
+        "bytes": 592,
+        "sha256": "c36f5e1e6ef160fe219593c6da1a4523519440a19b9c87082861efd0411f096f",
+        "alphaExtrema": [
+          0,
+          255
+        ],
+        "alphaZeroPixels": 760,
+        "alphaNonzeroPixels": 264,
+        "alphaNonzeroBBox": [
+          7,
+          3,
+          25,
+          29
+        ],
+        "alphaTransparentPaddingPx": [
+          7,
+          3,
+          7,
+          3
+        ],
+        "paletteColors": 15
+      },
+      "target": "artifact-rr15",
+      "contentId": "RR15"
+    },
+    {
+      "id": "ui-panel",
+      "src": "/assets/ui-panel.png",
+      "kind": "module",
+      "required": true,
+      "source": {
+        "path": "output/imagegen-pixel-kit/ui-panel.png",
+        "sha256": "3068f91bbd60c991329b4b2957dd2aa65aad7133995c764646564f3e5de117cc",
+        "dimensions": [
+          1774,
+          887
+        ],
+        "mode": "RGBA",
+        "origin": "imagegen"
+      },
+      "processed": {
+        "dimensions": [
+          128,
+          64
+        ],
+        "format": "png",
+        "pixelArt": true,
+        "antialias": "none",
+        "bytes": 1050,
+        "sha256": "98e8efb2bb89c8c3b9c892eef066e266aec32a812b242d1b844b414714795098",
+        "alphaExtrema": [
+          0,
+          255
+        ],
+        "alphaZeroPixels": 332,
+        "alphaNonzeroPixels": 7860,
+        "alphaNonzeroBBox": [
+          0,
+          0,
+          128,
+          64
+        ],
+        "alphaTransparentPaddingPx": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "paletteColors": 14
+      },
+      "slice": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "id": "ui-button-primary",
+      "src": "/assets/ui-button-primary.png",
+      "kind": "module",
+      "required": true,
+      "source": {
+        "path": "output/imagegen-pixel-kit/ui-button-primary.png",
+        "sha256": "91f6e0d4745e670aacb2437c73287b7ad4d8323d5bf5f45fb88660ddd0f66951",
+        "dimensions": [
+          2172,
+          724
+        ],
+        "mode": "RGBA",
+        "origin": "imagegen"
+      },
+      "processed": {
+        "dimensions": [
+          160,
+          32
+        ],
+        "format": "png",
+        "pixelArt": true,
+        "antialias": "none",
+        "bytes": 578,
+        "sha256": "1ef2321b6fcb5b330274d9416f688ca03539458d233fc89c725540e6b7856902",
+        "alphaExtrema": [
+          0,
+          255
+        ],
+        "alphaZeroPixels": 303,
+        "alphaNonzeroPixels": 4817,
+        "alphaNonzeroBBox": [
+          0,
+          0,
+          160,
+          32
+        ],
+        "alphaTransparentPaddingPx": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "paletteColors": 11
+      },
+      "slice": [
+        6,
+        20,
+        6,
+        20
+      ]
+    },
+    {
+      "id": "ui-button-secondary",
+      "src": "/assets/ui-button-secondary.png",
+      "kind": "module",
+      "required": true,
+      "source": {
+        "path": "output/imagegen-pixel-kit/ui-button-secondary.png",
+        "sha256": "0e543c0d7874e306ede2499782b928c92600892c4feeee4ef496cbbd48d00ec6",
+        "dimensions": [
+          2172,
+          724
+        ],
+        "mode": "RGBA",
+        "origin": "imagegen"
+      },
+      "processed": {
+        "dimensions": [
+          160,
+          32
+        ],
+        "format": "png",
+        "pixelArt": true,
+        "antialias": "none",
+        "bytes": 831,
+        "sha256": "3cb04a77bcd4ffbf67c159922d5a16b6f16e606a579da4c772073a94408fe54c",
+        "alphaExtrema": [
+          0,
+          255
+        ],
+        "alphaZeroPixels": 352,
+        "alphaNonzeroPixels": 4768,
+        "alphaNonzeroBBox": [
+          0,
+          0,
+          160,
+          32
+        ],
+        "alphaTransparentPaddingPx": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "paletteColors": 12
+      },
+      "slice": [
+        6,
+        20,
+        6,
+        20
+      ]
+    },
+    {
+      "id": "ui-meter",
+      "src": "/assets/ui-meter.png",
+      "kind": "module",
+      "required": true,
+      "source": {
+        "path": "output/imagegen-pixel-kit/ui-meter.png",
+        "sha256": "eaae2041df744b0d335db52334f7d15a5c2f8c392579f51201056a1ba7e742d7",
+        "dimensions": [
+          2172,
+          724
+        ],
+        "mode": "RGBA",
+        "origin": "imagegen"
+      },
+      "processed": {
+        "dimensions": [
+          160,
+          16
+        ],
+        "format": "png",
+        "pixelArt": true,
+        "antialias": "none",
+        "bytes": 865,
+        "sha256": "9da449d290acd04474ec5ec2450d3b8f6ef49efbfd6e6ed0e1e46c5c2b45dbc1",
+        "alphaExtrema": [
+          0,
+          255
+        ],
+        "alphaZeroPixels": 620,
+        "alphaNonzeroPixels": 1940,
+        "alphaNonzeroBBox": [
+          0,
+          0,
+          160,
+          16
+        ],
+        "alphaTransparentPaddingPx": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "paletteColors": 12
+      },
+      "slice": [
+        4,
+        8,
+        4,
+        8
+      ]
     }
   ]
 }

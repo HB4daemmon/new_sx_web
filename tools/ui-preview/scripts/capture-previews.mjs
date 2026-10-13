@@ -45,7 +45,7 @@ try {
     headless: true,
   });
 
-  for (const screen of ['start', 'battle', 'choice']) {
+  for (const screen of ['start', 'map', 'battle', 'choice']) {
     const page = await browser.newPage({ viewport: { width: 320, height: 760 } });
     page.on('console', message => {
       if (message.type() === 'error') browserErrors.push(`${screen} console: ${message.text()}`);
@@ -53,6 +53,11 @@ try {
     page.on('pageerror', error => browserErrors.push(`${screen} pageerror: ${error.message}`));
     page.on('requestfailed', request =>
       browserErrors.push(`${screen} request failed: ${request.url()}`));
+    page.on('response', response => {
+      if (response.status() >= 400) {
+        browserErrors.push(`${screen} response ${response.status()}: ${response.url()}`);
+      }
+    });
 
     const response = await page.goto(`${origin}/?screen=${screen}&capture=1`);
     assert.equal(response.status(), 200, `${screen}: sample page response`);
@@ -72,15 +77,16 @@ try {
         toolbar: getComputedStyle(toolbar).display,
         sample: { width: bounds.width, height: bounds.height },
         decodedTargets: [...document.querySelectorAll('img[data-asset-target]')]
-          .filter(image => !image.hidden && image.complete && image.naturalWidth > 0).length,
+        .filter(image => !image.hidden && image.complete && image.naturalWidth > 0).length,
+        toolbarVisible: getComputedStyle(toolbar).display !== 'none',
       };
     }, screen);
     assert.equal(rendered.view, screen);
     assert.equal(rendered.capture, 'true');
     assert.equal(rendered.approval, 'pending');
-    assert.equal(rendered.toolbar, 'none');
+    assert.equal(rendered.toolbarVisible, false);
     assert.deepEqual(rendered.sample, { width: 320, height: 760 });
-    assert.equal(rendered.decodedTargets, 9);
+    assert.equal(rendered.decodedTargets, 10);
 
     const filename = path.join(outputRoot, `${screen}.png`);
     const png = await page.screenshot({ path: filename });

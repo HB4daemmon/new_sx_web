@@ -1,0 +1,6 @@
+Use case: stylized-concept.
+Asset type: transparent inventory sprite for a Chinese cultivation pixel game, readable at 32 by 32 logical pixels.
+Primary request: one COMPACT broad pale jade pendant. The jade itself is a large softened square disc with a circular opening and fills at least 70 percent of the overall object's height. One tiny red knot sits immediately above it, one very short red tassel sits immediately below it. There is NO long hanging loop or long cord. The overall object is approximately square, not tall or slender.
+Style: true low-resolution 16-bit handheld RPG pixel art; around 32 by 32 logical pixels enlarged with nearest-neighbor for the source. Large square pixel clusters, one-pixel dark ink contour, two jade shades, one highlight, no antialiasing or fine engravings. Use a simple complete silhouette and broad readable jade body.
+Palette: jade #56866d, pale #e4ebe2, ink #28392f, cinnabar #ba6053, tiny copper #c49b5c.
+Composition: one centered complete item, modest genuine transparent padding, actual alpha outside. No background, backdrop, glow, halo, scene, pedestal, frame, text, label, letter, logo, watermark, gradient, smooth painting, realism or 3D.

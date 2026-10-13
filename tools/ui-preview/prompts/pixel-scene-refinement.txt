@@ -1,0 +1,7 @@
+Use case: stylized-concept.
+Asset type: reusable portrait 1:2 background for a compact Chinese cultivation pixel game. No UI screenshot.
+Primary request: an extremely simple, quiet pale sage sky above a shallow empty gray stone practice floor, rendered as true low-resolution 16-bit pixel art.
+Composition: upper 70 percent is completely FLAT SOLID #e4ebe2, no scenery at all. Along the bottom 30 percent, draw a low, straight stone floor in two flat cool gray-green tones, with only four or five large paving seams. The floor has NO front railing, NO balustrade, NO stairs. Two tiny distant mountain silhouettes in very low contrast may touch the horizon at the extreme left and right only; the center is empty. This is a simple side-view battle stage where two separate character sprites will stand on the floor.
+Style: deliberate large square pixel clusters, one logical pixel is around eight source pixels, hard edges, 12 colors maximum, no antialiasing, no fine textures or grain. The floor must be quiet enough for separately rendered dark Chinese text. Favor the simplicity of a handheld RPG battle stage, not a scenic illustration.
+Palette: pale sage #e4ebe2, stone #bfc8b8 and #9da9a0, very faint horizon #c8d5c8. No warm wash.
+Constraints: portrait aspect ratio; no characters, people, pine, tree, building, pagoda, railing, bridge, fence, carved ornament, grass, UI, frame, text, gradient, clouds, noise, glow, vignette, blur, smooth painting, realism, watermark or tiny details.
