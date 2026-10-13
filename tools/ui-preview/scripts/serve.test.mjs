@@ -22,6 +22,12 @@ test('static path resolver only admits public UI and manifest files', () => {
   assert.match(resolvePublicPath('/'), /\/public\/index\.html$/);
   assert.match(resolvePublicPath('/styles.css'), /\/public\/styles\.css$/);
   assert.match(resolvePublicPath('/cartoon.css'), /\/public\/cartoon\.css$/);
+  assert.match(resolvePublicPath('/rig.js'), /\/public\/rig\.js$/);
+  assert.match(resolvePublicPath('/assets/library.json'), /\/public\/assets\/library\.json$/);
+  assert.match(resolvePublicPath('/assets/rig-rkf01.png'), /\/public\/assets\/rig-rkf01\.png$/);
+  assert.equal(resolvePublicPath('/assets/rig-rkf99.png'), null);
+  assert.equal(resolvePublicPath('/assets/icon-unknown.png'), null);
+  assert.equal(resolvePublicPath('/output/imagegen-cartoon-expansion/rig-vajra.png'), null);
   assert.equal(resolvePublicPath('/pixel.css'), null);
   assert.match(resolvePublicPath('/assets/player-attack.png'), /\/public\/assets\/player-attack\.png$/);
   assert.equal(resolvePublicPath('/assets/player-unknown.png'), null);
@@ -97,6 +103,12 @@ test('HTTP server serves only allowlisted files within public/', async () => {
 test('HTTP server serves cartoon modules, poses and retained assets with correct MIME types for GET and HEAD', async () => {
   for (const [target, contentType] of [
     ['/assets/manifest.json', 'application/json; charset=utf-8'],
+    ['/assets/library.json', 'application/json; charset=utf-8'],
+    ['/rig.js', 'text/javascript; charset=utf-8'],
+    ['/assets/rig-rkf01.png', 'image/png'],
+    ['/assets/rig-en-a1-l1.png', 'image/png'],
+    ['/assets/map-coast.png', 'image/png'],
+    ['/assets/icon-rl01.png', 'image/png'],
     ['/cartoon.css', 'text/css; charset=utf-8'],
     ['/assets/ui-panel.png', 'image/png'],
     ['/assets/ui-button-primary.png', 'image/png'],

@@ -83,7 +83,7 @@ try {
       if (response.status() >= 400) errors.push(`${response.status()} ${response.url()}`);
     });
     await page.goto(`${origin}/?screen=overview`);
-    await page.waitForFunction(() => document.querySelector('#preview-app').dataset.assetsReady === 'true');
+    await page.waitForFunction(() => document.querySelector('#preview-app').dataset.libraryReady === 'true');
     const decoded = await page.evaluate(async assets => {
       const results = [];
       for (const asset of assets) {
@@ -122,14 +122,14 @@ try {
       const capture = viewport.width <= 390;
       if (capture) {
         await page.goto(`${origin}/?screen=${screenName}`);
-        await page.waitForFunction(() => document.querySelector('#preview-app').dataset.assetsReady === 'true');
+        await page.waitForFunction(() => document.querySelector('#preview-app').dataset.libraryReady === 'true');
         await checkGeometry(page, screenName);
         await page.screenshot({
           path: new URL(`framed-${screenName}-${viewport.width}x${viewport.height}.png`, output).pathname,
         });
       }
       await page.goto(`${origin}/?screen=${screenName}${capture ? '&capture=1' : ''}`);
-      await page.waitForFunction(() => document.querySelector('#preview-app').dataset.assetsReady === 'true');
+      await page.waitForFunction(() => document.querySelector('#preview-app').dataset.libraryReady === 'true');
       await checkGeometry(page, screenName);
       assert.equal(await page.locator('#preview-app').getAttribute('data-visual-approval'), 'pending');
       const rendering = await page.locator(`[data-screen="${screenName}"] img`).evaluateAll(images =>
@@ -139,26 +139,21 @@ try {
     }
     if (viewport.width <= 390) {
       await page.goto(`${origin}/?screen=battle&capture=1`);
-      await page.waitForFunction(() => document.querySelector('#preview-app').dataset.assetsReady === 'true');
+      await page.waitForFunction(() => document.querySelector('#preview-app').dataset.libraryReady === 'true');
       await page.locator('.battle-feedback:not([hidden])').waitFor();
-      assert.equal(await page.locator('#preview-app').getAttribute('data-animation-kind'), 'illustrated-poses');
-      assert.match(await page.locator('.player-art').getAttribute('src'), /player-attack\.png$/);
-      const attackPixels = await page.locator('.player-art').evaluate(async image => {
-        await image.decode();
-        return image.naturalWidth * image.naturalHeight;
-      });
-      assert.equal(attackPixels, 384 * 576);
+      assert.equal(await page.locator('#preview-app').getAttribute('data-animation-kind'), 'cutout-skeletal');
+      assert.equal(await page.locator('.combat-rig').isVisible(), true);
       await page.screenshot({ path: new URL(`attack-${viewport.width}.png`, output).pathname });
-      assert.equal(await page.locator('.battle-feedback').textContent(), '剑击 · 合计 92');
+      assert.equal(await page.locator('.battle-feedback').textContent(), '普攻 · 合计 92');
       assert.equal(await page.locator('.enemy-status .health-value').textContent(), '302/450');
       assert.equal(await page.locator('.enemy-status .shield-value').textContent(), '0');
       await page.locator('[data-battle-control="pause"]').click();
-      const pausedPose = await page.locator('.player-art').getAttribute('src');
+      const pausedPose = await page.locator('.combat-rig').evaluate(canvas => canvas.toDataURL());
       const hp = await page.locator('.battle-readouts').innerText();
       await page.waitForTimeout(2600);
       assert.equal(await page.locator('.battle-readouts').innerText(), hp, 'paused playback must not advance');
-      assert.equal(await page.locator('.player-art').getAttribute('src'), pausedPose,
-        'pause freezes the pose as well as the numbers');
+      assert.equal(await page.locator('.combat-rig').evaluate(canvas => canvas.toDataURL()), pausedPose,
+        'pause freezes the actual skeletal canvas as well as the numbers');
       await page.locator('[data-open-dialog="battle"]').click();
       await page.locator('#detail-dialog[open]').waitFor();
       assert.match(await page.locator('#dialog-stats').innerText(), /302\/450/);
@@ -168,27 +163,22 @@ try {
       await page.locator('[data-battle-control="pause"]').click();
       await page.waitForFunction(() => document.querySelector('.battle-feedback').textContent === '盾挡 · 合计 54');
       assert.equal(await page.locator('.player-status .shield-value').textContent(), '126');
-      assert.match(await page.locator('.enemy-art').getAttribute('src'), /enemy-attack\.png$/);
       await page.locator('[data-open-dialog="battle"]').click();
-      const modalPose = await page.locator('.enemy-art').getAttribute('src');
+      const modalPose = await page.locator('.combat-rig').evaluate(canvas => canvas.toDataURL());
       const modalStats = await page.locator('.battle-readouts').innerText();
       await page.waitForTimeout(1500);
       assert.equal(await page.locator('.battle-readouts').innerText(), modalStats,
         'details freeze playback without requiring manual pause');
-      assert.equal(await page.locator('.enemy-art').getAttribute('src'), modalPose,
-        'details freeze the action pose too');
+      assert.equal(await page.locator('.combat-rig').evaluate(canvas => canvas.toDataURL()), modalPose,
+        'details freeze the skeleton too');
       await page.getByRole('button', { name: '关闭详情' }).click();
       await page.waitForFunction(() => document.querySelector('.battle-feedback').textContent === '怒技 · 合计 138');
-      assert.match(await page.locator('.player-art').getAttribute('src'), /player-rage\.png$/);
       await page.screenshot({ path: new URL(`rage-hit-${viewport.width}.png`, output).pathname });
       await page.emulateMedia({ reducedMotion: 'reduce' });
       await page.waitForFunction(() =>
-        document.querySelector('.player-art').dataset.pose === 'idle' &&
-        document.querySelector('.player-art').getAttribute('src') === '/assets/player.png');
+        document.querySelector('.combat-rig').dataset.playerAction === 'idle');
       assert.equal(await page.locator('.battle-actors img').first()
         .evaluate(image => getComputedStyle(image).animationName), 'none');
-      assert.equal(await page.locator('.player-art').getAttribute('src'), '/assets/player.png',
-        'reduced motion restores the stable idle pose');
       await page.locator('[data-battle-control="skip"]').click();
       await page.locator('[data-artifact-detail="artifact-rr09"]').click();
       assert.equal(await page.locator('.artifact-select[aria-pressed="true"]').count(), 0);

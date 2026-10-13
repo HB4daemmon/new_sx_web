@@ -1,3 +1,5 @@
+import { BattleRig, drawRig } from './rig.js';
+
 const requiredAssetIds = [
   'battle-scene',
   'start-scene',
@@ -34,6 +36,9 @@ const requiredAssets = new Map([
 ]);
 const assetPathPattern = /^\/assets\/(?:scene-(?:battle|start|map)|player(?:-attack|-rage)?|enemy(?:-attack)?|artifact-[a-z0-9-]+|ui-(?:panel|button-primary|button-secondary|meter))\.png$/;
 const poseImages = new Map();
+const libraryImages = new Map();
+let artLibrary = null;
+let battleRig = null;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const methods = {
   RKF01: { name: '金刚功', cue: '普攻、怒技后获得护盾。' },
@@ -94,7 +99,8 @@ const overviewSlots = new Map(
 );
 const routeGraph = document.querySelector('.map-graph');
 const routeCanvas = document.querySelector('canvas.route-lines');
-let selectedMethod = 'RKF01';
+const requestedMethod = new URLSearchParams(location.search).get('method');
+let selectedMethod = Object.hasOwn(methods, requestedMethod) ? requestedMethod : 'RKF01';
 let selectedArtifact = null;
 let chosenArtifact = null;
 let dialogKind = '';
@@ -109,9 +115,12 @@ const initialCombat = {
 };
 let combat = structuredClone(initialCombat);
 const battleBeats = [
-  { actor: 'player', target: 'enemy', hits: [30, 31, 31], rage: 64, targetRage: 68, label: '剑击' },
-  { actor: 'enemy', target: 'player', hits: [18, 18, 18], rage: 93, targetRage: 77, label: '盾挡' },
-  { actor: 'player', target: 'enemy', hits: [46, 46, 46], rage: 0, targetRage: 100, label: '怒技' },
+  { actor: 'player', target: 'enemy', action: 'attack', hits: [30, 31, 31], rage: 64, targetRage: 68, label: '普攻' },
+  { actor: 'enemy', target: 'player', action: 'attack', hits: [18, 18, 18], rage: 93, targetRage: 77, label: '盾挡' },
+  { actor: 'player', target: 'enemy', action: 'rage', hits: [46, 46, 46], rage: 0, targetRage: 100, label: '怒技' },
+  { actor: 'enemy', action: 'artifact', artifact: 'RR05', label: '镇心玉 · 触发' },
+  { actor: 'player', action: 'heal', heal: 36, label: '恢复 · 气血 +36' },
+  { actor: 'enemy', target: 'player', action: 'rage', hits: [152], rage: 0, targetRage: 90, label: '怒技' },
 ];
 
 app.dataset.assetsReady = 'false';
@@ -128,7 +137,12 @@ function resetActor(image) {
 }
 
 function syncMotionPause() {
-  app.dataset.motionPaused = String(app.dataset.previewPaused === 'true' || dialog.open);
+  app.dataset.motionPaused = String(app.dataset.previewPaused === 'true' || dialog.open || document.hidden);
+  battleRig?.configure({
+    active: battleActive, paused: app.dataset.motionPaused === 'true',
+    reduced: reducedMotion.matches, speed: app.dataset.previewSpeed === 'fast' ? 2 : 1,
+    method: selectedMethod,
+  });
 }
 
 document.querySelectorAll('.battle-actors img').forEach(image => {
@@ -136,6 +150,22 @@ document.querySelectorAll('.battle-actors img').forEach(image => {
 });
 reducedMotion.addEventListener('change', () => {
   document.querySelectorAll('.battle-actors img').forEach(resetActor);
+  syncMotionPause();
+});
+document.addEventListener('visibilitychange', () => {
+  syncMotionPause();
+  scheduleBattleBeat();
+});
+window.addEventListener('pagehide', () => {
+  clearTimeout(battleTimer);
+  battleRig?.dispose();
+});
+window.addEventListener('pageshow', event => {
+  if (event.persisted) {
+    battleRig = artLibrary && new BattleRig(document.querySelector('.combat-rig'), artLibrary, libraryImages);
+    syncMotionPause();
+    scheduleBattleBeat();
+  }
 });
 
 function updateOverviewScales() {
@@ -276,12 +306,12 @@ function renderCombat() {
 function scheduleBattleBeat() {
   clearTimeout(battleTimer);
   battleTimer = null;
-  if (!battleActive || app.dataset.previewPaused === 'true' || dialog.open) return;
+  if (!battleActive || app.dataset.previewPaused === 'true' || dialog.open || document.hidden) return;
   battleTimer = setTimeout(playBattleBeat, app.dataset.previewSpeed === 'fast' ? 1200 : 2400);
 }
 
 function playBattleBeat() {
-  if (!battleActive || app.dataset.previewPaused === 'true' || dialog.open) return;
+  if (!battleActive || app.dataset.previewPaused === 'true' || dialog.open || document.hidden) return;
   const feedback = document.querySelector('.battle-feedback');
   document.querySelectorAll('.battle-actors img').forEach(resetActor);
   if (battlePhase === battleBeats.length) {
@@ -289,22 +319,40 @@ function playBattleBeat() {
     battlePhase = 0;
     feedback.hidden = true;
     document.querySelector('.round-label').textContent = '第三回合';
+    battleRig?.reset();
   } else {
     const beat = battleBeats[battlePhase++];
-    const target = combat[beat.target];
-    const damage = beat.hits.reduce((sum, hit) => sum + hit, 0);
-    const absorbed = Math.min(target.shield, damage);
-    target.shield -= absorbed;
-    target.hp = Math.max(0, target.hp - damage + absorbed);
-    target.rage = beat.targetRage;
-    combat[beat.actor].rage = beat.rage;
-    feedback.textContent = `${beat.label} · 合计 ${damage}`;
-    feedback.hidden = false;
-    document.querySelector('.round-label').textContent = battlePhase === 3 ? '第四回合' : '第三回合';
-    if (!reducedMotion.matches) {
+    const impact = () => {
+      if (!battleActive) return;
+      if (beat.hits) {
+        const target = combat[beat.target];
+        const damage = beat.hits.reduce((sum, hit) => sum + hit, 0);
+        const absorbed = Math.min(target.shield, damage);
+        target.shield -= absorbed;
+        target.hp = Math.max(0, target.hp - damage + absorbed);
+        target.rage = beat.targetRage;
+        combat[beat.actor].rage = beat.rage;
+        feedback.textContent = `${beat.label} · 合计 ${damage}`;
+        battleRig?.play(beat.target, absorbed > 0 ? 'guard' : 'hit');
+      } else {
+        if (beat.heal) combat[beat.actor].hp = Math.min(combat[beat.actor].max, combat[beat.actor].hp + beat.heal);
+        feedback.textContent = beat.label;
+      }
+      feedback.dataset.kind = beat.action;
+      feedback.hidden = false;
+      renderCombat();
+    };
+    feedback.hidden = true;
+    document.querySelector('.round-label').textContent = battlePhase >= 3 ? '第四回合' : '第三回合';
+    if (battleRig) {
+      battleRig.play(beat.actor, beat.action, impact, artLibrary.artifacts[beat.artifact]?.src);
+    } else {
+      impact();
+    }
+    if (!battleRig && !reducedMotion.matches && beat.hits) {
       const actor = document.querySelector(`.${beat.actor}-art`);
       const pose = beat.label === '怒技' ? 'rage' : 'attack';
-      actor.src = poseImages.get(`${beat.actor}-${pose}`).src;
+      actor.src = (poseImages.get(`${beat.actor}-${pose}`) || poseImages.get(`${beat.actor}-attack`)).src;
       actor.dataset.pose = pose;
       actor.classList.add('is-striking');
       document.querySelector(`.${beat.target}-art`).classList.add('is-hit');
@@ -324,8 +372,10 @@ function syncBattlePlayback(view) {
   battlePhase = 0;
   document.querySelector('.battle-feedback').hidden = true;
   document.querySelectorAll('.battle-actors img').forEach(resetActor);
+  battleRig?.reset();
   document.querySelector('.round-label').textContent = '第三回合';
   renderCombat();
+  syncMotionPause();
   scheduleBattleBeat();
 }
 
@@ -448,6 +498,88 @@ async function loadApprovedAssets() {
   assetStatus.textContent = '素材已载入 · 待视觉确认';
   captureButton.disabled = false;
   renderRoute();
+  await loadArtLibrary();
+}
+
+function drawStartRig() {
+  if (!artLibrary) return;
+  const canvas = document.querySelector('.start-rig');
+  const width = canvas.clientWidth, height = canvas.clientHeight;
+  if (!width || !height) return;
+  const ratio = Math.min(devicePixelRatio || 1, 2);
+  canvas.width = Math.round(width * ratio);
+  canvas.height = Math.round(height * ratio);
+  const context = canvas.getContext('2d');
+  if (!context) return;
+  context.setTransform(ratio, 0, 0, ratio, 0, 0);
+  const rig = artLibrary.rigs[selectedMethod];
+  drawRig(context, rig, libraryImages.get(rig.src), {
+    x: width / 2, y: height - 5, scale: Math.min(width / 230, height / 325),
+    staticMode: true,
+  });
+  canvas.dataset.skin = selectedMethod;
+}
+new ResizeObserver(drawStartRig).observe(document.querySelector('.start-rig'));
+
+async function loadArtLibrary() {
+  app.dataset.libraryReady = 'false';
+  try {
+    const response = await fetch('/assets/library.json', { cache: 'no-store' });
+    if (!response.ok) throw new Error('Art library unavailable');
+    const library = await response.json();
+    if (library.schemaVersion !== 1 || !Array.isArray(library.assets) ||
+        !library.rigs || !library.map || !library.artifacts) throw new Error('Invalid art library');
+    const safePath = /^\/assets\/(?:rig-(?:rkf0[1-5]|en-a1-l1)|map-(?:coast|stairs|forest|gate|rest|shop)|icon-[a-z0-9-]+|artifact-rr(?:09|11|15))\.png$/;
+    const paths = [...new Set([
+      ...library.assets.map(asset => asset.src),
+      ...Object.values(library.artifacts).map(artifact => artifact.src),
+    ])];
+    if (!paths.every(src => safePath.test(src)) ||
+        ![...Object.keys(methods), 'EN-A1-L1'].every(id =>
+          library.rigs[id]?.parts && paths.includes(library.rigs[id].src)) ||
+        !['coast', 'stairs', 'forest', 'gate', 'rest'].every(id => paths.includes(library.map[id]))) {
+      throw new Error('Incomplete art library');
+    }
+    const decoded = await Promise.all(paths.map(async src => [src, await loadImage(src)]));
+    decoded.forEach(([src, image]) => libraryImages.set(src, image));
+    const renderer = new BattleRig(document.querySelector('.combat-rig'), library, libraryImages);
+    if (!renderer.context || !document.querySelector('.start-rig').getContext('2d')) {
+      renderer.dispose();
+      throw new Error('Canvas unavailable');
+    }
+    artLibrary = library;
+    battleRig = renderer;
+    for (const image of document.querySelectorAll('[data-map-art]')) {
+      image.src = library.map[image.dataset.mapArt];
+      await image.decode();
+      image.hidden = false;
+    }
+    for (const id of ['RR09', 'RR11', 'RR15']) {
+      const image = document.querySelector(`[data-asset-target="artifact-${id.toLowerCase()}"]`);
+      image.src = library.artifacts[id].src;
+      await image.decode();
+    }
+    app.dataset.libraryReady = 'true';
+    app.dataset.animationKind = 'cutout-skeletal';
+    app.dataset.styleApproval = 'approved';
+    assetStatus.textContent = '手绘风格 · 新素材待确认';
+    document.querySelector('.catalog-button').disabled = false;
+    drawStartRig();
+    requestAnimationFrame(drawRouteLines);
+    syncMotionPause();
+  } catch {
+    battleRig?.dispose();
+    battleRig = null;
+    artLibrary = null;
+    libraryImages.clear();
+    app.dataset.libraryReady = 'false';
+    app.dataset.animationKind = 'illustrated-poses';
+    document.querySelectorAll('[data-map-art]').forEach(image => { image.hidden = true; });
+    for (const id of ['artifact-rr09', 'artifact-rr11', 'artifact-rr15']) {
+      document.querySelector(`[data-asset-target="${id}"]`).src = requiredAssets.get(id).src;
+    }
+    // Retain the committed static illustrations and working HUD when a rig fails.
+  }
 }
 
 captureButton.addEventListener('click', () => {
@@ -517,12 +649,52 @@ function configureDialog(kind) {
   dialogCopy.hidden = false;
   dialogStats.hidden = false;
   settingsForm.hidden = true;
+  document.querySelector('#artifact-catalog').hidden = true;
   dialog.querySelector('[data-dialog-action="cancel-node"]').hidden = true;
   dialog.querySelector('[data-dialog-action="confirm-node"]').hidden = true;
+  dialog.querySelector('[data-dialog-action="back-catalog"]').hidden = true;
 }
 
 function openDialog(kind, artifactId = selectedArtifact) {
-  if (kind === 'artifact') {
+  if (kind === 'library') {
+    configureDialog('library');
+    dialogTitle.textContent = '法宝图鉴';
+    dialogCopy.hidden = true;
+    dialogStats.hidden = true;
+    const catalog = document.querySelector('#artifact-catalog');
+    catalog.replaceChildren();
+    if (artLibrary) {
+      for (const [label, rarity] of [['凡品', 'common'], ['珍品', 'rare'], ['传奇', 'legendary']]) {
+        const title = document.createElement('h3');
+        title.textContent = label;
+        const list = document.createElement('div');
+        list.className = 'catalog-items';
+        for (const [id, artifact] of Object.entries(artLibrary.artifacts)) {
+          if (artifact.rarity !== rarity) continue;
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.dataset.catalogId = id;
+          button.title = artifact.name;
+          const image = document.createElement('img');
+          image.src = artifact.src;
+          image.alt = '';
+          const name = document.createElement('span');
+          name.textContent = artifact.name;
+          button.append(image, name);
+          button.addEventListener('click', () => {
+            configureDialog('artifact');
+            dialogTitle.textContent = artifact.name;
+            fillCopy(artifact.description);
+            fillStats(artifact.stats);
+            dialog.querySelector('[data-dialog-action="back-catalog"]').hidden = false;
+          });
+          list.append(button);
+        }
+        catalog.append(title, list);
+      }
+    }
+    catalog.hidden = false;
+  } else if (kind === 'artifact') {
     const artifact = artifacts[artifactId];
     if (!artifact) return;
     configureDialog('artifact');
@@ -628,16 +800,24 @@ settingsForm.addEventListener('submit', event => {
   dialog.close();
 });
 
+function renderMethod() {
+  document.querySelectorAll('[data-method]').forEach(option => {
+    option.setAttribute('aria-pressed', String(option.dataset.method === selectedMethod));
+  });
+  methodCue.textContent = methods[selectedMethod].cue;
+  document.querySelector('[data-profile-method]').textContent = methods[selectedMethod].name;
+  document.querySelector('[data-map-method]').textContent = methods[selectedMethod].name;
+  document.querySelector('[data-battle-method]').textContent = methods[selectedMethod].name;
+  drawStartRig();
+  syncMotionPause();
+}
 document.querySelectorAll('[data-method]').forEach(button => {
   button.addEventListener('click', () => {
     selectedMethod = button.dataset.method;
-    document.querySelectorAll('[data-method]').forEach(option => {
-      option.setAttribute('aria-pressed', String(option === button));
-    });
-    methodCue.textContent = methods[selectedMethod].cue;
-    document.querySelector('[data-profile-method]').textContent = methods[selectedMethod].name;
-    document.querySelector('[data-map-method]').textContent = methods[selectedMethod].name;
-    document.querySelector('[data-battle-method]').textContent = methods[selectedMethod].name;
+    const url = new URL(location.href);
+    url.searchParams.set('method', selectedMethod);
+    history.replaceState(history.state, '', url);
+    renderMethod();
   });
 });
 
@@ -652,6 +832,7 @@ document.querySelectorAll('[data-map-node]').forEach(button => {
 });
 
 dialog.querySelector('[data-dialog-action="cancel-node"]').addEventListener('click', closeNodePreview);
+dialog.querySelector('[data-dialog-action="back-catalog"]').addEventListener('click', () => openDialog('library'));
 dialog.querySelector('[data-dialog-action="confirm-node"]').addEventListener('click', () => {
   if (!mapNodes[dialog.dataset.nodeId]) return;
   navigate('battle');
@@ -714,5 +895,6 @@ choiceConfirm.addEventListener('click', () => {
 });
 
 renderInventory();
+renderMethod();
 renderRoute({ normalize: true });
 loadApprovedAssets();

@@ -5,14 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/serve.mjs",
-    "test": "node --test && node scripts/check-raster-assets.mjs",
+    "test": "node --test && node scripts/check-raster-assets.mjs && node scripts/check-art-library.mjs",
     "prepare:assets": "uv run --with pillow python scripts/prepare-cartoon-assets.py --force",
-    "test:assets": "node scripts/check-raster-assets.mjs",
+    "test:assets": "node scripts/check-raster-assets.mjs && node scripts/check-art-library.mjs",
     "test:layout": "node scripts/check-layout.mjs",
     "test:art": "node scripts/check-cartoon-art.mjs",
     "test:surfaces": "node scripts/check-cartoon-surfaces.mjs",
     "capture:previews": "node scripts/capture-previews.mjs",
-    "probe:spine": "node scripts/probe-spine.mjs"
+    "probe:spine": "node scripts/probe-spine.mjs",
+    "prepare:expansion": "uv run --with pillow python scripts/prepare-expansion-assets.py && node scripts/enrich-art-library.mjs",
+    "test:rig": "node scripts/check-rig-browser.mjs"
   },
   "engines": {
     "node": ">=22"

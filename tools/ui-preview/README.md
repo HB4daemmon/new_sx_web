@@ -7,8 +7,9 @@ DOM elements, never painted into the generated artwork.
 
 This is a visual preview, not the production game. It does not import the game runtime,
 change content, or save a run. The two sample routes converge on `EN-A1-L1` 养锋石卫.
-Combat playback is a looping three-action layout fixture, not an engine simulation.
-User visual approval remains pending.
+Combat playback is a looping six-beat layout fixture, not an engine simulation.
+The user approved the overall cartoon direction; the new artwork and skeletal motions
+remain pending visual approval.
 
 ## Run and Verify
 
@@ -21,6 +22,7 @@ npm run test:layout
 npm run test:art
 npm run test:assets
 npm run test:surfaces
+npm run test:rig
 npm run capture:previews
 npm run probe:spine
 ```
@@ -33,6 +35,8 @@ The server binds to `0.0.0.0:4174`. Public entry:
 - `/?screen=battle&capture=1`: full-viewport battle without the preview toolbar.
 - `/?screen=compare`: four 320x760 desktop samples.
 - `/?screen=map&node=coast`: directly open a partial encounter preview.
+- `/?screen=battle&method=RKF03`: physician skin; `RKF01` through `RKF05` are supported.
+- The toolbar's `宝` opens a 44-item catalog populated from the actual content library.
 
 The overview does not use exported screenshots, iframes, or cloned screens. Its game
 controls are inert; the title links open the real screens. The shared router supports
@@ -46,6 +50,9 @@ checks decoded pixels, responsive geometry, sprite/control overlap, smooth illus
 rendering, action-pose swaps, shield absorption, merged damage, pause, speed, detail
 snapshots and reduced motion.
 `test:surfaces` checks module references and the controlled text palette.
+`test:rig` checks five distinct rendered method skins, all 31 new raster exports,
+canvas movement and frozen pixels, timed impacts, six action beats, both opponents,
+catalog navigation, reduced motion, leaving battle, and texture/canvas failure fallback.
 
 Browser captures beneath ignored `captures/cartoon-art/` cover 320x568, 320x760, 390x844 and
 1440x900, both toolbar-framed and full-screen phone layouts. Tests do not approve artwork.
@@ -75,28 +82,46 @@ conditions, including the fact that 震岳鼓 does not itself grant shield retal
 The editable 命数（种子） is seed text. Route lines use a local canvas, not a changed
 route-generation system.
 
+`public/assets/library.json` augments, rather than replaces, the baseline asset contract.
+It declares six layered atlases (five cultivators and one stone guardian), six map illustrations
+and nineteen icon exports. Shared icons cover all 44 real artifacts; all five legendary items
+have dedicated images. Character parts are extracted from connected silhouettes, not blindly
+cut at grid boundaries. `npm run prepare:expansion` needs the ignored generated originals and
+the existing content-kit dependencies. It slices art, then enriches names and attributes from
+the explicit YAML manifest. No model or publishing command runs during this export.
+
 ## Boundaries
 
 The sample flow is `启程` -> node preview -> battle -> artifact choice -> map.
 State lives only in page memory. Chosen items do not affect the sample battle.
 Playback starts from player 640/920 HP, 180 shield, 36 rage and enemy 344/450 HP,
 50 shield, 44 rage. Each action's three hits are summed into one feedback line;
-shield is consumed before HP. The fixture resets after three actions.
+shield is consumed before HP. After these three attacks, the guardian activates 镇心玉,
+the player receives a representative 36-point heal, and the guardian performs a 152-point
+rage attack. These illustrative values are not method-specific balance claims. The fixture
+then resets; neither the heal nor artifact beat mutates gameplay content or a real run.
 
 Pause stops both numeric playback and animation. Details freeze both and show the current
 snapshot; closing resumes unless manually paused. Leaving battle cancels its timer and
-restores idle artwork. Reduced motion removes pose changes, character movement and bar
-transitions. Ordinary and rage attacks use distinct generated poses, not just moving one PNG.
+restores idle artwork. Reduced motion removes character movement and bar transitions, preserving
+one pending impact; if paused, it is committed only on resume. Method appearance is also retained
+in the preview's query string. No run state is persisted.
+
+`public/rig.js` renders the layered images with a hierarchical Canvas2D skeleton. Upper arms,
+elbows, hands and weapon attachments inherit parent transforms; attack, rage, artifact, heal,
+hit and guard have distinct joint poses. One transparent canvas renders both combatants.
+Only the presentation fixture supplies impacts; the renderer performs no damage calculation or RNG.
+The original full-body illustrations and pose swaps remain as a failure fallback.
 
 ## Spine
 
-The current animation is explicitly `illustrated-poses`, not Spine. See [`SPINE.md`](SPINE.md)
+The current animation is explicitly `cutout-skeletal`, not Spine. See [`SPINE.md`](SPINE.md)
 for the verified browser path, asset production checklist, version matching, license
 requirements and integration proposal. `probe:spine` evaluates the vendor's published player
 on its own website and records captures privately. It is a network-dependent optional check,
 not part of offline tests, and does not embed or redistribute vendor assets.
 
-Only public HTML, `styles.css`, `cartoon.css`, application script, manifest, exact preview exports
+Only public HTML, `styles.css`, `cartoon.css`, application and rig scripts, manifests, exact preview exports
 and approved asset names are served. Prompts, generators, imagegen sources, package
 metadata and paths outside `public/` remain private. Production game and docs site are
 unchanged by this preview.

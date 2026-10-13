@@ -1,0 +1,1506 @@
+{
+  "schemaVersion": 1,
+  "styleApproval": {
+    "status": "approved",
+    "by": "user",
+    "date": "2026-10-13"
+  },
+  "expansionApproval": {
+    "status": "pending"
+  },
+  "provenance": {
+    "model": "gpt-image-2.5",
+    "prompts": "prompts/cartoon-expansion.jsonl",
+    "processing": "native alpha threshold 200; connected-component rig extraction; icon cell crop; lanczos",
+    "animation": "Canvas2D hierarchical cutout bones; not Spine"
+  },
+  "rigs": {
+    "RKF01": {
+      "name": "金刚功",
+      "src": "/assets/rig-rkf01.png",
+      "parts": {
+        "head": [
+          29,
+          16,
+          198,
+          224
+        ],
+        "torso": [
+          272,
+          23,
+          209,
+          210
+        ],
+        "upper": [
+          568,
+          16,
+          143,
+          224
+        ],
+        "forearm": [
+          68,
+          272,
+          120,
+          224
+        ],
+        "skirt": [
+          272,
+          303,
+          224,
+          162
+        ],
+        "weapon": [
+          592,
+          272,
+          95,
+          224
+        ],
+        "legL": [
+          64,
+          528,
+          128,
+          224
+        ],
+        "legR": [
+          312,
+          528,
+          144,
+          224
+        ],
+        "ribbon": [
+          528,
+          536,
+          224,
+          208
+        ]
+      },
+      "weaponGrip": 0.73,
+      "basicName": "金刚镇岳",
+      "rageName": "撼岳怒印",
+      "contentSource": "methods/RKF01.yaml"
+    },
+    "RKF02": {
+      "name": "归元诀",
+      "src": "/assets/rig-rkf02.png",
+      "parts": {
+        "head": [
+          16,
+          23,
+          224,
+          209
+        ],
+        "torso": [
+          273,
+          31,
+          193,
+          193
+        ],
+        "upper": [
+          573,
+          16,
+          133,
+          224
+        ],
+        "forearm": [
+          75,
+          272,
+          105,
+          224
+        ],
+        "skirt": [
+          272,
+          309,
+          224,
+          149
+        ],
+        "weapon": [
+          600,
+          272,
+          79,
+          224
+        ],
+        "legL": [
+          72,
+          528,
+          111,
+          224
+        ],
+        "legR": [
+          321,
+          528,
+          126,
+          224
+        ],
+        "ribbon": [
+          545,
+          528,
+          190,
+          224
+        ]
+      },
+      "weaponGrip": 0.75,
+      "basicName": "归元行气",
+      "rageName": "归元震脉",
+      "contentSource": "methods/RKF02.yaml"
+    },
+    "RKF03": {
+      "name": "回春功",
+      "src": "/assets/rig-rkf03.png",
+      "parts": {
+        "head": [
+          30,
+          16,
+          195,
+          224
+        ],
+        "torso": [
+          276,
+          16,
+          215,
+          224
+        ],
+        "upper": [
+          577,
+          16,
+          126,
+          224
+        ],
+        "forearm": [
+          79,
+          272,
+          98,
+          224
+        ],
+        "skirt": [
+          272,
+          285,
+          224,
+          197
+        ],
+        "weapon": [
+          605,
+          272,
+          69,
+          224
+        ],
+        "legL": [
+          74,
+          528,
+          107,
+          224
+        ],
+        "legR": [
+          341,
+          528,
+          85,
+          224
+        ],
+        "ribbon": [
+          584,
+          528,
+          111,
+          224
+        ]
+      },
+      "weaponGrip": 0.84,
+      "basicName": "回春引气",
+      "rageName": "枯木回天",
+      "contentSource": "methods/RKF03.yaml"
+    },
+    "RKF04": {
+      "name": "御火诀",
+      "src": "/assets/rig-rkf04.png",
+      "parts": {
+        "head": [
+          16,
+          23,
+          224,
+          209
+        ],
+        "torso": [
+          272,
+          22,
+          212,
+          211
+        ],
+        "upper": [
+          564,
+          16,
+          151,
+          224
+        ],
+        "forearm": [
+          27,
+          272,
+          202,
+          224
+        ],
+        "skirt": [
+          272,
+          303,
+          224,
+          161
+        ],
+        "weapon": [
+          580,
+          272,
+          120,
+          224
+        ],
+        "legL": [
+          63,
+          528,
+          130,
+          224
+        ],
+        "legR": [
+          318,
+          528,
+          131,
+          224
+        ],
+        "ribbon": [
+          528,
+          538,
+          224,
+          203
+        ]
+      },
+      "weaponGrip": 0.82,
+      "basicName": "引火灼身",
+      "rageName": "炎心爆发",
+      "contentSource": "methods/RKF04.yaml"
+    },
+    "RKF05": {
+      "name": "养剑诀",
+      "src": "/assets/rig-rkf05.png",
+      "parts": {
+        "head": [
+          17,
+          16,
+          221,
+          224
+        ],
+        "torso": [
+          277,
+          16,
+          202,
+          224
+        ],
+        "upper": [
+          544,
+          16,
+          192,
+          224
+        ],
+        "forearm": [
+          22,
+          272,
+          211,
+          224
+        ],
+        "skirt": [
+          272,
+          307,
+          224,
+          154
+        ],
+        "weapon": [
+          613,
+          272,
+          54,
+          224
+        ],
+        "legL": [
+          63,
+          528,
+          129,
+          224
+        ],
+        "legR": [
+          321,
+          528,
+          125,
+          224
+        ],
+        "ribbon": [
+          528,
+          529,
+          224,
+          221
+        ]
+      },
+      "weaponGrip": 0.77,
+      "basicName": "养锋出鞘",
+      "rageName": "断水养锋",
+      "contentSource": "methods/RKF05.yaml"
+    },
+    "EN-A1-L1": {
+      "name": "养锋石卫",
+      "src": "/assets/rig-en-a1-l1.png",
+      "parts": {
+        "head": [
+          38,
+          16,
+          179,
+          224
+        ],
+        "torso": [
+          272,
+          42,
+          224,
+          171
+        ],
+        "upper": [
+          567,
+          16,
+          145,
+          224
+        ],
+        "forearm": [
+          59,
+          272,
+          138,
+          224
+        ],
+        "skirt": [
+          272,
+          296,
+          224,
+          175
+        ],
+        "weapon": [
+          600,
+          272,
+          79,
+          224
+        ],
+        "legL": [
+          41,
+          528,
+          173,
+          224
+        ],
+        "legR": [
+          299,
+          528,
+          169,
+          224
+        ],
+        "ribbon": [
+          528,
+          581,
+          224,
+          117
+        ]
+      },
+      "weaponGrip": 0.9
+    }
+  },
+  "map": {
+    "coast": "/assets/map-coast.png",
+    "stairs": "/assets/map-stairs.png",
+    "forest": "/assets/map-forest.png",
+    "gate": "/assets/map-gate.png",
+    "rest": "/assets/map-rest.png",
+    "shop": "/assets/map-shop.png"
+  },
+  "artifacts": {
+    "RC01": {
+      "src": "/assets/icon-stone.png",
+      "type": "shared",
+      "group": "stone",
+      "name": "青锋石",
+      "rarity": "common",
+      "description": "一块磨出锋面的青石，稳定提高直接攻击的基础力量。",
+      "stats": [
+        [
+          "攻击",
+          "+6"
+        ]
+      ]
+    },
+    "RC24": {
+      "src": "/assets/icon-stone.png",
+      "type": "shared",
+      "group": "stone",
+      "name": "血气石",
+      "rarity": "common",
+      "description": "敌方直接攻击造成伤害时，石中血光随受击闪动，为每一段攻击补充怒气。",
+      "stats": [
+        [
+          "最大气血",
+          "+10"
+        ]
+      ]
+    },
+    "RC02": {
+      "src": "/assets/icon-jade.png",
+      "type": "shared",
+      "group": "jade",
+      "name": "虎纹佩",
+      "rarity": "common",
+      "description": "佩面上的虎纹聚拢劲力，使攻击按比例增长。",
+      "stats": [
+        [
+          "攻击",
+          "+4%"
+        ]
+      ]
+    },
+    "RC05": {
+      "src": "/assets/icon-jade.png",
+      "type": "shared",
+      "group": "jade",
+      "name": "养气玉",
+      "rarity": "common",
+      "description": "温润玉心缓慢养气，直接抬高最大气血。",
+      "stats": [
+        [
+          "最大气血",
+          "+25"
+        ]
+      ]
+    },
+    "RC06": {
+      "src": "/assets/icon-jade.png",
+      "type": "shared",
+      "group": "jade",
+      "name": "长生结",
+      "rarity": "common",
+      "description": "结绳的回环象征生机延续，使最大气血按比例增加。",
+      "stats": [
+        [
+          "最大气血",
+          "+5%"
+        ]
+      ]
+    },
+    "RC09": {
+      "src": "/assets/icon-jade.png",
+      "type": "shared",
+      "group": "jade",
+      "name": "剑穗",
+      "rarity": "common",
+      "description": "剑柄上的短穗随普攻起落，强化普攻的基础直接段。",
+      "stats": [
+        [
+          "攻击",
+          "+2"
+        ]
+      ]
+    },
+    "RC21": {
+      "src": "/assets/icon-jade.png",
+      "type": "shared",
+      "group": "jade",
+      "name": "调息玉",
+      "rarity": "common",
+      "description": "玉面随着呼吸明暗变化，在完整存活的战斗轮末稳定补怒。",
+      "stats": [
+        [
+          "防御",
+          "+2"
+        ]
+      ]
+    },
+    "RR05": {
+      "src": "/assets/icon-jade.png",
+      "type": "shared",
+      "group": "jade",
+      "name": "镇心玉",
+      "rarity": "rare",
+      "description": "每次普攻或怒技完成后，攻击提高4点，最多叠加3层。",
+      "stats": [
+        [
+          "防御",
+          "+8"
+        ]
+      ]
+    },
+    "RR07": {
+      "src": "/assets/icon-jade.png",
+      "type": "shared",
+      "group": "jade",
+      "name": "回元佩",
+      "rarity": "rare",
+      "description": "首个怒技完成后，本场战斗的怒气上限降低15点。",
+      "stats": [
+        [
+          "防御",
+          "+8"
+        ]
+      ]
+    },
+    "RR08": {
+      "src": "/assets/icon-jade.png",
+      "type": "shared",
+      "group": "jade",
+      "name": "血勇佩",
+      "rarity": "rare",
+      "description": "敌方行动造成气血损失时，额外获得10点怒气；每次敌方行动最多触发一次。",
+      "stats": [
+        [
+          "最大气血",
+          "+30"
+        ]
+      ]
+    },
+    "RR12": {
+      "src": "/assets/icon-jade.png",
+      "type": "shared",
+      "group": "jade",
+      "name": "回生佩",
+      "rarity": "rare",
+      "description": "自身普攻或怒技回复气血时，额外获得10点怒气。",
+      "stats": [
+        [
+          "最大气血",
+          "+30"
+        ]
+      ]
+    },
+    "RC03": {
+      "src": "/assets/icon-armor.png",
+      "type": "shared",
+      "group": "armor",
+      "name": "玄铁甲",
+      "rarity": "common",
+      "description": "玄铁片层叠成甲，直接提高承受攻击时的防御。",
+      "stats": [
+        [
+          "防御",
+          "+5"
+        ]
+      ]
+    },
+    "RC04": {
+      "src": "/assets/icon-ring.png",
+      "type": "shared",
+      "group": "ring",
+      "name": "厚土环",
+      "rarity": "common",
+      "description": "环身沉重如土，令已有防御更稳固。",
+      "stats": [
+        [
+          "防御",
+          "+4%"
+        ]
+      ]
+    },
+    "RC13": {
+      "src": "/assets/icon-ring.png",
+      "type": "shared",
+      "group": "ring",
+      "name": "震山环",
+      "rarity": "common",
+      "description": "环身沉稳如山，只放大已经存在的盾返伤害。",
+      "stats": [
+        [
+          "防御",
+          "+2"
+        ]
+      ]
+    },
+    "RC23": {
+      "src": "/assets/icon-ring.png",
+      "type": "shared",
+      "group": "ring",
+      "name": "返气环",
+      "rarity": "common",
+      "description": "怒技完成后，每层固定返还5点怒气。",
+      "stats": [
+        [
+          "防御",
+          "+2"
+        ]
+      ]
+    },
+    "RC07": {
+      "src": "/assets/icon-bead.png",
+      "type": "shared",
+      "group": "bead",
+      "name": "明目珠",
+      "rarity": "common",
+      "description": "珠面清亮，帮助攻击者抓住直接攻击的破绽。",
+      "stats": [
+        [
+          "暴击率",
+          "+2%"
+        ]
+      ]
+    },
+    "RC15": {
+      "src": "/assets/icon-bead.png",
+      "type": "shared",
+      "group": "bead",
+      "name": "赤炎珠",
+      "rarity": "common",
+      "description": "珠内存着赤热火种，强化自身施加的燃烧持续伤害。",
+      "stats": [
+        [
+          "攻击",
+          "+2"
+        ]
+      ]
+    },
+    "RC19": {
+      "src": "/assets/icon-bead.png",
+      "type": "shared",
+      "group": "bead",
+      "name": "凝气珠",
+      "rarity": "common",
+      "description": "珠中气流压缩丹田，换取较低怒气上限与更快的蓄怒门槛。",
+      "stats": [
+        [
+          "攻击",
+          "+2"
+        ]
+      ]
+    },
+    "RR01": {
+      "src": "/assets/icon-bead.png",
+      "type": "shared",
+      "group": "bead",
+      "name": "蓄气珠",
+      "rarity": "rare",
+      "description": "普攻或怒技的首段基础攻击命中后，额外获得10点怒气。",
+      "stats": [
+        [
+          "攻击",
+          "+8"
+        ]
+      ]
+    },
+    "RC08": {
+      "src": "/assets/icon-boots.png",
+      "type": "shared",
+      "group": "boots",
+      "name": "疾风履",
+      "rarity": "common",
+      "description": "鞋底刻着短促风痕，只改变先后顺序，不直接增加伤害。",
+      "stats": [
+        [
+          "速度",
+          "+1"
+        ]
+      ]
+    },
+    "RC10": {
+      "src": "/assets/icon-talisman.png",
+      "type": "shared",
+      "group": "talisman",
+      "name": "雷纹印",
+      "rarity": "common",
+      "description": "印面雷纹在怒技起手时发亮，强化怒技的基础直接段。",
+      "stats": [
+        [
+          "攻击",
+          "+2"
+        ]
+      ]
+    },
+    "RC11": {
+      "src": "/assets/icon-talisman.png",
+      "type": "shared",
+      "group": "talisman",
+      "name": "铁壁符",
+      "rarity": "common",
+      "description": "符面铁线收束护体之力，提高自身获得的护盾总量。",
+      "stats": [
+        [
+          "防御",
+          "+2"
+        ]
+      ]
+    },
+    "RC20": {
+      "src": "/assets/icon-talisman.png",
+      "type": "shared",
+      "group": "talisman",
+      "name": "引气符",
+      "rarity": "common",
+      "description": "每次普攻完成后，符纸额外补回5点怒气。",
+      "stats": [
+        [
+          "攻击",
+          "+2"
+        ]
+      ]
+    },
+    "RC22": {
+      "src": "/assets/icon-talisman.png",
+      "type": "shared",
+      "group": "talisman",
+      "name": "先机符",
+      "rarity": "common",
+      "description": "每层在战斗开始时额外带来15点怒气。",
+      "stats": [
+        [
+          "攻击",
+          "+2"
+        ]
+      ]
+    },
+    "RC12": {
+      "src": "/assets/icon-bottle.png",
+      "type": "shared",
+      "group": "bottle",
+      "name": "回春瓶",
+      "rarity": "common",
+      "description": "瓶中春息回旋，抬高最大气血并放大自身治疗总量。",
+      "stats": [
+        [
+          "最大气血",
+          "+10"
+        ]
+      ]
+    },
+    "RC14": {
+      "src": "/assets/icon-bottle.png",
+      "type": "shared",
+      "group": "bottle",
+      "name": "蛇纹瓶",
+      "rarity": "common",
+      "description": "瓶口蛇纹吐出阴息，强化自身施加的中毒持续伤害。",
+      "stats": [
+        [
+          "攻击",
+          "+2"
+        ]
+      ]
+    },
+    "RC16": {
+      "src": "/assets/icon-pouch.png",
+      "type": "shared",
+      "group": "pouch",
+      "name": "采气袋",
+      "rarity": "common",
+      "description": "小袋收纳沿途灵息，兼顾攻击与行旅中的修为积累。",
+      "stats": [
+        [
+          "攻击",
+          "+2"
+        ]
+      ]
+    },
+    "RC17": {
+      "src": "/assets/icon-pouch.png",
+      "type": "shared",
+      "group": "pouch",
+      "name": "行医囊",
+      "rarity": "common",
+      "description": "行医囊收着便携药材，提升最大气血并在节点结束时补回少量气血。",
+      "stats": [
+        [
+          "最大气血",
+          "+10"
+        ]
+      ]
+    },
+    "RC18": {
+      "src": "/assets/icon-coin.png",
+      "type": "shared",
+      "group": "coin",
+      "name": "聚财钱",
+      "rarity": "common",
+      "description": "钱面刻着聚拢财气的纹路，沿途积攒可实际使用的灵石。",
+      "stats": [
+        [
+          "防御",
+          "+2"
+        ]
+      ]
+    },
+    "RR04": {
+      "src": "/assets/icon-coin.png",
+      "type": "shared",
+      "group": "coin",
+      "name": "如意钱",
+      "rarity": "rare",
+      "description": "普攻首段命中后有25%概率追加一段攻击。",
+      "stats": [
+        [
+          "攻击",
+          "+6"
+        ],
+        [
+          "暴击率",
+          "+2%"
+        ]
+      ]
+    },
+    "RR03": {
+      "src": "/assets/icon-needle.png",
+      "type": "shared",
+      "group": "needle",
+      "name": "毒牙钉",
+      "rarity": "rare",
+      "description": "普攻首次命中后，施加1层中毒。",
+      "stats": [
+        [
+          "攻击",
+          "+8"
+        ]
+      ]
+    },
+    "RR10": {
+      "src": "/assets/icon-needle.png",
+      "type": "shared",
+      "group": "needle",
+      "name": "引雷针",
+      "rarity": "rare",
+      "description": "基础或追加直接攻击暴击后，额外获得5点怒气。",
+      "stats": [
+        [
+          "攻击",
+          "+8"
+        ]
+      ]
+    },
+    "RR13": {
+      "src": "/assets/icon-needle.png",
+      "type": "shared",
+      "group": "needle",
+      "name": "截脉针",
+      "rarity": "rare",
+      "description": "普攻首次命中后，使敌方本轮怒气减少10点。",
+      "stats": [
+        [
+          "攻击",
+          "+8"
+        ]
+      ]
+    },
+    "RR02": {
+      "src": "/assets/artifact-rr11.png",
+      "type": "shared",
+      "name": "甘露盏",
+      "rarity": "rare",
+      "description": "自身治疗回复气血后，按回复量的35%获得护盾。",
+      "stats": [
+        [
+          "最大气血",
+          "+30"
+        ]
+      ]
+    },
+    "RR06": {
+      "src": "/assets/icon-lamp.png",
+      "type": "special",
+      "name": "长明灯",
+      "rarity": "rare",
+      "description": "每完成一次普通战、精英战或首领战节点，恢复最大气血的8%。",
+      "stats": [
+        [
+          "最大气血",
+          "+30"
+        ]
+      ]
+    },
+    "RR09": {
+      "src": "/assets/icon-drum.png",
+      "type": "special",
+      "name": "震岳鼓",
+      "rarity": "rare",
+      "description": "护盾成功反击后，每次敌方行动额外带来10点怒气。",
+      "stats": [
+        [
+          "防御",
+          "+8"
+        ]
+      ]
+    },
+    "RR11": {
+      "src": "/assets/artifact-rr11.png",
+      "type": "shared",
+      "name": "余烬盏",
+      "rarity": "rare",
+      "description": "自身施加的中毒或燃烧每轮首次造成气血损失后，额外获得10点怒气。",
+      "stats": [
+        [
+          "最大气血",
+          "+30"
+        ]
+      ]
+    },
+    "RR14": {
+      "src": "/assets/icon-mirror.png",
+      "type": "special",
+      "name": "封元镜",
+      "rarity": "rare",
+      "description": "镜面封住对手入战时的气机，使其在战斗开始时失去怒气。",
+      "stats": [
+        [
+          "防御",
+          "+8"
+        ]
+      ]
+    },
+    "RR15": {
+      "src": "/assets/artifact-rr15.png",
+      "type": "special",
+      "name": "定心佩",
+      "rarity": "rare",
+      "description": "来自其他来源的削怒效果减半。",
+      "stats": [
+        [
+          "最大气血",
+          "+30"
+        ]
+      ]
+    },
+    "RL01": {
+      "src": "/assets/icon-rl01.png",
+      "type": "special",
+      "name": "琉璃法印",
+      "rarity": "legendary",
+      "description": "自身治疗填满气血后，溢出的部分转为护盾；已回复的气血照常保留。",
+      "stats": [
+        [
+          "防御",
+          "+8"
+        ],
+        [
+          "最大气血",
+          "+12%"
+        ]
+      ]
+    },
+    "RL02": {
+      "src": "/assets/icon-rl02.png",
+      "type": "special",
+      "name": "薪火宝炉",
+      "rarity": "legendary",
+      "description": "自身施加的燃烧造成气血损失后，按损失量回复气血；燃烧伤害照常结算。",
+      "stats": [
+        [
+          "攻击",
+          "+12"
+        ],
+        [
+          "防御",
+          "+6"
+        ]
+      ]
+    },
+    "RL03": {
+      "src": "/assets/icon-rl03.png",
+      "type": "special",
+      "name": "裂空宝轮",
+      "rarity": "legendary",
+      "description": "普攻首次命中后，宝轮会接续两段不可暴击的直接攻击。",
+      "stats": [
+        [
+          "攻击",
+          "+12"
+        ],
+        [
+          "暴击率",
+          "+3%"
+        ]
+      ]
+    },
+    "RL04": {
+      "src": "/assets/icon-rl04.png",
+      "type": "special",
+      "name": "启明玉",
+      "rarity": "legendary",
+      "description": "每场战斗开始时，额外获得50点怒气。",
+      "stats": [
+        [
+          "攻击",
+          "+12"
+        ],
+        [
+          "速度",
+          "+1"
+        ]
+      ]
+    },
+    "RL05": {
+      "src": "/assets/icon-rl05.png",
+      "type": "special",
+      "name": "回澜印",
+      "rarity": "legendary",
+      "description": "怒技完成后固定返还50点怒气，留待下一轮使用。",
+      "stats": [
+        [
+          "攻击",
+          "+12"
+        ],
+        [
+          "防御",
+          "+6"
+        ]
+      ]
+    }
+  },
+  "assets": [
+    {
+      "id": "rig-rkf01",
+      "src": "/assets/rig-rkf01.png",
+      "kind": "rig",
+      "dimensions": [
+        768,
+        768
+      ],
+      "sha256": "1aa0c6a59b5e89f5c6e6af3fb382bbdc4fd802fbddca73f545ba9acf6ffc8377",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/rig-vajra.png",
+        "sha256": "0c482913a60ce66791062e19698927b80f6ea9ae3f8067dcb0f568f433e0c9c6",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "rig-rkf02",
+      "src": "/assets/rig-rkf02.png",
+      "kind": "rig",
+      "dimensions": [
+        768,
+        768
+      ],
+      "sha256": "3d3943a966082c45d43afc2855096c088272d8a5e23806cc67eb32e5e524800d",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/rig-origin.png",
+        "sha256": "fe5e1acbb723c806917a3535c8bdb3a87b2d1f71265fde0afbd52faf7d0b528e",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "rig-rkf03",
+      "src": "/assets/rig-rkf03.png",
+      "kind": "rig",
+      "dimensions": [
+        768,
+        768
+      ],
+      "sha256": "abeaeca2e34b4537c8f5ac7861a9226a0b7b9322c690ebfb300cb1e1822d187c",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/rig-healer.png",
+        "sha256": "435eeec058a4e286de178a09e9a0db802e908fdbbb8dc9f8b9fbddacc64e6835",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "rig-rkf04",
+      "src": "/assets/rig-rkf04.png",
+      "kind": "rig",
+      "dimensions": [
+        768,
+        768
+      ],
+      "sha256": "93cca2987c019c05a25eaef60a7986c6fe5f41c52f2e08d9ee51530dd3e30242",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/rig-fire.png",
+        "sha256": "68d24b1559cbbfb8f776aa154ebde990221a2a097234734eeaef864d84dea938",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "rig-rkf05",
+      "src": "/assets/rig-rkf05.png",
+      "kind": "rig",
+      "dimensions": [
+        768,
+        768
+      ],
+      "sha256": "0aeddd4d1eac1d8c7e5701d788f8cefa210ef0fc44f0a3b3904f47b5ebdde6f2",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/rig-sword.png",
+        "sha256": "7d57b1f138a48fade69758c5ab4c60da1e8b71bff4d265b392604fffb7dfdb13",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "icon-boots",
+      "src": "/assets/icon-boots.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "950b27f00db8116326055c7b0005e7b8a8c2076d44337af7a4dfdea83beef138",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/rig-sword.png",
+        "sha256": "7d57b1f138a48fade69758c5ab4c60da1e8b71bff4d265b392604fffb7dfdb13",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "rig-en-a1-l1",
+      "src": "/assets/rig-en-a1-l1.png",
+      "kind": "rig",
+      "dimensions": [
+        768,
+        768
+      ],
+      "sha256": "d12dbb9ca75e95e8348f5f9cf64824ddb179d739ec1670737185178d9bd2a096",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/rig-stone.png",
+        "sha256": "b8cb87e522f1056f579cafd2bb9a442573f3f051ca022a8d117b2df4469bc503",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "map-coast",
+      "src": "/assets/map-coast.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "e02e0ac5f7520551b55c87742bfeee05452b7ea7379b3aca35777c1f1ca2a292",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/map-nodes.png",
+        "sha256": "e316f24c7557f97a90fc2351304c861e580e9c7931fbfc40aeb08086c42ecfcf",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "map-stairs",
+      "src": "/assets/map-stairs.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "04e0fd8e85ad79340ddb1f397939464f20737857c64d9cdced33a928a02e018d",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/map-nodes.png",
+        "sha256": "e316f24c7557f97a90fc2351304c861e580e9c7931fbfc40aeb08086c42ecfcf",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "map-forest",
+      "src": "/assets/map-forest.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "b9e5a8e0b84f61e5dc17bb5b6a7cfefb7c704376aab78a26e9dba21030d8ec9a",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/map-nodes.png",
+        "sha256": "e316f24c7557f97a90fc2351304c861e580e9c7931fbfc40aeb08086c42ecfcf",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "map-gate",
+      "src": "/assets/map-gate.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "8538a9c482b354ddfb3bc06bf5411751b4dea3cef99056526c28a7836091b4b1",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/map-nodes.png",
+        "sha256": "e316f24c7557f97a90fc2351304c861e580e9c7931fbfc40aeb08086c42ecfcf",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "map-rest",
+      "src": "/assets/map-rest.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "e058e4387157e3693acfdfd24e03103424a2228bfee3d9bcf95417f143925fd9",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/map-nodes.png",
+        "sha256": "e316f24c7557f97a90fc2351304c861e580e9c7931fbfc40aeb08086c42ecfcf",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "map-shop",
+      "src": "/assets/map-shop.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "79fd00dae76491be4fc162e39d0049aafa94d21cda8d1e827cf49c6bb1bc27dd",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/map-nodes.png",
+        "sha256": "e316f24c7557f97a90fc2351304c861e580e9c7931fbfc40aeb08086c42ecfcf",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "icon-stone",
+      "src": "/assets/icon-stone.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "13ae14bf24e5cd1af9dacca5d0a5f2be3909e99e3894a895e2f91a1a89fe449b",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/artifact-common.png",
+        "sha256": "b37530f0b1aeebd07efb9f36a2ac87c804ce4bdee9aa7f0af91042432571cd73",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "icon-jade",
+      "src": "/assets/icon-jade.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "d3f10ec8adb3ba00f22a557a33b106553840a6f424b630e2157d04277d1a11ca",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/artifact-common.png",
+        "sha256": "b37530f0b1aeebd07efb9f36a2ac87c804ce4bdee9aa7f0af91042432571cd73",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "icon-talisman",
+      "src": "/assets/icon-talisman.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "557a749f78b6a25ece58585a888c6e0f06cc0c7688cab10d1da36f0ed67134c2",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/artifact-common.png",
+        "sha256": "b37530f0b1aeebd07efb9f36a2ac87c804ce4bdee9aa7f0af91042432571cd73",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "icon-bead",
+      "src": "/assets/icon-bead.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "6c742b972e07e9d2af24cd3bfed9f3e3402e38c4409933ee97d74af7cb764f7e",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/artifact-common.png",
+        "sha256": "b37530f0b1aeebd07efb9f36a2ac87c804ce4bdee9aa7f0af91042432571cd73",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "icon-ring",
+      "src": "/assets/icon-ring.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "c56aedbabb4c9cf21407716d07aa53edae35201395107dfa106060a23c681c8c",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/artifact-common.png",
+        "sha256": "b37530f0b1aeebd07efb9f36a2ac87c804ce4bdee9aa7f0af91042432571cd73",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "icon-bottle",
+      "src": "/assets/icon-bottle.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "20d64a00c29aa658f5a257290b93447b2ea4d2b6fd3d336fde9a5ff18e4c9a39",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/artifact-common.png",
+        "sha256": "b37530f0b1aeebd07efb9f36a2ac87c804ce4bdee9aa7f0af91042432571cd73",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "icon-pouch",
+      "src": "/assets/icon-pouch.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "3b4c30a516e0f2d6455b027790ae3ec92137b6485b649cd54a9d1fb2d048965d",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/artifact-common.png",
+        "sha256": "b37530f0b1aeebd07efb9f36a2ac87c804ce4bdee9aa7f0af91042432571cd73",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "icon-coin",
+      "src": "/assets/icon-coin.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "e9e99f8cadc0b820509c6ea5fc9f46388ddd3e53bdcd42f83e7480e9996826cb",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/artifact-common.png",
+        "sha256": "b37530f0b1aeebd07efb9f36a2ac87c804ce4bdee9aa7f0af91042432571cd73",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "icon-needle",
+      "src": "/assets/icon-needle.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "9ce56eaefe3748226f5217ba2594a890f2e5a85f0885edd42326de6718468017",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/artifact-common.png",
+        "sha256": "b37530f0b1aeebd07efb9f36a2ac87c804ce4bdee9aa7f0af91042432571cd73",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "icon-rl01",
+      "src": "/assets/icon-rl01.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "56e36565ff4ec0e454d1c7a9850a75aeed6917f4cb9d848e699fa814e2bfe4f3",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/artifact-special.png",
+        "sha256": "226992de7b36024c585a843ca2df9eb725e3e2c1c15d46e24167e44127fd0f12",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "icon-rl02",
+      "src": "/assets/icon-rl02.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "74197b1824b6a95b5a48455ceb32944b1514e229e50c9c82382fd3876132a4cb",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/artifact-special.png",
+        "sha256": "226992de7b36024c585a843ca2df9eb725e3e2c1c15d46e24167e44127fd0f12",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "icon-rl03",
+      "src": "/assets/icon-rl03.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "c8872d2b69c050abd8419e9caf65d16174b2eb72daa390ca282e926081f6457d",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/artifact-special.png",
+        "sha256": "226992de7b36024c585a843ca2df9eb725e3e2c1c15d46e24167e44127fd0f12",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "icon-rl04",
+      "src": "/assets/icon-rl04.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "1ac8bec6cb1dcde9583c1f5341c8c7dcc9fb818ba81baa47a23c405d4cab590b",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/artifact-special.png",
+        "sha256": "226992de7b36024c585a843ca2df9eb725e3e2c1c15d46e24167e44127fd0f12",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "icon-rl05",
+      "src": "/assets/icon-rl05.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "b20214570124bdd2c12efe70e677ab3dcdf3cab5165bb01404de7124706f21f6",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/artifact-special.png",
+        "sha256": "226992de7b36024c585a843ca2df9eb725e3e2c1c15d46e24167e44127fd0f12",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "icon-drum",
+      "src": "/assets/icon-drum.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "74ff03bd4dc99099d49ea2cd448e607a9948148a461c1f0d4f324a679bbf4f4f",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/artifact-special.png",
+        "sha256": "226992de7b36024c585a843ca2df9eb725e3e2c1c15d46e24167e44127fd0f12",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "icon-mirror",
+      "src": "/assets/icon-mirror.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "6c03e7864b1bbc1858ba55dd0891dda3571b14a9c3fba8ff245b25d774100528",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/artifact-special.png",
+        "sha256": "226992de7b36024c585a843ca2df9eb725e3e2c1c15d46e24167e44127fd0f12",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "icon-lamp",
+      "src": "/assets/icon-lamp.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "3733dff7102b17e3b81d8e0b5395d9202baa41e18595e2ebcdd6aa418516ca1a",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/artifact-special.png",
+        "sha256": "226992de7b36024c585a843ca2df9eb725e3e2c1c15d46e24167e44127fd0f12",
+        "origin": "imagegen"
+      }
+    },
+    {
+      "id": "icon-armor",
+      "src": "/assets/icon-armor.png",
+      "kind": "icon",
+      "dimensions": [
+        192,
+        192
+      ],
+      "sha256": "453717a2eebed36f4eeb3a8f07e145c315ad8480ab94851ed1d0e94189f520f7",
+      "source": {
+        "path": "output/imagegen-cartoon-expansion/artifact-special.png",
+        "sha256": "226992de7b36024c585a843ca2df9eb725e3e2c1c15d46e24167e44127fd0f12",
+        "origin": "imagegen"
+      }
+    }
+  ]
+}

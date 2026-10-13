@@ -62,7 +62,7 @@ try {
     const response = await page.goto(`${origin}/?screen=${screen}&capture=1`);
     assert.equal(response.status(), 200, `${screen}: sample page response`);
     await page.waitForFunction(() =>
-      document.querySelector('#preview-app')?.dataset.assetsReady === 'true',
+      document.querySelector('#preview-app')?.dataset.libraryReady === 'true',
     );
 
     const rendered = await page.evaluate(screenName => {

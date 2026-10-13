@@ -16,6 +16,7 @@
         <div class="toolbar-row">
           <h1>随时修仙</h1>
           <p id="asset-status" role="status" aria-live="polite">待装入正式素材</p>
+          <button class="catalog-button" type="button" data-open-dialog="library" aria-label="法宝图鉴" title="法宝图鉴" disabled>宝</button>
           <button id="capture-preview" type="button" title="截图预览" aria-label="截图预览" disabled>截</button>
         </div>
         <nav class="view-switcher" aria-label="预览画面">
@@ -62,6 +63,7 @@
             </header>
             <div class="start-figure" aria-hidden="true">
               <img data-asset-target="player" alt="" hidden>
+              <canvas class="start-rig"></canvas>
             </div>
             <section class="start-controls" aria-label="启程设置">
               <fieldset class="method-field">
@@ -91,17 +93,19 @@
             <h2 class="map-title">古道</h2>
             <div class="map-graph" aria-label="山海行路节点">
               <canvas class="route-lines" aria-hidden="true"></canvas>
-              <span class="map-node future-node future-left" aria-label="后续节点">林隘</span>
-              <span class="map-node future-node future-right" aria-label="后续节点">山门</span>
+              <span class="map-node future-node future-left" aria-label="后续节点，林隘"><img data-map-art="forest" alt="" hidden><span class="node-label">林隘</span></span>
+              <span class="map-node future-node future-right" aria-label="后续节点，山门"><img data-map-art="gate" alt="" hidden><span class="node-label">山门</span></span>
               <button class="map-node route-node route-left" type="button" data-map-node="coast" aria-label="沿潮路，预览养锋石卫">
+                <img data-map-art="coast" alt="" hidden>
                 <span class="node-mark" aria-hidden="true">战</span>
                 <span class="node-label">沿潮路</span>
               </button>
               <button class="map-node route-node route-right" type="button" data-map-node="stone" aria-label="绕石阶，预览养锋石卫">
+                <img data-map-art="stairs" alt="" hidden>
                 <span class="node-mark" aria-hidden="true">战</span>
                 <span class="node-label">绕石阶</span>
               </button>
-              <span class="map-node current-node" aria-label="当前所在">此处</span>
+              <span class="map-node current-node" aria-label="当前所在"><img data-map-art="rest" alt="" hidden><span class="node-label">此处</span></span>
             </div>
           </section>
 
@@ -111,6 +115,7 @@
             <div class="battle-actors" aria-hidden="true">
               <img class="player-art" data-asset-target="player" alt="" hidden>
               <img class="enemy-art" data-asset-target="enemy" alt="" hidden>
+              <canvas class="combat-rig"></canvas>
             </div>
             <div class="battle-readouts">
               <section class="unit-status player-status" aria-label="方寄云战斗状态">
@@ -210,12 +215,14 @@
         <h2 id="dialog-title"></h2>
         <p id="dialog-copy"></p>
         <dl id="dialog-stats" class="dialog-stats"></dl>
+        <div id="artifact-catalog" hidden></div>
         <form id="profile-settings" class="profile-settings" hidden>
           <label>道号<input name="dao-name" value="方寄云" maxlength="12" autocomplete="nickname"></label>
           <label>命数（种子）<input name="seed" type="text" value="山海初行" maxlength="32" autocomplete="off" spellcheck="false"></label>
           <button type="submit" class="primary-action">保存</button>
         </form>
         <div class="dialog-actions">
+          <button type="button" data-dialog-action="back-catalog" aria-label="返回图鉴" title="返回图鉴" hidden>↶</button>
           <button type="button" data-dialog-action="cancel-node" hidden>暂不前往</button>
           <button type="button" data-dialog-action="confirm-node" class="primary-action" hidden>确认前往</button>
         </div>
