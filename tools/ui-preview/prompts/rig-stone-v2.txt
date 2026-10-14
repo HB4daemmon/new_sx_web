@@ -1,0 +1,23 @@
+Use case: identity-preserve
+Asset type: production layered character artwork for DragonBones cutout animation.
+Input image 1: identity and painting-style reference, not a layout reference. Preserve this original ancient Chinese stone guardian's stern kindly carved face, pale gray stone armor, small moss patches, jade chest inlay, broad stone feet and stone sword.
+Primary request: redraw the character as exactly TWELVE separate animation-ready painted parts on a genuinely transparent 1536x1024 canvas. A component sheet, not an exploded engineering diagram. All parts share a three-quarter side view facing screen RIGHT; runtime will mirror the entire character to face its opponent.
+Composition: invisible FOUR columns by THREE rows. Center each part in its own cell with generous empty transparent margins; no crossing cell boundaries. No text, labels, grid or assembled figure.
+Row 1, left to right:
+1. One chunky stone head with a short hidden neck extension, restrained moss eyebrows and readable carved face. No body.
+2. Complete stone chest armor down to the waist belt, jade inlay at chest. Solid stone shoulders, NO visible open shoulder sockets. No head, arms, legs or hanging waist plates.
+3. Rear upper arm: one complete distant upper-arm stone plate from shoulder to elbow. Rounded stone coverage over the hidden shoulder connection, but NO circular cut face or hollow socket. Slightly narrower than front arm.
+4. Rear forearm and a relaxed closed stone fist, elbow-to-knuckles. Separately drawn for the distant arm, NOT a mirrored front forearm.
+Row 2, left to right:
+5. Front upper arm: one chunky upper-arm stone plate from shoulder to elbow, hanging nearly vertically. Stone exterior surface wraps around the joint overlap; no flat sliced end.
+6. Front forearm only: elbow-to-wrist stone armor with short hidden wrist extension, NO hand. Nearly vertical and slightly bent.
+7. Front gripping stone hand only: a small convincing clenched hand FIRMLY CLASPING an omitted vertical sword handle. Fingers and thumb overlap the invisible narrow handle, wrist enters from LEFT. Not an open palm, no exaggerated black hole. No sleeve, arm or weapon.
+8. Lower waist armor plates: broad overlapping gray stone panels from hidden waist overlap to above the knees, no belt, legs or torso.
+Row 3, left to right:
+9. Entire rear stone leg and foot, hip-to-foot, compact naturally bent combat stance. Keep the knee armor integrated, not a circular mechanical cap.
+10. Entire front stone leg and foot, hip-to-foot, compact naturally bent combat stance. Different drawing from rear leg.
+11. Complete broad stone sword: blade vertically UP, carved jade groove, small crossguard and short dark handle at bottom. No hand or extra detached fragments.
+12. One small CONNECTED moss-and-vine waist ornament. No rock platform, shadows or loose debris.
+Style: compact expressive hand-drawn cartoon matching the reference; confident dark ink exterior outline, restrained flat stone shading, simplified jade and moss accents, no photorealism or 3D.
+Critical animation constraints: overlapping connection extensions must be painted solid stone or cloth matching neighboring surfaces. No black seam across hidden shoulder/elbow ends; no dark socket, no exposed circular end face, no hollow tube, no ball joint, no assembly peg. Fill surfaces normally hidden under neighboring armor so rotations expose natural stone coverage instead of disconnected cut ends. Keep hand, weapon and front forearm separate. Avoid tiny decorative fragments.
+Avoid: assembled body, extra parts, duplicate heads, open fingers, dislocated limbs, doll sockets, circular mechanical joints, shadows, glow, effects, background, painted checkerboard, panels, captions, text and watermark.

@@ -35,7 +35,9 @@ try {
     document.body.append(canvas);
     Object.defineProperty(window, 'devicePixelRatio', { configurable: true, value: 2 });
     const rig = await BattleRig.create(canvas, library, images);
-    const report = { samples: 0, maxError: 0, rows: [], sheets: [] };
+    const report = { samples: 0, maxError: 0, jointPixels: 0, minJointAlpha: 255, rows: [], sheets: [] };
+    const pixels = document.createElement('canvas');
+    const pixelContext = pixels.getContext('2d', { willReadFrequently: true });
     const actions = ['idle', 'attack', 'rage', 'artifact', 'heal', 'hit', 'guard'];
     const phaseActions = actions.filter(action => action !== 'idle');
     const phaseFractions = [.22, .44, .55, .70, .85];
@@ -101,24 +103,51 @@ try {
           }
           rig.factory.dragonBones.advanceTime(0);
           rig.draw();
-          for (const state of Object.values(rig.snapshot())) {
+          pixels.width = canvas.width; pixels.height = canvas.height;
+          pixelContext.drawImage(canvas, 0, 0);
+          const rgba = pixelContext.getImageData(0, 0, pixels.width, pixels.height).data;
+          for (const [characterSide, state] of Object.entries(rig.snapshot())) {
             const definition = skeleton.armature.find(item => item.name === state.id);
             const bind = bindings[state.id], bones = state.bones;
+            const matrix = rig.armatures.get(characterSide).display.localTransform;
+            for (const joint of ['frontArm', 'backArm', 'frontHand', 'backHand', 'grip']) {
+              const bone = bones[joint], resolution = rig.renderer.resolution;
+              const x = Math.round((matrix.a * bone.x + matrix.c * bone.y + matrix.tx) * resolution);
+              const y = Math.round((matrix.b * bone.x + matrix.d * bone.y + matrix.ty) * resolution);
+              let alpha = 0;
+              for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+                const px = x + dx, py = y + dy;
+                if (px >= 0 && py >= 0 && px < pixels.width && py < pixels.height) {
+                  alpha = Math.max(alpha, rgba[(py * pixels.width + px) * 4 + 3]);
+                }
+              }
+              if (alpha < 128) throw new Error(
+                `${state.id} ${action} ${fraction}: ${joint} has an uncovered rendered joint (${alpha})`);
+              report.minJointAlpha = Math.min(report.minJointAlpha, alpha);
+              report.jointPixels++;
+            }
             report.maxError = Math.max(report.maxError,
               distance(project(state.slots.body, bind.neck), bones.head));
             for (const side of ['front', 'back']) {
               const upper = bones[`${side}Arm`], hand = bones[`${side}Hand`];
               const end = { x: upper.x + upper.a * upper.length, y: upper.y + upper.b * upper.length };
               const upperSprite = state.slots[`${side}Arm`], handSprite = state.slots[`${side}Hand`];
+              const upperPoints = bind.layered ? bind.upper[side] : bind.upper;
+              const forearmPoints = bind.layered ? bind.forearm[side] : bind.forearm;
               report.maxError = Math.max(report.maxError,
                 distance(end, hand),
-                distance(project(upperSprite, bind.upper[0]), upper),
-                distance(project(upperSprite, bind.upper[1]), hand),
-                distance(project(handSprite, bind.forearm[0]), hand),
-                distance(project(handSprite, bind.forearm[1]),
-                  side === 'front' ? bones.grip : {
+                distance(project(upperSprite, upperPoints[0]), upper),
+                distance(project(upperSprite, upperPoints[1]), hand),
+                distance(project(handSprite, forearmPoints[0]), hand),
+                distance(project(handSprite, forearmPoints[1]),
+                  side === 'front' ? (bind.layered ? bones.wrist : bones.grip) : {
                     x: hand.x + hand.a * hand.length, y: hand.y + hand.b * hand.length,
                   }));
+            }
+            if (bind.layered) {
+              report.maxError = Math.max(report.maxError,
+                distance(project(state.slots.palm, bind.hand[0]), bones.wrist),
+                distance(project(state.slots.palm, bind.hand[1]), bones.grip));
             }
             const weaponPivot = definition.skin[0].slot.find(slot => slot.name === 'weapon').display[0].pivot;
             report.maxError = Math.max(report.maxError,
@@ -197,6 +226,8 @@ try {
     return report;
   }, { library, skeleton, bindings, durations });
   assert.equal(results.samples, 756);
+  assert.equal(results.jointPixels, 3780);
+  assert.ok(results.minJointAlpha >= 128, 'rendered shoulders, elbows and grips have no transparent gaps');
   assert.ok(results.maxError < .001, `actual sprite joints mismatch by ${results.maxError}px`);
   for (const id of results.rows) {
     await page.locator(`[data-review-row="${id}"]`).screenshot({
@@ -211,6 +242,7 @@ try {
     await target.evaluate(element => element.remove());
   }
   console.log(`DragonBones: ${results.samples} actual pose samples, sprite-to-joint error ${results.maxError.toFixed(6)}px`);
+  console.log(`DragonBones: ${results.jointPixels} rendered joint coverage checks, minimum alpha ${results.minJointAlpha}`);
   console.log(`DragonBones: ${results.sheets.length} phase contact sheets at ${captures.pathname}`);
   await page.close();
 } finally {

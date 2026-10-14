@@ -1,0 +1,23 @@
+Use case: identity-preserve
+Asset type: production layered character artwork for DragonBones cutout animation.
+Input image 1: identity and painting-style reference, not a layout reference. Preserve this original young Chinese sword cultivator's face, black topknot, sage green and ivory robe, red waist sash, cloth boots and straight sword.
+Primary request: redraw the character as exactly TWELVE separate animation-ready painted parts on a genuinely transparent 1536x1024 canvas. This is a component sheet, not an exploded engineering diagram. Use a quiet three-quarter side view facing screen RIGHT, with consistent perspective, line weight and scale relationships.
+Composition: invisible FOUR columns by THREE rows. Each part is centered within its own cell with generous empty transparent margins. No part may cross a cell boundary. No text, labels, grid or assembled figure.
+Row 1, left to right:
+1. Head including topknot, face and a short neck extension. Calm focused expression. No collar or torso.
+2. Complete sleeveless torso from collar to red waist sash. Shoulder connections and lower waist are solid continuous painted cloth, NOT open sockets. No arms, legs or hanging skirt.
+3. Rear upper arm: narrow sage-green and ivory upper sleeve from hidden shoulder overlap to elbow, relaxed downward. This is the distant arm, independently drawn, NOT a mirrored copy.
+4. Rear forearm with a small relaxed CLOSED hand: ivory lower sleeve from elbow to wrist, then loosely curled fingers. No spread palm. Independently drawn for the distant arm.
+Row 2, left to right:
+5. Front upper arm: ivory sleeve from shoulder to elbow, hanging nearly vertically, slight outward angle. Broad enough to cover the shoulder. Natural supple cloth silhouette rather than a cylinder.
+6. Front forearm only: ivory sleeve from elbow to cuff, ending at a short wrist extension; NO hand. Nearly vertical, a slight bend, clean complete cuff.
+7. Front gripping hand only: small natural flesh-colored hand with curled fingers and thumb, as if FIRMLY CLASPING one vertical sword handle. The handle is omitted for runtime compositing. A narrow central handle passage is hidden behind the fingers and thumb, NOT an open palm or an obvious donut hole. A short wrist enters from the LEFT, curled fingers lie over the handle. No weapon or sleeve.
+8. Lower robe skirt from waist overlap to above the knees, sage-green and ivory overlapping cloth panels. No waist sash, legs or body.
+Row 3, left to right:
+9. Entire rear leg and cloth boot, hip-to-foot, natural bent-knee combat stance and three-quarter view. No mechanical kneecap.
+10. Entire front leg and cloth boot, hip-to-foot, natural bent-knee combat stance. Different drawing from rear leg, NOT mirrored.
+11. One complete straight Chinese sword, blade vertically UP, hilt near bottom, simple bronze guard and short dark handle. No hand, tassel or extra disconnected object.
+12. One small connected red sash-tail accessory, two soft cloth ends joined at a knot. No additional objects.
+Style: match reference's compact friendly cartoon proportions, confident dark ink silhouette, restrained flat painted shading, broad readable shapes. Not realistic or pixel art. Do not add ornate embroidery.
+Critical animation constraints: limb connection ends are hidden overlap extensions, filled with the SAME cloth color as the connected limb. There must be NO black line across a shoulder/elbow cut, NO flat circular end face, NO visible socket, NO dark hole, NO metal or ball joint, NO rim around a connection. The end of each sleeve has generous rounded CLOTH coverage, not a drawn circular cap. Fill in artwork normally hidden behind neighboring parts, so rotating a part reveals more natural cloth rather than empty space. Keep front and rear parts anatomically distinct. Hand, weapon and forearm MUST remain separate parts.
+Avoid: assembled body, extra parts, duplicate heads, open fingers, severed-looking joints, mechanical doll anatomy, shadows, glow, motion effects, backgrounds, checkerboard painting, panels, captions, text and watermark.

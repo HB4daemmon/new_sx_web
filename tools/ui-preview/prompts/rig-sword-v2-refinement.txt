@@ -1,0 +1,7 @@
+Use case: precise-object-edit
+Edit target: this twelve-part 4-column by 3-row sword cultivator component sheet.
+Keep the exact layout, all twelve part locations, face, costume, colors, perspective, dimensions, individual parts and transparent background unchanged.
+Change ONLY the shoulder connections on the torso (row 1 column 2) and the connection ends of the two upper sleeves (row 1 column 3 and row 2 column 1).
+The torso's left shoulder currently has a white oval circular sliced end. Remove that oval and its entire black boundary line. Paint this area as a smooth continuous sage-green cloth shoulder surface with NO circular feature or hole. Extend the shoulder cloth outward underneath the future separate sleeve. The neck opening and waist sash remain unchanged.
+The upper sleeves must have soft painted cloth overlap ends at the hidden shoulder and elbow connections. Remove any drawn cut-end arc, oval face, shoulder socket, hollow tube and black line across a connection. Do NOT change the legitimate front-forearm cuff openings or their ink contours.
+No dark halo or shadow around any part. Use genuinely transparent alpha between parts, with clean painted silhouettes and no new objects, text, labels or grid. Do not assemble the character or change the part count.

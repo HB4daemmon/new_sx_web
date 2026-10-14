@@ -57,8 +57,8 @@ Prompts: `prompts/cartoon-expansion.jsonl`. Ignored originals:
 
 | Family | Exports | Use |
 | --- | ---: | --- |
-| `rig-rkf01.png` through `rig-rkf05.png` | 5 at 768x768 | Guardian, fighter, healer, fire mage, swordsman |
-| `rig-en-a1-l1.png` | 1 at 768x768 | Stone guardian with its own shape and stone sword |
+| `rig-rkf01.png` through `rig-rkf04.png` | 4 at 768x768 | Guardian, fighter, healer, fire mage |
+| `rig-rkf05.png`, `rig-en-a1-l1.png` | 2 at 1024x768 | Rebuilt swordsman and stone guardian, twelve independent parts |
 | `map-{coast,stairs,forest,gate,rest,shop}.png` | 6 at 192x192 | Small map illustrations |
 | `icon-*.png` | 19 at 192x192 | Shared vessel/item forms and special artifact silhouettes |
 
@@ -70,6 +70,13 @@ swordsman's leg art. Native alpha and Lanczos edges are preserved.
 `scripts/enrich-art-library.mjs` reads only the explicit `content/shanhai/manifest.yaml` entries,
 adding names, attributes and descriptions without changing YAML. Source and export hashes,
 part bounds, mapping and provenance are recorded in `public/assets/library.json`.
+
+The rebuilt pair uses ignored originals in `output/imagegen-rig-rebuild/`,
+the prompts in `prompts/rig-{sword,stone}-v2*.txt` and the inspected crop specification
+`prompts/rig-rebuild-spec.json`. `scripts/prepare-rig-assets.py` exports the twelve-part
+`layered-v2` layout, including separate front/rear arms and a fist drawn over the handle.
+It preserves native alpha and records the actual atlas dimensions, regions and hashes.
+The October 14 motion repair reuses these current exports without generating new artwork.
 
 The 44 artifact mappings use shared icons where possible, and dedicated images for all five
 legendary artifacts plus selected distinctive rare items. An art identity is not a gameplay

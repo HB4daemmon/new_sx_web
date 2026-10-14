@@ -1,0 +1,7 @@
+Use case: precise-object-edit
+Edit target: this twelve-part 4-column by 3-row stone guardian component sheet.
+Keep the exact twelve-part layout, all part locations, face, stone texture, moss, costume, colors, perspective and dimensions.
+Change ONLY these two details:
+1. Row 2 column 3 is a clenched stone hand containing a sword handle with gold caps at top and bottom. REMOVE the entire visible handle and both gold caps. Keep the fingers and thumb curved and clenched as if clasping an invisible narrow handle, and keep the wrist entering from the LEFT. The hand must have NO visible object inside it and NO giant open palm or donut hole. Preserve its size, position and stone finger anatomy. The real separate sword in row 3 column 3 must remain untouched.
+2. Remove the visible circular sliced shoulder faces on the torso in row 1 column 2. Replace only those cut faces with continuous matching painted green cloth/stone surfaces underneath the shoulder armor, without any black oval rim, dark socket, hole or assembly peg. Keep the exterior shoulder armor silhouette and chest pattern unchanged.
+Background between every part must be genuinely transparent alpha, with NO haze, glow or drop shadow. Add no objects, text, labels or grid. Do not assemble the character or change the part count.

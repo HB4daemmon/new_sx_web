@@ -276,125 +276,319 @@
       "src": "/assets/rig-rkf05.png",
       "parts": {
         "head": [
-          17,
           16,
-          221,
-          224
+          32,
+          224,
+          191
         ],
         "torso": [
-          277,
+          274,
           16,
-          202,
+          219,
           224
         ],
-        "upper": [
-          544,
+        "backUpper": [
+          554,
           16,
-          192,
+          171,
           224
         ],
-        "forearm": [
-          22,
-          272,
+        "backForearm": [
+          790,
+          16,
           211,
           224
         ],
-        "skirt": [
+        "frontUpper": [
+          45,
           272,
-          307,
-          224,
-          154
-        ],
-        "weapon": [
-          613,
-          272,
-          54,
+          166,
           224
         ],
-        "legL": [
-          63,
+        "frontForearm": [
+          309,
+          272,
+          149,
+          224
+        ],
+        "handGrip": [
           528,
-          129,
+          295,
+          224,
+          177
+        ],
+        "skirt": [
+          784,
+          309,
+          224,
+          149
+        ],
+        "legL": [
+          54,
+          528,
+          147,
           224
         ],
         "legR": [
-          321,
+          312,
           528,
-          125,
+          144,
+          224
+        ],
+        "weapon": [
+          616,
+          528,
+          48,
           224
         ],
         "ribbon": [
-          528,
-          529,
+          784,
+          568,
           224,
-          221
+          143
         ]
       },
       "weaponGrip": 0.77,
       "basicName": "养锋出鞘",
       "rageName": "断水养锋",
-      "contentSource": "methods/RKF05.yaml"
+      "contentSource": "methods/RKF05.yaml",
+      "layout": "layered-v2",
+      "dimensions": [
+        1024,
+        768
+      ],
+      "sourceRegions": {
+        "head": [
+          20,
+          10,
+          415,
+          355
+        ],
+        "torso": [
+          525,
+          45,
+          275,
+          249
+        ],
+        "backUpper": [
+          885,
+          60,
+          240,
+          292
+        ],
+        "backForearm": [
+          1200,
+          94,
+          250,
+          255
+        ],
+        "frontUpper": [
+          78,
+          376,
+          235,
+          290
+        ],
+        "frontForearm": [
+          529,
+          401,
+          189,
+          265
+        ],
+        "handGrip": [
+          849,
+          479,
+          147,
+          118
+        ],
+        "skirt": [
+          1096,
+          371,
+          430,
+          294
+        ],
+        "legL": [
+          83,
+          675,
+          230,
+          313
+        ],
+        "legR": [
+          534,
+          656,
+          215,
+          340
+        ],
+        "weapon": [
+          883,
+          623,
+          109,
+          372
+        ],
+        "ribbon": [
+          1179,
+          748,
+          314,
+          215
+        ]
+      }
     },
     "EN-A1-L1": {
       "name": "养锋石卫",
       "src": "/assets/rig-en-a1-l1.png",
       "parts": {
         "head": [
-          38,
           16,
-          179,
-          224
+          22,
+          224,
+          211
         ],
         "torso": [
           272,
-          42,
+          51,
           224,
-          171
+          153
         ],
-        "upper": [
-          567,
+        "backUpper": [
+          554,
           16,
-          145,
+          171,
           224
         ],
-        "forearm": [
-          59,
-          272,
-          138,
+        "backForearm": [
+          788,
+          16,
+          216,
           224
+        ],
+        "frontUpper": [
+          48,
+          272,
+          160,
+          224
+        ],
+        "frontForearm": [
+          319,
+          272,
+          129,
+          224
+        ],
+        "handGrip": [
+          528,
+          308,
+          224,
+          152
         ],
         "skirt": [
-          272,
-          296,
+          784,
+          303,
           224,
-          175
-        ],
-        "weapon": [
-          600,
-          272,
-          79,
-          224
+          162
         ],
         "legL": [
-          41,
+          24,
           528,
-          173,
+          207,
           224
         ],
         "legR": [
-          299,
+          295,
           528,
-          169,
+          177,
+          224
+        ],
+        "weapon": [
+          603,
+          528,
+          73,
           224
         ],
         "ribbon": [
-          528,
-          581,
+          784,
+          544,
           224,
-          117
+          192
         ]
       },
-      "weaponGrip": 0.9
+      "weaponGrip": 0.9,
+      "layout": "layered-v2",
+      "dimensions": [
+        1024,
+        768
+      ],
+      "sourceRegions": {
+        "head": [
+          72,
+          14,
+          363,
+          351
+        ],
+        "torso": [
+          486,
+          35,
+          380,
+          250
+        ],
+        "backUpper": [
+          894,
+          34,
+          253,
+          306
+        ],
+        "backForearm": [
+          1205,
+          41,
+          279,
+          300
+        ],
+        "frontUpper": [
+          97,
+          362,
+          257,
+          310
+        ],
+        "frontForearm": [
+          485,
+          374,
+          187,
+          300
+        ],
+        "handGrip": [
+          820,
+          439,
+          244,
+          190
+        ],
+        "skirt": [
+          1149,
+          394,
+          350,
+          262
+        ],
+        "legL": [
+          41,
+          672,
+          321,
+          330
+        ],
+        "legR": [
+          507,
+          672,
+          276,
+          330
+        ],
+        "weapon": [
+          878,
+          638,
+          144,
+          373
+        ],
+        "ribbon": [
+          1200,
+          721,
+          280,
+          255
+        ]
+      }
     }
   },
   "map": {
@@ -1102,14 +1296,16 @@
       "src": "/assets/rig-rkf05.png",
       "kind": "rig",
       "dimensions": [
-        768,
+        1024,
         768
       ],
-      "sha256": "0aeddd4d1eac1d8c7e5701d788f8cefa210ef0fc44f0a3b3904f47b5ebdde6f2",
+      "sha256": "4120caed22307fd24546e408a439b16b3450dbd9a0cd40272cc7df17331d09ec",
       "source": {
-        "path": "output/imagegen-cartoon-expansion/rig-sword.png",
-        "sha256": "7d57b1f138a48fade69758c5ab4c60da1e8b71bff4d265b392604fffb7dfdb13",
-        "origin": "imagegen"
+        "path": "output/imagegen-rig-rebuild/rig-sword-refined.png",
+        "sha256": "03969b71622ec8cca7b07960ca5a7e70cae88e7d29501fd01b186e5b86122fbd",
+        "origin": "imagegen",
+        "model": "gpt-image-2.5",
+        "prompt": "prompts/rig-sword-v2-refinement.txt"
       }
     },
     {
@@ -1132,14 +1328,16 @@
       "src": "/assets/rig-en-a1-l1.png",
       "kind": "rig",
       "dimensions": [
-        768,
+        1024,
         768
       ],
-      "sha256": "d12dbb9ca75e95e8348f5f9cf64824ddb179d739ec1670737185178d9bd2a096",
+      "sha256": "28d44694ad8cb686d996af9583ce01c63fad09434d034793c4437897a3d903c8",
       "source": {
-        "path": "output/imagegen-cartoon-expansion/rig-stone.png",
-        "sha256": "b8cb87e522f1056f579cafd2bb9a442573f3f051ca022a8d117b2df4469bc503",
-        "origin": "imagegen"
+        "path": "output/imagegen-rig-rebuild/rig-stone-refined.png",
+        "sha256": "0bc696a1ef58222b6116d5f2606393b66761f7f9afe151bb05d81c27e9637b53",
+        "origin": "imagegen",
+        "model": "gpt-image-2.5",
+        "prompt": "prompts/rig-stone-v2-refinement.txt"
       }
     },
     {

@@ -1,0 +1,41 @@
+{
+  "model": "gpt-image-2.5",
+  "rigs": {
+    "RKF05": {
+      "source": "rig-sword-refined.png",
+      "prompt": "prompts/rig-sword-v2-refinement.txt",
+      "regions": {
+        "head": [20, 10, 415, 355],
+        "torso": [525, 45, 275, 249],
+        "backUpper": [885, 60, 240, 292],
+        "backForearm": [1200, 94, 250, 255],
+        "frontUpper": [78, 376, 235, 290],
+        "frontForearm": [529, 401, 189, 265],
+        "handGrip": [849, 479, 147, 118],
+        "skirt": [1096, 371, 430, 294],
+        "legL": [83, 675, 230, 313],
+        "legR": [534, 656, 215, 340],
+        "weapon": [883, 623, 109, 372],
+        "ribbon": [1179, 748, 314, 215]
+      }
+    },
+    "EN-A1-L1": {
+      "source": "rig-stone-refined.png",
+      "prompt": "prompts/rig-stone-v2-refinement.txt",
+      "regions": {
+        "head": [72, 14, 363, 351],
+        "torso": [486, 35, 380, 250],
+        "backUpper": [894, 34, 253, 306],
+        "backForearm": [1205, 41, 279, 300],
+        "frontUpper": [97, 362, 257, 310],
+        "frontForearm": [485, 374, 187, 300],
+        "handGrip": [820, 439, 244, 190],
+        "skirt": [1149, 394, 350, 262],
+        "legL": [41, 672, 321, 330],
+        "legR": [507, 672, 276, 330],
+        "weapon": [878, 638, 144, 373],
+        "ribbon": [1200, 721, 280, 255]
+      }
+    }
+  }
+}

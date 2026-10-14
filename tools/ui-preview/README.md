@@ -59,6 +59,9 @@ catalog navigation, reduced motion, leaving battle, and texture/WebGL failure fa
 It also samples 756 real skeletal poses, checking actual sprite shoulder/elbow registration
 and palm-to-weapon grips, not just bone-to-bone transforms. Reviewed raster landmarks,
 socket width, draw order and staggered action phases have focused regression tests.
+Another 3,780 checks read rendered shoulder, elbow and grip pixels for transparent gaps.
+Motion regressions cover bent elbows, forward weight transfer, restrained wrist rotation
+and smooth, independently timed recovery.
 
 Browser captures beneath ignored `captures/cartoon-art/` cover 320x568, 320x760, 390x844 and
 1440x900, both toolbar-framed and full-screen phone layouts. Tests do not approve artwork.
@@ -120,6 +123,9 @@ Attack, rage, artifact, heal, hit and guard have distinct clips.
 One transparent WebGL canvas renders both combatants; a separate static canvas previews the method.
 Only the presentation fixture supplies impacts; the renderer performs no damage calculation or RNG.
 The original full-body illustrations and pose swaps remain as a failure fallback.
+The October 14, 2026 repair keeps this skeletal renderer: shoulder and elbow motion now
+drive the stroke, with small wrist follow-through and 60Hz sampled authoring curves.
+It does not introduce frame-by-frame artwork or claim flexible cloth skinning.
 
 ## Open-Source Animation
 

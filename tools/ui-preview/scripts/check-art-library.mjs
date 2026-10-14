@@ -27,12 +27,17 @@ for (const asset of library.assets) {
 }
 for (const [id, rig] of Object.entries(library.rigs)) {
   assert.ok(paths.has(rig.src));
-  assert.equal(Object.keys(rig.parts).length, 9);
+  const layered = ['RKF05', 'EN-A1-L1'].includes(id);
+  assert.equal(rig.layout === 'layered-v2', layered);
+  assert.equal(Object.keys(rig.parts).length, layered ? 12 : 9);
+  const dimensions = rig.dimensions || [768, 768];
+  assert.deepEqual(dimensions, layered ? [1024, 768] : [768, 768]);
   assert.ok(rig.weaponGrip >= .5 && rig.weaponGrip <= 1);
   for (const rect of Object.values(rig.parts)) {
     assert.equal(rect.length, 4);
     const [x, y, width, height] = rect;
-    assert.ok(x >= 0 && y >= 0 && width > 0 && height > 0 && x + width <= 768 && y + height <= 768);
+    assert.ok(x >= 0 && y >= 0 && width > 0 && height > 0 &&
+      x + width <= dimensions[0] && y + height <= dimensions[1]);
   }
   if (id.startsWith('RKF')) {
     const method = parse(await readFile(new URL(`methods/${id}.yaml`, content), 'utf8'));
