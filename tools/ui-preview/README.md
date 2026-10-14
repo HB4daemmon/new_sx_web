@@ -57,7 +57,8 @@ snapshots and reduced motion.
 canvas movement and frozen pixels, timed impacts, six action beats, both opponents,
 catalog navigation, reduced motion, leaving battle, and texture/WebGL failure fallback.
 It also samples 756 real skeletal poses, checking actual sprite shoulder/elbow registration
-and weapon grips, not just bone-to-bone transforms.
+and palm-to-weapon grips, not just bone-to-bone transforms. Reviewed raster landmarks,
+socket width, draw order and staggered action phases have focused regression tests.
 
 Browser captures beneath ignored `captures/cartoon-art/` cover 320x568, 320x760, 390x844 and
 1440x900, both toolbar-framed and full-screen phone layouts. Tests do not approve artwork.

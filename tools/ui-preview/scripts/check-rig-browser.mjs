@@ -95,6 +95,10 @@ try {
     // The first feedback belongs to the impact, not to the start of the windup.
     assert.equal(await page.locator('.enemy-status .health-value').textContent(), '344/450');
     await page.waitForFunction(() => document.querySelector('.battle-feedback').textContent === '普攻 · 合计 92');
+    const stageBounds = await canvas.boundingBox();
+    const feedbackBounds = await page.locator('.battle-feedback').boundingBox();
+    assert.ok(stageBounds.y + stageBounds.height + 6 <= feedbackBounds.y,
+      'action feedback stays below the character canvas, including short phones');
     assert.equal(await page.locator('.enemy-status .health-value').textContent(), '302/450');
     assert.equal(await page.locator('.enemy-status .shield-value').textContent(), '0');
     await page.locator('[data-battle-control="pause"]').click();

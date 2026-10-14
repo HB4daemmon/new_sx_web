@@ -133,7 +133,7 @@
 }
 .rage-meter { height: 10px; }
 .rage-meter span { background: var(--coral); }
-.battle-actors { inset: 35% 12px 18%; }
+.battle-actors { inset: 35% 12px max(18%, 118px); }
 .battle-actors img {
   width: 48%;
   height: 100%;
@@ -277,7 +277,7 @@
   .start-heading h2 { font-size: 32px; }
   .start-figure { top: 102px; bottom: 224px; }
   .start-figure img { width: 150px; max-height: 212px; }
-  .battle-actors { inset: 198px 12px 84px; }
+  .battle-actors { inset: 198px 12px 118px; }
   .battle-actors img { max-width: 140px; max-height: 210px; }
   .artifact-option, .artifact-select { height: 260px; }
   .artifact-select { grid-template-rows: 70px 24px 44px minmax(32px, 1fr); }
@@ -300,7 +300,7 @@
   }
   .battle-heading { top: 14px; }
   .battle-readouts { top: 54px; }
-  .battle-actors { inset: 190px 12px 84px; }
+  .battle-actors { inset: 190px 12px 118px; }
   .battle-actors img { max-height: 180px; }
   .artifact-options { top: 48%; }
 }
