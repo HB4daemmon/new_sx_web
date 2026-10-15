@@ -14,11 +14,13 @@ const STATIC_FILES = new Map([
   ['animation-LICENSE.txt', 'text/plain; charset=utf-8'],
   ['assets/manifest.json', 'application/json; charset=utf-8'],
   ['assets/library.json', 'application/json; charset=utf-8'],
+  ['assets/frames.json', 'application/json; charset=utf-8'],
 ]);
 const ASSET_NAME = /^assets\/(?:scene-(?:battle|start|map)|player(?:-attack|-rage)?|enemy(?:-attack)?|artifact-[a-z0-9-]+|ui-(?:panel|button-primary|button-secondary|meter))\.(?:png|webp)$/;
 const ITEM_SVG_NAME = /^assets\/artifact-rr(?:09|11|15)\.svg$/;
 const PREVIEW_NAME = /^previews\/(?:start|map|battle|choice)\.png$/;
 const LIBRARY_ASSET = /^assets\/(?:rig-(?:rkf0[1-5]|en-a1-l1)|map-(?:coast|stairs|forest|gate|rest|shop)|icon-(?:stone|jade|talisman|bead|ring|bottle|pouch|coin|needle|boots|armor|drum|mirror|lamp|rl0[1-5]))\.png$/;
+const FRAME_ASSET = /^assets\/frames-(?:rkf0[1-5]|en-a1-l1)\.png$/;
 const ROOT_MARKER = `${path.sep}public${path.sep}`;
 
 export function resolvePublicPath(requestTarget, publicRoot = PUBLIC_ROOT) {
@@ -48,6 +50,7 @@ export function resolvePublicPath(requestTarget, publicRoot = PUBLIC_ROOT) {
     !STATIC_FILES.has(normalizedPath) &&
     !ASSET_NAME.test(normalizedPath) &&
     !LIBRARY_ASSET.test(normalizedPath) &&
+    !FRAME_ASSET.test(normalizedPath) &&
     !ITEM_SVG_NAME.test(normalizedPath) &&
     !PREVIEW_NAME.test(normalizedPath)
   ) return null;

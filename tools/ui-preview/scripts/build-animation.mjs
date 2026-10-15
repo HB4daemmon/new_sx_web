@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 
 const result = await build({
-  entryPoints: [new URL('../src/rig.js', import.meta.url).pathname],
+  entryPoints: [new URL('../src/frames.js', import.meta.url).pathname],
   outfile: new URL('../public/rig.js', import.meta.url).pathname,
   bundle: true, format: 'esm', platform: 'browser', target: 'es2022',
   minify: true, legalComments: 'eof',
   write: false, metafile: true,
-  banner: { js: '/*! PixiJS + DragonBones; complete notices: /animation-LICENSE.txt */' },
+  banner: { js: '/*! PixiJS drawn-frame player; complete notices: /animation-LICENSE.txt */' },
 });
 const bundledPackages = new Set();
 for (const output of Object.values(result.metafile.outputs)) {
@@ -40,4 +40,4 @@ for (const [filename, bytes] of files) {
     await writeFile(filename, bytes);
   }
 }
-console.log(`${process.argv.includes('--check') ? 'Verified' : 'Built'} pinned PixiJS + DragonBones runtime and notices`);
+console.log(`${process.argv.includes('--check') ? 'Verified' : 'Built'} pinned PixiJS drawn-frame player and notices`);

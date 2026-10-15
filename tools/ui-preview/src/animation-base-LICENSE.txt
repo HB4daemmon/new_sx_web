@@ -1,7 +1,8 @@
 Third-Party Animation Runtime Licenses
 ======================================
 
-This preview bundles the following third-party animation/rendering software.
+The current drawn-frame player bundles PixiJS. DragonBones notices are retained
+for the previous skeletal sources and the pinned offline parser tests.
 
 PixiJS 8.22.0
 https://github.com/pixijs/pixijs

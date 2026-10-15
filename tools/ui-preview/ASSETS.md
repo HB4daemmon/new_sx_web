@@ -40,14 +40,13 @@ with chunk CRC and scanline-filter checks. Original sources are not included in 
 committed public exports are self-contained. Earlier SVG/WebP files are inactive.
 Screenshot exports are produced only by `capture:previews`.
 
-Action images preserve the character identity through reference edits. They remain
+Legacy fallback action images preserve the character identity through reference edits. They remain
 whole-image poses, not layered animation rigs. Runtime switching is explicitly marked
 `illustrated-poses` only when the DragonBones renderer or rig library is unavailable.
 No Spine runtime or vendor example art is distributed here.
 See [`SPINE.md`](SPINE.md) for the separate feasibility investigation.
-The selected open-source runtime, individual pivots and authored keyframes are described
-in [`ANIMATION.md`](ANIMATION.md). This change reuses existing generated art;
-no new model generation or third-party character art was used.
+The previous skeletal repair reused these generated assets. It is now superseded by the
+full-body frame player described in [`ANIMATION.md`](ANIMATION.md).
 
 ## Map, Methods And Shared Items
 
@@ -84,3 +83,25 @@ uniqueness rule. The browser catalog lets the reviewer inspect all mappings and 
 
 **Overall cartoon style: approved by the user. New assets and animation: pending.**
 Main-session screenshot inspection and automated checks do not replace user acceptance.
+
+## Full-Body Combat Cels, 2026-10-15
+
+Six new atlases, `frames-rkf01.png` through `frames-rkf05.png` and
+`frames-en-a1-l1.png`, replace the layered cutouts in the active renderer.
+Each is 1200x1792, containing twelve fixed 400x448 full-body cels.
+All 72 poses were reference-edited with `gpt-image-2.5` using the imagegen skill CLI.
+They are newly drawn complete characters, not baked skeletal screenshots.
+
+`prompts/combat-flipbook.txt` and `combat-frame-subjects.json` preserve the shared prompt,
+exact identity instructions and references. `combat-stone-spacing.txt` records the
+stone guardian refinement. Ignored originals live in `output/imagegen/combat-frames/`.
+`scripts/prepare-combat-frames.py` extracts connected silhouettes, removes low-alpha haze,
+uses one scale per character and aligns boot anchors. It does not slice through a
+long weapon at a nominal grid boundary or include neighboring characters inside that crop.
+The 400x448 cell includes room below the foot anchor for lowered weapon tips.
+
+`public/assets/frames.json` records original/export hashes, dimensions, source bounds,
+reviewed floor overrides, fixed scales and anchors. Fresh clones use the committed
+exports without original files or generation credentials. Hit and guard share one
+defensive drawing with different playback; this is limited-key-pose animation, not
+an independent drawing for every render tick. New art remains pending visual approval.

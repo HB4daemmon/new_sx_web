@@ -1,4 +1,4 @@
-import { BattleRig, StartRig } from './rig.js';
+import { FrameBattle, FrameStart } from './rig.js';
 
 const requiredAssetIds = [
   'battle-scene',
@@ -548,12 +548,23 @@ async function loadArtLibrary() {
         !['coast', 'stairs', 'forest', 'gate', 'rest'].every(id => paths.includes(library.map[id]))) {
       throw new Error('Incomplete art library');
     }
-    const decoded = await Promise.all(paths.map(async src => [src, await loadImage(src)]));
+    const decoded = await Promise.all(paths.filter(src => !src.startsWith('/assets/rig-'))
+      .map(async src => [src, await loadImage(src)]));
     decoded.forEach(([src, image]) => libraryImages.set(src, image));
     artLibrary = library;
-    battleRig = await BattleRig.create(document.querySelector('.combat-rig'), library, libraryImages,
+    const frameResponse = await fetch('/assets/frames.json', { cache: 'no-store' });
+    if (!frameResponse.ok) throw new Error('Drawn frames unavailable');
+    const frames = await frameResponse.json();
+    const framePaths = Object.values(frames.characters || {}).map(character => character.src);
+    if (framePaths.length !== 6 ||
+        !framePaths.every(src => /^\/assets\/frames-(?:rkf0[1-5]|en-a1-l1)\.png$/.test(src))) {
+      throw new Error('Invalid drawn-frame paths');
+    }
+    const frameImages = await Promise.all(framePaths.map(async src => [src, await loadImage(src)]));
+    frameImages.forEach(([src, image]) => libraryImages.set(src, image));
+    battleRig = await FrameBattle.create(document.querySelector('.combat-rig'), frames, libraryImages,
       fallBackToIllustrations);
-    startRig = await StartRig.create(document.querySelector('.start-rig'), library, libraryImages);
+    startRig = await FrameStart.create(document.querySelector('.start-rig'), frames, libraryImages);
     for (const image of document.querySelectorAll('[data-map-art]')) {
       image.src = library.map[image.dataset.mapArt];
       await image.decode();
@@ -565,7 +576,7 @@ async function loadArtLibrary() {
       await image.decode();
     }
     app.dataset.libraryReady = 'true';
-    app.dataset.animationKind = 'dragonbones';
+    app.dataset.animationKind = 'drawn-frames';
     app.dataset.styleApproval = 'approved';
     assetStatus.textContent = '手绘风格 · 新素材待确认';
     document.querySelector('.catalog-button').disabled = false;

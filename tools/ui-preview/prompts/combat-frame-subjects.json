@@ -1,0 +1,35 @@
+{
+  "model": "gpt-image-2.5",
+  "mode": "edit",
+  "size": "1024x1536",
+  "quality": "high",
+  "background": "transparent",
+  "promptFile": "prompts/combat-flipbook.txt",
+  "subjects": {
+    "RKF01": {
+      "references": ["output/imagegen/characters-v3/sword-master.png", "public/assets/rig-rkf01.png"],
+      "subject": "Golden guardian cultivator matching image 2 identity: young Chinese man, dark topknot, mustard-gold and ivory layered martial robes, cinnabar sash, dark wrist wraps and cloth boots, one short bronze vajra mace. Follow image 1 coherent natural anatomy and linework, but use image 2 costume and face. No sword. All striking poses use the vajra mace."
+    },
+    "RKF02": {
+      "references": ["output/imagegen/characters-v3/sword-master.png", "public/assets/rig-rkf02.png"],
+      "subject": "Blue-robed Chinese martial cultivator matching image 2 identity: dark tied hair, pale blue and ivory martial tunic, deep blue trousers and wraps, modest red waist sash, practical cloth boots. Unarmed, natural closed fists. Follow image 1 coherent natural anatomy and linework, but image 2 costume and face. Replace ALL weapon gestures with a fist or palm strike. No weapon in ANY cell."
+    },
+    "RKF03": {
+      "references": ["output/imagegen/characters-v3/sword-master.png", "public/assets/rig-rkf03.png"],
+      "subject": "Chinese physician cultivator matching image 2 identity: dark topknot, sage-green and ivory healer robes, simple dark belt, cloth boots, wooden herbal staff topped by a small green gourd. Follow image 1 coherent natural anatomy and linework, but image 2 costume and face. No sword. Attacks are staff sweeps; invocation and healing gestures are clearly distinct."
+    },
+    "RKF04": {
+      "references": ["output/imagegen/characters-v3/sword-master.png", "public/assets/rig-rkf04.png"],
+      "subject": "Chinese fire cultivator matching image 2 identity: dark topknot, cinnabar-red and ivory martial robes with muted gold trims, dark trousers, cloth boots, small red feather fan. Follow image 1 coherent natural anatomy and linework, but image 2 costume and face. No sword. Attack and special attack use a feather-fan sweep and forceful forward fan thrust, not a sword."
+    },
+    "RKF05": {
+      "references": ["output/imagegen/characters-v3/sword-master.png"],
+      "subject": "Young Chinese sword cultivator with black topknot, sage-green outer robe, ivory sleeves, red waist sash, dark trousers and cloth boots, one straight Chinese sword. Preserve the reference identity and natural anatomy."
+    },
+    "EN-A1-L1": {
+      "references": ["output/imagegen/characters-v3/stone-master.png"],
+      "subject": "Ancient carved stone guardian, pale gray stone, stern curled stone brow, sparse moss, jade-green chest and waist cloth, red sash, broad stone hands and grounded feet, one broad stone sword. Continuous overlapping armor and sturdy anatomy, not mechanical doll joints.",
+      "refinement": "prompts/combat-stone-spacing.txt"
+    }
+  }
+}

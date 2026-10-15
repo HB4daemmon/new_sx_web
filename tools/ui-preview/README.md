@@ -8,7 +8,7 @@ DOM elements, never painted into the generated artwork.
 This is a visual preview, not the production game. It does not import the game runtime,
 change content, or save a run. The two sample routes converge on `EN-A1-L1` 养锋石卫.
 Combat playback is a looping six-beat layout fixture, not an engine simulation.
-The user approved the overall cartoon direction; the new artwork and skeletal motions
+The user approved the overall cartoon direction; the new artwork and drawn-frame motions
 remain pending visual approval.
 
 ## Run and Verify
@@ -53,15 +53,14 @@ checks decoded pixels, responsive geometry, sprite/control overlap, smooth illus
 rendering, action-pose swaps, shield absorption, merged damage, pause, speed, detail
 snapshots and reduced motion.
 `test:surfaces` checks module references and the controlled text palette.
-`test:rig` checks five distinct rendered method skins, all 31 new raster exports,
+`test:rig` checks five distinct rendered method skins, all 31 library raster exports,
 canvas movement and frozen pixels, timed impacts, six action beats, both opponents,
 catalog navigation, reduced motion, leaving battle, and texture/WebGL failure fallback.
-It also samples 756 real skeletal poses, checking actual sprite shoulder/elbow registration
-and palm-to-weapon grips, not just bone-to-bone transforms. Reviewed raster landmarks,
-socket width, draw order and staggered action phases have focused regression tests.
-Another 3,780 checks read rendered shoulder, elbow and grip pixels for transparent gaps.
-Motion regressions cover bent elbows, forward weight transfer, restrained wrist rotation
-and smooth, independently timed recovery.
+It also decodes all 72 complete character cels, checks distinct pose pixels and transparent
+padding, and samples every action in three real actor-canvas sizes for clipping.
+Contact-frame timing, cancellation, pause and reduced-motion settlement are covered.
+Six fixed-scale attack/rage contact sheets are written to `captures/frames/`.
+Retained DragonBones parser tests describe the previous implementation, not the active player.
 
 Browser captures beneath ignored `captures/cartoon-art/` cover 320x568, 320x760, 390x844 and
 1440x900, both toolbar-framed and full-screen phone layouts. Tests do not approve artwork.
@@ -92,7 +91,7 @@ The editable 命数（种子） is seed text. Route lines use a local canvas, no
 route-generation system.
 
 `public/assets/library.json` augments, rather than replaces, the baseline asset contract.
-It declares six layered atlases (five cultivators and one stone guardian), six map illustrations
+It declares six legacy layered atlases, six map illustrations
 and nineteen icon exports. Shared icons cover all 44 real artifacts; all five legendary items
 have dedicated images. Character parts are extracted from connected silhouettes, not blindly
 cut at grid boundaries. `npm run prepare:expansion` needs the ignored generated originals and
@@ -116,23 +115,25 @@ restores idle artwork. Reduced motion removes character movement and bar transit
 one pending impact; if paused, it is committed only on resume. Method appearance is also retained
 in the preview's query string. No run state is persisted.
 
-`public/rig.js` is a compiled, pinned DragonBones + PixiJS runtime, not the rejected custom
-Canvas2D skeleton. Each character has individual anatomical pivots in `src/rig-data.js`;
-DragonBones owns skeletal transforms and authored animation timelines.
-Attack, rage, artifact, heal, hit and guard have distinct clips.
+`public/rig.js` now compiles the pinned PixiJS full-body frame player from `src/frames.js`.
+`public/assets/frames.json` declares six 12-cel atlases generated with `gpt-image-2.5`.
+These are independently drawn complete poses, not screenshots baked from the old skeleton.
+Attack, rage, artifact, heal, hit and guard have distinct playback sequences; hit and guard
+share the defensive cel but differ in timing and recoil.
 One transparent WebGL canvas renders both combatants; a separate static canvas previews the method.
 Only the presentation fixture supplies impacts; the renderer performs no damage calculation or RNG.
 The original full-body illustrations and pose swaps remain as a failure fallback.
-The October 14, 2026 repair keeps this skeletal renderer: shoulder and elbow motion now
-drive the stroke, with small wrist follow-through and 60Hz sampled authoring curves.
-It does not introduce frame-by-frame artwork or claim flexible cloth skinning.
+Each character uses one fixed cel size, scale and boot anchor across actions.
+Lowered weapon tips retain space below the feet. No limb stitching or flexible mesh is used.
+`npm run prepare:frames` exports the ignored originals without calling a model.
+Fresh clones render and test committed PNGs without credentials or original source files.
 
 ## Open-Source Animation
 
-The current animation is explicitly `dragonbones`, not Spine. See [`ANIMATION.md`](ANIMATION.md)
-for binding, authoring sources, clock ownership, license notices and test boundaries.
-Both the core and community Pixi adapter use MIT licenses. This is rigid cutout skeletal
-animation, not flexible mesh skinning or an animator's editor project.
+The current animation is explicitly `drawn-frames`, not DragonBones or Spine.
+See [`ANIMATION.md`](ANIMATION.md) for authoring sources, clock ownership and test boundaries.
+The active player uses MIT-licensed PixiJS. Previous skeletal sources and their MIT notices
+are retained for reference and offline parser tests, but are not bundled into the active player.
 `SPINE.md` retains the prior evaluation; `probe:spine` is optional and unrelated to the selected
 runtime. No Spine runtime or vendor character is distributed.
 

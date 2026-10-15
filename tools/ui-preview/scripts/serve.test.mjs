@@ -25,6 +25,10 @@ test('static path resolver only admits public UI, manifest, and license files', 
   assert.match(resolvePublicPath('/rig.js'), /\/public\/rig\.js$/);
   assert.match(resolvePublicPath('/animation-LICENSE.txt'), /\/public\/animation-LICENSE\.txt$/);
   assert.match(resolvePublicPath('/assets/library.json'), /\/public\/assets\/library\.json$/);
+  assert.match(resolvePublicPath('/assets/frames.json'), /\/public\/assets\/frames\.json$/);
+  assert.match(resolvePublicPath('/assets/frames-rkf01.png'), /\/public\/assets\/frames-rkf01\.png$/);
+  assert.equal(resolvePublicPath('/assets/frames-rkf99.png'), null);
+  assert.equal(resolvePublicPath('/output/imagegen/combat-frames/rkf01.png'), null);
   assert.match(resolvePublicPath('/assets/rig-rkf01.png'), /\/public\/assets\/rig-rkf01\.png$/);
   assert.equal(resolvePublicPath('/assets/rig-rkf99.png'), null);
   assert.equal(resolvePublicPath('/assets/icon-unknown.png'), null);
@@ -133,6 +137,9 @@ test('HTTP server serves cartoon modules, poses and retained assets with correct
   for (const [target, contentType] of [
     ['/assets/manifest.json', 'application/json; charset=utf-8'],
     ['/assets/library.json', 'application/json; charset=utf-8'],
+    ['/assets/frames.json', 'application/json; charset=utf-8'],
+    ['/assets/frames-rkf01.png', 'image/png'],
+    ['/assets/frames-en-a1-l1.png', 'image/png'],
     ['/rig.js', 'text/javascript; charset=utf-8'],
     ['/assets/rig-rkf01.png', 'image/png'],
     ['/assets/rig-en-a1-l1.png', 'image/png'],
@@ -170,7 +177,8 @@ test('HTTP server serves cartoon modules, poses and retained assets with correct
     const contentLength = Number(get.headers.get('content-length'));
     assert.equal(body.byteLength, contentLength, `${target}: GET content length`);
     if (target.endsWith('.json')) {
-      assert.ok(Array.isArray(JSON.parse(new TextDecoder().decode(body)).assets));
+      const json = JSON.parse(new TextDecoder().decode(body));
+      assert.ok(target === '/assets/frames.json' ? json.characters : Array.isArray(json.assets));
     } else {
       assert.ok(body.byteLength > 0, `${target}: expected image bytes`);
     }

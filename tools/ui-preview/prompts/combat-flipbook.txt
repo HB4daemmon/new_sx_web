@@ -1,0 +1,20 @@
+Use case: identity-preserve
+Asset type: production full-body cartoon combat sprite sheet, twelve separately drawn animation cels.
+Input image 1: finished full-body character reference for unified anatomy, ink style and natural cloth. Input image 2, when supplied: identity and costume reference only, NOT a disassembled-parts layout to copy.
+Primary request: draw ONE consistent character in twelve full-body animation poses on a transparent sprite sheet. Each cell is a FINISHED ASSEMBLED CHARACTER. All limbs, clothing, face and weapon must be naturally connected. This replaces an awkward cutout puppet.
+Layout: EXACTLY THREE equal columns and FOUR equal rows, read left to right, top to bottom. Canvas 1024 by 1536. Twelve equal invisible cells. Center the character's pelvis at the same horizontal position in every cell, both feet on the same baseline near the lower cell edge. Same camera, head size and body scale throughout; never zoom a pose. Leave 10 percent empty margin in each cell, including around the weapon. No separators, numbers or captions.
+Character: use the subject specification below. Compact but believable cartoon anatomy, about three and a half head heights tall, readable torso and pelvis, solid shoulders, natural elbows, cloth sleeves with continuous folds rather than tubes. Full body in three-quarter view facing RIGHT in every frame. Weapon genuinely clasped, never floating. Simple clean dark ink contour, restrained flat two-shade painting, no glossy rendering.
+Twelve poses in exact order:
+Row 1, column 1: ready stance, knees softly bent, weapon angled upward in front.
+Row 1, column 2: early attack anticipation, torso coils back, weapon pulls toward the rear shoulder.
+Row 1, column 3: late anticipation, weight planted on rear foot, elbow bent, weapon raised behind head.
+Row 2, column 1: decisive forward strike, torso and shoulder drive forward, weapon sweeps toward the target on the right.
+Row 2, column 2: strike follow-through, weapon low toward the right, robe or armor follows momentum.
+Row 2, column 3: balanced recovery, weight settles, weapon returns toward ready stance.
+Row 3, column 1: stronger special attack windup, low crouch, weapon lifted above rear shoulder.
+Row 3, column 2: powerful special attack contact, forward lunge, two-handed overhead-to-forward stroke, weapon points right.
+Row 3, column 3: special follow-through, bent knees, weapon down and forward, cloth settles.
+Row 4, column 1: defensive guard, forearms protect chest, weapon held diagonally across the body, slight recoil.
+Row 4, column 2: artifact invocation, empty rear hand raised with open palm, weapon held safely beside body.
+Row 4, column 3: calm restorative gesture, empty hand near chest, relaxed shoulders, weapon lowered.
+Constraints: the SAME face, hair, costume, colors, weapon and body proportions in all twelve cells. Stable scale and grounded feet. Full head, hands, feet and complete weapon visible in EVERY cell. Truly transparent alpha background. No shadow, ground, scenery, effects, weapon trails, particles, glow, letters, watermark, grid or painted checkerboard. No component sheet, circular joint caps, detached hands, hollow sleeves, extra limbs, weapon duplication, giant baby head, rigid doll anatomy or photorealism.

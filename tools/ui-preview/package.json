@@ -15,7 +15,8 @@
     "capture:previews": "node scripts/capture-previews.mjs",
     "probe:spine": "node scripts/probe-spine.mjs",
     "prepare:expansion": "uv run --with pillow python scripts/prepare-expansion-assets.py && node scripts/enrich-art-library.mjs",
-    "test:rig": "node scripts/check-rig-browser.mjs && node scripts/check-animation-joints.mjs"
+    "prepare:frames": "uv run --with pillow python scripts/prepare-combat-frames.py",
+    "test:rig": "node scripts/check-rig-browser.mjs && node scripts/check-frames-browser.mjs"
   },
   "engines": {
     "node": ">=22"

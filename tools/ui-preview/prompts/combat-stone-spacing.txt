@@ -1,0 +1,5 @@
+Use case: precise-object-edit
+Input image: an existing twelve-cel full-body stone guardian combat sprite sheet, three columns and four rows.
+Keep the same twelve poses, same stone guardian identity, same costume, face, weapon, ink rendering and exact row-major order.
+Change only the spacing and weapon length needed for clean extraction: shrink each complete character uniformly by about 18 percent about its planted feet, center it WITHIN its own equal cell, and shorten the broad stone sword by about 15 percent. Every complete character AND its weapon must fit inside its own invisible cell with a wide clear transparent gap to EVERY neighboring character. In particular the forward-pointing sword in row two column one must not touch the next character. Do not connect any two silhouettes. Do not crop any weapon or body part.
+Exactly twelve finished connected full-body characters, not components. Stable body size in all twelve poses. Truly transparent alpha around every character, no backdrop or shadow. Do not add grid lines, labels, numbers, decoration, effects or text.

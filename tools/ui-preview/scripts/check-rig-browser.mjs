@@ -7,7 +7,7 @@ import { createPreviewServer } from './serve.mjs';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require('/opt/tools/browser-tools/node_modules/playwright');
-const captures = new URL('../captures/rig/', import.meta.url);
+const captures = new URL('../captures/frames/', import.meta.url);
 await mkdir(captures, { recursive: true });
 const server = createPreviewServer();
 server.listen(0, '127.0.0.1');
@@ -75,8 +75,8 @@ try {
     assert.equal(await page.locator('#dialog-stats').innerText(), '地点\n古道\n功法\n养剑诀');
     await page.getByRole('button', { name: '确认前往' }).click();
     const canvas = page.locator('.combat-rig');
-    assert.equal(await page.locator('#preview-app').getAttribute('data-animation-kind'), 'dragonbones');
-    assert.equal(await canvas.getAttribute('data-engine'), 'dragonbones');
+    assert.equal(await page.locator('#preview-app').getAttribute('data-animation-kind'), 'drawn-frames');
+    assert.equal(await canvas.getAttribute('data-engine'), 'drawn-frames');
     assert.equal(await page.locator('.unit-status .meter').count(), 4);
     await page.locator('[data-battle-control="pause"]').click();
     const idle = await pixelBounds(canvas);
@@ -89,8 +89,10 @@ try {
     await page.locator('[data-battle-control="speed"]').click();
     await page.locator('[data-battle-control="pause"]').click();
     const moving = await fingerprint(canvas);
-    await page.waitForTimeout(250);
-    assert.notEqual(await fingerprint(canvas), moving, 'skeletal idle really moves');
+    const movingClock = Number(await canvas.getAttribute('data-clock'));
+    await page.waitForFunction(clock =>
+      Number(document.querySelector('.combat-rig').dataset.clock) > clock + 120, movingClock);
+    assert.notEqual(await fingerprint(canvas), moving, 'drawn-character idle really moves');
     await page.waitForFunction(() => document.querySelector('.combat-rig').dataset.playerAction === 'attack');
     // The first feedback belongs to the impact, not to the start of the windup.
     assert.equal(await page.locator('.enemy-status .health-value').textContent(), '344/450');
@@ -119,7 +121,7 @@ try {
     await page.locator('[data-open-dialog="battle"]').click();
     const modal = await fingerprint(canvas);
     await page.waitForTimeout(800);
-    assert.equal(await fingerprint(canvas), modal, 'modal freezes both rigs');
+    assert.equal(await fingerprint(canvas), modal, 'modal freezes both characters');
     await page.getByRole('button', { name: '关闭详情' }).click();
     await page.waitForFunction(() => document.querySelector('.battle-feedback').textContent === '怒技 · 合计 138');
     assert.equal(await page.locator('.enemy-status .health-value').textContent(), '164/450');
@@ -153,7 +155,7 @@ try {
     await page.screenshot({ path: new URL(`map-collected-${viewport.width}.png`, captures).pathname });
     assert.deepEqual(errors, []);
     await page.close();
-    console.log(`Skeletal actions, method skins, real canvas pixels and timing passed ${viewport.width}x${viewport.height}`);
+    console.log(`Drawn-frame actions, method skins, real canvas pixels and timing passed ${viewport.width}x${viewport.height}`);
   }
 
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
@@ -221,7 +223,7 @@ try {
     const fallbackErrors = [];
     fallback.on('pageerror', error => fallbackErrors.push(error.message));
     if (mode === 'texture') {
-      await fallback.route('**/assets/rig-rkf01.png', route => route.fulfill({ status: 404, body: '' }));
+      await fallback.route('**/assets/frames-rkf01.png', route => route.fulfill({ status: 404, body: '' }));
     } else {
       await fallback.addInitScript(() => {
         const original = HTMLCanvasElement.prototype.getContext;

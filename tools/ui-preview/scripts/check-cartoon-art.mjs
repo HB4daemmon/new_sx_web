@@ -141,7 +141,7 @@ try {
       await page.goto(`${origin}/?screen=battle&capture=1`);
       await page.waitForFunction(() => document.querySelector('#preview-app').dataset.libraryReady === 'true');
       await page.locator('.battle-feedback:not([hidden])').waitFor();
-      assert.equal(await page.locator('#preview-app').getAttribute('data-animation-kind'), 'dragonbones');
+      assert.equal(await page.locator('#preview-app').getAttribute('data-animation-kind'), 'drawn-frames');
       assert.equal(await page.locator('.combat-rig').isVisible(), true);
       await page.screenshot({ path: new URL(`attack-${viewport.width}.png`, output).pathname });
       assert.equal(await page.locator('.battle-feedback').textContent(), '普攻 · 合计 92');
@@ -153,7 +153,7 @@ try {
       await page.waitForTimeout(2600);
       assert.equal(await page.locator('.battle-readouts').innerText(), hp, 'paused playback must not advance');
       assert.equal(await page.locator('.combat-rig').evaluate(canvas => canvas.toDataURL()), pausedPose,
-        'pause freezes the actual skeletal canvas as well as the numbers');
+        'pause freezes the actual drawn-frame canvas as well as the numbers');
       await page.locator('[data-open-dialog="battle"]').click();
       await page.locator('#detail-dialog[open]').waitFor();
       assert.match(await page.locator('#dialog-stats').innerText(), /302\/450/);
@@ -170,7 +170,7 @@ try {
       assert.equal(await page.locator('.battle-readouts').innerText(), modalStats,
         'details freeze playback without requiring manual pause');
       assert.equal(await page.locator('.combat-rig').evaluate(canvas => canvas.toDataURL()), modalPose,
-        'details freeze the skeleton too');
+        'details freeze the character frames too');
       await page.getByRole('button', { name: '关闭详情' }).click();
       await page.waitForFunction(() => document.querySelector('.battle-feedback').textContent === '怒技 · 合计 138');
       await page.screenshot({ path: new URL(`rage-hit-${viewport.width}.png`, output).pathname });
