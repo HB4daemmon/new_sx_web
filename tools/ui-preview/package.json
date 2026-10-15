@@ -16,7 +16,7 @@
     "probe:spine": "node scripts/probe-spine.mjs",
     "prepare:expansion": "uv run --with pillow python scripts/prepare-expansion-assets.py && node scripts/enrich-art-library.mjs",
     "prepare:frames": "uv run --with pillow python scripts/prepare-combat-frames.py",
-    "test:rig": "node scripts/check-rig-browser.mjs && node scripts/check-frames-browser.mjs"
+    "test:rig": "node scripts/check-rig-browser.mjs && node scripts/check-frames-browser.mjs && node scripts/check-battle-effects.mjs"
   },
   "engines": {
     "node": ">=22"

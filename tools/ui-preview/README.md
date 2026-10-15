@@ -59,6 +59,8 @@ catalog navigation, reduced motion, leaving battle, and texture/WebGL failure fa
 It also decodes all 72 complete character cels, checks distinct pose pixels and transparent
 padding, and samples every action in three real actor-canvas sizes for clipping.
 Contact-frame timing, cancellation, pause and reduced-motion settlement are covered.
+The suite also checks normalized method stature in both start and battle canvases,
+wider opponent spacing, and actual rage-effect pixels, side palettes, phases and cleanup.
 Six fixed-scale attack/rage contact sheets are written to `captures/frames/`.
 Retained DragonBones parser tests describe the previous implementation, not the active player.
 
@@ -124,6 +126,12 @@ One transparent WebGL canvas renders both combatants; a separate static canvas p
 Only the presentation fixture supplies impacts; the renderer performs no damage calculation or RNG.
 The original full-body illustrations and pose swaps remain as a failure fallback.
 Each character uses one fixed cel size, scale and boot anchor across actions.
+The manifest's ready-body measurements normalize all six to a 300px reference stature;
+this same per-character correction applies on the start and battle screens, independent
+of weapon length. Wider stances retain rearward recoil and lowered-weapon padding.
+Rage alone adds timed charge marks, a luminous directional stroke and impact sparks:
+jade diamonds for the player, vermilion/gold chevrons for the enemy. Effects share the
+frame clock and pause/reduced-motion lifecycle; no screen flash or camera shake is used.
 Lowered weapon tips retain space below the feet. No limb stitching or flexible mesh is used.
 `npm run prepare:frames` exports the ignored originals without calling a model.
 Fresh clones render and test committed PNGs without credentials or original source files.

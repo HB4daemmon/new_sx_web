@@ -56,13 +56,20 @@ try {
     page.on('pageerror', error => errors.push(error.message));
     await ready(page, 'screen=start&capture=1');
     const portraits = new Set();
+    const portraitHeights = [];
     for (const id of ['RKF01', 'RKF02', 'RKF03', 'RKF04', 'RKF05']) {
       await page.locator(`[data-method="${id}"]`).click();
       await page.waitForFunction(expected => document.querySelector('.start-rig').dataset.skin === expected, id);
       portraits.add(await fingerprint(page.locator('.start-rig')));
+      const portrait = await pixelBounds(page.locator('.start-rig'));
+      portraitHeights.push(Math.max(...portrait.sides.filter(side => side.count > 0)
+        .map(side => side.bottom)) - Math.min(...portrait.sides.filter(side => side.count > 0)
+        .map(side => side.top)) + 1);
       await page.screenshot({ path: new URL(`start-${id}-${viewport.width}.png`, captures).pathname });
     }
     assert.equal(portraits.size, 5, 'method selection changes the actual rendered character');
+    assert.ok(Math.max(...portraitHeights) - Math.min(...portraitHeights) <= 3,
+      `method portraits share a calibrated visible height: ${portraitHeights}`);
     await page.reload();
     await page.waitForFunction(() => document.querySelector('#preview-app').dataset.libraryReady === 'true');
     assert.equal(await page.locator('.start-rig').getAttribute('data-skin'), 'RKF05');

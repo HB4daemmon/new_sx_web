@@ -57,6 +57,16 @@ export const durations = Object.freeze(Object.fromEntries(
     .map(([name, clip]) => [name, clip.duration]),
 ));
 
+export function battleLayout(width, height, footRoom = 28) {
+  // Reserve the widest rearward cel plus recoil while keeping a clear central gap.
+  const scale = Math.min(width / 680, height / 448, 1);
+  return {
+    scale,
+    baseline: height - Math.max(12, (footRoom + 6) * scale),
+    stance: Math.min(width * .25, 185 * scale),
+  };
+}
+
 const actionAliases = Object.freeze({ cast: 'artifact' });
 
 export function clipFor(action) {

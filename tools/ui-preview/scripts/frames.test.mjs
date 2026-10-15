@@ -1,10 +1,23 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  clipFor, clips, FrameTimeline, poseIndex, poseNames, sampleFrame,
+  battleLayout, clipFor, clips, FrameTimeline, poseIndex, poseNames, sampleFrame,
 } from '../src/frames-data.js';
 
 const sequence = action => clipFor(action).frames.map(step => step.frame);
+
+test('battle spacing separates both sides while reserving rearward and foot room', () => {
+  for (const [width, height] of [[320, 260], [390, 397], [520, 448], [1440, 423]]) {
+    const { scale, baseline, stance } = battleLayout(width, height);
+    const oldWidth = width - 24;
+    const oldScale = Math.min(oldWidth / 520, height / 448, 1);
+    const oldStance = Math.min(oldWidth * .2, 126 * oldScale);
+    assert.ok(stance * 2 >= oldStance * 2 * 1.25, 'at least 25% wider boot spacing');
+    assert.ok(width / 2 - stance - 162 * scale > 3, 'calibrated rearward poses and recoil fit');
+    assert.ok(baseline + 28 * scale <= height - 6 * scale, 'lowered weapon tips fit');
+    assert.ok(stance <= 185 * scale, 'wide desktop combat remains centered');
+  }
+});
 
 test('the twelve pose indices and authored action sequences stay aligned', () => {
   assert.equal(poseNames.length, 12);

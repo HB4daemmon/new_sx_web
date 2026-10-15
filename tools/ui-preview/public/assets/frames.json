@@ -4,6 +4,7 @@
     400,
     448
   ],
+  "targetBodyHeight": 300,
   "characters": {
     "RKF01": {
       "src": "/assets/frames-rkf01.png",
@@ -86,6 +87,7 @@
         420
       ],
       "scale": 0.8097731239092496,
+      "bodyHeight": 296,
       "dimensions": [
         1200,
         1792
@@ -399,6 +401,7 @@
         420
       ],
       "scale": 0.8837209302325582,
+      "bodyHeight": 331,
       "dimensions": [
         1200,
         1792
@@ -712,6 +715,7 @@
         420
       ],
       "scale": 0.7864406779661017,
+      "bodyHeight": 291,
       "dimensions": [
         1200,
         1792
@@ -1025,6 +1029,7 @@
         420
       ],
       "scale": 0.85451197053407,
+      "bodyHeight": 300,
       "dimensions": [
         1200,
         1792
@@ -1338,6 +1343,7 @@
         420
       ],
       "scale": 0.8042328042328042,
+      "bodyHeight": 298,
       "dimensions": [
         1200,
         1792
@@ -1651,6 +1657,7 @@
         420
       ],
       "scale": 1.0974729241877257,
+      "bodyHeight": 288,
       "dimensions": [
         1200,
         1792

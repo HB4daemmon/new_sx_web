@@ -13,6 +13,7 @@ SOURCE = ROOT / "output/imagegen/combat-frames"
 OUTPUT = ROOT / "public/assets"
 SIZE = (400, 448)
 ANCHOR = (160, 420)
+TARGET_BODY_HEIGHT = 300
 IDS = ["RKF01", "RKF02", "RKF03", "RKF04", "RKF05", "EN-A1-L1"]
 # Reviewed tips below the boots must not become the character's floor.
 FLOORS = {"RKF05": {11: 1510}, "RKF03": {8: 1118, 11: 1510}}
@@ -112,14 +113,16 @@ def main():
         atlas.save(target, "PNG", optimize=True)
         characters[content_id] = {
             "src": f"/assets/{target.name}", "frames": frames, "anchor": list(ANCHOR),
-            "scale": scale, "dimensions": list(atlas.size), "sha256": digest(target),
+            "scale": scale, "bodyHeight": ANCHOR[1] - metrics[0]["bounds"][1],
+            "dimensions": list(atlas.size), "sha256": digest(target),
             "source": {"path": str(source.relative_to(ROOT)), "sha256": digest(source),
                        "dimensions": list(Image.open(source).size)},
             "cels": metrics,
         }
         print(f"{content_id}: 12 complete cels, fixed scale {scale:.4f}, {target.stat().st_size} bytes")
     manifest = {
-        "schemaVersion": 1, "frameSize": list(SIZE), "characters": characters,
+        "schemaVersion": 1, "frameSize": list(SIZE),
+        "targetBodyHeight": TARGET_BODY_HEIGHT, "characters": characters,
         "approval": "pending",
         "provenance": {
             "model": "gpt-image-2.5", "mode": "reference-edit",

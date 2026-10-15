@@ -3,7 +3,8 @@ import {
 } from 'pixi.js';
 // Pixi's no-eval polyfills retain the preview's strict CSP.
 import 'pixi.js/unsafe-eval';
-import { FrameTimeline, poseNames, sampleFrame } from './frames-data.js';
+import { battleLayout, FrameTimeline, poseNames, sampleFrame } from './frames-data.js';
+import { RageEffect } from './rage-effects.js';
 
 const frameSize = [400, 448];
 const characterIds = ['RKF01', 'RKF02', 'RKF03', 'RKF04', 'RKF05', 'EN-A1-L1'];
@@ -37,6 +38,8 @@ function validateManifest(manifest, images) {
       !Array.isArray(manifest.frameSize) ||
       manifest.frameSize[0] !== frameSize[0] ||
       manifest.frameSize[1] !== frameSize[1] ||
+      !Number.isFinite(manifest.targetBodyHeight) ||
+      manifest.targetBodyHeight < 200 || manifest.targetBodyHeight > 420 ||
       !manifest.characters) {
     throw new Error('Invalid drawn-frame manifest');
   }
@@ -49,7 +52,10 @@ function validateManifest(manifest, images) {
         !Array.isArray(character.anchor) || character.anchor.length !== 2 ||
         !character.anchor.every(Number.isFinite) ||
         character.anchor[0] < 0 || character.anchor[0] > frameSize[0] ||
-        character.anchor[1] < 0 || character.anchor[1] > frameSize[1]) {
+        character.anchor[1] < 0 || character.anchor[1] > frameSize[1] ||
+        !Number.isFinite(character.bodyHeight) ||
+        manifest.targetBodyHeight / character.bodyHeight < .85 ||
+        manifest.targetBodyHeight / character.bodyHeight > 1.1) {
       throw new Error(`Invalid drawn-frame character: ${id}`);
     }
 
@@ -71,6 +77,7 @@ function validateManifest(manifest, images) {
       anchor: character.anchor,
       frames,
       image,
+      displayScale: manifest.targetBodyHeight / character.bodyHeight,
     });
   }
   return result;
@@ -184,9 +191,11 @@ export class FrameStart {
     const width = this.canvas.clientWidth;
     const height = this.canvas.clientHeight;
     if (!width || !height) return;
-    const scale = Math.min(width / frameSize[0], height / frameSize[1], 1);
+    const character = this.characters.get(this.method);
+    const scale = Math.min(width / frameSize[0], height / frameSize[1], 1) *
+      character.displayScale;
     this.renderer.resize(width, height);
-    this.sprite.texture = this.characters.get(this.method).textures[0];
+    this.sprite.texture = character.textures[0];
     this.sprite.scale.set(scale);
     this.sprite.position.set(width / 2, height - 6);
     this.renderer.render(this.stage);
@@ -220,6 +229,9 @@ export class FrameBattle {
     Object.assign(this, { canvas, characters, renderer, images, onFailure });
     this.context = renderer;
     this.stage = new Container();
+    this.actorLayer = new Container();
+    this.effectLayer = new Container();
+    this.stage.addChild(this.actorLayer, this.effectLayer);
     this.actors = new Map();
     this.effects = new Map();
     this.method = 'RKF01';
@@ -253,7 +265,7 @@ export class FrameBattle {
     const previous = this.actors.get(side);
     if (previous?.character.id === id) return;
     if (previous) {
-      this.stage.removeChild(previous.sprite);
+      this.actorLayer.removeChild(previous.sprite);
       destroyDisplay(previous.sprite);
     }
 
@@ -261,7 +273,7 @@ export class FrameBattle {
     this.canvas.dataset[`${side}Action`] = 'idle';
     const sprite = new Sprite(character.textures[0]);
     setAnchor(sprite, character);
-    this.stage.addChild(sprite);
+    this.actorLayer.addChild(sprite);
     this.actors.set(side, { character, sprite });
     this.canvas.dataset[`${side}Skin`] = id;
   }
@@ -339,12 +351,10 @@ export class FrameBattle {
     const width = this.canvas.clientWidth;
     const height = this.canvas.clientHeight;
     if (!width || !height) return;
-    const scale = Math.min(width / 520, height / 448, 1);
     // Lowered weapon tips extend below the boot anchor in a few authored cels.
     const footRoom = Math.max(...[...this.characters.values()]
-      .map(character => frameSize[1] - character.anchor[1]));
-    const baseline = height - Math.max(12, (footRoom + 6) * scale);
-    const stance = Math.min(width * .20, 126 * scale);
+      .map(character => (frameSize[1] - character.anchor[1]) * character.displayScale));
+    const { scale, baseline, stance } = battleLayout(width, height, footRoom);
     this.renderer.resize(width, height);
 
     const snapshot = { engine: 'drawn-frames', clock: Math.round(this.timeline.clock) };
@@ -354,6 +364,7 @@ export class FrameBattle {
       const elapsed = beat ? this.timeline.clock - beat.started :
         (this.timeline.reduced ? 0 : this.timeline.clock);
       const pose = sampleFrame(action, elapsed);
+      const actorScale = scale * actor.character.displayScale;
       const texture = actor.character.textures[pose.index];
       if (actor.sprite.texture !== texture) actor.sprite.texture = texture;
       const direction = side === 'player' ? 1 : -1;
@@ -361,9 +372,8 @@ export class FrameBattle {
       const x = width / 2 + outward * stance +
         outward * pose.offsetX * scale;
       const y = baseline + pose.offsetY * scale;
-      actor.sprite.scale.set(scale * direction * pose.scale, scale * pose.scale);
+      actor.sprite.scale.set(actorScale * direction * pose.scale, actorScale * pose.scale);
       actor.sprite.position.set(x, y);
-      this.updateEffect(side, beat, pose, scale, width, height);
       this.canvas.dataset[`${side}Skin`] = actor.character.id;
       snapshot[side] = {
         id: actor.character.id,
@@ -373,39 +383,58 @@ export class FrameBattle {
         elapsed: Math.max(0, elapsed),
         x,
         y,
+        scale: actorScale,
       };
     }
 
+    for (const side of this.actors.keys()) {
+      snapshot[side].effect = this.updateEffect(side, snapshot, scale, width, height);
+    }
     this.renderer.render(this.stage);
     this.canvas.dataset.clock = String(snapshot.clock);
     this.lastSnapshot = snapshot;
   }
 
-  updateEffect(side, beat, pose, scale, width, height) {
-    const enabled = beat && ['artifact', 'cast', 'heal'].includes(beat.action);
+  removeEffect(side) {
+    const effect = this.effects.get(side);
+    if (!effect) return;
+    this.effectLayer.removeChild(effect.display);
+    if (effect.rage) effect.rage.destroy();
+    else destroyDisplay(effect.display);
+    this.effects.delete(side);
+  }
+
+  updateEffect(side, snapshot, scale, width, height) {
+    const beat = this.timeline.actions.get(side);
+    const enabled = beat && ['rage', 'artifact', 'cast', 'heal'].includes(beat.action);
     let effect = this.effects.get(side);
     if (!enabled) {
-      if (effect) {
-        this.stage.removeChild(effect.display);
-        destroyDisplay(effect.display);
-        this.effects.delete(side);
-      }
-      return;
+      this.removeEffect(side);
+      return null;
     }
     if (effect?.beat !== beat) {
-      if (effect) {
-        this.stage.removeChild(effect.display);
-        destroyDisplay(effect.display);
-      }
-      effect = { beat, display: effectDisplay(this.images, beat.artifactSrc) };
+      this.removeEffect(side);
+      const rage = beat.action === 'rage' ? new RageEffect() : null;
+      effect = { beat, rage, display: rage?.display || effectDisplay(this.images, beat.artifactSrc) };
       this.effects.set(side, effect);
-      this.stage.addChild(effect.display);
+      this.effectLayer.addChild(effect.display);
     }
+    const actor = snapshot[side];
+    if (effect.rage) {
+      const target = snapshot[side === 'player' ? 'enemy' : 'player'];
+      const state = effect.rage.update({
+        side, elapsed: actor.elapsed, x: actor.x, y: actor.y,
+        targetX: target.x, targetY: target.y, scale: actor.scale, width, height,
+      });
+      return { action: 'rage', phase: state.phase, palette: state.palette, motif: state.motif };
+    }
+    const pose = sampleFrame(beat.action, actor.elapsed);
     effect.display.alpha = Math.sin(Math.min(1, pose.progress) * Math.PI);
     effect.display.position.set(
-      width * (side === 'player' ? .40 : .60),
-      height - 160 * scale - pose.progress * 12,
+      actor.x + (side === 'player' ? 1 : -1) * 50 * scale,
+      actor.y - 160 * scale - pose.progress * 12,
     );
+    return { action: beat.action };
   }
 
   snapshot() {
@@ -423,7 +452,7 @@ export class FrameBattle {
     this.canvas.removeEventListener('webglcontextlost', this.onContextLost);
     delete this.canvas.getFrameSnapshot;
     this.timeline.reset();
-    this.effects.clear();
+    for (const side of this.effects.keys()) this.removeEffect(side);
     this.actors.clear();
     this.stage.destroy({ children: true });
     destroyCharacterTextures(this.characters);

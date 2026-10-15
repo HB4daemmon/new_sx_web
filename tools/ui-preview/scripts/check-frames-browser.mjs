@@ -174,6 +174,7 @@ try {
 
       const allPoses = new Set();
       const checkedViews = [];
+      const calibratedHeights = [];
       const viewIssues = [];
       const atlasReports = auditAtlases ? await inspectAtlases() : [];
       for (const id of ids) {
@@ -182,6 +183,7 @@ try {
         rig.timeline.clock = 0;
         rig.draw();
         const initial = readBounds();
+        calibratedHeights.push(initial.bottom - initial.top + 1);
         checkBounds(`${id} ready`, initial, viewIssues);
         checkedViews.push({ id, pose: 'ready', ...initial });
 
@@ -276,6 +278,10 @@ try {
       if (allPoses.size !== poseNames.length) {
         throw new Error(`Not all authored poses rendered: ${[...allPoses].join(',')}`);
       }
+      const resolution = canvas.width / canvas.clientWidth;
+      if (Math.max(...calibratedHeights) - Math.min(...calibratedHeights) > 3 * resolution) {
+        throw new Error(`Ready body heights differ after calibration: ${calibratedHeights}`);
+      }
 
       const pausePlan = actionPlans.attack;
       rig.reset();
@@ -320,7 +326,7 @@ try {
 
       rig.dispose();
       canvas.remove();
-      return { stageSize, checkedViews, poses: [...allPoses], paused: true,
+      return { stageSize, checkedViews, calibratedHeights, poses: [...allPoses], paused: true,
         reducedImpacts, canceledImpacts, viewIssues, atlasReports };
     }, { ids, actionPlans, poseNames, stageSize, auditAtlases });
 

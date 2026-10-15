@@ -10,6 +10,7 @@ const publicRoot = path.join(moduleRoot, 'public');
 const ids = ['RKF01', 'RKF02', 'RKF03', 'RKF04', 'RKF05', 'EN-A1-L1'];
 const frameSize = [400, 448];
 const anchor = [160, 420];
+const expectedBodyHeights = [296, 331, 291, 300, 298, 288];
 
 function digest(buffer) {
   return createHash('sha256').update(buffer).digest('hex');
@@ -35,6 +36,7 @@ test('the six combat atlases keep their manifest paths, hashes and source proven
   ));
   assert.equal(manifest.schemaVersion, 1);
   assert.deepEqual(manifest.frameSize, frameSize);
+  assert.equal(manifest.targetBodyHeight, 300);
   assert.deepEqual(Object.keys(manifest.characters), ids);
   assert.equal(manifest.approval, 'pending');
   assert.equal(manifest.provenance.model, 'gpt-image-2.5');
@@ -48,7 +50,8 @@ test('the six combat atlases keep their manifest paths, hashes and source proven
   await readFile(prompt);
 
   const atlasHashes = new Set();
-  for (const id of ids) {
+  const calibratedHeights = [];
+  for (const [index, id] of ids.entries()) {
     const character = manifest.characters[id];
     assert.deepEqual(character.anchor, anchor, `${id} keeps the shared foot anchor`);
     assert.deepEqual(character.dimensions, [1200, 1792], `${id} uses the fixed 3x4 atlas`);
@@ -114,8 +117,22 @@ test('the six combat atlases keep their manifest paths, hashes and source proven
       `${id} pose ${index} leaves padding inside its fixed frame`);
       sourceBounds.add(cel.sourceBounds.join(','));
     }
+    assert.ok(Number.isInteger(character.bodyHeight) && character.bodyHeight > 0,
+      `${id} has a positive integer body height`);
+    const readyHeight = character.anchor[1] - character.cels[0].bounds[1];
+    assert.equal(character.bodyHeight, readyHeight, `${id} body height matches its ready pose`);
+    assert.equal(character.bodyHeight, expectedBodyHeights[index],
+      `${id} retains its reviewed body height`);
+    const heightFactor = manifest.targetBodyHeight / character.bodyHeight;
+    assert.ok(heightFactor >= 0.85 && heightFactor <= 1.1,
+      `${id} has a bounded body-height calibration factor`);
+    calibratedHeights.push(character.bodyHeight * heightFactor);
     assert.equal(rects.size, 12, `${id} rectangles are distinct`);
     assert.ok(sourceBounds.size > 1, `${id} actions retain distinct source cel regions`);
   }
   assert.equal(atlasHashes.size, ids.length);
+  for (const [index, height] of calibratedHeights.entries()) {
+    assert.ok(Math.abs(height - manifest.targetBodyHeight) < 1e-9,
+      `${ids[index]} calibrates to the shared target body height`);
+  }
 });
