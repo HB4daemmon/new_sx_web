@@ -7,6 +7,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import test from 'node:test';
 import ts from 'typescript';
 import { buildGameArt } from '../scripts/build-game-art.mjs';
+import { loadContent } from '../tools/content-kit/src/loader.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -20,31 +21,67 @@ test('game-art release manifest is explicit, approved and hash-verified', async 
   const destination = path.join(temporary, 'dist');
 
   const manifest = await buildGameArt({ root: ROOT, destination });
+  const content = await loadContent();
+  const enemyIds = content.byKind.get('enemy').map(enemy => enemy.id).sort();
   assert.deepEqual(manifest.approval, { status: 'approved', reviewedBy: 'user' });
   assert.equal(Object.keys(manifest.scenes).length, 3);
   assert.equal(Object.keys(manifest.modules).length, 4);
   assert.equal(Object.keys(manifest.artifacts).length, 44);
   assert.equal(Object.keys(manifest.map).length, 6);
-  assert.equal(Object.keys(manifest.frames).length, 6);
+  assert.equal(Object.keys(manifest.frames).length, 39);
+  assert.deepEqual(Object.keys(manifest.frames).filter(id => id.startsWith('EN-')).sort(), enemyIds);
   assert.equal(Object.hasOwn(manifest, 'rigs'), false);
   assert.ok(Object.values(manifest.artifacts).every(source => !source.includes('rig-')));
   assert.ok(Object.keys(manifest.assets).every(source =>
     /^\/assets\/[a-zA-Z0-9][a-zA-Z0-9._-]*\.png$/.test(source)));
 
   const outputAssets = path.join(destination, 'assets');
+  const enemyDigests = [];
   for (const [source, record] of Object.entries(manifest.assets)) {
-    const original = await readFile(path.join(ROOT, 'tools/ui-preview/public', source.slice(1)));
+    const sourceRoot = source.startsWith('/assets/frames-en-') &&
+      source !== '/assets/frames-en-a1-l1.png'
+      ? path.join(ROOT, 'assets/enemies')
+      : path.join(ROOT, 'tools/ui-preview/public');
+    const sourcePath = sourceRoot.endsWith('/assets/enemies')
+      ? path.join(sourceRoot, path.basename(source))
+      : path.join(sourceRoot, source.slice(1));
+    const original = await readFile(sourcePath);
     const output = await readFile(path.join(outputAssets, path.basename(source)));
     assert.equal(digest(original), record.sha256, `${source} source hash`);
     assert.deepEqual(output, original, `${source} copy`);
+    if (source.startsWith('/assets/frames-en-') && source !== '/assets/frames-en-a1-l1.png') {
+      enemyDigests.push(record.sha256);
+      assert.deepEqual(record.review, {
+        status: 'agent-reviewed',
+        reviewedBy: 'agent',
+        date: '2026-10-15',
+      });
+    }
   }
+  assert.equal(new Set(enemyDigests).size, 33);
+  assert.ok(enemyDigests.every(hash => !Object.values(manifest.assets)
+    .filter(record => record.kind === 'animation-frame' && !record.review)
+    .some(record => record.sha256 === hash)));
   const publishedNames = await readdir(outputAssets);
   assert.ok(publishedNames.includes('frames.json'));
   assert.ok(publishedNames.includes('game-art.json'));
-  assert.deepEqual(
-    await readFile(path.join(outputAssets, 'frames.json')),
-    await readFile(path.join(ROOT, 'tools/ui-preview/public/assets/frames.json')),
-  );
+  assert.equal(publishedNames.filter(name => /^frames-en-(?!a1-l1)[a-z0-9-]+\.png$/.test(name)).length, 33);
+  const runtimeFrames = JSON.parse(await readFile(path.join(outputAssets, 'frames.json'), 'utf8'));
+  assert.equal(runtimeFrames.approval, 'approved');
+  assert.equal(Object.keys(runtimeFrames.characters).length, 39);
+  assert.equal(runtimeFrames.characters['EN-A1-L1'].src, '/assets/frames-en-a1-l1.png');
+  assert.equal(runtimeFrames.characters['EN-A1-C1'].review.status, 'agent-reviewed');
+  const sourceEnemyFrames = JSON.parse(await readFile(
+    path.join(ROOT, 'assets/enemies/manifest.json'),
+    'utf8',
+  ));
+  for (const id of enemyIds.filter(id => id !== 'EN-A1-L1')) {
+    const sourceCharacter = sourceEnemyFrames.characters[id];
+    const metric = Math.round(Math.max(...sourceCharacter.cels.map(({ bounds }) =>
+      Math.max(bounds[3] - bounds[1], (bounds[2] - bounds[0]) * 0.85))));
+    assert.equal(runtimeFrames.characters[id].bodyHeight, metric);
+    assert.equal(runtimeFrames.characters[id].bodyHeight, sourceCharacter.bodyHeight);
+  }
   assert.equal(publishedNames.some(name => name.endsWith('.webp')), false);
   assert.equal(publishedNames.some(name => name.startsWith('rig-')), false);
   assert.deepEqual(
@@ -88,6 +125,9 @@ test('art access helpers resolve under a subpath and return escaped production m
   assert.equal(art.characterSkin('RKF06'), 'RKF01');
   assert.equal(art.characterSkin('RKF10'), 'RKF05');
   assert.equal(art.characterSkin('RKF10', 'EN-A1-L1'), 'EN-A1-L1');
+  assert.equal(art.characterSkin('RKF01', 'EN-A4-B2'), 'EN-A4-B2');
+  assert.equal(art.characterSkin('RKF01', 'EN-NOT-REAL'), 'EN-A1-L1');
+  assert.match(art.characterArt('RKF01', 'EN-NOT-REAL'), /data-art-fallback="unknown-enemy:EN-A1-L1"/);
 
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async input => {
@@ -106,12 +146,15 @@ test('art access helpers resolve under a subpath and return escaped production m
 
   const animationManifest = art.getAnimationManifest();
   assert.equal(animationManifest.approval, 'approved');
+  assert.equal(Object.keys(animationManifest.characters).length, 39);
   assert.equal(animationManifest.characters['RKF01'].src, '/assets/frames-rkf01.png');
+  assert.equal(animationManifest.characters['EN-A4-B2'].review.status, 'agent-reviewed');
   assert.match(art.characterArt('RKF01'), /class="character-art" data-art-skin="RKF01"/);
   assert.match(art.characterArt('RKF01'), /class="character-cel" style="background-image:url\(file:/);
   assert.match(art.characterArt('RKF01'), /--stature:1\.0135135135135136/);
   assert.match(art.characterArt('RKF01', 'EN-A1-L1'), /data-art-skin="EN-A1-L1"/);
   assert.match(art.characterArt('RKF01', 'EN-A1-L1'), /frames-en-a1-l1\.png/);
+  assert.match(art.characterArt('RKF01', 'EN-A4-B2'), /frames-en-a4-b2\.png/);
   assert.match(art.characterArt('RKF01', 'EN-A1-L1'), /aria-hidden="true"/);
   assert.match(art.artifactArt('RL01'), /class="artifact-art"[^>]+alt=""/);
   assert.equal(art.artifactArt('UNKNOWN'), '');

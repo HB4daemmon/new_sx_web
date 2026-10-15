@@ -67,11 +67,22 @@ interface BattleArtSync {
   group?: CombatPresentationGroup;
 }
 
+interface DynamicAnimationRig extends AnimationRig {
+  hasCharacter(id: string): boolean;
+  addCharacter(
+    manifest: Record<string, any>,
+    images: Map<string, HTMLImageElement>,
+    id: string,
+  ): void;
+}
+
 export class GameArt {
   private runtimePromise: Promise<AnimationRuntime | null> | null = null;
   private runtimeFailed = false;
   private manifest: Record<string, any> | null = null;
+  private startManifest: Record<string, any> | null = null;
   private images: Map<string, HTMLImageElement> | null = null;
+  private battleSkinLoads = new Map<string, Promise<void>>();
   private startRig: AnimationRig | null = null;
   private pendingStart: StartMount | null = null;
   private startToken = 0;
@@ -118,6 +129,16 @@ export class GameArt {
     if (this.runtimeFailed) return;
     this.battlePaused = state.paused;
     if (this.battleRig?.canvas === canvas && this.battleMount?.arena === arena) {
+      this.battleMount.state = {
+        method: state.method,
+        enemyMethod: state.enemyMethod,
+        enemyId: state.enemyId,
+        paused: state.paused,
+        cursorChanged: state.cursorChanged,
+        elapsed: state.elapsed,
+        frame: state.frame,
+        group: state.group,
+      };
       this.applyBattleState(state, this.battleRig);
       return;
     }
@@ -189,28 +210,80 @@ export class GameArt {
       throw new Error('Drawn-frame manifest unavailable');
     }
     const manifest = JSON.parse(JSON.stringify(source)) as Record<string, any>;
+    const startManifest = { ...manifest, characters: {} as Record<string, any> };
     const images = new Map<string, HTMLImageElement>();
-    const sources = new Set<string>();
-    for (const character of Object.values(manifest.characters) as Array<Record<string, any>>) {
-      if (typeof character.src !== 'string') throw new Error('Drawn-frame source unavailable');
-      character.src = assetUrl(character.src);
-      sources.add(character.src);
-    }
-    await Promise.all([...sources].map(async src => {
-      const image = new Image();
-      image.src = src;
-      await image.decode();
-      if (!(image.naturalWidth > 0) || !(image.naturalHeight > 0)) {
-        throw new Error(`Drawn-frame image is empty: ${src}`);
+    await Promise.all(['RKF01', 'RKF02', 'RKF03', 'RKF04', 'RKF05'].map(async id => {
+      const character = manifest.characters[id] as Record<string, any> | undefined;
+      if (!character || typeof character.src !== 'string') {
+        throw new Error(`Drawn-frame source unavailable: ${id}`);
       }
-      images.set(src, image);
+      const src = assetUrl(character.src);
+      character.src = src;
+      startManifest.characters[id] = character;
+      images.set(src, await this.loadFrameImage(src));
     }));
 
     const runtimePath: string = './animation.js';
     const runtime = await import(runtimePath) as AnimationRuntime;
     this.manifest = manifest;
+    this.startManifest = startManifest;
     this.images = images;
     return runtime;
+  }
+
+  private async loadFrameImage(src: string): Promise<HTMLImageElement> {
+    const image = new Image();
+    image.src = src;
+    await image.decode();
+    if (!(image.naturalWidth > 0) || !(image.naturalHeight > 0)) {
+      throw new Error(`Drawn-frame image is empty: ${src}`);
+    }
+    return image;
+  }
+
+  private resolvedFrameSource(source: string): string {
+    return /^(?:https?:|file:)/.test(source) ? source : assetUrl(source);
+  }
+
+  private async imageForCharacter(id: string): Promise<HTMLImageElement> {
+    const character = this.manifest?.characters?.[id] as Record<string, any> | undefined;
+    if (!character || typeof character.src !== 'string') {
+      throw new Error(`Drawn-frame character is unavailable: ${id}`);
+    }
+    const cached = this.images?.get(character.src);
+    return cached || this.loadFrameImage(this.resolvedFrameSource(character.src));
+  }
+
+  private characterManifest(ids: string[]): Record<string, any> {
+    const source = this.manifest;
+    if (!source?.characters) throw new Error('Drawn-frame manifest unavailable');
+    const characters: Record<string, any> = {};
+    for (const id of ids) {
+      const character = source.characters[id];
+      if (!character || typeof character.src !== 'string') {
+        throw new Error(`Drawn-frame character is unavailable: ${id}`);
+      }
+      characters[id] = {
+        ...character,
+        src: this.resolvedFrameSource(character.src),
+      };
+    }
+    return { ...source, characters };
+  }
+
+  private async battleResources(
+    state: BattleMount['state'],
+  ): Promise<{ manifest: Record<string, any>; images: Map<string, HTMLImageElement> }> {
+    const playerId = characterSkin(state.method);
+    const enemyId = characterSkin(state.enemyMethod, state.enemyId);
+    const manifest = this.characterManifest([playerId, enemyId]);
+    const images = new Map<string, HTMLImageElement>();
+    await Promise.all([playerId, enemyId].map(async id => {
+      const src = manifest.characters[id].src as string;
+      const cached = this.images?.get(src);
+      images.set(src, cached || await this.loadFrameImage(src));
+    }));
+    return { manifest, images };
   }
 
   private async createStart(mount: StartMount): Promise<void> {
@@ -221,7 +294,11 @@ export class GameArt {
         this.pendingStart = null;
         return;
       }
-      const rig = await runtime.FrameStart.create(mount.canvas, this.manifest!, this.images!);
+      const rig = await runtime.FrameStart.create(
+        mount.canvas,
+        this.startManifest!,
+        this.images!,
+      );
       if (!this.isCurrentStart(mount) || !mount.canvas.isConnected) {
         rig.dispose();
         return;
@@ -245,10 +322,24 @@ export class GameArt {
         mount.arena.dataset.artReady = 'false';
         return;
       }
+      let resources: Awaited<ReturnType<GameArt['battleResources']>>;
+      while (this.isCurrentBattle(mount)) {
+        const requested = [
+          characterSkin(mount.state.method),
+          characterSkin(mount.state.enemyMethod, mount.state.enemyId),
+        ];
+        resources = await this.battleResources(mount.state);
+        const latest = [
+          characterSkin(mount.state.method),
+          characterSkin(mount.state.enemyMethod, mount.state.enemyId),
+        ];
+        if (requested[0] === latest[0] && requested[1] === latest[1]) break;
+      }
+      if (!this.isCurrentBattle(mount)) return;
       rig = await runtime.FrameBattle.create(
         mount.canvas,
-        this.manifest!,
-        this.images!,
+        resources!.manifest,
+        resources!.images,
         () => this.failBattle(mount),
       );
       if (!this.isCurrentBattle(mount) || !mount.canvas.isConnected) {
@@ -288,8 +379,12 @@ export class GameArt {
   private applyBattleState(state: BattleArtSync, rig: AnimationRig): void {
     const mount = this.battleMount;
     if (!mount) return;
-    rig.setCharacter('player', characterSkin(state.method));
-    rig.setCharacter('enemy', characterSkin(state.enemyMethod, state.enemyId));
+    this.ensureBattleCharacter(rig, 'player', characterSkin(state.method));
+    this.ensureBattleCharacter(
+      rig,
+      'enemy',
+      characterSkin(state.enemyMethod, state.enemyId),
+    );
     rig.timeline.configure({
       active: true,
       paused: state.paused,
@@ -312,6 +407,50 @@ export class GameArt {
       }
     }
     if (!state.paused) rig.draw();
+  }
+
+  private ensureBattleCharacter(rig: AnimationRig, side: Side, id: string): void {
+    const dynamicRig = rig as DynamicAnimationRig;
+    if (dynamicRig.hasCharacter(id)) {
+      rig.setCharacter(side, id);
+      return;
+    }
+    if (this.battleSkinLoads.has(id)) return;
+
+    const mount = this.battleMount;
+    if (!mount) return;
+    mount.arena.dataset.artReady = 'false';
+    mount.canvas.parentElement?.setAttribute('data-art-ready', 'false');
+    const load = (async () => {
+      const manifest = this.characterManifest([id]);
+      const characterImages = new Map<string, HTMLImageElement>();
+      const image = await this.imageForCharacter(id);
+      const src = manifest.characters[id].src as string;
+      characterImages.set(src, image);
+      if (!this.isCurrentBattle(mount) || this.battleRig !== rig ||
+          (side === 'player' && characterSkin(mount.state.method) !== id) ||
+          (side === 'enemy' && characterSkin(mount.state.enemyMethod, mount.state.enemyId) !== id)) {
+        return;
+      }
+      dynamicRig.addCharacter(manifest, characterImages, id);
+      rig.setCharacter(side, id);
+      rig.draw();
+      const ready = [
+        characterSkin(mount.state.method),
+        characterSkin(mount.state.enemyMethod, mount.state.enemyId),
+      ].every(skin => dynamicRig.hasCharacter(skin));
+      mount.arena.dataset.artReady = String(ready);
+      mount.canvas.parentElement?.setAttribute('data-art-ready', String(ready));
+    })();
+    this.battleSkinLoads.set(id, load);
+    void load.catch(() => {
+      if (this.isCurrentBattle(mount) && this.battleRig === rig) {
+        mount.arena.dataset.artReady = 'false';
+        mount.canvas.parentElement?.setAttribute('data-art-ready', 'false');
+      }
+    }).finally(() => {
+      if (this.battleSkinLoads.get(id) === load) this.battleSkinLoads.delete(id);
+    });
   }
 
   private failBattle(mount: BattleMount): void {
@@ -356,6 +495,7 @@ export class GameArt {
     this.battleRig?.dispose();
     this.battleRig = null;
     this.battleMount = null;
+    this.battleSkinLoads.clear();
     this.battlePaused = false;
   }
 }

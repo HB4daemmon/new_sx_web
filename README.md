@@ -64,8 +64,9 @@ npm run dev
 
 已批准美术源位于 `tools/ui-preview/public/`，构建校验清单及 PNG 哈希后只发布实际使用的
 资源和自包含动画模块，不把预览流程、旧骨骼素材或生成凭据带入正式版。
-当前五门普通功法各有独立人物，养锋石卫使用专用外观；五门进阶功法及其余敌人复用
-对应功法人物，不代表每名敌人都有独立设定图。外观映射不改变实际构筑、伤害、掉落或存档。
+当前五门普通功法各有独立人物，五门进阶功法复用对应基础人物。34 名敌人均有独立外观，
+按敌人 ID 加载，不再套用主角人物；新增敌人素材已通过程序与画面检查，仍待用户确认。
+外观映射不改变实际构筑、伤害、掉落或存档。
 
 ## 验证
 
@@ -77,6 +78,7 @@ npm run test:browser
 npm run test:journey
 npm run test:motion
 npm run test:art
+node tests/shanhai-enemy-art-browser.mjs
 node tests/shanhai-compact-browser.mjs
 npm run calibrate
 ```

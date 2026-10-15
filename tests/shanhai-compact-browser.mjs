@@ -163,7 +163,7 @@ async function assertBattleLayout(page, width) {
   assert.ok(geometry.combatants.length === 2 &&
     geometry.combatants[0].right <= geometry.combatants[1].x + 1,
   `${width}: 双方资源栏互相覆盖 ${JSON.stringify(geometry.combatants)}`);
-  await assertReadable(page, '.combatant h2, .battle-context strong, [data-battle-round]',
+  await assertReadable(page, '.combatant h2, .battle-stage-core strong',
     `${width} battle resources`);
   await noOverflow(page, `${width} battle`);
   return geometry;
@@ -411,6 +411,8 @@ async function assertRewardChoiceLayout(page, width) {
         '.compact-choice-actions [data-action="inspect-artifact"]',
       );
       const detailRect = detail?.getBoundingClientRect();
+      const select = card.querySelector('.compact-choice-actions [data-action="reward"]');
+      const selectRect = select?.getBoundingClientRect();
       return {
         x: rect.x,
         y: rect.y,
@@ -432,6 +434,13 @@ async function assertRewardChoiceLayout(page, width) {
           right: detailRect.right,
           bottom: detailRect.bottom,
           fontSize: Number.parseFloat(getComputedStyle(detail).fontSize),
+        } : null,
+        select: selectRect ? {
+          width: selectRect.width,
+          height: selectRect.height,
+          text: select.textContent?.trim() || '',
+          mode: getComputedStyle(select).writingMode,
+          label: select.getAttribute('aria-label'),
         } : null,
       };
     });
@@ -470,6 +479,11 @@ async function assertRewardChoiceLayout(page, width) {
     card.detail.x + card.detail.width / 2 >= card.x + card.width / 2 &&
     card.detail.bottom <= card.bottom + 1 && card.detail.fontSize >= 11),
   `${width} reward: 右下详录入口尺寸、位置或字号不合格 ${JSON.stringify(geometry.cards)}`);
+  assert.ok(geometry.cards.every(card => card.select &&
+    card.select.width >= 44 && card.select.height >= 44 &&
+    card.select.text === '收入' && card.select.mode === 'horizontal-tb' &&
+    card.select.label),
+  `${width} reward: 收入动作过窄、竖排或缺少可访问名称 ${JSON.stringify(geometry.cards)}`);
   await assertNoVisibleEnglish(page, `${width} reward`);
   return geometry;
 }

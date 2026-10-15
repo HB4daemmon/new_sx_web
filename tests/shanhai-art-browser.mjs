@@ -574,6 +574,7 @@ async function assertFallbackPose(page, label) {
         artContainerVisibility: artContainer ? getComputedStyle(artContainer).visibility : null,
         stature: Number.parseFloat(art?.style.getPropertyValue('--stature') || 'NaN'),
         frame: character?.frames?.[0],
+        authoredBounds: character?.cels?.[0]?.bounds,
         bodyHeight: character?.bodyHeight,
         targetBodyHeight: manifest.targetBodyHeight,
       };
@@ -630,9 +631,13 @@ async function assertFallbackPose(page, label) {
       `${label}: ${pose.side} fallback 不是 PNG ${JSON.stringify(pose)}`);
     assert.ok(pose.decoded && pose.opaque > 10000,
       `${label}: ${pose.side} fallback PNG 没有有效人物像素 ${JSON.stringify(pose)}`);
-    const height = pose.silhouetteBounds.bottom - pose.silhouetteBounds.top + 1;
-    assert.ok(height >= pose.frameSize.height * 0.55,
-      `${label}: ${pose.side} fallback 不是完整站姿 ${JSON.stringify(pose.silhouetteBounds)}`);
+    const bounds = pose.silhouetteBounds;
+    assert.ok([bounds.left, bounds.top, bounds.right + 1, bounds.bottom + 1]
+      .every((value, index) => Math.abs(value - pose.authoredBounds[index]) <= 2),
+    `${label}: ${pose.side} fallback 与完整姿态边界不符 ${JSON.stringify(pose)}`);
+    assert.ok(bounds.left > 0 && bounds.top > 0 &&
+      bounds.right < pose.frameSize.width - 1 && bounds.bottom < pose.frameSize.height - 1,
+    `${label}: ${pose.side} fallback 在帧格边缘被裁切 ${JSON.stringify(bounds)}`);
     assert.ok(Math.abs(pose.bodyHeight * pose.stature - pose.targetBodyHeight) < 1,
       `${label}: ${pose.side} fallback 姿态高度未归一`);
   }

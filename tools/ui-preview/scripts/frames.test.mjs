@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  battleLayout, clipFor, clips, FrameTimeline, poseIndex, poseNames, sampleFrame,
+  battleLayout, clipFor, clips, FrameTimeline, isFrameCharacterId, poseIndex, poseNames,
+  sampleFrame,
 } from '../src/frames-data.js';
 
 const sequence = action => clipFor(action).frames.map(step => step.frame);
 
 test('battle spacing separates both sides while reserving rearward and foot room', () => {
-  for (const [width, height] of [[320, 260], [390, 397], [520, 448], [1440, 423]]) {
+  for (const [width, height] of [[360, 235], [390, 260], [520, 448], [960, 320]]) {
     const { scale, baseline, stance } = battleLayout(width, height);
     const oldWidth = width - 24;
     const oldScale = Math.min(oldWidth / 520, height / 448, 1);
@@ -15,8 +16,34 @@ test('battle spacing separates both sides while reserving rearward and foot room
     assert.ok(stance * 2 >= oldStance * 2 * 1.25, 'at least 25% wider boot spacing');
     assert.ok(width / 2 - stance - 162 * scale > 3, 'calibrated rearward poses and recoil fit');
     assert.ok(baseline + 28 * scale <= height - 6 * scale, 'lowered weapon tips fit');
-    assert.ok(stance <= 185 * scale, 'wide desktop combat remains centered');
+    assert.equal(stance, width / 4, 'actors remain aligned with their HUD columns');
   }
+});
+
+test('wide enemy motion envelopes retain outer padding and headroom at every pose', () => {
+  for (const width of [344, 366, 896, 944]) {
+    const { scale, baseline, stance } = battleLayout(width, 260, 34, 190, 365);
+    assert.ok(width / 2 - stance - (190 + 6) * scale >= 4);
+    assert.ok(baseline - 365 * scale >= 6);
+    assert.ok(baseline + 34 * scale <= 254);
+  }
+});
+
+test('frame character keys cover the five player skins and all content enemy ids', () => {
+  const enemies = [];
+  for (let act = 1; act <= 4; act++) {
+    for (let index = 1; index <= 4; index++) enemies.push(`EN-A${act}-C${index}`);
+    for (let index = 1; index <= 2; index++) {
+      enemies.push(`EN-A${act}-L${index}`, `EN-A${act}-B${index}`);
+    }
+  }
+  enemies.push('EN-F1', 'EN-F2');
+  assert.equal(enemies.length, 34);
+  assert.ok([...['RKF01', 'RKF02', 'RKF03', 'RKF04', 'RKF05'], ...enemies]
+    .every(isFrameCharacterId));
+  assert.equal(isFrameCharacterId('RKF06'), false);
+  assert.equal(isFrameCharacterId('EN-A1-X1'), false);
+  assert.equal(isFrameCharacterId('EN-A5-C1'), false);
 });
 
 test('the twelve pose indices and authored action sequences stay aligned', () => {

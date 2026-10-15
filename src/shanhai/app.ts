@@ -1470,11 +1470,6 @@ class ShanhaiApp {
           : this.battleResult()?.outcome === 'draw' ? '胜负未分' : '此身入劫'
         : '斗法';
     }
-    const context = shell.querySelector<HTMLElement>('[data-battle-round]');
-    if (context) context.textContent = this.battleFinished
-      ? `历 ${formatNumber(this.battleResult()?.rounds)} 回合`
-      : `第 ${formatNumber(frame.round)} 回合`;
-
     const core = arena.querySelector<HTMLElement>('.battle-stage-core');
     if (core) {
       const seal = core.querySelector<HTMLElement>('.round-seal');
@@ -1555,7 +1550,7 @@ class ShanhaiApp {
     const resultAction = detailActions?.querySelector<HTMLElement>('[data-tab="result"]');
     if (this.battleFinished && detailActions && !resultAction) {
       detailActions.insertAdjacentHTML('beforeend',
-        `<button class="button small quiet" data-action="battle-details" data-tab="result" aria-label="打开战果">${icon('eye', 15)}战果</button>`);
+        `<button class="button small quiet" data-action="battle-details" data-tab="result" aria-label="打开战果" title="打开战果">${icon('eye', 18)}</button>`);
     } else if (!this.battleFinished) {
       resultAction?.remove();
     }
@@ -1726,7 +1721,7 @@ class ShanhaiApp {
     const xpThreshold = this.xpThreshold(state.n);
     const xpComplete = state.n >= 4;
     return `<div class="mobile-hud">
-      <button class="hud-character" data-action="character" aria-label="查看人物属性"><span>${esc(state.name)}<small>${esc(this.realmName(state.n))}</small></span></button>
+      <button class="hud-character" data-action="character" aria-label="查看人物属性"><span><b>${esc(state.name)}</b><small>${esc(this.realmName(state.n))}</small></span></button>
       <span class="hud-resource hud-hp"><span>气血</span><b>${this.textMarkup(`${formatNumber(hp)} / ${formatNumber(stats.max_hp)}`)}</b><span class="bar"><span style="width:${pct(hp, stats.max_hp)}%"></span></span></span>
       <span class="hud-resource hud-xp"><span>修为</span><b>${this.textMarkup(xpComplete ? '圆满' : `${formatNumber(state.xp)} / ${formatNumber(xpThreshold)}`)}</b><span class="bar"><span style="width:${xpComplete ? 100 : pct(asNumber(state.xp), xpThreshold)}%"></span></span></span>
       <span class="mobile-gold">${icon('coin', 17)} ${this.textMarkup(state.coins)}</span>
@@ -2173,12 +2168,11 @@ class ShanhaiApp {
     const feedback = this.battleVfx(frame, previous, group) + this.battleFeedback(frame, previous, group);
     return `${this.stageHeading('', this.battleFinished ? (result?.outcome === 'player' ? '此战告捷' : result?.outcome === 'draw' ? '胜负未分' : '此身入劫') : '斗法', '', true)}
       <section class="battle-shell" data-battle-key="${esc(this.battleKey)}" data-paused="${this.battlePaused || Boolean(this.modal)}" style="--beat-duration:${beatDuration}ms">
-        <div class="battle-context"><span data-battle-round>${this.battleFinished ? `历 ${formatNumber(result?.rounds)} 回合` : `第 ${formatNumber(frame.round)} 回合`}</span></div>
         <div class="combat-arena" data-frame-index="${this.battleCursor}" data-frame-kind="${esc(asText(frame.kind))}" data-action-kind="${cue.actionKind}" data-motion-trigger="${this.battleCursor % 2}">${sceneArt('battle')}<span class="arena-vignette" aria-hidden="true"></span><div class="game-battle-actors" aria-hidden="true"><canvas class="game-battle-canvas" data-game-battle></canvas></div>${this.fighterMarkup(frame.player, 'player', frame.actor === 'player', frame, cue)}<div class="battle-stage-core"><span class="round-seal">${this.battleFinished ? (result?.outcome === 'player' ? '胜' : result?.outcome === 'draw' ? '平' : '劫') : frame.round}</span><strong data-frame-text>${esc(this.battleFrameSummary(frame, cue, group))}</strong>${!group && frame.source ? `<small data-frame-source>${esc(this.sourceLabel(frame.source))}</small>` : ''}<span data-battle-amount>${this.battleAmountMarkup(frame, group)}</span></div>${this.fighterMarkup(frame.enemy, 'enemy', frame.actor === 'enemy', frame, cue)}${feedback}</div>
-        <div class="battle-controls"><div class="speeds" role="group" aria-label="战斗速度"><button data-action="battle-speed" data-speed="1" data-focus-key="battle-speed-1" aria-pressed="${this.battleSpeed === 1}" aria-label="一倍速">1×</button><button data-action="battle-speed" data-speed="2" data-focus-key="battle-speed-2" aria-pressed="${this.battleSpeed === 2}" aria-label="二倍速">2×</button><button data-action="battle-speed" data-speed="4" data-focus-key="battle-speed-4" aria-pressed="${this.battleSpeed === 4}" aria-label="四倍速">4×</button><button data-action="battle-pause" data-focus-key="battle-pause" aria-pressed="${this.battlePaused}" aria-label="${this.battlePaused ? '继续播放' : '暂停播放'}">${this.battlePaused ? '继续' : '暂停'}</button></div>${this.battleControlAction(state)}</div>
+        <div class="battle-controls"><div class="speeds" role="group" aria-label="战斗速度"><button data-action="battle-speed" data-speed="1" data-focus-key="battle-speed-1" aria-pressed="${this.battleSpeed === 1}" aria-label="一倍速" title="一倍速">1×</button><button data-action="battle-speed" data-speed="2" data-focus-key="battle-speed-2" aria-pressed="${this.battleSpeed === 2}" aria-label="二倍速" title="二倍速">2×</button><button data-action="battle-speed" data-speed="4" data-focus-key="battle-speed-4" aria-pressed="${this.battleSpeed === 4}" aria-label="四倍速" title="四倍速">4×</button><button data-action="battle-pause" data-focus-key="battle-pause" aria-pressed="${this.battlePaused}" aria-label="${this.battlePaused ? '继续播放' : '暂停播放'}" title="${this.battlePaused ? '继续播放' : '暂停播放'}">${this.battlePaused ? '继续' : '暂停'}</button></div>${this.battleControlAction(state)}</div>
         <div class="replay-progress" aria-label="战斗播放进度"><i style="width:${frames.length <= 1 ? 100 : Math.round(this.battleCursor / Math.max(1, frames.length - 1) * 100)}%"></i></div>
         ${this.battleSettlementMarkup()}
-        <div class="battle-detail-actions"><button class="button small quiet" data-action="battle-details" data-tab="log" aria-label="打开战报">${icon('book', 15)}战报</button>${this.battleFinished ? `<button class="button small quiet" data-action="battle-details" data-tab="result" aria-label="打开战果">${icon('eye', 15)}战果</button>` : ''}</div>
+        <div class="battle-detail-actions"><button class="button small quiet" data-action="battle-details" data-tab="log" aria-label="打开战报" title="打开战报">${icon('book', 18)}</button>${this.battleFinished ? `<button class="button small quiet" data-action="battle-details" data-tab="result" aria-label="打开战果" title="打开战果">${icon('eye', 18)}</button>` : ''}</div>
       </section>${this.inlineMessage()}`;
   }
 
@@ -2489,17 +2483,9 @@ class ShanhaiApp {
   }
 
   private battleAmountMarkup(
-    frame: BattleFrame,
-    group: CombatPresentationGroup | undefined,
+    _frame: BattleFrame,
+    _group: CombatPresentationGroup | undefined,
   ): string {
-    if (group) {
-      const hasImpact = [group.player, group.enemy].some(side =>
-        side.damage || side.healing || side.shieldAbsorbed || side.shieldGenerated || side.shieldConsumed);
-      if (hasImpact) return '';
-    }
-    if (frame.kind === 'rage' && frame.amount !== undefined) {
-      return `<b class="battle-amount neutral" data-amount-kind="rage">怒气 ${formatNumber(frame.amount)}</b>`;
-    }
     return '';
   }
 
@@ -2656,20 +2642,25 @@ class ShanhaiApp {
     const stackText = owned
       ? `已有 ${formatNumber(owned.stacks)} / ${formatNumber(maxStacks)} · 选取后 ${formatNumber(Math.min(maxStacks, owned.stacks + 1))}`
       : `首次获得 · 上限 ${formatNumber(maxStacks)}`;
-    const stats = artifact ? this.artifactStatMarkup(artifact, 3) : '';
-    const effects = artifact ? this.artifactEffectMarkup(artifact, 2) : '';
+    const stats = artifact ? this.artifactStatMarkup(artifact, 2) : '';
     const summary = entitySummary(artifact);
+    const summaryParts = summary.split(/[；;]/);
+    const hasAttributes = Boolean(stats);
+    const mechanism = hasAttributes
+      ? summaryParts.length > 1
+        ? summaryParts.slice(1).join('；').trim()
+        : this.displayText(asText(listOf<any>(artifact?.effects)[0]?.text))
+      : summary;
     return `<article class="reward-card compact-choice-card rarity-${esc(rarity)}" data-id="${esc(id)}">
       <span class="choice-emblem" aria-hidden="true">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : rarity === 'rare' ? 'gold' : 'jade'))}</span>
       <div class="reward-card-top"><span class="rarity-chip ${esc(rarity)}">${esc(RARITY_LABEL[rarity] || '普通')}</span><span class="stack-note">${this.textMarkup(stackText)}</span></div>
       ${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : rarity === 'rare' ? 'gold' : 'jade'))}
       <h2>${esc(asText(artifact?.name, '未名法宝'))}</h2>
-      ${summary ? `<p>${this.textMarkup(summary)}</p>` : ''}
+      ${mechanism ? `<p class="reward-mechanic" title="${esc(mechanism)}">${this.textMarkup(mechanism)}</p>` : ''}
       ${stats ? `<div class="attribute-list">${stats}</div>` : ''}
-      ${effects ? `<div class="effect-list">${effects}</div>` : ''}
       <div class="compact-choice-actions">
-        <button type="button" class="button primary" data-action="reward" data-id="${esc(id)}">收入命盘 ${icon('arrow', 14)}</button>
-        <button type="button" class="button quiet" data-action="inspect-artifact" data-id="${esc(id)}" title="法宝详录" aria-label="查看${esc(asText(artifact?.name, '未名法宝'))}详录">${icon('eye', 15)}</button>
+        <button type="button" class="button primary" data-action="reward" data-id="${esc(id)}" title="收入命盘" aria-label="收入${esc(asText(artifact?.name, '未名法宝'))}至命盘">收入</button>
+        <button type="button" class="button quiet" data-action="inspect-artifact" data-id="${esc(id)}" title="法宝详录" aria-label="查看${esc(asText(artifact?.name, '未名法宝'))}详录">${icon('eye', 18)}</button>
       </div>
     </article>`;
   }
@@ -2753,7 +2744,7 @@ class ShanhaiApp {
           : `为下一场战斗准备 ${formatNumber(amount)} 护盾。`;
     const disabledReason = sold ? '' : talentResetUnavailable ? '当前功法尚无已悟天赋' : preparationHeld ? `已有 ${formatNumber(state?.preparation)} 预备护盾` : asNumber(state?.coins) < price ? '灵石不足' : '';
     const detailButton = artifact
-      ? `<button class="button small quiet" data-action="inspect-artifact" data-id="${esc(asText(item.id))}">查看详录</button>`
+      ? `<button class="button small quiet" data-action="inspect-artifact" data-id="${esc(asText(item.id))}" title="法宝详录" aria-label="查看${esc(asText(artifact.name, '法宝'))}详录">${icon('eye', 18)}</button>`
       : '';
     const motif = artifact ? this.artifactIcon(artifact) : kind === 'recovery' ? 'gourd' : kind === 'talent_reset' ? 'book' : 'shield';
     const buyButton = sold ? '<span class="sold-stamp">售罄</span>' : `<button class="button small" data-action="buy" data-id="${esc(asText(item.id))}" title="${esc(disabledReason)}" ${canBuy ? '' : 'disabled'}>${icon('coin', 13)}${this.textMarkup(price)}</button>`;

@@ -5,10 +5,16 @@ type ArtRecord = {
   scenes?: Record<string, string>;
 };
 
+type AnimationCharacter = {
+  src?: string;
+  bodyHeight?: number;
+  review?: { status?: string; reviewedBy?: string; date?: string };
+};
+
 type AnimationManifest = {
   schemaVersion?: number;
   targetBodyHeight?: number;
-  characters?: Record<string, { src?: string; bodyHeight?: number }>;
+  characters?: Record<string, AnimationCharacter>;
   approval?: string;
 };
 
@@ -20,6 +26,17 @@ const GENERIC_METHOD_SKINS: Record<string, string> = {
   RKF10: 'RKF05',
 };
 const VALID_METHODS = new Set(['RKF01', 'RKF02', 'RKF03', 'RKF04', 'RKF05']);
+const UNKNOWN_ENEMY_SKIN = 'EN-A1-L1';
+const ENEMY_FRAME_IDS = new Set([
+  ...Array.from({ length: 4 }, (_, act) => [
+    ...Array.from({ length: 4 }, (_, index) => `EN-A${act + 1}-C${index + 1}`),
+    ...Array.from({ length: 2 }, (_, index) => `EN-A${act + 1}-L${index + 1}`),
+    ...Array.from({ length: 2 }, (_, index) => `EN-A${act + 1}-B${index + 1}`),
+  ]).flat(),
+  'EN-F1',
+  'EN-F2',
+]);
+const PLAYER_FRAME_IDS = [...VALID_METHODS];
 const NODE_ILLUSTRATIONS: Record<string, string> = {
   C: 'forest',
   E: 'coast',
@@ -85,6 +102,24 @@ export function loadArtLibrary(): Promise<void> {
           !isRecord(frames.characters)) {
         throw new Error('Invalid approved game-art manifests');
       }
+      const characterIds = Object.keys(frames.characters);
+      if (characterIds.length !== PLAYER_FRAME_IDS.length + ENEMY_FRAME_IDS.size ||
+          PLAYER_FRAME_IDS.some(id => !Object.hasOwn(frames.characters!, id)) ||
+          [...ENEMY_FRAME_IDS].some(id => !Object.hasOwn(frames.characters!, id)) ||
+          new Set(Object.values(frames.characters).map(character =>
+            (character as AnimationCharacter)?.src)).size !== characterIds.length) {
+        throw new Error('Invalid complete enemy game-art frame map');
+      }
+      for (const id of ENEMY_FRAME_IDS) {
+        const character = frames.characters[id] as AnimationCharacter | undefined;
+        if (!character || typeof character.src !== 'string' ||
+            (id !== UNKNOWN_ENEMY_SKIN &&
+              (character.review?.status !== 'agent-reviewed' ||
+                character.review.reviewedBy !== 'agent' ||
+                character.review.date !== '2026-10-15'))) {
+          throw new Error(`Invalid reviewed enemy frame record: ${id}`);
+        }
+      }
       artLibrary = library;
       animationManifest = frames;
     }).catch(error => {
@@ -100,7 +135,12 @@ export function getAnimationManifest(): AnimationManifest | null {
 }
 
 export function characterSkin(method: string, enemyId?: string): string {
-  if (enemyId === 'EN-A1-L1') return 'EN-A1-L1';
+  if (enemyId !== undefined) {
+    const hasAnimationManifest = animationManifest !== null;
+    const enemyIsKnown = ENEMY_FRAME_IDS.has(enemyId) &&
+      (!hasAnimationManifest || !!animationManifest?.characters?.[enemyId]);
+    return enemyIsKnown ? enemyId : UNKNOWN_ENEMY_SKIN;
+  }
   if (VALID_METHODS.has(method)) return method;
   return GENERIC_METHOD_SKINS[method] ?? 'RKF01';
 }
@@ -114,7 +154,10 @@ export function characterArt(method: string, enemyId?: string): string {
   const bodyHeight = character?.bodyHeight ?? targetHeight;
   const stature = targetHeight / bodyHeight;
   const background = escapeAttribute(`background-image:url(${assetUrl(source)})`);
-  return `<span class="character-art" data-art-skin="${escapeAttribute(skin)}" aria-hidden="true" style="--stature:${stature}"><span class="character-cel" style="${background}"></span></span>`;
+  const fallback = enemyId !== undefined && skin === UNKNOWN_ENEMY_SKIN && enemyId !== skin
+    ? ` data-art-fallback="unknown-enemy:${UNKNOWN_ENEMY_SKIN}"`
+    : '';
+  return `<span class="character-art" data-art-skin="${escapeAttribute(skin)}"${fallback} aria-hidden="true" style="--stature:${stature}"><span class="character-cel" style="${background}"></span></span>`;
 }
 
 function imageMarkup(className: string, source: string, extra = ''): string {

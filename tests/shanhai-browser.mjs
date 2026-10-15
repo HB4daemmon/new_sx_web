@@ -193,6 +193,8 @@ async function createFixture(page, target, seed = `browser-${target}`) {
 }
 
 async function setReplayFrame(page, kind, target) {
+  const pause = page.locator('[data-action="battle-pause"]');
+  if (await pause.getAttribute('aria-pressed') !== 'true') await pause.click();
   const selection = await page.evaluate(async ({ kind, target }) => {
     const [{ loadContent }, { loadRun }] = await Promise.all([
       import('/shanhai/content.js'),
@@ -511,7 +513,7 @@ async function run() {
       await desktop.reload({ waitUntil: 'networkidle' });
       await createFixture(desktop, 'reward', 'browser-copy');
       await forceRewardCandidate(desktop, 'RC07');
-      assert.match(await desktop.locator('.reward-card > p').textContent(), /暴击率\s*\+2\s*个百分点/);
+      assert.match(await desktop.locator('.reward-card .attribute-list').textContent(), /暴击\s*\+2%/);
       await desktop.locator('.reward-card [data-action="inspect-artifact"]').click();
       assert.match(await desktop.locator('.item-dialog .attribute-list').textContent(), /暴击\s*\+2%/);
       await desktop.locator('.item-dialog [data-action="modal-close"][data-autofocus]').click();

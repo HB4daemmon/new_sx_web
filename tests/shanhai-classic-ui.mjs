@@ -165,6 +165,10 @@ async function battleSnapshot(page) {
 }
 
 async function setReplayCursor(page, cursor, reload = true, pauseImmediately = false) {
+  const pause = page.locator('[data-action="battle-pause"]');
+  if (await pause.count() && await pause.getAttribute('aria-pressed') !== 'true') {
+    await pause.click();
+  }
   const snapshot = await battleSnapshot(page);
   await page.evaluate(({ replayKey, cursor, key, length }) => {
     localStorage.setItem(replayKey, JSON.stringify({
@@ -426,8 +430,211 @@ async function assertNavigationShell(page, width) {
     assert.ok(await bottom.isVisible(), `${width}: 手机 bottom-nav 不可见`);
     const bottomRect = await bottom.boundingBox();
     assert.ok(bottomRect && bottomRect.height >= 48, `${width}: bottom-nav 点击区域过小`);
+    const saved = await savedState(page);
+    const hud = await page.locator('.mobile-hud').evaluate(element => ({
+      name: element.querySelector('.hud-character > span > b')?.textContent?.trim() || '',
+      nameSize: Number.parseFloat(getComputedStyle(element.querySelector(
+        '.hud-character > span > b',
+      )).fontSize),
+      hpSize: Number.parseFloat(getComputedStyle(element.querySelector('.hud-hp > b')).fontSize),
+      xpSize: Number.parseFloat(getComputedStyle(element.querySelector('.hud-xp > b')).fontSize),
+      coinsSize: Number.parseFloat(getComputedStyle(element.querySelector('.mobile-gold')).fontSize),
+    }));
+    assert.equal(hud.name, saved.state.name, `${width}: 顶部人物名被截断`);
+    assert.ok(hud.nameSize >= 13 && hud.hpSize >= 13 && hud.xpSize >= 13 && hud.coinsSize >= 13,
+      `${width}: 手机资源栏文字过小 ${JSON.stringify(hud)}`);
   }
   await assertVisualAssets(page, `${width} navigation`);
+}
+
+async function createRewardFixture(page, width) {
+  await page.evaluate(async ({ width }) => {
+    const [{ loadContent }, { ShanhaiGame }, { saveRun }] = await Promise.all([
+      import('/shanhai/content.js'),
+      import('/shanhai/run.js'),
+      import('/shanhai/persistence.js'),
+    ]);
+    const content = await loadContent('/content/');
+    let saved = false;
+    for (let attempt = 0; attempt < 24 && !saved; attempt += 1) {
+      const game = ShanhaiGame.create(content, {
+        seed: `classic-reward-${width}-${attempt}`,
+        name: `经典UI奖励${width}`,
+        method: 'RKF01',
+      });
+      const first = game.availableNodes()[0];
+      if (!first) throw new Error('Reward fixture has no opening route node');
+      game.dispatch({ type: 'enter', id: first.key });
+      if (game.state.phase !== 'preview') continue;
+      game.dispatch({ type: 'fight' });
+      let drawCount = 0;
+      while (game.state.battle?.outcome === 'draw' && drawCount++ < 8) {
+        game.dispatch({ type: 'continue_battle' });
+      }
+      if (game.state.phase !== 'battle' || game.state.battle?.outcome !== 'player') continue;
+      game.dispatch({ type: 'battle_done' });
+      if (game.state.phase !== 'reward') continue;
+      game.state.rewardCandidates = ['RC07', 'RC03', 'RC14'];
+      try {
+        saveRun(game);
+        localStorage.removeItem('suishi-shanhai-replay-v1');
+        saved = true;
+      } catch {
+        // Retry deterministic seeds if this run fails persisted-state validation.
+      }
+    }
+    if (!saved) throw new Error(`Reward fixture could not reach a valid reward phase at ${width}px`);
+  }, { width });
+  await page.reload({ waitUntil: 'networkidle' });
+  await waitForApp(page);
+  await waitForPhase(page, 'reward');
+}
+
+async function assertPreviewSurface(page, width) {
+  await createFixture(page, 'preview', `classic-preview-${width}`);
+  await noOverflow(page, `${width} preview`);
+  const geometry = await page.locator('.preview-matchup').evaluate(element => ({
+    sealOffset: (() => {
+      const arena = element.getBoundingClientRect();
+      const seal = element.querySelector('.versus-seal').getBoundingClientRect();
+      return {
+        x: seal.x + seal.width / 2 - (arena.x + arena.width / 2),
+        y: seal.y + seal.height / 2 - (arena.y + arena.height / 2),
+      };
+    })(),
+    contenders: [...element.querySelectorAll('.preview-contender')].map(contender => {
+      const rect = contender.getBoundingClientRect();
+      const art = contender.querySelector('.character-art')?.getBoundingClientRect();
+      const name = contender.querySelector('h2');
+      return {
+        width: rect.width,
+        height: rect.height,
+        artWidth: art?.width || 0,
+        artHeight: art?.height || 0,
+        nameText: name?.textContent?.trim() || '',
+        nameSize: Number.parseFloat(name ? getComputedStyle(name).fontSize : '0'),
+        nameColor: name ? getComputedStyle(name).color : '',
+      };
+    }),
+    actions: (() => {
+      const element = document.querySelector('.phase-preview .stage-actions');
+      const style = element ? getComputedStyle(element) : null;
+      return {
+        position: style?.position || '',
+        background: style?.backgroundColor || '',
+      };
+    })(),
+  }));
+  assert.equal(geometry.contenders.length, 2, `${width}: 战前对阵没有双方`);
+  assert.ok(geometry.contenders.every(contender =>
+    contender.height >= 150 && contender.height <= (width <= 600 ? 280 : 220) &&
+    contender.artWidth >= 80 && contender.artHeight >= 100 &&
+    contender.nameSize >= 13 && contender.nameText.length > 0),
+  `${width}: 战前人物或信息尺度失衡 ${JSON.stringify(geometry)}`);
+  assert.ok(geometry.contenders.every(contender => {
+    const channels = contender.nameColor.match(/\d+/g)?.map(Number);
+    return channels?.length >= 3 && Math.max(...channels.slice(0, 3)) < 130;
+  }), `${width}: 浅色战前面板上的名字必须使用深色墨字 ${JSON.stringify(geometry)}`);
+  assert.ok(Math.abs(geometry.sealOffset.x) <= 1 && Math.abs(geometry.sealOffset.y) <= 1,
+    `${width}: 对阵标记偏离面板中心 ${JSON.stringify(geometry.sealOffset)}`);
+  assert.equal(geometry.actions.position, 'static',
+    `${width}: 战前操作仍固定在深色旧纸框中 ${JSON.stringify(geometry.actions)}`);
+  assert.equal(geometry.actions.background, 'rgba(0, 0, 0, 0)',
+    `${width}: 战前操作底色没有回到纸面主题 ${JSON.stringify(geometry.actions)}`);
+  await page.screenshot({
+    path: path.join(screenshotDir, `${width}-preview-layout.png`),
+  });
+}
+
+async function assertRewardSurface(page, width) {
+  await createRewardFixture(page, width);
+  await noOverflow(page, `${width} reward`);
+  const geometry = await page.locator('.reward-grid').evaluate(element => ({
+    columns: getComputedStyle(element).gridTemplateColumns.split(/\s+/).filter(Boolean).length,
+    cards: [...element.querySelectorAll('.reward-card')].map(card => {
+      const rect = card.getBoundingClientRect();
+      const art = card.querySelector('.artifact-art')?.getBoundingClientRect();
+      const select = card.querySelector('[data-action="reward"]');
+      const detail = card.querySelector('[data-action="inspect-artifact"]');
+      const selectRect = select?.getBoundingClientRect();
+      const detailRect = detail?.getBoundingClientRect();
+      return {
+        width: rect.width,
+        bottom: rect.bottom,
+        artWidth: art?.width || 0,
+        artHeight: art?.height || 0,
+        selectWidth: selectRect?.width || 0,
+        selectHeight: selectRect?.height || 0,
+        selectText: select?.textContent?.trim() || '',
+        selectMode: select ? getComputedStyle(select).writingMode : '',
+        selectLabel: select?.getAttribute('aria-label') || '',
+        detailWidth: detailRect?.width || 0,
+        detailHeight: detailRect?.height || 0,
+        detailLabel: detail?.getAttribute('aria-label') || '',
+        repeatedEffectCount: card.querySelectorAll('.effect-list').length,
+      };
+    }),
+    bottomNav: document.querySelector('.bottom-nav')?.getClientRects().length
+      ? document.querySelector('.bottom-nav').getBoundingClientRect().top
+      : window.innerHeight,
+  }));
+  assert.equal(geometry.columns, 3, `${width}: 奖励不是三列 ${JSON.stringify(geometry)}`);
+  assert.equal(geometry.cards.length, 3, `${width}: 缺少三件候选法宝`);
+  assert.ok(geometry.cards.every(card =>
+    card.width >= 90 && card.bottom <= geometry.bottomNav + 1 &&
+    card.artWidth >= 36 && card.artHeight >= 36 &&
+    card.selectWidth >= 44 && card.selectHeight >= 44 &&
+    card.selectText === '收入' && card.selectMode === 'horizontal-tb' &&
+    card.selectLabel && card.detailWidth >= 44 && card.detailHeight >= 44 &&
+    card.detailLabel && card.repeatedEffectCount === 0),
+  `${width}: 奖励卡插画、机制文案或动作入口失衡 ${JSON.stringify(geometry.cards)}`);
+  await page.screenshot({
+    path: path.join(screenshotDir, `${width}-reward-layout.png`),
+  });
+}
+
+async function assertTransitionSurface(page, width) {
+  await createFixture(page, 'transition', `classic-transition-${width}`);
+  await noOverflow(page, `${width} transition`);
+  const geometry = await page.evaluate(() => {
+    const layout = document.querySelector('.game-layout');
+    const stage = document.querySelector('.main-stage');
+    const scene = document.querySelector('.transition-scene');
+    const actions = document.querySelector('.phase-transition .stage-actions');
+    const layoutRect = layout?.getBoundingClientRect();
+    const stageRect = stage?.getBoundingClientRect();
+    const sceneRect = scene?.getBoundingClientRect();
+    const actionRect = actions?.getBoundingClientRect();
+    return {
+      layout: layoutRect ? { y: layoutRect.y, height: layoutRect.height } : null,
+      stage: stageRect ? { y: stageRect.y, height: stageRect.height } : null,
+      scene: sceneRect ? { y: sceneRect.y, height: sceneRect.height } : null,
+      action: actionRect ? { y: actionRect.y, height: actionRect.height } : null,
+      sceneBackground: scene ? getComputedStyle(scene).backgroundPosition : '',
+      actionBackground: actions ? getComputedStyle(actions).backgroundColor : '',
+      bottomNav: document.querySelector('.bottom-nav')?.getClientRects().length
+        ? document.querySelector('.bottom-nav').getBoundingClientRect().top
+        : window.innerHeight,
+    };
+  });
+  assert.ok(geometry.scene && geometry.scene.height >= 220,
+    `${width}: 幕间没有可读的叙事场景 ${JSON.stringify(geometry)}`);
+  assert.ok(geometry.action && geometry.action.y > geometry.scene.y &&
+    geometry.action.y + geometry.action.height <= geometry.bottomNav + 1,
+  `${width}: 幕间操作错位或被底栏遮挡 ${JSON.stringify(geometry)}`);
+  assert.match(geometry.sceneBackground, /bottom|100%/,
+    `${width}: 幕间场景背景没有露出山门 ${JSON.stringify(geometry)}`);
+  assert.equal(geometry.actionBackground, 'rgba(0, 0, 0, 0)',
+    `${width}: 幕间操作留有旧暗色底板 ${JSON.stringify(geometry)}`);
+  if (geometry.layout && geometry.stage) {
+    const layoutCenter = geometry.layout.y + geometry.layout.height / 2;
+    const stageCenter = geometry.stage.y + geometry.stage.height / 2;
+    assert.ok(Math.abs(layoutCenter - stageCenter) <= 100,
+      `${width}: 幕间内容未在可用空间内收拢 ${JSON.stringify(geometry)}`);
+  }
+  await page.screenshot({
+    path: path.join(screenshotDir, `${width}-transition-layout.png`),
+  });
 }
 
 async function assertMapSurface(page, width) {
@@ -843,6 +1050,11 @@ async function assertEventSurface(page, width) {
     `${width} event copy`);
   const available = page.locator('[data-action="event"]:not([disabled])').first();
   await assertTouchTarget(available, `${width} 行旅选项`);
+  await available.hover();
+  const primaryCopy = await available.locator('.event-option-main > b').evaluate(element =>
+    getComputedStyle(element).color);
+  assert.equal(primaryCopy, 'rgb(255, 255, 255)',
+    `${width}: 行旅主选项变红后文字对比不足 ${primaryCopy}`);
   const disabled = page.locator('[data-action="event"][disabled]');
   if (await disabled.count()) {
     const reason = disabled.first().locator('.disabled-reason');
@@ -888,6 +1100,31 @@ async function assertCombatSurface(page, width) {
     `${width}: 双方缺少怒气条`);
   assert.equal(await page.locator('.combatant .shield-count').count(), 2,
     `${width}: 双方缺少护盾数值`);
+  assert.equal(await page.locator('.battle-context').count(), 0,
+    `${width}: 回合数字仍在中央之外重复显示`);
+  const arenaGeometry = await page.locator('.combat-arena').evaluate(element => {
+    const arena = element.getBoundingClientRect();
+    const fighters = [...element.querySelectorAll('.combatant')].map(fighter => {
+      const rect = fighter.getBoundingClientRect();
+      const detail = fighter.querySelector('.fighter-detail-trigger');
+      return {
+        side: fighter.getAttribute('data-side'),
+        width: rect.width,
+        center: rect.left + rect.width / 2,
+        detailBorder: detail ? getComputedStyle(detail).borderTopWidth : '',
+      };
+    });
+    return { x: arena.x, width: arena.width, fighters };
+  });
+  if (width >= 1050) {
+    assert.ok(arenaGeometry.width <= 960,
+      `${width}: 桌面斗法舞台超过目标宽度 ${JSON.stringify(arenaGeometry)}`);
+  }
+  assert.ok(arenaGeometry.fighters.every((fighter, index) =>
+    fighter.width <= 400 && fighter.detailBorder === '0px' &&
+    Math.abs(fighter.center - (arenaGeometry.x + arenaGeometry.width * (index ? .75 : .25))) <=
+      Math.max(12, arenaGeometry.width * .05)),
+  `${width}: HUD 宽度、人物中心或详录按钮失衡 ${JSON.stringify(arenaGeometry)}`);
   await assertBattleMainDetailContract(page, `${width} battle`);
   await assertBattleDetailEntryTargets(page, `${width} battle`);
   const savedRunBeforeDetails = (await savedState(page)).text;
@@ -951,7 +1188,7 @@ async function assertCombatSurface(page, width) {
   `${width}: 斗法控制按钮互相覆盖 ${JSON.stringify(controlGeometry.buttons)}`);
   assert.ok(controlGeometry.arenaBottom <= controlGeometry.parent.y + 2,
     `${width}: 斗法控制栏覆盖战斗场地 ${JSON.stringify(controlGeometry)}`);
-  await assertReadable(page, '.combatant h2, .battle-context strong, [data-battle-round]',
+  await assertReadable(page, '.combatant h2, .battle-stage-core strong',
     `${width} battle resources`);
   for (const button of await page.locator('.battle-controls button:visible').all()) {
     await assertTouchTarget(button, `${width} 斗法控制`);
@@ -964,6 +1201,46 @@ async function assertCombatSurface(page, width) {
   const recordedFrames = (await battleSnapshot(page)).frames;
   const frameCount = recordedFrames.length;
   assert.ok(frameCount > 8, `${width}: 战斗帧过少，无法验收回放游标 ${frameCount}`);
+  const actingIndex = recordedFrames.findIndex(frame => frame.kind === 'action' && frame.actor);
+  assert.ok(actingIndex > 0, `${width}: 没有可检查的动作标记`);
+  await setReplayCursor(page, actingIndex, true, true);
+  const markerGeometry = await page.locator('.turn-mark').evaluate(marker => {
+    const name = marker.closest('.fighter-identity').querySelector('h2').getBoundingClientRect();
+    const badge = marker.getBoundingClientRect();
+    return {
+      name: { x: name.x, y: name.y, right: name.right, bottom: name.bottom },
+      badge: { x: badge.x, y: badge.y, right: badge.right, bottom: badge.bottom },
+    };
+  });
+  const { name, badge } = markerGeometry;
+  assert.ok(name.right <= badge.x + 1 || badge.right <= name.x + 1 ||
+    name.bottom <= badge.y + 1 || badge.bottom <= name.y + 1,
+  `${width}: 动作标记遮住人物名字 ${JSON.stringify(markerGeometry)}`);
+  const lowHpIndex = recordedFrames.findIndex(frame => frame.enemy.hp <= frame.enemy.maxHp * .3);
+  assert.ok(lowHpIndex > 0, `${width}: 没有可检查的危急生命值帧`);
+  await setReplayCursor(page, lowHpIndex, true, true);
+  const lowHpColors = await page.locator(
+    '.combatant.low-health .fighter-numbers:first-child b',
+  ).evaluateAll(elements => {
+    const luminance = color => color.match(/[\d.]+/g).slice(0, 3).map(Number)
+      .map(channel => channel / 255)
+      .map(channel => channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4)
+      .reduce((sum, channel, index) => sum + channel * [.2126, .7152, .0722][index], 0);
+    const background = getComputedStyle(document.querySelector('.game-page')).backgroundColor;
+    return elements.map(element => {
+      const color = getComputedStyle(element).color;
+      const foreground = luminance(color);
+      const surface = luminance(background);
+      return {
+        color,
+        background,
+        contrast: (Math.max(foreground, surface) + .05) / (Math.min(foreground, surface) + .05),
+      };
+    });
+  });
+  assert.ok(lowHpColors.length && lowHpColors.every(color => color.contrast >= 4.5),
+    `${width}: 危急生命值对比度不足 ${JSON.stringify(lowHpColors)}`);
+  await setReplayCursor(page, 0);
 
   await clickVisibleAction(page, 'battle-speed', { speed: 2 });
   assert.equal(await page.locator('[data-action="battle-speed"][data-speed="2"]').getAttribute('aria-pressed'), 'true',
@@ -1190,11 +1467,35 @@ async function assertBattleTalentDetails(page) {
 }
 
 async function assertShopUnavailableReason(page) {
+  const width = page.viewportSize().width;
   await createFixture(page, 'shop', 'classic-ui-shop-unavailable', { coins: 0 });
   await waitForPhase(page, 'shop');
   await noOverflow(page, '坊市');
   await assertReadable(page, '.shop-item-copy h2, .shop-item-copy p, .shop-item-unavailable',
     '坊市内容');
+  const shopGeometry = await page.locator('.shop-item').evaluateAll(items =>
+    items.map(item => {
+      const box = element => {
+        const rect = element.getBoundingClientRect();
+        return { x: rect.x, y: rect.y, right: rect.right, bottom: rect.bottom };
+      };
+      return {
+        copy: box(item.querySelector('.shop-item-copy')),
+        art: box(item.querySelector('.shop-item-art')),
+        buttons: [...item.querySelectorAll(':scope > .button')].map(box),
+      };
+    }));
+  for (const item of shopGeometry) {
+    const disjoint = (a, b) => a.right <= b.x + 1 || b.right <= a.x + 1 ||
+      a.bottom <= b.y + 1 || b.bottom <= a.y + 1;
+    assert.ok(disjoint(item.art, item.copy) &&
+      item.buttons.every(button => disjoint(button, item.copy)),
+    `坊市说明被立绘或按钮覆盖 ${JSON.stringify(item)}`);
+    assert.ok(item.buttons.every((button, index) =>
+      item.buttons.slice(index + 1).every(other => disjoint(button, other))),
+    `坊市按钮互相覆盖 ${JSON.stringify(item)}`);
+  }
+  await page.screenshot({ path: path.join(screenshotDir, `${width}-shop-layout.png`) });
   await assertTouchTarget(page.locator('[data-action="leave-shop"]'), '离开坊市');
   const disabledPurchase = page.locator('.shop-item:not(.sold) [data-action="buy"][disabled]').first();
   await disabledPurchase.waitFor({ state: 'visible' });
@@ -1251,6 +1552,13 @@ async function runViewport(browser, width, height) {
       await assertMapSurface(page, width);
       await assertMapScrollPersistence(page, width);
       await noOverflow(page, `${width} map`);
+    });
+    await check(`${width} preview, reward, and transition hierarchy`, async () => {
+      await assertPreviewSurface(page, width);
+      await assertRewardSurface(page, width);
+      await assertTransitionSurface(page, width);
+      await setupRun(page, `classic-ui-${width}`);
+      await enterMap(page);
     });
     await check(`${width} read-only tabs and build`, async () => {
       await assertTabReadOnly(page, width);

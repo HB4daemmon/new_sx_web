@@ -1,0 +1,22 @@
+Use case: stylized-concept
+Asset type: production 2D game enemy combat sprite atlas
+Primary request: Draw one original, fully assembled enemy character in twelve independently drawn full-body animation cels. It must be a distinctive design matching the named enemy identity below, not a recolored protagonist, not a generic humanoid unless the identity calls for one.
+Layout: Exact 3-column by 4-row grid on a transparent 1024x1536 canvas. Read left to right, top to bottom. One complete character per cell, no cell may contain more than one character. Keep each cel inside its own equal invisible cell; the complete figure, weapon and accessories must fit within the central 80 percent of that cell, leaving at least 10 percent transparent margin on all sides. Never let any part of one pose cross a cell boundary or touch an adjacent pose. No visible grid, separators, panel borders or labels.
+Character direction: The character faces toward the RIGHT in every frame, in a readable three-quarter view. Keep the same face, head, body proportions, costume, identifying silhouette, material and colors across all twelve cels.
+Style: Match the supplied combat-frame references: compact, slightly big-headed hand-drawn Chinese fantasy game character, confident black ink outlines with small natural line variation, crisp simple shapes and restrained flat color fills with only a little two-tone cel shading. Full-body game sprite, clear silhouette at small size. No pixel art, photorealism, 3D rendering, vector-clean geometry, painterly texture, or glossy gradients.
+Grounding: Show the complete head, limbs, tail, wings, clothing, accessories and held object without cropping. Keep the character compact and comfortably separated from the invisible boundaries of its cell. Keep a consistent character scale and a stable ground-contact line near the bottom of all twelve cells. Feet or paws are planted on that same line; no flying poses. Keep the entire weapon or carried object in frame. No object, tail, robe, effect or shadow may touch a cell edge or another pose.
+The twelve poses, in exact order:
+1. READY: distinct alert combat-ready stance facing right, balanced and grounded.
+2. EARLY WINDUP: begin the ordinary attack, drawing the body and striking limb or weapon back.
+3. LATE WINDUP: strongest ordinary-attack anticipation, visibly different from pose 2.
+4. CONTACT: decisive ordinary attack extending toward the right; clear contact intent, no target shown.
+5. FOLLOW: committed ordinary-attack follow-through with body and cloth or appendages carrying momentum.
+6. RECOVER: settle back toward a balanced stance, visibly different from ready.
+7. RAGE WINDUP: powerful special-attack crouch or coil, distinct from ordinary windup.
+8. RAGE CONTACT: strongest special strike toward the right, distinct from ordinary contact.
+9. RAGE FOLLOW: special-attack follow-through, distinct from poses 5 and 8.
+10. GUARD: defensive recoil with arms, armor, shell, wing or weapon protecting the core.
+11. ARTIFACT: focused invocation gesture with one hand or appendage raised; a held weapon stays safely controlled.
+12. HEAL: calm restorative gesture near the chest or core, relaxed shoulders, with a clearly different pose from artifact.
+All twelve poses are separately drawn keyframes. Do not repeat, mirror-copy or fill cells with the same stance. Preserve coherent anatomy and complete connected construction in every cel; hands truly grip weapons. Keep motifs printed, embroidered, carved, painted or made from solid costume parts, never floating VFX.
+Constraints: transparent alpha background only; no scenery, ground plane, cast shadow, glow, aura, smoke, particles, trails, flames outside the character silhouette, text, numbers, logo, watermark, UI, backdrop, checkerboard, prop, extra limb, duplicate body, floating weapon, disassembled body parts, joint circles, or protagonist costume.

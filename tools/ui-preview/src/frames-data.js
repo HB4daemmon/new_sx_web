@@ -1,5 +1,12 @@
 export const frameRate = 60;
 
+const playerIds = new Set(['RKF01', 'RKF02', 'RKF03', 'RKF04', 'RKF05']);
+const enemyIdPattern = /^EN-A[1-4]-(?:C[1-4]|L[12]|B[12])$|^EN-F[12]$/;
+
+export function isFrameCharacterId(id) {
+  return playerIds.has(id) || enemyIdPattern.test(id);
+}
+
 export const poseNames = Object.freeze([
   'ready',
   'earlywindup',
@@ -57,13 +64,14 @@ export const durations = Object.freeze(Object.fromEntries(
     .map(([name, clip]) => [name, clip.duration]),
 ));
 
-export function battleLayout(width, height, footRoom = 28) {
-  // Reserve the widest rearward cel plus recoil while keeping a clear central gap.
-  const scale = Math.min(width / 680, height / 448, 1);
+export function battleLayout(width, height, footRoom = 28, rearExtent = 162, rise = 420) {
+  // Use the whole authored motion envelope, not each pose, to keep scale and feet stable.
+  const scale = Math.min((width / 4 - 4) / (rearExtent + 8),
+    (height - 12) / (rise + footRoom + 6), 1);
   return {
     scale,
-    baseline: height - Math.max(12, (footRoom + 6) * scale),
-    stance: Math.min(width * .25, 185 * scale),
+    baseline: height - Math.max(12, footRoom * scale + 6),
+    stance: width * .25,
   };
 }
 

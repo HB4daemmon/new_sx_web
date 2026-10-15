@@ -159,7 +159,8 @@ test('dist contains only the Shanhai Pages artifact and all 152 manifest entitie
   assert.deepEqual(gameArt.approval, { status: 'approved', reviewedBy: 'user' });
   assert.equal(Object.keys(gameArt.artifacts).length, 44);
   assert.equal(Object.keys(gameArt.map).length, 6);
-  assert.equal(Object.keys(gameArt.frames).length, 6);
+  assert.equal(Object.keys(gameArt.frames).length, 39);
+  assert.equal(Object.keys(gameArt.frames).filter(id => id.startsWith('EN-')).length, 34);
   assert.equal(Object.hasOwn(gameArt, 'rigs'), false);
   assert.ok(Object.values(gameArt.artifacts).every(src => !src.includes('rig-')));
   assert.ok(Object.keys(gameArt.assets).every(src => /^\/assets\/[a-zA-Z0-9][a-zA-Z0-9._-]*\.png$/.test(src)));

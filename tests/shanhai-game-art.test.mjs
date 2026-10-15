@@ -28,8 +28,61 @@ for (const filename of [
   await writeFile(path.join(moduleDirectory, filename.replace(/\.ts$/, '.js')), compiled);
 }
 
-const gameArt = await import(pathToFileURL(path.join(moduleDirectory, 'game-art.js')).href);
+const [gameArt, artAssets] = await Promise.all([
+  import(pathToFileURL(path.join(moduleDirectory, 'game-art.js')).href),
+  import(pathToFileURL(path.join(moduleDirectory, 'art-assets.js')).href),
+]);
 after(() => rm(temporary, { recursive: true, force: true }));
+
+function frameCharacter(id) {
+  return {
+    src: `/assets/frames-${id.toLowerCase()}.png`,
+    frames: Array.from({ length: 12 }, (_, index) => [
+      (index % 3) * 400,
+      Math.floor(index / 3) * 448,
+      400,
+      448,
+    ]),
+    anchor: [160, 420],
+    bodyHeight: 300,
+    review: id.startsWith('EN-') && id !== 'EN-A1-L1'
+      ? { status: 'agent-reviewed', reviewedBy: 'agent', date: '2026-10-15' }
+      : undefined,
+  };
+}
+
+function prepareArt(art) {
+  const characters = Object.fromEntries([
+    'RKF01', 'RKF02', 'RKF03', 'RKF04', 'RKF05',
+    ...Array.from({ length: 4 }, (_, act) => [
+      ...Array.from({ length: 4 }, (_, index) => `EN-A${act + 1}-C${index + 1}`),
+      ...Array.from({ length: 2 }, (_, index) => `EN-A${act + 1}-L${index + 1}`),
+      ...Array.from({ length: 2 }, (_, index) => `EN-A${act + 1}-B${index + 1}`),
+    ]).flat(),
+    'EN-F1',
+    'EN-F2',
+  ].map(id => [id, frameCharacter(id)]));
+  const images = new Map();
+  for (const id of ['RKF01', 'RKF02', 'RKF03', 'RKF04', 'RKF05']) {
+    images.set(artAssets.assetUrl(characters[id].src), {
+      naturalWidth: 1200,
+      naturalHeight: 1792,
+      complete: true,
+    });
+  }
+  images.set(artAssets.assetUrl(characters['EN-A1-L1'].src), {
+    naturalWidth: 1200,
+    naturalHeight: 1792,
+    complete: true,
+  });
+  art.manifest = {
+    schemaVersion: 1,
+    frameSize: [400, 448],
+    targetBodyHeight: 300,
+    characters,
+  };
+  art.images = images;
+}
 
 function sideSummary(overrides = {}) {
   return {
@@ -83,11 +136,13 @@ function nodes() {
 function fakeRig(canvas) {
   const calls = [];
   const actions = new Map();
+  const characters = new Set();
   let disposed = false;
   const rig = {
     canvas,
     timeline: {
       actions,
+      clock: 0,
       configure: options => calls.push(['configure', options]),
       play: (side, action) => {
         calls.push(['play', side, action]);
@@ -95,6 +150,11 @@ function fakeRig(canvas) {
       },
     },
     configure: () => {},
+    hasCharacter: id => characters.has(id),
+    addCharacter: (_manifest, _images, id) => {
+      characters.add(id);
+      calls.push(['add-skin', id]);
+    },
     setCharacter: (side, skin) => calls.push(['skin', side, skin]),
     draw: () => calls.push(['draw']),
     dispose: () => { disposed = true; },
@@ -103,7 +163,21 @@ function fakeRig(canvas) {
     rig,
     calls,
     actions,
+    setCharacters: ids => ids.forEach(id => characters.add(id)),
     disposed: () => disposed,
+  };
+}
+
+function runtimeFor(mounted, create) {
+  return {
+    FrameBattle: {
+      create(canvas, manifest, images, onFailure) {
+        mounted.setCharacters(Object.keys(manifest.characters));
+        return create
+          ? create(canvas, manifest, images, onFailure)
+          : Promise.resolve(mounted.rig);
+      },
+    },
   };
 }
 
@@ -160,9 +234,10 @@ test('a same-side heal does not replace a rage animation already in progress', a
   const { canvas, arena } = nodes();
   const mounted = fakeRig(canvas);
   const runtime = {
-    FrameBattle: { create: async () => mounted.rig },
+    FrameBattle: runtimeFor(mounted).FrameBattle,
   };
   const art = new gameArt.GameArt();
+  prepareArt(art);
   art.runtimePromise = Promise.resolve(runtime);
 
   art.syncBattle(battleState({
@@ -207,9 +282,8 @@ test('reduced motion is forwarded to the shared animation timeline', async () =>
   const { canvas, arena } = nodes();
   const mounted = fakeRig(canvas);
   const art = new gameArt.GameArt();
-  art.runtimePromise = Promise.resolve({
-    FrameBattle: { create: async () => mounted.rig },
-  });
+  prepareArt(art);
+  art.runtimePromise = Promise.resolve(runtimeFor(mounted));
   const previous = globalThis.matchMedia;
   globalThis.matchMedia = () => ({ matches: true });
   try {
@@ -232,14 +306,13 @@ test('pending battle mounts apply the latest frame after asynchronous renderer c
   const started = new Promise(resolve => { markStarted = resolve; });
   const creation = new Promise(resolve => { resolveCreation = resolve; });
   const runtime = {
-    FrameBattle: {
-      create: () => {
+    FrameBattle: runtimeFor(mounted, () => {
         markStarted();
         return creation;
-      },
-    },
+      }).FrameBattle,
   };
   const art = new gameArt.GameArt();
+  prepareArt(art);
   art.runtimePromise = Promise.resolve(runtime);
 
   art.syncBattle(battleState({
@@ -276,6 +349,60 @@ test('pending battle mounts apply the latest frame after asynchronous renderer c
   art.dispose();
 });
 
+test('battle art loads only the selected enemy and swaps skins without resetting its clock', async () => {
+  const { canvas, arena } = nodes();
+  const mounted = fakeRig(canvas);
+  const art = new gameArt.GameArt();
+  prepareArt(art);
+  art.images.delete(artAssets.assetUrl(art.manifest.characters['EN-A1-L1'].src));
+  const createdCharacters = [];
+  const decodedSources = [];
+  const originalImage = globalThis.Image;
+  globalThis.Image = class {
+    naturalWidth = 1200;
+    naturalHeight = 1792;
+    complete = true;
+    src = '';
+    async decode() {
+      decodedSources.push(this.src);
+    }
+  };
+  art.runtimePromise = Promise.resolve(runtimeFor(mounted, (_canvas, manifest) => {
+    createdCharacters.push(Object.keys(manifest.characters));
+    return Promise.resolve(mounted.rig);
+  }));
+
+  try {
+    art.syncBattle({
+      ...battleState({ canvas, arena, frame: battleFrame('start') }),
+      enemyId: 'EN-A4-B2',
+    });
+    await new Promise(resolve => setImmediate(resolve));
+    assert.deepEqual(createdCharacters, [['RKF02', 'EN-A4-B2']]);
+    assert.equal(decodedSources.length, 1);
+    assert.match(decodedSources[0], /frames-en-a4-b2\.png$/);
+    assert.equal(art.runtimeFailed, false);
+    assert.equal(arena.dataset.artReady, 'true');
+
+    mounted.rig.timeline.clock = 481;
+    mounted.actions.set('enemy', { action: 'rage' });
+    art.syncBattle({
+      ...battleState({ canvas, arena, frame: battleFrame('start') }),
+      enemyId: 'EN-A3-C2',
+    });
+    await new Promise(resolve => setImmediate(resolve));
+    assert.deepEqual(mounted.calls.filter(call => call[0] === 'add-skin'), [
+      ['add-skin', 'EN-A3-C2'],
+    ]);
+    assert.equal(mounted.rig.timeline.clock, 481);
+    assert.equal(mounted.actions.get('enemy').action, 'rage');
+    assert.match(decodedSources[1], /frames-en-a3-c2\.png$/);
+  } finally {
+    globalThis.Image = originalImage;
+    art.dispose();
+  }
+});
+
 test('load failure clears pending mounts and leaves static art available as fallback', async () => {
   const startNodes = nodes();
   const battleNodes = nodes();
@@ -307,14 +434,13 @@ test('a battle rig created for a replaced canvas is disposed without attaching',
   const started = new Promise(resolve => { markStarted = resolve; });
   const creation = new Promise(resolve => { resolveCreation = resolve; });
   const runtime = {
-    FrameBattle: {
-      create: () => {
+    FrameBattle: runtimeFor(mounted, () => {
         markStarted();
         return creation;
-      },
-    },
+      }).FrameBattle,
   };
   const art = new gameArt.GameArt();
+  prepareArt(art);
   art.runtimePromise = Promise.resolve(runtime);
 
   art.syncBattle(battleState({

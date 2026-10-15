@@ -3,11 +3,13 @@ import {
 } from 'pixi.js';
 // Pixi's no-eval polyfills retain the preview's strict CSP.
 import 'pixi.js/unsafe-eval';
-import { battleLayout, FrameTimeline, poseNames, sampleFrame } from './frames-data.js';
+import {
+  battleLayout, FrameTimeline, isFrameCharacterId, poseNames, sampleFrame,
+} from './frames-data.js';
 import { RageEffect } from './rage-effects.js';
 
 const frameSize = [400, 448];
-const characterIds = ['RKF01', 'RKF02', 'RKF03', 'RKF04', 'RKF05', 'EN-A1-L1'];
+const playerIds = ['RKF01', 'RKF02', 'RKF03', 'RKF04', 'RKF05'];
 
 async function rendererFor(canvas) {
   return autoDetectRenderer({
@@ -33,7 +35,7 @@ function decodedImage(images, src) {
   return { image, width, height };
 }
 
-function validateManifest(manifest, images) {
+function validateManifest(manifest, images, characterIds = Object.keys(manifest?.characters || {})) {
   if (manifest?.schemaVersion !== 1 ||
       !Array.isArray(manifest.frameSize) ||
       manifest.frameSize[0] !== frameSize[0] ||
@@ -43,10 +45,15 @@ function validateManifest(manifest, images) {
       !manifest.characters) {
     throw new Error('Invalid drawn-frame manifest');
   }
+  if (!characterIds.length || characterIds.some(id =>
+    !isFrameCharacterId(id) || !Object.hasOwn(manifest.characters, id))) {
+    throw new Error('Invalid drawn-frame character set');
+  }
 
   const result = new Map();
   for (const id of characterIds) {
     const character = manifest.characters[id];
+    const enemy = id.startsWith('EN-');
     if (!character || typeof character.src !== 'string' ||
         !Array.isArray(character.frames) || character.frames.length !== poseNames.length ||
         !Array.isArray(character.anchor) || character.anchor.length !== 2 ||
@@ -54,8 +61,8 @@ function validateManifest(manifest, images) {
         character.anchor[0] < 0 || character.anchor[0] > frameSize[0] ||
         character.anchor[1] < 0 || character.anchor[1] > frameSize[1] ||
         !Number.isFinite(character.bodyHeight) ||
-        manifest.targetBodyHeight / character.bodyHeight < .85 ||
-        manifest.targetBodyHeight / character.bodyHeight > 1.1) {
+        manifest.targetBodyHeight / character.bodyHeight < (enemy ? .6 : .85) ||
+        manifest.targetBodyHeight / character.bodyHeight > (enemy ? 1.5 : 1.1)) {
       throw new Error(`Invalid drawn-frame character: ${id}`);
     }
 
@@ -78,13 +85,17 @@ function validateManifest(manifest, images) {
       frames,
       image,
       displayScale: manifest.targetBodyHeight / character.bodyHeight,
+      rearExtent: Math.max(1, ...(character.cels || []).map(cel =>
+        character.anchor[0] - Number(cel?.bounds?.[0] || 0))),
+      rise: Math.max(1, ...(character.cels || []).map(cel =>
+        character.anchor[1] - Number(cel?.bounds?.[1] || 0))),
     });
   }
   return result;
 }
 
-function prepareCharacters(manifest, images) {
-  const validated = validateManifest(manifest, images);
+function prepareCharacters(manifest, images, characterIds) {
+  const validated = validateManifest(manifest, images, characterIds);
   const prepared = new Map();
   let partialTextures = [];
   try {
@@ -144,7 +155,7 @@ function effectDisplay(images, src) {
 
 export class FrameStart {
   static async create(canvas, manifest, images) {
-    const characters = prepareCharacters(manifest, images);
+    const characters = prepareCharacters(manifest, images, playerIds);
     let renderer;
     try {
       renderer = await rendererFor(canvas);
@@ -213,6 +224,11 @@ export class FrameStart {
 
 export class FrameBattle {
   static async create(canvas, manifest, images, onFailure) {
+    const ids = Object.keys(manifest?.characters || {});
+    if (!ids.some(id => playerIds.includes(id)) ||
+        !ids.some(id => id.startsWith('EN-'))) {
+      throw new Error('Battle frame manifest must include one player and one enemy');
+    }
     const characters = prepareCharacters(manifest, images);
     let renderer;
     try {
@@ -234,7 +250,7 @@ export class FrameBattle {
     this.stage.addChild(this.actorLayer, this.effectLayer);
     this.actors = new Map();
     this.effects = new Map();
-    this.method = 'RKF01';
+    this.method = [...characters.keys()].find(id => playerIds.includes(id)) || 'RKF01';
     this.lastTimestamp = null;
     this.frameId = null;
     this.disposed = false;
@@ -252,8 +268,10 @@ export class FrameBattle {
     canvas.addEventListener('webglcontextlost', this.onContextLost);
     this.resizeObserver = new ResizeObserver(() => this.draw());
     this.resizeObserver.observe(canvas);
+    const enemyId = [...characters.keys()].find(id => id.startsWith('EN-'));
+    if (!enemyId) throw new Error('Battle frame manifest has no enemy character');
     this.setCharacter('player', this.method);
-    this.setCharacter('enemy', 'EN-A1-L1');
+    this.setCharacter('enemy', enemyId);
     canvas.dataset.engine = 'drawn-frames';
     canvas.getFrameSnapshot = () => this.snapshot();
     this.draw();
@@ -269,13 +287,30 @@ export class FrameBattle {
       destroyDisplay(previous.sprite);
     }
 
-    this.timeline.actions.delete(side);
-    this.canvas.dataset[`${side}Action`] = 'idle';
     const sprite = new Sprite(character.textures[0]);
     setAnchor(sprite, character);
     this.actorLayer.addChild(sprite);
     this.actors.set(side, { character, sprite });
+    if (side === 'enemy' && previous?.character.id.startsWith('EN-')) {
+      const oldCharacter = previous.character;
+      this.characters.delete(oldCharacter.id);
+      destroyCharacterTextures(new Map([[oldCharacter.id, oldCharacter]]));
+    }
     this.canvas.dataset[`${side}Skin`] = id;
+  }
+
+  hasCharacter(id) {
+    return this.characters.has(id);
+  }
+
+  addCharacter(manifest, images, id) {
+    if (this.disposed || this.characters.has(id)) return;
+    const characters = prepareCharacters(
+      { ...manifest, characters: { [id]: manifest.characters?.[id] } },
+      images,
+      [id],
+    );
+    this.characters.set(id, characters.get(id));
   }
 
   configure({ active = this.timeline.active, paused = this.timeline.paused,
@@ -347,14 +382,18 @@ export class FrameBattle {
   }
 
   draw() {
-    if (this.disposed || (this.timeline.active && this.timeline.paused)) return;
+    if (this.disposed) return;
     const width = this.canvas.clientWidth;
     const height = this.canvas.clientHeight;
     if (!width || !height) return;
     // Lowered weapon tips extend below the boot anchor in a few authored cels.
     const footRoom = Math.max(...[...this.characters.values()]
       .map(character => (frameSize[1] - character.anchor[1]) * character.displayScale));
-    const { scale, baseline, stance } = battleLayout(width, height, footRoom);
+    const rearExtent = Math.max(...[...this.characters.values()]
+      .map(character => character.rearExtent * character.displayScale));
+    const rise = Math.max(...[...this.characters.values()]
+      .map(character => character.rise * character.displayScale));
+    const { scale, baseline, stance } = battleLayout(width, height, footRoom, rearExtent, rise);
     this.renderer.resize(width, height);
 
     const snapshot = { engine: 'drawn-frames', clock: Math.round(this.timeline.clock) };
