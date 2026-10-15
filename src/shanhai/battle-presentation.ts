@@ -30,7 +30,7 @@ export interface BloodShieldPresentation {
 }
 
 const BASE_BEATS: Record<string, number> = {
-  action: 520,
+  action: 220,
   damage: 450,
   dot: 440,
   heal: 400,
@@ -44,6 +44,16 @@ const BASE_BEATS: Record<string, number> = {
   end: 400,
   summary: 220,
 };
+
+export const BASIC_ACTION_CONTACT_MS = 19 * 1000 / 60;
+export const RAGE_ACTION_CONTACT_MS = 26 * 1000 / 60;
+
+export function battleBeatGameDuration(frame: BattleFrame): number {
+  const action = actionKind(frame);
+  if (frame.kind === 'action' && action === 'basic') return BASIC_ACTION_CONTACT_MS;
+  if (frame.kind === 'action' && action === 'rage') return RAGE_ACTION_CONTACT_MS;
+  return BASE_BEATS[frame.kind] || 220;
+}
 
 export function bloodShieldPresentation(
   fighter: Pick<FighterView, 'hp' | 'maxHp' | 'shield'>,
@@ -81,12 +91,8 @@ function targetOf(frame: BattleFrame, previous: BattleFrame): Side | undefined {
 }
 
 export function battleBeatDuration(frame: BattleFrame, speed = 1): number {
-  const action = actionKind(frame);
-  const base = frame.kind === 'action' && action === 'rage'
-    ? 800
-    : BASE_BEATS[frame.kind] || 220;
   const multiplier = Number.isFinite(speed) && speed > 0 ? speed : 1;
-  return base / multiplier;
+  return battleBeatGameDuration(frame) / multiplier;
 }
 
 export function battlePresentationCue(

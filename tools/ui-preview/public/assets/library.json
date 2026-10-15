@@ -6,7 +6,9 @@
     "date": "2026-10-13"
   },
   "expansionApproval": {
-    "status": "pending"
+    "status": "approved",
+    "by": "user",
+    "date": "2026-10-15"
   },
   "provenance": {
     "model": "gpt-image-2.5",

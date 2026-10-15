@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "approval": {
-    "status": "pending",
-    "reviewedBy": null
+    "status": "approved",
+    "reviewedBy": "user"
   },
   "provenance": {
     "method": "imagegen hand-drawn cartoon kit",

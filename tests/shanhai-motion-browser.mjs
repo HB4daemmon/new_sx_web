@@ -8,6 +8,38 @@ import { pauseNextReplay } from './shanhai-replay-fixture.mjs';
 const url = process.env.BROWSER_URL || 'http://localhost:4173/';
 const saveKey = 'suishi-shanhai-run-v1';
 const replayKey = 'suishi-shanhai-replay-v1';
+const actionTimeline = {
+  basic: {
+    action: 'attack',
+    contactMs: 19 * 1000 / 60,
+    contactFrame: 3,
+    contactPose: 'contact',
+    windupPose: 'latewindup',
+    windupFrame: 2,
+  },
+  rage: {
+    action: 'rage',
+    contactMs: 26 * 1000 / 60,
+    contactFrame: 7,
+    contactPose: 'ragecontact',
+    windupPose: 'ragewindup',
+    windupFrame: 6,
+  },
+};
+const framePoses = new Set([
+  'ready',
+  'earlywindup',
+  'latewindup',
+  'contact',
+  'follow',
+  'recover',
+  'ragewindup',
+  'ragecontact',
+  'ragefollow',
+  'guard',
+  'artifact',
+  'heal',
+]);
 const reportOverride = process.env.SHANHAI_MOTION_REPORT_DIR ||
   process.env.BROWSER_REPORT_DIR ||
   process.env.BROWSER_OUTPUT_DIR;
@@ -45,6 +77,7 @@ async function check(name, fn) {
   try {
     const details = await fn();
     checks.push({ name, ok: true, ...(details ? { details } : {}) });
+    console.log(`ok - ${name}`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     checks.push({ name, ok: false, error: message });
@@ -63,10 +96,9 @@ function installMotionInstrumentation(context) {
     window.__shanhaiMotionAudit = { animations: [], transitions: [] };
     document.addEventListener('animationstart', event => {
       const target = event.target;
-      if (!(target instanceof Element)) return;
+      if (!(target instanceof Element) || !target.matches('.combat-float')) return;
       const arena = target.closest('.combat-arena');
-      const combatant = target.closest('.combatant');
-      if (!arena || (!combatant && !target.matches('.combat-float'))) return;
+      if (!arena) return;
 
       const duration = parseDuration(getComputedStyle(target).animationDuration);
       const record = {
@@ -74,9 +106,6 @@ function installMotionInstrumentation(context) {
         frameIndex: Number(arena.dataset.frameIndex),
         frameKind: arena.dataset.frameKind || '',
         actionKind: arena.dataset.actionKind || '',
-        side: combatant?.getAttribute('data-side') || '',
-        motion: combatant?.getAttribute('data-motion') || '',
-        motionTrigger: combatant?.getAttribute('data-motion-trigger') || '',
         targetClass: typeof target.className === 'string'
           ? target.className
           : target.className?.baseVal || '',
@@ -218,6 +247,167 @@ async function waitForFrameChange(page, previous) {
   }, previous, { polling: 'raf' });
 }
 
+async function waitForCanvasReady(page) {
+  await page.waitForFunction(() => {
+    const canvas = document.querySelector('canvas[data-game-battle]');
+    return canvas?.dataset.engine === 'drawn-frames' &&
+      canvas.getFrameSnapshot instanceof Function &&
+      canvas.parentElement?.dataset.artReady === 'true' &&
+      canvas.width > 0 &&
+      canvas.height > 0;
+  }, { polling: 'raf' });
+}
+
+async function readCanvasSnapshot(page) {
+  return page.evaluate(() => {
+    const canvas = document.querySelector('canvas[data-game-battle]');
+    return {
+      engine: canvas?.dataset.engine || '',
+      artReady: canvas?.parentElement?.getAttribute('data-art-ready') || '',
+      width: canvas?.width || 0,
+      height: canvas?.height || 0,
+      clockAttribute: canvas?.dataset.clock || '',
+      snapshot: canvas?.getFrameSnapshot?.() || null,
+    };
+  });
+}
+
+async function readCanvasPixels(page) {
+  return page.evaluate(() => {
+    const canvas = document.querySelector('canvas[data-game-battle]');
+    if (!canvas?.width || !canvas.height) throw new Error('Battle canvas has no drawable size');
+    const probe = document.createElement('canvas');
+    probe.width = 64;
+    probe.height = 64;
+    const context = probe.getContext('2d', { willReadFrequently: true });
+    if (!context) throw new Error('Unable to inspect battle canvas pixels');
+    context.drawImage(canvas, 0, 0, probe.width, probe.height);
+    const pixels = context.getImageData(0, 0, probe.width, probe.height).data;
+    let painted = 0;
+    let hash = 2166136261;
+    for (let index = 0; index < pixels.length; index += 4) {
+      if (pixels[index + 3] > 8) painted += 1;
+      hash ^= pixels[index];
+      hash = Math.imul(hash, 16777619);
+      hash ^= pixels[index + 1];
+      hash = Math.imul(hash, 16777619);
+      hash ^= pixels[index + 2];
+      hash = Math.imul(hash, 16777619);
+      hash ^= pixels[index + 3];
+      hash = Math.imul(hash, 16777619);
+    }
+    return { painted, hash: hash >>> 0 };
+  });
+}
+
+async function waitForCanvasAction(page, side, action, minimumElapsed = 0, frameIndex = null) {
+  await page.waitForFunction(({ side, action, minimumElapsed, frameIndex }) => {
+    const canvas = document.querySelector('canvas[data-game-battle]');
+    const arena = document.querySelector('.combat-arena');
+    const actor = canvas?.getFrameSnapshot?.()?.[side];
+    return (frameIndex === null || Number(arena?.dataset.frameIndex) === frameIndex) &&
+      actor?.action === action &&
+      Number.isFinite(actor.elapsed) &&
+      actor.elapsed >= minimumElapsed;
+  }, { side, action, minimumElapsed, frameIndex }, { polling: 'raf' });
+  const { snapshot } = await readCanvasSnapshot(page);
+  return { clock: snapshot?.clock, actor: snapshot?.[side] };
+}
+
+async function armPauseAtFrame(page, frameIndex) {
+  await page.evaluate(index => {
+    const arena = document.querySelector('.combat-arena');
+    if (!arena) throw new Error('Cannot arm frame pause without a battle arena');
+    const observer = new MutationObserver(() => {
+      if (Number(arena.dataset.frameIndex) !== index) return;
+      observer.disconnect();
+      const button = document.querySelector('[data-action="battle-pause"]');
+      if (!(button instanceof HTMLButtonElement)) {
+        throw new Error('Battle pause control is missing at the requested frame');
+      }
+      if (button.getAttribute('aria-pressed') !== 'true') button.click();
+    });
+    observer.observe(arena, { attributes: true, attributeFilter: ['data-frame-index'] });
+  }, frameIndex);
+}
+
+async function armPauseAtCanvasElapsed(page, side, action, minimumElapsed, frameIndex) {
+  await page.evaluate(({ side, action, minimumElapsed, frameIndex }) => {
+    const check = () => {
+      const arena = document.querySelector('.combat-arena');
+      const currentIndex = Number(arena?.dataset.frameIndex);
+      const actor = document.querySelector('canvas[data-game-battle]')
+        ?.getFrameSnapshot?.()?.[side];
+      if (currentIndex > frameIndex ||
+          (currentIndex === frameIndex && actor?.action !== action)) return;
+      if (currentIndex !== frameIndex || actor.elapsed < minimumElapsed) {
+        requestAnimationFrame(check);
+        return;
+      }
+      const button = document.querySelector('[data-action="battle-pause"]');
+      if (button instanceof HTMLButtonElement &&
+          button.getAttribute('aria-pressed') !== 'true') button.click();
+    };
+    requestAnimationFrame(check);
+  }, { side, action, minimumElapsed, frameIndex });
+}
+
+async function sampleCanvasTimeline(page, duration = 160) {
+  return page.evaluate(duration => {
+    const canvas = document.querySelector('canvas[data-game-battle]');
+    if (!canvas?.getFrameSnapshot) throw new Error('Battle canvas snapshot is unavailable');
+    return new Promise(resolve => {
+      const started = performance.now();
+      const samples = [];
+      const sample = () => {
+        const snapshot = canvas.getFrameSnapshot();
+        samples.push({
+          time: performance.now(),
+          clock: snapshot.clock,
+          player: { ...snapshot.player },
+          enemy: { ...snapshot.enemy },
+        });
+        if (performance.now() - started < duration) requestAnimationFrame(sample);
+        else resolve(samples);
+      };
+      requestAnimationFrame(sample);
+    });
+  }, duration);
+}
+
+async function assertCanvasRuntime(page, label) {
+  await waitForCanvasReady(page);
+  const actual = await readCanvasSnapshot(page);
+  assert.equal(actual.engine, 'drawn-frames', `${label}: canvas 未使用逐帧动画引擎`);
+  assert.equal(actual.artReady, 'true', `${label}: 逐帧美术没有 ready`);
+  assert.ok(actual.width > 0 && actual.height > 0,
+    `${label}: canvas 尺寸无效 ${actual.width}x${actual.height}`);
+  assert.ok(actual.snapshot && Number.isFinite(actual.snapshot.clock),
+    `${label}: getFrameSnapshot 缺少有效时钟`);
+  assert.equal(actual.clockAttribute, String(actual.snapshot.clock),
+    `${label}: canvas clock data 与快照不一致`);
+  for (const side of ['player', 'enemy']) {
+    const actor = actual.snapshot[side];
+    assert.ok(actor && typeof actor.id === 'string' && actor.id.length > 0,
+      `${label}: ${side} 缺少角色帧身份`);
+    assert.ok(['idle', 'attack', 'rage', 'hit', 'guard', 'heal', 'artifact'].includes(actor.action),
+      `${label}: ${side} 未知 canvas action ${actor.action}`);
+    assert.ok(framePoses.has(actor.pose), `${label}: ${side} 未知帧姿态 ${actor.pose}`);
+    assert.ok(Number.isInteger(actor.frame) && actor.frame >= 0 && actor.frame < framePoses.size,
+      `${label}: ${side} frame 索引无效 ${actor.frame}`);
+    for (const key of ['elapsed', 'x', 'y', 'scale']) {
+      assert.ok(Number.isFinite(actor[key]), `${label}: ${side} ${key} 不是有限数值`);
+    }
+    assert.ok(actor.elapsed >= 0 && actor.scale > 0,
+      `${label}: ${side} timeline 数值越界 ${JSON.stringify(actor)}`);
+    assert.ok(actor.effect === null || typeof actor.effect === 'object',
+      `${label}: ${side} effect 快照结构无效`);
+  }
+  const pixels = await readCanvasPixels(page);
+  assert.ok(pixels.painted > 20, `${label}: canvas 没有实际绘制逐帧角色像素`);
+  return { actual, pixels };
+}
+
 async function assertSteadyFirstBattle(page, width) {
   await page.goto(url, { waitUntil: 'networkidle' });
   await page.evaluate(() => localStorage.clear());
@@ -244,6 +434,7 @@ async function assertSteadyFirstBattle(page, width) {
   await clickAction(page, 'fight');
   await waitForPhase(page, 'battle');
   await page.locator('.battle-shell').waitFor({ state: 'visible' });
+  await assertCanvasRuntime(page, `${width} opening canvas`);
 
   const snapshot = await battleSnapshot(page);
   assert.equal(snapshot.state.method, 'RKF01', `${width}: 非预期开局功法`);
@@ -266,8 +457,10 @@ async function assertSteadyFirstBattle(page, width) {
     enemyHp: snapshot.state.battle.enemyHp,
   });
   assert.equal((await page.locator('.combatant').count()), 2, `${width}: 战斗双方不完整`);
-  assert.equal((await page.locator('.combatant .fighter-art .portrait').count()), 2,
-    `${width}: 战斗立绘节点不完整`);
+  assert.equal((await page.locator('.combatant .fighter-art .character-art').count()), 2,
+    `${width}: canvas 角色 fallback 节点不完整`);
+  assert.equal((await page.locator('canvas[data-game-battle]').count()), 1,
+    `${width}: 主舞台逐帧 canvas 节点不完整`);
   assert.equal((await page.locator('.combatant .bar').count()), 4,
     `${width}: 每方战斗 HUD 只应保留血盾合一条与怒气条`);
   assert.equal((await page.locator('.combatant .bar.hp > span.hp-fill').count()), 2,
@@ -296,7 +489,9 @@ async function captureStableNodes(page) {
       shell: document.querySelector('.battle-shell'),
       arena,
       combatants,
-      portraits: combatants.map(item => item.querySelector('.fighter-art .portrait')),
+      characterFallbacks: combatants.map(item =>
+        item.querySelector('.fighter-art .character-art')),
+      canvas: arena.querySelector('canvas[data-game-battle]'),
       vitalValues: combatants.flatMap(item => [
         item.querySelector('[data-value="hp"]'),
         item.querySelector('[data-value="shield"]'),
@@ -317,13 +512,16 @@ async function stableNodesRemain(page, label) {
   const stable = await page.evaluate(() => {
     const refs = window.__shanhaiMotionNodes;
     if (!refs) return false;
+    const arena = document.querySelector('.combat-arena');
     const combatants = [...document.querySelectorAll('.combatant')];
     const same = (before, after) => before.length === after.length &&
       before.every((node, index) => node === after[index]);
     return refs.shell === document.querySelector('.battle-shell') &&
       refs.arena === document.querySelector('.combat-arena') &&
       same(refs.combatants, combatants) &&
-      same(refs.portraits, combatants.map(item => item.querySelector('.fighter-art .portrait'))) &&
+      same(refs.characterFallbacks, combatants.map(item =>
+        item.querySelector('.fighter-art .character-art'))) &&
+      refs.canvas === arena.querySelector('canvas[data-game-battle]') &&
       same(refs.vitalValues, combatants.flatMap(item => [
         item.querySelector('[data-value="hp"]'),
         item.querySelector('[data-value="shield"]'),
@@ -337,7 +535,7 @@ async function stableNodesRemain(page, label) {
       refs.controls === document.querySelector('.battle-controls') &&
       same(refs.buttons, [...document.querySelectorAll('.battle-controls button')]);
   });
-  assert.ok(stable, `${label}: 帧更新替换了 battle arena/combatant/portrait/bar/control 节点`);
+  assert.ok(stable, `${label}: 帧更新替换了 battle arena/combatant/canvas/bar/control 节点`);
 }
 
 function ariaNumberTokens(value) {
@@ -651,33 +849,18 @@ async function assertNoPageIssues(page, errors, width) {
   assert.deepEqual(errors, [], `${width}: 浏览器错误 ${JSON.stringify(errors)}`);
 }
 
-async function motionSamples(page, { frameIndex, motion, side, float = false }) {
-  await page.waitForFunction(({ frameIndex, motion, side, float }) => {
+async function motionSamples(page, { frameIndex, float = true }) {
+  await page.waitForFunction(({ frameIndex, float }) => {
     const audit = window.__shanhaiMotionAudit;
-    return audit?.animations.some(record => {
-      const matches = record.frameIndex === frameIndex &&
-        (float
-          ? record.targetClass.split(/\s+/).includes('combat-float')
-          : record.motion === motion && record.side === side);
-      if (!matches || record.samples.length < 4) return false;
-      const samples = record.samples.filter(item => item.connected);
-      const span = key => samples.length
-        ? Math.max(...samples.map(item => item[key])) -
-          Math.min(...samples.map(item => item[key]))
-        : 0;
-      const elapsed = samples.length
-        ? samples.at(-1).time - samples[0].time
-        : 0;
-      return span('x') > 0.5 || span('y') > 0.5 ||
-        elapsed >= Math.min(record.duration, 180);
-    });
-  }, { frameIndex, motion, side, float }, { polling: 'raf' });
-  return page.evaluate(({ frameIndex, motion, side, float }) => {
+    return float && audit?.animations.some(record =>
+      record.frameIndex === frameIndex &&
+      record.targetClass.split(/\s+/).includes('combat-float') &&
+      record.samples.filter(item => item.connected).length >= 4);
+  }, { frameIndex, float }, { polling: 'raf' });
+  return page.evaluate(({ frameIndex, float }) => {
     const record = window.__shanhaiMotionAudit.animations.find(item =>
       item.frameIndex === frameIndex &&
-      (float
-        ? item.targetClass.split(/\s+/).includes('combat-float')
-        : item.motion === motion && item.side === side) &&
+      float && item.targetClass.split(/\s+/).includes('combat-float') &&
       item.samples.length >= 4);
     const samples = record.samples.filter(item => item.connected);
     const span = key => Math.max(...samples.map(item => item[key])) -
@@ -688,10 +871,7 @@ async function motionSamples(page, { frameIndex, motion, side, float = false }) 
         frameIndex: record.frameIndex,
         frameKind: record.frameKind,
         actionKind: record.actionKind,
-        side: record.side,
-        motion: record.motion,
         targetClass: record.targetClass,
-        motionTrigger: record.motionTrigger,
         duration: record.duration,
       },
       sampleCount: samples.length,
@@ -699,14 +879,7 @@ async function motionSamples(page, { frameIndex, motion, side, float = false }) 
       yMovement: span('y'),
       samples,
     };
-  }, { frameIndex, motion, side, float });
-}
-
-async function assertMovingAnimation(page, options, label) {
-  const result = await motionSamples(page, options);
-  assert.ok(result.xMovement > 0.5 || result.yMovement > 0.5,
-    `${label}: 动画没有真实位移 ${JSON.stringify(result.record)}`);
-  return result;
+  }, { frameIndex, float });
 }
 
 async function assertRageInterpolation(page, snapshot, width) {
@@ -813,22 +986,177 @@ function motionTarget(frames, index, motion) {
   return null;
 }
 
+async function assertCanvasActionTimeline(page, snapshot, index, kind, label) {
+  const expected = actionTimeline[kind];
+  const frame = snapshot.frames[index];
+  assert.ok(expected && frame?.kind === 'action',
+    `${label}: runtime 缺少 ${kind} canvas action frame`);
+  const nextIndex = index + 1;
+  const nextGroup = expectedPresentationAt(snapshot.frames, nextIndex);
+  const contactCursor = nextGroup
+    ? expectedPresentationStepEnd(snapshot.frames, nextGroup.startIndex)
+    : nextIndex;
+  const side = frame.actor;
+  assert.ok(side === 'player' || side === 'enemy', `${label}: action frame 缺少 actor`);
+
+  await pauseNextReplay(page);
+  await setReplayCursor(page, index - 1);
+  await waitForCanvasReady(page);
+  assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true',
+    `${label}: action timing fixture 未从暂停状态开始`);
+  const idlePixels = await readCanvasPixels(page);
+  await armPauseAtFrame(page, contactCursor);
+  await page.evaluate(() => {
+    window.__shanhaiMotionWindup = null;
+    window.__shanhaiMotionActionStart = null;
+  });
+  const windupProbe = page.waitForFunction(({ index, side, action, frame, pose }) => {
+    const arena = document.querySelector('.combat-arena');
+    const canvas = document.querySelector('canvas[data-game-battle]');
+    const snapshot = canvas?.getFrameSnapshot?.();
+    const actor = snapshot?.[side];
+    if (Number(arena?.dataset.frameIndex) === index && actor?.action === action &&
+        !window.__shanhaiMotionActionStart) {
+      window.__shanhaiMotionActionStart = {
+        clock: snapshot.clock,
+        actor: { ...actor },
+        beat: Number.parseFloat(document.querySelector('.battle-shell')
+          ?.style.getPropertyValue('--beat-duration') || ''),
+      };
+    }
+    if (Number(arena?.dataset.frameIndex) !== index ||
+        actor?.action !== action ||
+        actor.frame !== frame ||
+        actor.pose !== pose) return false;
+    const probe = document.createElement('canvas');
+    probe.width = 64;
+    probe.height = 64;
+    const context = probe.getContext('2d', { willReadFrequently: true });
+    if (!context || !canvas) return false;
+    context.drawImage(canvas, 0, 0, probe.width, probe.height);
+    const pixels = context.getImageData(0, 0, probe.width, probe.height).data;
+    let painted = 0;
+    let hash = 2166136261;
+    for (let offset = 0; offset < pixels.length; offset += 4) {
+      if (pixels[offset + 3] > 8) painted += 1;
+      for (let channel = 0; channel < 4; channel += 1) {
+        hash ^= pixels[offset + channel];
+        hash = Math.imul(hash, 16777619);
+      }
+    }
+    window.__shanhaiMotionWindup = {
+      clock: snapshot.clock,
+      actor: { ...actor },
+      pixels: { painted, hash: hash >>> 0 },
+    };
+    return true;
+  }, {
+    index,
+    side,
+    action: expected.action,
+    frame: expected.windupFrame,
+    pose: expected.windupPose,
+  }, { polling: 'raf' });
+  await clickAction(page, 'battle-pause');
+  await windupProbe;
+  const initial = await page.evaluate(() => window.__shanhaiMotionActionStart);
+  assert.ok(initial?.actor.elapsed >= 0 && initial.actor.elapsed < expected.contactMs,
+    `${label}: canvas action 初始 elapsed 越过接触点 ${initial?.actor.elapsed}`);
+  const beat = initial.beat;
+  assert.ok(Math.abs(beat - expected.contactMs) < 0.1,
+    `${label}: 回放 beat 未对齐接触时间 ${beat}/${expected.contactMs}`);
+  const windup = await page.evaluate(() => window.__shanhaiMotionWindup);
+  assert.equal(windup.actor.frame, expected.windupFrame,
+    `${label}: windup canvas frame 索引错误`);
+  assert.equal(windup.actor.pose, expected.windupPose,
+    `${label}: windup canvas pose 错误`);
+  assert.ok(windup.actor.elapsed > 0 && windup.actor.elapsed < expected.contactMs,
+    `${label}: windup elapsed 越过接触点 ${windup.actor.elapsed}`);
+  const windupPixels = windup.pixels;
+  assert.ok(windupPixels.painted > 20, `${label}: windup 没有实际 canvas 像素`);
+  assert.notEqual(windupPixels.hash, idlePixels.hash,
+    `${label}: canvas windup 帧没有改变实际绘制像素`);
+
+  await waitForFrameIndex(page, contactCursor);
+  assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true',
+    `${label}: 接触帧边界没有冻结回放`);
+  const { actual, pixels: contactPixels } = await assertCanvasRuntime(page, label);
+  const contact = actual.snapshot[side];
+  const actionStartedAt = initial.clock - initial.actor.elapsed;
+  const elapsedAtContact = actual.snapshot.clock - actionStartedAt;
+  // MutationObserver pauses after the RAF callback, including its bounded remainder.
+  assert.ok(elapsedAtContact >= expected.contactMs - 1 &&
+    elapsedAtContact < expected.contactMs + 81,
+    `${label}: timeline 时钟与逐帧接触时间不一致 ` +
+    `${elapsedAtContact}/${expected.contactMs}; ` +
+    `start=${actionStartedAt}, initial=${JSON.stringify(initial)}, ` +
+    `currentClock=${actual.snapshot.clock}, cursor=${contactCursor}, ` +
+    `currentAction=${contact.action}`);
+  const groupMotion = expectedMotionAt(snapshot.frames, contactCursor, side);
+  const reactionAction = {
+    strike: 'attack',
+    rage: 'rage',
+    hit: 'hit',
+    block: 'guard',
+    heal: expected.action,
+    shield: expected.action,
+    dot: 'hit',
+    buff: expected.action,
+  }[groupMotion] || expected.action;
+  assert.equal(contact.action, reactionAction,
+    `${label}: 接触后的 canvas 没有进入当前效果组动作 ${reactionAction}`);
+  if (contact.action === expected.action) {
+    assert.equal(contact.frame, expected.contactFrame, `${label}: 接触帧索引错误`);
+    assert.equal(contact.pose, expected.contactPose, `${label}: canvas 没有进入 contact pose`);
+    assert.ok(Math.abs(contact.elapsed - elapsedAtContact) < 1,
+      `${label}: 接触姿态与共享时钟不同步 ${contact.elapsed}/${elapsedAtContact}`);
+    assert.notEqual(contactPixels.hash, windupPixels.hash,
+      `${label}: contact 帧没有改变实际绘制像素`);
+  }
+  assert.equal((await battleSnapshot(page)).replay?.cursor, contactCursor,
+    `${label}: 接触帧暂停改写了 raw replay cursor`);
+  return { side, contactCursor, initial, windup, contact, pixels: contactPixels };
+}
+
 async function assertFixtureMotion(page, snapshot, index, motion, label) {
   const group = expectedPresentationAt(snapshot.frames, index);
   const cursor = group
     ? expectedPresentationStepEnd(snapshot.frames, group.startIndex)
     : index;
   const before = group ? group.startIndex - 1 : index - 1;
-  await setReplayCursor(page, before);
-  await waitForFrameIndex(page, cursor);
-  await clickAction(page, 'battle-pause');
-  const actual = await assertFrameContract(page, cursor, snapshot.frames, label);
   const targetSide = motionTarget(snapshot.frames, cursor, motion);
-  assert.ok(targetSide, `${label}: runtime frame 没有 ${motion} 表现对象`);
+  let canvasAction = {
+    strike: 'attack',
+    rage: 'rage',
+    hit: 'hit',
+    block: 'guard',
+    heal: 'heal',
+    shield: 'artifact',
+    dot: 'hit',
+    buff: 'artifact',
+  }[motion];
+  const releasingFrame = snapshot.frames[before];
+  if (['heal', 'shield', 'buff'].includes(motion) &&
+      releasingFrame?.kind === 'action' && releasingFrame.actor === targetSide) {
+    canvasAction = expectedActionKind(releasingFrame) === 'rage' ? 'rage' : 'attack';
+  }
+  assert.ok(targetSide && canvasAction, `${label}: 缺少 ${motion} canvas action 映射`);
+  await pauseNextReplay(page);
+  await setReplayCursor(page, before);
+  await waitForCanvasReady(page);
+  assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true',
+    `${label}: fixture 未从暂停状态开始`);
+  await armPauseAtFrame(page, cursor);
+  await clickAction(page, 'battle-pause');
+  await waitForFrameIndex(page, cursor);
+  assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true',
+    `${label}: canvas motion frame 没有暂停`);
+  const actual = await assertFrameContract(page, cursor, snapshot.frames, label);
   assert.equal(actual.combatants.find(item => item.side === targetSide)?.motion, motion,
     `${label}: ${targetSide} 未呈现 ${motion}`);
-  assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true',
-    `${label}: 暂停状态没有反映到 battle shell`);
+  const actor = await waitForCanvasAction(page, targetSide, canvasAction, 0, cursor);
+  assert.equal(actor.actor.action, canvasAction,
+    `${label}: ${targetSide} canvas 没有呈现 ${motion} 对应的 ${canvasAction}`);
   return targetSide;
 }
 
@@ -1200,15 +1528,16 @@ async function assertFixtureCoverage(page, width) {
   const rageIndex = findFrame(shieldSnapshot.frames, frame =>
     frame.kind === 'action' && expectedActionKind(frame) === 'rage',
   '怒技');
-  assert.ok(shieldSnapshot.frames.some((frame, index) =>
-    index > 0 && frame.kind === 'action' && expectedActionKind(frame) === 'basic'),
-  'RKF01 实战缺少普攻表现帧');
+  const basicIndex = findFrame(shieldSnapshot.frames, frame =>
+    frame.kind === 'action' && expectedActionKind(frame) === 'basic',
+  '普攻');
   await assertFixtureMotion(page, shieldSnapshot, shieldIndex, 'shield', '真实护盾 fixture');
   await assertFixtureMotion(page, shieldSnapshot, rageIndex, 'rage', '真实怒技 fixture');
-  await assertFixtureMotion(page, shieldSnapshot,
-    findFrame(shieldSnapshot.frames, (frame, index) =>
-      index > 0 && frame.kind === 'action' && expectedActionKind(frame) === 'basic',
-    '普攻'), 'strike', '真实普攻 fixture');
+  await assertFixtureMotion(page, shieldSnapshot, basicIndex, 'strike', '真实普攻 fixture');
+  await assertCanvasActionTimeline(page, shieldSnapshot, basicIndex, 'basic',
+    '真实普攻逐帧接触');
+  await assertCanvasActionTimeline(page, shieldSnapshot, rageIndex, 'rage',
+    '真实怒技逐帧接触');
   await assertFixedVitalDisplayFixtures(page, shieldSnapshot.frames[0]);
   await assertFixedGroupedMultiHit(page, shieldSnapshot.frames[0], width);
 
@@ -1260,9 +1589,17 @@ async function assertFixtureCoverage(page, width) {
 async function assertControlTimingAndReplay(page, snapshot, width) {
   const actionIndex = findFrame(snapshot.frames, frame =>
     frame.kind === 'action' && expectedActionKind(frame) === 'basic', '普攻动作');
+  await pauseNextReplay(page);
   await setReplayCursor(page, actionIndex - 1);
+  await waitForCanvasReady(page);
+  assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true',
+    `${width}: 普攻 timing fixture 未从暂停状态开始`);
   await captureStableNodes(page);
+  await armPauseAtFrame(page, actionIndex);
+  await clickAction(page, 'battle-pause');
   await waitForFrameIndex(page, actionIndex);
+  assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true',
+    `${width}: 普攻 action frame 没有及时暂停`);
   await assertFrameContract(page, actionIndex, snapshot.frames, `${width} active action`);
   const actionFrame = snapshot.frames[actionIndex];
   const actor = actionFrame.actor;
@@ -1273,26 +1610,24 @@ async function assertControlTimingAndReplay(page, snapshot, width) {
   assert.ok(triggerKey === '0' || triggerKey === '1',
     `${width}: combatant data-motion-trigger 缺少可测 motion key`);
 
-  const animation = await assertMovingAnimation(page, {
-    frameIndex: actionIndex,
-    motion: 'strike',
-    side: actor,
-  }, `${width} 普攻位移`);
-
-  const sameActionAnimationCount = await page.evaluate(({ frameIndex, actor, triggerKey }) =>
-    window.__shanhaiMotionAudit.animations.filter(record =>
-      record.frameIndex === frameIndex &&
-      record.side === actor &&
-      record.motion === 'strike' &&
-      record.motionTrigger === triggerKey).length,
-  { frameIndex: actionIndex, actor, triggerKey });
-  assert.ok(sameActionAnimationCount > 0,
-    `${width}: 没有记录到普攻动作动画 ${JSON.stringify(animation.record)}`);
+  await armPauseAtCanvasElapsed(page, actor, 'attack', 60, actionIndex);
   await clickAction(page, 'battle-pause');
+  await page.waitForFunction(index => {
+    const shell = document.querySelector('.battle-shell');
+    const arena = document.querySelector('.combat-arena');
+    return shell?.getAttribute('data-paused') === 'true' &&
+      Number(arena?.dataset.frameIndex) === index;
+  }, actionIndex, { polling: 'raf' });
   assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true',
-    `${width}: pause 未同步到 shell`);
+    `${width}: timeline 中段暂停没有同步到 shell`);
+  const inFlight = await waitForCanvasAction(page, actor, 'attack', 60, actionIndex);
   const cursorAtPause = (await battleSnapshot(page)).replay?.cursor;
   assert.equal(cursorAtPause, actionIndex, `${width}: pause 时 cursor 不在当前动作`);
+  const pausedTimeline = (await readCanvasSnapshot(page)).snapshot;
+  assert.equal(pausedTimeline[actor].action, 'attack',
+    `${width}: 暂停时 canvas action 已意外清除`);
+  assert.ok(pausedTimeline[actor].elapsed >= inFlight.actor.elapsed,
+    `${width}: 暂停前后 canvas elapsed 倒退`);
   const saveBeforeControls = await savedText(page);
   const beatAt1x = Number.parseFloat((await page.locator('.battle-shell')
     .evaluate(element => getComputedStyle(element).getPropertyValue('--beat-duration'))).trim());
@@ -1309,6 +1644,8 @@ async function assertControlTimingAndReplay(page, snapshot, width) {
     `${width}: 4x beat 时间没有按速率缩短 ${beatAt1x}/${beatAt4x}`);
   const keyAfterSpeed = await readMotionKey(page, actor);
   assert.equal(keyAfterSpeed, triggerKey, `${width}: 改速重渲染重复触发动作 key`);
+  assert.deepEqual((await readCanvasSnapshot(page)).snapshot, pausedTimeline,
+    `${width}: 暂停期间改速意外推进或重放 canvas action`);
 
   assert.equal(await page.locator('.battle-log').count(), 0,
     `${width}: 战报不应常驻主战斗 DOM`);
@@ -1329,54 +1666,54 @@ async function assertControlTimingAndReplay(page, snapshot, width) {
     `${width}: 暂停/改速/切详情战报模式改变了游戏存档`);
   assert.equal(await readMotionKey(page, actor), triggerKey,
     `${width}: 详情战报切换重新发射了同一动作`);
-  const animationCountAfterControls = await page.evaluate(({ frameIndex, actor, triggerKey }) =>
-    window.__shanhaiMotionAudit.animations.filter(record =>
-      record.frameIndex === frameIndex &&
-      record.side === actor &&
-      record.motion === 'strike' &&
-      record.motionTrigger === triggerKey).length,
-  { frameIndex: actionIndex, actor, triggerKey });
-  assert.equal(animationCountAfterControls, sameActionAnimationCount,
-    `${width}: pause/speed/details 对同一普攻重复发射了动作`);
-
-  const pauseBehavior = await actorNode.evaluate(element => ({
-    pausedAnimations: element.getAnimations({ subtree: true })
-      .filter(animation => animation.playState === 'paused').length,
-  }));
-  assert.ok(pauseBehavior.pausedAnimations > 0,
-    `${width}: 暂停后没有冻结实际动作动画`);
-  const pausedSamples = await sampleStableRect(
-    page,
-    `.combatant[data-side="${actor}"] .fighter-art`,
-    Math.max(120, Math.min(260, beatAt1x)),
-  );
-  const pausedRange = key => Math.max(...pausedSamples.map(item => item[key])) -
-    Math.min(...pausedSamples.map(item => item[key]));
-  assert.ok(pausedRange('x') <= 0.5 && pausedRange('y') <= 0.5,
-    `${width}: 暂停后动作仍发生位移 ${JSON.stringify({
-      x: pausedRange('x'),
-      y: pausedRange('y'),
-    })}`);
+  assert.deepEqual((await readCanvasSnapshot(page)).snapshot, pausedTimeline,
+    `${width}: 暂停期间打开/关闭战报改变了 canvas action`);
+  const pausedSamples = await sampleCanvasTimeline(page,
+    Math.max(120, Math.min(260, beatAt1x)));
+  for (const sample of pausedSamples) {
+    assert.equal(sample.clock, pausedTimeline.clock,
+      `${width}: 暂停后 canvas clock 仍在推进`);
+    assert.deepEqual(sample[actor], pausedTimeline[actor],
+      `${width}: 暂停后 canvas 帧状态仍在变化`);
+  }
 
   await clickAction(page, 'battle-pause');
   assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'false',
     `${width}: 恢复没有清除暂停标记`);
   await waitForFrameChange(page, actionIndex);
   await stableNodesRemain(page, `${width} next frame`);
+  await assertCanvasActionTimeline(page, snapshot, actionIndex, 'basic',
+    `${width} basic canvas contact`);
 }
 
 async function waitUntilStable(page, durationFactor = 1.5) {
+  const canvasMounted = (await page.locator('canvas[data-game-battle]').count()) > 0;
+  if (canvasMounted) await waitForCanvasReady(page);
   await page.evaluate(durationFactor => {
     const shell = document.querySelector('.battle-shell');
     const beat = Number.parseFloat(shell?.style.getPropertyValue('--beat-duration') || '300');
     const duration = Math.max(260, beat * durationFactor);
     const arena = document.querySelector('.combat-arena');
+    const canvas = document.querySelector('canvas[data-game-battle]');
+    const signature = snapshot => ({
+      clock: snapshot.clock,
+      player: { ...snapshot.player },
+      enemy: { ...snapshot.enemy },
+    });
     const startIndex = arena?.getAttribute('data-frame-index');
+    const startCanvas = canvas?.getFrameSnapshot?.();
     return new Promise(resolve => {
       const start = performance.now();
       const sample = () => {
         if (performance.now() - start >= duration) {
-          resolve({ duration, startIndex, endIndex: arena?.getAttribute('data-frame-index') });
+          resolve({
+            duration,
+            startIndex,
+            endIndex: arena?.getAttribute('data-frame-index'),
+            canvasMounted: Boolean(canvas),
+            startCanvas: startCanvas && signature(startCanvas),
+            endCanvas: canvas?.getFrameSnapshot?.() && signature(canvas.getFrameSnapshot()),
+          });
           return;
         }
         requestAnimationFrame(sample);
@@ -1386,6 +1723,12 @@ async function waitUntilStable(page, durationFactor = 1.5) {
   }, durationFactor).then(result => {
     assert.equal(result.endIndex, result.startIndex,
       `预期暂停期间帧索引稳定 ${JSON.stringify(result)}`);
+    assert.equal(result.canvasMounted, canvasMounted,
+      `暂停期间 canvas mount 状态意外变化 ${JSON.stringify(result)}`);
+    if (canvasMounted) {
+      assert.deepEqual(result.endCanvas, result.startCanvas,
+        `暂停期间 canvas timeline 应冻结 ${JSON.stringify(result)}`);
+    }
   });
 }
 
@@ -1571,6 +1914,14 @@ async function assertSkipIsPresentationOnly(page, snapshot, width) {
   assert.equal(afterSkip.rawText, runSave, `${width}: skip 改写了运行时存档`);
   assert.equal(afterSkip.replay?.cursor, afterSkip.frames.length - 1,
     `${width}: skip 没有移动到完整战斗末帧`);
+  await waitForCanvasReady(page);
+  const skippedCanvas = (await readCanvasSnapshot(page)).snapshot;
+  for (const side of ['player', 'enemy']) {
+    assert.equal(skippedCanvas[side].action, 'idle',
+      `${width}: skip 没有清空 ${side} canvas action`);
+    assert.equal(skippedCanvas[side].effect, null,
+      `${width}: skip 没有清空 ${side} canvas effect`);
+  }
   assert.equal(await page.locator('.battle-log').count(), 0,
     `${width}: 结算后战报仍不应常驻主屏`);
   await clickAction(page, 'battle-details', { tab: 'log' });
@@ -1605,7 +1956,7 @@ async function assertSkipIsPresentationOnly(page, snapshot, width) {
     `${width}: 结算后存档意外写入预计算帧`);
 }
 
-async function assertFloatMoves(page, snapshot, width) {
+async function assertFloatFeedbackStable(page, snapshot, width) {
   const index = findFrame(snapshot.frames, (frame, cursor) =>
     cursor > 0 && ['damage', 'dot'].includes(frame.kind) &&
     ['player', 'enemy'].some(side => frame[side].hp < snapshot.frames[cursor - 1][side].hp),
@@ -1614,9 +1965,15 @@ async function assertFloatMoves(page, snapshot, width) {
   const cursor = group ? expectedPresentationStepEnd(snapshot.frames, group.startIndex) : index;
   await setReplayCursor(page, group ? group.startIndex - 1 : index - 1);
   await waitForFrameIndex(page, cursor);
-  const result = await motionSamples(page, { frameIndex: cursor, float: true });
-  assert.ok(result.xMovement > 0.5 || result.yMovement > 0.5,
-    `${width}: 实际 combat-float 没有位移 ${JSON.stringify(result.record)}`);
+  const result = await page.locator('.combat-float').first().evaluate(element => ({
+    animation: getComputedStyle(element).animationName,
+    text: element.textContent,
+    rect: element.getBoundingClientRect().toJSON(),
+  }));
+  assert.equal(result.animation, 'none', `${width}: 固定反馈区不应使用旧浮字位移动画`);
+  assert.ok(result.text?.trim() && result.rect.width > 0 && result.rect.height > 0,
+    `${width}: 实际伤害反馈不可见`);
+  await assertFeedbackDoesNotOverlap(page, `${width} damage feedback`);
 }
 
 async function assertGroupedRuntimeFeedback(page, snapshot, width) {
@@ -1645,12 +2002,10 @@ async function assertGroupedRuntimeFeedback(page, snapshot, width) {
   assert.equal(presentation.group.enemy.hits, group.enemy.hits,
     `${width}: 浮层命中数不是当前组真实命中数`);
   await assertFeedbackDoesNotOverlap(page, `${width} real grouped multi-hit`);
-  const animation = await motionSamples(page, {
-    frameIndex: group.endIndex,
-    float: true,
-  });
-  assert.ok(animation.xMovement > 0.5 || animation.yMovement > 0.5,
-    `${width}: 普通 motion preference 下实际分组浮层没有位移 ${JSON.stringify(animation.record)}`);
+  const animations = await page.locator('.combat-float').evaluateAll(elements =>
+    elements.map(element => getComputedStyle(element).animationName));
+  assert.ok(animations.length > 0 && animations.every(name => name === 'none'),
+    `${width}: 分组反馈应稳定显示在独立反馈区 ${JSON.stringify(animations)}`);
 }
 
 async function sampleStableRect(page, selector, duration = 240) {
@@ -1703,28 +2058,48 @@ async function assertReducedMotion(browser, errors) {
       frame.kind === 'action' && expectedActionKind(frame) === 'basic',
     'reduced motion 普攻');
 
+    await pauseNextReplay(page);
     await setReplayCursor(page, actionIndex - 1);
+    await waitForCanvasReady(page);
+    assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true',
+      'reduced-motion 普攻 fixture 未从暂停状态开始');
+    await armPauseAtFrame(page, actionIndex);
+    await clickAction(page, 'battle-pause');
     await waitForFrameIndex(page, actionIndex);
+    assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true',
+      'reduced-motion 普攻没有在 action frame 暂停');
     const actionFrame = snapshot.frames[actionIndex];
     assert.equal(await page.locator(`.combatant[data-side="${actionFrame.actor}"]`)
       .getAttribute('data-motion'), 'strike',
     'reduced-motion 普攻没有实际 combatant motion 状态');
-    const actionSamples = await sampleStableRect(
-      page, `.combatant[data-side="${actionFrame.actor}"] .fighter-art`, 280);
-    const actionRange = key => Math.max(...actionSamples.map(item => item[key])) -
-      Math.min(...actionSamples.map(item => item[key]));
-    assert.ok(actionRange('x') <= 0.5 && actionRange('y') <= 0.5,
-      `reduced motion 普攻仍发生位移 ${JSON.stringify({
-        x: actionRange('x'),
-        y: actionRange('y'),
-      })}`);
+    const actionCanvas = await assertCanvasRuntime(page, 'reduced-motion basic canvas');
+    const reducedActor = actionCanvas.actual.snapshot[actionFrame.actor];
+    assert.equal(reducedActor.action, 'idle',
+      'reduced-motion 普攻没有立即收敛 canvas action');
+    assert.equal(reducedActor.pose, 'ready',
+      'reduced-motion 普攻 canvas 没有回到 ready pose');
+    const reducedActionSamples = await sampleCanvasTimeline(page, 180);
+    for (const sample of reducedActionSamples) {
+      assert.equal(sample.clock, actionCanvas.actual.snapshot.clock,
+        'reduced-motion 普攻仍推进 canvas clock');
+      assert.deepEqual(sample[actionFrame.actor], reducedActor,
+        'reduced-motion 普攻 canvas 逐帧状态仍在变化');
+    }
 
     const dotGroup = expectedPresentationAt(snapshot.frames, dotIndex);
     const dotCursor = dotGroup
       ? expectedPresentationStepEnd(snapshot.frames, dotGroup.startIndex)
       : dotIndex;
+    await pauseNextReplay(page);
     await setReplayCursor(page, dotGroup ? dotGroup.startIndex - 1 : dotIndex - 1);
+    await waitForCanvasReady(page);
+    assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true',
+      'reduced-motion DOT fixture 未从暂停状态开始');
+    await armPauseAtFrame(page, dotCursor);
+    await clickAction(page, 'battle-pause');
     await waitForFrameIndex(page, dotCursor);
+    assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true',
+      'reduced-motion DOT 帧没有冻结回放');
     assert.equal(await page.evaluate(() =>
       matchMedia('(prefers-reduced-motion: reduce)').matches), true,
     'reduced-motion context 没有生效');
@@ -1734,14 +2109,18 @@ async function assertReducedMotion(browser, errors) {
       .getAttribute('data-motion'), 'dot', 'reduced-motion 动作没有呈现 DOT 状态');
     assert.ok(await page.locator('.combat-float').count() > 0,
       'reduced-motion 真实 DOT 帧没有 combat-float 节点');
-    const [combatantSamples, floatSamples] = await Promise.all([
-      sampleStableRect(page, `.combatant[data-side="${dotSide}"] .fighter-art`, 180),
-      sampleStableRect(page, '.combat-float', 180),
-    ]);
-    for (const [label, samples] of [
-      ['combatant action', combatantSamples],
-      ['combat-float', floatSamples],
-    ]) {
+    const dotCanvas = await assertCanvasRuntime(page, 'reduced-motion DOT canvas');
+    assert.equal(dotCanvas.actual.snapshot[dotSide].action, 'idle',
+      'reduced-motion DOT 没有收敛 canvas hit action');
+    const dotTimeline = await sampleCanvasTimeline(page, 180);
+    for (const sample of dotTimeline) {
+      assert.equal(sample.clock, dotCanvas.actual.snapshot.clock,
+        'reduced-motion DOT 仍推进 canvas clock');
+      assert.deepEqual(sample[dotSide], dotCanvas.actual.snapshot[dotSide],
+        'reduced-motion DOT canvas 状态仍在变化');
+    }
+    const floatSamples = await sampleStableRect(page, '.combat-float', 180);
+    for (const [label, samples] of [['combat-float', floatSamples]]) {
       const range = selector => Math.max(...samples.map(item => item[selector])) -
         Math.min(...samples.map(item => item[selector]));
       assert.ok(range('x') <= 0.5 && range('y') <= 0.5,
@@ -1823,7 +2202,7 @@ async function runViewport(browser, width, height, includeDeepChecks) {
       });
       await check(`${width} runtime shield/heal/DOT fixtures`, async () => {
         const fixtures = await assertFixtureCoverage(page, width);
-        await assertFloatMoves(page, fixtures.dotSnapshot, width);
+        await assertFloatFeedbackStable(page, fixtures.dotSnapshot, width);
         return {
           frames: {
             shield: fixtures.shieldSnapshot.frames.length,

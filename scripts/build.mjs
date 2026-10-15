@@ -3,6 +3,7 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertValidContent, validateContent } from '../tools/content-kit/src/validator.mjs';
+import { buildGameArt } from './build-game-art.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 process.chdir(root);
@@ -20,6 +21,8 @@ await mkdir('dist/content', { recursive: true });
 await cp('build/shanhai', 'dist/shanhai', { recursive: true });
 await copyFile('build/art.js', 'dist/art.js');
 await copyFile('src/shanhai/style.css', 'dist/shanhai/style.css');
+await copyFile('src/shanhai/cartoon.css', 'dist/shanhai/cartoon.css');
+await buildGameArt({ root, destination: path.join(root, 'dist') });
 await mkdir('dist/assets/generated', { recursive: true });
 await copyFile(
   'assets/generated/combat-vfx-atlas.webp',

@@ -83,7 +83,7 @@ try {
     }, screen);
     assert.equal(rendered.view, screen);
     assert.equal(rendered.capture, 'true');
-    assert.equal(rendered.approval, 'pending');
+    assert.equal(rendered.approval, 'approved');
     assert.equal(rendered.toolbarVisible, false);
     assert.deepEqual(rendered.sample, { width: 320, height: 760 });
     assert.equal(rendered.decodedTargets, 10);

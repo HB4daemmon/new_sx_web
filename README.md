@@ -28,6 +28,8 @@ npm run dev
   战前预览、冻结的奖励三选一、有限商店、休整和换法仍按实际进入的节点结算。
 - 突破手选天赋，过幕与突破不补满当前气血。
 - 自动斗法回放、倍速、暂停、跳过、来源贡献与未触发反馈。
+- 已批准的手绘界面、山河节点与法宝素材已接入正式游戏；斗法使用十二姿态逐帧人物，
+  敌我保持独立站位，怒技按双方区分青碧与朱金光效。
 - 手机开局默认精简，奖励与天赋保持横向三选一；战报、构筑与贡献默认折叠，
   玩家界面和战报采用中文，完整效果可按需展开。
 - 确定性种子、逐步自动存档、通关构筑归档与 JSON 导出。
@@ -48,7 +50,8 @@ npm run dev
 | `src/shanhai/run.ts` | 节点、事件、经济、旅途与境界 |
 | `src/shanhai/route-map.ts` | 冻结的分支地图、可达边与已选路径校验 |
 | `src/shanhai/persistence.ts` | 存档校验、确定性回放重建与通关记录 |
-| `src/shanhai/app.ts`、`style.css` | 浏览器界面 |
+| `src/shanhai/app.ts`、`style.css`、`cartoon.css` | 浏览器界面与正式手绘主题 |
+| `src/shanhai/art-assets.ts`、`game-art.ts` | 资源映射、静态兜底与共享回放时钟的逐帧动画 |
 | `src/shanhai/battle-presentation.ts` | 回放节奏与动作反馈，不参与战斗结算 |
 | `src/shanhai/localization.ts` | 状态、效果来源、卡面术语与错误提示的中文展示 |
 | `src/shanhai/types.ts` | 共享运行时契约 |
@@ -59,6 +62,11 @@ npm run dev
 存档键为 `suishi-shanhai-run-v1`，通关构筑键为 `suishi-shanhai-build-v1`。
 战斗存档保存确定性输入，读取时重新生成回放，避免长战报占满浏览器存储。
 
+已批准美术源位于 `tools/ui-preview/public/`，构建校验清单及 PNG 哈希后只发布实际使用的
+资源和自包含动画模块，不把预览流程、旧骨骼素材或生成凭据带入正式版。
+当前五门普通功法各有独立人物，养锋石卫使用专用外观；五门进阶功法及其余敌人复用
+对应功法人物，不代表每名敌人都有独立设定图。外观映射不改变实际构筑、伤害、掉落或存档。
+
 ## 验证
 
 ```sh
@@ -68,6 +76,7 @@ npm run simulate
 npm run test:browser
 npm run test:journey
 npm run test:motion
+npm run test:art
 node tests/shanhai-compact-browser.mjs
 npm run calibrate
 ```
@@ -85,7 +94,9 @@ npm run calibrate
 - `test:motion` 检查战斗节点原位更新、血条插值、动作位移、暂停与倍速、完整战报及
   减少动态效果模式；使用真实战斗生成的表现层 fixture，不作为通关或平衡结论。
   默认报告写入临时目录，可通过 `BROWSER_REPORT_DIR` 指定位置。
-- `shanhai-compact-browser.mjs` 检查 390、360、320 像素宽的手机首屏、横向三选一、
+- `test:art` 检查五种功法的归一身高、双人画布像素、双方怒技光效、动态偏好及
+  Canvas 2D / 静态图片降级，不把表现层 fixture 当作通关或平衡结论。
+- `shanhai-compact-browser.mjs` 检查 390、360 像素宽的手机首屏、横向三选一、
   自由节点点击、默认折叠和展开战报的中文；报告目录可通过 `BROWSER_REPORT_DIR` 指定。
 - `calibrate` 记录固定敌人参考盘与真实节点对局，保留输入哈希、胜负、轮数、净损血、
   最低血线和单轮损耗。输出 `verification/shanhai/calibration-*.json`，不回写内容的实测字段。

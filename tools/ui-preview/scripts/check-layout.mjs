@@ -30,7 +30,7 @@ const moduleRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '.
 const captureRoot = path.join(moduleRoot, 'captures', 'layout');
 const fixtureManifest = {
   schemaVersion: 1,
-  approval: { status: 'pending', reviewedBy: null },
+  approval: { status: 'approved', reviewedBy: 'user' },
   assets: [
     { id: 'battle-scene', src: '/assets/scene-battle.png', kind: 'scene', screen: 'battle', required: true },
     { id: 'start-scene', src: '/assets/scene-start.png', kind: 'scene', screen: 'start', required: true },

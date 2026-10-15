@@ -38,8 +38,8 @@ function frame(overrides = {}) {
 }
 
 test('battle beat timing follows event type and replay speed', () => {
-  assert.equal(helper.battleBeatDuration(frame({ kind: 'action', text: '普攻' })), 520);
-  assert.equal(helper.battleBeatDuration(frame({ kind: 'action', text: '怒技' })), 800);
+  assert.equal(helper.battleBeatDuration(frame({ kind: 'action', text: '普攻' })), 19 * 1000 / 60);
+  assert.equal(helper.battleBeatDuration(frame({ kind: 'action', text: '怒技' })), 26 * 1000 / 60);
   assert.equal(helper.battleBeatDuration(frame({ kind: 'damage' })), 450);
   assert.equal(helper.battleBeatDuration(frame({ kind: 'heal' })), 400);
   assert.equal(helper.battleBeatDuration(frame({ kind: 'shield' })), 400);

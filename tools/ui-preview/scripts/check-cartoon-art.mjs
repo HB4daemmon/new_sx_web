@@ -131,7 +131,7 @@ try {
       await page.goto(`${origin}/?screen=${screenName}${capture ? '&capture=1' : ''}`);
       await page.waitForFunction(() => document.querySelector('#preview-app').dataset.libraryReady === 'true');
       await checkGeometry(page, screenName);
-      assert.equal(await page.locator('#preview-app').getAttribute('data-visual-approval'), 'pending');
+      assert.equal(await page.locator('#preview-app').getAttribute('data-visual-approval'), 'approved');
       const rendering = await page.locator(`[data-screen="${screenName}"] img`).evaluateAll(images =>
         images.map(image => getComputedStyle(image).imageRendering));
       assert.ok(rendering.every(mode => mode === 'auto'));

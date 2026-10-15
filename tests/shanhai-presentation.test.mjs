@@ -67,3 +67,27 @@ test('blood percentage is clamped without changing displayed HP and zero capacit
     total: 0,
   });
 });
+
+test('battle action beats end on the preview attack and rage contact poses', () => {
+  const attack = {
+    kind: 'action',
+    text: '',
+    round: 1,
+    actor: 'player',
+    player: { lockedAction: 'basic_action' },
+  };
+  const rage = {
+    kind: 'action',
+    text: '',
+    round: 1,
+    actor: 'enemy',
+    enemy: { lockedAction: 'rage_action' },
+  };
+
+  assert.equal(helper.BASIC_ACTION_CONTACT_MS, 19 * 1000 / 60);
+  assert.equal(helper.RAGE_ACTION_CONTACT_MS, 26 * 1000 / 60);
+  assert.equal(helper.battleBeatDuration(attack), 19 * 1000 / 60);
+  assert.equal(helper.battleBeatDuration(rage), 26 * 1000 / 60);
+  assert.equal(helper.battleBeatDuration(attack, 2), 19 * 1000 / 120);
+  assert.equal(helper.battleBeatDuration(rage, 4), 26 * 1000 / 240);
+});

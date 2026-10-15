@@ -185,7 +185,7 @@ const [manifestSource, html, appSource] = await Promise.all([
 ]);
 const manifest = JSON.parse(manifestSource);
 assert.equal(manifest.schemaVersion, 1);
-assert.deepEqual(manifest.approval, { status: 'pending', reviewedBy: null });
+assert.deepEqual(manifest.approval, { status: 'approved', reviewedBy: 'user' });
 assert.equal(manifest.provenance.method, 'imagegen hand-drawn cartoon kit');
 assert.equal(manifest.provenance.imageModel, 'gpt-image-2.5');
 assert.equal(manifest.provenance.generator, 'scripts/prepare-cartoon-assets.py');

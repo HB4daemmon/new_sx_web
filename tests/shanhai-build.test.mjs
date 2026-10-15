@@ -12,10 +12,14 @@ const DIST = path.join(ROOT, 'dist');
 const EXPECTED_ENTITY_COUNT = 152;
 const SHANHAI_MODULES = [
   'app.js',
+  'animation.js',
+  'art-assets.js',
   'battle-playback.js',
   'battle-presentation.js',
   'combat.js',
   'content.js',
+  'cartoon.css',
+  'game-art.js',
   'localization.js',
   'persistence.js',
   'route-map.js',
@@ -133,6 +137,7 @@ async function startServer(port) {
 
 test('dist contains only the Shanhai Pages artifact and all 152 manifest entities', async () => {
   const manifest = await readDistributionManifest();
+  const gameArt = JSON.parse(await readFile(path.join(DIST, 'assets/game-art.json'), 'utf8'));
   assert.equal(manifest.version, 'shanhai-content-0.1');
   assert.equal(manifest.files.length, EXPECTED_ENTITY_COUNT);
   assert.equal(new Set(manifest.files).size, EXPECTED_ENTITY_COUNT);
@@ -141,14 +146,26 @@ test('dist contains only the Shanhai Pages artifact and all 152 manifest entitie
 
   const entityFiles = manifest.files.map(file => `content/${file}`);
   const staticFiles = [
+    'animation-LICENSE.txt',
     '.nojekyll',
     'art.js',
     'assets/generated/combat-vfx-atlas.webp',
+    'assets/frames.json',
+    'assets/game-art.json',
     'index.html',
     'content/manifest.json',
     ...SHANHAI_MODULES.map(file => `shanhai/${file}`),
   ];
-  const expectedFiles = [...staticFiles, ...entityFiles].sort();
+  assert.deepEqual(gameArt.approval, { status: 'approved', reviewedBy: 'user' });
+  assert.equal(Object.keys(gameArt.artifacts).length, 44);
+  assert.equal(Object.keys(gameArt.map).length, 6);
+  assert.equal(Object.keys(gameArt.frames).length, 6);
+  assert.equal(Object.hasOwn(gameArt, 'rigs'), false);
+  assert.ok(Object.values(gameArt.artifacts).every(src => !src.includes('rig-')));
+  assert.ok(Object.keys(gameArt.assets).every(src => /^\/assets\/[a-zA-Z0-9][a-zA-Z0-9._-]*\.png$/.test(src)));
+  const approvedPngFiles = Object.keys(gameArt.assets).map(source =>
+    `assets/${source.slice('/assets/'.length)}`);
+  const expectedFiles = [...staticFiles, ...approvedPngFiles, ...entityFiles].sort();
   const tree = await walkTree(DIST);
 
   assert.deepEqual(tree.symlinks, []);
@@ -197,11 +214,18 @@ test('index and ESM content URLs remain relative under a GitHub Pages subpath', 
   const pageUrl = new URL('https://example.github.io/suishi-xiuxian/index.html');
   const html = await readFile(path.join(ROOT, 'index.html'), 'utf8');
   const scriptSource = html.match(/<script\s+type="module"\s+src="([^"]+)"/)?.[1];
-  const stylesheetSource = html.match(/<link\s+rel="stylesheet"\s+href="([^"]+)"/)?.[1];
+  const stylesheetSources = [...html.matchAll(/<link\s+rel="stylesheet"\s+href="([^"]+)"/g)]
+    .map(match => match[1]);
   assert.equal(scriptSource, './shanhai/app.js');
-  assert.equal(stylesheetSource, './shanhai/style.css');
+  assert.deepEqual(stylesheetSources, ['./shanhai/style.css', './shanhai/cartoon.css']);
   assert.equal(new URL(scriptSource, pageUrl).pathname, '/suishi-xiuxian/shanhai/app.js');
-  assert.equal(new URL(stylesheetSource, pageUrl).pathname, '/suishi-xiuxian/shanhai/style.css');
+  for (const stylesheetSource of stylesheetSources) {
+    assert.equal(
+      new URL(stylesheetSource, pageUrl).pathname.startsWith('/suishi-xiuxian/'),
+      true,
+      stylesheetSource,
+    );
+  }
 
   const appUrl = new URL(scriptSource, pageUrl);
   const app = await readFile(path.join(DIST, 'shanhai/app.js'), 'utf8');
@@ -246,6 +270,23 @@ test('temporary HTTP server serves public assets and rejects private or traverse
     const stylesheet = await fetch(`${base}/shanhai/style.css`);
     assert.equal(stylesheet.status, 200);
     assert.equal(stylesheet.headers.get('content-type'), 'text/css; charset=utf-8');
+
+    const cartoonStylesheet = await fetch(`${base}/shanhai/cartoon.css`);
+    assert.equal(cartoonStylesheet.status, 200);
+    assert.equal(cartoonStylesheet.headers.get('content-type'), 'text/css; charset=utf-8');
+
+    const animationBundle = await fetch(`${base}/shanhai/animation.js`);
+    assert.equal(animationBundle.status, 200);
+    assert.equal(animationBundle.headers.get('content-type'), 'text/javascript; charset=utf-8');
+
+    const license = await fetch(`${base}/animation-LICENSE.txt`);
+    assert.equal(license.status, 200);
+    assert.equal(license.headers.get('content-type'), 'text/plain; charset=utf-8');
+
+    const gameArt = await fetch(`${base}/assets/game-art.json`);
+    assert.equal(gameArt.status, 200);
+    assert.equal(gameArt.headers.get('content-type'), 'application/json; charset=utf-8');
+    assert.equal((await gameArt.json()).approval.status, 'approved');
 
     const atlasSource = await readFile(path.join(ROOT, 'assets/generated/combat-vfx-atlas.webp'));
     const atlas = await fetch(`${base}/assets/generated/combat-vfx-atlas.webp`);

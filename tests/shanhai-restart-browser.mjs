@@ -207,8 +207,8 @@ async function run() {
     args: ['--no-sandbox'],
   });
   try {
-    for (const width of [320, 390, 1440]) {
-      const height = width === 320 ? 760 : width === 390 ? 844 : 900;
+    for (const width of [360, 390, 1440]) {
+      const height = width === 360 ? 780 : width === 390 ? 844 : 900;
       const context = await browser.newContext({ viewport: { width, height } });
       const page = await context.newPage();
       page.setDefaultTimeout(15000);

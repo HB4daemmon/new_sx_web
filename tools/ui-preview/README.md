@@ -8,8 +8,8 @@ DOM elements, never painted into the generated artwork.
 This is a visual preview, not the production game. It does not import the game runtime,
 change content, or save a run. The two sample routes converge on `EN-A1-L1` 养锋石卫.
 Combat playback is a looping six-beat layout fixture, not an engine simulation.
-The user approved the overall cartoon direction; the new artwork and drawn-frame motions
-remain pending visual approval.
+The user approved the current cartoon artwork and drawn-frame motions for the production
+game on 2026-10-15. This preview remains a separate fixture and does not run or save a game.
 
 ## Run and Verify
 
@@ -135,6 +135,11 @@ frame clock and pause/reduced-motion lifecycle; no screen flash or camera shake 
 Lowered weapon tips retain space below the feet. No limb stitching or flexible mesh is used.
 `npm run prepare:frames` exports the ignored originals without calling a model.
 Fresh clones render and test committed PNGs without credentials or original source files.
+The production build also consumes this committed public asset source: it validates the
+approval records and PNG hashes, publishes only the three scenes, four UI modules, assets
+referenced by the 44 artifact mappings, six map illustrations and six frame atlases, then
+copies `rig.js` as the game's animation module with its MIT notice. It does not publish the
+preview app, old layered rigs, WebP scene drafts, prompts or authoring tools.
 
 ## Open-Source Animation
 

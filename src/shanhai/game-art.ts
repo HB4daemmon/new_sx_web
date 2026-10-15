@@ -1,0 +1,361 @@
+import {
+  assetUrl,
+  characterSkin,
+  getAnimationManifest,
+  loadArtLibrary,
+} from './art-assets.js';
+import type { AnimationRig, AnimationRuntime } from './animation.js';
+import { battlePresentationCue } from './battle-presentation.js';
+import { combatPresentationMotion } from './battle-playback.js';
+import type { CombatPresentationGroup } from './battle-playback.js';
+import type { BattleFrame, Side } from './types.js';
+
+export interface BattleArtAction {
+  side: Side;
+  action: 'attack' | 'rage' | 'hit' | 'guard' | 'heal' | 'artifact';
+}
+
+export function battleActionForFrame(frame: BattleFrame): BattleArtAction | undefined {
+  if (frame.kind !== 'action' || !frame.actor) return undefined;
+  const actionKind = battlePresentationCue(frame).actionKind;
+  if (actionKind === 'basic') return { side: frame.actor, action: 'attack' };
+  if (actionKind === 'rage') return { side: frame.actor, action: 'rage' };
+  return undefined;
+}
+
+export function battleReactionsForGroup(
+  group: CombatPresentationGroup,
+  releasingActions: ReadonlySet<Side> = new Set(),
+): BattleArtAction[] {
+  const reactions: BattleArtAction[] = [];
+  for (const side of ['player', 'enemy'] as const) {
+    const summary = group[side];
+    const motion = combatPresentationMotion(summary, group.dot);
+    if (motion === 'hit' || motion === 'dot') reactions.push({ side, action: 'hit' });
+    else if (motion === 'block') reactions.push({ side, action: 'guard' });
+    else if (!releasingActions.has(side)) {
+      if (motion === 'heal') reactions.push({ side, action: 'heal' });
+      else if (motion === 'shield' || motion === 'buff') reactions.push({ side, action: 'artifact' });
+    }
+  }
+  return reactions;
+}
+
+interface StartMount {
+  canvas: HTMLCanvasElement;
+  token: number;
+  method: string;
+}
+
+interface BattleMount {
+  canvas: HTMLCanvasElement;
+  token: number;
+  arena: HTMLElement;
+  state: Omit<BattleArtSync, 'canvas' | 'arena'>;
+}
+
+interface BattleArtSync {
+  canvas: HTMLCanvasElement | null;
+  arena: HTMLElement | null;
+  method: string;
+  enemyMethod: string;
+  enemyId: string;
+  paused: boolean;
+  cursorChanged: boolean;
+  elapsed?: number;
+  frame?: BattleFrame;
+  group?: CombatPresentationGroup;
+}
+
+export class GameArt {
+  private runtimePromise: Promise<AnimationRuntime | null> | null = null;
+  private runtimeFailed = false;
+  private manifest: Record<string, any> | null = null;
+  private images: Map<string, HTMLImageElement> | null = null;
+  private startRig: AnimationRig | null = null;
+  private pendingStart: StartMount | null = null;
+  private startToken = 0;
+  private battleRig: AnimationRig | null = null;
+  private battleMount: BattleMount | null = null;
+  private pendingBattle: BattleMount | null = null;
+  private battleToken = 0;
+  private battlePaused = false;
+  private reducedMotion(): boolean {
+    return globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  }
+
+  load(): Promise<boolean> {
+    return this.runtimePromiseOrLoad().then(runtime => Boolean(runtime));
+  }
+
+  syncStart(canvas: HTMLCanvasElement | null, method: string): void {
+    if (!canvas) {
+      this.disposeStart();
+      return;
+    }
+    if (this.runtimeFailed) return;
+    if (this.startRig?.canvas === canvas) {
+      this.startRig.configure(characterSkin(method));
+      return;
+    }
+    if (this.pendingStart?.canvas === canvas) {
+      this.pendingStart.method = method;
+      return;
+    }
+
+    this.disposeStart();
+    const mount = { canvas, token: this.startToken, method };
+    this.pendingStart = mount;
+    void this.createStart(mount);
+  }
+
+  syncBattle(state: BattleArtSync): void {
+    const { canvas, arena } = state;
+    if (!canvas || !arena) {
+      this.disposeBattle();
+      return;
+    }
+    if (this.runtimeFailed) return;
+    this.battlePaused = state.paused;
+    if (this.battleRig?.canvas === canvas && this.battleMount?.arena === arena) {
+      this.applyBattleState(state, this.battleRig);
+      return;
+    }
+    if (this.pendingBattle?.canvas === canvas && this.pendingBattle.arena === arena) {
+      const pending = this.pendingBattle;
+      const cursorChanged = pending.state.cursorChanged || state.cursorChanged;
+      pending.state = {
+        ...state,
+        cursorChanged,
+      };
+      return;
+    }
+
+    this.disposeBattle();
+    const mount: BattleMount = {
+      canvas,
+      arena,
+      token: this.battleToken,
+      state: {
+        method: state.method,
+        enemyMethod: state.enemyMethod,
+        enemyId: state.enemyId,
+        paused: state.paused,
+        cursorChanged: state.cursorChanged,
+        elapsed: state.elapsed,
+        frame: state.frame,
+        group: state.group,
+      },
+    };
+    this.pendingBattle = mount;
+    void this.createBattle(mount);
+  }
+
+  setBattlePaused(paused: boolean): void {
+    this.battlePaused = paused;
+    const rig = this.battleRig;
+    if (!rig) return;
+    rig.timeline.configure({ active: true, paused, reduced: this.reducedMotion(), speed: 1 });
+    if (!paused) rig.draw();
+  }
+
+  advanceBattle(gameDelta: number): void {
+    const rig = this.battleRig;
+    if (!rig || this.battlePaused || !Number.isFinite(gameDelta) || gameDelta <= 0) return;
+    rig.timeline.advance(gameDelta);
+    rig.draw();
+  }
+
+  drawBattle(): void {
+    this.battleRig?.draw();
+  }
+
+  cancelBattle(): void {
+    const rig = this.battleRig;
+    if (!rig) return;
+    rig.timeline.configure({ active: false, paused: false, reduced: false, speed: 1 });
+    rig.draw();
+  }
+
+  dispose(): void {
+    this.disposeStart();
+    this.disposeBattle();
+  }
+
+  private async loadRuntime(): Promise<AnimationRuntime> {
+    await loadArtLibrary();
+    const source = getAnimationManifest();
+    if (!source || typeof source !== 'object' || !source.characters) {
+      throw new Error('Drawn-frame manifest unavailable');
+    }
+    const manifest = JSON.parse(JSON.stringify(source)) as Record<string, any>;
+    const images = new Map<string, HTMLImageElement>();
+    const sources = new Set<string>();
+    for (const character of Object.values(manifest.characters) as Array<Record<string, any>>) {
+      if (typeof character.src !== 'string') throw new Error('Drawn-frame source unavailable');
+      character.src = assetUrl(character.src);
+      sources.add(character.src);
+    }
+    await Promise.all([...sources].map(async src => {
+      const image = new Image();
+      image.src = src;
+      await image.decode();
+      if (!(image.naturalWidth > 0) || !(image.naturalHeight > 0)) {
+        throw new Error(`Drawn-frame image is empty: ${src}`);
+      }
+      images.set(src, image);
+    }));
+
+    const runtimePath: string = './animation.js';
+    const runtime = await import(runtimePath) as AnimationRuntime;
+    this.manifest = manifest;
+    this.images = images;
+    return runtime;
+  }
+
+  private async createStart(mount: StartMount): Promise<void> {
+    try {
+      const runtime = await this.runtimePromiseOrLoad();
+      if (!this.isCurrentStart(mount)) return;
+      if (!runtime) {
+        this.pendingStart = null;
+        return;
+      }
+      const rig = await runtime.FrameStart.create(mount.canvas, this.manifest!, this.images!);
+      if (!this.isCurrentStart(mount) || !mount.canvas.isConnected) {
+        rig.dispose();
+        return;
+      }
+      this.startRig = rig;
+      this.pendingStart = null;
+      rig.configure(characterSkin(mount.method));
+      mount.canvas.closest<HTMLElement>('[data-game-start-stage]')?.setAttribute('data-art-ready', 'true');
+    } catch {
+      if (this.isCurrentStart(mount)) this.pendingStart = null;
+    }
+  }
+
+  private async createBattle(mount: BattleMount): Promise<void> {
+    let rig: AnimationRig | null = null;
+    try {
+      const runtime = await this.runtimePromiseOrLoad();
+      if (!this.isCurrentBattle(mount)) return;
+      if (!runtime) {
+        this.pendingBattle = null;
+        mount.arena.dataset.artReady = 'false';
+        return;
+      }
+      rig = await runtime.FrameBattle.create(
+        mount.canvas,
+        this.manifest!,
+        this.images!,
+        () => this.failBattle(mount),
+      );
+      if (!this.isCurrentBattle(mount) || !mount.canvas.isConnected) {
+        rig.dispose();
+        return;
+      }
+      this.battleRig = rig;
+      this.battleMount = mount;
+      this.pendingBattle = null;
+      this.applyBattleState({
+        canvas: mount.canvas,
+        arena: mount.arena,
+        ...mount.state,
+        cursorChanged: true,
+        paused: false,
+      }, rig);
+      if (mount.state.elapsed) {
+        rig.timeline.advance(mount.state.elapsed);
+        rig.draw();
+      }
+      this.setBattlePaused(mount.state.paused);
+      mount.arena.dataset.artReady = 'true';
+      mount.canvas.parentElement?.setAttribute('data-art-ready', 'true');
+    } catch {
+      if (this.isCurrentBattle(mount)) {
+        if (this.battleRig === rig) {
+          this.battleRig = null;
+          this.battleMount = null;
+        }
+        rig?.dispose();
+        this.pendingBattle = null;
+        mount.arena.dataset.artReady = 'false';
+      }
+    }
+  }
+
+  private applyBattleState(state: BattleArtSync, rig: AnimationRig): void {
+    const mount = this.battleMount;
+    if (!mount) return;
+    rig.setCharacter('player', characterSkin(state.method));
+    rig.setCharacter('enemy', characterSkin(state.enemyMethod, state.enemyId));
+    rig.timeline.configure({
+      active: true,
+      paused: state.paused,
+      reduced: this.reducedMotion(),
+      speed: 1,
+    });
+    this.battlePaused = state.paused;
+    if (state.cursorChanged && state.frame) {
+      const action = battleActionForFrame(state.frame);
+      if (action) rig.timeline.play(action.side, action.action);
+      else if (state.group) {
+        const releasingActions = new Set<Side>();
+        for (const side of ['player', 'enemy'] as const) {
+          const action = rig.timeline.actions.get(side)?.action;
+          if (action === 'rage' || action === 'attack') releasingActions.add(side);
+        }
+        for (const reaction of battleReactionsForGroup(state.group, releasingActions)) {
+          rig.timeline.play(reaction.side, reaction.action);
+        }
+      }
+    }
+    if (!state.paused) rig.draw();
+  }
+
+  private failBattle(mount: BattleMount): void {
+    if (!this.isCurrentBattle(mount)) return;
+    this.disposeBattle();
+    mount.arena.dataset.artReady = 'false';
+  }
+
+  private runtimePromiseOrLoad(): Promise<AnimationRuntime | null> {
+    if (!this.runtimePromise) {
+      this.runtimePromise = this.loadRuntime().catch(() => {
+        this.runtimeFailed = true;
+        return null;
+      });
+    }
+    return this.runtimePromise;
+  }
+
+  private isCurrentStart(mount: StartMount): boolean {
+    return this.pendingStart === mount && mount.token === this.startToken;
+  }
+
+  private isCurrentBattle(mount: BattleMount): boolean {
+    return (this.pendingBattle === mount || this.battleMount === mount) &&
+      mount.token === this.battleToken;
+  }
+
+  private disposeStart(): void {
+    this.startToken += 1;
+    this.pendingStart = null;
+    this.startRig?.dispose();
+    this.startRig = null;
+  }
+
+  private disposeBattle(): void {
+    this.battleToken += 1;
+    this.pendingBattle = null;
+    if (this.battleMount) {
+      this.battleMount.arena.dataset.artReady = 'false';
+      this.battleMount.canvas.parentElement?.setAttribute('data-art-ready', 'false');
+    }
+    this.battleRig?.dispose();
+    this.battleRig = null;
+    this.battleMount = null;
+    this.battlePaused = false;
+  }
+}

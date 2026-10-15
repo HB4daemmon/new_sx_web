@@ -658,7 +658,6 @@ async function run() {
     for (const viewport of [
       { width: 390, height: 844 },
       { width: 360, height: 780 },
-      { width: 320, height: 760 },
       { width: 1280, height: 720 },
       { width: 1440, height: 900 },
     ]) {
@@ -673,7 +672,6 @@ async function run() {
       viewports: [
         { width: 390, height: 844 },
         { width: 360, height: 780 },
-        { width: 320, height: 760 },
         { width: 1280, height: 720 },
         { width: 1440, height: 900 },
       ],

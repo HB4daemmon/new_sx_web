@@ -9,7 +9,11 @@ const content = new URL('../../../content/shanhai/', import.meta.url);
 const manifest = parse(await readFile(new URL('manifest.yaml', content), 'utf8'));
 assert.equal(library.schemaVersion, 1);
 assert.equal(library.styleApproval.status, 'approved');
-assert.equal(library.expansionApproval.status, 'pending');
+assert.deepEqual(library.expansionApproval, {
+  status: 'approved',
+  by: 'user',
+  date: '2026-10-15',
+});
 assert.equal(library.provenance.model, 'gpt-image-2.5');
 assert.equal(library.assets.length, 31);
 assert.equal(Object.keys(library.rigs).length, 6);

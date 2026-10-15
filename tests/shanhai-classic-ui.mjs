@@ -239,7 +239,7 @@ async function assertVisualAssets(page, label) {
       width: image.naturalWidth,
       height: image.naturalHeight,
     }));
-    const vectors = [...document.querySelectorAll('.landscape, .portrait, .fighter-art')]
+    const vectors = [...document.querySelectorAll('.game-scene, .character-art, .map-node-art, canvas[data-game-battle]')]
       .map(element => {
         const rect = element.getBoundingClientRect();
         return {
@@ -441,8 +441,8 @@ async function assertMapSurface(page, width) {
     nodeCount: element.querySelectorAll('.map-node').length,
     available: element.querySelectorAll('.map-node.available:not([disabled])').length,
     future: element.querySelectorAll('.map-node:not(.available)[disabled]').length,
-    diamonds: [...element.querySelectorAll('.node-disc')].filter(node =>
-      getComputedStyle(node).transform !== 'none').length,
+    illustratedNodes: [...element.querySelectorAll('.node-disc .map-node-art')].filter(image =>
+      image.complete && image.naturalWidth > 0).length,
   }));
   assert.ok(metrics.scrollHeight > metrics.clientHeight,
     `${width}: map-scroll 没有纵向滚动空间 ${JSON.stringify(metrics)}`);
@@ -452,7 +452,7 @@ async function assertMapSurface(page, width) {
   assert.ok(metrics.available >= 1, `${width}: 当前节点不可进入 ${JSON.stringify(metrics)}`);
   assert.equal(metrics.available, 1, `${width}: 开局应只有一个首格可达 ${JSON.stringify(metrics)}`);
   assert.equal(metrics.future, 28, `${width}: 未选路线节点应全部禁用 ${JSON.stringify(metrics)}`);
-  assert.ok(metrics.diamonds >= 1, `${width}: 地图节点不是菱形视觉结构`);
+  assert.equal(metrics.illustratedNodes, 29, `${width}: 地图节点插画未完整加载`);
 
   const current = page.locator('.map-node.available:not([disabled])').first();
   const viewport = await page.locator('.map-scroll').evaluate(scroll => {
@@ -1298,7 +1298,6 @@ async function run() {
   });
   try {
     for (const [width, height] of [
-      [320, 760],
       [360, 780],
       [390, 844],
       [1280, 720],

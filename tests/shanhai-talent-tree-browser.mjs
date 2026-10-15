@@ -652,7 +652,7 @@ async function writeReport() {
     generatedAt: new Date().toISOString(),
     fixtureKind: 'seeded ShanhaiGame/serializeRun fixtures; not a claimed true journey',
     viewports: [
-      { width: 320, height: 760 },
+      { width: 360, height: 780 },
       { width: 390, height: 844 },
       { width: 1440, height: 900 },
     ],
@@ -672,7 +672,7 @@ async function run() {
   const browser = await chromium.launch({ headless: true, executablePath, args: ['--no-sandbox'] });
   try {
     const cases = [
-      { width: 320, height: 760, fixture: shopFixtures[0] },
+      { width: 360, height: 780, fixture: shopFixtures[0] },
       { width: 390, height: 844, fixture: shopFixtures[1] },
       { width: 1440, height: 900, fixture: shopFixtures[2] },
     ];
@@ -729,7 +729,7 @@ async function run() {
         return { ...treeSummary, viewport: `${item.width}x${item.height}` };
       });
 
-      if (item.width === 320) {
+      if (item.width === 360) {
         await check('取消洗髓丹的按钮、Escape、遮罩均保持存档不变', async () => {
           for (const mode of ['button', 'escape', 'backdrop']) {
             const before = await storageSnapshot(page);

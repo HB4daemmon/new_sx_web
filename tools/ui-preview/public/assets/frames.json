@@ -1891,7 +1891,7 @@
       ]
     }
   },
-  "approval": "pending",
+  "approval": "approved",
   "provenance": {
     "model": "gpt-image-2.5",
     "mode": "reference-edit",

@@ -81,8 +81,8 @@ The 44 artifact mappings use shared icons where possible, and dedicated images f
 legendary artifacts plus selected distinctive rare items. An art identity is not a gameplay
 uniqueness rule. The browser catalog lets the reviewer inspect all mappings and real attributes.
 
-**Overall cartoon style: approved by the user. New assets and animation: pending.**
-Main-session screenshot inspection and automated checks do not replace user acceptance.
+**当前卡通素材与逐帧动画已于 2026-10-15 获用户批准用于正式游戏。**
+此批准仅覆盖本清单与图集所指向的现有导出；后续新增或替换素材需要重新确认。
 
 ## Full-Body Combat Cels, 2026-10-15
 
@@ -104,4 +104,4 @@ The 400x448 cell includes room below the foot anchor for lowered weapon tips.
 reviewed floor overrides, fixed scales and anchors. Fresh clones use the committed
 exports without original files or generation credentials. Hit and guard share one
 defensive drawing with different playback; this is limited-key-pose animation, not
-an independent drawing for every render tick. New art remains pending visual approval.
+an independent drawing for every render tick. The current exports are approved for production use.

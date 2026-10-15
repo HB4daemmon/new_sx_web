@@ -1,0 +1,3287 @@
+@charset "UTF-8";
+
+:root {
+  color-scheme: light;
+  --ink: #28342f;
+  --ink-0: #f1f4ef;
+  --ink-1: #fbfcf8;
+  --ink-2: #e6ebe5;
+  --ink-3: #d9e1da;
+  --paper: #f1f4ef;
+  --paper-muted: #46554c;
+  --panel: #fbfcf8;
+  --panel-selected: #f5eae5;
+  --muted: #59675e;
+  --line: #b6c2b8;
+  --line-strong: #87988b;
+  --jade: #38644f;
+  --jade-strong: #38644f;
+  --gold: #96703a;
+  --gold-bright: #795b2d;
+  --vermilion: #af453a;
+  --vermilion-soft: #af453a;
+  --violet: #72586f;
+  --health: #38644f;
+  --shield: #bc9554;
+  --shield-text: #785a27;
+  --rage-text: #af453a;
+  --meter-inset: #d3ded3;
+  --disabled-surface: #dce2dc;
+  --disabled-text: #66736a;
+  --sans: "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --serif: "Noto Serif CJK SC", "Songti SC", "STSong", "SimSun", serif;
+  --mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+  --display-font: var(--serif);
+}
+
+html,
+body {
+  width: 100%;
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font: 14px/1.55 var(--sans);
+  letter-spacing: 0;
+}
+
+body::before {
+  display: none;
+}
+
+button,
+input,
+select,
+textarea,
+summary {
+  color: inherit;
+  font: inherit;
+  letter-spacing: 0;
+}
+
+button {
+  touch-action: manipulation;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--vermilion);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  color: var(--disabled-text);
+  opacity: 1;
+}
+
+.game-page,
+.landing-page {
+  position: relative;
+  min-width: 0;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.game-page {
+  min-height: 100dvh;
+}
+
+.landing-page {
+  min-height: 100dvh;
+  overflow-x: clip;
+  overflow-y: auto;
+}
+
+.game-page :where(h1, h2, h3, h4, p, strong, small, span),
+.landing-page :where(h1, h2, h3, h4, p, strong, small, span) {
+  letter-spacing: 0;
+}
+
+.game-page h1,
+.game-page h2,
+.game-page h3,
+.game-page h4,
+.landing-page h1,
+.landing-page h2,
+.landing-page h3,
+.landing-page h4 {
+  color: var(--ink);
+}
+
+.game-page p:not(.eyebrow),
+.game-page small,
+.landing-page p:not(.eyebrow),
+.landing-page small {
+  color: var(--paper-muted);
+}
+
+.game-page .eyebrow,
+.landing-page .eyebrow {
+  color: var(--jade);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.game-page .muted,
+.landing-page .muted,
+.game-page .empty-note {
+  color: var(--muted);
+}
+
+.game-page .text-number,
+.game-page [data-text-kind="number"] {
+  color: var(--ink);
+}
+
+.game-page .text-keyword,
+.game-page [data-text-kind="keyword"] {
+  color: var(--jade);
+}
+
+.game-page .text-keyword--cost,
+.game-page [data-text-tone="warning"] {
+  color: var(--vermilion);
+}
+
+.game-page .text-keyword--guard,
+.game-page .text-keyword--recovery,
+.game-page [data-text-tone="jade"] {
+  color: var(--jade);
+}
+
+.game-page .gold,
+.landing-page .gold {
+  color: var(--gold);
+}
+
+.game-page .panel,
+.game-page .rail-board,
+.game-page .karma-ledger,
+.game-page .timeline-item {
+  border: 0;
+  background: transparent;
+}
+
+.game-page .panel::before,
+.game-page .panel::after,
+.game-page .rail-board::before,
+.game-page .rail-board::after {
+  display: none;
+}
+
+.game-page .topbar,
+.landing-page .topbar,
+.game-page .chapter-strip,
+.game-page .mobile-hud,
+.game-page .bottom-nav {
+  color: var(--ink);
+  border-color: var(--line);
+  background: var(--paper);
+  box-shadow: none;
+}
+
+.landing-page .topbar,
+.game-page .topbar {
+  min-height: 48px;
+  gap: 8px;
+  padding-right: 16px;
+  padding-left: 16px;
+}
+
+.topbar .brand,
+.game-page .topbar .brand,
+.landing-page .topbar .brand {
+  min-width: 0;
+  color: var(--ink);
+}
+
+.topbar .brand strong,
+.game-page .topbar .brand strong,
+.landing-page .topbar .brand strong {
+  color: var(--ink);
+  font-family: var(--display-font);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.brand-mark,
+.landing-page .topbar .brand-mark,
+.game-page .topbar .brand-mark {
+  width: 32px;
+  height: 36px;
+  border: 0;
+  color: var(--jade);
+  background: transparent;
+}
+
+.game-page .desktop-nav {
+  height: 48px;
+  gap: 4px;
+}
+
+.game-page .nav-button {
+  min-width: 64px;
+  min-height: 44px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  background: transparent;
+}
+
+.game-page .nav-button.active {
+  border-bottom-color: var(--vermilion);
+  color: var(--vermilion);
+}
+
+.game-page .header-run-summary,
+.game-page .header-run-summary :where(b, small, span) {
+  color: var(--ink);
+}
+
+.game-page .run-hp .icon {
+  color: var(--jade);
+}
+
+.game-page .run-xp .icon,
+.game-page .run-coins .icon {
+  color: var(--gold);
+}
+
+.game-page .top-tools,
+.game-page .top-tools.header-actions {
+  gap: 3px;
+}
+
+.game-page .icon-button,
+.landing-page .icon-button,
+.game-page .fighter-detail-trigger {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border: 6px solid transparent;
+  border-image: url("../assets/ui-panel.png") 24 fill / 6px / 0 stretch;
+  border-radius: 0;
+  color: var(--ink);
+  background: transparent;
+}
+
+.game-page .icon-button[aria-pressed="true"] {
+  color: var(--vermilion);
+  background: transparent;
+}
+
+.game-page .save-warning {
+  color: var(--vermilion);
+}
+
+.game-page .chapter-strip {
+  min-height: 32px;
+  gap: 12px;
+  padding: 2px 14px;
+}
+
+.game-page .chapter {
+  color: var(--muted);
+  opacity: .8;
+}
+
+.game-page .chapter > span:first-child {
+  width: 22px;
+  height: 22px;
+  border-color: currentColor;
+  border-radius: 0;
+  background: transparent;
+}
+
+.game-page .chapter.active {
+  color: var(--vermilion);
+}
+
+.game-page .chapter.done {
+  color: var(--jade);
+}
+
+.game-page .chapter-separator {
+  color: var(--line-strong);
+}
+
+.game-page .mobile-hud {
+  border-bottom: 1px solid var(--line);
+}
+
+.game-page .hud-character,
+.game-page .hud-character > span,
+.game-page .hud-character > strong,
+.game-page .hud-resource > b {
+  color: var(--ink);
+}
+
+.game-page .hud-character small,
+.game-page .hud-resource > span:first-child {
+  color: var(--muted);
+}
+
+.game-page .mobile-gold,
+.game-page .hud-resource .text-number {
+  color: var(--gold);
+}
+
+.game-page .bottom-nav {
+  border-top: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.game-page .bottom-nav button {
+  min-height: 48px;
+  color: var(--muted);
+}
+
+.game-page .bottom-nav button.active {
+  color: var(--vermilion);
+}
+
+.button,
+.game-page .button,
+.landing-page .button {
+  min-height: 44px;
+  border: 7px solid transparent;
+  border-image: url("../assets/ui-panel.png") 24 fill / 7px / 0 stretch;
+  border-radius: 0;
+  color: var(--ink);
+  background: transparent;
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.25;
+  transition: filter 100ms ease, transform 100ms ease;
+}
+
+.button.small,
+.game-page .button.small,
+.landing-page .button.small {
+  min-height: 44px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.button.primary,
+.game-page .button.primary,
+.landing-page .button.primary,
+.game-page .stage-actions .button.primary,
+.game-page .dialog-actions .button.primary {
+  border: 10px solid transparent;
+  border-image: url("../assets/ui-button-primary.png") 16 44 fill / 10px 18px / 0 stretch;
+  border-radius: 0;
+  color: #fff;
+  background: transparent;
+  box-shadow: none;
+  font-family: var(--display-font);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.button.quiet,
+.game-page .button.quiet,
+.landing-page .button.quiet {
+  color: var(--ink);
+  background: transparent;
+}
+
+.button.danger,
+.game-page .button.danger {
+  color: #8e3129;
+  background: var(--panel);
+}
+
+.button:hover:not(:disabled),
+.game-page .button:hover:not(:disabled),
+.landing-page .button:hover:not(:disabled),
+.game-page .icon-button:hover:not(:disabled),
+.landing-page .icon-button:hover:not(:disabled) {
+  filter: brightness(1.04);
+  color: var(--vermilion);
+  background-color: transparent;
+  transform: none;
+}
+
+.button.primary:hover:not(:disabled),
+.game-page .button.primary:hover:not(:disabled),
+.landing-page .button.primary:hover:not(:disabled) {
+  color: #fff;
+  filter: brightness(1.06);
+  background: transparent;
+}
+
+.button:active:not(:disabled),
+.game-page .button:active:not(:disabled),
+.landing-page .button:active:not(:disabled),
+.game-page .icon-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.button:disabled,
+.game-page .button:disabled,
+.landing-page .button:disabled {
+  border-image-source: url("../assets/ui-button-secondary.png");
+  color: var(--disabled-text);
+  background: transparent;
+}
+
+.game-page input,
+.landing-page input,
+.game-page textarea,
+.landing-page textarea,
+.game-page select,
+.landing-page select {
+  min-width: 0;
+  border: 7px solid transparent;
+  border-image: url("../assets/ui-panel.png") 24 fill / 7px / 0 stretch;
+  border-radius: 0;
+  color: var(--ink);
+  background: var(--panel);
+}
+
+.game-page input::placeholder,
+.landing-page input::placeholder {
+  color: var(--muted);
+  opacity: .8;
+}
+
+.landing-page .landing-atmosphere {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  background-color: var(--paper);
+  background-image: url("../assets/scene-start.png");
+  background-position: center;
+  background-size: cover;
+}
+
+.landing-page .landing-atmosphere::after {
+  display: none;
+}
+
+.landing-page .landing-atmosphere > .landscape {
+  display: none;
+}
+
+.landing-page .landing-atmosphere > .game-scene {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.landing-page .landing-topbar,
+.landing-page .landing-inner,
+.landing-page > .modal-backdrop {
+  position: relative;
+  z-index: 1;
+}
+
+.landing-page .landing-inner {
+  display: grid;
+  width: min(100%, 1200px);
+  min-height: calc(100dvh - 48px);
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 380px);
+  grid-template-rows: minmax(230px, auto) auto;
+  align-content: center;
+  gap: 8px 36px;
+  padding: 20px 32px 28px;
+}
+
+.landing-page .landing-copy {
+  align-self: center;
+  padding: 10px 0;
+}
+
+.landing-page .landing-copy .eyebrow {
+  margin-bottom: 4px;
+}
+
+.landing-page .landing-copy h1 {
+  margin: 0;
+  color: var(--ink);
+  font: 34px/1.2 var(--display-font);
+}
+
+.landing-page .resume-card {
+  min-height: 52px;
+  margin-top: 14px;
+  padding: 8px 12px;
+  border: 7px solid transparent;
+  border-image: url("../assets/ui-panel.png") 24 fill / 7px / 0 stretch;
+  color: var(--ink);
+  background: transparent;
+}
+
+.landing-page .resume-card b,
+.landing-page .resume-card small {
+  color: inherit;
+}
+
+.landing-page .resume-card small {
+  color: var(--muted);
+}
+
+.landing-page .hero-card-stage {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 326px;
+  align-self: stretch;
+  place-items: end center;
+  overflow: visible;
+}
+
+.landing-page .hero-back {
+  display: none;
+}
+
+.landing-page .hero-card {
+  position: static;
+  z-index: auto;
+  display: contents;
+  width: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  transform: none;
+}
+
+.landing-page .hero-card-label {
+  display: none;
+}
+
+.game-page .character-art,
+.landing-page .character-art {
+  position: relative;
+  display: block;
+  width: 96px;
+  height: auto;
+  flex: 0 0 auto;
+  aspect-ratio: 400 / 448;
+  transform: scale(var(--stature, 1));
+  transform-origin: 50% 100%;
+  pointer-events: none;
+}
+
+.game-page .player-identity > .character-art {
+  width: 54px;
+}
+
+.game-page .preview-contender > .character-art {
+  width: min(28%, 150px);
+}
+
+.game-page .preview-contender.enemy-side > .character-art {
+  transform: scale(calc(-1 * var(--stature, 1)), var(--stature, 1));
+}
+
+.game-page .event-portrait .character-art {
+  width: 100%;
+}
+
+.game-page .character-detail-art {
+  width: 136px;
+  margin: 0 auto 12px;
+}
+
+.game-page .character-detail-art .character-art {
+  width: 100%;
+}
+
+.game-page .battle-fighter-detail .detail-character-art {
+  position: relative;
+  width: 136px;
+  height: 160px;
+  margin: 4px auto 10px;
+}
+
+.game-page .battle-fighter-detail .character-art,
+.landing-page .hero-card-stage .character-art {
+  position: absolute;
+  right: auto;
+  left: 50%;
+  bottom: 0;
+  display: block;
+  width: min(100%, 300px);
+  height: auto;
+  max-height: 100%;
+  margin: auto;
+  aspect-ratio: 400 / 448;
+  pointer-events: none;
+  transform: translateX(-50%) scale(var(--stature, 1));
+  transform-origin: 50% 100%;
+}
+
+.game-page .character-cel,
+.landing-page .character-cel {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  background-size: 300% 400%;
+}
+
+.game-page .character-art[data-art-skin="RKF01"] .character-cel,
+.landing-page .character-art[data-art-skin="RKF01"] .character-cel {
+  background-image: url("../assets/frames-rkf01.png");
+}
+
+.game-page .character-art[data-art-skin="RKF02"] .character-cel,
+.landing-page .character-art[data-art-skin="RKF02"] .character-cel {
+  background-image: url("../assets/frames-rkf02.png");
+}
+
+.game-page .character-art[data-art-skin="RKF03"] .character-cel,
+.landing-page .character-art[data-art-skin="RKF03"] .character-cel {
+  background-image: url("../assets/frames-rkf03.png");
+}
+
+.game-page .character-art[data-art-skin="RKF04"] .character-cel,
+.landing-page .character-art[data-art-skin="RKF04"] .character-cel {
+  background-image: url("../assets/frames-rkf04.png");
+}
+
+.game-page .character-art[data-art-skin="RKF05"] .character-cel,
+.landing-page .character-art[data-art-skin="RKF05"] .character-cel {
+  background-image: url("../assets/frames-rkf05.png");
+}
+
+.game-page .character-art[data-art-skin="rkf01"] .character-cel,
+.landing-page .character-art[data-art-skin="rkf01"] .character-cel {
+  background-image: url("../assets/frames-rkf01.png");
+}
+
+.game-page .character-art[data-art-skin="rkf02"] .character-cel,
+.landing-page .character-art[data-art-skin="rkf02"] .character-cel {
+  background-image: url("../assets/frames-rkf02.png");
+}
+
+.game-page .character-art[data-art-skin="rkf03"] .character-cel,
+.landing-page .character-art[data-art-skin="rkf03"] .character-cel {
+  background-image: url("../assets/frames-rkf03.png");
+}
+
+.game-page .character-art[data-art-skin="rkf04"] .character-cel,
+.landing-page .character-art[data-art-skin="rkf04"] .character-cel {
+  background-image: url("../assets/frames-rkf04.png");
+}
+
+.game-page .character-art[data-art-skin="rkf05"] .character-cel,
+.landing-page .character-art[data-art-skin="rkf05"] .character-cel {
+  background-image: url("../assets/frames-rkf05.png");
+}
+
+.landing-page .hero-card-stage[data-art-ready="true"] .character-art {
+  visibility: hidden;
+}
+
+.landing-page .game-start-canvas {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.landing-page .setup {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 0 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+}
+
+.landing-page .setup-top {
+  align-items: baseline;
+}
+
+.landing-page .setup-title {
+  margin: 0;
+  color: var(--ink);
+  font: 21px/1.35 var(--display-font);
+}
+
+.landing-page .setup-fields {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 8px;
+  margin: 8px 0 10px;
+}
+
+.landing-page .setup-fields .field {
+  gap: 2px;
+  color: var(--muted);
+}
+
+.landing-page .setup-fields input {
+  width: 100%;
+  height: 44px;
+  min-height: 44px;
+  padding: 0 8px;
+  font-size: 13px !important;
+}
+
+.landing-page .seed-field-row {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  align-items: end;
+  gap: 4px;
+}
+
+.landing-page .seed-action {
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  align-self: end;
+  border: 7px solid transparent;
+  border-image: url("../assets/ui-panel.png") 24 fill / 7px / 0 stretch;
+  color: var(--ink);
+  background: transparent;
+}
+
+.landing-page .method-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.landing-page .method-choice {
+  display: grid;
+  min-width: 0;
+  min-height: 82px;
+  align-content: center;
+  padding: 8px;
+  border: 8px solid transparent;
+  border-image: url("../assets/ui-button-secondary.png") 16 44 fill / 8px 12px / 0 stretch;
+  border-radius: 0;
+  color: var(--ink);
+  background: transparent;
+  box-shadow: none;
+  text-align: center;
+  transition: filter 100ms ease;
+  grid-column: span 2;
+}
+
+.landing-page .method-choice:nth-child(4) {
+  grid-column: 2 / span 2;
+}
+
+.landing-page .method-choice:nth-child(5) {
+  grid-column: 4 / span 2;
+}
+
+.landing-page .method-choice.selected {
+  border-image-source: url("../assets/ui-button-primary.png");
+  color: #fffaf3;
+  background: transparent;
+  box-shadow: none;
+}
+
+.landing-page .method-choice.selected .method-copy,
+.landing-page .method-choice.selected .method-copy b,
+.landing-page .method-choice.selected .method-copy em {
+  color: #fffaf3;
+}
+
+.landing-page .method-choice:hover:not(:disabled) {
+  border-image-source: url("../assets/ui-button-primary.png");
+  color: var(--vermilion);
+  background: transparent;
+  filter: brightness(1.03);
+}
+
+.landing-page .method-mark,
+.landing-page .method-portrait {
+  display: none;
+}
+
+.landing-page .method-copy {
+  max-width: 100%;
+  justify-items: center;
+}
+
+.landing-page .method-copy b {
+  color: inherit;
+  font: 14px/1.3 var(--display-font);
+}
+
+.landing-page .method-copy em {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.landing-page .method-copy small {
+  display: none;
+}
+
+.landing-page .method-detail {
+  min-height: 0;
+  margin: 5px 0 0;
+  padding: 6px 0 0;
+  border: 0;
+  background: transparent;
+}
+
+.landing-page .method-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 0;
+}
+
+.landing-page .method-quick-actions > span {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 7px;
+  padding: 3px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  background: transparent;
+}
+
+.landing-page .method-quick-actions b {
+  color: var(--jade);
+  font-size: 12px;
+}
+
+.landing-page .method-quick-actions small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 12px !important;
+  line-height: 1.35;
+}
+
+.landing-page .method-full-detail {
+  margin-top: 3px;
+}
+
+.landing-page .method-full-detail > summary {
+  min-height: 44px;
+  padding: 8px 0;
+  color: var(--jade);
+}
+
+.landing-page .actions {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.landing-page .actions .button.primary {
+  width: min(220px, 100%);
+  min-height: 48px;
+}
+
+.game-page .game-layout {
+  width: min(100%, 1260px);
+  max-width: 1260px;
+  grid-template-columns: 228px minmax(0, 1fr);
+  gap: 26px;
+  padding: 16px 24px 24px;
+}
+
+.game-page .game-layout.in-combat {
+  width: min(100%, 1200px);
+  max-width: 1200px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  padding: 10px 24px 28px;
+}
+
+.game-page .stage-heading {
+  margin: 0 0 12px;
+}
+
+.game-page .stage-heading h1 {
+  margin: 2px 0 0;
+  color: var(--ink);
+  font: 25px/1.3 var(--display-font);
+}
+
+.game-page .stage-heading > p:not(.eyebrow) {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.game-page .stage-heading[data-battle-heading] {
+  margin: 0 0 6px;
+}
+
+.game-page .stage-heading[data-battle-heading] h1 {
+  font-size: 21px;
+}
+
+.game-page .stage-actions {
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.game-page .stage-actions > .button {
+  min-height: 44px;
+}
+
+.game-page .stage-actions .button.primary {
+  min-width: 128px;
+}
+
+.game-page .inline-notice,
+.game-page .inline-error {
+  align-items: flex-start;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 0;
+  border-left: 3px solid var(--jade);
+  color: var(--ink);
+  background: var(--panel);
+}
+
+.game-page .inline-error {
+  border-color: var(--vermilion);
+  color: #7c302a;
+  background: #fbf1ed;
+}
+
+.game-page .inline-error p {
+  color: #7c302a;
+}
+
+.game-page .phase-preview .stage-actions {
+  position: static;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.game-page .preview-matchup,
+.game-page .preview-essentials {
+  border: 0;
+  background: transparent;
+}
+
+.game-page .preview-contender,
+.game-page .preview-essentials .preview-side {
+  min-width: 0;
+}
+
+.game-page .preview-contender h2,
+.game-page .preview-essentials .preview-side h2,
+.game-page .preview-matchup .enemy-side h2 {
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.game-page .preview-contender p,
+.game-page .preview-vital,
+.game-page .preview-essentials .preview-vital {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.game-page .versus-seal {
+  color: var(--gold);
+}
+
+.game-page .versus-seal .sigil {
+  color: var(--gold);
+}
+
+.game-page .map-goal {
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 9px;
+  padding: 6px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+}
+
+.game-page .map-goal > span {
+  color: var(--jade);
+}
+
+.game-page .map-goal b {
+  color: var(--ink);
+}
+
+.game-page .phase-map .map-scroll {
+  min-height: 280px;
+  max-height: min(66dvh, 600px);
+  border: 0;
+  background: var(--paper);
+  scrollbar-color: var(--line-strong) var(--paper);
+}
+
+.game-page .map-scroll .map-wrap {
+  position: relative;
+  min-height: 600px;
+  overflow: hidden;
+  border: 0;
+  background-color: var(--paper);
+  background-image: url("../assets/scene-map.png");
+  background-position: center;
+  background-size: cover;
+}
+
+.game-page .map-scroll .map-wrap > .landscape,
+.game-page .map-scroll .game-scene {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 1;
+  pointer-events: none;
+}
+
+.game-page .map-scroll .map-wrap > .landscape {
+  display: none;
+}
+
+.game-page .map-lines path {
+  stroke: #75927d;
+}
+
+.game-page .map-node {
+  width: min(112px, 28%);
+  min-height: 88px;
+  gap: 3px;
+  transform: translate(-50%, -50%);
+  opacity: .78;
+}
+
+.game-page .map-node.available {
+  opacity: 1;
+}
+
+.game-page .map-node.done {
+  opacity: .85;
+}
+
+.game-page .map-node .node-disc {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  border: 1px solid var(--jade);
+  border-radius: 0;
+  color: var(--jade);
+  background: var(--panel);
+  transform: none;
+}
+
+.game-page .map-node .node-disc .icon {
+  transform: none;
+}
+
+.game-page .map-node.available .node-disc {
+  border-color: var(--vermilion);
+  color: var(--vermilion);
+  background: var(--panel);
+}
+
+.game-page .map-node.done .node-disc {
+  border-color: var(--jade);
+  color: var(--jade);
+  background: var(--panel);
+}
+
+.game-page .map-node.boss .node-disc {
+  width: 62px;
+  height: 62px;
+  flex-basis: 62px;
+  border-color: var(--gold);
+  color: var(--gold);
+  background: var(--panel);
+}
+
+.game-page .map-node .node-disc:has(.map-node-art) {
+  border: 0;
+  background: transparent;
+}
+
+.game-page .map-node .node-disc:has(.map-node-art) .icon {
+  display: none;
+}
+
+.game-page .map-node-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.game-page .map-node-art[hidden] {
+  display: none;
+}
+
+.game-page .node-label {
+  max-width: 100%;
+  min-height: 22px;
+  padding: 1px 4px;
+  color: var(--ink);
+  background: var(--paper);
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.game-page .node-description {
+  max-width: 100%;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.game-page .map-node.available .node-label {
+  color: var(--vermilion);
+}
+
+.game-page .map-note {
+  color: var(--ink);
+}
+
+.game-page .node-count {
+  padding: 2px 7px;
+  color: var(--jade);
+  background: var(--panel);
+}
+
+.game-page .map-panel,
+.game-page .map-list {
+  border: 0;
+  background: transparent;
+}
+
+.game-page .map-node-symbol {
+  border-color: var(--line-strong);
+  color: var(--jade);
+  background: var(--panel);
+}
+
+.game-page .map-node-copy strong {
+  color: var(--ink);
+  white-space: normal;
+}
+
+.game-page .map-node-copy span {
+  color: var(--muted);
+  white-space: normal;
+}
+
+.game-page .map-row.current .map-node-copy span {
+  color: var(--vermilion);
+}
+
+.game-page .node-state {
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+.game-page .map-inventory,
+.game-page .map-feedback {
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.game-page .player-compact .player-identity {
+  border: 0;
+  background: transparent;
+}
+
+.game-page .player-identity > .portrait,
+.game-page .profile-portrait,
+.game-page .profile-caption {
+  display: none;
+}
+
+.game-page .player-identity strong,
+.game-page .player-identity em,
+.game-page .player-identity small {
+  color: var(--ink);
+}
+
+.game-page .player-compact .panel-body {
+  padding: 10px 0;
+}
+
+.game-page .vital-title,
+.game-page .resource-box,
+.game-page .detailed-stat {
+  color: var(--muted);
+}
+
+.game-page .vital-title strong,
+.game-page .resource-box strong,
+.game-page .detailed-stat b {
+  color: var(--ink);
+}
+
+.game-page .bar,
+.game-page .fighter-bars .bar {
+  overflow: hidden;
+  border: 3px solid transparent;
+  border-image: url("../assets/ui-meter.png") 8 16 fill / 3px / 0 stretch;
+  border-radius: 0;
+  background: #d3ded3;
+}
+
+.game-page .bar > span,
+.game-page .bar > i {
+  display: block;
+  min-width: 0;
+  height: 100%;
+  background: var(--jade);
+  transition: width 180ms ease-out;
+}
+
+.game-page .bar.hp > span,
+.game-page .bar.hp > i,
+.game-page .hud-hp .bar > span {
+  background: var(--jade);
+}
+
+.game-page .bar.xp > span,
+.game-page .bar.xp > i,
+.game-page .hud-xp .bar > span,
+.game-page .bar.thin > i {
+  background: var(--gold);
+}
+
+.game-page .bar.shield > span,
+.game-page .shield-fill {
+  background-color: var(--shield);
+  background-image: repeating-linear-gradient(125deg, transparent 0 5px, #785a27 5px 6px);
+}
+
+.game-page .bar.rage > span,
+.game-page .rage-meter > span {
+  background: var(--vermilion);
+}
+
+.game-page .resource-box {
+  border-color: var(--line);
+  background: transparent;
+}
+
+.game-page .fate-detail,
+.game-page .disclosure {
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.game-page .disclosure > summary {
+  color: var(--jade);
+}
+
+.game-page .mini-card,
+.game-page .artifact-entry,
+.game-page .detail-item {
+  border-color: var(--line);
+  color: var(--ink);
+  background: var(--panel);
+}
+
+.game-page .mini-card .name,
+.game-page .mini-card .rank {
+  color: var(--ink);
+}
+
+.game-page .build-focus,
+.game-page .build-section,
+.game-page .section-heading,
+.game-page .timeline-item,
+.game-page .profile-build,
+.game-page .resource-row {
+  border-color: var(--line);
+  background: transparent;
+}
+
+.game-page .build-focus-title strong,
+.game-page .section-heading h2,
+.game-page .build-focus .method-actions article strong,
+.game-page .timeline-item h3 {
+  color: var(--ink);
+}
+
+.game-page .build-focus-title span,
+.game-page .build-description,
+.game-page .build-focus .method-actions article p,
+.game-page .timeline-item p {
+  color: var(--muted);
+}
+
+.game-page .build-focus .method-actions article {
+  border-color: var(--line);
+}
+
+.game-page .build-focus .method-actions article b,
+.game-page .talent-ledger article b,
+.game-page .timeline-index {
+  color: var(--jade);
+}
+
+.game-page .filters button,
+.game-page .filters [data-action="build-filter"] {
+  min-height: 44px;
+  border: 7px solid transparent;
+  border-image: url("../assets/ui-button-secondary.png") 16 44 fill / 7px 12px / 0 stretch;
+  border-radius: 0;
+  color: var(--ink);
+  background: transparent;
+}
+
+.game-page .filters button.active,
+.game-page .filters [aria-pressed="true"] {
+  border-image-source: url("../assets/ui-button-primary.png");
+  color: #fff;
+  background: transparent;
+}
+
+.game-page .deck-grid .ability-card,
+.game-page .ability-card,
+.game-page .artifact-entry {
+  border: 9px solid transparent;
+  border-image: url("../assets/ui-panel.png") 24 fill / 9px / 0 stretch;
+  border-radius: 0;
+  color: var(--ink);
+  background: transparent;
+}
+
+.game-page .card-title,
+.game-page .ability-card .card-title,
+.game-page .card-rank,
+.game-page .ability-overview,
+.game-page .card-foot {
+  color: var(--ink);
+}
+
+.game-page .card-top,
+.game-page .card-heading,
+.game-page .ability-details,
+.game-page .ability-effects {
+  border-color: var(--line);
+}
+
+.game-page .ability-cost,
+.game-page .rarity-label {
+  color: var(--jade);
+}
+
+.game-page .rarity-chip,
+.game-page .rarity-label,
+.game-page .route-tag,
+.game-page .pressure-tag {
+  border-color: var(--line-strong);
+  color: var(--jade);
+  background: transparent;
+}
+
+.game-page .route-grid,
+.game-page .reward-grid,
+.game-page .talent-grid,
+.game-page .shop-grid,
+.game-page .rest-grid {
+  gap: 9px;
+}
+
+.game-page .route-card,
+.game-page .reward-card,
+.game-page .talent-card,
+.game-page .shop-item,
+.game-page .rest-choice,
+.game-page .talent-tree-node {
+  border: 9px solid transparent;
+  border-image: url("../assets/ui-panel.png") 24 fill / 9px / 0 stretch;
+  border-radius: 0;
+  color: var(--ink);
+  background: transparent;
+  box-shadow: none;
+}
+
+.game-page .route-card.route-recommended,
+.game-page .reward-card.rarity-rare,
+.game-page .reward-card.rarity-legendary,
+.game-page .talent-card {
+  border-top-width: 9px;
+  border-top-color: transparent;
+  border-image-source: url("../assets/ui-panel.png");
+}
+
+.game-page .route-card h2,
+.game-page .reward-card h2,
+.game-page .talent-card h2,
+.game-page .shop-item-copy h2,
+.game-page .rest-choice b {
+  color: var(--ink);
+}
+
+.game-page .route-card-head p,
+.game-page .route-card-foot,
+.game-page .reward-card > p,
+.game-page .talent-card > p,
+.game-page .shop-item-copy p,
+.game-page .rest-choice p,
+.game-page .rest-choice small {
+  color: var(--muted);
+}
+
+.game-page .node-strip-item,
+.game-page .rest-summary > div,
+.game-page .archive-item,
+.game-page .inventory-item,
+.game-page .method-swap {
+  border-color: var(--line);
+  color: var(--ink);
+  background: var(--panel);
+}
+
+.game-page .rest-summary > div {
+  display: grid;
+  gap: 4px;
+  padding: 8px;
+}
+
+.game-page .rest-summary span,
+.game-page .rest-summary b,
+.game-page .method-swap b,
+.game-page .method-swap small {
+  color: var(--ink);
+}
+
+.game-page .rest-event-note,
+.game-page .event-result {
+  border-color: var(--gold);
+  color: var(--ink);
+  background: var(--panel);
+}
+
+.game-page .story-text,
+.game-page .event-result,
+.game-page .event-outcome p {
+  color: var(--ink);
+}
+
+.game-page .event-page {
+  gap: 9px;
+}
+
+.game-page .event-scene-head {
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 9px;
+  padding-bottom: 7px;
+  border-color: var(--line);
+}
+
+.game-page .event-portrait {
+  width: 48px;
+  height: 48px;
+  border: 0;
+  background: transparent;
+}
+
+.game-page .event-portrait .portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.game-page .event-scene-head h2 {
+  color: var(--ink);
+}
+
+.game-page .event-option {
+  min-height: 52px;
+  border: 8px solid transparent;
+  border-image: url("../assets/ui-button-secondary.png") 16 44 fill / 8px 12px / 0 stretch;
+  border-radius: 0;
+  color: var(--ink);
+  background: transparent;
+}
+
+.game-page .event-option:hover:not(:disabled) {
+  border-image-source: url("../assets/ui-button-primary.png");
+  color: var(--vermilion);
+  background: transparent;
+}
+
+.game-page .event-option-main > b {
+  color: var(--ink);
+}
+
+.game-page .event-option-main > small,
+.game-page .disabled-reason {
+  color: var(--muted);
+}
+
+.game-page .event-costs i,
+.game-page .event-rewards i {
+  padding: 2px 5px;
+  border-color: var(--line);
+  color: var(--vermilion);
+  background: var(--panel);
+}
+
+.game-page .event-rewards i {
+  color: var(--jade);
+}
+
+.game-page .event-option > .icon {
+  color: var(--jade);
+}
+
+.game-page .shop-balance,
+.game-page .shop-balance span,
+.game-page .shop-balance b,
+.game-page .shop-balance .icon {
+  color: var(--ink);
+}
+
+.game-page .shop-item {
+  grid-template-columns: 42px minmax(0, 1fr) auto auto;
+  gap: 8px;
+  padding: 8px 10px;
+}
+
+.game-page .shop-item-copy p {
+  overflow-wrap: anywhere;
+}
+
+.game-page .shop-item-art,
+.game-page .shop-balance .icon {
+  color: var(--jade);
+}
+
+.game-page .shop-item .sold-stamp {
+  color: var(--vermilion);
+}
+
+.game-page .talent-tree {
+  gap: 7px;
+}
+
+.game-page .talent-tier-heading,
+.game-page .talent-tier-heading span {
+  color: var(--muted);
+}
+
+.game-page .talent-tier-row[data-current="true"],
+.game-page .talent-tier-row.is-current {
+  border-color: var(--line);
+  background: transparent;
+}
+
+.game-page .talent-tree-node {
+  min-height: 76px;
+  padding: 7px;
+}
+
+.game-page .talent-tree-node > strong {
+  color: var(--ink);
+}
+
+.game-page .talent-tree-node > small,
+.game-page .talent-tree-node > span {
+  color: var(--muted);
+}
+
+.game-page .talent-tree-node[aria-pressed="true"],
+.game-page .talent-tree-node[data-selected="true"],
+.game-page .talent-tree-node.is-selected {
+  border-image-source: url("../assets/ui-button-primary.png");
+  color: var(--vermilion);
+  box-shadow: none;
+}
+
+.game-page .talent-tree-node[aria-current="step"],
+.game-page .talent-tree-node[data-choice="current"],
+.game-page .talent-tree-node.is-choice {
+  border-image-source: url("../assets/ui-button-secondary.png");
+  background: var(--panel-selected);
+}
+
+.game-page .talent-tree-node[data-future="true"],
+.game-page .talent-tree-node.is-future {
+  opacity: .8;
+}
+
+.game-page .talent-tree-connectors path {
+  stroke: #89998c;
+}
+
+.game-page .talent-tree-connectors path[data-earned="true"],
+.game-page .talent-tree-connectors path.is-earned {
+  stroke: var(--jade);
+}
+
+.game-page .talent-tree-connectors path[data-next="true"],
+.game-page .talent-tree-connectors path.is-next {
+  stroke: var(--vermilion);
+}
+
+.game-page .karma-ledger {
+  grid-template-columns: minmax(0, 1fr) 160px;
+  gap: 20px;
+  overflow: visible;
+  background: transparent;
+}
+
+.game-page .karma-summary {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+}
+
+.game-page .karma-summary > span,
+.game-page .karma-summary strong,
+.game-page .karma-summary p {
+  color: var(--ink);
+}
+
+.game-page .build-tags > span {
+  border-color: var(--line);
+  color: var(--jade);
+  background: transparent;
+}
+
+.game-page .transition-scene {
+  min-height: 220px;
+  overflow: hidden;
+  border: 0;
+  background-color: var(--paper);
+  background-image: url("../assets/scene-map.png");
+  background-position: center;
+  background-size: cover;
+}
+
+.game-page .transition-scene > .landscape {
+  display: none;
+}
+
+.game-page .transition-scene > div {
+  right: 6%;
+  bottom: 18px;
+  left: 6%;
+  padding: 9px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line-strong);
+  background: var(--paper);
+}
+
+.game-page .transition-scene p {
+  margin: 0;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.game-page .end-seal {
+  max-width: 380px;
+  padding: 12px;
+  border: 0;
+  border-block: 1px solid var(--line);
+  background: transparent;
+}
+
+.game-page .end-seal.win,
+.game-page .end-seal.loss {
+  border-color: var(--line);
+  color: var(--jade);
+}
+
+.game-page .end-seal b,
+.game-page .end-summary b,
+.game-page .end-summary span {
+  color: var(--ink);
+}
+
+.game-page .end-summary {
+  border-color: var(--line);
+}
+
+.game-page .end-summary > div {
+  border-color: var(--line);
+}
+
+.game-page .archive-item h3,
+.game-page .archive-item p,
+.game-page .archive-item small {
+  color: var(--ink);
+}
+
+.game-page .archive-item p {
+  color: var(--jade);
+}
+
+.game-page .combat-arena {
+  --actors-height: min(300px, max(210px, calc((100svh - 470px) * .82)));
+  --hud-height: 124px;
+  position: relative;
+  display: grid;
+  min-height: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: var(--hud-height) var(--actors-height) minmax(30px, auto) minmax(28px, auto);
+  align-items: stretch;
+  gap: 0 14px;
+  overflow: visible;
+  padding: 8px 8px 6px;
+  border: 0;
+  background-color: var(--paper);
+  background-image: url("../assets/scene-battle.png");
+  background-position: center;
+  background-size: cover;
+}
+
+.game-page .combat-arena > .landscape,
+.game-page .combat-arena > .arena-vignette {
+  display: none;
+}
+
+.game-page .combat-arena > .game-scene {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.game-page .combat-arena .combatant {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  align-self: stretch;
+  grid-row: 1 / 3;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  align-content: start;
+  gap: 3px;
+  overflow: visible;
+  padding: 0 2px;
+  transform: none !important;
+  animation: none !important;
+}
+
+.game-page .combat-arena .combatant[data-side="player"] {
+  grid-column: 1;
+  justify-self: stretch;
+}
+
+.game-page .combat-arena .combatant[data-side="enemy"] {
+  grid-column: 2;
+  justify-self: stretch;
+}
+
+.game-page .combatant .fighter-identity {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  margin: 0;
+  overflow: visible;
+}
+
+.game-page .combatant[data-side="enemy"] .fighter-identity {
+  justify-content: flex-end;
+}
+
+.game-page .combatant .fighter-identity h2 {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font: 15px/1.3 var(--display-font);
+  white-space: normal;
+}
+
+.game-page .combatant .fighter-detail-trigger {
+  z-index: 4;
+  flex: 0 0 44px;
+  color: var(--jade);
+}
+
+.game-page .combatant[data-side="enemy"] .fighter-detail-trigger {
+  order: 2;
+}
+
+.game-page .combatant .turn-mark {
+  flex: 0 0 auto;
+  padding: 2px 4px;
+  border: 1px solid var(--vermilion);
+  color: var(--vermilion);
+  background: var(--panel);
+  font-size: 11px;
+}
+
+.game-page .combatant .fighter-bars {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  padding: 0 1px;
+}
+
+.game-page .combatant .fighter-numbers {
+  display: flex;
+  min-width: 0;
+  min-height: 17px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px 5px;
+  color: var(--muted);
+  font: 12px/1.35 var(--sans);
+}
+
+.game-page .combatant .fighter-numbers > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.game-page .combatant .fighter-numbers b,
+.game-page .combatant .shield-count {
+  color: var(--ink);
+}
+
+.game-page .combatant .shield-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.game-page .combatant .shield-count .icon {
+  color: var(--gold);
+}
+
+.game-page .combatant .bar.hp {
+  display: flex;
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  border: 3px solid transparent;
+}
+
+.game-page .combatant .bar.hp > span {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+.game-page .combatant .bar.hp > .hp-fill {
+  background: var(--jade);
+}
+
+.game-page .combatant .bar.hp > .shield-fill {
+  background-color: var(--shield);
+  background-image: repeating-linear-gradient(125deg, transparent 0 5px, #785a27 5px 6px);
+}
+
+.game-page .combatant .fighter-numbers:nth-child(3) {
+  margin-top: 1px;
+}
+
+.game-page .combatant.rage-ready .fighter-numbers:nth-child(3),
+.game-page .combatant[data-rage-ready="true"] .fighter-numbers:nth-child(3) {
+  color: var(--vermilion);
+}
+
+.game-page .combatant.rage-ready .fighter-numbers:nth-child(3) span:last-child,
+.game-page .combatant.rage-ready .fighter-numbers:nth-child(3) b {
+  color: var(--vermilion);
+}
+
+.game-page .combatant.rage-ready .fighter-bars .bar.rage {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.game-page .combatant .bar.rage {
+  height: 9px;
+  border-color: transparent;
+}
+
+.game-page .combatant .bar.rage > span {
+  background: var(--vermilion);
+}
+
+.game-page .combatant .fighter-art {
+  position: absolute;
+  z-index: 1;
+  top: var(--hud-height);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: block;
+  width: 100%;
+  max-width: none;
+  aspect-ratio: auto;
+  margin: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  animation: none !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+.game-page .combatant .fighter-art .portrait {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+.game-page .combatant .fighter-art .character-art {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: auto;
+  height: 100%;
+  transform: translateX(-50%) scale(var(--stature, 1));
+}
+
+.game-page .combatant[data-side="enemy"] .fighter-art .character-art {
+  transform: translateX(-50%) scale(calc(-1 * var(--stature, 1)), var(--stature, 1));
+}
+
+.game-page .fighter-side-badge {
+  display: none;
+}
+
+.game-page .combat-arena[data-art-ready="true"] .combatant .fighter-art,
+.game-page .combat-arena:has(.game-battle-actors[data-art-ready="true"]) .combatant .fighter-art {
+  visibility: hidden;
+}
+
+.game-page .combat-arena .game-battle-actors {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: var(--actors-height);
+  min-width: 0;
+  min-height: 0;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.game-page .game-battle-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  pointer-events: none;
+}
+
+.game-page .battle-stage-core {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  min-width: 0;
+  min-height: 30px;
+  grid-column: 1 / -1;
+  grid-row: 3;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 0;
+  color: var(--ink);
+  text-align: center;
+}
+
+.game-page .round-seal {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  border: 1px solid var(--gold);
+  border-radius: 0;
+  color: var(--gold);
+  background: var(--panel);
+  font: 12px/1 var(--serif);
+}
+
+.game-page .combat-arena[data-action-kind="rage"] .round-seal {
+  border-color: var(--vermilion);
+  color: var(--vermilion);
+  box-shadow: none;
+}
+
+.game-page .battle-stage-core strong {
+  display: block;
+  max-width: min(100%, 560px);
+  overflow: hidden;
+  color: var(--ink);
+  font: 13px/1.35 var(--sans);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-page .battle-stage-core small {
+  max-width: min(28%, 180px);
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-page .battle-amount {
+  min-height: 20px;
+  color: var(--gold);
+  font-size: 14px;
+}
+
+.game-page .battle-amount.damage {
+  color: var(--vermilion);
+}
+
+.game-page .battle-amount.gain,
+.game-page .battle-amount.shield-loss {
+  color: var(--jade);
+}
+
+.game-page .combat-feedback-layer {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  min-width: 0;
+  min-height: 28px;
+  grid-column: 1 / -1;
+  grid-row: 4;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 3px 8px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.game-page .combat-feedback-group {
+  position: static;
+  z-index: auto;
+  display: flex;
+  width: 100%;
+  max-width: none;
+  flex-wrap: wrap;
+  align-content: start;
+  gap: 3px;
+}
+
+.game-page .combat-feedback-group.side-p {
+  grid-column: 1;
+  justify-self: start;
+}
+
+.game-page .combat-feedback-group.side-e {
+  grid-column: 2;
+  justify-self: end;
+}
+
+.game-page .combat-float,
+.game-page .combat-feedback-group > .combat-float,
+.game-page .combat-feedback-layer > .combat-float {
+  position: relative;
+  inset: auto;
+  z-index: auto;
+  display: inline-flex;
+  width: auto;
+  max-width: min(100%, 170px);
+  min-height: 26px;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 3px 7px;
+  border: 1px solid var(--line);
+  color: var(--vermilion);
+  background: var(--panel);
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: center;
+  overflow-wrap: anywhere;
+  animation: none;
+  transform: none;
+}
+
+.game-page .combat-float.side-p,
+.game-page .combat-feedback-layer > .combat-float.side-p {
+  grid-column: 1;
+  justify-self: start;
+}
+
+.game-page .combat-float.side-e,
+.game-page .combat-feedback-layer > .combat-float.side-e {
+  grid-column: 2;
+  justify-self: end;
+}
+
+.game-page .combat-float.heal,
+.game-page .combat-float.shield {
+  color: var(--jade);
+}
+
+.game-page .combat-float.status-add,
+.game-page .combat-float.status-use {
+  color: var(--gold);
+}
+
+.game-page .combat-vfx {
+  display: none !important;
+}
+
+.game-page .battle-shell .battle-context {
+  min-height: 18px;
+  margin: 0 0 5px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.game-page .battle-controls {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 7px 0 5px;
+}
+
+.game-page .battle-controls .speeds {
+  display: grid;
+  min-width: 0;
+  flex: 0 1 216px;
+  grid-template-columns: repeat(3, minmax(40px, 1fr)) minmax(56px, 1.25fr);
+  border: 0;
+}
+
+.game-page .battle-controls .speeds button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 7px solid transparent;
+  border-image: url("../assets/ui-button-secondary.png") 16 44 fill / 7px 11px / 0 stretch;
+  color: var(--ink);
+  background: transparent;
+  font-size: 12px;
+}
+
+.game-page .battle-controls .speeds button[aria-pressed="true"] {
+  border-image-source: url("../assets/ui-button-primary.png");
+  color: #fff;
+  background: transparent;
+}
+
+.game-page .battle-controls > [data-control-cta] {
+  min-width: 92px;
+  min-height: 44px;
+  flex: 0 1 auto;
+  padding-right: 8px;
+  padding-left: 8px;
+  white-space: normal;
+}
+
+.game-page .replay-progress {
+  height: 5px;
+  margin: 0 0 5px;
+  background: var(--meter-inset);
+}
+
+.game-page .replay-progress > i {
+  display: block;
+  height: 100%;
+  background: var(--jade);
+}
+
+.game-page .battle-settlement {
+  display: grid;
+  margin: 0 0 5px;
+  color: var(--ink);
+}
+
+.game-page .battle-settlement > p {
+  color: var(--muted);
+}
+
+.game-page .battle-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.game-page .battle-detail-actions .button {
+  min-height: 44px;
+  font-size: 13px;
+}
+
+.game-page .battle-detail-dialog,
+.game-page .dialog,
+.game-page .modal {
+  width: min(100%, 760px);
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  padding: 18px;
+  border: 13px solid transparent;
+  border-image: url("../assets/ui-panel.png") 24 fill / 13px / 0 stretch;
+  border-radius: 0;
+  color: var(--ink);
+  background: var(--panel);
+  box-shadow: none;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.game-page .modal-backdrop {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  background: rgb(39 52 45 / 38%);
+  animation: none;
+}
+
+.game-page .dialog-close,
+.game-page .modal-close {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border: 6px solid transparent;
+  border-image: url("../assets/ui-panel.png") 24 fill / 6px / 0 stretch;
+  color: var(--ink);
+  background: transparent;
+}
+
+.game-page .dialog h2,
+.game-page .modal h2,
+.game-page .battle-detail-dialog h2 {
+  margin: 4px 46px 10px 0;
+  color: var(--ink);
+  font: 22px/1.35 var(--display-font);
+  overflow-wrap: anywhere;
+}
+
+.game-page .dialog > p:not(.eyebrow),
+.game-page .modal > p:not(.eyebrow),
+.game-page .battle-detail-dialog > p:not(.eyebrow) {
+  color: var(--paper-muted);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.game-page .dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.game-page .dialog-actions > .button {
+  min-width: 84px;
+  min-height: 44px;
+}
+
+.game-page .battle-detail-tabs button {
+  min-width: 56px;
+  min-height: 44px;
+  color: var(--muted);
+}
+
+.game-page .battle-detail-tabs button[aria-selected="true"] {
+  border-color: var(--vermilion);
+  color: var(--vermilion);
+  background: var(--panel-selected);
+}
+
+.game-page .battle-detail-body {
+  min-height: 0;
+  overflow: auto;
+}
+
+.game-page .battle-detail-body .detail-section,
+.game-page .battle-detail-body .detail-action,
+.game-page .battle-detail-body .detail-stat-grid > *,
+.game-page .battle-detail-body .battle-log {
+  border-color: var(--line);
+  color: var(--ink);
+  background: transparent;
+}
+
+.game-page .battle-detail-body .detail-section h3,
+.game-page .battle-detail-body .detail-section h4,
+.game-page .battle-detail-body .detail-stat-grid b {
+  color: var(--jade);
+}
+
+.game-page .battle-detail-body .detail-section p,
+.game-page .battle-detail-body .detail-action b,
+.game-page .battle-detail-body .detail-action span,
+.game-page .battle-detail-body .detail-stat-grid > * {
+  color: var(--muted);
+}
+
+.game-page .battle-detail-body .detail-item {
+  border: 7px solid transparent;
+  border-image: url("../assets/ui-button-secondary.png") 16 44 fill / 7px 12px / 0 stretch;
+  color: var(--ink);
+  background: transparent;
+}
+
+.game-page .battle-detail-body .battle-log-row,
+.game-page .battle-detail-body .battle-log-row > b,
+.game-page .battle-detail-body .battle-log-row > span {
+  color: var(--ink);
+}
+
+.game-page .battle-detail-body .battle-log-row > em {
+  color: var(--jade);
+}
+
+.game-page .battle-detail-body .battle-log-head {
+  color: var(--ink);
+}
+
+.game-page .battle-detail-body .battle-log-head .log-follow,
+.game-page .battle-detail-body .battle-log-head .log-mode {
+  min-width: 44px;
+  min-height: 44px;
+  color: var(--jade);
+}
+
+.game-page .battle-detail-body .combat-statuses > span {
+  border-color: var(--line);
+  color: var(--jade);
+  background: var(--panel);
+}
+
+.game-page .detail-value,
+.game-page .dialog-stats dd,
+.game-page .character-stats strong {
+  color: var(--vermilion);
+}
+
+.game-page .detail-keyword,
+.game-page .help-text h3,
+.game-page .item-dialog-art {
+  color: var(--jade);
+}
+
+.game-page .setting-row,
+.game-page .character-detail,
+.game-page .dialog-stats {
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+.game-page .character-stats > div {
+  border: 7px solid transparent;
+  border-image: url("../assets/ui-panel.png") 24 fill / 7px / 0 stretch;
+  background: transparent;
+}
+
+.game-page .profile-settings label,
+.game-page .character-stats span,
+.game-page .character-detail p,
+.game-page .help-text p {
+  color: var(--muted);
+}
+
+.game-page .item-dialog-art .artifact-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.game-page :where(.artifact-art) {
+  display: block;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.game-page :where(.artifact-art) ~ .sigil,
+.game-page :where(.artifact-art) + .sigil {
+  display: none;
+}
+
+.game-page .combat-arena,
+.game-page .fighter-art,
+.game-page .battle-stage-core,
+.game-page .combat-feedback-layer,
+.game-page .game-battle-actors {
+  contain: layout;
+}
+
+.game-page .combatant[data-motion] .fighter-art {
+  animation: none !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+.game-page .battle-shell[data-paused]:not([data-paused="false"]) .fighter-bars .bar > span {
+  transition: none;
+}
+
+.game-page .battle-shell .combat-float,
+.game-page .battle-shell .combat-feedback-group > .combat-float {
+  animation: none;
+}
+
+@media (max-width: 1050px) {
+  .game-page .topbar {
+    min-height: 46px;
+    gap: 4px;
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .game-page .topbar .brand strong {
+    font-size: 15px;
+  }
+
+  .game-page .top-tools.header-actions {
+    gap: 1px;
+  }
+
+  .game-page .header-run-summary {
+    display: none;
+  }
+
+  .game-page .chapter-strip {
+    min-height: 28px;
+    justify-content: space-between;
+    gap: 5px;
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .game-page .chapter:not(.active) .chapter-name {
+    display: none;
+  }
+
+  .game-page .mobile-hud {
+    display: grid;
+    min-height: 52px;
+    grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr) minmax(0, 1.15fr) auto;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+  }
+
+  .game-page .hud-character {
+    min-height: 44px;
+  }
+
+  .game-page .game-layout,
+  .game-page .game-layout.in-combat {
+    width: min(100%, 900px);
+    max-width: 900px;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 10px 18px calc(74px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .game-page .game-layout.in-combat {
+    padding-top: 7px;
+  }
+
+  .game-page .player-rail {
+    display: none;
+  }
+
+  .game-page .bottom-nav {
+    display: flex;
+    height: calc(62px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .game-page .game-layout.in-combat {
+    padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .game-page .combat-arena {
+    --actors-height: clamp(145px, calc((100svh - 440px) * .72), 260px);
+    --hud-height: 116px;
+    gap: 0 9px;
+    padding: 6px 5px 4px;
+  }
+
+  .game-page .combatant .fighter-identity h2 {
+    font-size: 14px;
+  }
+
+  .game-page .battle-shell .battle-controls {
+    gap: 6px;
+  }
+
+  .game-page .battle-shell .battle-controls .speeds {
+    flex: 1 1 0;
+  }
+
+  .game-page .battle-shell .battle-controls > [data-control-cta] {
+    min-width: 84px;
+  }
+
+  .game-page .talent-tree-dialog {
+    width: min(900px, calc(100vw - 20px));
+  }
+}
+
+@media (max-width: 600px) {
+  .landing-page .topbar {
+    min-height: 44px;
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .landing-page .topbar .brand strong {
+    font-size: 15px;
+  }
+
+  .landing-page .landing-inner {
+    display: grid;
+    min-height: calc(100dvh - 44px);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 220px auto;
+    align-content: start;
+    gap: 4px 7px;
+    padding: 7px 10px 14px;
+  }
+
+  .landing-page .landing-copy {
+    display: block;
+    align-self: center;
+    padding: 4px 0;
+  }
+
+  .landing-page .landing-copy .eyebrow {
+    display: none;
+  }
+
+  .landing-page .landing-copy h1 {
+    font-size: 23px;
+    line-height: 1.2;
+  }
+
+  .landing-page .resume-card {
+    min-width: 0;
+    min-height: 44px;
+    margin-top: 4px;
+    padding: 5px 7px;
+  }
+
+  .landing-page .hero-card-stage {
+    min-height: 220px;
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .landing-page .hero-card-stage .character-art {
+    width: min(100%, 196px);
+    max-height: 100%;
+    margin: 0;
+  }
+
+  .landing-page .game-start-canvas {
+    right: 0;
+    left: auto;
+    width: 100%;
+  }
+
+  .landing-page .setup {
+    grid-column: 1 / -1;
+    padding-top: 7px;
+  }
+
+  .landing-page .setup-title {
+    font-size: 18px;
+  }
+
+  .landing-page .setup-fields {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 6px;
+    margin: 6px 0 7px;
+  }
+
+  .landing-page .setup-fields input {
+    height: 44px;
+    min-height: 44px;
+    padding-right: 5px;
+    padding-left: 5px;
+    font-size: 12px !important;
+  }
+
+  .landing-page .method-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 3px;
+  }
+
+  .landing-page .method-choice {
+    min-height: 48px;
+    padding: 3px;
+    border-width: 6px;
+    font-size: 12px;
+  }
+
+  .landing-page .method-copy b {
+    font-size: 12px;
+  }
+
+  .landing-page .method-copy em {
+    display: none;
+  }
+
+  .landing-page .method-quick-actions {
+    gap: 6px;
+  }
+
+  .landing-page .method-quick-actions > span {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .landing-page .method-quick-actions b,
+  .landing-page .method-quick-actions small {
+    font-size: 11px !important;
+    line-height: 1.3;
+  }
+
+  .landing-page .method-full-detail > summary {
+    min-height: 40px;
+  }
+
+  .landing-page .actions {
+    margin-top: 4px;
+  }
+
+  .landing-page .actions .button.primary {
+    min-height: 44px;
+  }
+
+  .game-page .topbar {
+    min-height: 44px;
+    padding-right: 5px;
+    padding-left: 5px;
+  }
+
+  .game-page .topbar .brand strong {
+    font-size: 14px;
+  }
+
+  .game-page .top-tools.header-actions {
+    gap: 0;
+  }
+
+  .game-page .topbar .icon-button,
+  .game-page .topbar .restart-command,
+  .game-page .topbar .restart-command.icon-button {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+  }
+
+  .game-page .restart-label,
+  .game-page .brand-edition {
+    display: none;
+  }
+
+  .game-page .chapter-strip {
+    min-height: 26px;
+    gap: 5px;
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .game-page .chapter-name,
+  .game-page .chapter-separator {
+    display: none;
+  }
+
+  .game-page .mobile-hud {
+    min-height: 50px;
+    gap: 4px;
+    padding: 2px 7px;
+  }
+
+  .game-page .hud-resource > b,
+  .game-page .mobile-gold,
+  .game-page .hud-character > span {
+    font-size: 12px;
+  }
+
+  .game-page .game-layout,
+  .game-page .game-layout.in-combat {
+    padding: 8px 10px calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .game-page .game-layout.in-combat {
+    padding-top: 5px;
+  }
+
+  .game-page .main-stage > .stage-heading {
+    margin-bottom: 6px;
+  }
+
+  .game-page .main-stage > .stage-heading h1 {
+    font-size: 20px;
+  }
+
+  .game-page .game-layout.in-combat .stage-heading[data-battle-heading] {
+    margin-bottom: 4px;
+  }
+
+  .game-page .combat-arena {
+    --actors-height: clamp(138px, calc((100svh - 440px) * .72), 250px);
+    --hud-height: 116px;
+    gap: 0 5px;
+    padding: 5px 2px 3px;
+  }
+
+  .game-page .combatant {
+    padding: 0 1px;
+  }
+
+  .game-page .combatant .fighter-identity {
+    min-height: 44px;
+    gap: 2px;
+  }
+
+  .game-page .combatant .fighter-identity h2 {
+    font-size: 13px;
+  }
+
+  .game-page .combatant .fighter-detail-trigger {
+    flex-basis: 44px;
+    width: 44px;
+    min-width: 44px;
+  }
+
+  .game-page .combatant .turn-mark {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 1px 3px;
+    font-size: 10px;
+    transform: translateY(-2px);
+  }
+
+  .game-page .combatant[data-side="enemy"] .turn-mark {
+    right: auto;
+    left: 0;
+  }
+
+  .game-page .combatant .fighter-numbers {
+    min-height: 16px;
+    gap: 2px;
+    font-size: 11px;
+  }
+
+  .game-page .combatant .bar.hp {
+    height: 10px;
+  }
+
+  .game-page .combatant .bar.rage {
+    height: 8px;
+  }
+
+  .game-page .battle-stage-core {
+    min-height: 28px;
+    gap: 5px;
+  }
+
+  .game-page .battle-stage-core strong {
+    max-width: min(100%, 300px);
+    font-size: 12px;
+  }
+
+  .game-page .battle-stage-core small {
+    display: none;
+  }
+
+  .game-page .combat-feedback-layer {
+    min-height: 26px;
+    gap: 3px 5px;
+  }
+
+  .game-page .combat-float,
+  .game-page .combat-feedback-group > .combat-float,
+  .game-page .combat-feedback-layer > .combat-float {
+    max-width: 100%;
+    min-height: 24px;
+    padding: 2px 4px;
+    font-size: 11px;
+  }
+
+  .game-page .battle-controls {
+    gap: 5px;
+    margin: 5px 0 4px;
+  }
+
+  .game-page .battle-controls .speeds {
+    flex: 1 1 0;
+    grid-template-columns: repeat(3, minmax(40px, 1fr)) minmax(46px, 1.1fr);
+  }
+
+  .game-page .battle-controls .speeds button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 2px;
+    border-width: 6px;
+    font-size: 11px;
+  }
+
+  .game-page .battle-controls > [data-control-cta] {
+    min-width: 96px;
+    max-width: 96px;
+    height: 44px;
+    max-height: 44px;
+    min-height: 44px;
+    padding: 2px;
+    gap: 3px;
+    font-size: 11px;
+  }
+
+  .game-page .battle-detail-actions {
+    margin-top: 2px;
+  }
+
+  .game-page .phase-map .map-scroll {
+    min-height: 220px;
+    max-height: min(calc(58dvh - 34px), 440px);
+  }
+
+  .game-page .map-scroll .map-wrap {
+    min-height: 600px;
+  }
+
+  .game-page .map-node {
+    width: min(96px, 29%);
+    min-height: 78px;
+  }
+
+  .game-page .map-node .node-disc {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+  }
+
+  .game-page .map-node.boss .node-disc {
+    width: 54px;
+    height: 54px;
+    flex-basis: 54px;
+  }
+
+  .game-page .map-node .node-label,
+  .game-page .map-node .node-description {
+    max-width: 100%;
+    font-size: 11px;
+  }
+
+  .game-page .reward-grid,
+  .game-page .talent-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .game-page .reward-card {
+    min-width: 0;
+    padding: 7px 5px;
+  }
+
+  .game-page .reward-card-top {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .game-page .reward-card .rarity-chip,
+  .game-page .reward-card .stack-note {
+    font-size: 11px;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    text-align: left;
+  }
+
+  .game-page .reward-card > .sigil,
+  .game-page .reward-card .artifact-art {
+    width: 40px;
+    height: 40px;
+    margin: 2px auto;
+  }
+
+  .game-page .reward-card h2 {
+    font-size: 13px;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+    text-align: left;
+  }
+
+  .game-page .reward-card > p {
+    min-height: 0;
+    margin-top: 2px;
+    font-size: 12px !important;
+    line-height: 1.4;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+
+  .game-page .compact-choice-actions {
+    grid-template-columns: minmax(0, 1fr) 44px;
+    gap: 2px;
+  }
+
+  .game-page .compact-choice-actions > .button {
+    min-width: 0;
+    min-height: 44px;
+    padding: 3px;
+    font-size: 11px !important;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  .game-page .compact-choice-actions > .button.quiet {
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 2px;
+  }
+
+  .game-page .attribute-list,
+  .game-page .effect-list {
+    gap: 3px;
+    margin-top: 3px;
+    padding-top: 3px;
+  }
+
+  .game-page .attribute-list span,
+  .game-page .effect-list p {
+    font-size: 11px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .game-page .talent-tree {
+    gap: 4px;
+  }
+
+  .game-page .talent-tier-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 3px;
+    padding: 1px;
+  }
+
+  .game-page .talent-tree-node {
+    min-height: 64px;
+    gap: 2px;
+    padding: 4px;
+  }
+
+  .game-page .talent-tree-node > strong {
+    font-size: 12px;
+  }
+
+  .game-page .talent-tree-node > small,
+  .game-page .talent-tree-node > span {
+    font-size: 11px;
+    line-height: 1.3;
+  }
+
+  .game-page .shop-item {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 4px 8px;
+  }
+
+  .game-page .shop-item-art {
+    width: 34px;
+  }
+
+  .game-page .shop-item > .button,
+  .game-page .shop-item > .sold-stamp {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .game-page .shop-item > .button.quiet {
+    grid-column: 2;
+  }
+
+  .game-page .rest-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .game-page .rest-choice {
+    min-height: 0;
+    grid-template-columns: 38px minmax(0, 1fr);
+    align-items: center;
+    padding: 8px;
+  }
+
+  .game-page .rest-choice > span {
+    grid-row: 1 / 4;
+  }
+
+  .game-page .rest-choice > p,
+  .game-page .rest-choice > small {
+    grid-column: 2;
+  }
+
+  .game-page .karma-ledger {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .game-page .dialog,
+  .game-page .modal,
+  .game-page .battle-detail-dialog,
+  .game-page .talent-tree-dialog {
+    width: calc(100vw - 20px);
+    max-width: calc(100vw - 20px);
+    max-height: calc(100dvh - 20px);
+    padding: 15px 13px 12px;
+  }
+
+  .game-page .dialog-actions {
+    align-items: stretch;
+  }
+
+  .game-page .dialog-actions > .button {
+    flex: 1 1 100px;
+  }
+
+  .game-page .battle-detail-dialog h2 {
+    font-size: 19px;
+  }
+
+  .game-page .battle-detail-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .game-page .battle-detail-tabs button {
+    min-width: 56px;
+    flex: 1 0 56px;
+  }
+
+  .game-page .battle-detail-body .battle-log-row {
+    grid-template-columns: minmax(54px, .55fr) minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .game-page .battle-detail-body .battle-log-row > em {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 360px) {
+  .landing-page .topbar,
+  .game-page .topbar {
+    gap: 2px;
+  }
+
+  .game-page .topbar .brand-mark {
+    display: none;
+  }
+
+  .game-page .topbar .brand strong {
+    font-size: 13px;
+  }
+
+  .game-page .game-layout,
+  .game-page .game-layout.in-combat {
+    padding-right: 7px;
+    padding-left: 7px;
+  }
+
+  .game-page .combat-arena {
+    --actors-height: clamp(138px, calc((100svh - 440px) * .72), 235px);
+    --hud-height: 132px;
+    gap: 0 3px;
+    padding-right: 1px;
+    padding-left: 1px;
+  }
+
+  .game-page .combatant .fighter-identity h2 {
+    font-size: 12px;
+  }
+
+  .game-page .battle-controls {
+    gap: 3px;
+  }
+
+  .game-page .battle-controls .speeds {
+    grid-template-columns: repeat(3, minmax(39px, 1fr)) minmax(43px, 1.1fr);
+  }
+
+  .game-page .battle-controls > [data-control-cta] {
+    min-width: 96px;
+    max-width: 96px;
+    height: 44px;
+    max-height: 44px;
+    padding: 2px;
+    gap: 3px;
+    font-size: 11px;
+  }
+}
+
+@media (max-height: 620px) {
+  .landing-page .landing-inner {
+    grid-template-rows: minmax(190px, auto) auto;
+    gap: 5px 24px;
+    padding-top: 8px;
+    padding-bottom: 12px;
+  }
+
+  .landing-page .hero-card-stage {
+    min-height: 240px;
+  }
+
+  .landing-page .setup {
+    padding-top: 7px;
+  }
+
+  .game-page .combat-arena {
+    --actors-height: clamp(138px, calc((100svh - 420px) * .6), 190px);
+    --hud-height: 132px;
+  }
+}
+
+@media (max-width: 600px) and (max-height: 620px) {
+  .landing-page .landing-inner {
+    grid-template-columns: minmax(0, 1fr) 90px;
+    grid-template-rows: auto minmax(132px, auto) auto;
+    gap: 2px 5px;
+    padding: 4px 8px 10px;
+  }
+
+  .landing-page .hero-card-stage {
+    min-height: 132px;
+  }
+
+  .landing-page .hero-card-stage .character-art {
+    width: min(100%, 116px);
+    max-height: 100%;
+  }
+
+  .landing-page .setup-fields {
+    margin: 4px 0 5px;
+  }
+
+  .landing-page .method-choice {
+    min-height: 46px;
+  }
+
+  .game-page .game-layout.in-combat {
+    padding-top: 4px;
+  }
+
+  .game-page .battle-shell .battle-context {
+    display: none;
+  }
+
+  .game-page .combat-arena {
+    --actors-height: 106px;
+    --hud-height: 136px;
+    grid-template-rows: var(--hud-height) var(--actors-height) minmax(25px, auto) minmax(23px, auto);
+    padding-top: 4px;
+    padding-bottom: 2px;
+  }
+
+  .game-page .battle-stage-core {
+    min-height: 25px;
+  }
+
+  .game-page .combat-feedback-layer {
+    min-height: 23px;
+  }
+}
+
+@media (min-width: 601px) and (max-height: 800px) {
+  .landing-page .landing-inner {
+    grid-template-rows: minmax(180px, auto) auto;
+    gap: 6px 28px;
+    padding-top: 10px;
+    padding-bottom: 12px;
+  }
+
+  .landing-page .hero-card-stage {
+    min-height: 200px;
+  }
+
+  .landing-page .method-choice {
+    min-height: 64px;
+    padding: 5px 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+
+  .game-page .combatant,
+  .game-page .combatant .fighter-art,
+  .game-page .combat-float,
+  .game-page .combat-feedback-group > .combat-float {
+    animation: none !important;
+    transform: none !important;
+  }
+}

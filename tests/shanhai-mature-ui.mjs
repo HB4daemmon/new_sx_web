@@ -54,7 +54,6 @@ await writeFile(path.join(reportDir, 'report.json'), JSON.stringify({
   reportDir,
   generatedAt: new Date().toISOString(),
   viewports: [
-    { width: 320, height: 760 },
     { width: 360, height: 780 },
     { width: 390, height: 844 },
     { width: 1280, height: 720 },

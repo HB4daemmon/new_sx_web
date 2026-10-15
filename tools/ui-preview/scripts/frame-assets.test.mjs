@@ -38,7 +38,7 @@ test('the six combat atlases keep their manifest paths, hashes and source proven
   assert.deepEqual(manifest.frameSize, frameSize);
   assert.equal(manifest.targetBodyHeight, 300);
   assert.deepEqual(Object.keys(manifest.characters), ids);
-  assert.equal(manifest.approval, 'pending');
+  assert.equal(manifest.approval, 'approved');
   assert.equal(manifest.provenance.model, 'gpt-image-2.5');
   assert.equal(manifest.provenance.mode, 'reference-edit');
 
