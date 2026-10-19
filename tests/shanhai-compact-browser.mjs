@@ -132,6 +132,10 @@ async function assertBattleLayout(page, width) {
       });
     return {
       arenaBottom: arena?.bottom ?? 0,
+      actorTop: shell.querySelector('.game-battle-actors')?.getBoundingClientRect().top ?? 0,
+      actorHeight: shell.querySelector('.game-battle-actors')?.getBoundingClientRect().height ?? 0,
+      hudBottom: Math.max(...[...shell.querySelectorAll('.fighter-bars')].map(element =>
+        element.getBoundingClientRect().bottom)),
       controls: controlsRect ? {
         x: controlsRect.x,
         y: controlsRect.y,
@@ -161,6 +165,10 @@ async function assertBattleLayout(page, width) {
   `${width}: 斗法按钮互相覆盖 ${JSON.stringify(geometry.buttons)}`);
   assert.ok(geometry.arenaBottom <= geometry.controls.y + 2,
     `${width}: 斗法控制栏覆盖战场 ${JSON.stringify(geometry)}`);
+  assert.ok(geometry.hudBottom + 2 <= geometry.actorTop,
+    `${width}: 血条侵入人物画布 ${JSON.stringify(geometry)}`);
+  assert.ok(geometry.actorHeight >= 300,
+    `${width}: 人物舞台没有获得足够空间 ${JSON.stringify(geometry)}`);
   assert.ok(geometry.combatants.length === 2 &&
     geometry.combatants[0].right <= geometry.combatants[1].x + 1,
   `${width}: 双方资源栏互相覆盖 ${JSON.stringify(geometry.combatants)}`);

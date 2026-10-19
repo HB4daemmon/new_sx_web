@@ -52,6 +52,10 @@ interface BattleMount {
   token: number;
   arena: HTMLElement;
   state: Omit<BattleArtSync, 'canvas' | 'arena'>;
+  onDraw?: EventListener;
+  resizeObserver?: ResizeObserver;
+  motionQuery?: MediaQueryList;
+  onMotionChange?: () => void;
 }
 
 interface BattleArtSync {
@@ -126,9 +130,8 @@ export class GameArt {
       this.disposeBattle();
       return;
     }
-    if (this.runtimeFailed) return;
     this.battlePaused = state.paused;
-    if (this.battleRig?.canvas === canvas && this.battleMount?.arena === arena) {
+    if (this.battleMount?.canvas === canvas && this.battleMount.arena === arena) {
       this.battleMount.state = {
         method: state.method,
         enemyMethod: state.enemyMethod,
@@ -139,7 +142,8 @@ export class GameArt {
         frame: state.frame,
         group: state.group,
       };
-      this.applyBattleState(state, this.battleRig);
+      if (this.battleRig) this.applyBattleState(state, this.battleRig);
+      else this.syncFeedbackAnchors(this.battleMount);
       return;
     }
     if (this.pendingBattle?.canvas === canvas && this.pendingBattle.arena === arena) {
@@ -169,6 +173,19 @@ export class GameArt {
       },
     };
     this.pendingBattle = mount;
+    mount.onDraw = () => this.syncFeedbackAnchors(mount);
+    canvas.addEventListener('battle-art-draw', mount.onDraw);
+    if (typeof ResizeObserver !== 'undefined') {
+      mount.resizeObserver = new ResizeObserver(() => this.syncFeedbackAnchors(mount));
+      mount.resizeObserver.observe(arena);
+    }
+    mount.motionQuery = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)');
+    mount.onMotionChange = () => {
+      this.setBattlePaused(this.battlePaused);
+      this.battleRig?.draw();
+    };
+    mount.motionQuery?.addEventListener?.('change', mount.onMotionChange);
+    this.syncFeedbackAnchors(mount);
     void this.createBattle(mount);
   }
 
@@ -319,7 +336,9 @@ export class GameArt {
       if (!this.isCurrentBattle(mount)) return;
       if (!runtime) {
         this.pendingBattle = null;
+        this.battleMount = mount;
         mount.arena.dataset.artReady = 'false';
+        this.syncFeedbackAnchors(mount);
         return;
       }
       let resources: Awaited<ReturnType<GameArt['battleResources']>>;
@@ -363,6 +382,7 @@ export class GameArt {
       this.setBattlePaused(mount.state.paused);
       mount.arena.dataset.artReady = 'true';
       mount.canvas.parentElement?.setAttribute('data-art-ready', 'true');
+      this.syncFeedbackAnchors(mount);
     } catch {
       if (this.isCurrentBattle(mount)) {
         if (this.battleRig === rig) {
@@ -371,7 +391,9 @@ export class GameArt {
         }
         rig?.dispose();
         this.pendingBattle = null;
+        this.battleMount = mount;
         mount.arena.dataset.artReady = 'false';
+        this.syncFeedbackAnchors(mount);
       }
     }
   }
@@ -441,6 +463,7 @@ export class GameArt {
       ].every(skin => dynamicRig.hasCharacter(skin));
       mount.arena.dataset.artReady = String(ready);
       mount.canvas.parentElement?.setAttribute('data-art-ready', String(ready));
+      this.syncFeedbackAnchors(mount);
     })();
     this.battleSkinLoads.set(id, load);
     void load.catch(() => {
@@ -455,8 +478,37 @@ export class GameArt {
 
   private failBattle(mount: BattleMount): void {
     if (!this.isCurrentBattle(mount)) return;
-    this.disposeBattle();
+    this.battleRig?.dispose();
+    this.battleRig = null;
     mount.arena.dataset.artReady = 'false';
+    mount.canvas.parentElement?.setAttribute('data-art-ready', 'false');
+    this.syncFeedbackAnchors(mount);
+  }
+
+  private syncFeedbackAnchors(mount: BattleMount): void {
+    const snapshot = mount.canvas.getFrameSnapshot?.();
+    for (const side of ['player', 'enemy'] as const) {
+      let head = mount.arena.dataset.artReady === 'true' ? snapshot?.[side]?.head : undefined;
+      if (!head) {
+        const art = mount.arena.querySelector<HTMLElement>(
+          `.combatant[data-side="${side}"] .fighter-art .character-art`,
+        );
+        if (!art) continue;
+        const rect = art.getBoundingClientRect();
+        const canvasRect = mount.canvas.getBoundingClientRect();
+        const manifest = getAnimationManifest() as Record<string, any> | null;
+        const character = manifest?.characters?.[art.dataset.artSkin || ''];
+        const [left, top, right] = character?.cels?.[0]?.bounds || [0, 0, 400];
+        const center = (left + right) / 800;
+        head = {
+          x: rect.left - canvasRect.left + rect.width * (side === 'player' ? center : 1 - center),
+          y: rect.top - canvasRect.top + rect.height * top / 448,
+        };
+      }
+      if (!head || !Number.isFinite(head.x) || !Number.isFinite(head.y)) continue;
+      mount.arena.style.setProperty(`--${side}-head-x`, `${head.x.toFixed(2)}px`);
+      mount.arena.style.setProperty(`--${side}-head-y`, `${head.y.toFixed(2)}px`);
+    }
   }
 
   private runtimePromiseOrLoad(): Promise<AnimationRuntime | null> {
@@ -487,6 +539,10 @@ export class GameArt {
 
   private disposeBattle(): void {
     this.battleToken += 1;
+    const mount = this.battleMount || this.pendingBattle;
+    if (mount?.onDraw) mount.canvas.removeEventListener('battle-art-draw', mount.onDraw);
+    mount?.resizeObserver?.disconnect();
+    if (mount?.onMotionChange) mount.motionQuery?.removeEventListener?.('change', mount.onMotionChange);
     this.pendingBattle = null;
     if (this.battleMount) {
       this.battleMount.arena.dataset.artReady = 'false';

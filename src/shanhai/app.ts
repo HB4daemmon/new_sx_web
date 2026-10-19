@@ -3,6 +3,7 @@ import { calculateStats } from './combat.js';
 import {
   battleBeatGameDuration,
   battleBeatDuration,
+  battleFloatPresentation,
   battlePresentationCue,
   bloodShieldPresentation,
 } from './battle-presentation.js';
@@ -324,6 +325,7 @@ class ShanhaiApp {
   private battleKey = '';
   private rafId = 0;
   private battleBeatElapsed = 0;
+  private battleFloatProgress = 0;
   private lastPlaybackTime: number | null = null;
   private readonly gameArt = new GameArt();
   private busy = false;
@@ -1115,6 +1117,7 @@ class ShanhaiApp {
       this.battleBeatElapsed += advanceBy;
       remainingGameTime -= advanceBy;
       this.gameArt.advanceBattle(advanceBy);
+      this.syncBattleFloatPose(beatGameDuration);
 
       if (this.battleBeatElapsed + 0.001 < beatGameDuration) break;
       if (nextCursor <= this.battleCursor) {
@@ -1169,6 +1172,27 @@ class ShanhaiApp {
       frame,
       group: frame ? combatPresentationGroup(frames, this.battleCursor) : undefined,
     });
+    if (frame) {
+      const group = combatPresentationGroup(frames, this.battleCursor);
+      const duration = group
+        ? combatPresentationDuration(this.battleSpeed, group.player.hits + group.enemy.hits) * this.battleSpeed
+        : battleBeatGameDuration(frame);
+      this.syncBattleFloatPose(duration);
+    }
+  }
+
+  private syncBattleFloatPose(duration: number): void {
+    const shell = this.root.querySelector<HTMLElement>('.battle-shell');
+    if (!shell) return;
+    this.battleFloatProgress = this.battleBeatElapsed === 0 ? 0
+      : Math.max(this.battleFloatProgress, this.battleBeatElapsed / Math.max(1, duration));
+    const pose = battleFloatPresentation(
+      this.battleFloatProgress,
+      globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
+    );
+    shell.style.setProperty('--float-rise', `${pose.rise.toFixed(2)}px`);
+    shell.style.setProperty('--float-scale', pose.scale.toFixed(3));
+    shell.style.setProperty('--float-opacity', pose.opacity.toFixed(3));
   }
 
   private refreshBattleSceneArt(): void {
@@ -1551,6 +1575,13 @@ class ShanhaiApp {
     template.innerHTML = this.battleControlAction(state);
     const expected = template.content.firstElementChild as HTMLElement | null;
     if (!expected) return;
+    // A press begun on "skip" must not turn into "claim" when playback ends.
+    if (action.dataset.action !== expected.dataset.action) {
+      const focused = document.activeElement === action;
+      action.replaceWith(expected);
+      if (focused) expected.focus({ preventScroll: true });
+      return;
+    }
     for (const attribute of ['data-action', 'class', 'aria-label', 'data-focus-key', 'data-autofocus']) {
       const value = expected.getAttribute(attribute);
       if (value === null) action.removeAttribute(attribute);
@@ -2525,7 +2556,10 @@ class ShanhaiApp {
       this.battleSpeed,
       group.player.hits + group.enemy.hits,
     );
-    const changes: Array<{ side: 'p' | 'e'; kind: string; text: string; crit?: boolean }> = [];
+    const changes: Array<{
+      side: 'p' | 'e'; kind: string; text: string; crit?: boolean;
+      amount?: string; label?: string; detail?: string;
+    }> = [];
     for (const [key, side] of [['player', 'p'], ['enemy', 'e']] as const) {
       const summary = group[key];
       const isDotDamage = group.dot && summary.damage > 0 && summary.dotDamage === summary.damage;
@@ -2534,8 +2568,11 @@ class ShanhaiApp {
         const label = isDotDamage ? '持续伤害 ' : summary.critical ? '暴击 ' : '';
         changes.push({
           side,
-          kind: 'damage',
+          kind: isDotDamage ? 'damage dot' : 'damage',
           text: `${label}-${formatNumber(summary.damage)}${detail}`,
+          amount: `-${formatNumber(summary.damage)}`,
+          label,
+          detail,
           crit: summary.critical && !isDotDamage,
         });
       } else if (summary.shieldAbsorbed > 0) {
@@ -2553,11 +2590,13 @@ class ShanhaiApp {
       }
       if (summary.shieldGenerated > 0) secondary.push(`护盾 +${formatNumber(summary.shieldGenerated)}`);
       if (summary.shieldConsumed > 0) secondary.push(`护盾 -${formatNumber(summary.shieldConsumed)}`);
-      secondary.push(...Object.entries(summary.statuses)
-        .filter(([, delta]) => delta !== 0)
-        .slice(0, 2)
-        .map(([status, delta]) =>
-          `${STATUS_LABEL[status] || localizeStatus(status)} ${delta > 0 ? '+' : ''}${formatNumber(delta)}`));
+      if (!secondary.length) {
+        secondary.push(...Object.entries(summary.statuses)
+          .filter(([, delta]) => delta !== 0)
+          .slice(0, 2)
+          .map(([status, delta]) =>
+            `${STATUS_LABEL[status] || localizeStatus(status)} ${delta > 0 ? '+' : ''}${formatNumber(delta)}`));
+      }
       if (secondary.length) {
         const kind = summary.healing > 0 && !summary.shieldAbsorbed &&
           !summary.shieldGenerated && !summary.shieldConsumed ? 'heal'
@@ -2569,8 +2608,10 @@ class ShanhaiApp {
     const sideMarkup = (side: 'p' | 'e') => {
       const messages = changes.filter(item => item.side === side);
       if (!messages.length) return '';
-      return `<div class="combat-feedback-group side-${side}">${messages.map((item) =>
-        `<span class="combat-float ${item.kind} ${item.crit ? 'crit' : ''}" style="--fx-duration:${duration}ms;animation-duration:${duration}ms"><b>${esc(item.text)}</b></span>`,
+      return `<div class="combat-feedback-group side-${side}" data-side="${side === 'p' ? 'player' : 'enemy'}">${messages.map((item) =>
+        `<span class="combat-float ${item.kind} ${item.crit ? 'crit' : ''}" style="--fx-duration:${duration}ms;animation-duration:${duration}ms">${item.amount
+          ? `${item.label ? `<small>${esc(item.label)}</small>` : ''}<b>${esc(item.amount)}</b>${item.detail ? `<small>${esc(item.detail)}</small>` : ''}`
+          : `<b>${esc(item.text)}</b>`}</span>`,
       ).join('')}</div>`;
     };
     return `<div class="combat-feedback-layer" aria-hidden="true">${sideMarkup('p')}${sideMarkup('e')}</div>`;

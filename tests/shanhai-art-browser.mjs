@@ -564,6 +564,9 @@ async function assertFallbackPose(page, label) {
       const source = background.match(/url\(["']?(.*?)["']?\)/)?.[1] || '';
       const id = art?.getAttribute('data-art-skin') || '';
       const character = manifest.characters[id];
+      const artRect = art?.getBoundingClientRect();
+      const feedback = document.querySelector(`.combat-feedback-group[data-side="${side}"]`);
+      const feedbackRect = feedback?.getBoundingClientRect();
       return {
         side,
         id,
@@ -578,6 +581,10 @@ async function assertFallbackPose(page, label) {
         authoredBounds: character?.cels?.[0]?.bounds,
         bodyHeight: character?.bodyHeight,
         targetBodyHeight: manifest.targetBodyHeight,
+        headY: artRect.top + artRect.height * character.cels[0].bounds[1] / 448,
+        hudBottom: fighter.querySelector('.fighter-bars').getBoundingClientRect().bottom,
+        feedbackBottom: feedbackRect?.bottom,
+        aspectRatio: artRect.width / artRect.height,
       };
     });
     const poses = [];
@@ -641,6 +648,14 @@ async function assertFallbackPose(page, label) {
     `${label}: ${pose.side} fallback 在帧格边缘被裁切 ${JSON.stringify(bounds)}`);
     assert.ok(Math.abs(pose.bodyHeight * pose.stature - pose.targetBodyHeight) < 1,
       `${label}: ${pose.side} fallback 姿态高度未归一`);
+    assert.ok(pose.headY > pose.hudBottom + 40,
+      `${label}: ${pose.side} 静态角色压到血条`);
+    assert.ok(Math.abs(pose.aspectRatio - 400 / 448) < .005,
+      `${label}: ${pose.side} 静态角色被拉伸`);
+    if (pose.feedbackBottom !== undefined) {
+      assert.ok(pose.feedbackBottom <= pose.headY - 6,
+        `${label}: ${pose.side} 静态角色飘字压到头顶 ${JSON.stringify(pose)}`);
+    }
   }
   return result;
 }
@@ -875,12 +890,18 @@ async function run() {
       assert.match(startFallback.image, /\.png(?:["')]|$)/i,
         `启动 fallback PNG 缺失 ${JSON.stringify(startFallback)}`);
       const resourceMeta = await startRealBattle(resourcePage);
+      const damageCursor = resourceMeta.frames.findIndex(frame => frame.kind === 'damage');
+      assert.ok(damageCursor > 0, '静态降级验收缺少真实伤害帧');
       await seekPausedCursor(
-        resourcePage, resourceMeta, resourceMeta.rageIndices.player[0] - 1, { artReady: false },
+        resourcePage, resourceMeta, damageCursor, { artReady: false },
       );
       const fallback = await assertFallbackPose(resourcePage, 'animation.js resource failure');
       await inspectPngImage(resourcePage, '.combat-arena .game-scene', 'resource failure battle');
       await capture(resourcePage, '390x844-resource-failure-fallback.png');
+      await resourcePage.setViewportSize({ width: 360, height: 780 });
+      await resourcePage.waitForTimeout(80);
+      await assertFallbackPose(resourcePage, '360 animation.js failure after resize');
+      await capture(resourcePage, '360x780-resource-failure-fallback.png');
       await check('美术运行时资源失败仍可正常开战、显示完整姿态并跳过', async () => {
         const settled = await assertFallbackCanSkip(resourcePage, 'resource failure');
         return { startFallback, fallback, settled };

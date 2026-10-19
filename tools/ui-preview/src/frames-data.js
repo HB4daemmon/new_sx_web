@@ -66,11 +66,13 @@ export const durations = Object.freeze(Object.fromEntries(
 
 export function battleLayout(width, height, footRoom = 28, rearExtent = 162, rise = 420) {
   // Use the whole authored motion envelope, not each pose, to keep scale and feet stable.
+  const headroom = Math.min(112, height * .36);
   const scale = Math.min((width / 4 - 4) / (rearExtent + 8),
-    (height - 12) / (rise + footRoom + 6), 1);
+    (height - headroom - 12) / (rise + footRoom + 6), 1);
+  const spareRoom = Math.max(0, height - headroom - (rise + footRoom) * scale - 12);
   return {
     scale,
-    baseline: height - Math.max(12, footRoom * scale + 6),
+    baseline: headroom + rise * scale + spareRoom / 2,
     stance: width * .25,
   };
 }

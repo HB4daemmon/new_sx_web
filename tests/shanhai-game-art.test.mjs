@@ -124,13 +124,18 @@ function battleFrame(kind = 'action', actor = 'player', lockedAction = 'basic_ac
 
 function nodes() {
   const attributes = {};
-  const canvas = {
+  const canvas = Object.assign(new EventTarget(), {
     isConnected: true,
     parentElement: { setAttribute: (name, value) => { attributes[name] = value; } },
     closest: () => ({ setAttribute: (name, value) => { attributes[name] = value; } }),
+  });
+  const properties = new Map();
+  const arena = {
+    dataset: {},
+    querySelector: () => null,
+    style: { setProperty: (name, value) => properties.set(name, value) },
   };
-  const arena = { dataset: {} };
-  return { canvas, arena, attributes };
+  return { canvas, arena, attributes, properties };
 }
 
 function fakeRig(canvas) {
@@ -292,6 +297,82 @@ test('reduced motion is forwarded to the shared animation timeline', async () =>
     assert.equal(mounted.calls.find(call => call[0] === 'configure')[1].reduced, true);
     art.setBattlePaused(true);
     assert.equal(mounted.calls.at(-1)[1].reduced, true);
+  } finally {
+    globalThis.matchMedia = previous;
+    art.dispose();
+  }
+});
+
+test('head anchors follow renderer draws and unsubscribe when the battle is disposed', async () => {
+  const { canvas, arena, properties } = nodes();
+  const mounted = fakeRig(canvas);
+  const art = new gameArt.GameArt();
+  prepareArt(art);
+  art.runtimePromise = Promise.resolve(runtimeFor(mounted));
+  art.syncBattle(battleState({ canvas, arena, frame: battleFrame('start') }));
+  await new Promise(resolve => setImmediate(resolve));
+  canvas.getFrameSnapshot = () => ({
+    player: { head: { x: 96.125, y: 120 } },
+    enemy: { head: { x: 280, y: 155.5 } },
+  });
+  canvas.dispatchEvent(new Event('battle-art-draw'));
+  assert.equal(properties.get('--player-head-x'), '96.13px');
+  assert.equal(properties.get('--player-head-y'), '120.00px');
+  assert.equal(properties.get('--enemy-head-y'), '155.50px');
+  art.dispose();
+  properties.clear();
+  canvas.dispatchEvent(new Event('battle-art-draw'));
+  assert.equal(properties.size, 0);
+});
+
+test('static fallback anchors use the actual character rectangle when no renderer is available', async () => {
+  const { canvas, arena, properties } = nodes();
+  canvas.getBoundingClientRect = () => ({ left: 10, top: 200 });
+  let artTop = 320;
+  arena.querySelector = selector => ({
+    dataset: { artSkin: selector.includes('player') ? 'RKF01' : 'EN-A1-L1' },
+    getBoundingClientRect: () => ({
+      left: selector.includes('player') ? 40 : 220,
+      top: artTop, width: 100, height: 180,
+    }),
+  });
+  const art = new gameArt.GameArt();
+  art.runtimePromise = Promise.resolve(null);
+  art.syncBattle(battleState({ canvas, arena, frame: battleFrame('start') }));
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(properties.get('--player-head-x'), '80.00px');
+  assert.equal(properties.get('--player-head-y'), '120.00px');
+  assert.equal(properties.get('--enemy-head-x'), '260.00px');
+  artTop = 360;
+  art.syncBattle(battleState({ canvas, arena, frame: battleFrame('start') }));
+  assert.equal(properties.get('--player-head-y'), '160.00px');
+  art.dispose();
+});
+
+test('changing reduced motion immediately settles the active battle and releases its listener', async () => {
+  const { canvas, arena } = nodes();
+  const mounted = fakeRig(canvas);
+  const previous = globalThis.matchMedia;
+  let onChange;
+  let removed;
+  const query = {
+    matches: false,
+    addEventListener: (_name, listener) => { onChange = listener; },
+    removeEventListener: (_name, listener) => { removed = listener; },
+  };
+  globalThis.matchMedia = () => query;
+  const art = new gameArt.GameArt();
+  prepareArt(art);
+  art.runtimePromise = Promise.resolve(runtimeFor(mounted));
+  try {
+    art.syncBattle(battleState({ canvas, arena, frame: battleFrame('start') }));
+    await new Promise(resolve => setImmediate(resolve));
+    query.matches = true;
+    onChange();
+    assert.equal(mounted.calls.findLast(call => call[0] === 'configure')[1].reduced, true);
+    assert.equal(mounted.calls.at(-1)[0], 'draw');
+    art.dispose();
+    assert.equal(removed, onChange);
   } finally {
     globalThis.matchMedia = previous;
     art.dispose();

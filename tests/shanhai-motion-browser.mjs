@@ -1158,6 +1158,12 @@ async function assertFixtureMotion(page, snapshot, index, motion, label) {
   const actor = await waitForCanvasAction(page, targetSide, canvasAction, 0, cursor);
   assert.equal(actor.actor.action, canvasAction,
     `${label}: ${targetSide} canvas 没有呈现 ${motion} 对应的 ${canvasAction}`);
+  if (['hit', 'dot', 'block'].includes(motion)) {
+    assert.equal(actor.actor.effect?.action, canvasAction,
+      `${label}: ${targetSide} 缺少局部受击特效`);
+    assert.equal(actor.actor.effect?.palette, motion === 'block' ? 'cool-cyan' : 'warm-gold',
+      `${label}: 命中与护盾吸收没有独立光效配色`);
+  }
   return targetSide;
 }
 
@@ -1258,7 +1264,7 @@ function createGroupedMultiHitFrames(baseFrame) {
   };
   const firstHit = damageFrame(action, 7, 0, 4, '固定分段：第一击');
   const secondHit = damageFrame(firstHit, 11, 5, 0, '固定分段：第二击');
-  const thirdHit = damageFrame(secondHit, 13, 7, 0, '固定分段：第三击');
+  const thirdHit = damageFrame(secondHit, 13, 7, 0, '固定分段：第三击暴击');
 
   const nextAction = structuredClone(thirdHit);
   nextAction.kind = 'action';
@@ -1355,6 +1361,35 @@ async function assertFeedbackDoesNotOverlap(page, label) {
   });
   assert.deepEqual(overlaps, [],
     `${label}: 分组浮层遮挡血盾/怒气条或战斗控件 ${JSON.stringify(overlaps)}`);
+  const geometry = await page.evaluate(() => {
+    const canvas = document.querySelector('canvas[data-game-battle]');
+    const snapshot = canvas?.getFrameSnapshot?.();
+    const canvasRect = canvas?.getBoundingClientRect();
+    const hudBottom = Math.max(...[...document.querySelectorAll('.fighter-bars')]
+      .map(element => element.getBoundingClientRect().bottom));
+    return [...document.querySelectorAll('.combat-feedback-group')].map(group => {
+      const actor = snapshot?.[group.dataset.side];
+      const rect = group.getBoundingClientRect();
+      return {
+        side: group.dataset.side,
+        x: rect.x, right: rect.right, y: rect.y, bottom: rect.bottom,
+        headX: canvasRect.x + actor.head.x,
+        headY: canvasRect.y + actor.head.y,
+        actorTop: canvasRect.y + actor.bounds.y,
+        hudBottom,
+      };
+    });
+  });
+  for (const item of geometry) {
+    assert.ok(item.bottom <= item.headY - 6,
+      `${label}: ${item.side} 飘字不在头顶 ${JSON.stringify(item)}`);
+    assert.ok(item.y >= item.hudBottom + 4,
+      `${label}: ${item.side} 飘字进入血条区 ${JSON.stringify(item)}`);
+    assert.ok(Math.abs((item.x + item.right) / 2 - item.headX) <= 30,
+      `${label}: ${item.side} 飘字没有跟随受击角色 ${JSON.stringify(item)}`);
+    assert.ok(item.actorTop >= item.hudBottom + 40,
+      `${label}: ${item.side} 人物与血条缺少间隔 ${JSON.stringify(item)}`);
+  }
 }
 
 async function assertGroupedFeedback(page, frames, cursor, label, minimumDuration = 0) {
@@ -1452,9 +1487,9 @@ async function assertFixedGroupedMultiHit(page, baseFrame, width) {
   assert.equal(await page.locator('.battle-shell').getAttribute('data-paused'), 'true',
     `${width}: 固定多段回放应在动作边界暂停`);
   await clickAction(page, 'battle-speed', { speed: 4 });
+  await armPauseAtFrame(page, fullCursor);
   await clickAction(page, 'battle-pause');
   await waitForFrameIndex(page, fullCursor);
-  await clickAction(page, 'battle-pause');
   assert.equal((await battleSnapshot(page)).replay?.cursor, fullCursor,
     `${width}: 多段效果组没有跳到组尾 raw cursor`);
   const fullContract = await assertFrameContract(
@@ -1485,6 +1520,9 @@ async function assertFixedGroupedMultiHit(page, baseFrame, width) {
   assert.equal(fullEnemyText.some(text => text.includes(`-${wholeNumber(futureDamage)}`)), false,
     `${width}: 下一组未来伤害泄漏到当前多段浮层`);
   await assertFeedbackDoesNotOverlap(page, `${width} fixed grouped multi-hit`);
+  assert.equal(await page.locator('.combat-float.damage.crit small').first().textContent(), '暴击 ',
+    `${width}: 暴击标签没有与醒目伤害数字分层`);
+  await page.screenshot({ path: path.join(screenshotDir, `${width}-critical-float.png`), fullPage: true });
 
   const partialCursor = 3;
   await loadFixedFrameFixture(page, frames, partialCursor, true);
@@ -1503,6 +1541,10 @@ async function assertFixedGroupedMultiHit(page, baseFrame, width) {
     `${width}: 部分 cursor 提前包含第三段伤害`);
   assert.equal(partialEnemyText.some(text => text.includes(`-${wholeNumber(futureDamage)}`)), false,
     `${width}: 部分 cursor 泄漏了后续效果组`);
+  await assertFeedbackDoesNotOverlap(page, `${width} partial hit geometry`);
+  const impact = (await readCanvasSnapshot(page)).snapshot.enemy;
+  assert.equal(impact.effect?.action, 'hit', `${width}: 受击目标缺少局部命中特效`);
+  await page.screenshot({ path: path.join(screenshotDir, `${width}-local-hit.png`), fullPage: true });
 
   await clickAction(page, 'battle-details', { tab: 'log' });
   const modal = page.locator('.battle-detail-dialog');
@@ -1957,24 +1999,128 @@ async function assertSkipIsPresentationOnly(page, snapshot, width) {
     `${width}: 结算后存档意外写入预计算帧`);
 }
 
-async function assertFloatFeedbackStable(page, snapshot, width) {
+async function assertBattleCommandHandoff(page, baseFrame, width) {
+  const { frames } = createGroupedMultiHitFrames(baseFrame);
+  const battleRecord = await page.evaluate(key => localStorage.getItem(key), saveKey);
+  await loadFixedFrameFixture(page, frames, frames.length - 2, true);
+  const skip = page.locator('[data-control-cta][data-action="battle-skip"]');
+  const pressedButton = await skip.elementHandle();
+  await skip.hover();
+  await page.mouse.down();
+  try {
+    await page.evaluate(() => document.querySelector('[data-action="battle-pause"]').click());
+    await page.locator('[data-control-cta][data-action="battle-finish"]').waitFor();
+    assert.equal(await pressedButton.getAttribute('data-action'), 'battle-skip',
+      `${width}: 按下过程中的跳过命令被改成领奖`);
+    assert.equal(await pressedButton.evaluate(element => element.isConnected), false,
+      `${width}: 结算命令仍复用了正在按下的跳过按钮`);
+  } finally {
+    await page.mouse.up();
+    await pressedButton.dispose();
+  }
+  assert.equal(await page.locator('.game-page').getAttribute('data-phase'), 'battle',
+    `${width}: 点击跳过期间自然结束导致了意外领奖`);
+  await clickAction(page, 'battle-finish');
+  assert.notEqual(await page.locator('.game-page').getAttribute('data-phase'), 'battle',
+    `${width}: 新的结算按钮不能正常使用`);
+
+  await page.evaluate(({ key, record }) => localStorage.setItem(key, record),
+    { key: saveKey, record: battleRecord });
+  await loadFixedFrameFixture(page, frames, frames.length - 2, true);
+  await page.locator('[data-control-cta][data-action="battle-skip"]').focus();
+  await page.keyboard.down('Space');
+  try {
+    await page.evaluate(() => document.querySelector('[data-action="battle-pause"]').click());
+    const finish = page.locator('[data-control-cta][data-action="battle-finish"]');
+    await finish.waitFor();
+    assert.equal(await finish.evaluate(element => element === document.activeElement), true,
+      `${width}: 结算命令交接丢失键盘焦点`);
+  } finally {
+    await page.keyboard.up('Space');
+  }
+  assert.equal(await page.locator('.game-page').getAttribute('data-phase'), 'battle',
+    `${width}: 命令交接后松开空格导致意外领奖`);
+  await page.keyboard.press('Space');
+  assert.notEqual(await page.locator('.game-page').getAttribute('data-phase'), 'battle',
+    `${width}: 交接后的结算按钮不能通过键盘操作`);
+}
+
+async function assertHeadFloatFeedback(page, snapshot, width) {
   const index = findFrame(snapshot.frames, (frame, cursor) =>
     cursor > 0 && ['damage', 'dot'].includes(frame.kind) &&
     ['player', 'enemy'].some(side => frame[side].hp < snapshot.frames[cursor - 1][side].hp),
   '实际伤害/持续伤害');
   const group = expectedPresentationAt(snapshot.frames, index);
   const cursor = group ? expectedPresentationStepEnd(snapshot.frames, group.startIndex) : index;
+  await pauseNextReplay(page);
   await setReplayCursor(page, group ? group.startIndex - 1 : index - 1);
+  await waitForCanvasReady(page);
+  await armPauseAtFrame(page, cursor);
+  await clickAction(page, 'battle-pause');
   await waitForFrameIndex(page, cursor);
   const result = await page.locator('.combat-float').first().evaluate(element => ({
     animation: getComputedStyle(element).animationName,
     text: element.textContent,
     rect: element.getBoundingClientRect().toJSON(),
   }));
-  assert.equal(result.animation, 'none', `${width}: 固定反馈区不应使用旧浮字位移动画`);
+  assert.equal(result.animation, 'none', `${width}: 飘字应由共享游戏时钟驱动，不使用独立CSS时钟`);
   assert.ok(result.text?.trim() && result.rect.width > 0 && result.rect.height > 0,
     `${width}: 实际伤害反馈不可见`);
   await assertFeedbackDoesNotOverlap(page, `${width} damage feedback`);
+
+  await pauseNextReplay(page);
+  await setReplayCursor(page, group ? group.startIndex - 1 : index - 1);
+  await waitForCanvasReady(page);
+  await armPauseAtFrame(page, cursor);
+  await clickAction(page, 'battle-pause');
+  await waitForFrameIndex(page, cursor);
+  const start = await page.locator('.combat-float.damage').first().evaluate(element => ({
+    rect: element.getBoundingClientRect().toJSON(),
+    transform: getComputedStyle(element).transform,
+    rise: Number.parseFloat(element.closest('.battle-shell').style.getPropertyValue('--float-rise')),
+  }));
+  const frozen = await sampleStableRect(page, '.combat-float.damage', 120);
+  assert.ok(frozen.every(item => Math.abs(item.y - start.rect.y) < .5),
+    `${width}: 暂停时飘字仍在移动`);
+  const minimumRise = Math.min(26, start.rise + 12);
+  await page.evaluate(({ minimumRise, cursor }) => {
+    const check = () => {
+      const shell = document.querySelector('.battle-shell');
+      if (Number(shell?.querySelector('.combat-arena')?.dataset.frameIndex) !== cursor) return;
+      const rise = Number.parseFloat(shell.style.getPropertyValue('--float-rise'));
+      if (rise < minimumRise || shell.dataset.paused === 'true') {
+        requestAnimationFrame(check);
+        return;
+      }
+      shell.querySelector('[data-action="battle-pause"]').click();
+    };
+    requestAnimationFrame(check);
+  }, { minimumRise, cursor });
+  await clickAction(page, 'battle-pause');
+  await page.waitForFunction(minimum => {
+    const shell = document.querySelector('.battle-shell');
+    return shell?.dataset.paused === 'true' &&
+      Number.parseFloat(shell.style.getPropertyValue('--float-rise')) >= minimum;
+  }, minimumRise);
+  const moved = await page.locator('.combat-float.damage').first().evaluate(element => ({
+    rect: element.getBoundingClientRect().toJSON(),
+    transform: getComputedStyle(element).transform,
+  }));
+  assert.notEqual(moved.transform, start.transform, `${width}: 伤害没有弹出上浮`);
+  assert.ok(moved.rect.y < start.rect.y - 2, `${width}: 伤害数字没有向头顶上方移动`);
+  await assertFeedbackDoesNotOverlap(page, `${width} moving head float`);
+  await page.screenshot({ path: path.join(screenshotDir, `${width}-head-float.png`), fullPage: true });
+  const beforePreference = (await readCanvasSnapshot(page)).snapshot;
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.waitForFunction(() => {
+    const snapshot = document.querySelector('canvas[data-game-battle]')?.getFrameSnapshot?.();
+    return snapshot && ['player', 'enemy'].every(side =>
+      !snapshot[side].effect || snapshot[side].effect.phase === 'reduced');
+  });
+  const afterPreference = (await readCanvasSnapshot(page)).snapshot;
+  assert.equal(afterPreference.clock, beforePreference.clock,
+    `${width}: 动态切换减少动态效果推进了暂停时钟`);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
 }
 
 async function assertGroupedRuntimeFeedback(page, snapshot, width) {
@@ -1990,7 +2136,11 @@ async function assertGroupedRuntimeFeedback(page, snapshot, width) {
   assert.ok(group.enemy.hits >= 2,
     `${width}: 真实组命中数没有包含每段 raw 伤害`);
 
+  await pauseNextReplay(page);
   await setReplayCursor(page, group.startIndex - 1);
+  await waitForCanvasReady(page);
+  await armPauseAtFrame(page, group.endIndex);
+  await clickAction(page, 'battle-pause');
   await waitForFrameIndex(page, group.endIndex);
   assert.equal((await battleSnapshot(page)).replay?.cursor, group.endIndex,
     `${width}: 自然回放没有落在多段效果组末尾`);
@@ -2006,7 +2156,7 @@ async function assertGroupedRuntimeFeedback(page, snapshot, width) {
   const animations = await page.locator('.combat-float').evaluateAll(elements =>
     elements.map(element => getComputedStyle(element).animationName));
   assert.ok(animations.length > 0 && animations.every(name => name === 'none'),
-    `${width}: 分组反馈应稳定显示在独立反馈区 ${JSON.stringify(animations)}`);
+    `${width}: 分组飘字不应使用脱离游戏时间的CSS动画 ${JSON.stringify(animations)}`);
 }
 
 async function sampleStableRect(page, selector, duration = 240) {
@@ -2203,7 +2353,7 @@ async function runViewport(browser, width, height, includeDeepChecks) {
       });
       await check(`${width} runtime shield/heal/DOT fixtures`, async () => {
         const fixtures = await assertFixtureCoverage(page, width);
-        await assertFloatFeedbackStable(page, fixtures.dotSnapshot, width);
+        await assertHeadFloatFeedback(page, fixtures.dotSnapshot, width);
         return {
           frames: {
             shield: fixtures.shieldSnapshot.frames.length,
@@ -2238,6 +2388,9 @@ async function runViewport(browser, width, height, includeDeepChecks) {
           `${width}: skip 改变确定性结果`);
         await assertNoPageIssues(page, errors, width);
       });
+      await check(`${width} skip-to-claim handoff cannot change a pressed command`, async () => {
+        await assertBattleCommandHandoff(page, snapshot.frames[0], width);
+      });
     }
   } catch (error) {
     failures.push({
@@ -2263,6 +2416,7 @@ async function run() {
   try {
     await runViewport(browser, 1440, 1000, true);
     await runViewport(browser, 390, 844, false);
+    await runViewport(browser, 360, 780, false);
     await check('reduced-motion keeps actual combatant and float geometry still', async () => {
       await assertReducedMotion(browser, browserErrors);
     });
@@ -2277,7 +2431,7 @@ async function run() {
       url,
       reportDir,
       generatedAt: new Date().toISOString(),
-      viewports: [1440, 390],
+      viewports: [1440, 390, 360],
       checks,
       browserErrors,
       failures,

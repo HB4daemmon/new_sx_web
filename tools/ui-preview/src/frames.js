@@ -7,6 +7,7 @@ import {
   battleLayout, FrameTimeline, isFrameCharacterId, poseNames, sampleFrame,
 } from './frames-data.js';
 import { RageEffect } from './rage-effects.js';
+import { ImpactEffect } from './impact-effects.js';
 
 const frameSize = [400, 448];
 const playerIds = ['RKF01', 'RKF02', 'RKF03', 'RKF04', 'RKF05'];
@@ -78,11 +79,26 @@ function validateManifest(manifest, images, characterIds = Object.keys(manifest?
       return frame;
     });
 
+    const celBounds = (character.cels || []).map(cel => {
+      const bounds = cel?.bounds;
+      if (!Array.isArray(bounds) || bounds.length !== 4 ||
+          !bounds.every(Number.isFinite) ||
+          bounds[0] < 0 || bounds[1] < 0 ||
+          bounds[2] <= bounds[0] || bounds[3] <= bounds[1] ||
+          bounds[2] > frameSize[0] || bounds[3] > frameSize[1]) {
+        return [0, 0, frameSize[0], frameSize[1]];
+      }
+      return bounds;
+    });
+    while (celBounds.length < poseNames.length) {
+      celBounds.push([0, 0, frameSize[0], frameSize[1]]);
+    }
     result.set(id, {
       id,
       src: character.src,
       anchor: character.anchor,
       frames,
+      celBounds,
       image,
       displayScale: manifest.targetBodyHeight / character.bodyHeight,
       rearExtent: Math.max(1, ...(character.cels || []).map(cel =>
@@ -325,6 +341,7 @@ export class FrameBattle {
 
     if (active && paused) {
       if (methodChanged) this.pendingMethod = method;
+      if (reduced) this.draw();
       return;
     }
 
@@ -411,9 +428,16 @@ export class FrameBattle {
       const x = width / 2 + outward * stance +
         outward * pose.offsetX * scale;
       const y = baseline + pose.offsetY * scale;
-      actor.sprite.scale.set(actorScale * direction * pose.scale, actorScale * pose.scale);
+      const poseScale = actorScale * pose.scale;
+      actor.sprite.scale.set(poseScale * direction, poseScale);
       actor.sprite.position.set(x, y);
       this.canvas.dataset[`${side}Skin`] = actor.character.id;
+      const [left, top, right, bottom] = actor.character.celBounds[pose.index];
+      const scaleX = poseScale * direction;
+      const edgeX1 = x + (left - actor.character.anchor[0]) * scaleX;
+      const edgeX2 = x + (right - actor.character.anchor[0]) * scaleX;
+      const [readyLeft, readyTop, readyRight] = actor.character.celBounds[0];
+      const headCenterX = (readyLeft + readyRight) / 2;
       snapshot[side] = {
         id: actor.character.id,
         action,
@@ -423,6 +447,16 @@ export class FrameBattle {
         x,
         y,
         scale: actorScale,
+        head: {
+          x: x + (headCenterX - actor.character.anchor[0]) * scaleX,
+          y: y + (readyTop - actor.character.anchor[1]) * poseScale,
+        },
+        bounds: {
+          x: Math.min(edgeX1, edgeX2),
+          y: y + (top - actor.character.anchor[1]) * poseScale,
+          width: (right - left) * poseScale,
+          height: (bottom - top) * poseScale,
+        },
       };
     }
 
@@ -432,33 +466,66 @@ export class FrameBattle {
     this.renderer.render(this.stage);
     this.canvas.dataset.clock = String(snapshot.clock);
     this.lastSnapshot = snapshot;
+    this.canvas.dispatchEvent(new CustomEvent('battle-art-draw', {
+      detail: this.snapshot(),
+    }));
   }
 
   removeEffect(side) {
     const effect = this.effects.get(side);
     if (!effect) return;
     this.effectLayer.removeChild(effect.display);
-    if (effect.rage) effect.rage.destroy();
+    if (effect.rage || effect.impact) (effect.rage || effect.impact).destroy();
     else destroyDisplay(effect.display);
     this.effects.delete(side);
   }
 
   updateEffect(side, snapshot, scale, width, height) {
     const beat = this.timeline.actions.get(side);
-    const enabled = beat && ['rage', 'artifact', 'cast', 'heal'].includes(beat.action);
+    const enabled = beat &&
+      ['rage', 'artifact', 'cast', 'heal', 'hit', 'guard'].includes(beat.action);
     let effect = this.effects.get(side);
     if (!enabled) {
       this.removeEffect(side);
       return null;
     }
+    if (this.timeline.reduced) {
+      this.removeEffect(side);
+      return { action: beat.action, phase: 'reduced' };
+    }
     if (effect?.beat !== beat) {
       this.removeEffect(side);
       const rage = beat.action === 'rage' ? new RageEffect() : null;
-      effect = { beat, rage, display: rage?.display || effectDisplay(this.images, beat.artifactSrc) };
+      const impact = ['hit', 'guard'].includes(beat.action)
+        ? new ImpactEffect(this.actors.get(side).character)
+        : null;
+      effect = {
+        beat,
+        rage,
+        impact,
+        display: rage?.display || impact?.display || effectDisplay(this.images, beat.artifactSrc),
+      };
       this.effects.set(side, effect);
       this.effectLayer.addChild(effect.display);
     }
     const actor = snapshot[side];
+    if (effect.impact) {
+      const state = effect.impact.update({
+        action: beat.action,
+        elapsed: actor.elapsed,
+        character: this.actors.get(side).character,
+        sprite: this.actors.get(side).sprite,
+        bounds: actor.bounds,
+        scale: actor.scale,
+        direction: side === 'player' ? 1 : -1,
+        reducedMotion: this.timeline.reduced,
+      });
+      return {
+        action: state.action,
+        phase: state.phase,
+        palette: beat.action === 'hit' ? 'warm-gold' : 'cool-cyan',
+      };
+    }
     if (effect.rage) {
       const target = snapshot[side === 'player' ? 'enemy' : 'player'];
       const state = effect.rage.update({
@@ -479,7 +546,14 @@ export class FrameBattle {
   snapshot() {
     if (!this.lastSnapshot) return { engine: 'drawn-frames', clock: 0 };
     return Object.fromEntries(Object.entries(this.lastSnapshot).map(([key, value]) => [
-      key, value && typeof value === 'object' ? { ...value } : value,
+      key, value && typeof value === 'object'
+        ? {
+            ...value,
+            head: value.head && { ...value.head },
+            bounds: value.bounds && { ...value.bounds },
+            effect: value.effect && { ...value.effect },
+          }
+        : value,
     ]));
   }
 

@@ -48,6 +48,19 @@ const BASE_BEATS: Record<string, number> = {
 export const BASIC_ACTION_CONTACT_MS = 19 * 1000 / 60;
 export const RAGE_ACTION_CONTACT_MS = 26 * 1000 / 60;
 
+export function battleFloatPresentation(progress: number, reducedMotion = false): {
+  rise: number; scale: number; opacity: number;
+} {
+  if (reducedMotion) return { rise: 0, scale: 1, opacity: 1 };
+  const t = Math.min(1, Math.max(0, Number.isFinite(progress) ? progress : 0));
+  const pop = Math.min(1, t / .18);
+  return {
+    rise: 30 * (1 - (1 - t) ** 2),
+    scale: 1 + .18 * (1 - pop) ** 2,
+    opacity: Math.min(1, (1 - t) / .2),
+  };
+}
+
 export function battleBeatGameDuration(frame: BattleFrame): number {
   const action = actionKind(frame);
   if (frame.kind === 'action' && action === 'basic') return BASIC_ACTION_CONTACT_MS;

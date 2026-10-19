@@ -29,6 +29,14 @@ test('wide enemy motion envelopes retain outer padding and headroom at every pos
   }
 });
 
+test('expanded battlefields reserve a full float lane above all motion poses', () => {
+  for (const [width, height] of [[336, 325], [366, 389], [896, 445], [944, 530]]) {
+    const { scale, baseline } = battleLayout(width, height, 34, 190, 420);
+    assert.ok(baseline - 420 * scale >= 112, 'head floats cannot enter the HUD');
+    assert.ok(baseline + 34 * scale < height - 5, 'actor feet remain inside the field');
+  }
+});
+
 test('frame character keys cover the five player skins and all content enemy ids', () => {
   const enemies = [];
   for (let act = 1; act <= 4; act++) {

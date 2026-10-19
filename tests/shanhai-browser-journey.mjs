@@ -370,9 +370,15 @@ async function exerciseBattleControls(page, record, model) {
   await clickMatchingAction(page, 'battle-pause');
   await page.locator('[data-action="battle-pause"][aria-pressed="false"]').waitFor();
   battleRecord.controls.push('continue');
-  await clickMatchingAction(page, 'battle-skip');
+  await clickMatchingAction(page, 'battle-pause');
+  await page.locator('[data-action="battle-pause"][aria-pressed="true"]').waitFor();
+  if (await page.locator('[data-action="battle-skip"]').count()) {
+    await clickMatchingAction(page, 'battle-skip');
+    battleRecord.controls.push('skip');
+  } else {
+    battleRecord.controls.push('naturally-finished');
+  }
   await page.locator('[data-action="battle-finish"], [data-action="continue-battle"]').first().waitFor();
-  battleRecord.controls.push('skip');
   record.battles.push(battleRecord);
   if (record.battles.length <= 2) {
     await takeScreenshot(page, record, `battle-a${model.state.act}-s${model.state.step}-r${model.state.battleInput?.roundLimit ?? 0}`);
