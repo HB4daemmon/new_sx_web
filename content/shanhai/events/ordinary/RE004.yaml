@@ -4,8 +4,8 @@ kind: event
 id: RE004
 name: 无主石印
 status: design_target
-summary: 支付真实修为刻下法宝，或不耽误突破地选择疗伤、盘缠。
-description: 空白石印可以把修为炼成法宝，但会推迟下一次突破；石匠也备有不耗修为的药与盘缠。
+summary: 决定是否拿真实修为换回春瓶，或不损突破进度地处理伤势、补盘缠。
+description: 空白石印只刻一道纹：灌入真实修为可当场成器，也会减少下一次突破进度；取药或盘缠不耗修为。
 tags: [ordinary, artifact, xp, heal, max_hp]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [1]
-scene: 空白石印只能刻下一道纹。石匠说，耗费真实修为可刻出法宝；不耗修为也能取药或盘缠。
+scene: 乱石坡上立着一道未刻完的空白印，旁边留着药碗和几枚散钱。刻印会消耗真实修为、推迟突破；此刻止痛或取盘缠都不动修为。
 options:
   - id: RE004-A
-    label: 耗修为刻成护身瓶
-    quick: 支付下一次完整突破需求的两成修为，立即带走两层回春瓶；修为不足则不能选。
+    label: 以修为刻回春瓶
+    quick: 支付下一次完整突破需求的两成修为，立即带走两层回春瓶；该法宝须能再叠两层且修为足够，否则不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC12, count: 2}
@@ -30,23 +30,26 @@ options:
       - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
     rewards:
       - {type: artifact, id: RC12, count: 2}
-    outcome: 你以真实修为灌入石印，两层回春瓶即刻成形，突破进度相应减少。
+    outcome: 你以真实修为灌入石印，两层回春瓶即刻成形，下一次突破进度相应减少。
+    story_echo: 你以真实修为刻成两层回春瓶，突破进度退后，瓶子已经随身带走。
   - id: RE004-B
-    label: 取药立即疗伤
+    label: 取药压住伤口
     quick: 不耗修为，立即恢复一段气血，不耽误突破。
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: hp, amount: 0.15, basis: reference_hp}
-    outcome: 你放弃以修为刻宝，药汤入体，突破进度未受影响。
+    outcome: 你喝下药汤而没有刻宝，气血得到即时恢复，突破进度未受影响。
+    story_echo: 你喝下药汤，伤口暂缓；空白石印仍未动，突破进度照旧。
   - id: RE004-C
-    label: 换取盘缠
+    label: 留印换取盘缠
     quick: 不耗修为，拿走一小袋灵石，不耽误突破。
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: coins, amount: 0.3, basis: common_price}
-    outcome: 你将石印留给后来人，换来的灵石入袋，突破进度未受影响。
+    outcome: 你将石印留在原处，换来的灵石入袋，突破进度未受影响。
+    story_echo: 你把空白石印留给后来人，收下灵石继续走向退潮后的路。
 settlement:
   once: true
   internal_battle_package: false

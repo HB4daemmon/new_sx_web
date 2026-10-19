@@ -4,8 +4,8 @@ kind: event
 id: RK011
 name: 铁扇借一阵风
 status: design_target
-summary: 火山口只给短风；损失约78点气血并存活，才有后段借风的机会。
-description: 铁扇公主把绕开火口的路和承受火伤的选择摆在眼前；不付出气血便不能参加后段挑战。
+summary: 铁扇公主给你一阵短风；支付 10% 基准气血并存活，才留下第四幕回访火根的机会。
+description: 山腹热流将路口堵成窄缝，铁扇公主送来一阵只能带你越过眼前火口的风。是否承受火伤、把回访机会留到后段，仍由你自己定。
 tags: [core, character_encounter, princess_iron_fan, first_meeting, hp_commitment]
 source:
   basis: myth_adaptation
@@ -19,33 +19,36 @@ balance:
   measured: null
 event_type: core
 acts: [2]
-scene: 火妖把山腹烧成窄口，铁扇公主只能把凉风推过一段路；你可以拿盘缠，也可以损失约78点气血并存活，以换取后段借风的机会。
+scene: 火口的热流顶住逆水，铁扇公主把一阵短风送过窄路。你可获得一小笔盘缠，或支付 10% 基准气血并存活，约好第四幕再看能否压住火根。
 options:
   - id: RK011-carry-fire-cost
     label: 带火伤上路
-    quick: 损失约78点气血且必须存活，保留后段借风资格。
+    quick: 支付 10% 基准气血并存活，留下第四幕火根回访资格；不取即时器物。
     requirements: []
     costs:
       - {type: resource, resource: hp, amount: 0.1, basis: reference_hp, must_survive: true}
     rewards: []
     set_flags:
       RS06-promised: true
-    outcome: 你承受火伤穿过风口，铁扇公主记下这笔代价：后段风止石见。
+    outcome: 你承受火伤穿过风口，铁扇公主记下这笔代价：第四幕风止石再见。
+    story_echo: 你带着火伤穿过风口，铁扇公主记下约定；火根能否压住，留到回访时再看。
   - id: RK011-take-coins
     label: 先取盘缠
-    quick: 立即获得一小笔灵石，不接火山承诺
+    quick: 获得一小笔灵石，不接火山回访约定
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: coins, amount: 0.1, basis: common_price}
     outcome: 你拿盘缠绕开火根，铁扇公主不再为你预留后段风口。
+    story_echo: 你收下盘缠，借短风避开火口；铁扇公主没有替你留回访位置。
   - id: RK011-leave
     label: 沿冷坡离开
-    quick: 不拿资源、不受伤，回到普通路线
+    quick: 不拿资源、不付气血，沿冷坡回主路
     requirements: []
     costs: []
     rewards: []
     outcome: 你选择冷坡，火山的借风机会留在原地。
+    story_echo: 你沿冷坡绕过热流，既不受伤也不留约定，山路仍向前延伸。
 settlement:
   once: true
   internal_battle_package: false

@@ -4,8 +4,8 @@ kind: event
 id: RE032
 name: 云阶试锋
 status: design_target
-summary: 在云阶试锋中争取两层虎纹佩或厚土环，也可付灵石带走雷纹印。
-description: 云阶试锋者把虎纹佩与厚土环分列两边，败者只退回石线。
+summary: 登昆仑前门的云阶时试取虎纹佩或厚土环、付灵石取雷纹印。
+description: 云阶试锋以非致死比试决定两层法宝的去向，失手只退回石线并至少保留 1 点气血；付石可避开试锋取雷纹印。
 tags: [ordinary, nonlethal, encounter, two_layers, act4]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [4]
-scene: 云阶上风声猎猎，虎纹佩、厚土环和雷纹印摆在三道石线之间。你可以试锋，也可以用灵石换一件现成的法宝。
+scene: 云阶风声压住身后的来路，试锋者把虎纹佩与厚土环放在两条石线后，雷纹印留在可付石取走的一侧。你可试锋、付石绕开，或停在原地。
 options:
   - id: RE032-A
-    label: 试虎纹双片
-    quick: 参加试锋，胜利带走两层虎纹佩；失手后保留1点气血。
+    label: 试锋取两层虎纹佩
+    quick: 参加非致死试锋，胜利带走两层虎纹佩；失手至少保留 1 点气血且无奖励，该法宝须能再叠两层否则不能选。
     requirements:
       - {type: capacity, id: RC02, count: 2}
     costs: []
@@ -33,11 +33,13 @@ options:
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 你被试锋者逼回石线，气血只剩一线，虎纹佩仍留在阶上。
-    outcome: 你赢下云阶试锋，带走两层虎纹佩。
+      failure_outcome: 你被试锋者逼回石线，至少保留 1 点气血；虎纹佩仍留在阶上。
+    outcome: 你赢下非致死试锋，带走两层虎纹佩。
+    story_echo: 你赢下试锋取走两层虎纹佩，云阶上只余通向前门的风声。
+    story_failure_echo: 你被逼回石线，至少保留 1 点气血，虎纹佩仍留在试锋者手中。
   - id: RE032-B
-    label: 试厚土双片
-    quick: 参加试锋，胜利带走两层厚土环；失手后保留1点气血。
+    label: 试锋取两层厚土环
+    quick: 参加非致死试锋，胜利带走两层厚土环；失手至少保留 1 点气血且无奖励，该法宝须能再叠两层否则不能选。
     requirements:
       - {type: capacity, id: RC04, count: 2}
     costs: []
@@ -48,11 +50,13 @@ options:
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 你被试锋者逼回石线，气血只剩一线，厚土环仍留在阶上。
-    outcome: 你赢下云阶试锋，带走两层厚土环。
+      failure_outcome: 你被试锋者逼回石线，至少保留 1 点气血；厚土环仍留在阶上。
+    outcome: 你赢下非致死试锋，带走两层厚土环。
+    story_echo: 你赢下试锋取走两层厚土环，稳住脚步继续迎向云阶尽头。
+    story_failure_echo: 你被逼回石线，至少保留 1 点气血，厚土环仍留在试锋者手中。
   - id: RE032-C
-    label: 付石取雷纹
-    quick: 付出标价灵石，带走一层雷纹印，避开试锋。
+    label: 付石取雷纹印绕行
+    quick: 付出标价灵石，带走一层雷纹印并避开试锋；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC10, count: 1}
@@ -60,7 +64,8 @@ options:
       - {type: resource, resource: coins, amount: 1.0, basis: common_price}
     rewards:
       - {type: artifact, id: RC10, count: 1}
-    outcome: 你付出灵石接过雷纹印，云阶上的风声渐渐远去。
+    outcome: 你付出灵石带走一层雷纹印，没有参加试锋。
+    story_echo: 你付石取下雷纹印，绕开试锋石线，独自沿云阶继续攀行。
 settlement:
   once: true
   internal_battle_package: false

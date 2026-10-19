@@ -143,6 +143,7 @@ interface RunStateInternals extends RunState {
   _nodeEnemyByKey?: Record<string, string>;
   _rewardSettled?: boolean;
   _eventSettled?: boolean;
+  _eventOutcome?: 'success' | 'failure';
 }
 
 function clone<T>(value: T): T {
@@ -986,6 +987,9 @@ export class ShanhaiGame {
       state._eventSettled = false;
       state._previewKind = undefined;
       state._eventCostTravelApplied = false;
+      state._eventOutcome = undefined;
+      this.state.eventOption = undefined;
+      this.state.resultText = '';
       this.advanceCommitments('entered');
     }
     if (['C', 'L', 'B', 'F'].includes(node.type)) {
@@ -1104,12 +1108,17 @@ export class ShanhaiGame {
     this.state.hp = clamp(battle.playerHp, 0, this.stats.max_hp);
     if (battle.outcome !== 'player') {
       this.state.phase = 'lost';
-      this.state.resultText = `你在${contentEntity(this.content, node.id)?.name ?? node.id}前倒下。`;
+      const defeat = actEntity(this.content, this.state.act)?.story?.defeat;
+      this.state.resultText = `你在${contentEntity(this.content, node.id)?.name ?? node.id}前倒下。${defeat ?? '此行未能走到归途。'}`;
       return;
     }
     if (node.type === 'F') {
       this.markNodeCompleteWithoutTravel();
-      const finalText = '你凭一路修来的本领渡过天门。';
+      const story = actEntity(this.content, 5)?.story;
+      const finalText = [
+        story?.boss_variants?.[node.id],
+        story?.victory ?? '你凭一路修来的本领渡过天门。',
+      ].filter(Boolean).join(' ');
       this.state.history.push({
         act: this.state.act,
         step: this.state.step,
@@ -1120,6 +1129,10 @@ export class ShanhaiGame {
       this.state.resultText = finalText;
       return;
     }
+    const story = actEntity(this.content, this.state.act)?.story;
+    this.state.resultText = node.type === 'B'
+      ? story?.boss_variants?.[node.id] ?? story?.battle_after?.boss ?? ''
+      : story?.battle_after?.[node.type === 'L' ? 'elite' : 'common'] ?? '';
     this.state.phase = 'reward';
     this.settleBattleEconomy(node.type);
   }
@@ -1140,6 +1153,7 @@ export class ShanhaiGame {
       this.stats.max_hp,
     );
     this.state.phase = 'event_result';
+    state._eventOutcome = battle.outcome === 'player' ? 'success' : 'failure';
     if (battle.outcome === 'player') {
       this.applyFlags(option);
       this.applyRewards(optionRewards(option));
@@ -1280,6 +1294,7 @@ export class ShanhaiGame {
       return;
     }
     this.applyFlags(option);
+    (this.state as RunStateInternals)._eventOutcome = 'success';
     this.state.phase = 'event_result';
     this.applyRewards(optionRewards(option));
     if (commitment) (this.state.eventCommitments ??= []).push(commitment);
@@ -1329,6 +1344,7 @@ export class ShanhaiGame {
     state._routeMapLegacy = false;
     state._battleSettled = false;
     state._eventSettled = false;
+    state._eventOutcome = undefined;
     state._previewKind = undefined;
     this.state.phase = 'map';
   }
@@ -1873,7 +1889,11 @@ export class ShanhaiGame {
       title: entity?.name ?? node.id,
       text: this.state.resultText || entity?.summary || '',
       ...(['E', 'K'].includes(node.type) && this.state.eventOption
-        ? { eventId: node.id, optionId: this.state.eventOption } : {}),
+        ? {
+          eventId: node.id,
+          optionId: this.state.eventOption,
+          ...(state._eventOutcome ? { eventOutcome: state._eventOutcome } : {}),
+        } : {}),
     });
     node.completed = true;
     const routeKey = state.routeMap?.path[this.state.step];
@@ -1895,6 +1915,7 @@ export class ShanhaiGame {
     state._battleRewardType = undefined;
     state._battleSettled = false;
     state._eventSettled = false;
+    state._eventOutcome = undefined;
     state._rewardSettled = false;
     this.state.rewardCandidates = [];
     this.state.shop = [];
@@ -2200,6 +2221,9 @@ function ensureStateInternals(content: Content, state: RunStateInternals): void 
   }
   if (state._battleKind !== undefined && !['node', 'event'].includes(state._battleKind)) {
     throw new Error('Invalid battle kind');
+  }
+  if (state._eventOutcome !== undefined && !['success', 'failure'].includes(state._eventOutcome)) {
+    throw new Error('Invalid event outcome');
   }
   if (state._methodTravelSequence !== undefined && !['heal', 'xp'].includes(state._methodTravelSequence)) {
     throw new Error('Invalid method travel sequence');
@@ -2543,6 +2567,9 @@ export function validateRunState(content: Content, raw: RunState): void {
   if (state._battleKind !== undefined && !['node', 'event'].includes(state._battleKind)) {
     throw new Error('Invalid battle kind');
   }
+  if (state._eventOutcome !== undefined && !['success', 'failure'].includes(state._eventOutcome)) {
+    throw new Error('Invalid event outcome');
+  }
   if (state._battleNodeType !== undefined &&
     !['C', 'E', 'K', 'L', 'S', 'R', 'B', 'F'].includes(state._battleNodeType)) {
     throw new Error('Invalid battle node type');
@@ -2560,6 +2587,16 @@ export function validateRunState(content: Content, raw: RunState): void {
     if (!isObject(entry) || !integer(entry.act) || entry.act < 1 || entry.act > 5 ||
       !integer(entry.step) || entry.step < 0 || typeof entry.title !== 'string' || typeof entry.text !== 'string') {
       throw new Error('Invalid run history');
+    }
+    if (entry.eventId !== undefined || entry.optionId !== undefined || entry.eventOutcome !== undefined) {
+      const event = typeof entry.eventId === 'string' ? contentEntity(content, entry.eventId) : undefined;
+      const option = event?.kind === 'event' && typeof entry.optionId === 'string'
+        ? eventOption(event, entry.optionId) : undefined;
+      if (!option || (entry.eventOutcome !== undefined &&
+        !['success', 'failure'].includes(entry.eventOutcome)) ||
+        (entry.eventOutcome === 'failure' && !option.encounter)) {
+        throw new Error('Invalid event history outcome');
+      }
     }
   }
   const finalHistory = state.history.filter(entry => entry.act === 5);

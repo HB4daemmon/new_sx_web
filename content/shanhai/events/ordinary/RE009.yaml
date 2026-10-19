@@ -4,8 +4,8 @@ kind: event
 id: RE009
 name: 河灯试诀
 status: design_target
-summary: 参加非致死试诀争取五毒经、付灵石购买青锋石，或提灯离开。
-description: 河灯照亮临时擂台，擂主拿出五毒经作彩头；失手后会被送回台下，气血仅剩1点且无奖励。
+summary: 在河岸灯场试取五毒经、付灵石取青锋石，或收灯保存气力。
+description: 河道边的灯场以一场非致死试诀作通行约定，胜者取得五毒经；失手至少保留 1 点气血且无奖励，也可付石绕开试场。
 tags: [ordinary, nonlethal, encounter, rare_method]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [1, 2]
-scene: 河灯在水面摇曳，擂主把五毒经放上擂台。赢下非致死试诀才可得经，失手后只保留1点气血。
+scene: 水线逼近灯场，主持试诀的人把五毒经置于干燥石台。你可以参加非致死比试、付灵石带走青锋石，或提灯离开。
 options:
   - id: RE009-A
-    label: 上台试诀
-    quick: 参加非致死试诀，胜利取得五毒经；失手后仅剩1点气血且无奖励。
+    label: 接下河岸试诀
+    quick: 参加非致死试诀，胜利取得五毒经；失手后至少保留 1 点气血且无奖励。
     requirements: []
     costs: []
     rewards:
@@ -32,11 +32,13 @@ options:
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 你被擂主逼回台下，气血仅剩1点，五毒经没有交到你手上。
-    outcome: 你赢下擂台，五毒经落入囊中，暂时仍可沿用原先功法。
+      failure_outcome: 你被主持人逼回石台下，至少保留 1 点气血；五毒经没有交到你手上。
+    outcome: 你赢下非致死试诀，五毒经落入囊中，暂时仍可沿用原先功法。
+    story_echo: 你赢下灯场试诀并带走五毒经，河灯照出的浅滩可供继续辨路。
+    story_failure_echo: 你被逼回灯场石台外，至少保留 1 点气血；五毒经没有交到你手上。
   - id: RE009-B
-    label: 付石取青锋
-    quick: 付出标价灵石，带走一层青锋石，稳稳增强攻击。
+    label: 付石绕开试场取锋
+    quick: 付出标价灵石，带走一层青锋石以增强攻击；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC01, count: 1}
@@ -44,14 +46,16 @@ options:
       - {type: resource, resource: coins, amount: 1.0, basis: common_price}
     rewards:
       - {type: artifact, id: RC01, count: 1}
-    outcome: 青锋石入手，河灯下的锋芒不必再靠赌斗争取。
+    outcome: 你付出灵石带走一层青锋石，没有进入试场。
+    story_echo: 你以灵石换来一层青锋石，绕过灯场，顺着河岸继续行路。
   - id: RE009-C
-    label: 提灯离台
+    label: 提灯离开河岸
     quick: 提灯离台，保留气血与灵石。
     requirements: []
     costs: []
     rewards: []
-    outcome: 你提灯离开擂台，河面只留下未散的灯影。
+    outcome: 你不接试诀，也没有花费灵石，提灯离开石台。
+    story_echo: 你提灯沿河岸离开，气血与灵石留在身边，灯影渐远。
 settlement:
   once: true
   internal_battle_package: false

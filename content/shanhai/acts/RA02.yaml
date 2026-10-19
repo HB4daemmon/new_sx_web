@@ -4,8 +4,8 @@ kind: act
 id: RA02
 name: 断桥试法
 status: design_target
-summary: 在断桥连续损耗中检验功法与法宝是否已经形成稳定组合。
-description: 潮路抬升成断桥，前一幕的选择在药棚、旧炉和浮桥边留下痕迹；主角可以追一次核心机缘，也可以只靠普通事件、斗法和精英继续试法。
+summary: 沿桥墩查清旧河断处，追索顶回潮水的热流。
+description: 桥下旧河道被截断，来自上游的热流把水推回山路。修好一座桥不能止潮；你得沿桥墩找热流去向，再往火海上游查源。
 tags: [act, act2, broken_bridge, method_trial, original]
 source:
   basis: original
@@ -25,19 +25,20 @@ balance:
 index: 2
 story:
   title: 第二幕：断桥试法
-  goal: 让功法与法宝形成稳定组合，承受连续节点的资源损耗并击败断桥首领。
-  prelude: 潮口石阶接成悬空断桥，断缆、旧炉和浮桥在风里彼此相连；山腹深处透出一线火光。
-  ordinary_route: 你沿着断缆、旧炉和浮桥向前，断碑上的旧字在脚边一块块亮起。
+  goal: 沿桥墩查出旧河断处与逆流水源
+  prelude: 潮口抬起的水线来到断桥，桥墩下的旧河被截断；上游热流正把水顶回山路。
+  ordinary_route: 你沿桥墩寻找旧河断口，水声从断缆下游传来，热风却来自更高处。
   battle_after:
-    common: 断桥木板在身后轻响，远处的火光沿桥缝向前蔓延。
-    elite: 桥守退开半步，旧炉里的火星照出一条更窄的路。
-    boss: 合流点的风突然停住，桥端露出通往火海的红光。
-  boss_before: 断桥唯一的合流点被两道首领遗影守住，桥下水声与山腹火光同时逼近。
-  boss_after: 断桥重新承住脚步，前方落下几粒火星，山腹的门在远处张开。
-  passage: 你从断桥另一端望见山腹火海，云影在火光上方缓慢移动。
+    common: 桥下水面倒卷，热风从上游穿过断缆。
+    elite: 桥守退开，桥墩间露出旧河断口的方向。
+    boss: 桥端合流处松开，水与热流都指向火海上游。
+  boss_before: 守关者挡在断桥的合流处。桥下旧河仍被热流顶回，修桥已不足以止住逆潮。
+  boss_after: 守关者退去，旧河断口显露；桥能通行，却不能止住上游热流。
+  passage: 你沿热流逆向走入火海，去上游查找堵水的火口。
   boss_variants:
-    EN-A2-B1: 相柳残蜕试阵，九道水影沿断桥回卷后沉入火海。
-    EN-A2-B2: 刑天战意试炼，断桥上的鼓声停下，只留下向火海延伸的脚印。
+    EN-A2-B1: 相柳残蜕退离桥墩，旧河断口显出；上游热流仍把水推回。
+    EN-A2-B2: 刑天战意试炼停在桥头，旧河断口显出；上游热流仍把水推回。
+  defeat: 你的脚步停在断桥；旧河断口仍被热流顶住，潮水没有退去。
   core_relationships:
     RS01: [RK001, RK002]
     RS02: [RK003, RK004]
@@ -357,7 +358,7 @@ transition:
   next_act: RA03
   on_boss_victory_only: true
   boss_is_required_for_transition: true
-  transition_text: 断桥首领退开后，火海方向的旧路亮起。
+  transition_text: 断桥可通而热流未止；你循热流上溯，前往火海寻找堵水火口。
   preserve: [current_hp, max_hp, coins, cumulative_xp, current_method_id, talents, artifacts, core_flags]
   no_auto_heal: true
   no_auto_breakthrough: true

@@ -4,8 +4,8 @@ kind: event
 id: RE001
 name: 潮痕药篓
 status: design_target
-summary: 立即疗伤、增强后续治疗，或付盘缠护送药箱。
-description: 潮水刚退，一只破药篓挂在礁石上。药师提出煎服、封瓶与护送药箱三种安排。
+summary: 在倒灌潮边处理伤口、留药防身，或付盘缠接下限时护送。
+description: 退潮留下的药篓卡在礁缝间，药师正要把药箱送往上游避水处。眼下止痛、留作后用与接下护送，各有不同代价。
 tags: [ordinary, heal, artifact]
 source:
   basis: original
@@ -18,35 +18,38 @@ balance:
   measured: null
 event_type: ordinary
 acts: [1]
-scene: 潮水退去，药篓里还剩一味灵药和一只待送的药箱。药师给出三种用法，药箱须按约送到才有报酬。
+scene: 逆潮冲散了药棚，药师从礁缝里找回一味药和一只待送的箱子。先顾眼前伤口、留药备用，或出资护送，都不会替你堵住上游水路。
 options:
   - id: RE001-A
-    label: 熬药疗伤
+    label: 趁药未湿煎服
     quick: 马上煎服，立即恢复一段气血。
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: hp, amount: 0.2, basis: reference_hp}
-    outcome: 药汤入腹，伤口立刻缓解。
+    outcome: 你将药草煎服，眼前伤口得到即时调养，去路仍要自己找。
+    story_echo: 你趁药草尚未泡坏煎服，压住伤痛后重新辨认逆流方向。
   - id: RE001-B
-    label: 封存成回春瓶
-    quick: 立即带走一层回春瓶，增强今后的自疗。
+    label: 封药留待自疗
+    quick: 立即带走一层回春瓶以增强今后的自疗；须有一层空位否则不能选。
     requirements:
       - {type: capacity, id: RC12, count: 1}
     costs: []
     rewards:
       - {type: artifact, id: RC12, count: 1}
-    outcome: 你封好回春瓶，往后的治疗会多一分春意。
+    outcome: 你把一层回春瓶封好带走，留给之后实际发生的疗伤。
+    story_echo: 你把一层回春瓶收进随身行囊，药篓则留在退潮后的礁缝。
   - id: RE001-C
-    label: 出资护送药箱
-    quick: 先付盘缠；接下来3处地点不进休整，送达后取得两层行医囊。失约或到终战未兑现均不退款。
+    label: 付盘缠接下护送
+    quick: 先付盘缠；接下来3处地点不进休整，送达后取得两层行医囊。盘缠不足或该法宝剩余可叠层数不足两层时不能选；失约或到终战未兑现均不退款。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC17, count: 2}
     costs:
       - {type: resource, resource: coins, amount: 0.3, basis: common_price}
     rewards: []
-    outcome: 你先付盘缠，药箱即刻启程；两层行医囊尚未到手，失约不会退款。
+    outcome: 你交出盘缠，与药师约好护送药箱；两层行医囊尚未到手，失约不会退款。
+    story_echo: 你交出盘缠立下护送之约，药箱尚未送达，两层行医囊也未到手。
     commitment:
       name: 护送药箱
       after_nodes: 3

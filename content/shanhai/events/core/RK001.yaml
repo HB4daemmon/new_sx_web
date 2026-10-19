@@ -4,8 +4,8 @@ kind: event
 id: RK001
 name: 神农分药
 status: design_target
-summary: 潮水逼近药圃，眼前的小利和留下一笔盘缠只能选一项。
-description: 神农把最后几包药放在潮线以上，告诉你后段还有一处药棚；是否留下灵石，由你现在决定。
+summary: 潮水逼近药圃，你可收下一小笔盘缠，也可留下 8 枚灵石，约好后段再见。
+description: 神农把几包药移到潮线以上，没有替你决定该先顾眼前还是留条后路；这趟山路还长，手里的灵石也要算着用。
 tags: [core, character_encounter, shennong, first_meeting, resource_commitment]
 source:
   basis: myth_adaptation
@@ -19,19 +19,20 @@ balance:
   measured: null
 event_type: core
 acts: [1]
-scene: 潮水正漫过药圃边缘，神农只够分出一份药材。你可以收下眼前的小利，也可以留下盘缠，约好后段再回来。
+scene: 潮水漫到药圃边缘，神农把药包护在干处。你可以收下一小笔盘缠，也可以留下 8 枚灵石，约好第三幕再到药棚相见。
 options:
   - id: RK001-take-small-gain
     label: 收下盘缠离开
-    quick: 立即拿少量灵石，不留下后路承诺
+    quick: 收下一小笔灵石，不留下药棚回访约定
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: coins, amount: 0.1, basis: common_price}
     outcome: 你把药棚让给更急的人，先收下一小笔盘缠。
+    story_echo: 你收好药圃边的一小笔盘缠，沿着逆流的水痕继续赶路。
   - id: RK001-reserve-medicine
     label: 留下八枚灵石
-    quick: 支付 8 灵石，保留后段药棚约定
+    quick: 支付 8 灵石，约好后段回药棚再谈
     requirements:
       - {type: can_pay}
     costs:
@@ -39,14 +40,16 @@ options:
     rewards: []
     set_flags:
       RS01-promised: true
-    outcome: 你把 8 枚灵石压在药包上，神农记下这份承诺：后段药棚见。
+    outcome: 你把 8 枚灵石压在药包旁，神农记下约定：第三幕药棚再见。
+    story_echo: 你留下 8 枚灵石，与神农约好后段再见；回访时如何取舍，还由你决定。
   - id: RK001-leave
     label: 收紧行囊离开
-    quick: 不拿药、不付石，保留当前构筑
+    quick: 不拿药、不付石，照原路继续赶程
     requirements: []
     costs: []
     rewards: []
-    outcome: 你不接这份安排，潮声里只留下普通道路。
+    outcome: 你不接这份安排，神农收好药包，潮声里仍有一条普通道路。
+    story_echo: 你把路让给药棚，不多拿也不多留，循着水线独自上路。
 settlement:
   once: true
   internal_battle_package: false

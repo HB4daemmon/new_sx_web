@@ -4,8 +4,8 @@ kind: event
 id: RE028
 name: 云门养息
 status: design_target
-summary: 在云门前选择疗伤、行医囊或修行。
-description: 云门下的薄雾能暂缓灼痛，守门人让你把这一口清息用在眼前的伤、随身药囊或下一次进阶上。
+summary: 临近昆仑前门时分配一口清息：疗伤、封入行医囊或静坐修行。
+description: 薄雾只凝成一口清息，可立即恢复气血、封成一层行医囊留待行旅，或提高下一次进阶所需的修为。
 tags: [ordinary, heal, artifact, xp, act4]
 source:
   basis: original
@@ -18,33 +18,36 @@ balance:
   measured: null
 event_type: ordinary
 acts: [4]
-scene: 云门薄雾贴着石阶，守门人捧来一口清息。疗伤、行医囊和修行，只能选一条路。
+scene: 云阶的雾气贴着石缝散开，前方是尚未接通的昆仑旧阵。守路人让你决定把一口清息留给眼前伤口、后面的行旅，还是修行。
 options:
   - id: RE028-A
-    label: 借雾疗伤
-    quick: 借雾疗伤，立即恢复一段气血。
+    label: 借清雾疗伤
+    quick: 不耗灵石，借雾立即恢复一段气血。
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: hp, amount: 0.2, basis: reference_hp}
-    outcome: 清雾贴过伤口，灼痛很快退去。
+    outcome: 你借清雾调养伤口，气血即时恢复，旧阵仍横在前面。
+    story_echo: 你用清息调养伤口，带着恢复的气力继续朝旧阵前门行去。
   - id: RE028-B
-    label: 凝雾成结
-    quick: 带走一层行医囊，让沿途行走时也能补气血。
+    label: 凝雾封进行医囊
+    quick: 带走一层行医囊留待行旅恢复；不恢复当前气血，须有一层空位否则不能选。
     requirements:
       - {type: capacity, id: RC17, count: 1}
     costs: []
     rewards:
       - {type: artifact, id: RC17, count: 1}
-    outcome: 你把清息封进行医囊，接下来的旅路会得到它的照料。
+    outcome: 你把清息封进一层行医囊，后续恢复仍需等待行医触发。
+    story_echo: 你把清息封进行医囊，没有当场疗伤，收拾行囊继续登阶。
   - id: RE028-C
-    label: 以息换修
-    quick: 静坐片刻，修为提高下一次进阶所需的两成；已到当前境界尽头时收益有限。
+    label: 在云阶静坐
+    quick: 不耗灵石，静坐使修为提高下一次进阶所需的两成；已到当前境界尽头时收益有限。
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
-    outcome: 若你还在追逐下一次进阶，这股修为正好派上用场；已到当前境界尽头时，只留下修为记录。
+    outcome: 你在云阶静坐，修为向下一次进阶推进两成；已到当前境界尽头时，只留下修为记录。
+    story_echo: 你在云阶收心静坐，起身后仍须独自穿过尚未接通的旧阵。
 settlement:
   once: true
   internal_battle_package: false

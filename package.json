@@ -13,6 +13,7 @@
     "test:browser": "node tests/shanhai-browser.mjs",
     "test:journey": "node tests/shanhai-browser-journey.mjs",
     "test:commitments": "node tests/shanhai-commitment-browser.mjs",
+    "test:story": "node tests/shanhai-story-browser.mjs",
     "test:motion": "node tests/shanhai-motion-browser.mjs",
     "test:art": "node tests/shanhai-art-browser.mjs",
     "test:ui": "node tests/shanhai-mature-ui.mjs",

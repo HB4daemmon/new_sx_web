@@ -4,8 +4,8 @@ kind: event
 id: RE018
 name: 落雷门槛
 status: design_target
-summary: 参加落雷试诀争取奔雷诀，或付灵石带走先机符。
-description: 断桥上方雷声低鸣，雷影守着一卷奔雷诀；试诀失手后只保留1点气血，并退回石阶。
+summary: 在逆流水线中试取奔雷诀、付灵石买先机符，或保存气力绕行。
+description: 一段旧路被回流雷光横截，雷影守着奔雷诀；非致死试诀失手后至少保留 1 点气血，法本不会交出。
 tags: [ordinary, nonlethal, encounter, rare_method, act2]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [2, 4]
-scene: 雷影立在断桥尽头，奔雷诀被压在它身后的石台上。你可以踏上雷阶，也可以用灵石换来先机。
+scene: 雷光沿着被回流冲断的旧路来回游走，雷影守着一卷奔雷诀。你可参加试诀、付标价灵石取先机符，或绕开雷光继续找路。
 options:
   - id: RE018-A
-    label: 踏阶试奔雷
-    quick: 参加试诀，胜利带走奔雷诀；失手后保留1点气血。
+    label: 进入雷光试诀
+    quick: 参加非致死试诀，胜利取得奔雷诀；失手至少保留 1 点气血且无奖励。
     requirements: []
     costs: []
     rewards:
@@ -32,11 +32,13 @@ options:
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 你被雷影逼回石阶，气血只剩一线，奔雷诀仍留在雷门之后。
-    outcome: 你踏过雷阶，奔雷诀在掌中发出微光，眼下仍可沿用原来的功法。
+      failure_outcome: 你被雷影逼离雷光路段，至少保留 1 点气血；奔雷诀仍在原处。
+    outcome: 你通过非致死试诀，取得奔雷诀，眼下仍可沿用原来的功法。
+    story_echo: 你赢下雷光试诀，收下奔雷诀，之后是否改修仍由你决定。
+    story_failure_echo: 你被雷影逼离雷光路段，至少保留 1 点气血，奔雷诀没有到手。
   - id: RE018-B
-    label: 付石取先机
-    quick: 付出标价灵石，带走一层先机符，避开雷阶。
+    label: 付石取先机符
+    quick: 付出标价灵石，带走一层先机符并避开试诀；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC22, count: 1}
@@ -44,14 +46,16 @@ options:
       - {type: resource, resource: coins, amount: 1.0, basis: common_price}
     rewards:
       - {type: artifact, id: RC22, count: 1}
-    outcome: 你把先机符收入袖中，雷声和险阶都被留在身后。
+    outcome: 你付出灵石带走一层先机符，没有参加雷光试诀。
+    story_echo: 你付石收下先机符，绕开雷光截路处，继续循着回流方向探行。
   - id: RE018-C
-    label: 绕过雷阶
-    quick: 绕过雷阶，保留气血与资源。
+    label: 沿安全边绕行
+    quick: 不付灵石、不参加试诀，保留气血与资源绕行。
     requirements: []
     costs: []
     rewards: []
-    outcome: 雷影让开一条普通路，你安然绕过断桥。
+    outcome: 你没有参加试诀，绕开雷光路段，气血与资源都未改变。
+    story_echo: 你从雷光边缘绕行，气血与资源仍在手中，旧路还需继续辨认。
 settlement:
   once: true
   internal_battle_package: false

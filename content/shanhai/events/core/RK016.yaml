@@ -4,8 +4,8 @@ kind: event
 id: RK016
 name: 烛龙垂天
 status: design_target
-summary: 传奇法本烛龙真经只向学过太阴经的人显现；挑战或支付 36 灵石可取，但挑战失手不留法本。
-description: 第四幕云门昼夜倒转，烛龙真经就在门后；只有学过太阴经的人能读卷，进入方式、气血代价和失手后果都摆在眼前。
+summary: 昆仑旧路旁的云门只向学过太阴经的人显出法本；付 15% 基准气血挑战或付 36 灵石可取烛龙真经。
+description: 云门是通往天门主路旁的一段岔路，不是打开封锁的必需步骤。石碑把读卷资格、投入和失手后果写明；不入门，也不会耽误你继续上路。
 tags: [core, independent_core, legendary_method, RKF10, phase, high_risk]
 source:
   basis: original
@@ -20,11 +20,11 @@ balance:
   measured: null
 event_type: core
 acts: [4]
-scene: 云门一开一合，昼夜在门后交替；石碑写明只有学过太阴经的人可读卷；挑战损失约173点气血，失手后仅剩1点。付36灵石可直接取烛龙真经。
+scene: 云门一开一合，门后昼夜交替；石碑写明只有学过太阴经的人可读卷。挑战先付 15% 基准气血，战斗损伤随实战变化、失手至少保留 1 点；付 36 灵石可免战取烛龙真经。
 options:
   - id: RK016-open-day-night
     label: 迎昼夜试炼
-    quick: 学过太阴经，损失约173点气血挑战；胜利取烛龙真经，失手后仅剩1点气血。
+    quick: 学过太阴经，付 15% 基准气血挑战；胜取烛龙真经，失手至少保留 1 点且无奖。
     requirements:
       - {type: known_method, id: RKF08}
     costs:
@@ -32,15 +32,17 @@ options:
     rewards:
       - {type: method, id: RKF10}
     outcome: 你在昼夜换相前完成试炼，胜利后取得烛龙真经；之后仍可再决定是否换功法、突破或渡劫。
+    story_echo: 你赢下云门岔路的试炼，取得烛龙真经；通往天门的主路仍须亲自走完。
     encounter:
       enemy_id: EN-A4-B2
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 昼夜交替打乱你的节奏，烛龙真经闭门；损失的约173点气血留在云门前，气血仅剩1点，烛龙真经没有到手。
+      failure_outcome: 昼夜交替打乱你的节奏，烛龙真经闭门；气血至少保留 1 点，法本没有到手，战斗损伤不会补回。
+    story_failure_echo: 昼夜换相令你失了节奏，至少保留 1 点气血；烛龙真经闭门，天门主路仍可继续。
   - id: RK016-buy-dawn
     label: 付石开云门
-    quick: 学过太阴经，支付 36 灵石，稳妥取烛龙真经
+    quick: 学过太阴经，支付 36 灵石，免战取烛龙真经
     requirements:
       - {type: known_method, id: RKF08}
       - {type: can_pay}
@@ -49,13 +51,15 @@ options:
     rewards:
       - {type: method, id: RKF10}
     outcome: 你用盘缠取到烛龙真经；之后仍可看清现有天赋和路上损失，再决定是否换功法。
+    story_echo: 你用 36 灵石取到烛龙真经，绕开昼夜试炼；昆仑天门仍是接下来的目标。
   - id: RK016-close-cloud-gate
     label: 关上云门
-    quick: 不愿投入，保留当前功法与资源
+    quick: 不挑战、不付灵石、不取法本，保留当前功法回主路
     requirements: []
     costs: []
     rewards: []
     outcome: 你让云门重新合拢，烛龙真经只是一条可绕开的高风险机缘。
+    story_echo: 你合上云门，没有改功法或付出资源；天门主路还在前方。
 settlement:
   once: true
   internal_battle_package: false

@@ -153,6 +153,65 @@ button:disabled {
   overflow-wrap: anywhere;
 }
 
+.game-page .map-heading .map-heading-actions {
+  align-items: center;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.game-page .chapter-goal {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0 0 8px;
+  color: var(--jade);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.game-page :is(.chapter-stakes, .chapter-aftermath, .chapter-passage) {
+  margin: 8px 0 16px;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.game-page :is(.story-echoes article, .story-journey) {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.game-page :is(.story-echoes, .story-journey) h3 {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 12px;
+  margin: 0 0 5px;
+  font-size: 15px;
+}
+
+.game-page .story-journey h3 small {
+  color: var(--jade);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.game-page :is(.story-echoes, .story-journey) p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.game-page .chapter-dialog-goal {
+  color: var(--jade);
+  font-weight: 700;
+}
+
+.game-page .end-epilogue {
+  margin: 16px 0;
+}
+
 .game-page.view-journey.phase-map .map-scroll {
   height: auto;
   min-height: 0;

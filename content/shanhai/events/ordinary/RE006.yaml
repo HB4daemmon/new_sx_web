@@ -4,8 +4,8 @@ kind: event
 id: RE006
 name: 驿站余火
 status: design_target
-summary: 在驿站选择立即疗伤、准备护盾或修行。
-description: 驿站的余火只够照亮一张桌子，掌柜端来药碗、护身符和静室钥匙。
+summary: 在临时避潮处用余火疗伤、为下一战备盾，或静坐积累修为。
+description: 倒灌的水逼得过路人暂避一刻，余火只能照看一件事：伤口、下一场战斗的护盾准备，或下一次突破所需的修为。
 tags: [ordinary, heal, shield, xp]
 source:
   basis: original
@@ -18,32 +18,35 @@ balance:
   measured: null
 event_type: ordinary
 acts: [1]
-scene: 掌柜把药碗、护身符和静室钥匙摆在桌上。余火将尽，你只能取其中一份。
+scene: 一截干木在石檐下燃着，周围人各自收拾被水打湿的行囊。药汤、护身符与安静片刻都只能留给一处，你得决定先稳住哪一环。
 options:
   - id: RE006-A
-    label: 借火养伤
+    label: 趁火喝药
     quick: 喝下药汤，立即恢复一段气血。
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: hp, amount: 0.2, basis: reference_hp}
-    outcome: 药力沿经脉散开，疲惫的伤势缓了下来。
+    outcome: 你喝下药汤，气血即时恢复，随后仍要离开避水处。
+    story_echo: 你借最后一点余火煎药止痛，带着恢复的气力重新上路。
   - id: RE006-B
-    label: 备下护身符
+    label: 留符作战前准备
     quick: 获得一份战前护盾准备，不恢复气血也不增加修为。
     requirements: []
     costs: []
     rewards:
       - {type: preparation, effect: shield, amount: 0.15, basis: reference_hp}
-    outcome: 你将护身符收好，下一场战斗前可获得一层护盾准备。
+    outcome: 你收好护身符，下一场战斗前会获得一层护盾准备；此刻气血与修为不变。
+    story_echo: 你把护身符留给下一场战斗，离开时伤势和修为都没有改变。
   - id: RE006-C
-    label: 静坐修行
+    label: 借余火静坐
     quick: 静坐片刻，增加下一次完整突破需求的两成修为。
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
-    outcome: 你在余火旁静坐，修为稳稳向下一次突破推进两成。
+    outcome: 你在余火旁静坐，修为向下一次完整突破需求推进两成。
+    story_echo: 你趁避水的一刻静坐，将余火的明灭记进修行，随后重新启程。
 settlement:
   once: true
   internal_battle_package: false

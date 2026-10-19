@@ -4,8 +4,8 @@ kind: event
 id: RE027
 name: 毒火问阵
 status: design_target
-summary: 参加毒火问阵争取太阴经，或付灵石带走赤炎珠。
-description: 毒火阵只开一条安全边，阵师把太阴经放在阵心；败者会退回阵外。
+summary: 在热毒阵中试取太阴经、付灵石取赤炎珠，或沿阵缘离开。
+description: 阵纹把毒与热流引向阵心，太阴经留在其中；非致死问阵失手后至少保留 1 点气血且无奖励，赤炎珠可按标价换取。
 tags: [ordinary, nonlethal, encounter, rare_method, act3]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [3, 4]
-scene: 毒火沿阵纹游走，太阴经静静躺在阵心。阵师让你闯阵，也给出一条用灵石绕开的路。
+scene: 毒火顺着地缝里的热流游走，太阴经压在阵心。阵师划出可试行的边线，也把赤炎珠的标价写在阵外。
 options:
   - id: RE027-A
-    label: 入阵试太阴
-    quick: 参加问阵，胜利带走太阴经；失手后保留1点气血。
+    label: 入阵问太阴经
+    quick: 参加非致死问阵，胜利取得太阴经；失手至少保留 1 点气血且无奖励。
     requirements: []
     costs: []
     rewards:
@@ -32,11 +32,13 @@ options:
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 你被毒火逼回阵外，气血只剩一线，太阴经仍留在阵心。
-    outcome: 你穿过毒火阵，太阴经收入囊中，是否改修仍由你决定。
+      failure_outcome: 你被毒火逼回阵外，至少保留 1 点气血；太阴经仍留在阵心。
+    outcome: 你通过非致死问阵取得太阴经，是否改修仍由你决定。
+    story_echo: 你通过毒火问阵取到太阴经，是否改修仍由你决定，热流继续向上。
+    story_failure_echo: 你被毒火逼回阵外，至少保留 1 点气血，太阴经没有到手。
   - id: RE027-B
-    label: 付石取赤炎珠
-    quick: 付出标价灵石，带走一层赤炎珠，避开问阵。
+    label: 付石绕开问阵取珠
+    quick: 付出标价灵石，带走一层赤炎珠并避开问阵；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC15, count: 1}
@@ -44,14 +46,16 @@ options:
       - {type: resource, resource: coins, amount: 1.0, basis: common_price}
     rewards:
       - {type: artifact, id: RC15, count: 1}
-    outcome: 你接过赤炎珠，阵中的毒火再也追不上你的脚步。
+    outcome: 你付出灵石带走一层赤炎珠，没有参加问阵。
+    story_echo: 你付石取走赤炎珠，沿阵缘绕行，毒火与阵心仍留在身后。
   - id: RE027-C
-    label: 沿阵边离开
-    quick: 沿阵边离开，保留气血与资源。
+    label: 顺阵缘继续找路
+    quick: 不付灵石、不参加问阵，保留气血与资源沿阵缘离开。
     requirements: []
     costs: []
     rewards: []
-    outcome: 阵师收起毒火，你沿安全边离开，太阴经留在阵中。
+    outcome: 你没有闯阵或取珠，沿阵缘离开，太阴经仍在阵心。
+    story_echo: 你沿阵缘离开，没有取法本或法宝，继续寻找热流的来处。
 settlement:
   once: true
   internal_battle_package: false

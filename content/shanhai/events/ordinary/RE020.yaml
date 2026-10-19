@@ -4,8 +4,8 @@ kind: event
 id: RE020
 name: 熔脉炼锋
 status: design_target
-summary: 付灵石把熔脉赤铁炼成剑穗或厚土环。
-description: 熔脉只稳定一刻，铸工把同一块赤铁分成剑穗和厚土环两种形制。
+summary: 熔脉将合时，以灵石把赤铁炼作剑穗、厚土环，或让它留在火中。
+description: 熔脉每次只稳定一刻，剑穗能强化普攻，厚土环能提升防御；两件都须付标价灵石并各需一层空位。
 tags: [ordinary, purchase, attack, defense, act3]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [3]
-scene: 赤铁在熔脉口翻滚，铸工举起两只模具。火势只够成器一次，剑穗和厚土环只能选一件。
+scene: 岩层深处的火流短暂变缓，铸工用赤铁压住一段要塌的热沟。余火只够炼一件，你可付石取剑穗、取厚土环，或退回冷灰边。
 options:
   - id: RE020-A
-    label: 付石炼剑穗
-    quick: 付出标价灵石，带走一层剑穗，强化普攻。
+    label: 付石炼出剑穗
+    quick: 付出标价灵石，带走一层剑穗以强化普攻；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC09, count: 1}
@@ -30,10 +30,11 @@ options:
       - {type: resource, resource: coins, amount: 0.75, basis: common_price}
     rewards:
       - {type: artifact, id: RC09, count: 1}
-    outcome: 剑穗在熔火中定形，普攻的锋势随之更利。
+    outcome: 你付石取下新炼的一层剑穗，普攻增强，热沟仍需自己跨过。
+    story_echo: 你付石收下剑穗，借它稳住兵刃，沿冷却的岩面越过热沟。
   - id: RE020-B
-    label: 付石炼厚土环
-    quick: 付出标价灵石，带走一层厚土环，提升防御。
+    label: 付石炼出厚土环
+    quick: 付出标价灵石，带走一层厚土环以提升防御；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC04, count: 1}
@@ -41,14 +42,16 @@ options:
       - {type: resource, resource: coins, amount: 0.75, basis: common_price}
     rewards:
       - {type: artifact, id: RC04, count: 1}
-    outcome: 厚土环沉入掌心，稳重的护意随身而行。
+    outcome: 你付石取下新炼的一层厚土环，护身更稳，仍要面对前方的热流。
+    story_echo: 你付石带走厚土环，护住身体穿过岩缝间未散的热气。
   - id: RE020-C
-    label: 退离熔口
-    quick: 退离熔口，保留灵石与当前法宝。
+    label: 退出热沟
+    quick: 不付灵石、不取法宝，保留灵石与当前法宝离开。
     requirements: []
     costs: []
     rewards: []
-    outcome: 熔脉闭合，你带着原有法宝和灵石离开。
+    outcome: 熔脉闭合前你退回冷灰边，现有灵石与法宝都没有改变。
+    story_echo: 你退回冷灰边，没有动用灵石，另寻绕过热沟的道路。
 settlement:
   once: true
   internal_battle_package: false

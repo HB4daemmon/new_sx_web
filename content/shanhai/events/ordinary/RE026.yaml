@@ -4,8 +4,8 @@ kind: event
 id: RE026
 name: 雷骨难题
 status: design_target
-summary: 付高价取镇心玉，或以较低代价带走凝气珠。
-description: 雷骨商人只带来一件镇心玉，旁边的凝气珠便宜得多，却会压低怒气上限。
+summary: 在火流旁按价选镇心玉或凝气珠，或保留灵石和当前法宝。
+description: 被热流磨亮的雷骨里封着两种力量：高价镇心玉提升防御并在战斗中积攒攻击，较便宜的凝气珠提升攻击但降低怒气上限。
 tags: [ordinary, rare_artifact, purchase, attack, act3]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [3]
-scene: 雷声里，镇心玉压住一侧桌角，凝气珠在另一侧轻轻旋转。商人把两种价钱都说得明白。
+scene: 雷骨被余火顶出裂纹，镇心玉和凝气珠分别落在石缝两侧。取镇心玉须付高价，取凝气珠标价较低但会降低怒气上限，也可把两件留在原处。
 options:
   - id: RE026-A
     label: 付高价取镇心玉
-    quick: 付出高价，带走镇心玉，提升防御并在战斗中积攒攻击。
+    quick: 付出高价灵石，带走镇心玉以提升防御并在战斗中积攒攻击；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RR05, count: 1}
@@ -30,10 +30,11 @@ options:
       - {type: resource, resource: coins, amount: 2.0, basis: common_price}
     rewards:
       - {type: artifact, id: RR05, count: 1}
-    outcome: 镇心玉沉入掌心，防守越稳，出手越有后劲。
+    outcome: 你付出高价灵石带走镇心玉，防御提升，战斗中的攻击积累仍待实际发生。
+    story_echo: 你付高价带走镇心玉，护身之力随行，雷骨留在余火旁。
   - id: RE026-B
-    label: 付石取凝气珠
-    quick: 付出较低标价，带走一层凝气珠，增强攻击但降低怒气上限。
+    label: 付较低标价取凝气珠
+    quick: 付出较低标价灵石，带走一层凝气珠；攻击提高、怒气上限降低，灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC19, count: 1}
@@ -41,14 +42,16 @@ options:
       - {type: resource, resource: coins, amount: 0.75, basis: common_price}
     rewards:
       - {type: artifact, id: RC19, count: 1}
-    outcome: 凝气珠在掌中微微发亮，锋劲更足，聚气却要更精打细算。
+    outcome: 你付出较低标价灵石带走一层凝气珠，攻击提高而怒气上限降低。
+    story_echo: 你按较低标价取走凝气珠，接受较低怒气上限，沿火流边继续走。
   - id: RE026-C
-    label: 放下雷骨
-    quick: 合上商匣，保留灵石。
+    label: 留下雷骨继续探路
+    quick: 不付灵石、不取法宝，保留灵石和当前法宝。
     requirements: []
     costs: []
     rewards: []
-    outcome: 商人收回两件法宝，你把灵石留在身边继续赶路。
+    outcome: 你把两件法宝留在雷骨旁，灵石与当前法宝都没有改变。
+    story_echo: 你没有取走雷骨中的器物，带着原有行囊绕过热流。
 settlement:
   once: true
   internal_battle_package: false

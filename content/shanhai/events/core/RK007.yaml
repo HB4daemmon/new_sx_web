@@ -4,8 +4,8 @@ kind: event
 id: RK007
 name: 禹让修为
 status: design_target
-summary: 眼前修为能马上变强，禹却要求你先把这一步成长让给河口。
-description: 禹在断河口导水，主角可以领走一笔修为，也可以明确放弃这次成长，为后段治水回访留下资格。
+summary: 禹请你把眼前一笔修为让给旧河道；你也可以先取修为或从高地绕行。
+description: 断河口的水顶着旧桥倒灌，禹想把它分回原来的河床。让出修为并不是奖赏承诺，只是给后段堤口留一份约定；你仍可先照顾自己的修行。
 tags: [core, character_encounter, yu, first_meeting, forgo_growth]
 source:
   basis: myth_adaptation
@@ -19,33 +19,36 @@ balance:
   measured: null
 event_type: core
 acts: [2]
-scene: 断河口的水势只给一人让路，禹说眼前这笔修为能立刻进阶，但若把它让给疏导，后段才有稳住长战的机会。
+scene: 断河口的水把石阶冲得发亮，禹守着一段旧河床。你可立即取一笔修为，或放弃它替河口疏流，约好第四幕再到堤边相见。
 options:
   - id: RK007-take-xp
     label: 先取修为
-    quick: 领取一笔修为，放弃治水承诺
+    quick: 获得一笔修为，不接后段治水约定
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
     outcome: 你先把境界往前推一步，禹把剩下的水口交给公共路线。
+    story_echo: 你把修为收进气海，禹继续守着旧河口；这次没有留下后段约定。
   - id: RK007-forgo-growth
     label: 让出这一步
-    quick: 不拿眼前修为，承诺后段守堤
+    quick: 放弃一笔眼前修为，约定后段回堤口
     requirements: []
     costs: []
     rewards: []
     set_flags:
       RS04-promised: true
-    outcome: 你把修为让给河口，禹记下你的选择：后段守堤时再谈回报。
+    outcome: 你把修为让给河口，禹记下你的选择：第四幕堤口再见，守堤结果到时再说。
+    story_echo: 你把这一步修为让给河口，禹记下约定；守堤成败与回报仍待后段决定。
   - id: RK007-leave
     label: 沿高地离开
-    quick: 拿一小笔灵石，不进入治水线
+    quick: 获得一小笔灵石，绕过河口约定
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: coins, amount: 0.1, basis: common_price}
     outcome: 你从高地绕开水口，保留资源，也保留不承诺的自由。
+    story_echo: 你收好盘缠，从高地绕过水口，照自己的步子继续前行。
 settlement:
   once: true
   internal_battle_package: false

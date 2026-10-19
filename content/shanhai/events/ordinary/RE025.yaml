@@ -4,8 +4,8 @@ kind: event
 id: RE025
 name: 回身换脉
 status: design_target
-summary: 付灵石获得一次重新选择已学功法的机会，或带走返气环。
-description: 旧路的回身石能映出你已学过的法脉，旁边的返气环正等着被取走。
+summary: 在旧路的回身石前付灵石开启功法重选、取返气环，或沿当前法门前行。
+description: 回身石照出已学过的法脉，但只提供重选机会，不会自动换法；返气环则留有标价，可带走一层。
 tags: [ordinary, method_swap, purchase, artifact, act3]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [3, 4]
-scene: 回身石映出旧日修行的影子，返气环在石旁轻轻鸣响。你只能带走一份机缘。
+scene: 一块旧石面映出你的修行痕迹，返气环在旁边随风轻响。你可以付灵石开启已学功法重选、取环，或不回头继续赶路。
 options:
   - id: RE025-A
-    label: 付石回身看法
-    quick: 付出标价灵石，获得一次从已学功法中重新选择的机会。
+    label: 付石照见旧法
+    quick: 付出标价灵石后选择另一门已学功法改修；未学适用功法或灵石不足则不能选，不回血、不洗点。
     requirements:
       - {type: known_method, id: RKF03}
       - {type: can_pay}
@@ -30,10 +30,11 @@ options:
       - {type: resource, resource: coins, amount: 1.0, basis: common_price}
     rewards:
       - {type: swap_method, pool: owned_methods}
-    outcome: 回身石为你照出旧法之门，是否改修仍由你自己决定。
+    outcome: 回身石已亮，灵石已经付出；接下来须从其他已学功法中选一门改修，各门已悟天赋仍保留。
+    story_echo: 你付石照见已学功法，重新择定修行方向，越过映着旧日身影的石面。
   - id: RE025-B
-    label: 付石取返气环
-    quick: 付出标价灵石，带走一层返气环，怒技后额外回怒。
+    label: 付石带走返气环
+    quick: 付出标价灵石，带走一层返气环以在怒技后额外回怒；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC23, count: 1}
@@ -41,14 +42,16 @@ options:
       - {type: resource, resource: coins, amount: 0.75, basis: common_price}
     rewards:
       - {type: artifact, id: RC23, count: 1}
-    outcome: 返气环在怒技余波中轻响，下一轮聚气会更从容。
+    outcome: 你付石取下一层返气环，之后怒技后的回怒会受其效果影响。
+    story_echo: 你付石系上返气环，越过旧石时，身后修行影子渐渐淡去。
   - id: RE025-C
-    label: 不回身
-    quick: 不回身，保留当前功法与灵石。
+    label: 不回头沿旧法前行
+    quick: 不付灵石，放弃重选与法宝，保留当前功法继续前行。
     requirements: []
     costs: []
     rewards: []
-    outcome: 回身石归于沉默，你沿着熟悉的功法继续上路。
+    outcome: 你没有取石边机缘，沿用当前功法继续前行。
+    story_echo: 你不回头取机缘，沿着当前功法走过石面，行囊与旧路都未更改。
 settlement:
   once: true
   internal_battle_package: false

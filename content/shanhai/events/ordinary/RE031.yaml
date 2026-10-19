@@ -4,8 +4,8 @@ kind: event
 id: RE031
 name: 终程筹币
 status: design_target
-summary: 用灵石换终门前的护盾，或把灵石/修为带走。
-description: 终程商筹只写着下一处战门的风声，筹主能把牌面换成护行护盾、盘缠或修行。
+summary: 前往天门前分配行装：付灵石备下一战护盾、折取盘缠，或积累修为。
+description: 旧阵里的筹牌留下几份余料，可付标价灵石留作下一场护盾准备，也能折成灵石或用于修行。
 tags: [ordinary, shop_prep, preparation, act4]
 source:
   basis: original
@@ -18,34 +18,37 @@ balance:
   measured: null
 event_type: ordinary
 acts: [4]
-scene: 终程的风越来越紧，筹主把三样东西摆在你面前：护盾、灵石和修为。
+scene: 昆仑前的风掠过空筹牌，牌面不再指向别处市集，只留下一份行路余料。你可付石备下一战护盾、折回盘缠，或将心神留给修行。
 options:
   - id: RE031-A
-    label: 付石备终程
-    quick: 付出标价灵石，为下一场战斗备下一层护盾。
+    label: 付石准备下一战
+    quick: 付出标价灵石，为下一场战斗准备一层护盾；灵石不足不能选。
     requirements:
       - {type: can_pay}
     costs:
       - {type: resource, resource: coins, amount: 1.0, basis: common_price}
     rewards:
       - {type: preparation, effect: shield, amount: 0.1, basis: reference_hp}
-    outcome: 护行灵材化成护盾，在下一场战斗前等着你。
+    outcome: 你付出标价灵石，把护行灵材留作下一场战斗的一层护盾准备。
+    story_echo: 你付石备好下一战护盾，收束行囊后仍要独自走完门前这段路。
   - id: RE031-B
-    label: 留币看门
-    quick: 拿走一笔灵石，留着最后一段路使用。
+    label: 折回盘缠带上路
+    quick: 不付灵石，取得一笔灵石留给最后一段路。
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: coins, amount: 0.25, basis: common_price}
-    outcome: 你收好筹主递来的灵石，最后一段路仍由你自己安排。
+    outcome: 你收下折回的灵石，没有预作护盾准备，最后一段路仍由自己安排。
+    story_echo: 你把折回的灵石收进囊中，没有备盾，独自向前门行去。
   - id: RE031-C
-    label: 以筹换修
-    quick: 静坐片刻，修为提高下一次进阶所需的两成；已到当前境界尽头时收益有限。
+    label: 静坐积累修为
+    quick: 不耗灵石，静坐使修为提高下一次进阶所需的两成；已到当前境界尽头时收益有限。
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
-    outcome: 你在终程风声里守住心神，让修为向下一次进阶推进；已到当前境界尽头时，只留下修为记录。
+    outcome: 你在门前静坐，让修为向下一次进阶推进两成；已到当前境界尽头时只留下修为记录。
+    story_echo: 你在门前静坐积修，起身后继续独自走向最后的关口。
 settlement:
   once: true
   internal_battle_package: false

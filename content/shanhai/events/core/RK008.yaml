@@ -4,8 +4,8 @@ kind: event
 id: RK008
 name: 禹守堤回访
 status: design_target
-summary: 让出的修为可在堤口换一次守堤挑战；胜利取长明灯，不挑战则得一层临时护堤盾。
-description: 禹把堤口的冲击和失手后的退路都摆明；若未曾让出修为，这里只会看见普通道路。
+summary: 带着让出修为的约定回到堤口，可付 12% 基准气血挑战取长明灯，或不战取一层护堤盾。
+description: 禹把堤绳递来，也把失手后剩下的路说明白。挑战胜利才有长明灯；若不想再冒险，可以只借一层护盾，或者收手离开。
 tags: [core, character_encounter, yu, follow_up, endurance]
 source:
   basis: myth_adaptation
@@ -19,11 +19,11 @@ balance:
   measured: null
 event_type: core
 acts: [4]
-scene: 堤口的水声像一面连续的鼓，禹说明守堤挑战会损失约138点气血，失手后仅剩1点；不挑战也可得一层护堤盾。
+scene: 堤口水声压过人声，禹把守堤挑战、临时护盾和退回主路的选择摆在你面前。挑战先付 12% 基准气血，战斗损伤另随实战变化，失手至少保留 1 点；不挑战可取一层护堤盾。
 options:
   - id: RK008-hold-dike
     label: 迎水守堤
-    quick: 损失约138点气血挑战，胜利取长明灯；失手后仅剩1点气血。
+    quick: 付 12% 基准气血挑战，胜利取长明灯；失手至少保留 1 点气血且无奖。
     requirements:
       - {type: flag, id: RS04-promised, value: true}
     costs:
@@ -31,29 +31,33 @@ options:
     rewards:
       - {type: artifact, id: RR06, count: 1}
     outcome: 你把水势导回旧河床，胜利后取走长明灯；它的最大气血加成立即计入，下一场战斗结束后才会触发战后恢复。
+    story_echo: 你守住堤口并把水导回旧河床，胜利后带走长明灯；堤绳仍留在禹手里。
     encounter:
       enemy_id: EN-A4-B1
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 堤口冲垮了你的阵脚，禹关上水闸；损失的约138点气血留在堤边，气血仅剩1点，长明灯没有到手。
+      failure_outcome: 堤口冲乱了你的阵脚，禹关上水闸；气血至少保留 1 点，长明灯没有到手，战斗损伤不会补回。
+    story_failure_echo: 你没能守住堤口，气血至少保留 1 点；禹先收好堤绳，长明灯没有到手。
   - id: RK008-pay-work
     label: 借一层护堤盾
-    quick: 不挑战，获得一层护堤盾，护住下一场战斗。
+    quick: 不挑战，获得一层护堤盾，仅护住下一场战斗
     requirements:
       - {type: flag, id: RS04-promised, value: true}
     costs: []
     rewards:
       - {type: preparation, effect: shield, amount: 0.1, basis: reference_hp}
     outcome: 禹把水势引开，先替你立下一层护堤盾；它只护住下一场战斗，长明灯留在堤口。
+    story_echo: 你不再涉险，借到的一层护堤盾只护下一战；长明灯仍留在堤口。
   - id: RK008-withdraw
     label: 放下堤绳
-    quick: 放下堤绳，保留当前资源和气血
+    quick: 不挑战、不取盾、不再投入，带现有气血回主路
     requirements:
       - {type: flag, id: RS04-promised, value: true}
     costs: []
     rewards: []
     outcome: 你把堤绳交回禹手里，承诺到此为止，已经让出的修为也不追回。
+    story_echo: 你把堤绳交还，禹没有挽留；先前让出的修为不返，堤口约定就此结束。
 settlement:
   once: true
   internal_battle_package: false

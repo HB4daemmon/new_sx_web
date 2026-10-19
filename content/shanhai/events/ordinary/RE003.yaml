@@ -4,8 +4,8 @@ kind: event
 id: RE003
 name: 灰烬石匣
 status: design_target
-summary: 以气血承受灼伤，换两层攻击或防御法宝；也可安全拾取灵石。
-description: 灰烬石匣还在发烫，匣底压着两枚法片。只有探入匣底才会受伤，外沿灵石不必冒险就能捡走。
+summary: 在熄灭的火痕里付气血取锋或护甲，也可不冒险捡起灵石。
+description: 灰烬压住石匣，匣底仍烫，外沿则散着冷却的灵石。探入匣底会付出气血，是否值得要看你还剩多少余力。
 tags: [ordinary, blood_price, two_layers, artifact]
 source:
   basis: original
@@ -18,36 +18,39 @@ balance:
   measured: null
 event_type: ordinary
 acts: [1, 2]
-scene: 灰烬石匣仍在发烫，匣底压着青锋石与玄铁甲。探入匣底会损失气血，外沿的灵石则安静躺在冷灰里。
+scene: 逆流掀开的火灰盖住匣沿，青锋石与玄铁甲压在最深处，几枚灵石滚到冷灰边。伸手取宝会损失约定比例的气血，拾石不必受伤。
 options:
   - id: RE003-A
-    label: 探入匣底取锋
-    quick: 损失约75点气血（第二幕约93点），带走两层青锋石。
+    label: 忍灼取出青锋石
+    quick: 损失约75点气血（第二幕约93点），带走两层青锋石；该法宝须能再叠两层且能存活，否则不能选。
     requirements:
       - {type: capacity, id: RC01, count: 2}
     costs:
       - {type: resource, resource: hp, amount: 0.12, basis: reference_hp, must_survive: true}
     rewards:
       - {type: artifact, id: RC01, count: 2}
-    outcome: 你忍住灼痛取出两层青锋石，锋芒沾着灰烬。
+    outcome: 你付出气血从匣底取出两层青锋石，锋芒沾灰，去路仍被逆水截断。
+    story_echo: 灼痛过后，两层青锋石落入你手中；你留着气力继续寻找可走的岸线。
   - id: RE003-B
-    label: 探入匣底取甲
-    quick: 损失约75点气血（第二幕约93点），带走两层玄铁甲。
+    label: 忍灼取出玄铁甲
+    quick: 损失约75点气血（第二幕约93点），带走两层玄铁甲；该法宝须能再叠两层且能存活，否则不能选。
     requirements:
       - {type: capacity, id: RC03, count: 2}
     costs:
       - {type: resource, resource: hp, amount: 0.12, basis: reference_hp, must_survive: true}
     rewards:
       - {type: artifact, id: RC03, count: 2}
-    outcome: 你忍住灼痛取出两层玄铁甲，沉重的护意贴上肩背。
+    outcome: 你付出气血从匣底取出两层玄铁甲，沉重的护意贴上肩背。
+    story_echo: 你忍痛取出两层玄铁甲，穿过落灰的窄路时护甲贴紧肩背。
   - id: RE003-C
-    label: 拾取外沿灵石
+    label: 捡起冷灰边的灵石
     quick: 拾走外沿灵石，不必损失气血。
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: coins, amount: 0.2, basis: common_price}
-    outcome: 你捡起冷却的灵石，转身离开炽红石匣。
+    outcome: 你拾起外沿冷石折成灵石，没有再伸手碰滚烫的匣底。
+    story_echo: 你捡起冷灰边的灵石，避开烫匣，沿石阶继续探路。
 settlement:
   once: true
   internal_battle_package: false

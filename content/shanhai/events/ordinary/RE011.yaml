@@ -4,8 +4,8 @@ kind: event
 id: RE011
 name: 驳船整甲
 status: design_target
-summary: 付灵石从剑穗与铁壁符中选一件，为水路做准备。
-description: 驳船要过一段碎礁，船工把旧铁片摆成剑穗和铁壁符两种形制。
+summary: 越过碎礁水道前，以灵石换锋势或护身，也可不取旧铁。
+description: 驳船要沿着被逆流抬高的碎礁穿行，船工的旧铁片只够炼一件：剑穗能强化普攻，铁壁符能提升防御并增强护盾。
 tags: [ordinary, purchase, attack, defense, act2]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [2]
-scene: 驳船将要驶过碎礁，船工把剑穗与铁壁符摆到你面前。旧铁片只够炼成一件。
+scene: 船底刮过露出水面的碎礁，旧铁片在船工手里只够炼成一件。付标价灵石取剑穗、取铁壁符，或不取器物直接过水。
 options:
   - id: RE011-A
-    label: 付石锻锋
-    quick: 付出标价灵石，带走一层剑穗，强化普攻。
+    label: 付石锻成剑穗
+    quick: 付出标价灵石，带走一层剑穗以强化普攻；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC09, count: 1}
@@ -30,10 +30,11 @@ options:
       - {type: resource, resource: coins, amount: 1.0, basis: common_price}
     rewards:
       - {type: artifact, id: RC09, count: 1}
-    outcome: 剑穗系在兵刃上，普通一击更显利落。
+    outcome: 你付石带走一层剑穗，系紧兵刃后仍需自己找出碎礁间的落脚处。
+    story_echo: 你付石系上剑穗，普攻得到强化，驳船顺着礁间水道向前。
   - id: RE011-B
-    label: 付石钉甲
-    quick: 付出标价灵石，带走一层铁壁符，提升防御并增强护盾。
+    label: 付石钉上铁壁符
+    quick: 付出标价灵石，带走一层铁壁符以提升防御并增强护盾；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC11, count: 1}
@@ -41,14 +42,16 @@ options:
       - {type: resource, resource: coins, amount: 1.0, basis: common_price}
     rewards:
       - {type: artifact, id: RC11, count: 1}
-    outcome: 铁壁符贴上衣甲，护体之力更稳。
+    outcome: 你付石带走一层铁壁符，护体更稳，碎礁仍需谨慎通过。
+    story_echo: 你付石钉上铁壁符，驳船经过碎礁时护身之力随行。
   - id: RE011-C
-    label: 只过碎礁
-    quick: 只过碎礁，保留灵石和随身法宝。
+    label: 不取旧铁过水
+    quick: 不付灵石、不取法宝，保留现有资源继续过碎礁。
     requirements: []
     costs: []
     rewards: []
-    outcome: 船工收起铁片，驳船继续向前，手中的资源原样保留。
+    outcome: 船工收起旧铁，驳船继续向前，你的灵石与法宝没有改变。
+    story_echo: 你不取船工的旧铁，带着原有行装穿过碎礁水道。
 settlement:
   once: true
   internal_battle_package: false

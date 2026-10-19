@@ -972,6 +972,8 @@ function renderOption(option, context) {
     lines.push(`- 失约与过期：进入避让节点即告失约；未到终战前兑现而进入终战时过期。${line(commitment.failure_outcome, context)}；已付成本不退，失败或过期不发延后奖励。`)
   }
   lines.push(`- 结果：${line(option.outcome, context)}`)
+  if (option.story_echo !== undefined) lines.push(`- 成功行迹：${line(option.story_echo, context)}`)
+  if (option.story_failure_echo !== undefined) lines.push(`- 失败行迹：${line(option.story_failure_echo, context)}`)
   if (option.set_flags) lines.push(`- 标记变化：${targetText(option.set_flags, context)}`)
   lines.push('')
   return lines

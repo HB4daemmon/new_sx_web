@@ -4,8 +4,8 @@ kind: event
 id: RE029
 name: 昆仑前炉
 status: design_target
-summary: 付灵石从虎纹佩与厚土环中选一件。
-description: 昆仑前门炉火收窄，炉主只能把云铁炼成虎纹佩或厚土环。
+summary: 越过昆仑前门的最后一段石路前，以灵石炼虎纹佩或厚土环。
+description: 门外的云铁只够炼成一件，虎纹佩提升攻击，厚土环提升防御；不取法宝也可保留现有行装通过。
 tags: [ordinary, purchase, attack, defense, act4]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [4]
-scene: 云铁在炉心泛着青光，虎纹佩和厚土环的模具一左一右。炉主说，今夜只够成器一次。
+scene: 昆仑前门旁的炉火只够亮一刻，守炉人把云铁分到两只模具间。你可付标价灵石选一件，也可熄炉跨过门槛。
 options:
   - id: RE029-A
-    label: 付石炼虎纹
-    quick: 付出标价灵石，带走一层虎纹佩，增强攻击。
+    label: 付石炼一层虎纹佩
+    quick: 付出标价灵石，带走一层虎纹佩以增强攻击；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC02, count: 1}
@@ -30,10 +30,11 @@ options:
       - {type: resource, resource: coins, amount: 1.0, basis: common_price}
     rewards:
       - {type: artifact, id: RC02, count: 1}
-    outcome: 虎纹佩在炉火中定形，周身的攻击之势随之拔高。
+    outcome: 你付石炼成一层虎纹佩，攻击提高，前门的旧阵仍需亲自穿过。
+    story_echo: 你付石炼下虎纹佩，带着增强的攻击越过炉边门槛，旧阵仍待独自通过。
   - id: RE029-B
-    label: 付石炼厚土
-    quick: 付出标价灵石，带走一层厚土环，提升防御。
+    label: 付石炼一层厚土环
+    quick: 付出标价灵石，带走一层厚土环以提升防御；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC04, count: 1}
@@ -41,14 +42,16 @@ options:
       - {type: resource, resource: coins, amount: 1.0, basis: common_price}
     rewards:
       - {type: artifact, id: RC04, count: 1}
-    outcome: 厚土环沉稳地扣在腕上，云铁化作护身之力。
+    outcome: 你付石炼成一层厚土环，防御提高，前方的阵路仍须独自面对。
+    story_echo: 你付石扣上厚土环，带着更稳的护身走过前门，同行者仍不在身边。
   - id: RE029-C
-    label: 熄炉过门
-    quick: 熄炉过门，保留灵石与当前法宝。
+    label: 熄炉带旧物过门
+    quick: 不付灵石、不取新法宝，保留灵石与当前法宝通过。
     requirements: []
     costs: []
     rewards: []
-    outcome: 炉火熄灭，你带着原有法宝和灵石走过昆仑前门。
+    outcome: 你没有取用云铁，带着原有法宝和灵石走过昆仑前门。
+    story_echo: 你让炉火熄下，带着已有行装跨过前门，最后一段路仍由自己走。
 settlement:
   once: true
   internal_battle_package: false

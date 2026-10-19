@@ -4,8 +4,8 @@ kind: event
 id: RE007
 name: 炼气残简
 status: design_target
-summary: 付灵石取得回春功法本或回春瓶，也可不买离摊。
-description: 破旧经摊只剩一页完整的回春功法本，旁边的回春瓶也在等买主；取得功法本不会自动改修。
+summary: 付灵石带走回春法本或回春瓶，或合卷赶在潮线封路前离开。
+description: 被水冲开的旧经页还可辨出回春法，旁边的一层回春瓶也能带走；取得法本只增加可学选择，不会自动改修。
 tags: [ordinary, method, purchase, artifact]
 source:
   basis: original
@@ -18,21 +18,22 @@ balance:
   measured: null
 event_type: ordinary
 acts: [1]
-scene: 经摊上，一页回春功法本和一只回春瓶并排摆着。摊主催你在收摊前做决定，改修仍由你自己决定。
+scene: 堤脚塌开一角，露出写有回春法的旧页和一只封好的回春瓶。看守残页的人按标价换取行路物资，取下法本后是否改修仍由你决定。
 options:
   - id: RE007-A
-    label: 付石取得回春法本
-    quick: 付出标价灵石，取得回春功法本；是否改修由你决定。
+    label: 付石带走回春法本
+    quick: 付出标价灵石，取得回春功法本；灵石不足不能选，是否改修由你决定。
     requirements:
       - {type: can_pay}
     costs:
       - {type: resource, resource: coins, amount: 1.0, basis: common_price}
     rewards:
       - {type: method, id: RKF03}
-    outcome: 回春功写入你的行囊，你眼下仍沿用原来的功法。
+    outcome: 你付出灵石收下回春法本，眼下仍沿用原来的功法。
+    story_echo: 你将回春法本收进囊中，现用功法未换，塌堤处的旧页也不再受潮。
   - id: RE007-B
-    label: 付石收下回春瓶
-    quick: 付出标价灵石，带走一层回春瓶，让今后的自疗更有力。
+    label: 付石带走回春瓶
+    quick: 付出标价灵石，带走一层回春瓶以增强今后的自疗；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC12, count: 1}
@@ -40,14 +41,16 @@ options:
       - {type: resource, resource: coins, amount: 0.75, basis: common_price}
     rewards:
       - {type: artifact, id: RC12, count: 1}
-    outcome: 你接过回春瓶，瓶中春意会在往后的疗伤里帮你一把。
+    outcome: 你付出灵石带走一层回春瓶，往后的实际治疗会受其效果影响。
+    story_echo: 你付石带走一层回春瓶，沿着尚未被水淹没的堤脚继续走。
   - id: RE007-C
-    label: 合卷离摊
+    label: 合卷离开堤脚
     quick: 合上残简离开，保留灵石与当前功法。
     requirements: []
     costs: []
     rewards: []
-    outcome: 你合上残简离开经摊，灵石和现用功法都没有改变。
+    outcome: 你合上旧页，没有花费灵石，现用功法也没有改变。
+    story_echo: 你合上旧页保留灵石与现用功法，趁堤脚尚可通行离开。
 settlement:
   once: true
   internal_battle_package: false

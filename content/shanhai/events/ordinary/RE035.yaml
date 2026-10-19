@@ -4,8 +4,8 @@ kind: event
 id: RE035
 name: 稀页付价
 status: design_target
-summary: 付高价取回元佩，或以较低代价带走调息玉。
-description: 云阶书商只带来一件回元佩，旁边的调息玉便宜得多，二者都能为终局前的战斗添力。
+summary: 临近天门时按标价选择回元佩或调息玉，也可保留灵石继续前行。
+description: 守经人将两件可用于后续战斗的法宝留在旧路边：回元佩价格较高，调息玉标价较低，作用各不相同。
 tags: [ordinary, rare_artifact, purchase, defense, act4]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [4]
-scene: 书商摊开的稀页压着回元佩，调息玉在旁边泛着温光。高价的护持与便宜的调息，只能选一件。
+scene: 守经人已无法替你走过天门，只将回元佩与调息玉留在石阶上。你可按标价取一件、接受其不同作用，或不取而保留灵石。
 options:
   - id: RE035-A
     label: 付高价取回元佩
-    quick: 付出高价，带走回元佩，提升防御并让首次怒技后更容易再次聚气。
+    quick: 付出高价灵石，带走回元佩以提升防御并让首次怒技后更易再次聚气；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RR07, count: 1}
@@ -30,10 +30,11 @@ options:
       - {type: resource, resource: coins, amount: 2.0, basis: common_price}
     rewards:
       - {type: artifact, id: RR07, count: 1}
-    outcome: 回元佩贴上腕间，防守更稳，首次怒技之后的气息也更容易续上。
+    outcome: 你付出高价灵石带走回元佩，防御提高，首次怒技后的回气效果留待战斗发生。
+    story_echo: 你付高价收下回元佩，独自登阶时，后续战斗才会显出它的作用。
   - id: RE035-B
-    label: 付石取调息玉
-    quick: 付出较低标价，带走一层调息玉，战斗每轮都能慢慢回怒。
+    label: 付较低标价取调息玉
+    quick: 付出较低标价灵石，带走一层调息玉以在战斗每轮缓慢回怒；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC21, count: 1}
@@ -41,14 +42,16 @@ options:
       - {type: resource, resource: coins, amount: 0.75, basis: common_price}
     rewards:
       - {type: artifact, id: RC21, count: 1}
-    outcome: 调息玉随呼吸明灭，战斗拖得越久，回气越稳定。
+    outcome: 你付出较低标价灵石带走一层调息玉，战斗中的每轮回怒仍待实际发生。
+    story_echo: 你以较低标价带走调息玉，系好行囊后继续独自攀登。
   - id: RE035-C
-    label: 合页留石
-    quick: 合上稀页，保留灵石。
+    label: 不取法宝保留灵石
+    quick: 不付灵石、不取法宝，保留灵石继续赶路。
     requirements: []
     costs: []
     rewards: []
-    outcome: 书商合上稀页，你把灵石留在身边，继续走向终门。
+    outcome: 你没有取用守经人留下的法宝，灵石仍在身边。
+    story_echo: 你把两件法宝留在石阶，保留灵石，继续独自走向天门。
 settlement:
   once: true
   internal_battle_package: false

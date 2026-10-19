@@ -2,7 +2,7 @@
   "url": "http://localhost:4173/",
   "seed": "browser-journey-45",
   "playerName": "真实浏览器行者",
-  "generatedAt": "2026-10-19T09:12:18.931Z",
+  "generatedAt": "2026-10-19T12:53:43.840Z",
   "contentVersion": "shanhai-content-0.1",
   "policy": "tests/shanhai-policy.mjs nextCommand; fixed seed pre-set through hidden setup input; Node-side read-only ShanhaiGame decisions; all game phases use browser clicks",
   "reports": [
@@ -13212,7 +13212,7 @@
             "speed-2",
             "pause",
             "continue",
-            "naturally-finished"
+            "skip"
           ]
         },
         {
@@ -13242,7 +13242,7 @@
             "speed-2",
             "pause",
             "continue",
-            "naturally-finished"
+            "skip"
           ]
         },
         {
@@ -13257,7 +13257,7 @@
             "speed-2",
             "pause",
             "continue",
-            "naturally-finished"
+            "skip"
           ]
         },
         {
@@ -13272,7 +13272,7 @@
             "speed-2",
             "pause",
             "continue",
-            "naturally-finished"
+            "skip"
           ]
         },
         {
@@ -13302,7 +13302,7 @@
             "speed-2",
             "pause",
             "continue",
-            "naturally-finished"
+            "skip"
           ]
         },
         {
@@ -13317,7 +13317,7 @@
             "speed-2",
             "pause",
             "continue",
-            "naturally-finished"
+            "skip"
           ]
         },
         {
@@ -13362,7 +13362,7 @@
             "speed-2",
             "pause",
             "continue",
-            "naturally-finished"
+            "skip"
           ]
         },
         {
@@ -13452,7 +13452,7 @@
             "speed-2",
             "pause",
             "continue",
-            "naturally-finished"
+            "skip"
           ]
         },
         {

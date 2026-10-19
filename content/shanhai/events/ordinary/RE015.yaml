@@ -4,8 +4,8 @@ kind: event
 id: RE015
 name: 药炉换卷
 status: design_target
-summary: 付灵石取得御火诀法本，或带走赤炎珠。
-description: 药炉旁只剩一张能写满御火诀的火纸，炉主还摆着一颗赤炎珠。
+summary: 在逆流逼近的旧炉旁付灵石取御火诀或赤炎珠，也可不取。
+description: 一张尚能辨读的御火诀残纸和一层赤炎珠留在炉边。法本不会自动改修，赤炎珠则增强燃烧伤害。
 tags: [ordinary, method, purchase, artifact, act2]
 source:
   basis: original
@@ -18,21 +18,22 @@ balance:
   measured: null
 event_type: ordinary
 acts: [2]
-scene: 火纸和赤炎珠在药炉边并排发亮，炉主说价钱已经写明。
+scene: 被水汽冲散的炉火把御火诀残纸烘干，赤炎珠也在余温中发亮。守炉人只留一份给过路者，付石取法、取宝，或带着旧功法离开。
 options:
   - id: RE015-A
-    label: 付石收下御火卷
-    quick: 付出标价灵石，带走御火诀法本；改修与否由你决定。
+    label: 付石带走御火诀
+    quick: 付出标价灵石，取得御火诀法本；是否改修由你决定，灵石不足不能选。
     requirements:
       - {type: can_pay}
     costs:
       - {type: resource, resource: coins, amount: 1.25, basis: common_price}
     rewards:
       - {type: method, id: RKF04}
-    outcome: 御火诀落进你的行囊，眼下仍沿用原先的功法。
+    outcome: 你付出灵石取得御火诀法本，眼下仍沿用原先的功法。
+    story_echo: 你把御火诀法本收进囊中，现用功法未变，炉边残纸留给后来人。
   - id: RE015-B
     label: 付石收下赤炎珠
-    quick: 付出标价灵石，带走一层赤炎珠，增强燃烧伤害。
+    quick: 付出标价灵石，带走一层赤炎珠以增强燃烧伤害；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC15, count: 1}
@@ -40,14 +41,16 @@ options:
       - {type: resource, resource: coins, amount: 0.75, basis: common_price}
     rewards:
       - {type: artifact, id: RC15, count: 1}
-    outcome: 赤炎珠在掌心发热，敌人身上的火势会烧得更久更深。
+    outcome: 你付石带走一层赤炎珠，之后实际施加的燃烧会受其效果影响。
+    story_echo: 你付石收下赤炎珠，带着炉火余温离开被水汽侵扰的石道。
   - id: RE015-C
-    label: 合上火纸
-    quick: 合上火纸离开，保留灵石和当前功法。
+    label: 合纸沿旧路离开
+    quick: 不付灵石、不取法本或法宝，保留当前功法继续前行。
     requirements: []
     costs: []
     rewards: []
-    outcome: 你合上火纸离开药炉，灵石与现用功法都留在身边。
+    outcome: 你合上火纸离开旧炉，灵石与现用功法都留在身边。
+    story_echo: 你没有取炉边的法本或法宝，沿旧河道留下的高处继续前行。
 settlement:
   once: true
   internal_battle_package: false

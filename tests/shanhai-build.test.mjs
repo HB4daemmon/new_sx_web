@@ -22,6 +22,7 @@ const SHANHAI_MODULES = [
   'cartoon.css',
   'game-art.js',
   'localization.js',
+  'narrative.js',
   'persistence.js',
   'route-map.js',
   'run.js',

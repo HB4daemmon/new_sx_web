@@ -118,7 +118,15 @@ export interface RunState {
   flags: Record<string, boolean>;
   storyline: string;
   independentCore: string | null;
-  history: { act: number; step: number; title: string; text: string; eventId?: string; optionId?: string }[];
+  history: {
+    act: number;
+    step: number;
+    title: string;
+    text: string;
+    eventId?: string;
+    optionId?: string;
+    eventOutcome?: 'success' | 'failure';
+  }[];
   seenEvents: string[];
   completedCore: string[];
   eventCommitments?: EventCommitmentRecord[];

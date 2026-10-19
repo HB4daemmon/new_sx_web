@@ -4,8 +4,8 @@ kind: event
 id: RE021
 name: 赤砂双层
 status: design_target
-summary: 以气血换两层蛇纹瓶或赤炎珠，或捡走冷石换灵石。
-description: 赤砂里埋着两片同纹法片，取出时砂砾会灌入伤口；旁边的冷石可直接换成灵石。
+summary: 在热砂中付气血取蛇纹瓶或赤炎珠，也可无伤拾取冷石换灵石。
+description: 热风卷来的砂砾埋住两种法宝，取出任一项都会损失气血；砂边冷石可直接换成灵石，不必触碰热砂。
 tags: [ordinary, blood_price, two_layers, artifact, act3]
 source:
   basis: original
@@ -18,36 +18,39 @@ balance:
   measured: null
 event_type: ordinary
 acts: [3, 4]
-scene: 赤砂灼热，两枚法片在砂下泛光。你可以忍痛取宝，也可以捡起冷石，带着灵石离开。
+scene: 热流沿地表掠过，砂下两件法宝透出不同颜色的光，冷石则停在砂边。取宝要损失约定比例的气血，拾冷石没有血价。
 options:
   - id: RE021-A
-    label: 取蛇纹瓶
-    quick: 损失约143点气血（第四幕约173点），带走两层蛇纹瓶，增强中毒伤害。
+    label: 付气血取蛇纹瓶
+    quick: 损失约143点气血（第四幕约173点），带走两层蛇纹瓶以增强中毒伤害；该法宝须能再叠两层且能存活，否则不能选。
     requirements:
       - {type: capacity, id: RC14, count: 2}
     costs:
       - {type: resource, resource: hp, amount: 0.15, basis: reference_hp, must_survive: true}
     rewards:
       - {type: artifact, id: RC14, count: 2}
-    outcome: 你忍痛从赤砂里取出两层蛇纹瓶，瓶中毒意随之苏醒。
+    outcome: 你付出气血取出两层蛇纹瓶，之后实际施加的中毒会受其效果影响。
+    story_echo: 你忍着热砂取出两层蛇纹瓶，带着伤口离开仍有热流涌动的砂地。
   - id: RE021-B
-    label: 取赤炎珠
-    quick: 损失约143点气血（第四幕约173点），带走两层赤炎珠，增强燃烧伤害。
+    label: 付气血取赤炎珠
+    quick: 损失约143点气血（第四幕约173点），带走两层赤炎珠以增强燃烧伤害；该法宝须能再叠两层且能存活，否则不能选。
     requirements:
       - {type: capacity, id: RC15, count: 2}
     costs:
       - {type: resource, resource: hp, amount: 0.15, basis: reference_hp, must_survive: true}
     rewards:
       - {type: artifact, id: RC15, count: 2}
-    outcome: 你忍痛从赤砂里取出两层赤炎珠，火种在掌中灼灼燃烧。
+    outcome: 你付出气血取出两层赤炎珠，之后实际施加的燃烧会受其效果影响。
+    story_echo: 你忍着热砂取出两层赤炎珠，握紧火种离开砂地，前方热流未散。
   - id: RE021-C
-    label: 拾冷石离砂
-    quick: 捡走冷石换成灵石，不必损失气血。
+    label: 无伤捡冷石
+    quick: 不损失气血，捡冷石换成灵石后离开热砂。
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: coins, amount: 0.2, basis: common_price}
-    outcome: 你捡起冷石换来灵石，转身离开灼热的赤砂。
+    outcome: 你捡起砂边冷石换来灵石，没有付出气血，也没有取走法宝。
+    story_echo: 你只捡起砂边冷石换来灵石，避开热砂继续追索火流。
 settlement:
   once: true
   internal_battle_package: false

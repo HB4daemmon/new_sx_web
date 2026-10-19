@@ -4,8 +4,8 @@ kind: act
 id: RA01
 name: 潮口立身
 status: design_target
-summary: 在潮口建立第一套能持续前进的构筑。
-description: 山海潮刚露出通向昆仑的断续石阶，主角从一门普通功法起步，在潮声、药篓与第一场首领战之间决定先补输出、保气血还是承担风险。
+summary: 循倒灌山路的逆潮，确认潮源不在海上。
+description: 潮水退去仍沿山路向上。你从潮口循逆流寻找昆仑方向的堵塞源头，也要为活着回家留路。
 tags: [act, act1, tide_gate, foundation, original]
 source:
   basis: original
@@ -25,19 +25,20 @@ balance:
 index: 1
 story:
   title: 第一幕：潮口立身
-  goal: 在潮口建立能持续前进的基础构筑，击败潮口首领后才算站稳第一块通向昆仑的石阶。
-  prelude: 潮水退开半步，露出通向潮门的断续石阶；药篓、旧碑和远处的潮门前哨在雾里逐一显形。
-  ordinary_route: 你沿着药篓、旧碑和潮门前哨前行，石阶尽头的水雾里浮出一座旧门。
+  goal: 循逆潮找到通往断桥的去向
+  prelude: 潮水退后仍沿石阶向山上流，雾里的泄水石阶通向潮门。遗影守着尚未断绝的水路，潮源却不在海上。
+  ordinary_route: 你沿抬起的水线穿行潮口；一段泄水石阶仍通向山里，脚下的水痕却逆着山路延伸。
   battle_after:
-    common: 潮声暂低，石阶在脚下重新露出一截。
-    elite: 石卫退入潮雾，前方的水门亮起一线冷光。
-    boss: 潮门震动了一次，向上的石阶在雾后显出。
-  boss_before: 潮门前的两道首领遗影轮流守住石阶，水雾把旧门和断桥隔在身后。
-  boss_after: 水雾从潮门上退去，通往断桥的石阶在潮声里缓缓抬升。
-  passage: 你踏上第二段石阶，潮声变成桥下回音，断桥的影子已经压到眼前。
+    common: 逆流暂歇，潮口石阶仍留着向上的水痕。
+    elite: 拦路的身影退去，雾中露出一截仍通水的石阶。
+    boss: 潮门微震，逆流指向断桥而非海面。
+  boss_before: 遗影守着最后一段泄水石阶。越过潮门，才能查清水为何不肯归海。
+  boss_after: 遗影退去，泄水石阶再显一段；潮水仍向山上倒灌，源头不在海面。
+  passage: 你沿抬起的水线离开潮口，去断桥查找被截断的旧河道。
   boss_variants:
-    EN-A1-B1: 共工遗影撞开潮门，碎水沿着石阶奔向断桥。
-    EN-A1-B2: 河伯试潮遗影收拢回流，潮口在短暂的寂静中让出道路。
+    EN-A1-B1: 共工遗影试炼退开，泄水石阶显出；逆潮沿水痕继续向断桥上行。
+    EN-A1-B2: 河伯试潮遗影退开，泄水石阶显出；逆潮沿水痕继续向断桥上行。
+  defeat: 你的脚步停在潮口；泄水石阶仍被拦住，逆潮的去向尚未查明。
   core_relationships:
     RS01: [RK001, RK002]
     RS02: [RK003, RK004]
@@ -358,7 +359,7 @@ transition:
   next_act: RA02
   on_boss_victory_only: true
   boss_is_required_for_transition: true
-  transition_text: 潮门首领倒下后，断桥方向开放。
+  transition_text: 潮口未见海上源头；你沿抬起的水线前往断桥，查找被截断的旧河道。
   preserve: [current_hp, max_hp, coins, cumulative_xp, current_method_id, talents, artifacts, core_flags]
   no_auto_heal: true
   no_auto_breakthrough: true

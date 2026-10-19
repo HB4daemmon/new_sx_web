@@ -4,8 +4,8 @@ kind: event
 id: RE024
 name: 经阁残页
 status: design_target
-summary: 付灵石取得养剑诀法本，或带走剑穗。
-description: 火山经阁只剩一页能读的养剑诀，旁边的剑穗也等着被带出阁门。
+summary: 在旧经阁的余火里取养剑诀法本或剑穗，也可合页离开。
+description: 书页被热浪烘卷，只余一页养剑诀尚可辨读；法本不会自动改修，剑穗则强化普攻。
 tags: [ordinary, method, purchase, artifact, act3]
 source:
   basis: original
@@ -18,21 +18,22 @@ balance:
   measured: null
 event_type: ordinary
 acts: [3]
-scene: 经阁的火光照着养剑诀残页和一枚剑穗。守页人说，两件只能带走一件。
+scene: 火势沿经架下缘爬过，守页人把仅存的养剑诀法本与剑穗移到石门边。你可付标价灵石取一件，或合页保留现有功法。
 options:
   - id: RE024-A
-    label: 付石收下养剑卷
-    quick: 付出标价灵石，带走养剑诀法本；是否改修由你决定。
+    label: 付石收下养剑诀
+    quick: 付出标价灵石，带走养剑诀法本；是否改修由你决定，灵石不足不能选。
     requirements:
       - {type: can_pay}
     costs:
       - {type: resource, resource: coins, amount: 1.0, basis: common_price}
     rewards:
       - {type: method, id: RKF05}
-    outcome: 养剑诀收入你的行囊，眼下仍沿用原先的功法。
+    outcome: 你付出灵石收下养剑诀法本，现用功法没有自动改变。
+    story_echo: 你付石收下养剑诀法本，带着未改的现用功法离开渐热的经阁。
   - id: RE024-B
-    label: 付石取剑穗
-    quick: 付出标价灵石，带走一层剑穗，强化普攻。
+    label: 付石带走剑穗
+    quick: 付出标价灵石，带走一层剑穗以强化普攻；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC09, count: 1}
@@ -40,14 +41,16 @@ options:
       - {type: resource, resource: coins, amount: 0.75, basis: common_price}
     rewards:
       - {type: artifact, id: RC09, count: 1}
-    outcome: 你把剑穗系上兵刃，下一次出手会更加利落。
+    outcome: 你付石带走一层剑穗，系在兵刃上后仍须自己穿过火光。
+    story_echo: 你付石系上剑穗，带着强化后的兵刃穿过经阁的余火。
   - id: RE024-C
-    label: 合页封阁
-    quick: 合页离阁，保留灵石和当前功法。
+    label: 合页退出经阁
+    quick: 不付灵石、不取法本或法宝，保留灵石与当前功法。
     requirements: []
     costs: []
     rewards: []
-    outcome: 经阁合页，你带着原有灵石和功法离开火光。
+    outcome: 你合上经页，带着原有灵石和功法离开火光。
+    story_echo: 你把残页留在经阁，合门离开时，现用功法与灵石仍在身边。
 settlement:
   once: true
   internal_battle_package: false

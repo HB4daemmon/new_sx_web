@@ -4,8 +4,8 @@ kind: event
 id: RK015
 name: 扶桑倒悬
 status: design_target
-summary: 传奇法本金乌真经只向学过御火诀的人显现；挑战或支付 36 灵石可取，但挑战失手不留法本。
-description: 扶桑海潮倒悬在第三幕上空，火路只认已经学会御火诀的人；进入方式、气血代价和失手后果都摆在眼前。
+summary: 火海旁的扶桑岔路只向学过御火诀的人显出法本；付 15% 基准气血挑战或付 36 灵石可取金乌真经。
+description: 扶桑倒悬在主路一侧，是可来可不来的机缘，不是穿过火海的必经关口。石碑说明了资格、投入与失手结果；未学御火诀也可以转身离开。
 tags: [core, independent_core, legendary_method, RKF09, fire, high_risk]
 source:
   basis: original
@@ -20,11 +20,11 @@ balance:
   measured: null
 event_type: core
 acts: [3]
-scene: 倒悬的扶桑火把海潮照成金色，石碑写明只有学过御火诀的人才能读卷；攀树损失约143点气血，失手后仅剩1点。付36灵石可直接取金乌真经。
+scene: 倒悬扶桑把火潮照成金色，石碑写明只有学过御火诀的人能读卷。挑战先付 15% 基准气血，战斗损伤随实战变化、失手至少保留 1 点；付 36 灵石可免战取金乌真经。
 options:
   - id: RK015-climb-fusang
     label: 登树取真经
-    quick: 学过御火诀，损失约143点气血挑战；胜利取金乌真经，失手后仅剩1点气血。
+    quick: 学过御火诀，付 15% 基准气血挑战；胜取金乌真经，失手至少保留 1 点且无奖。
     requirements:
       - {type: known_method, id: RKF04}
     costs:
@@ -32,15 +32,17 @@ options:
     rewards:
       - {type: method, id: RKF09}
     outcome: 你顶住倒悬火潮，胜利后取得金乌真经；之后仍可再决定是否换功法或突破。
+    story_echo: 你赢下扶桑岔路的试炼，取到金乌真经；火海主路仍按原来的方向通向云阶。
     encounter:
       enemy_id: EN-A3-B2
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 你没能登上扶桑，火卷重新闭合；损失的约143点气血留在火潮里，气血仅剩1点，金乌真经没有到手。
+      failure_outcome: 你没能登上扶桑，火卷重新闭合；气血至少保留 1 点，金乌真经没有到手，战斗损伤不会补回。
+    story_failure_echo: 火卷重新闭合，你至少保留 1 点气血；金乌真经未得，通往云阶的主路仍在。
   - id: RK015-buy-sun-path
     label: 付石问真经
-    quick: 学过御火诀，支付 36 灵石，稳妥取金乌真经
+    quick: 学过御火诀，支付 36 灵石，免战取金乌真经
     requirements:
       - {type: known_method, id: RKF04}
       - {type: can_pay}
@@ -49,13 +51,15 @@ options:
     rewards:
       - {type: method, id: RKF09}
     outcome: 你用一大笔盘缠取到金乌真经；之后仍可再决定是否换功法。
+    story_echo: 你用 36 灵石取走金乌真经，绕过攀树挑战；这份机缘没有改变主路。
   - id: RK015-turn-back
     label: 放弃扶桑
-    quick: 尚未学会御火诀或不愿投入，保留当前功法和资源
+    quick: 不挑战、不付灵石、不取法本，保留当前功法回主路
     requirements: []
     costs: []
     rewards: []
     outcome: 你让扶桑火潮继续倒悬，金乌真经不是这一局的必经之法。
+    story_echo: 你绕过扶桑岔路，既不改功法也不再投入；火海主路仍向前延伸。
 settlement:
   once: true
   internal_battle_package: false

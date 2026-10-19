@@ -4,8 +4,8 @@ kind: event
 id: RE036
 name: 雷门终试
 status: design_target
-summary: 付60灵石挑战震岳鼓，或付30灵石直接带走震山环。
-description: 雷门终试把震岳鼓挂在门后；挑战需付60灵石，失手后只保留1点气血。震山环可付30灵石直接买下。
+summary: 以60灵石挑战震岳鼓，或付30灵石取震山环避开终试，也可关门离开。
+description: 雷门石碑明示两种代价：付60灵石参加非致死挑战，胜利才取得震岳鼓；付30灵石可直接买一层震山环，失手至少保留 1 点气血且挑战费不退。
 tags: [ordinary, rare_artifact, nonlethal, encounter, act4]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [4]
-scene: 雷门石碑刻明挑战费用与失手后果，门后的震岳鼓在雷声中震动。付60灵石可闯门争取震岳鼓，付30灵石可直接带走震山环。
+scene: 天门前的雷门石碑写明两种选择：60灵石入内挑战，或30灵石取震山环。前者失手后至少保留 1 点气血且费用不退，胜利才可带走震岳鼓。
 options:
   - id: RE036-A
-    label: 付60灵石试震岳鼓
-    quick: 支付60灵石挑战；胜利带走震岳鼓，失手后保留1点气血，灵石不退。
+    label: 付60灵石挑战震岳鼓
+    quick: 支付60灵石参加非致死挑战；胜利带走震岳鼓，失手至少保留 1 点气血且费用不退；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RR09, count: 1}
@@ -35,11 +35,13 @@ options:
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 雷声将你逼出雷门，气血仅剩1点；60灵石不退，震岳鼓仍留在门后。
-    outcome: 你付出60灵石踏入雷门，胜利后震岳鼓归你。
+      failure_outcome: 雷声将你逼出雷门，至少保留 1 点气血；已付的60灵石不退，震岳鼓仍留在门后。
+    outcome: 你付出60灵石参加挑战；胜利后取得震岳鼓。
+    story_echo: 你付出60灵石赢下雷门挑战，取走震岳鼓，随后继续朝天门去。
+    story_failure_echo: 你被雷声逼出雷门，至少保留 1 点气血，已付60灵石不退，震岳鼓仍在门后。
   - id: RE036-B
-    label: 付石取震山环
-    quick: 付出标价灵石，带走一层震山环，避开雷门试炼。
+    label: 付30灵石取震山环
+    quick: 付30灵石带走一层震山环并避开挑战；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC13, count: 1}
@@ -47,14 +49,16 @@ options:
       - {type: resource, resource: coins, amount: 0.75, basis: common_price}
     rewards:
       - {type: artifact, id: RC13, count: 1}
-    outcome: 你接过震山环，雷门里的轰鸣被隔在身后。
+    outcome: 你付30灵石带走一层震山环，没有参加雷门挑战。
+    story_echo: 你付30灵石取走震山环，绕开雷门挑战，继续向天门行去。
   - id: RE036-C
-    label: 关门留石
-    quick: 不参加挑战，保留灵石与气血。
+    label: 关门保留行装
+    quick: 不参加挑战、不付灵石、不取法宝，保留气血与资源。
     requirements: []
     costs: []
     rewards: []
-    outcome: 雷门在身后合拢，你带着原有灵石和气血继续上路。
+    outcome: 你没有参加挑战或取走震山环，带着原有资源离开雷门。
+    story_echo: 你关上雷门，带着原有行装继续走向天门，试炼与法宝都未取。
 settlement:
   once: true
   internal_battle_package: false

@@ -4,8 +4,8 @@ kind: event
 id: RK012
 name: 铁扇风止石
 status: design_target
-summary: 兑现火伤承诺；挑战成功取薪火宝炉，支付 32 灵石可取余烬盏。
-description: 你在第四幕风止石见到铁扇公主，她把火根压力、薪火宝炉和余烬盏摆在眼前；没完成初遇承诺时，这里只剩普通道路。
+summary: 带着初遇火伤回到风止石，可付 15% 基准气血挑战取薪火宝炉，或付 32 灵石取余烬盏。
+description: 铁扇公主等在热流汇合处，不替你抹去初遇的火伤。火根试炼胜利才有薪火宝炉；付石可取另一件器物，不想再赌也能离开。
 tags: [core, character_encounter, princess_iron_fan, follow_up, fire, legendary_artifact]
 source:
   basis: myth_adaptation
@@ -19,11 +19,11 @@ balance:
   measured: null
 event_type: core
 acts: [4]
-scene: 风止石前火根还在吐息，铁扇公主把薪火宝炉和余烬盏摆在石台上：除火挑战损失约173点气血，失手后仅剩1点；支付32灵石可取余烬盏。
+scene: 风止石前的火根仍在吐息，铁扇公主摆出薪火宝炉与余烬盏。挑战先付 15% 基准气血，战斗损伤随实战变化、失手至少保留 1 点；付 32 灵石可绕开挑战取余烬盏。
 options:
   - id: RK012-extinguish-fire-root
     label: 除掉火根
-    quick: 再损失约173点气血挑战，胜利取薪火宝炉；失手后仅剩1点气血。
+    quick: 付 15% 基准气血挑战，胜利取薪火宝炉；失手至少保留 1 点气血且无奖。
     requirements:
       - {type: flag, id: RS06-promised, value: true}
     costs:
@@ -31,15 +31,17 @@ options:
     rewards:
       - {type: artifact, id: RL02, count: 1}
     outcome: 你把火根压回山腹，胜利后取走薪火宝炉；它的攻击与防御从此刻计入，下一场战斗的燃烧伤害可回馈气血。
+    story_echo: 你压住火根并获胜，薪火宝炉归你；风止石后的热流不再顶着这段路回涌。
     encounter:
       enemy_id: EN-A4-L1
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 火根没有熄灭，铁扇公主收回炉火；损失的约173点气血留在风止石，气血仅剩1点，薪火宝炉没有到手。
+      failure_outcome: 火根没有熄灭，铁扇公主收回炉火；气血至少保留 1 点，薪火宝炉没有到手，战斗损伤不会补回。
+    story_failure_echo: 火根仍在吐息，你负伤退开；铁扇公主收回炉火，宝炉未得。
   - id: RK012-pay-wind
     label: 付石借稳风
-    quick: 支付 32 灵石，稳妥取余烬盏
+    quick: 支付 32 灵石，不挑战并取余烬盏
     requirements:
       - {type: flag, id: RS06-promised, value: true}
       - {type: can_pay}
@@ -48,14 +50,16 @@ options:
     rewards:
       - {type: artifact, id: RR11, count: 1}
     outcome: 你用盘缠换下余烬盏；它的最大气血加成立即计入，下一场战斗中毒火造成真实伤害时会回响怒气，传奇火器仍留在火根旁。
+    story_echo: 你付出 32 灵石取走余烬盏，铁扇公主收起挑战；薪火宝炉仍留在火根旁。
   - id: RK012-release
     label: 放弃风止石
-    quick: 放弃风止石，保留当前气血和构筑
+    quick: 不挑战、不付灵石、不取器物，带现有气血回主路
     requirements:
       - {type: flag, id: RS06-promised, value: true}
     costs: []
     rewards: []
     outcome: 你把火伤承诺停在风止石前，铁扇公主收扇，薪火宝炉和余烬盏都留在火根旁。
+    story_echo: 你将回访停在风止石前，铁扇公主收扇；两件器物都留下，承诺到此为止。
 settlement:
   once: true
   internal_battle_package: false

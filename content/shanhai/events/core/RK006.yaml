@@ -4,8 +4,8 @@ kind: event
 id: RK006
 name: 后羿回访试射
 status: design_target
-summary: 带着明目珠到第四幕风口，损失约138点气血挑战试射争取引雷针；也可付24灵石取剑穗，失手无奖。
-description: 后羿把箭靶立在第四幕风口，只要明目珠仍在就能参加试射；挑战损失约138点气血，失手后仅剩1点，且拿不到引雷针。
+summary: 带着明目珠回到风口，可付 12% 基准气血试射争取引雷针，或付 24 灵石取剑穗。
+description: 后羿把箭靶立在昆仑前的风口，先问你是否还带着明目珠。试射的代价和付石取物的替代路都摆在眼前，失手不会得到引雷针。
 tags: [core, character_encounter, houyi, follow_up, critical]
 source:
   basis: myth_adaptation
@@ -19,11 +19,11 @@ balance:
   measured: null
 event_type: core
 acts: [4]
-scene: 风口把箭羽吹得横斜，后羿把引雷针和剑穗摆在箭靶旁；明目珠仍在，试射才会开始。
+scene: 风口吹斜箭羽，后羿把引雷针与剑穗摆在箭靶旁。仍持明目珠才可试射：先付 12% 基准气血，战斗损伤随实战而变，失手至少保留 1 点；也可付 24 灵石取剑穗。
 options:
   - id: RK006-shoot-trial
     label: 接下风口试射
-    quick: 损失约138点气血挑战，胜利取引雷针；失手后仅剩1点气血。
+    quick: 付 12% 基准气血挑战，胜利取引雷针；失手至少保留 1 点气血且无奖。
     requirements:
       - {type: flag, id: RS03-promised, value: true}
       - {type: owned_artifact, id: RC07, count: 1}
@@ -32,15 +32,17 @@ options:
     rewards:
       - {type: artifact, id: RR10, count: 1}
     outcome: 你以明目珠校准最后一箭，胜利后取走引雷针；它的攻击提升立即计入，下一场战斗可触发回怒。
+    story_echo: 你以明目珠校准箭路，试射获胜后带走引雷针；旧路的风向也清楚了几分。
     encounter:
       enemy_id: EN-A4-L2
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 风口压过了你的准头，后羿收回箭靶；损失的约138点气血留在风里，气血仅剩1点，引雷针没有到手。
+      failure_outcome: 风口压过了你的准头，后羿收回箭靶；气血至少保留 1 点，引雷针没有到手，战斗损伤不会补回。
+    story_failure_echo: 箭路被风打乱，你至少保留 1 点气血；后羿收起箭靶，引雷针没有交到你手上。
   - id: RK006-pay-steady
     label: 付石买准
-    quick: 支付 24 灵石，稳妥取剑穗
+    quick: 支付 24 灵石，不挑战并取剑穗
     requirements:
       - {type: flag, id: RS03-promised, value: true}
       - {type: owned_artifact, id: RC07, count: 1}
@@ -49,15 +51,17 @@ options:
       - {type: resource, resource: coins, amount: 24, basis: flat}
     rewards:
       - {type: artifact, id: RC09, count: 1}
-    outcome: 你用盘缠换下剑穗；它的攻击提升立即计入，下一场战斗的普攻会更锋利，但你不必把命押在风口。
+    outcome: 你用盘缠换下剑穗；它的攻击提升立即计入，下一场战斗的普攻会更锋利，也不必再试射。
+    story_echo: 你付出 24 灵石取下剑穗，放弃试射，却不必把气血押在风口。
   - id: RK006-release
     label: 放下弓弦
-    quick: 收回弓弦，保留明目珠和剩余资源
+    quick: 不试射、不付灵石，保留明目珠与现有资源
     requirements:
       - {type: flag, id: RS03-promised, value: true}
     costs: []
     rewards: []
     outcome: 你把明目珠取回身上，后羿点头，承诺到这里结束，引雷针和剑穗都留在箭靶旁。
+    story_echo: 你取回明目珠，后羿收起试射位；两件器物都留下，旧约就此了结。
 settlement:
   once: true
   internal_battle_package: false

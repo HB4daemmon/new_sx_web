@@ -1030,6 +1030,12 @@ async function assertKarmaHistory(page) {
   assert.ok(saved.state.history.length > 0, '事件完成后没有真实行迹履历');
   const latest = saved.state.history.at(-1);
   await clickVisibleAction(page, 'tab', { id: 'karma' });
+  const historyDetails = page.locator('details[data-details="journey-history"]');
+  assert.equal(await historyDetails.evaluate(element => element.open), false,
+    '完整行迹应按需展开');
+  await historyDetails.locator('summary').click();
+  assert.equal((await savedState(page)).text, saved.text,
+    '查看完整行迹不应改写存档');
   const karmaText = await page.locator('.main-stage').textContent();
   assert.match(karmaText || '', /因缘/, '因缘页缺少标题');
   assert.ok(await page.locator('.timeline, .history-list, .story-memory, .history-panel').count() > 0,

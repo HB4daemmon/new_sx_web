@@ -4,8 +4,8 @@ kind: storyline
 id: RS05
 name: 哪吒过阵
 status: design_target
-summary: 先损失约62点气血挑战第一阵，胜利后才有资格再战；后段可再损失约138点气血争取如意钱，或付24灵石取雷纹印。
-description: 哪吒把阵门分成轻重两路，主角初遇时不是领宝，而是先承担一段可收手的阵试；后段的力量来自是否继续把第二阵走完。
+summary: 第一阵先付 8% 基准气血，胜利才留第二阵资格；第四幕再付 12% 基准气血争取如意钱，或付 24 灵石取雷纹印。
+description: 哪吒把阵门分成前后两段，初遇不是领宝，而是决定是否入阵。闯过第一阵只留下回访资格；第二阵前，他也会把旧伤与收手的余地摆明。
 tags: [character_line, nezha, two_stage_trial, combat_artifact]
 source:
   basis: myth_adaptation
@@ -20,18 +20,18 @@ balance:
     high_investment_total_U: [3.0, 4.5]
   measured: null
 character: 哪吒
-premise: 阵门一重一快；不接阵可立即领取一笔修为，若想在后段再战第二阵，就要先赢下第一阵。
+premise: 阵门先重后快，哪吒让你看清第一阵的代价。你可以收下一笔修为或退出；若付出相当于基准气血 8% 并胜过第一阵，第四幕才有资格决定是否继续。
 encounters: [RK009, RK010]
 commitment:
   id: RS05-promised
   form: staged_trial
-  text: 初遇损失约62点气血挑战第一阵；胜利后才留下后段继续接第二阵的资格。
-  requirement: 初遇第一阵获胜，并保留后段承诺
-  cancellation: 初遇离阵、挑战失败或错过回访时，保留已发生的事件结果，但不补第二阵奖励。
+  text: 初遇支付相当于基准气血 8% 的代价挑战第一阵；只有获胜，才留下第四幕回访资格，不预发器物。
+  requirement: 初遇实际挑战并赢下第一阵，第四幕回访时再选择第二阵、付石或收手。
+  cancellation: 初遇收手、挑战失手或错过回访，都不会补发第二阵奖励；已付气血与战斗损伤照旧。
 resolution:
-  condition: 初遇第一阵胜利且承诺仍在，后段再选择第二阵、支付 24 灵石或收手。
-  reward_shape: 第二阵成功取如意钱；支付 24 灵石取雷纹印，收手不再取器物。
-  tradeoff: 第二阵前不会恢复气血或护盾，第一阵留下的伤势会延续；付24灵石可直接取雷纹印，收手则不再得到法宝。
+  condition: 初遇第一阵获胜并保留回访资格，第四幕再选择闯第二阵、支付 24 枚灵石或收手。
+  reward_shape: 第二阵战胜利后取如意钱；支付 24 枚灵石取雷纹印，不闯第二阵；收手不再取器物。
+  tradeoff: 初遇挑战先付 8% 基准气血；回访再付 12%，旧伤与护盾消耗都不重置，战斗损伤随实战变化。失手至少保留 1 点且无奖；付 24 枚灵石免战，收手则不再得法宝。
 selection:
   planned_per_run: 1
   optional: true

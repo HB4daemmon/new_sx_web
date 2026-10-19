@@ -4,8 +4,8 @@ kind: event
 id: RK014
 name: 月门借器
 status: design_target
-summary: 月门后的回澜印只在挑战胜利后到手；支付 28 灵石可取回元佩。
-description: 月门里没有人物等你，只有会改变怒气节奏的回澜印；机缘可绕，支付灵石可取回元佩。
+summary: 旧路旁的月门是一处可绕开的机缘；付 14% 基准气血挑战取回澜印，或付 28 灵石取回元佩。
+description: 月门不通向主路的关口，只藏着一份会改变怒气节奏的器物。你可以试闯、付石换另一件，或关门继续赶路。
 tags: [core, independent_core, high_risk, rage, legendary_artifact]
 source:
   basis: original
@@ -19,26 +19,28 @@ balance:
   measured: null
 event_type: core
 acts: [2]
-scene: 月门的门缝只开一刻，里面的压制阵会先削弱你的怒气；挑战损失约109点气血，失手后仅剩1点。付28灵石可取回元佩。
+scene: 旧路岔口的月门只开一刻，门内压制阵会先削弱怒气。挑战先付 14% 基准气血，战斗损伤随实战变化、失手至少保留 1 点；付 28 灵石可取回元佩。
 options:
   - id: RK014-enter-moon-gate
     label: 承受月门压制
-    quick: 损失约109点气血挑战，胜利取回澜印；失手后仅剩1点气血。
+    quick: 付 14% 基准气血挑战，胜利取回澜印；失手至少保留 1 点气血且无奖。
     requirements: []
     costs:
       - {type: resource, resource: hp, amount: 0.14, basis: reference_hp, must_survive: true}
     rewards:
       - {type: artifact, id: RL05, count: 1}
     outcome: 你在怒气被压低前完成破门，胜利后取走回澜印；它的攻击与防御从此刻计入，下一场战斗的怒技完成后可返怒。
+    story_echo: 你赢下月门挑战，取回回澜印；离开岔口后，昆仑前路仍要自己走。
     encounter:
       enemy_id: EN-A2-L2
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 月门压制住了你的节奏，回澜印留在门内；损失的约109点气血留在门槛，气血仅剩1点，回澜印没有到手。
+      failure_outcome: 月门压住了你的节奏，回澜印留在门内；气血至少保留 1 点，器物没有到手，战斗损伤不会补回。
+    story_failure_echo: 月门压住了你的节奏，你至少保留 1 点气血；回澜印留在门内，主路仍可继续。
   - id: RK014-pay-quietly
     label: 付石取稳
-    quick: 支付 28 灵石，稳妥取回元佩
+    quick: 支付 28 灵石，不挑战并取回元佩
     requirements:
       - {type: can_pay}
     costs:
@@ -46,13 +48,15 @@ options:
     rewards:
       - {type: artifact, id: RR07, count: 1}
     outcome: 你用盘缠换下回元佩；它的防御立即计入，下一场战斗的首个怒技完成后会改变怒气上限，你不进月门。
+    story_echo: 你付出 28 灵石取回元佩，没进月门；这条岔路没有改变主行程。
   - id: RK014-close-gate
     label: 关门离开
-    quick: 关门离开，不付石、不挑战
+    quick: 不挑战、不付灵石、不取器物，关门回主路
     requirements: []
     costs: []
     rewards: []
     outcome: 你关上月门，回澜印和回元佩都留在门内，公共道路仍然可走。
+    story_echo: 你合上月门，没有投入气血或灵石；离开岔口后仍可照常赶路。
 settlement:
   once: true
   internal_battle_package: false

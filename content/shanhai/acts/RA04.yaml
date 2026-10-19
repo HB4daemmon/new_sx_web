@@ -4,8 +4,8 @@ kind: act
 id: RA04
 name: 昆仑前门
 status: design_target
-summary: 在昆仑天门前完成最后整备，保留真实赢来的构筑并放下未兑现的承诺。
-description: 云层已经能看见昆仑前门，主角只有一幕的节点把法宝、灵石、气血和换法机会收束成可渡劫的真实状态；任何核心人物都不是入场条件。
+summary: 越过昆仑旧阵接通天门，独自面对困住水火的回流。
+description: 火海云阶抵达昆仑前门，最后封锁把水气与雷火困成回流。你要越过旧阵真正接通天门；他人的帮助不能替你完成最终独渡。
 tags: [act, act4, kunlun_gate, final_preparation, original]
 source:
   basis: original
@@ -25,19 +25,20 @@ balance:
 index: 4
 story:
   title: 第四幕：昆仑前门
-  goal: 完成渡劫前最后整备，击败昆仑前门首领后以真实带入状态进入天门独渡。
-  prelude: 火海之后，云阶把昆仑前门推到眼前；雷门、旧关和门前的石兽在云中若隐若现。
-  ordinary_route: 你沿着云阶、雷门和旧关前进，最后一段石路在天门的冷光下收束。
+  goal: 拆开昆仑旧阵，接通天门之路
+  prelude: 火口后的云阶通至昆仑前门，旧阵挡住天门，门内的水气与雷火被困成回流。
+  ordinary_route: 你沿旧阵与前门石阶上行，回流声从天门深处传来；一路修来的本领，终要在此独自用上。
   battle_after:
-    common: 云阶再升一层，雷门后的天光从石缝里落下。
-    elite: 门前的石兽退入云中，旧关的铜铃在风里响了一声。
-    boss: 昆仑前门的云雾裂开，天门在更高处露出轮廓。
-  boss_before: 昆仑前门的最后一道门槛由两道首领遗影守住，云海在门后翻涌。
-  boss_after: 云门向两侧退开，天门的雷光穿过长阶，前方只剩一条向上的路。
-  passage: 你把云阶下的回声留在身后，独自走向天门的光。
+    common: 旧阵微松，天门里的回流声仍没有散去。
+    elite: 门前守阵退开，通向天门的最后一道阵纹显出。
+    boss: 前门旧阵裂开，天门中的水气与雷火开始回卷。
+  boss_before: 守关者挡住旧阵最后的缺口。天门回流就在阵后，过了前门，便只能靠你独渡。
+  boss_after: 守关者退去，旧阵解开，天门显出回流；实际余下的气血与本领由你带入独渡。
+  passage: 你独自越过旧阵进入天门；没有额外整备，也无人替你承受这最后一渡。
   boss_variants:
-    EN-A4-B1: 陆吾守门伏在云阶尽头，前门石兽向两旁退开。
-    EN-A4-B2: 开明镇阶抬首望向天门，九重门影在云中依次点亮。
+    EN-A4-B1: 陆吾守门退开，昆仑旧阵显出通路；天门回流仍待你独自面对。
+    EN-A4-B2: 开明镇阶退去，昆仑旧阵显出通路；天门回流仍待你独自面对。
+  defeat: 你的脚步停在昆仑前门；旧阵仍锁着天门，回流没有出口。
   core_relationships:
     RS01: [RK001, RK002]
     RS02: [RK003, RK004]
@@ -358,7 +359,7 @@ transition:
   next_act: RF01
   on_boss_victory_only: true
   boss_is_required_for_transition: true
-  transition_text: 昆仑前门首领退开后，天门只剩唯一终战入口。
+  transition_text: 昆仑旧阵已开；你带着实际余下的气血与本领，独自进入天门。
   preserve: [current_hp, max_hp, coins, cumulative_xp, current_method_id, talents, artifacts, core_flags]
   no_auto_heal: true
   no_auto_breakthrough: true

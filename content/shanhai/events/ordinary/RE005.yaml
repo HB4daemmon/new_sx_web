@@ -4,8 +4,8 @@ kind: event
 id: RE005
 name: 散修赌斗
 status: design_target
-summary: 参加非致死比试争夺两层青锋石、付灵石稳妥买甲，或不参与。
-description: 散修把两枚青锋石法片压在台边，约好点到为止。失手会被逼下擂台，气血仅剩1点且得不到法片。
+summary: 在约定非致死的试场争青锋石、付灵石取玄铁甲，或保存气力离开。
+description: 一名散修在堤上划出试场，以两层青锋石作胜者所得；失手至少保留 1 点气血且没有法片。也可付灵石避开比试。
 tags: [ordinary, nonlethal, encounter, artifact]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [1]
-scene: 散修把两枚青锋石法片压在石面，笑着邀你过招。胜者带走法片，失手后被逼下台并仅剩1点气血。
+scene: 漂木围出的窄场旁，一名散修摆下两枚青锋石，约明胜负只到场边。你可以接受这场非致死比试、付灵石取玄铁甲，或不入场。
 options:
   - id: RE005-A
-    label: 接下比试
-    quick: 参加非致死比试，胜利带走两层青锋石；失手仅剩1点气血且无奖励。
+    label: 走入堤上试场
+    quick: 参加非致死比试，胜利带走两层青锋石；失手至少保留 1 点气血且无奖励，该法宝须能再叠两层否则不能选。
     requirements:
       - {type: capacity, id: RC01, count: 2}
     costs: []
@@ -33,11 +33,13 @@ options:
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 你被逼下擂台，气血仅剩1点，青锋石仍留在散修手中。
-    outcome: 你在石线内分出胜负，带走两层青锋石。
+      failure_outcome: 你被散修逼出堤上试场，至少保留 1 点气血；青锋石仍留在石面。
+    outcome: 你在约定的试场分出胜负，胜后带走两层青锋石。
+    story_echo: 你赢下点到为止的比试，取走两层青锋石，堤上让出一段路。
+    story_failure_echo: 你被逼出试场，至少保留 1 点气血；青锋石仍在散修手里。
   - id: RE005-B
-    label: 出价交换
-    quick: 付出标价灵石，直接带走一层玄铁甲，避开比试。
+    label: 付石绕开试场
+    quick: 付出标价灵石，直接带走一层玄铁甲并避开比试；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC03, count: 1}
@@ -45,14 +47,16 @@ options:
       - {type: resource, resource: coins, amount: 1.0, basis: common_price}
     rewards:
       - {type: artifact, id: RC03, count: 1}
-    outcome: 你付出灵石，接过玄铁甲，免去擂台上的凶险。
+    outcome: 你付出灵石接过一层玄铁甲，没有进入试场。
+    story_echo: 你以灵石换取玄铁甲，绕过漂木围场，沿堤继续前行。
   - id: RE005-C
-    label: 不参与
+    label: 收手保存气力
     quick: 收起兵刃，保留气血与灵石。
     requirements: []
     costs: []
     rewards: []
-    outcome: 你不接这场赌斗，散修收回法片，双方各自离开。
+    outcome: 你没有接下比试，散修收回青锋石，双方各自离开。
+    story_echo: 你没有进入试场，气血与灵石留在手里，前路仍待探明。
 settlement:
   once: true
   internal_battle_package: false

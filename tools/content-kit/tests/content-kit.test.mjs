@@ -314,6 +314,46 @@ test('event commitment schema is bounded and cannot be combined with an encounte
   assert.ok(report.errors.some((error) => error.code === 'commitment-nodes'))
   assert.ok(report.errors.some((error) => error.code === 'commitment-resource-basis'))
 })
+
+test('event story echoes are bounded and failure echoes require an encounter', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  const event = structuredClone(fixture.entities.get('RE001'))
+  const option = event.options[0]
+  option.story_echo = '潮'.repeat(100)
+  await rewriteEntity(fixture, 'RE001', event)
+  let report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map((error) => `${error.code}:${error.message}`).join('\n'))
+
+  option.encounter = {
+    enemy_id: 'EN-A1-C1',
+    mode: 'nonlethal',
+    failure_hp_floor: 1,
+    failure_rewards: [],
+    failure_outcome: '挑战失败，停在一滴气血。',
+  }
+  option.story_failure_echo = '挑战失手，仅剩 1 点气血。'
+  await rewriteEntity(fixture, 'RE001', event)
+  report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map((error) => `${error.code}:${error.message}`).join('\n'))
+
+  option.story_echo = '潮'.repeat(101)
+  await rewriteEntity(fixture, 'RE001', event)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'story-echo-length'))
+
+  option.story_echo = ' '
+  await rewriteEntity(fixture, 'RE001', event)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'story-echo'))
+
+  option.story_echo = '有效的行迹。'
+  delete option.encounter
+  await rewriteEntity(fixture, 'RE001', event)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'story-failure-echo'))
+})
+
 test('missing files are errors and are not silently skipped', async (t) => {
   const fixture = await writeFixture()
   t.after(() => rm(fixture.root, { recursive: true, force: true }))
@@ -444,6 +484,8 @@ test('renderer structures mappings, expands talent and event effects, and keeps 
     failure_rewards: [],
     failure_outcome: '挑战失败，停在一滴气血，不发奖励。',
   }
+  event.options[0].story_echo = '胜利后拿到机缘，继续上路。'
+  event.options[0].story_failure_echo = '试炼失手，仅剩 1 点气血。'
   await rewriteEntity(fixture, 'RK001', event)
 
   const storyline = structuredClone(fixture.entities.get('RS01'))
@@ -471,6 +513,8 @@ test('renderer structures mappings, expands talent and event effects, and keeps 
   assert.match(eventPage, /内部挑战：EN-A1-C1/)
   assert.match(eventPage, /胜利条件：击败敌人后保留事件选项奖励/)
   assert.match(eventPage, /失败血线：1/)
+  assert.match(eventPage, /成功行迹：胜利后拿到机缘，继续上路。/)
+  assert.match(eventPage, /失败行迹：试炼失手，仅剩 1 点气血。/)
   assert.match(storylinePage, /第1次/)
   assert.match(storylinePage, /选择甲/)
   assert.match(storylinePage, /承诺：标识=RS01-promised/)
@@ -495,6 +539,11 @@ test('rules and acts pages expose structured core content without treating prose
     after_battle: '普通战后短句',
     boss_before: '首领前短句',
     boss_after: '首领后短句',
+    defeat: '未能越过潮门。',
+    victory: '逆流暂时退去。',
+    battle_after: { common: '普通战后回声。' },
+    boss_variants: { 'EN-A1-B1': '遗影退去，石阶显露。' },
+    runtime_extension: { note: true },
   }
   act.rewards = [{ type: 'artifact', id: 'RC01', count: 1 }]
   act.pools = { common_battles: ['EN-A1-C1'], ordinary_events: ['RE001'] }
@@ -512,11 +561,18 @@ test('rules and acts pages expose structured core content without treating prose
   assert.doesNotMatch(rulesPage, /\|\s*cleanup\s*\|/)
   assert.match(actsPage, /普通战后短句/)
   assert.match(actsPage, /首领后短句/)
+  assert.match(actsPage, /未能越过潮门。/)
+  assert.match(actsPage, /逆流暂时退去。/)
   assert.match(actsPage, /青锋石/)
   assert.match(actsPage, /公开商店/)
   assert.match(actsPage, /下一次突破门槛/)
   assert.match(actsPage, /幕间文案/)
   assert.doesNotMatch(actsPage, /\[object Object\]|undefined/)
+
+  act.story.victory = false
+  await rewriteEntity(fixture, 'RA01', act)
+  const invalidStoryReport = await reportFor(fixture)
+  assert.ok(invalidStoryReport.errors.some((error) => error.code === 'act-story-string'))
 })
 
 test('document writes preserve unknown files and docs:check detects fixed-page drift and symlinks', async (t) => {

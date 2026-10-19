@@ -4,8 +4,8 @@ kind: event
 id: RE023
 name: 火门试手
 status: design_target
-summary: 在火门试手中争取两层蛇纹瓶或赤炎珠，也可付灵石带走厚土环。
-description: 火门弟子把练手场分成两半，蛇纹瓶与赤炎珠各压一边，败者只退到白线外。
+summary: 在火口外试取蛇纹瓶或赤炎珠、付灵石取厚土环，或不入场。
+description: 火口旁的非致死试场摆着两份可选法宝，失手只退至白线外并至少保留 1 点气血；付灵石可直接取厚土环避开比试。
 tags: [ordinary, nonlethal, encounter, two_layers, act3]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [3]
-scene: 火门弟子在白线两侧摆出蛇纹瓶与赤炎珠。你可以选一边试手，也可以付灵石带走厚土环。
+scene: 余火逼近白线，守场弟子把蛇纹瓶与赤炎珠分别放在两端，厚土环留在冷石上。你可试取其中一件、付标价灵石取环，或退离试场。
 options:
   - id: RE023-A
-    label: 试蛇纹火
-    quick: 参加试手，胜利带走两层蛇纹瓶；失手后保留1点气血。
+    label: 参加试场取蛇纹瓶
+    quick: 参加非致死试手，胜利带走两层蛇纹瓶；失手至少保留 1 点气血且无奖励，该法宝须能再叠两层否则不能选。
     requirements:
       - {type: capacity, id: RC14, count: 2}
     costs: []
@@ -33,11 +33,13 @@ options:
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 你被火门弟子逼退到白线外，气血只剩一线，蛇纹瓶仍留在场中。
-    outcome: 你赢下火门试手，带走两层蛇纹瓶。
+      failure_outcome: 你被火门弟子逼退至白线外，至少保留 1 点气血；蛇纹瓶仍留在场中。
+    outcome: 你赢下非致死试手，取走两层蛇纹瓶。
+    story_echo: 你赢下白线内的试手，取走两层蛇纹瓶，火门弟子收起试场。
+    story_failure_echo: 你被逼退至白线外，至少保留 1 点气血，蛇纹瓶仍留在试场。
   - id: RE023-B
-    label: 试赤炎火
-    quick: 参加试手，胜利带走两层赤炎珠；失手后保留1点气血。
+    label: 参加试场取赤炎珠
+    quick: 参加非致死试手，胜利带走两层赤炎珠；失手至少保留 1 点气血且无奖励，该法宝须能再叠两层否则不能选。
     requirements:
       - {type: capacity, id: RC15, count: 2}
     costs: []
@@ -48,11 +50,13 @@ options:
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 你被火门弟子逼退到白线外，气血只剩一线，赤炎珠仍留在场中。
-    outcome: 你赢下火门试手，带走两层赤炎珠。
+      failure_outcome: 你被火门弟子逼退至白线外，至少保留 1 点气血；赤炎珠仍留在场中。
+    outcome: 你赢下非致死试手，取走两层赤炎珠。
+    story_echo: 你赢下白线内的试手，取走两层赤炎珠，随后离开余火边缘。
+    story_failure_echo: 你被逼退至白线外，至少保留 1 点气血，赤炎珠仍留在试场。
   - id: RE023-C
-    label: 付石取厚土
-    quick: 付出标价灵石，带走一层厚土环，避开火门试手。
+    label: 付石绕开试场取厚土
+    quick: 付出标价灵石，带走一层厚土环并避开试手；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC04, count: 1}
@@ -60,7 +64,8 @@ options:
       - {type: resource, resource: coins, amount: 1.0, basis: common_price}
     rewards:
       - {type: artifact, id: RC04, count: 1}
-    outcome: 你付出灵石接过厚土环，火门里的灼热与喧声都留在身后。
+    outcome: 你付出灵石带走一层厚土环，没有参加火门试手。
+    story_echo: 你付石取走厚土环，绕过白线与试场，沿冷石边缘继续前行。
 settlement:
   once: true
   internal_battle_package: false

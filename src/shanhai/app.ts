@@ -15,6 +15,7 @@ import {
 } from './battle-playback.js';
 import type { CombatPresentationGroup } from './battle-playback.js';
 import { ShanhaiGame } from './run.js';
+import { characterJourneys, eventEchoes } from './narrative.js';
 import {
   localizeBattleText,
   localizeBranch,
@@ -161,6 +162,7 @@ type ModalKind =
   | 'node-preview'
   | 'battle-details'
   | 'settings'
+  | 'chapter'
   | 'character'
   | 'artifact'
   | 'talent'
@@ -1927,38 +1929,30 @@ class ShanhaiApp {
 
   private karmaView(state: RunState): string {
     const history = listOf<any>(state.history).slice().reverse();
-    const seenEvents = new Set(listOf<string>(state.seenEvents));
-    const encounteredStories = this.entities('storyline').filter((story) =>
-      listOf<string>(story.encounters).some((id) => seenEvents.has(id)) ||
-      history.some((item) => asText(item.title) === asText(story.name)),
-    );
-    const storyline = encounteredStories.find((story) => story.id === state.storyline) || encounteredStories[0];
-    const encounteredPeople = unique(encounteredStories.map((story) => asText(story.character, story.name))).filter(Boolean);
-    const flagLabels = Object.entries(state.flags || {})
-      .filter(([, value]) => value)
-      .map(([id]) => this.flagLabel(id))
-      .filter(Boolean);
+    const journeys = characterJourneys(this.content!, state);
     const commitments = state.eventCommitments ?? [];
     return `<section class="karma-page">
       ${this.stageHeading('因缘', '行迹与因果')}
-      <section class="karma-ledger"><div class="karma-summary"><span>因缘</span><strong>${esc(asText(storyline?.name, '尚未相逢'))}</strong><p>${esc(this.displayText(entitySummary(storyline)) || '山河尚未留下这段因缘。')}</p></div><div class="karma-summary"><span>行迹记录</span><strong>${history.length}</strong><p>走过的节点与已经落定的选择。</p></div></section>
-      ${encounteredPeople.length ? `<section class="build-section karma-characters"><div class="section-heading"><h2>相逢人物</h2><span>${encounteredPeople.length} 位</span></div><div class="build-tags">${encounteredPeople.map((name) => `<span>${esc(name)}</span>`).join('')}</div></section>` : ''}
-      <section class="build-section"><div class="section-heading"><h2>留下的约定</h2><span>${flagLabels.length} 项</span></div><div class="build-tags">${flagLabels.map((label) => `<span>${esc(label)}</span>`).join('') || '<span>尚无约定</span>'}</div></section>
+      <section class="karma-ledger"><div class="karma-summary"><span>相逢人物</span><strong>${journeys.length ? journeys.map(item => esc(item.name)).join('、') : '尚未相逢'}</strong></div><div class="karma-summary"><span>行迹记录</span><strong>${history.length}</strong></div></section>
+      ${journeys.length ? `<section class="build-section karma-characters"><div class="section-heading"><h2>人物因缘</h2></div>${this.characterJourneyMarkup(state)}</section>` : ''}
       ${commitments.length ? `<section class="build-section journey-commitments"><div class="section-heading"><h2>行旅约定</h2><span>${commitments.filter(record => record.status === 'active').length} 项待兑现</span></div>${commitments.map(record => `<article class="journey-commitment" data-commitment-status="${record.status}"><h3>${esc(record.snapshot.name)}<small>${record.status === 'active' ? `余 ${record.remaining} 处` : ({ fulfilled: '已兑现', broken: '已失约', expired: '已过期' }[record.status])}</small></h3><p>${record.status === 'active' ? esc(`期间不进入${record.snapshot.avoid_node_types.map(type => nodeMeta(type).label).join('、')}；${record.snapshot.rewards.map(reward => this.effectLabel(reward, false)).join('，')}。失约不退费，终战前未兑现作废；满层或冲突部分每层折4灵石。`) : esc(record.resultText || record.snapshot.failure_outcome)}</p></article>`).join('')}</section>` : ''}
-      <section class="timeline" aria-label="行迹记录">${history.length ? history.map((item, index) => `<article class="timeline-item"><span class="timeline-index">${String(history.length - index).padStart(2, '0')}</span><div><small>第${esc(asText(item.act))}幕 · 节点 ${formatNumber(asNumber(item.step) + 1)}</small><h3>${esc(this.displayText(asText(item.title, '山海一刻')))}</h3><p>${esc(this.displayText(asText(item.text, '')))}</p></div></article>`).join('') : '<p class="empty-note">山河初展，尚待第一笔记录。</p>'}</section>
+      ${this.storyEchoMarkup(state)}
+      <details class="disclosure" data-details="journey-history"><summary>完整行迹 · ${history.length} 处</summary><section class="timeline" aria-label="行迹记录">${history.length ? history.map((item, index) => `<article class="timeline-item"><span class="timeline-index">${String(history.length - index).padStart(2, '0')}</span><div><small>${item.act === 5 ? '天门' : `第${esc(asText(item.act))}幕`} · 节点 ${formatNumber(asNumber(item.step) + 1)}</small><h3>${esc(this.displayText(asText(item.title, '山海一刻')))}</h3><p>${esc(this.displayText(asText(item.text, '')))}</p></div></article>`).join('') : '<p class="empty-note">山河初展，尚待第一笔记录。</p>'}</section></details>
       ${this.inlineMessage()}
     </section>`;
   }
 
-  private flagLabel(id: string): string {
-    const storyline = this.entities('storyline').find((story) => id === story.id || id.startsWith(`${story.id}-`));
-    if (storyline) return `与${asText(storyline.character, storyline.name)}的约定`;
-    for (const event of this.entities('event')) {
-      if (listOf<any>(event.options).some((option) => isRecord(option?.set_flags) && option.set_flags[id] === true)) {
-        return `${event.name}留下的约定`;
-      }
-    }
-    return '';
+  private characterJourneyMarkup(state: RunState): string {
+    return characterJourneys(this.content!, state).map(item =>
+      `<article class="story-journey" data-storyline="${esc(item.id)}"><h3>${esc(item.name)}<small>${esc(item.status)}</small></h3>${item.text ? `<p>${esc(item.text)}</p>` : ''}</article>`,
+    ).join('');
+  }
+
+  private storyEchoMarkup(state: RunState, act?: number, limit = 3): string {
+    const echoes = eventEchoes(this.content!, state, act, limit);
+    return echoes.length ? `<section class="story-echoes" aria-label="${act ? '本幕行迹' : '沿途回声'}">${echoes.map(item =>
+      `<article><h3>${esc(item.title)}</h3><p>${esc(item.text)}</p></article>`,
+    ).join('')}</section>` : '';
   }
 
   private contextRail(state: RunState): string {
@@ -2053,7 +2047,8 @@ class ShanhaiApp {
   }
 
   private mapHeading(state: RunState, title: string, progress: string): string {
-    return `<header class="stage-heading map-heading"><div><span class="map-act">第${state.act}幕</span><h1>${esc(title || '山河图')}</h1></div><span class="map-step" aria-label="本幕行程">${esc(progress)}</span></header>`;
+    const goal = asText(this.currentAct().story?.goal);
+    return `<header class="stage-heading map-heading"><div><span class="map-act">${state.act === 5 ? '终局' : `第${state.act}幕`}</span><h1>${esc(title || '山河图')}</h1></div><div class="map-heading-actions"><span class="map-step" aria-label="本幕行程">${esc(progress)}</span><button class="icon-button" data-action="chapter" aria-label="查看本幕前情" title="本幕前情">${icon('book', 18)}</button></div></header>${state.step === 0 && goal ? `<p class="chapter-goal">${esc(goal)}</p>` : ''}`;
   }
 
   private routeMapView(state: RunState, routeMap: { nodes: RouteMapNode[]; path: string[] }): string {
@@ -2181,7 +2176,10 @@ class ShanhaiApp {
     const profile = asText(enemy?.tier, node?.type === 'B' ? 'boss' : node?.type === 'L' ? 'elite' : 'normal');
     const profileLabel = localizeTier(profile);
     const committedEvent = Boolean((state as any)._pendingEvent);
+    const stakes = !committedEvent && (node?.type === 'B' || node?.type === 'F')
+      ? asText(this.currentAct().story?.boss_before) : '';
     return `${this.stageHeading(`战前预览 · ${profileLabel}`, '战前对阵')}
+      ${stakes ? `<p class="chapter-stakes">${esc(stakes)}</p>` : ''}
       <section class="preview-matchup preview-essentials">
         <div class="preview-contender player-side">${characterArt(state.method)}<div><span class="eyebrow">行者</span><h2>${esc(asText(state.name, '行者'))}</h2><p>${esc(asText(this.methodEntity(state.method)?.name, '当前功法'))}</p><small class="preview-vital">气血 ${this.textMarkup(`${formatNumber(playerHp)} / ${formatNumber(playerStats.max_hp)}`)}</small></div></div>
         <div class="versus-seal">${sigil('swords', 'gold')}<span>斗法</span></div>
@@ -2685,6 +2683,7 @@ class ShanhaiApp {
   private rewardView(state: RunState): string {
     const candidates = unique(listOf<string>((state as any).rewardCandidates || (state as any).rewards || [])).slice(0, 3);
     return `${this.stageHeading('战后取舍', '收一件法宝')}
+      ${state.resultText ? `<p class="chapter-aftermath">${esc(state.resultText)}</p>` : ''}
       <div class="reward-grid">${candidates.map((id) => this.rewardCard(id)).join('') || '<p class="empty-note">本节点没有候选法宝。</p>'}</div>
       <div class="stage-actions"><button class="button quiet" data-action="reward" data-id="">舍下法宝，领取 ${formatNumber(asNumber(this.rules().economy?.artifact_decline_coins, 4))} 灵石 ${icon('coin', 15)}</button></div>${this.inlineMessage()}`;
   }
@@ -2757,7 +2756,7 @@ class ShanhaiApp {
     const encounter = isRecord(option.encounter) ? option.encounter : undefined;
     const risk = encounter
       ? encounter.mode === 'nonlethal'
-        ? `比试 · 败后保留 ${formatNumber(asNumber(encounter.failure_hp_floor, 1))} 气血`
+        ? `比试 · 败后至少保留 ${formatNumber(asNumber(encounter.failure_hp_floor, 1))} 气血`
         : '斗法 · 落败将结束命途'
       : '';
     const commitment = option.commitment;
@@ -2943,7 +2942,9 @@ class ShanhaiApp {
   private transitionView(state: RunState): string {
     const act = this.currentAct();
     const story = isRecord(act.story) ? act.story : {};
-    return `${this.stageHeading('幕间', asText(story.title || act.name, `第${state.act}幕`))}<section class="transition-scene">${landscape()}<div><p>${esc(this.displayText(story.passage || story.boss_after || act.description, '你踏上下一段山海路。'))}</p></div></section><div class="stage-actions"><button class="button primary" data-action="continue" data-autofocus>进入下一幕 ${icon('arrow', 16)}</button></div>${this.inlineMessage()}`;
+    const boss = state.nodes.find(node => node.type === 'B' && node.completed);
+    const aftermath = boss ? asText(story.boss_variants?.[boss.id], asText(story.boss_after)) : '';
+    return `${this.stageHeading('幕间', asText(act.name, `第${state.act}幕`))}<section class="transition-scene">${landscape()}<div><p>${esc(aftermath)}</p></div></section><p class="chapter-passage">${esc(asText(story.passage, '你踏上下一段山海路。'))}</p>${this.storyEchoMarkup(state, state.act, 2)}<div class="stage-actions"><button class="button primary" data-action="continue" data-autofocus>${state.act === 4 ? '独入天门' : '进入下一幕'} ${icon('arrow', 16)}</button></div>${this.inlineMessage()}`;
   }
 
   private endView(state: RunState): string {
@@ -2954,6 +2955,7 @@ class ShanhaiApp {
       <p class="end-result-text">${this.textMarkup(state.resultText, win ? '终战已毕。' : '失败不会抹去此行的选择。')}</p>
       <section class="end-seal ${win ? 'win' : 'loss'}">${sigil(win ? 'sun' : 'moon', win ? 'gold' : 'fire')}<b>${win ? '通关' : '退场'}</b></section>
       <div class="end-summary"><div><span>行过节点</span><b>${state.history.length}</b></div><div><span>修为</span><b>${formatNumber(state.xp)}</b></div><div><span>灵石</span><b>${formatNumber(state.coins)}</b></div><div><span>法宝</span><b>${artifacts.reduce((total, item) => total + asNumber(item.stacks, 1), 0)}</b></div></div>
+      ${state.history.length ? `<details class="disclosure end-epilogue" data-details="end-epilogue"><summary>此行因缘</summary>${this.characterJourneyMarkup(state)}${this.storyEchoMarkup(state)}</details>` : ''}
       ${result ? `<div class="stage-actions"><button class="button quiet" data-action="battle-details" data-tab="result" aria-label="查看最终斗法战果">${icon('eye', 16)}最终斗法战果</button></div>` : ''}<div class="stage-actions"><button class="button primary" data-action="export">${icon('arrow', 16)}导出命途记录</button><button class="button quiet" data-action="archives">查看通关构筑</button><button class="button quiet" data-action="new-run">重新起笔</button></div>${this.inlineMessage()}`;
   }
 
@@ -2975,6 +2977,11 @@ class ShanhaiApp {
       return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal dialog-wide" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">山海行 · 归档</p><h2 id="dialog-title">通关构筑</h2><p>这里保存每一局走到终点的功法、天赋与法宝。</p>${this.archiveMarkup()}<div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
     }
     const state = this.gameState();
+    if (this.modal === 'chapter' && state) {
+      const act = this.currentAct();
+      const story = isRecord(act.story) ? act.story : {};
+      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow chapter-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">${state.act === 5 ? '终局' : `第${state.act}幕`}</p><h2 id="dialog-title">${esc(asText(act.name))}</h2><p class="chapter-dialog-goal">${esc(asText(story.goal))}</p><p>${esc(asText(story.prelude))}</p><p>${esc(asText(story.ordinary_route))}</p><div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回山河</button></div></section></div>`;
+    }
     if (this.modal === 'talent-tree' && state) {
       const methodIdValue = this.modalMethodId || state.method;
       const method = this.methodEntity(methodIdValue);
@@ -3288,6 +3295,12 @@ class ShanhaiApp {
       case 'help':
         this.rememberModalTrigger(target);
         this.modal = 'help';
+        this.modalId = '';
+        this.render();
+        break;
+      case 'chapter':
+        this.rememberModalTrigger(target);
+        this.modal = 'chapter';
         this.modalId = '';
         this.render();
         break;

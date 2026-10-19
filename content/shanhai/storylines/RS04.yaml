@@ -4,8 +4,8 @@ kind: storyline
 id: RS04
 name: 禹让一步
 status: design_target
-summary: 舍弃眼前的一笔修为，把成长让给治水工程，后段以长明灯或临时护堤盾兑现。
-description: 禹在断河口疏导水势，眼前的修为唾手可得；主角可以先变强，也可以把这次成长让给治水工程，为后来的人疏通河道。
+summary: 放弃一笔眼前修为替旧河道让流；第四幕可付 12% 基准气血挑战取长明灯，或不战借一层护堤盾。
+description: 禹在断河口分水，不把这份让步说成将来必得的报答。你可以立刻收下修为，也可以把它让给旧河床，等第四幕回到堤口再决定是否守堤。
 tags: [character_line, yu, forgo_growth, endurance]
 source:
   basis: myth_adaptation
@@ -20,18 +20,18 @@ balance:
     high_investment_total_U: [3.0, 4.5]
   measured: null
 character: 禹
-premise: 河口即将漫过旧堤，一笔修为能立刻推近境界，但禹要的是有人把这一步成长先让出来。
+premise: 逆流顶着旧堤，禹需要有人让出一次分流的空隙。眼前的修为可以马上推进境界；若你放弃它，后段可回堤口再作选择，但不会自动得到器物。
 encounters: [RK007, RK008]
 commitment:
   id: RS04-promised
   form: forgo_immediate_growth
-  text: 初遇时明确放弃本事件的一笔修为，把成长机会让给疏导河口。
-  requirement: 初遇时让出修为，并答应后段守堤
-  cancellation: 若领取修为、未保留承诺或错过回访，不追回已领成长，治水终奖也不会随后出现。
+  text: 初遇放弃本事件的一笔修为，把眼前的成长机会让给河口疏流；是否守堤和取得回报要等回访再定。
+  requirement: 初遇放弃该选项的一笔修为并保留约定，第四幕回到堤口后再选守堤或借盾。
+  cancellation: 初遇领取修为、回访时收手或错过堤口，都不会追回已领成长或补发长明灯、护堤盾。
 resolution:
-  condition: 初遇承诺仍在，并在堤口选择守堤挑战或借一层临时护堤盾。
-  reward_shape: 守堤成功取长明灯；不挑战可得一层临时护堤盾，护住下一场战斗。
-  tradeoff: 守堤挑战不另收灵石，但需损失约138点气血，失手后仅剩1点；不挑战可保留气血和盘缠，但只能获得护堤盾，拿不到长明灯。
+  condition: 初遇确实让出修为并保留约定，第四幕回到堤口后再选挑战、借盾或离开。
+  reward_shape: 守堤战胜利后取长明灯；不挑战可得一层仅护下一场战斗的护堤盾。
+  tradeoff: 守堤先付相当于基准气血 12% 的代价，战斗损伤随实战变化；失手至少保留 1 点且无奖。借盾不再扣气血或灵石，但拿不到长明灯；已让出的修为不返。
 selection:
   planned_per_run: 1
   optional: true

@@ -184,6 +184,22 @@ const REQUIREMENT_TYPES = new Set(['can_pay', 'capacity', 'owned_artifact', 'fla
 const TARGET_KEYS = ['n0', 'n1', 'n2', 'n3', 'n4']
 const GENERATED_WARNING =
   '伤害、持续伤害、护盾、治疗、buff/debuff 与怒气仍是设计输入；未接入运行时校准，不能据此宣称已平衡。'
+const ACT_STORY_STRING_FIELDS = [
+  'title',
+  'goal',
+  'target',
+  'prelude',
+  'ordinary_route',
+  'before',
+  'ordinary_after',
+  'after_battle',
+  'boss_before',
+  'boss_after',
+  'passage',
+  'defeat',
+  'victory',
+]
+const ACT_STORY_TEXT_MAP_FIELDS = ['battle_after', 'boss_variants']
 
 function addIssue(errors, code, message, source, detail = undefined) {
   const item = { code, message, path: source }
@@ -201,6 +217,18 @@ function requiredString(errors, object, key, source) {
     return false
   }
   return true
+}
+
+function optionalStoryEcho(errors, object, key, source) {
+  if (object?.[key] === undefined) return
+  const value = object[key]
+  if (typeof value !== 'string' || value.trim() === '') {
+    addIssue(errors, 'story-echo', `${key} must be a non-empty string`, source)
+    return
+  }
+  if ([...value].length > 100) {
+    addIssue(errors, 'story-echo-length', `${key} must be at most 100 characters`, source)
+  }
 }
 
 function requiredArray(errors, object, key, source) {
@@ -882,6 +910,11 @@ function validateEvent(entity, errors, known) {
     }
     if (typeof option.id === 'string') optionIds.add(option.id)
     for (const field of ['label', 'quick', 'outcome']) requiredString(errors, option, field, location)
+    optionalStoryEcho(errors, option, 'story_echo', location)
+    optionalStoryEcho(errors, option, 'story_failure_echo', location)
+    if (option.story_failure_echo !== undefined && option.encounter === undefined) {
+      addIssue(errors, 'story-failure-echo', 'story_failure_echo is only valid for options with an encounter', location)
+    }
     if (!Array.isArray(option.requirements)) {
       addIssue(errors, 'requirements', 'requirements must be an array', location)
     } else {
@@ -1173,6 +1206,26 @@ function findForbiddenFinalEconomyKeys(value, pathName = '', found = []) {
   return found
 }
 
+function validateActStory(story, errors, source) {
+  for (const field of ACT_STORY_STRING_FIELDS) {
+    if (story[field] !== undefined && typeof story[field] !== 'string') {
+      addIssue(errors, 'act-story-string', `story.${field} must be a string`, source)
+    }
+  }
+  for (const field of ACT_STORY_TEXT_MAP_FIELDS) {
+    if (story[field] === undefined) continue
+    if (!isRecord(story[field])) {
+      addIssue(errors, 'act-story-map', `story.${field} must be a mapping of narrative strings`, source)
+      continue
+    }
+    for (const [key, text] of Object.entries(story[field])) {
+      if (typeof text !== 'string') {
+        addIssue(errors, 'act-story-string', `story.${field}.${key} must be a string`, source)
+      }
+    }
+  }
+}
+
 function validateAct(entity, errors, known) {
   const source = sourceFor(entity)
   const final = entity.id === 'RF01'
@@ -1257,7 +1310,11 @@ function validateAct(entity, errors, known) {
   } else if (!Array.isArray(entity.rewards) && !isRecord(entity.rewards)) {
     addIssue(errors, 'act-rewards', 'adventure act rewards must be an explicit array or mapping', source)
   }
-  if (!isRecord(entity.story)) addIssue(errors, 'act-story', 'story must be a mapping', source)
+  if (!isRecord(entity.story)) {
+    addIssue(errors, 'act-story', 'story must be a mapping', source)
+  } else {
+    validateActStory(entity.story, errors, source)
+  }
   if (!isRecord(entity.economy)) addIssue(errors, 'act-economy', 'economy must be a mapping', source)
   if (!isRecord(entity.cultivation)) addIssue(errors, 'act-cultivation', 'cultivation must be a mapping', source)
   if (!isRecord(entity.transition)) addIssue(errors, 'act-transition', 'transition must be a mapping', source)

@@ -4,8 +4,8 @@ kind: act
 id: RA03
 name: 火海取舍
 status: design_target
-summary: 在火海压力与换法机会之间决定继续放大当前构筑还是为后段承担转型成本。
-description: 潮水退到山根，火海与旧经阁把每一点气血、护盾和灵石的机会成本放大；核心人物缺席时，公共事件仍把路指向昆仑。
+summary: 循热流上溯火海，查明火口与昆仑封口相连。
+description: 上游热流从山腹火海逼来，火口与昆仑山顶的封口相连。你要沿热流找到封口；只熄灭眼前的火，山下积水仍不会退去。
 tags: [act, act3, fire_sea, tradeoff, method_switch, original]
 source:
   basis: original
@@ -25,19 +25,20 @@ balance:
 index: 3
 story:
   title: 第三幕：火海取舍
-  goal: 在火海和旧经阁的连续压力中决定继续强化当前构筑或承担换法成本，并击败火海首领。
-  prelude: 断桥后的山腹喷出火光，旧经阁的残门与器殿在火道两侧交替出现。
-  ordinary_route: 你沿着火道、器殿和余烬驿站前进，灰烬深处不时露出通向经阁的旧阶。
+  goal: 沿热流上溯，找到连向昆仑的封口
+  prelude: 断桥上游的热风引你进入火海。灰烬后的火口连着更高处的封口，眼前的火势不是逆潮的全部源头。
+  ordinary_route: 你沿熔灰与旧经阁前行，热流越过火口继续向昆仑上升。
   battle_after:
-    common: 火道暂时安静，余烬从石缝里向着旧经阁飘去。
-    elite: 火墙退开一线，器殿的冷光在高处闪过。
-    boss: 炉门的火色渐暗，云影穿过山腹上方的裂口。
-  boss_before: 旧经阁出口被两道首领遗影守住，火墙和云影在门前交叠。
-  boss_after: 火焰退入山腹，灰烬后的云阶向昆仑前门延伸。
-  passage: 你把火海留在身后，云层压低，昆仑前门的轮廓从灰烬中升起。
+    common: 火道暂静，热流仍沿石缝向上游涌去。
+    elite: 火墙裂开一线，火口后的云阶露出轮廓。
+    boss: 火口守关者退去，热流通向昆仑高处的封口。
+  boss_before: 守关者身后就是火口。火口与山顶封口相接，越过这里，才能循云阶找到积水的出口。
+  boss_after: 守关者退去，火口后的云阶通向昆仑；堵水的封口仍在更高处。
+  passage: 你沿云阶上行，前往昆仑天门拆开困住回流的最后封锁。
   boss_variants:
-    EN-A3-B1: 毕方烈羽收拢最后一圈火光，山腹上方落下一道灰白云阶。
-    EN-A3-B2: 祝融试火熄灭炉门，余烬在通往昆仑的风里逐片冷却。
+    EN-A3-B1: 毕方烈羽退开，火口后的云阶显出；热流仍指向昆仑更高处的封口。
+    EN-A3-B2: 祝融试火熄下试炼之焰，火口后的云阶显出；封口仍在昆仑更高处。
+  defeat: 你的脚步停在火海；上游封口仍未触及，热流继续把水推回山路。
   core_relationships:
     RS01: [RK001, RK002]
     RS02: [RK003, RK004]
@@ -357,7 +358,7 @@ transition:
   next_act: RA04
   on_boss_victory_only: true
   boss_is_required_for_transition: true
-  transition_text: 火海首领熄灭后，昆仑前门的云阶显出。
+  transition_text: 火海云阶通向昆仑；堵住回流的最后封锁仍在天门。
   preserve: [current_hp, max_hp, coins, cumulative_xp, current_method_id, talents, artifacts, core_flags]
   no_auto_heal: true
   no_auto_breakthrough: true

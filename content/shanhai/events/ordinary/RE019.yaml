@@ -4,8 +4,8 @@ kind: event
 id: RE019
 name: 火海回息
 status: design_target
-summary: 在火海边选择疗伤、长生结或修行。
-description: 火海边的冷泉只够盛满一只碗，守泉人让你决定把它喝下、封存，还是化作修为。
+summary: 火海热浪中把一碗冷泉用于疗伤、留作长生结，或化作修为。
+description: 一股冷泉从热地裂隙里涌出，只够盛满一碗。饮下能立即恢复气血，封存成器不疗眼前伤，静坐则提高下一次进阶所需修为。
 tags: [ordinary, heal, artifact, xp, act3]
 source:
   basis: original
@@ -18,33 +18,36 @@ balance:
   measured: null
 event_type: ordinary
 acts: [3]
-scene: 冷泉映着火光，守泉人捧着一只玉碗。此刻的疗伤、长生结和修行，只能取其一。
+scene: 灰烬边缘有一股冷泉冒出，水面映着远处火口的红光。你可以饮下止住眼前灼痛、封成一层长生结，或把清息沉入修行。
 options:
   - id: RE019-A
-    label: 先喝冷泉
-    quick: 饮下冷泉，立即恢复一段气血。
+    label: 饮泉止住灼痛
+    quick: 不耗灵石，饮下冷泉立即恢复一段气血。
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: hp, amount: 0.2, basis: reference_hp}
-    outcome: 冷泉入喉，火海边的灼痛暂时退去。
+    outcome: 你饮下冷泉，气血即时恢复，火口的热浪仍挡在前方。
+    story_echo: 你饮下冷泉压住伤痛，听着火口的轰鸣继续辨认安全路段。
   - id: RE019-B
-    label: 封成生结
-    quick: 封成一层长生结，提高最大气血。
+    label: 封泉成一层长生结
+    quick: 带走一层长生结以提高最大气血；不恢复当前气血，须有一层空位否则不能选。
     requirements:
       - {type: capacity, id: RC06, count: 1}
     costs: []
     rewards:
       - {type: artifact, id: RC06, count: 1}
-    outcome: 冷泉凝成长生结，往后的气血底子更厚；眼下的伤势仍需另行调养。
+    outcome: 你将冷泉封成一层长生结，最大气血提高，眼下伤势仍需另行调养。
+    story_echo: 你把冷泉封成长生结，没有用它疗伤，随后继续向热浪深处行进。
   - id: RE019-C
-    label: 让泉给经
-    quick: 静坐片刻，修为提高下一次进阶所需的两成。
+    label: 借泉静坐积修
+    quick: 不耗灵石，静坐使修为提高下一次进阶所需的两成。
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
-    outcome: 你让冷泉的灵息沉入丹田，修为向下一次进阶靠近两成。
+    outcome: 你在泉边静坐，让修为向下一次进阶推进两成。
+    story_echo: 你借泉边一刻清凉静坐修行，收心后继续寻找火口来处。
 settlement:
   once: true
   internal_battle_package: false

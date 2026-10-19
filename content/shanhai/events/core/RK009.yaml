@@ -4,8 +4,8 @@ kind: event
 id: RK009
 name: 哪吒先过阵
 status: design_target
-summary: 先赢下第一阵才有后段资格；挑战损失约62点气血，失手后仅剩1点，收手选项也摆在眼前。
-description: 哪吒把第一阵的打法与后果说清：挑战损失约62点气血，失手后仅剩1点；胜利后才可在后段选择第二阵。
+summary: 哪吒邀你先闯第一阵；须付 8% 基准气血，胜利才有后段资格，失手至少保留 1 点且无奖。
+description: 断桥上游的水势逼人，哪吒在旁路摆下两阵，一阵重击、一阵连招。他先说明第一阵的代价与收手处，不会因你应战就先给器物。
 tags: [core, character_encounter, nezha, first_meeting, staged_trial]
 source:
   basis: myth_adaptation
@@ -19,39 +19,43 @@ balance:
   measured: null
 event_type: core
 acts: [2]
-scene: 哪吒在山场摆下两阵，一阵重击，一阵连招；他先让你接第一阵，失手会停在 1 点气血，胜利才可在后段继续接阵。
+scene: 山场水声穿过两面阵旗，哪吒把重阵留在前、连阵留在后。先付 8% 基准气血再挑战；实际伤害随交手变化，胜利才可回访，失手至少保留 1 点。
 options:
   - id: RK009-enter-first-array
     label: 先接重阵
-    quick: 损失约62点气血挑战，胜利后保留第二阵资格；失手后仅剩1点气血。
+    quick: 付 8% 基准气血挑战，胜利留第二阵资格；失手至少保留 1 点气血且无奖。
     requirements: []
     costs:
       - {type: resource, resource: hp, amount: 0.08, basis: reference_hp, must_survive: true}
     rewards: []
     set_flags:
       RS05-promised: true
-    outcome: 你过了第一阵，哪吒没有发宝，只留下后段继续接阵的资格。
+    outcome: 你过了第一阵，哪吒没有发宝，只留下第四幕继续接阵的资格。
+    story_echo: 你闯过重阵，哪吒只留下后段的第二阵资格；器物还不属于你。
     encounter:
       enemy_id: EN-A2-L2
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 重阵把你逼退，哪吒收起第二阵的牌；损失的约62点气血留在阵门前，气血仅剩1点，后段不再开第二阵。
+      failure_outcome: 重阵把你逼退，哪吒收起第二阵的牌；气血至少保留 1 点，后段不再开第二阵，也没有战斗奖励。
+    story_failure_echo: 你没闯过重阵，气血至少保留 1 点；哪吒收起第二阵的牌，没有给你战斗奖励。
   - id: RK009-take-safe
     label: 收下小修行
-    quick: 立即获得一笔修为，放弃两阵承诺
+    quick: 获得一笔修为，放弃两阵约定，不参加挑战
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
     outcome: 你不把气血押在阵门上，先拿修为继续赶路。
+    story_echo: 你拿了修为，哪吒收起阵旗；这段路不再要求你闯阵。
   - id: RK009-leave
     label: 退出阵门
-    quick: 保留气血、灵石和法宝，不参加试炼
+    quick: 不付气血、不取修为或法宝，退出阵门回主路
     requirements: []
     costs: []
     rewards: []
     outcome: 你看清两阵的锋口后转身，哪吒让开公共路线。
+    story_echo: 你看清阵门便转身离开，哪吒让开路；这次不留下任何挑战结果。
 settlement:
   once: true
   internal_battle_package: false

@@ -4,8 +4,8 @@ kind: event
 id: RE016
 name: 铁印暂换
 status: design_target
-summary: 以灵石和修为换一次重新选择已学功法的机会，或带走凝气珠。
-description: 铁印师能让旧法脉暂时退开，也能用余料炼出一颗凝气珠。
+summary: 在河路关口付灵石与修为取得功法重选机会，或买凝气珠后压低怒气上限。
+description: 铁印可暂时照出已学功法中的可选项，需付灵石和真实修为；凝气珠可用灵石换取，但会降低怒气上限。
 tags: [ordinary, method_swap, purchase, xp, act2]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [2]
-scene: 铁印师把旧法的印痕压在桌上，又亮出一颗凝气珠。要改修，或要眼前的法宝，只能选一边。
+scene: 旧河道旁的石面留下数道铁印，旁边的凝气珠随水声微颤。你可付材开启已学功法重选、付石取珠，或封印铁印继续当前修行。
 options:
   - id: RE016-A
-    label: 付材开暂换
-    quick: 付出灵石和修为，获得一次从已学功法中重新选择的机会。
+    label: 付材开启功法重选
+    quick: 付出半份标价灵石和下一次突破需求两成修为，再选择另一门已学功法改修；未学适用功法或资源不足则不能选。
     requirements:
       - {type: known_method, id: RKF02}
       - {type: can_pay}
@@ -31,10 +31,11 @@ options:
       - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
     rewards:
       - {type: swap_method, pool: owned_methods}
-    outcome: 铁印为你打开旧法之门，是否换修仍由你决定。
+    outcome: 铁印已开，灵石与修为已经付出；接下来须从其他已学功法中选一门改修，伤势不会因此恢复。
+    story_echo: 你付出灵石与修为，在旧法印记间重新择定修行方向，再沿河道出发。
   - id: RE016-B
-    label: 付石收下凝气珠
-    quick: 付出标价灵石，带走一层凝气珠，增强攻击但降低怒气上限。
+    label: 付石取凝气珠
+    quick: 付出标价灵石，带走一层凝气珠；攻击提高、怒气上限降低，灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC19, count: 1}
@@ -42,14 +43,16 @@ options:
       - {type: resource, resource: coins, amount: 0.75, basis: common_price}
     rewards:
       - {type: artifact, id: RC19, count: 1}
-    outcome: 凝气珠落入掌中，锋劲更足，怒气却要更精打细算。
+    outcome: 你付石带走一层凝气珠，攻击提高而怒气上限降低。
+    story_echo: 你付石收下凝气珠，带着更强的锋势与更低的怒气上限离开河道。
   - id: RE016-C
-    label: 封印前行
-    quick: 封印铁印，保留当前功法与资源。
+    label: 封印铁印继续行路
+    quick: 不付灵石或修为，放弃两项选择并保留当前功法与资源。
     requirements: []
     costs: []
     rewards: []
-    outcome: 铁印封回原位，你沿着熟悉的功法继续前行。
+    outcome: 你将铁印封回原位，没有改变功法、资源或法宝。
+    story_echo: 你封回铁印，沿着熟悉的功法走出河谷，旧法未作改动。
 settlement:
   once: true
   internal_battle_package: false

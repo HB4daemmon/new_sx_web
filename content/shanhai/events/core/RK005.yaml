@@ -4,8 +4,8 @@ kind: event
 id: RK005
 name: 后羿校目
 status: design_target
-summary: 明目珠不是免费奖励，而是必须一路保留到回访的指定属性器物。
-description: 后羿在山火里校箭，要求你带着一枚明目珠到后段；没有这件器物，承诺选项不会出现。
+summary: 后羿请持有明目珠的人带它越过山火；初遇应约且回访仍持有它，才有试射资格。
+description: 山火把旧路照成两重影，后羿正校看远处的风标。他请持有明目珠的人留珠到后段，但不替你造器，也不要求你留下；若你已有此物，要不要放弃眼前修为应约，由你决定。
 tags: [core, character_encounter, houyi, first_meeting, attribute_artifact]
 source:
   basis: myth_adaptation
@@ -19,34 +19,37 @@ balance:
   measured: null
 event_type: core
 acts: [2]
-scene: 山火把箭路映成两层影子，后羿指向你身上的明目珠；他不替你造器，只看你能不能把指定属性器物带到后段。
+scene: 山火将路影拉长，后羿说起能校准风路的明目珠。若你已有此物，可应约带它走到第四幕；他不会另送一枚，也不拦你取修为或盘缠离开。
 options:
   - id: RK005-carry-sight
     label: 带明目珠上路
-    quick: 持有明目珠，放弃眼前小修为并保留它到试射
+    quick: 已持有明目珠；放弃眼前修为并保留此物到试射
     requirements:
       - {type: owned_artifact, id: RC07, count: 1}
     costs: []
     rewards: []
     set_flags:
       RS03-promised: true
-    outcome: 你把明目珠固定在弓架上，后羿只说一句：别在回访前换掉它。
+    outcome: 你把明目珠系在行囊上，后羿只说一句：别在回访前换掉它。
+    story_echo: 你决定把已有的明目珠带过山火；若回访时仍持有它，才可选择试射。
   - id: RK005-take-xp
     label: 取修为离火
-    quick: 立即获得一笔修为，不接受这条携带承诺
+    quick: 获得一笔修为，不保留明目珠试射约定
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
     outcome: 你把修为收进气海，后羿让开火线，不再为你保留试射位。
+    story_echo: 你把修为留在自己身上，后羿收起试射的安排，山路仍可照常通行。
   - id: RK005-leave
     label: 留石观火
-    quick: 拿一小笔灵石，不更换身上的法宝。
+    quick: 获得一小笔灵石，不更换身上的法宝
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: coins, amount: 0.1, basis: common_price}
     outcome: 你不改弓、不改器，拿着盘缠沿公共路线继续走。
+    story_echo: 你收好盘缠，没有换掉身上的法宝，照自己的路线继续赶路。
 settlement:
   once: true
   internal_battle_package: false

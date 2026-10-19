@@ -4,8 +4,8 @@ kind: event
 id: RE017
 name: 寒泉押注
 status: design_target
-summary: 付高价取蓄气珠，或以较低代价带走引气符。
-description: 寒泉押柜只开一格，稀有蓄气珠与普通引气符的价钱写在柜牌上。
+summary: 寒泉涌回旧河道时，可付高价取蓄气珠，低价取引气符或保留灵石。
+description: 暴涨的寒泉冲开一只旧匣，蓄气珠与引气符各有明示标价；高价珠提升攻击并在攻击命中时回怒，符则在普攻后额外回怒。
 tags: [ordinary, rare_artifact, purchase, resource, act2]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [2]
-scene: 寒泉边的柜门只肯开一次，蓄气珠和引气符隔着水雾相望。价钱不同，带来的回气路数也不同。
+scene: 寒泉把匣门推开后又要合拢，两件回气器物各能带走一件。蓄气珠价高，引气符价低，也可不付灵石，让急水带走匣子。
 options:
   - id: RE017-A
     label: 付高价取蓄气珠
-    quick: 付出高价，带走蓄气珠，提升攻击并让攻击命中时回怒。
+    quick: 付出高价灵石，带走一层蓄气珠以提升攻击并在攻击命中时回怒；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RR01, count: 1}
@@ -30,10 +30,11 @@ options:
       - {type: resource, resource: coins, amount: 1.75, basis: common_price}
     rewards:
       - {type: artifact, id: RR01, count: 1}
-    outcome: 你用灵石换来蓄气珠，珠中气息在每次出手后回流。
+    outcome: 你付出高价灵石带走蓄气珠，攻击命中时可按其效果回怒。
+    story_echo: 你付高价收下蓄气珠，封住寒泉冲开的旧匣，随后沿岸离开。
   - id: RE017-B
-    label: 付石取引气符
-    quick: 付出较低标价，带走一层引气符，普攻后额外回怒。
+    label: 付较低标价取引气符
+    quick: 付出较低标价灵石，带走一层引气符以在普攻后额外回怒；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC20, count: 1}
@@ -41,14 +42,16 @@ options:
       - {type: resource, resource: coins, amount: 0.75, basis: common_price}
     rewards:
       - {type: artifact, id: RC20, count: 1}
-    outcome: 引气符贴在腕间，普攻收势时便有一缕灵气回到体内。
+    outcome: 你付出较低标价灵石带走一层引气符，后续普攻后可额外回怒。
+    story_echo: 你以较低标价换下引气符，系紧腕间后离开不断涌水的泉边。
   - id: RE017-C
-    label: 合柜留石
-    quick: 合柜离开，保留灵石。
+    label: 合匣保留灵石
+    quick: 不付灵石、不取法宝，保留现有灵石和法宝。
     requirements: []
     costs: []
     rewards: []
-    outcome: 柜门合上，寒泉边只剩水声，你把灵石留在身边。
+    outcome: 你没有取走器物，匣门被寒泉推回，灵石仍留在身边。
+    story_echo: 你任旧匣随水合拢，保留灵石与法宝，沿高处离开泉边。
 settlement:
   once: true
   internal_battle_package: false

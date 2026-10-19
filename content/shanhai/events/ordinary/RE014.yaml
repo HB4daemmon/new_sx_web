@@ -4,8 +4,8 @@ kind: event
 id: RE014
 name: 石桥点斗
 status: design_target
-summary: 在石桥试取两层雷纹印，或付灵石带走铁壁符。
-description: 守桥人把雷纹印摆在白线尽头，约你点到为止；败者只退回桥头。
+summary: 沿旧桥试取雷纹印、付灵石换铁壁符，或保住气力退回河岸。
+description: 桥面被逆流冲断一截，守桥人以非致死试招守着两层雷纹印；失手会退回桥头并至少保留 1 点气血。
 tags: [ordinary, nonlethal, encounter, two_layers, act2]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [2]
-scene: 石桥风急，守桥人抬手亮出雷纹印。想拿走它，先在白线内接下这一轮试招。
+scene: 旧桥的白线标出还能站稳的一段，守桥人亮出雷纹印。你可以参加试招、付标价灵石取铁壁符，或退回岸边另找通路。
 options:
   - id: RE014-A
-    label: 线上试雷纹
-    quick: 参加试招，胜利带走两层雷纹印；失手后保留1点气血。
+    label: 留在线内试雷纹
+    quick: 参加非致死试招，胜利带走两层雷纹印；失手至少保留 1 点气血且无奖励，该法宝须能再叠两层否则不能选。
     requirements:
       - {type: capacity, id: RC10, count: 2}
     costs: []
@@ -33,11 +33,13 @@ options:
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 你被守桥人逼回桥头，气血只剩一线，雷纹印仍留在桥面。
-    outcome: 你在白线内赢下试招，带走两层雷纹印。
+      failure_outcome: 你被守桥人逼回桥头，至少保留 1 点气血；雷纹印仍留在桥面。
+    outcome: 你在白线内赢下非致死试招，带走两层雷纹印。
+    story_echo: 你赢下白线内的试招，取走两层雷纹印，桥面仍需小心通过。
+    story_failure_echo: 你被守桥人逼回桥头，至少保留 1 点气血，雷纹印没有到手。
   - id: RE014-B
-    label: 付石买铁壁
-    quick: 付出标价灵石，带走一层铁壁符，避开试招。
+    label: 付石取铁壁符绕行
+    quick: 付出标价灵石，带走一层铁壁符并避开试招；灵石不足或该法宝已满层时不能选。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC11, count: 1}
@@ -45,14 +47,16 @@ options:
       - {type: resource, resource: coins, amount: 1.0, basis: common_price}
     rewards:
       - {type: artifact, id: RC11, count: 1}
-    outcome: 你付出灵石接过铁壁符，石桥上的风声与凶险都被留在身后。
+    outcome: 你付出灵石带走一层铁壁符，离开旧桥时没有参加试招。
+    story_echo: 你付石取下铁壁符，避开白线试招，沿河岸寻找安全的接桥处。
   - id: RE014-C
-    label: 退到桥头
-    quick: 退到桥头，保留气血与资源。
+    label: 退回岸边
+    quick: 不参加试招、不付灵石，保留气血与资源另寻通路。
     requirements: []
     costs: []
     rewards: []
-    outcome: 守桥人收回雷纹印，你安全离开石桥。
+    outcome: 守桥人收回雷纹印，你带着原有气血与资源退回岸边。
+    story_echo: 你退回河岸另寻通路，气血与资源留在手中，雷纹印仍在桥上。
 settlement:
   once: true
   internal_battle_package: false

@@ -4,8 +4,8 @@ kind: event
 id: RK002
 name: 神农回访药棚
 status: design_target
-summary: 初遇时留下的灵石仍在药棚边，长明灯要用守药挑战换，行医囊则用 20 灵石取。
-description: 你回到后段药棚，神农没有替你补气血，只把长明灯、行医囊和守药试炼摆在眼前；没完成初遇承诺时，这里只剩普通道路。
+summary: 带着初遇的约定回到药棚，可付相当于基准气血 12% 的代价挑战取长明灯，或付 20 灵石取行医囊。
+description: 药棚没有替赶路人留住时光，也不会补回气血。神农把守药的风险、行医囊的价钱和退回主路的选择一并说清；没有初遇约定，这里只是寻常路口。
 tags: [core, character_encounter, shennong, follow_up, healing]
 source:
   basis: myth_adaptation
@@ -19,27 +19,29 @@ balance:
   measured: null
 event_type: core
 acts: [3]
-scene: 药棚还在，但潮痕已经逼到门槛；神农把长明灯和行医囊摆在门边。守药挑战损失约114点气血，失手后仅剩1点；付20灵石可稳妥取行医囊。
+scene: 药棚挨着通往火海的旧路，潮痕已逼到门槛；神农摆出长明灯和行医囊。守药须先付 12% 基准气血，战斗损失随交手而变、失手至少保留 1 点；付 20 灵石可取行医囊。
 options:
   - id: RK002-enter-trial
     label: 守住药棚
-    quick: 损失约114点气血挑战，胜利取长明灯；失手后仅剩1点气血。
+    quick: 付 12% 基准气血挑战，胜利取长明灯；失手至少保留 1 点气血且无奖。
     requirements:
       - {type: flag, id: RS01-promised, value: true}
     costs:
       - {type: resource, resource: hp, amount: 0.12, basis: reference_hp, must_survive: true}
     rewards:
       - {type: artifact, id: RR06, count: 1}
-    outcome: 你顶住药棚前的冲击，胜利后神农把长明灯交到你手里；它的最大气血加成立即计入，下一场战斗结束后才会触发战后恢复。
+    outcome: 你顶住药棚前的守势，胜利后神农把长明灯交到你手里；它的最大气血加成立即计入，下一场战斗结束后才会触发战后恢复。
+    story_echo: 你守住药棚，神农将长明灯交给你，接下来的路仍由你自己挑。
     encounter:
       enemy_id: EN-A3-L1
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 你守不住药棚，神农收起药匣；损失的约114点气血留在潮痕里，气血仅剩1点，长明灯没有到手。
+      failure_outcome: 你没能守住药棚，神农收起药匣；气血至少保留 1 点，长明灯没有到手，战斗损伤也不会补回。
+    story_failure_echo: 你没守住药棚，气血至少保留 1 点，长明灯未能带走；神农收起药匣，没有责怪你。
   - id: RK002-pay-safe
     label: 付石取药
-    quick: 支付 20 灵石，稳妥取行医囊
+    quick: 支付 20 灵石，免去挑战并取行医囊
     requirements:
       - {type: flag, id: RS01-promised, value: true}
       - {type: can_pay}
@@ -48,14 +50,16 @@ options:
     rewards:
       - {type: artifact, id: RC17, count: 1}
     outcome: 你用盘缠换下行医囊；它的最大气血加成立即计入，走过下一处地点后才会补回气血。
+    story_echo: 你用 20 灵石换下行医囊，神农把药包交给你，没让你再冒一场险。
   - id: RK002-walk-away
     label: 放弃回访
-    quick: 不再投入，保留剩余资源和法宝，回到普通道路
+    quick: 不再投入，保留现有气血与资源；不取药棚法宝，回主路
     requirements:
       - {type: flag, id: RS01-promised, value: true}
     costs: []
     rewards: []
     outcome: 你承认这次风险不值，神农收回药匣；初遇留下的灵石不返还。
+    story_echo: 你把回访停在药棚门口，初遇留下的灵石不退，前路仍可照常走。
 settlement:
   once: true
   internal_battle_package: false

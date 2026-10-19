@@ -4,8 +4,8 @@ kind: event
 id: RK013
 name: 玄龟断桥
 status: design_target
-summary: 损失约94点气血挑战断桥，胜利取琉璃法印；付32灵石可坐渡取甘露盏。
-description: 断桥下的水势会把人卷回岸边；踏桥损失约94点气血，失手后仅剩1点。付32灵石可稳妥取甘露盏。
+summary: 断桥旁岔出一段急流险路；挑战先付 15% 基准气血，胜取琉璃法印，或付 32 灵石坐渡取甘露盏。
+description: 主路仍沿旧桥通往下一处关口，桥边却有一段可绕开的险路。没有器物也能继续赶程；想取物，可挑战、付石或退回岸边。
 tags: [core, independent_core, high_risk, healing, legendary_artifact]
 source:
   basis: original
@@ -19,40 +19,44 @@ balance:
   measured: null
 event_type: core
 acts: [1]
-scene: 玄龟背上的断桥只剩一截，桥后浮着琉璃法印；踏桥损失约94点气血，失手后仅剩1点。付32灵石可取甘露盏，失手则回到岸边。
+scene: 断桥下的回流水势把人推向岸边，旁侧石台上有琉璃法印。挑战先付 15% 基准气血，战斗损伤随实战变化、失手至少保留 1 点；付 32 灵石可坐渡取甘露盏，也可退回主路。
 options:
   - id: RK013-cross-broken-bridge
     label: 踏桥取印
-    quick: 损失约94点气血挑战，胜利取琉璃法印；失手后仅剩1点气血。
+    quick: 付 15% 基准气血挑战，胜利取琉璃法印；失手至少保留 1 点气血且无奖。
     requirements: []
     costs:
       - {type: resource, resource: hp, amount: 0.15, basis: reference_hp, must_survive: true}
     rewards:
       - {type: artifact, id: RL01, count: 1}
-    outcome: 你踏过断桥，胜利后取得琉璃法印；它的防御与最大气血加成从此刻计入，下一场战斗可把治疗溢出化成护盾。
+    outcome: 你闯过岔路上的急流，胜利后取得琉璃法印；它的防御与最大气血加成从此刻计入，下一场战斗可把治疗溢出化成护盾。
+    story_echo: 你从急流岔路取回琉璃法印，回到旧桥旁；前路的主关口仍等着你。
     encounter:
       enemy_id: EN-A1-B2
       mode: nonlethal
       failure_hp_floor: 1
       failure_rewards: []
-      failure_outcome: 断桥把你逼回岸边，琉璃法印沉入水下；损失的约94点气血留在桥上，气血仅剩1点，琉璃法印没有到手。
+      failure_outcome: 急流把你逼回岸边，琉璃法印仍在石台；气血至少保留 1 点，法印没有到手，战斗损伤不会补回。
+    story_failure_echo: 急流将你推回岸边，你至少保留 1 点气血；琉璃法印没能取到，旧桥仍可通向主路。
   - id: RK013-pay-ferry
     label: 付石坐渡
-    quick: 支付 32 灵石，稳妥取甘露盏
+    quick: 支付 32 灵石，免去挑战并坐渡取甘露盏
     requirements:
       - {type: can_pay}
     costs:
       - {type: resource, resource: coins, amount: 32, basis: flat}
     rewards:
       - {type: artifact, id: RR02, count: 1}
-    outcome: 你买下渡石，取到甘露盏；它的最大气血加成立即计入，下一场战斗的有效自疗可凝成护盾，桥后的琉璃法印不再开放。
+    outcome: 你买下渡石，取到甘露盏；它的最大气血加成立即计入，下一场战斗的有效自疗可凝成护盾，岔路上的琉璃法印不再开放。
+    story_echo: 你付 32 灵石坐渡取走甘露盏，不必试闯急流；琉璃法印仍留在岔路石台。
   - id: RK013-return-shore
     label: 退回岸边
-    quick: 退回岸边，保留当前气血、灵石和法宝
+    quick: 不挑战、不付灵石、不取器物，退回岸边走主路
     requirements: []
     costs: []
     rewards: []
-    outcome: 你看完桥上的风险后退回岸边，公共道路仍然可走。
+    outcome: 你看完岔路的风险后退回岸边，通往下一处关口的主路仍然可走。
+    story_echo: 你退回岸边，没有多付气血或灵石；急流岔路不挡主路。
 settlement:
   once: true
   internal_battle_package: false

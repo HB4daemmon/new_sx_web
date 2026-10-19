@@ -4,8 +4,8 @@ kind: act
 id: RF01
 name: 天门独渡
 status: design_target
-summary: 用四幕实际带入的主修、天赋、法宝和资源完成唯一终战。
-description: 女娲只补住天裂的边缘，天门提供渡劫发生的天光，不替主角承受雷火；终段没有第五幕整备，也不追加任何成长候选。
+summary: 独自渡过唯一劫相，胜后让天门回流重新有出口。
+description: 天门将水气与雷火困成回流。你只带入四幕真实留下的构筑与余力，独自迎向本局抽中的唯一劫相；击败它才会打开归路，终段不追加成长。
 tags: [final, terminal, heavenly_gate, solo_trial, original]
 source:
   basis: original
@@ -20,14 +20,19 @@ balance:
 index: 5
 story:
   title: 终局渡劫段：天门独渡
-  goal: 用当前主修、已选天赋、实际持有法宝、当前气血和资源击败唯一终战。
-  prelude: 昆仑前门在身后合拢，女娲补住天裂的一线；天门的雷光从云隙中落下。
-  ordinary_route: 你沿最后一段天阶独自上行，门后的风声和雷声在同一刻静了下来。
+  goal: 击败唯一劫相，让天门回流重新有出口
+  prelude: 昆仑前门在身后合拢，天门的回流凝成劫相。此刻没有新补给，也没有人能替你承受这一渡。
+  ordinary_route: 你独自踏上最后的天阶，水气与雷火沿封闭回路逼近。
   battle_after:
-    final: 雷火在天门外散开，云层短暂露出一片无声的天光。
-  boss_before: 天门中央悬着一道未落的雷痕，终战的两道劫相在光幕后轮流显形。
-  boss_after: 雷声远去，天门落下一束清光，胜负都在这一刻定下。
-  passage: 天门之后只剩结局，长阶的回声随着云海一同合拢。
+    final: 终战已结束，天门之外没有第五幕或后续整备。
+  boss_before: 水气与雷火在门内凝成劫相。你身后是四幕走过的旧路，眼前只有这一渡。
+  boss_after: 此战后不再整备；终局只结算本局实际战果与行迹。
+  passage: 天门之外没有第五幕；结果按这次真实胜负和已发生行迹收束。
+  defeat: 你未能越过天门劫相；回流仍被锁在门内，归路没有打开。
+  victory: 天门回流终于有了出口。云阶下，水声一程程向海退去；潮口、断桥、火海与昆仑旧路连成归途。你收起兵刃，循着来路下山。这一次，水与你都有了归处。
+  boss_variants:
+    EN-F1: 雷劫化身散作细雨，封口的雷纹终于熄灭。
+    EN-F2: 昼夜劫相消散，天门中的明暗重新分开，回卷的水气缓缓落下。
   core_relationships:
     RS01: [RK001, RK002]
     RS02: [RK003, RK004]
@@ -40,7 +45,7 @@ story:
   completed_story_endings:
     storylines: [RS01, RS02, RS03, RS04, RS05, RS06]
     independent: [RK013, RK014, RK015, RK016]
-    source: prior_act_completed_flags
+    source: completed_event_history
     read_only: true
     grants: []
 node_budget:
