@@ -4,8 +4,8 @@ kind: event
 id: RE001
 name: 潮痕药篓
 status: design_target
-summary: 在立即疗伤与带走回春瓶之间取舍。
-description: 潮水刚退，一只破药篓挂在礁石上。药师认出两种用法：现在煎服，或封成回春瓶带走。
+summary: 立即疗伤、增强后续治疗，或付盘缠护送药箱。
+description: 潮水刚退，一只破药篓挂在礁石上。药师提出煎服、封瓶与护送药箱三种安排。
 tags: [ordinary, heal, artifact]
 source:
   basis: original
@@ -13,12 +13,12 @@ source:
   note: 游戏原创普通事件。
 balance:
   target:
-    gross_U: [0.4, 1.0]
+    gross_U: [0.8, 1.2]
     J: null
   measured: null
 event_type: ordinary
 acts: [1]
-scene: 潮水退去，药篓里只剩一味灵药。药师说，药力可以现在入口，也可以封进回春瓶。
+scene: 潮水退去，药篓里还剩一味灵药和一只待送的药箱。药师给出三种用法，药箱须按约送到才有报酬。
 options:
   - id: RE001-A
     label: 熬药疗伤
@@ -30,13 +30,31 @@ options:
     outcome: 药汤入腹，伤口立刻缓解。
   - id: RE001-B
     label: 封存成回春瓶
-    quick: 带走一层回春瓶，让今后的自疗更有力。
+    quick: 立即带走一层回春瓶，增强今后的自疗。
     requirements:
       - {type: capacity, id: RC12, count: 1}
     costs: []
     rewards:
       - {type: artifact, id: RC12, count: 1}
     outcome: 你封好回春瓶，往后的治疗会多一分春意。
+  - id: RE001-C
+    label: 出资护送药箱
+    quick: 先付盘缠；接下来3处地点不进休整，送达后取得两层行医囊。失约或到终战未兑现均不退款。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC17, count: 2}
+    costs:
+      - {type: resource, resource: coins, amount: 0.3, basis: common_price}
+    rewards: []
+    outcome: 你先付盘缠，药箱即刻启程；两层行医囊尚未到手，失约不会退款。
+    commitment:
+      name: 护送药箱
+      after_nodes: 3
+      avoid_node_types: [R]
+      rewards:
+        - {type: artifact, id: RC17, count: 2}
+      success_outcome: 药箱送达，取得两层行医囊。
+      failure_outcome: 护送失约或未能在终战前送达，盘缠不退，也没有行医囊。
 settlement:
   once: true
   internal_battle_package: false

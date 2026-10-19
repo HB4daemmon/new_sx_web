@@ -624,6 +624,93 @@ test('talent ratio additions and replacement outlets stay scoped to authored seg
   assert.ok(rageSegments.every(frame => Math.abs(frame.amount - 98.56) < 1e-9));
 });
 
+test('RKF07 and RKF09 rage segment talents add one capped hit and keep one main action', () => {
+  const target = makeLoadout('RKF01', {}, [], {
+    attack: 0,
+    defense: 0,
+    max_hp: 1_000_000,
+    speed: 1,
+  });
+  const lightning = simulateBattle(
+    content,
+    makeLoadout('RKF07', { 3: 'A' }, [{ id: 'RL04', stacks: 1 }], {
+      attack: 88,
+      defense: 0,
+      max_hp: 1_000_000,
+      speed: 10,
+    }),
+    target,
+    'rkf07-j3a-rage-segments',
+    { roundLimit: 1 },
+  );
+  assert.equal(lightning.frames.filter(frame =>
+    frame.kind === 'damage' && frame.actor === 'player' && frame.source === 'RKF07-RAGE-DAMAGE').length, 4);
+  assert.equal(actionFrames(lightning, 'player', 'RKF07-RAGE-DAMAGE').length, 1);
+  assert.equal(contribution(lightning, 'RKF07-J3-A').triggers, 1);
+
+  const cappedEntities = structuredClone(content.entities);
+  const cappedTalent = cappedEntities.find(entity => entity.id === 'RKF07')
+    .talents.find(talent => talent.id === 'RKF07-J3-A')
+    .effects.find(effect => effect.id === 'RKF07-J3-A-SEGMENT');
+  cappedTalent.params.value = 3;
+  const cappedContent = contentFromEntities(cappedEntities, `${content.version}-segment-cap`);
+  const cappedLightning = simulateBattle(
+    cappedContent,
+    makeLoadout('RKF07', { 3: 'A' }, [{ id: 'RL04', stacks: 1 }], {
+      attack: 88,
+      defense: 0,
+      max_hp: 1_000_000,
+      speed: 10,
+    }),
+    target,
+    'rkf07-j3a-max-segments',
+    { roundLimit: 1 },
+  );
+  assert.equal(cappedLightning.frames.filter(frame =>
+    frame.kind === 'damage' && frame.actor === 'player' && frame.source === 'RKF07-RAGE-DAMAGE').length, 4);
+
+  const fire = simulateBattle(
+    content,
+    makeLoadout('RKF09', { 1: 'B' }, [{ id: 'RL04', stacks: 1 }], {
+      attack: 88,
+      defense: 0,
+      max_hp: 1_000_000,
+      speed: 10,
+    }),
+    target,
+    'rkf09-j1b-rage-segments',
+    { roundLimit: 1 },
+  );
+  assert.equal(fire.frames.filter(frame =>
+    frame.kind === 'damage' && frame.actor === 'player' && frame.source === 'RKF09-RAGE-DAMAGE').length, 4);
+  assert.equal(fire.frames.filter(frame =>
+    frame.kind === 'status' && frame.source === 'RKF09-RAGE-BURN' && frame.target === 'enemy').length, 4);
+  assert.equal(fire.frames.at(-1).enemy.statuses.burn, 4);
+  assert.equal(actionFrames(fire, 'player', 'RKF09-RAGE-DAMAGE').length, 1);
+  assert.equal(contribution(fire, 'RKF09-J1-B').triggers, 1);
+
+  const enemyLightning = simulateBattle(
+    content,
+    makeLoadout('RKF01', {}, [], {
+      attack: 0,
+      defense: 0,
+      max_hp: 1_000_000,
+      speed: 1,
+    }),
+    makeLoadout('RKF07', { 3: 'A' }, [{ id: 'RL04', stacks: 1 }], {
+      attack: 88,
+      defense: 0,
+      max_hp: 1_000_000,
+      speed: 10,
+    }),
+    'enemy-rkf07-j3a-rage-segments',
+    { roundLimit: 1 },
+  );
+  assert.equal(enemyLightning.frames.filter(frame =>
+    frame.kind === 'damage' && frame.actor === 'enemy' && frame.source === 'RKF07-RAGE-DAMAGE').length, 4);
+  assert.equal(actionFrames(enemyLightning, 'enemy', 'RKF07-RAGE-DAMAGE').length, 1);
+});
+
 test('RKF01 recoil bonuses add once and retain talent and artifact contributions', () => {
   const player = makeLoadout('RKF01', { 3: 'A', 4: 'C' }, [{ id: 'RC13', stacks: 1 }], {
     attack: 100,
@@ -1041,4 +1128,99 @@ test('RKF10 changes day/night exactly once per main action', () => {
     .filter(frame => ['RKF10-BASIC-PHASE', 'RKF10-RAGE-PHASE'].includes(frame.source) && frame.actor === 'player')
     .map(frame => frame.player.statuses.day_night);
   assert.deepEqual(phases, [1, 2, 1, 2]);
+});
+
+test('RKF10 day shield talents add per shield while night actions do not create shields', () => {
+  const baseEnemy = makeLoadout('RKF01', {}, [], {
+    attack: 0,
+    defense: 0,
+    max_hp: 1_000_000,
+    speed: 1,
+  });
+  const j1Basic = simulateBattle(
+    content,
+    makeLoadout('RKF10', { 1: 'A' }, [], {
+      attack: 100,
+      defense: 100,
+      max_hp: 1_000_000,
+      speed: 10,
+    }),
+    baseEnemy,
+    'rkf10-j1a-day-basic-shield',
+    { roundLimit: 1 },
+  );
+  const j1Shield = firstFrame(j1Basic, frame =>
+    frame.kind === 'shield' && frame.actor === 'player' && frame.source === 'RKF10-BASIC-SHIELD-DAY');
+  assert.equal(j1Shield.amount, 38);
+  assert.equal(contribution(j1Basic, 'RKF10-J1-A').triggers, 1);
+
+  const stacked = simulateBattle(
+    content,
+    makeLoadout('RKF10', { 2: 'C', 4: 'A' }, [], {
+      attack: 100,
+      defense: 100,
+      max_hp: 1_000_000,
+      speed: 10,
+    }),
+    baseEnemy,
+    'rkf10-j2c-j4a-shield-stack',
+    { roundLimit: 2 },
+  );
+  const dayShield = firstFrame(stacked, frame =>
+    frame.round === 1 && frame.kind === 'shield' && frame.actor === 'player' &&
+    frame.source === 'RKF10-BASIC-SHIELD-DAY');
+  assert.ok(Math.abs(dayShield.amount - 56) < 1e-9);
+  assert.equal(stacked.frames.some(frame =>
+    frame.round === 2 && frame.kind === 'shield' && frame.actor === 'player' &&
+    frame.source === 'RKF10-BASIC-SHIELD-DAY'), false);
+  assert.ok(Math.abs(firstFrame(stacked, frame =>
+    frame.round === 2 && frame.kind === 'damage' && frame.actor === 'player' &&
+    frame.source === 'RKF10-BASIC-DAMAGE').amount - 140) < 1e-9);
+  assert.ok(contribution(stacked, 'RKF10-J2-C').triggers >= 2);
+  assert.ok(contribution(stacked, 'RKF10-J4-A').triggers >= 2);
+
+  const nightRage = simulateBattle(
+    content,
+    makeLoadout('RKF10', { 2: 'C', 3: 'A', 4: 'A' }, [{ id: 'RC22', stacks: 1 }], {
+      attack: 98,
+      defense: 100,
+      max_hp: 1_000_000,
+      speed: 10,
+    }),
+    baseEnemy,
+    'rkf10-night-rage-no-shield',
+    { roundLimit: 2 },
+  );
+  assert.equal(actionFrames(nightRage, 'player', 'RKF10-RAGE-DAMAGE')
+    .some(frame => frame.round === 2), true);
+  assert.equal(nightRage.frames.some(frame =>
+    frame.round === 2 && frame.kind === 'shield' && frame.actor === 'player' &&
+    frame.source === 'RKF10-RAGE-SHIELD-DAY'), false);
+  assert.ok(Math.abs(firstFrame(nightRage, frame =>
+    frame.round === 2 && frame.kind === 'damage' && frame.actor === 'player' &&
+    frame.source === 'RKF10-RAGE-DAMAGE').amount - 185) < 1e-9);
+});
+
+test('RKF10 enemy day rage applies stacked shield talent additions', () => {
+  const result = simulateBattle(
+    content,
+    makeLoadout('RKF01', {}, [], {
+      attack: 0,
+      defense: 0,
+      max_hp: 1_000_000,
+      speed: 1,
+    }),
+    makeLoadout('RKF10', { 2: 'C', 4: 'A' }, [{ id: 'RL04', stacks: 1 }], {
+      attack: 88,
+      defense: 100,
+      max_hp: 1_000_000,
+      speed: 9,
+    }),
+    'enemy-rkf10-day-rage-shield-stack',
+    { roundLimit: 1 },
+  );
+  const shield = firstFrame(result, frame =>
+    frame.kind === 'shield' && frame.actor === 'enemy' && frame.source === 'RKF10-RAGE-SHIELD-DAY');
+  assert.ok(Math.abs(shield.amount - 70) < 1e-9);
+  assert.equal(actionFrames(result, 'enemy', 'RKF10-RAGE-DAMAGE').length, 1);
 });

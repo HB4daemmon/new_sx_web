@@ -87,6 +87,7 @@ const fieldLabels = {
   crit_rate: '暴击率',
   common_price: '普通价格参照',
   cancellation: '取消条件',
+  avoid_node_types: '避让节点',
   condition: '条件',
   count: '次数',
   damage_from: '伤害取值',
@@ -141,6 +142,7 @@ const fieldLabels = {
   operation: '操作',
   optional: '可选',
   opening: '开场值',
+  after_nodes: '后续节点数',
   outcome: '结果',
   params: '参数',
   percent: '百分比',
@@ -162,6 +164,7 @@ const fieldLabels = {
   reward_shape: '奖励形态',
   reward_profile: '奖励档',
   rewards: '奖励',
+  success_outcome: '兑现结果',
   role: '定位',
   route: '路线',
   routes: '路线',
@@ -558,7 +561,7 @@ function requirementText(requirements, context) {
   if (!Array.isArray(requirements) || requirements.length === 0) return '无'
   return requirements.map((requirement) => {
     if (!isRecord(requirement)) return line(requirement, context)
-    if (requirement.type === 'can_pay') return '灵石足够支付'
+    if (requirement.type === 'can_pay') return '资源足够支付'
     if (requirement.type === 'capacity') {
       return `${readableArtifact(requirement.id, context)}可容纳 ${scalarText(requirement.count)} 层`
     }
@@ -940,7 +943,7 @@ function renderArtifacts(artifacts, rarity, context) {
 }
 
 function renderOption(option, context) {
-  const rewardLabel = option.encounter ? '胜利获得' : '获得'
+  const rewardLabel = option.encounter ? '胜利获得' : option.commitment ? '即时获得' : '获得'
   const lines = [
     `### ${line(option.label, context)}`,
     '',
@@ -957,6 +960,16 @@ function renderOption(option, context) {
     lines.push(`- 胜利条件：${line(encounter.victory_condition ?? `击败${enemy?.name ?? encounter.enemy_id}`, context)}；胜利后兑现本项奖励。`)
     lines.push(`- 失败血线：${scalarText(encounter.failure_hp_floor)}；失败奖励：${rewardText(encounter.failure_rewards, context)}`)
     lines.push(`- 失败结果：${line(encounter.failure_outcome, context)}`)
+  }
+  if (option.commitment) {
+    const commitment = option.commitment
+    const avoided = (commitment.avoid_node_types ?? [])
+      .map((type) => kindLabels[type] ? `${type} ${kindLabels[type]}` : line(type, context))
+      .join('、') || '无'
+    lines.push(`- 延后承诺：${line(commitment.name, context)}`)
+    lines.push(`- 兑现条件：从本事件节点之后开始，完成 ${scalarText(commitment.after_nodes)} 个真实非终战节点；本事件节点不计数，期间避开${avoided}。`)
+    lines.push(`- 延后奖励：${rewardText(commitment.rewards, context)}；${line(commitment.success_outcome, context)}`)
+    lines.push(`- 失约与过期：进入避让节点即告失约；未到终战前兑现而进入终战时过期。${line(commitment.failure_outcome, context)}；已付成本不退，失败或过期不发延后奖励。`)
   }
   lines.push(`- 结果：${line(option.outcome, context)}`)
   if (option.set_flags) lines.push(`- 标记变化：${targetText(option.set_flags, context)}`)

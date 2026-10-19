@@ -51,7 +51,7 @@ test('reader pages use player-facing rewards, bases, categories, and method abil
   assert.doesNotMatch(eventPage, /- 胜利兑现：/)
   assert.doesNotMatch(eventPage, /H\*|C\*|X\*/)
   assert.doesNotMatch(eventPage, /- 事件目标：/)
-  assert.match(eventPage, /事件效用目标（gross_U）：0\.4、1/)
+  assert.match(eventPage, /事件效用目标（gross_U）：0\.8、1\.2/)
 
   const methodPage = pages.get('methods/RKF01.md')
   assert.match(methodPage, /属性侧重：主属性=防御；次属性=攻击、最大气血/)

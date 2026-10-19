@@ -4,48 +4,49 @@ kind: event
 id: RE004
 name: 无主石印
 status: design_target
-summary: 在青锋石、玄铁甲与修行之间刻下一道选择。
-description: 空白石印只能留下一个印记，石匠把青锋石、玄铁甲和一缕灵光放在案上。
-tags: [ordinary, artifact, xp, attack, defense]
+summary: 支付真实修为刻下法宝，或不耽误突破地选择疗伤、盘缠。
+description: 空白石印可以把修为炼成法宝，但会推迟下一次突破；石匠也备有不耗修为的药与盘缠。
+tags: [ordinary, artifact, xp, heal, max_hp]
 source:
   basis: original
   reference: null
   note: 游戏原创普通事件。
 balance:
   target:
-    gross_U: [0.8, 1.0]
+    gross_U: [0.8, 1.2]
     J: null
   measured: null
 event_type: ordinary
 acts: [1]
-scene: 空白石印只能刻下一道纹。石匠说，锋芒、护身和修行，今天只能选一条。
+scene: 空白石印只能刻下一道纹。石匠说，耗费真实修为可刻出法宝；不耗修为也能取药或盘缠。
 options:
   - id: RE004-A
-    label: 刻攻纹
-    quick: 带走一层青锋石，增强直接攻击。
+    label: 耗修为刻成护身瓶
+    quick: 支付下一次完整突破需求的两成修为，立即带走两层回春瓶；修为不足则不能选。
     requirements:
-      - {type: capacity, id: RC01, count: 1}
-    costs: []
+      - {type: can_pay}
+      - {type: capacity, id: RC12, count: 2}
+    costs:
+      - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
     rewards:
-      - {type: artifact, id: RC01, count: 1}
-    outcome: 石印亮起锋纹，青锋石化作一层贴身锋意。
+      - {type: artifact, id: RC12, count: 2}
+    outcome: 你以真实修为灌入石印，两层回春瓶即刻成形，突破进度相应减少。
   - id: RE004-B
-    label: 刻守纹
-    quick: 带走一层玄铁甲，提升防御。
-    requirements:
-      - {type: capacity, id: RC03, count: 1}
-    costs: []
-    rewards:
-      - {type: artifact, id: RC03, count: 1}
-    outcome: 石印沉下厚重的护纹，玄铁甲落入你的行囊。
-  - id: RE004-C
-    label: 留印观潮
-    quick: 静坐片刻，修为提高下一次进阶所需的两成。
+    label: 取药立即疗伤
+    quick: 不耗修为，立即恢复一段气血，不耽误突破。
     requirements: []
     costs: []
     rewards:
-      - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
-    outcome: 你让心神沉入石印，修为又向下一次进阶靠近两成。
+      - {type: resource, resource: hp, amount: 0.15, basis: reference_hp}
+    outcome: 你放弃以修为刻宝，药汤入体，突破进度未受影响。
+  - id: RE004-C
+    label: 换取盘缠
+    quick: 不耗修为，拿走一小袋灵石，不耽误突破。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: resource, resource: coins, amount: 0.3, basis: common_price}
+    outcome: 你将石印留给后来人，换来的灵石入袋，突破进度未受影响。
 settlement:
   once: true
   internal_battle_package: false

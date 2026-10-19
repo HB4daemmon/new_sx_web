@@ -1,0 +1,437 @@
+{
+  "ok": true,
+  "checks": [
+    {
+      "label": "360-event-terms",
+      "geometry": {
+        "width": 360,
+        "height": 780,
+        "document": 360,
+        "documentHeight": 780,
+        "body": 360,
+        "terms": [
+          {
+            "client": 288,
+            "scroll": 288,
+            "left": 24,
+            "right": 312
+          }
+        ]
+      }
+    },
+    {
+      "label": "360-active-ledger",
+      "geometry": {
+        "width": 360,
+        "height": 780,
+        "document": 360,
+        "documentHeight": 821,
+        "body": 360,
+        "terms": [
+          {
+            "client": 340,
+            "scroll": 340,
+            "left": 10,
+            "right": 350
+          }
+        ]
+      }
+    },
+    {
+      "label": "360-break-warning",
+      "geometry": {
+        "width": 360,
+        "height": 780,
+        "document": 360,
+        "documentHeight": 780,
+        "body": 360,
+        "map": {
+          "x": 10,
+          "y": 143,
+          "width": 340,
+          "height": 575,
+          "top": 143,
+          "right": 350,
+          "bottom": 718,
+          "left": 10
+        },
+        "nav": {
+          "x": 0,
+          "y": 718,
+          "width": 360,
+          "height": 62,
+          "top": 718,
+          "right": 360,
+          "bottom": 780,
+          "left": 0
+        },
+        "terms": [
+          {
+            "client": 288,
+            "scroll": 288,
+            "left": 37.43999481201172,
+            "right": 322.5599899291992
+          }
+        ]
+      }
+    },
+    {
+      "label": "360-delivery-notice-map",
+      "geometry": {
+        "width": 360,
+        "height": 780,
+        "document": 360,
+        "documentHeight": 780,
+        "body": 360,
+        "map": {
+          "x": 10,
+          "y": 143,
+          "width": 340,
+          "height": 531.953125,
+          "top": 143,
+          "right": 350,
+          "bottom": 674.953125,
+          "left": 10
+        },
+        "notice": {
+          "x": 10,
+          "y": 684.953125,
+          "width": 340,
+          "height": 33.046875,
+          "top": 684.953125,
+          "right": 350,
+          "bottom": 718,
+          "left": 10
+        },
+        "nav": {
+          "x": 0,
+          "y": 718,
+          "width": 360,
+          "height": 62,
+          "top": 718,
+          "right": 360,
+          "bottom": 780,
+          "left": 0
+        },
+        "terms": []
+      }
+    },
+    {
+      "label": "360-fulfilled-ledger",
+      "geometry": {
+        "width": 360,
+        "height": 780,
+        "document": 360,
+        "documentHeight": 1151,
+        "body": 360,
+        "terms": [
+          {
+            "client": 340,
+            "scroll": 340,
+            "left": 10,
+            "right": 350
+          }
+        ]
+      }
+    },
+    {
+      "label": "360-broken",
+      "geometry": {
+        "width": 360,
+        "height": 780,
+        "document": 360,
+        "documentHeight": 780,
+        "body": 360,
+        "terms": []
+      }
+    },
+    {
+      "label": "390-event-terms",
+      "geometry": {
+        "width": 390,
+        "height": 844,
+        "document": 390,
+        "documentHeight": 844,
+        "body": 390,
+        "terms": [
+          {
+            "client": 318,
+            "scroll": 318,
+            "left": 24,
+            "right": 342
+          }
+        ]
+      }
+    },
+    {
+      "label": "390-active-ledger",
+      "geometry": {
+        "width": 390,
+        "height": 844,
+        "document": 390,
+        "documentHeight": 844,
+        "body": 390,
+        "terms": [
+          {
+            "client": 370,
+            "scroll": 370,
+            "left": 10,
+            "right": 380
+          }
+        ]
+      }
+    },
+    {
+      "label": "390-break-warning",
+      "geometry": {
+        "width": 390,
+        "height": 844,
+        "document": 390,
+        "documentHeight": 844,
+        "body": 390,
+        "map": {
+          "x": 10,
+          "y": 143,
+          "width": 370,
+          "height": 639,
+          "top": 143,
+          "right": 380,
+          "bottom": 782,
+          "left": 10
+        },
+        "nav": {
+          "x": 0,
+          "y": 782,
+          "width": 390,
+          "height": 62,
+          "top": 782,
+          "right": 390,
+          "bottom": 844,
+          "left": 0
+        },
+        "terms": [
+          {
+            "client": 318,
+            "scroll": 318,
+            "left": 37.589988708496094,
+            "right": 352.4099655151367
+          }
+        ]
+      }
+    },
+    {
+      "label": "390-delivery-notice-map",
+      "geometry": {
+        "width": 390,
+        "height": 844,
+        "document": 390,
+        "documentHeight": 844,
+        "body": 390,
+        "map": {
+          "x": 10,
+          "y": 143,
+          "width": 370,
+          "height": 595.953125,
+          "top": 143,
+          "right": 380,
+          "bottom": 738.953125,
+          "left": 10
+        },
+        "notice": {
+          "x": 10,
+          "y": 748.953125,
+          "width": 370,
+          "height": 33.046875,
+          "top": 748.953125,
+          "right": 380,
+          "bottom": 782,
+          "left": 10
+        },
+        "nav": {
+          "x": 0,
+          "y": 782,
+          "width": 390,
+          "height": 62,
+          "top": 782,
+          "right": 390,
+          "bottom": 844,
+          "left": 0
+        },
+        "terms": []
+      }
+    },
+    {
+      "label": "390-fulfilled-ledger",
+      "geometry": {
+        "width": 390,
+        "height": 844,
+        "document": 390,
+        "documentHeight": 1151,
+        "body": 390,
+        "terms": [
+          {
+            "client": 370,
+            "scroll": 370,
+            "left": 10,
+            "right": 380
+          }
+        ]
+      }
+    },
+    {
+      "label": "390-broken",
+      "geometry": {
+        "width": 390,
+        "height": 844,
+        "document": 390,
+        "documentHeight": 844,
+        "body": 390,
+        "terms": []
+      }
+    },
+    {
+      "label": "1440-event-terms",
+      "geometry": {
+        "width": 1440,
+        "height": 1000,
+        "document": 1440,
+        "documentHeight": 1000,
+        "body": 1440,
+        "terms": [
+          {
+            "client": 425,
+            "scroll": 425,
+            "left": 384,
+            "right": 809.328125
+          }
+        ]
+      }
+    },
+    {
+      "label": "1440-active-ledger",
+      "geometry": {
+        "width": 1440,
+        "height": 1000,
+        "document": 1440,
+        "documentHeight": 1000,
+        "body": 1440,
+        "terms": [
+          {
+            "client": 958,
+            "scroll": 958,
+            "left": 368,
+            "right": 1326
+          }
+        ]
+      }
+    },
+    {
+      "label": "1440-break-warning",
+      "geometry": {
+        "width": 1440,
+        "height": 1000,
+        "document": 1440,
+        "documentHeight": 1000,
+        "body": 1440,
+        "map": {
+          "x": 144,
+          "y": 101,
+          "width": 1152,
+          "height": 899,
+          "top": 101,
+          "right": 1296,
+          "bottom": 1000,
+          "left": 144
+        },
+        "nav": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "terms": [
+          {
+            "client": 698,
+            "scroll": 698,
+            "left": 374.489990234375,
+            "right": 1065.510009765625
+          }
+        ]
+      }
+    },
+    {
+      "label": "1440-delivery-notice-map",
+      "geometry": {
+        "width": 1440,
+        "height": 1000,
+        "document": 1440,
+        "documentHeight": 1000,
+        "body": 1440,
+        "map": {
+          "x": 144,
+          "y": 101,
+          "width": 1152,
+          "height": 855.953125,
+          "top": 101,
+          "right": 1296,
+          "bottom": 956.953125,
+          "left": 144
+        },
+        "notice": {
+          "x": 144,
+          "y": 966.953125,
+          "width": 1152,
+          "height": 33.046875,
+          "top": 966.953125,
+          "right": 1296,
+          "bottom": 1000,
+          "left": 144
+        },
+        "nav": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "terms": []
+      }
+    },
+    {
+      "label": "1440-fulfilled-ledger",
+      "geometry": {
+        "width": 1440,
+        "height": 1000,
+        "document": 1440,
+        "documentHeight": 1095,
+        "body": 1440,
+        "terms": [
+          {
+            "client": 958,
+            "scroll": 958,
+            "left": 368,
+            "right": 1326
+          }
+        ]
+      }
+    },
+    {
+      "label": "1440-broken",
+      "geometry": {
+        "width": 1440,
+        "height": 1000,
+        "document": 1440,
+        "documentHeight": 1000,
+        "body": 1440,
+        "terms": []
+      }
+    }
+  ]
+}

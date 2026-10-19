@@ -13,7 +13,7 @@ source:
   note: 借用共工水势意象的原创遗影试炼，原典映射待核验，不声称神话本人进入战斗或被击杀。
 balance:
   target:
-    rounds: [8, 12]
+    rounds: [6, 10]
     net_hp_loss_pct: [12, 20]
     burst_warning_pct: 30
     observation_window: 15
@@ -27,20 +27,19 @@ n: 1
 talents: [RKF10-J1-A]
 artifacts:
   - {id: RL03, stacks: 1}
-  - {id: RL05, stacks: 1}
   - {id: RC04, stacks: 1}
   - {id: RC11, stacks: 2}
 stats:
-  attack: 20
-  defense: 75
-  max_hp: 600
+  attack: 12
+  defense: 80
+  max_hp: 650
   crit_rate: 0.1
   speed: 12
 pressure: [多段, 稳打护盾]
 counterplay:
   - 用护盾或防御承受普攻首段与裂空宝轮追加段，并在白昼护盾形成后先破盾再交怒技。
-  - 以破甲或短战爆发压缩它从长夜高伤到下一次循环的窗口，保留治疗应对多段后续缺口。
-preview: 基础五维为装备前值；烛龙真经按卡面在昼夜间轮替，白昼生成护盾，裂空宝轮只在普攻首个有效基础命中后追加两段，回澜印在怒技完成后返怒；无额外阶段。
+  - 用破甲或短战爆发抓住昼夜切换：白昼造盾后先打盾，留爆发承接长夜高伤，并准备治疗应对多段后续缺口。
+preview: 基础五维为装备前值；烛龙真经每次主动作后轮替昼夜，白昼生成护盾；裂空宝轮只在普攻首个有效基础命中后追加两段。没有固定怒技返还来源或额外阶段。
 phases: []
 reward_profile: B
 measured: null

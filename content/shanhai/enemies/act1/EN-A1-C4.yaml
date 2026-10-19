@@ -24,14 +24,13 @@ tier: normal
 identity: 岩汐甲蜥伏在潮湿的岩坡上，背甲混着碎石，远看几乎与礁壁连成一片。
 method: RKF01
 n: 1
-talents: [RKF01-J1-A]
+talents: []
 artifacts:
   - {id: RC03, stacks: 1}
-  - {id: RC11, stacks: 2}
-  - {id: RC13, stacks: 1}
+  - {id: RC11, stacks: 1}
 stats:
   attack: 14
-  defense: 46
+  defense: 32
   max_hp: 330
   crit_rate: 0.05
   speed: 8

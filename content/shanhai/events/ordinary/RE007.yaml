@@ -4,8 +4,8 @@ kind: event
 id: RE007
 name: 炼气残简
 status: design_target
-summary: 付灵石取得回春功法本，或带走回春瓶。
-description: 破旧经摊只剩一页完整的回春功残简，旁边的回春瓶也在等买主。
+summary: 付灵石取得回春功法本或回春瓶，也可不买离摊。
+description: 破旧经摊只剩一页完整的回春功法本，旁边的回春瓶也在等买主；取得功法本不会自动改修。
 tags: [ordinary, method, purchase, artifact]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [1]
-scene: 经摊上，一页回春功残简和一只回春瓶并排摆着。摊主催你在收摊前做决定。
+scene: 经摊上，一页回春功法本和一只回春瓶并排摆着。摊主催你在收摊前做决定，改修仍由你自己决定。
 options:
   - id: RE007-A
-    label: 付石收下回春法本
-    quick: 付出标价灵石，带走回春功法本；是否改修由你决定。
+    label: 付石取得回春法本
+    quick: 付出标价灵石，取得回春功法本；是否改修由你决定。
     requirements:
       - {type: can_pay}
     costs:

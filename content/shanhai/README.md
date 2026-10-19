@@ -139,7 +139,7 @@ category: enhance, effects: [...]}`。
 
 字段：`event_type/acts/scene/options/settlement`，普通为`ordinary`、核心为`core`。
 `acts` 为允许出现幕的整数数组。场景尽量两句内，每项2-3个互斥选项。
-每个选项含 `id/label/quick/requirements/costs/rewards/outcome`；
+每个选项含 `id/label/quick/requirements/costs/rewards/outcome`，可选含 `commitment`；
 `requirements/costs/rewards` 均为数组，`outcome` 是玩家选择后的短文案。
 选项 ID 必须以事件ID开头。代价或奖励条目：
 
@@ -164,6 +164,34 @@ rewards:
 可另加 `set_flags` 对象、`encounter: {enemy_id: EN-A1-C1, mode: nonlethal,
 failure_hp_floor: 1, failure_rewards: [], failure_outcome: ...}`；
 有encounter时 `rewards/outcome` 只在胜利兑现。失败不发通用战斗包。
+
+同一选项禁止同时使用 `encounter` 与 `commitment`。延迟承诺是选项的一部分，不增加节点、
+不刷新候选。结构固定为：
+
+```yaml
+commitment:
+  name: 护送药箱
+  after_nodes: 3
+  avoid_node_types: [R]
+  rewards:
+    - {type: artifact, id: RC17, count: 2}
+  success_outcome: 药箱送达，取得两层行医囊。
+  failure_outcome: 护送失约，已付盘缠不退，也没有行医囊。
+```
+
+`after_nodes` 仅允许2或3；`avoid_node_types` 必须是一个或两个不重复的 `R`/`S`。
+延迟奖励只允许已支持的固定法宝奖励，或 `basis: flat` 的气血、灵石、修为奖励；
+法宝层数必须是1至5的有限整数，单项承诺最多3种奖励。事件所在节点不计数；
+从该节点之后开始，每完成一个真实非终战节点计一次，跨幕继续计数。进入承诺列出的休整
+或商店节点即失约；进入终战 `F` 时，尚未兑现的承诺过期。死亡后不推进承诺，也不处理其
+奖励。兑现、失约或过期都只结算一次；失约和过期不退已付成本，不发延迟奖励。承诺内容
+（来源事件/选项、幕/步、剩余节点数、状态及选项内容快照）保存在本局状态中，旧存档缺少
+该字段按空列表读取。
+
+兑现法宝时若容量已满，或实际唯一组冲突导致无法取得对应层数，未取得的每层按公开政策
+折为4枚灵石；不能把无效层数作为白送奖励，也不按失约原因额外补偿。事件快读文案和阅读
+页必须分别说明即时效果、兑现条件、失约/终战过期及不退款；选了承诺不会追加节点或候选。
+
 `settlement` 至少写
 `{once: true, internal_battle_package: false, travel_triggers: 1, fallback: coins}`。
 如需更多效果，先明确结构，不用无定义的新资源、无限随机数或免费追加节点。

@@ -271,7 +271,7 @@ function finiteTree(errors, value, source, label = 'value', key = undefined) {
 
 function exactKeys(actual, expected) {
   const actualKeys = Object.keys(actual ?? {}).sort()
-  const expectedKeys = Object.keys(expected ?? {}).sort()
+  const expectedKeys = (Array.isArray(expected) ? expected : Object.keys(expected ?? {})).sort()
   return actualKeys.length === expectedKeys.length && actualKeys.every((key, index) => key === expectedKeys[index])
 }
 
@@ -770,6 +770,79 @@ function validateEncounter(encounter, option, known, errors, source) {
   }
 }
 
+function validateCommitment(commitment, option, known, errors, source) {
+  if (!isRecord(commitment)) {
+    addIssue(errors, 'commitment', 'option.commitment must be a mapping', source)
+    return
+  }
+  const fields = [
+    'name',
+    'after_nodes',
+    'avoid_node_types',
+    'rewards',
+    'success_outcome',
+    'failure_outcome',
+  ]
+  if (!exactKeys(commitment, fields)) {
+    addIssue(errors, 'commitment-fields', 'commitment must use exactly the supported fields', source)
+  }
+  requiredString(errors, commitment, 'name', source)
+  if (![2, 3].includes(commitment.after_nodes)) {
+    addIssue(errors, 'commitment-count', 'commitment.after_nodes must be 2 or 3', source)
+  }
+  if (
+    !Array.isArray(commitment.avoid_node_types) ||
+    commitment.avoid_node_types.length < 1 ||
+    commitment.avoid_node_types.length > 2 ||
+    commitment.avoid_node_types.some((type) => !['R', 'S'].includes(type)) ||
+    new Set(commitment.avoid_node_types).size !== commitment.avoid_node_types.length
+  ) {
+    addIssue(errors, 'commitment-nodes', 'avoid_node_types must contain unique R and/or S node types', source)
+  }
+  if (!Array.isArray(commitment.rewards) || commitment.rewards.length < 1 || commitment.rewards.length > 3) {
+    addIssue(errors, 'commitment-rewards', 'commitment.rewards must contain 1 to 3 supported rewards', source)
+  } else {
+    for (const [index, reward] of commitment.rewards.entries()) {
+      const location = `${source}:commitment.rewards[${index}]`
+      if (!isRecord(reward) || !['artifact', 'resource'].includes(reward.type)) {
+        addIssue(errors, 'commitment-reward', 'commitment rewards must be fixed artifact or resource rewards', location)
+        continue
+      }
+      if (reward.type === 'artifact') {
+        if (!exactKeys(reward, ['type', 'id', 'count'])) {
+          addIssue(errors, 'commitment-reward-fields', 'artifact commitment reward must use type, id, and count only', location)
+        }
+        validateReward(reward, known, errors, location)
+        finiteNumber(errors, reward.count, location, 'commitment artifact count', { integer: true, min: 1, max: 5 })
+        const artifact = known.byId.get(reward.id)
+        if (artifact && Number.isInteger(reward.count) && reward.count > artifact.max_stacks) {
+          addIssue(errors, 'commitment-reward-count', `commitment artifact count cannot exceed ${artifact.max_stacks} layers of ${reward.id}`, location)
+        }
+        const capacity = option.requirements?.find(
+          (requirement) => requirement?.type === 'capacity' && requirement.id === reward.id,
+        )
+        if (!capacity || capacity.count < reward.count) {
+          addIssue(errors, 'commitment-capacity', `artifact commitment reward ${reward.id} requires matching capacity`, location)
+        }
+      } else {
+        if (!exactKeys(reward, ['type', 'resource', 'amount', 'basis'])) {
+          addIssue(errors, 'commitment-reward-fields', 'resource commitment reward must use type, resource, amount, and basis only', location)
+        }
+        validateReward(reward, known, errors, location)
+        finiteNumber(errors, reward.amount, location, 'commitment resource amount', { min: 0, max: 1000 })
+        if (reward.basis !== 'flat') {
+          addIssue(errors, 'commitment-resource-basis', 'resource commitment rewards must use flat amounts', location)
+        }
+      }
+    }
+  }
+  requiredString(errors, commitment, 'success_outcome', source)
+  requiredString(errors, commitment, 'failure_outcome', source)
+  if (option.encounter !== undefined) {
+    addIssue(errors, 'encounter-commitment', 'an option cannot combine encounter and commitment', source)
+  }
+}
+
 function validateEvent(entity, errors, known) {
   const source = sourceFor(entity)
   const expectedCore = CORE_EVENT_IDS.includes(entity.id)
@@ -834,6 +907,7 @@ function validateEvent(entity, errors, known) {
       }
     }
     if (option.encounter !== undefined) validateEncounter(option.encounter, option, known, errors, `${location}:encounter`)
+    if (option.commitment !== undefined) validateCommitment(option.commitment, option, known, errors, `${location}:commitment`)
   }
   if (!isRecord(entity.settlement)) {
     addIssue(errors, 'settlement', 'settlement must be a mapping', source)

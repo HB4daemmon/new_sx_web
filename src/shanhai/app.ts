@@ -497,9 +497,16 @@ class ShanhaiApp {
     if (!this.game || this.busy) return;
     this.busy = true;
     this.error = '';
+    this.notice = '';
     const beforePhase = this.game.state.phase;
+    const commitmentStatuses = this.game.state.eventCommitments?.map(record => record.status) ?? [];
     try {
       this.game.dispatch(command);
+      const settled = this.game.state.eventCommitments?.filter((record, index) =>
+        commitmentStatuses[index] === 'active' && record.status !== 'active') ?? [];
+      if (settled.length) this.notice = settled.map(record =>
+        `${record.snapshot.name}：${record.resultText || (record.status === 'fulfilled' ? '已兑现' : '已中止')}`,
+      ).join(' ');
       if (this.game.state.phase !== beforePhase) this.scrollToStageTop = true;
       this.acceptDispatchResult();
     } catch (cause) {
@@ -1931,11 +1938,13 @@ class ShanhaiApp {
       .filter(([, value]) => value)
       .map(([id]) => this.flagLabel(id))
       .filter(Boolean);
+    const commitments = state.eventCommitments ?? [];
     return `<section class="karma-page">
       ${this.stageHeading('因缘', '行迹与因果')}
       <section class="karma-ledger"><div class="karma-summary"><span>因缘</span><strong>${esc(asText(storyline?.name, '尚未相逢'))}</strong><p>${esc(this.displayText(entitySummary(storyline)) || '山河尚未留下这段因缘。')}</p></div><div class="karma-summary"><span>行迹记录</span><strong>${history.length}</strong><p>走过的节点与已经落定的选择。</p></div></section>
       ${encounteredPeople.length ? `<section class="build-section karma-characters"><div class="section-heading"><h2>相逢人物</h2><span>${encounteredPeople.length} 位</span></div><div class="build-tags">${encounteredPeople.map((name) => `<span>${esc(name)}</span>`).join('')}</div></section>` : ''}
       <section class="build-section"><div class="section-heading"><h2>留下的约定</h2><span>${flagLabels.length} 项</span></div><div class="build-tags">${flagLabels.map((label) => `<span>${esc(label)}</span>`).join('') || '<span>尚无约定</span>'}</div></section>
+      ${commitments.length ? `<section class="build-section journey-commitments"><div class="section-heading"><h2>行旅约定</h2><span>${commitments.filter(record => record.status === 'active').length} 项待兑现</span></div>${commitments.map(record => `<article class="journey-commitment" data-commitment-status="${record.status}"><h3>${esc(record.snapshot.name)}<small>${record.status === 'active' ? `余 ${record.remaining} 处` : ({ fulfilled: '已兑现', broken: '已失约', expired: '已过期' }[record.status])}</small></h3><p>${record.status === 'active' ? esc(`期间不进入${record.snapshot.avoid_node_types.map(type => nodeMeta(type).label).join('、')}；${record.snapshot.rewards.map(reward => this.effectLabel(reward, false)).join('，')}。失约不退费，终战前未兑现作废；满层或冲突部分每层折4灵石。`) : esc(record.resultText || record.snapshot.failure_outcome)}</p></article>`).join('')}</section>` : ''}
       <section class="timeline" aria-label="行迹记录">${history.length ? history.map((item, index) => `<article class="timeline-item"><span class="timeline-index">${String(history.length - index).padStart(2, '0')}</span><div><small>第${esc(asText(item.act))}幕 · 节点 ${formatNumber(asNumber(item.step) + 1)}</small><h3>${esc(this.displayText(asText(item.title, '山海一刻')))}</h3><p>${esc(this.displayText(asText(item.text, '')))}</p></div></article>`).join('') : '<p class="empty-note">山河初展，尚待第一笔记录。</p>'}</section>
       ${this.inlineMessage()}
     </section>`;
@@ -2129,11 +2138,15 @@ class ShanhaiApp {
           : node.type === 'R'
             ? '前往山中歇息，为接下来的路程作准备。'
             : '前路尚未明朗。';
+    const affectedCommitments = this.gameState()?.eventCommitments?.filter(record =>
+      record.status === 'active' && (node.type === 'F' ||
+        record.snapshot.avoid_node_types.includes(node.type as 'R' | 'S'))) ?? [];
     return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal node-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="node-preview-title" data-node-type="${esc(node.type)}">
       <button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button>
       <p class="eyebrow">${battleNode ? `${meta.label} · 对手功法` : eventNode ? '行旅预览' : '山河预览'}</p>
       <h2 id="node-preview-title">${esc(heading)}</h2>
       ${battleNode && enemyMethod ? `<p class="node-preview-method">所修功法 · ${esc(asText(enemyMethod.name))}</p>` : ''}
+      ${affectedCommitments.length ? `<p class="event-risk commitment-warning" role="status">前往此处将${node.type === 'F' ? '结束未兑现的' : '中止'}「${esc(affectedCommitments.map(record => record.snapshot.name).join('、'))}」，不发奖励且不退已付代价。</p>` : ''}
       <details class="disclosure node-preview-detail" data-details="node-preview-copy"><summary>遭遇详情</summary><p class="node-preview-copy">${esc(body)}</p></details>
       <div class="dialog-actions node-preview-actions"><button class="button quiet" data-action="modal-close">返回山河</button><button class="button primary" data-action="confirm-node" data-autofocus>前往此处 ${icon('arrow', 15)}</button></div>
     </section></div>`;
@@ -2747,7 +2760,11 @@ class ShanhaiApp {
         ? `比试 · 败后保留 ${formatNumber(asNumber(encounter.failure_hp_floor, 1))} 气血`
         : '斗法 · 落败将结束命途'
       : '';
-    return `<button class="event-option ${check.available ? '' : 'disabled'}" data-action="event" data-id="${esc(option.id)}" ${check.available ? '' : 'disabled'}><span class="event-option-main"><b>${this.textMarkup(asText(option.label, option.name))}</b>${risk ? `<small class="event-risk">${this.textMarkup(risk)}</small>` : ''}${!hasResolvedEffects && quick ? `<small>${semanticTextMarkup(quick)}</small>` : ''}${costs.length ? `<span class="event-costs">${costs.map((cost) => `<i>${this.textMarkup(this.effectLabel(cost, true))}</i>`).join('')}</span>` : ''}${rewards.length ? `<span class="event-rewards">${encounter ? '<span>胜后</span>' : ''}${rewards.map((reward) => `<i>${this.textMarkup(this.effectLabel(reward, false))}</i>`).join('')}</span>` : ''}${!check.available ? `<em class="disabled-reason">${esc(check.reason || '当前条件不满足')}</em>` : ''}</span>${icon(check.available ? 'arrow' : 'close', 18)}</button>`;
+    const commitment = option.commitment;
+    const delayed = commitment
+      ? `${commitment.after_nodes}处后：${listOf<any>(commitment.rewards).map(reward => this.effectLabel(reward, false)).join('，')}。期间不进${listOf<string>(commitment.avoid_node_types).map(type => nodeMeta(type).label).join('、')}，失约不退费，终战前未兑现作废。`
+      : '';
+    return `<button class="event-option ${check.available ? '' : 'disabled'}" data-action="event" data-id="${esc(option.id)}" ${check.available ? '' : 'disabled'}><span class="event-option-main"><b>${this.textMarkup(asText(option.label, option.name))}</b>${risk ? `<small class="event-risk">${this.textMarkup(risk)}</small>` : ''}${!hasResolvedEffects && quick && !commitment ? `<small>${semanticTextMarkup(quick)}</small>` : ''}${costs.length ? `<span class="event-costs">${costs.map((cost) => `<i>${this.textMarkup(this.effectLabel(cost, true))}</i>`).join('')}</span>` : ''}${rewards.length ? `<span class="event-rewards">${encounter ? '<span>胜后</span>' : ''}${rewards.map((reward) => `<i>${this.textMarkup(this.effectLabel(reward, false))}</i>`).join('')}</span>` : ''}${delayed ? `<small class="event-commitment-terms">${this.textMarkup(delayed)}</small>` : ''}${!check.available ? `<em class="disabled-reason">${esc(check.reason || '当前条件不满足')}</em>` : ''}</span>${icon(check.available ? 'arrow' : 'close', 18)}</button>`;
   }
 
   private effectLabel(effect: any, cost: boolean): string {

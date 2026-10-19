@@ -4,8 +4,8 @@ kind: event
 id: RE003
 name: 灰烬石匣
 status: design_target
-summary: 以气血为价，在青锋石与玄铁甲之间取两层，或拿走灵石。
-description: 灰烬石匣还在发烫，匣底压着两枚法片。外沿的灵石不必冒险就能捡走。
+summary: 以气血承受灼伤，换两层攻击或防御法宝；也可安全拾取灵石。
+description: 灰烬石匣还在发烫，匣底压着两枚法片。只有探入匣底才会受伤，外沿灵石不必冒险就能捡走。
 tags: [ordinary, blood_price, two_layers, artifact]
 source:
   basis: original
@@ -18,7 +18,7 @@ balance:
   measured: null
 event_type: ordinary
 acts: [1, 2]
-scene: 灰烬石匣仍在发烫，匣底压着青锋石与玄铁甲。外沿的灵石安静躺在冷灰里。
+scene: 灰烬石匣仍在发烫，匣底压着青锋石与玄铁甲。探入匣底会损失气血，外沿的灵石则安静躺在冷灰里。
 options:
   - id: RE003-A
     label: 探入匣底取锋

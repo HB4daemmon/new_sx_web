@@ -13,7 +13,7 @@ source:
   note: 借用河伯水府与试潮意象的原创试炼残影，原典映射待核验，不声称神话本人进入战斗或被击杀。
 balance:
   target:
-    rounds: [8, 12]
+    rounds: [6, 10]
     net_hp_loss_pct: [12, 20]
     burst_warning_pct: 30
     observation_window: 15
@@ -29,9 +29,9 @@ artifacts:
   - {id: RC06, stacks: 1}
   - {id: RC12, stacks: 2}
 stats:
-  attack: 20
+  attack: 18
   defense: 73
-  max_hp: 280
+  max_hp: 350
   crit_rate: 0.08
   speed: 10
 pressure: [恢复]

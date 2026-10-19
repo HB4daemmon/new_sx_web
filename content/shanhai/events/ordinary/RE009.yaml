@@ -4,8 +4,8 @@ kind: event
 id: RE009
 name: 河灯试诀
 status: design_target
-summary: 参加河灯试诀争取五毒经，或付灵石带走青锋石。
-description: 河灯照亮临时擂台，擂主拿出五毒经作彩头；失手后会被送回台下，气血仅剩1点。
+summary: 参加非致死试诀争取五毒经、付灵石购买青锋石，或提灯离开。
+description: 河灯照亮临时擂台，擂主拿出五毒经作彩头；失手后会被送回台下，气血仅剩1点且无奖励。
 tags: [ordinary, nonlethal, encounter, rare_method]
 source:
   basis: original
@@ -18,11 +18,11 @@ balance:
   measured: null
 event_type: ordinary
 acts: [1, 2]
-scene: 河灯在水面摇曳，擂主把五毒经放上擂台。想拿走它，先在擂台上赢下这场试诀；失手后只保留1点气血。
+scene: 河灯在水面摇曳，擂主把五毒经放上擂台。赢下非致死试诀才可得经，失手后只保留1点气血。
 options:
   - id: RE009-A
     label: 上台试诀
-    quick: 参加试诀，胜利带走五毒经；失手后保留1点气血。
+    quick: 参加非致死试诀，胜利取得五毒经；失手后仅剩1点气血且无奖励。
     requirements: []
     costs: []
     rewards:

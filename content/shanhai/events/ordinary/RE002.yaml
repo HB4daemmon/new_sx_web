@@ -4,8 +4,8 @@ kind: event
 id: RE002
 name: 旧炉余温
 status: design_target
-summary: 付灵石从青锋石与玄铁甲中选一件。
-description: 旧炉主只够再开一炉，青锋石和玄铁甲在火边各自发亮。
+summary: 立即购买玄铁甲、预付便宜炉价延后取凝气珠，或离开。
+description: 旧炉主只够再开一炉，玄铁甲现成可取，凝气珠则可预付炉价后再等两处行程。
 tags: [ordinary, purchase, attack, defense]
 source:
   basis: original
@@ -13,27 +13,16 @@ source:
   note: 游戏原创普通事件。
 balance:
   target:
-    gross_U: [0.75, 1.0]
+    gross_U: [0.75, 1.2]
     J: null
   measured: null
 event_type: ordinary
 acts: [1]
-scene: 旧炉主把青锋石与玄铁甲摆上炉台：只够炼成一件，价钱也已写在炉边。
+scene: 旧炉主把玄铁甲和未成形的凝气珠摆上炉台。眼下取甲按市价结算，预付开炉则便宜些，但需绕开坊市等满两处行程。
 options:
   - id: RE002-A
-    label: 付石炼锋
-    quick: 付出标价灵石，带走一层青锋石，增强直接攻击。
-    requirements:
-      - {type: can_pay}
-      - {type: capacity, id: RC01, count: 1}
-    costs:
-      - {type: resource, resource: coins, amount: 0.75, basis: common_price}
-    rewards:
-      - {type: artifact, id: RC01, count: 1}
-    outcome: 炉火一收，青锋石落入掌中，出手更添锋芒。
-  - id: RE002-B
-    label: 付石炼甲
-    quick: 付出标价灵石，带走一层玄铁甲，提升防御。
+    label: 付石收甲
+    quick: 付出标价灵石，立即带走一层玄铁甲，提升防御。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC03, count: 1}
@@ -41,14 +30,32 @@ options:
       - {type: resource, resource: coins, amount: 0.75, basis: common_price}
     rewards:
       - {type: artifact, id: RC03, count: 1}
-    outcome: 玄铁甲扣上肩背，沉重的铁意护住周身。
+    outcome: 你付清现价，玄铁甲当场离炉，不必等待。
+  - id: RE002-B
+    label: 预付延后开炉
+    quick: 先付折价炉钱；接下来2处地点不进坊市，之后取得两层凝气珠。失约或到终战未兑现均不退款。
+    requirements:
+      - {type: can_pay}
+      - {type: capacity, id: RC19, count: 2}
+    costs:
+      - {type: resource, resource: coins, amount: 0.45, basis: common_price}
+    rewards: []
+    outcome: 你先付折价炉钱，凝气珠尚未炼成；失约不退款。
+    commitment:
+      name: 等候凝气珠
+      after_nodes: 2
+      avoid_node_types: [S]
+      rewards:
+        - {type: artifact, id: RC19, count: 2}
+      success_outcome: 两处行程顺利结束，取得两层凝气珠。
+      failure_outcome: 等待期间进入坊市，或到终战仍未兑现，折价炉钱不退，也没有凝气珠。
   - id: RE002-C
-    label: 熄炉离开
-    quick: 熄炉离开，保留灵石和已有法宝。
+    label: 不开炉
+    quick: 放弃两种交易，保留灵石和已有法宝。
     requirements: []
     costs: []
     rewards: []
-    outcome: 你让炉火自行熄灭，灵石与随身法宝都留在手里。
+    outcome: 你谢绝交易，灵石与随身法宝都留在手里。
 settlement:
   once: true
   internal_battle_package: false

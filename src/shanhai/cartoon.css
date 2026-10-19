@@ -322,6 +322,37 @@ button:disabled {
   color: var(--vermilion);
 }
 
+.game-page .dialog.node-preview-dialog > p.commitment-warning {
+  color: var(--vermilion);
+  font-weight: 650;
+  line-height: 1.6;
+}
+
+.game-page .journey-commitment {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.game-page .journey-commitment h3 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  justify-content: space-between;
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.game-page .journey-commitment h3 small {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.game-page .journey-commitment p {
+  margin: 0;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
 .game-page .settings-dialog .chapter:not(.active) .chapter-name {
   display: none;
 }

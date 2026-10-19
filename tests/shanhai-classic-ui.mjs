@@ -313,14 +313,16 @@ async function createFixture(page, target, seed = `classic-ui-${target}`, option
     const advance = () => {
       if (game.state.phase === 'map') {
         const available = game.availableNodes();
-        const preferredTypes = target === 'event' && game.state.step === 1
-          ? ['E', 'K']
-          : target === 'rest' && game.state.step === 3
-            ? ['R']
-            : target === 'shop' && game.state.step === 5
-              ? ['S']
-              : [];
-        const node = available.find(candidate => preferredTypes.includes(candidate.type)) || available[0];
+        const preferredTypes = target === 'event' ? ['E', 'K'] : target === 'rest' ? ['R'] : target === 'shop' ? ['S'] : [];
+        const byKey = new Map(game.state.routeMap.nodes.map(node => [node.key, node]));
+        const distances = new Map();
+        const distance = node => {
+          if (distances.has(node.key)) return distances.get(node.key);
+          const value = preferredTypes.includes(node.type) ? 0 : 1 + Math.min(...node.next.map(key => distance(byKey.get(key))));
+          distances.set(node.key, value);
+          return value;
+        };
+        const node = available.slice().sort((a, b) => distance(a) - distance(b))[0];
         if (!node) throw new Error(`Fixture has no reachable node at step ${game.state.step}`);
         game.dispatch({ type: 'enter', id: node.key });
       } else if (game.state.phase === 'preview') {

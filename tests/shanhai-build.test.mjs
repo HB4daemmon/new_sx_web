@@ -18,6 +18,7 @@ const SHANHAI_MODULES = [
   'battle-presentation.js',
   'combat.js',
   'content.js',
+  'event-commitments.js',
   'cartoon.css',
   'game-art.js',
   'localization.js',

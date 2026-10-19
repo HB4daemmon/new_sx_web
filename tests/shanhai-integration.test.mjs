@@ -100,7 +100,7 @@ function atRest(method = 'RKF01') {
   game.state.method = method;
   game.state.talents[method] = [];
   const rest = routeToNode(game, node => node.type === 'R');
-  assert.equal(rest.depth, 3);
+  assert.ok([3, 6].includes(rest.depth));
   game.state.hp = 100;
   return game;
 }

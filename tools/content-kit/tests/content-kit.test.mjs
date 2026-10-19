@@ -259,6 +259,61 @@ test('complete temporary fixture validates and renders the fixed 32 pages', asyn
   assert.doesNotMatch(pages.get('methods/RKF01.md'), /schema_version:/)
 })
 
+test('event commitment schema is bounded and cannot be combined with an encounter', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  const event = fixture.entities.get('RE001')
+  const option = event.options[0]
+  const commitment = {
+    name: '护送药箱',
+    after_nodes: 2,
+    avoid_node_types: ['R'],
+    rewards: [{ type: 'artifact', id: 'RC17', count: 2 }],
+    success_outcome: '药箱送达，取得两层行医囊。',
+    failure_outcome: '失约不退款，也没有行医囊。',
+  }
+  option.commitment = commitment
+  option.requirements = [{ type: 'capacity', id: 'RC17', count: 2 }]
+  await rewriteEntity(fixture, 'RE001', event)
+  let report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map((error) => `${error.code}:${error.message}`).join('\n'))
+
+  option.requirements = []
+  await rewriteEntity(fixture, 'RE001', event)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'commitment-capacity'))
+
+  option.requirements = [{ type: 'capacity', id: 'RC17', count: 2 }]
+  option.commitment = { ...commitment, retry_reward: true }
+  await rewriteEntity(fixture, 'RE001', event)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'commitment-fields'))
+
+  option.commitment = commitment
+  option.encounter = {
+    enemy_id: 'EN-A1-C1',
+    mode: 'nonlethal',
+    failure_hp_floor: 1,
+    failure_rewards: [],
+    failure_outcome: '落败。',
+  }
+  await rewriteEntity(fixture, 'RE001', event)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'encounter-commitment'))
+
+  delete option.encounter
+  option.commitment = {
+    ...commitment,
+    after_nodes: 4,
+    avoid_node_types: ['F'],
+    rewards: [{ type: 'resource', resource: 'coins', amount: 4, basis: 'common_price' }],
+  }
+  await rewriteEntity(fixture, 'RE001', event)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'commitment-count'))
+  assert.ok(report.errors.some((error) => error.code === 'commitment-nodes'))
+  assert.ok(report.errors.some((error) => error.code === 'commitment-resource-basis'))
+})
 test('missing files are errors and are not silently skipped', async (t) => {
   const fixture = await writeFixture()
   t.after(() => rm(fixture.root, { recursive: true, force: true }))

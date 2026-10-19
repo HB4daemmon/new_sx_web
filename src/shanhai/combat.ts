@@ -932,6 +932,7 @@ function applyGenericNumberModifiers(
   let result = value;
   for (const modifier of matchingModification(actor, effectId, action, target)) {
     const p = modifier.params ?? {};
+    if (p.field !== field) continue;
     const mod = p.mode;
     let delta = 0;
     if (field.endsWith('attack_ratio') || field === 'params.attack_ratio') {
@@ -976,6 +977,11 @@ function directSpec(runtime: BattleRuntime, action: ActionContext, base: ActiveE
       segments = int(mp.segments, segments);
       ratio = n(mp.attack_ratio_per_segment, ratio);
       used = true;
+    } else if (mode === 'add' && mp.field === 'params.segments') {
+      const previousSegments = segments;
+      const nextSegments = previousSegments + int(mp.value, 0) * modifier.stacks;
+      segments = Math.max(0, Math.min(int(mp.max_segments, nextSegments), nextSegments));
+      used = segments !== previousSegments;
     } else if (mode === 'add' && (
       mp.field === 'params.attack_ratio' ||
       mp.field === `params.attack_ratio_by_phase.${actor.phase}`
@@ -1843,7 +1849,18 @@ function resolveActionEnd(runtime: BattleRuntime, action: ActionContext): void {
         continue;
       }
       if (effect.id === 'RKF10-BASIC-SHIELD-DAY' || effect.id === 'RKF10-RAGE-SHIELD-DAY') {
-        if (actor.phase === 'day') addShield(runtime, actor, action.actionStats.defense * n(p.defense_ratio, 0), effect, '白昼护盾');
+        if (actor.phase === 'day') {
+          const defenseRatio = applyGenericNumberModifiers(
+            runtime,
+            actor,
+            target,
+            action,
+            effect.id,
+            'params.defense_ratio',
+            n(p.defense_ratio, 0),
+          );
+          addShield(runtime, actor, action.actionStats.defense * defenseRatio, effect, '白昼护盾');
+        }
         continue;
       }
     }

@@ -1,3 +1,5 @@
+import type { EventCommitmentRecord } from './event-commitments.js';
+
 // Authored entities are validated by content-kit before entering this boundary.
 export interface Entity {
   id: string;
@@ -116,9 +118,10 @@ export interface RunState {
   flags: Record<string, boolean>;
   storyline: string;
   independentCore: string | null;
-  history: { act: number; step: number; title: string; text: string }[];
+  history: { act: number; step: number; title: string; text: string; eventId?: string; optionId?: string }[];
   seenEvents: string[];
   completedCore: string[];
+  eventCommitments?: EventCommitmentRecord[];
   extraElites: number;
   ordinaryCount: number;
   rewardCandidates: string[];

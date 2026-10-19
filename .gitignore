@@ -14,4 +14,5 @@ __pycache__/
 /verification/browser-node/
 /verification/shanhai/browser/*.png
 /verification/shanhai/browser-journey/screenshots/
+/verification/shanhai/commitments/*.png
 /output/imagegen/

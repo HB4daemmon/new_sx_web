@@ -4,9 +4,9 @@ kind: event
 id: RE006
 name: 驿站余火
 status: design_target
-summary: 在驿站选择疗伤、盘缠或修行。
-description: 驿站的余火只够照亮一张桌子，掌柜端来药碗、钱袋和静室钥匙。
-tags: [ordinary, heal, coins, xp]
+summary: 在驿站选择立即疗伤、准备护盾或修行。
+description: 驿站的余火只够照亮一张桌子，掌柜端来药碗、护身符和静室钥匙。
+tags: [ordinary, heal, shield, xp]
 source:
   basis: original
   reference: null
@@ -18,7 +18,7 @@ balance:
   measured: null
 event_type: ordinary
 acts: [1]
-scene: 掌柜把药碗、钱袋和静室钥匙摆在桌上。余火将尽，你只能取其中一份。
+scene: 掌柜把药碗、护身符和静室钥匙摆在桌上。余火将尽，你只能取其中一份。
 options:
   - id: RE006-A
     label: 借火养伤
@@ -29,21 +29,21 @@ options:
       - {type: resource, resource: hp, amount: 0.2, basis: reference_hp}
     outcome: 药力沿经脉散开，疲惫的伤势缓了下来。
   - id: RE006-B
-    label: 换取盘缠
-    quick: 拿走一笔盘缠，为下一段路添些灵石。
+    label: 备下护身符
+    quick: 获得一份战前护盾准备，不恢复气血也不增加修为。
     requirements: []
     costs: []
     rewards:
-      - {type: resource, resource: coins, amount: 0.5, basis: common_price}
-    outcome: 掌柜把钱袋交给你，旅途多了一点余裕。
+      - {type: preparation, effect: shield, amount: 0.15, basis: reference_hp}
+    outcome: 你将护身符收好，下一场战斗前可获得一层护盾准备。
   - id: RE006-C
     label: 静坐修行
-    quick: 静坐片刻，修为提高下一次进阶所需的两成。
+    quick: 静坐片刻，增加下一次完整突破需求的两成修为。
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
-    outcome: 你在余火旁静坐，修为稳稳向前推进。
+    outcome: 你在余火旁静坐，修为稳稳向下一次突破推进两成。
 settlement:
   once: true
   internal_battle_package: false

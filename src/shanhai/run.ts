@@ -3,7 +3,17 @@ import {
   calculateStats as combatCalculateStats,
   simulateBattle as combatSimulateBattle,
 } from './combat.js';
-import { createRouteMapNodes, validateRouteMap } from './route-map.js';
+import {
+  ACT1_CORE_DEPTHS,
+  ACT1_FUNCTION_LAYOUTS,
+  createRouteMapNodes,
+  validateRouteMap,
+} from './route-map.js';
+import {
+  advanceEventCommitments,
+  assertEventCommitmentRecords,
+  createEventCommitment,
+} from './event-commitments.js';
 import type {
   ArtifactStack,
   BattleResult,
@@ -443,6 +453,7 @@ export class ShanhaiGame {
       history: [],
       seenEvents: [],
       completedCore: [],
+      eventCommitments: [],
       extraElites: 0,
       ordinaryCount: 0,
       rewardCandidates: [],
@@ -514,21 +525,43 @@ export class ShanhaiGame {
   private createRouteMap(legacyPath: RunNode[] = []): RouteMapNode[] {
     const act = this.state.act;
     const coreSlots = new Map<number, string>();
-    for (const depth of [1, 4, 7]) {
-      const candidates = this.coreCandidatesAt(depth);
-      if (!candidates.length) continue;
-      const lane = Math.floor(seededRandom(`${this.state.seed}:route-map:${act}:core-lane:${depth}`)() * 3);
-      const pick = Math.floor(seededRandom(`${this.state.seed}:route-map:${act}:core-id:${depth}`)() * candidates.length);
-      coreSlots.set(depth * 3 + lane, candidates[pick] ?? candidates[0]!);
+    if (act === 1) {
+      const coreOptions = ACT1_CORE_DEPTHS.flatMap(depth =>
+        this.coreCandidatesAt(depth).map(id => ({ depth, id })));
+      if (coreOptions.length) {
+        const pick = Math.floor(seededRandom(`${this.state.seed}:route-map:${act}:core-slot`)() * coreOptions.length);
+        const selected = coreOptions[pick] ?? coreOptions[0]!;
+        const lane = Math.floor(seededRandom(
+          `${this.state.seed}:route-map:${act}:core-lane:${selected.depth}`,
+        )() * 3);
+        coreSlots.set(selected.depth * 3 + lane, selected.id);
+      }
+    } else {
+      for (const depth of ACT1_CORE_DEPTHS) {
+        const candidates = this.coreCandidatesAt(depth);
+        if (!candidates.length) continue;
+        const lane = Math.floor(seededRandom(`${this.state.seed}:route-map:${act}:core-lane:${depth}`)() * 3);
+        const pick = Math.floor(seededRandom(`${this.state.seed}:route-map:${act}:core-id:${depth}`)() * candidates.length);
+        coreSlots.set(depth * 3 + lane, candidates[pick] ?? candidates[0]!);
+      }
     }
+    const cadence = act === 1
+      ? seededRandom(`${this.state.seed}:route-map:1:function-cadence`)() < 0.5
+        ? 'early_challenge'
+        : 'late_preparation'
+      : undefined;
+    const functionLayout = cadence ? ACT1_FUNCTION_LAYOUTS[cadence] : undefined;
     const restLane = Math.floor(seededRandom(`${this.state.seed}:route-map:${act}:rest-lane`)() * 3);
     const shopLane = Math.floor(seededRandom(`${this.state.seed}:route-map:${act}:shop-lane`)() * 3);
     const eliteLane = Math.floor(seededRandom(`${this.state.seed}:route-map:${act}:elite-lane`)() * 3);
+    const earlyEliteLane = Math.floor(seededRandom(`${this.state.seed}:route-map:1:early-elite-lane`)() * 3);
     const eliteLimit = this.maxElitesPerAct();
     const actElites = (this.state as RunStateInternals)._actEliteCount ?? 0;
     const hasElite = act < 5 &&
       actElites < eliteLimit &&
       (actElites === 0 || this.state.extraElites < this.maxExtraElites());
+    const hasEarlyElite = cadence === 'early_challenge' && hasElite && actElites === 0 &&
+      eliteLimit > 1 && this.state.extraElites < this.maxExtraElites();
     const nodes = createRouteMapNodes(act, (depth, lane, key) => {
       if (act === 5) {
         return { type: 'F', id: this.freezeEnemy('F', depth, key), completed: false, label: '终战' };
@@ -538,8 +571,8 @@ export class ShanhaiGame {
         return { type: 'B', id, completed: false, label: '首领', description: contentEntity(this.content, id)?.name };
       }
       let type: RunNode['type'] = 'C';
-      if (depth === 1 || depth === 4 || depth === 7) type = 'E';
-      if (depth === 1 || depth === 4 || depth === 7) {
+      if ((ACT1_CORE_DEPTHS as readonly number[]).includes(depth)) type = 'E';
+      if ((ACT1_CORE_DEPTHS as readonly number[]).includes(depth)) {
         const coreId = coreSlots.get(depth * 3 + lane);
         if (coreId) type = 'K';
         const id = coreId ?? this.selectOrdinaryEvent(depth, key);
@@ -551,12 +584,15 @@ export class ShanhaiGame {
           description: contentEntity(this.content, id)?.name,
         };
       }
-      if (depth === 3 && lane === restLane) {
+      const restDepth = functionLayout?.restDepth ?? 3;
+      const shopDepth = functionLayout?.shopDepth ?? 5;
+      if (depth === restDepth && lane === restLane) {
         return { type: 'R', id: `R-A${act}-${key}`, completed: false, label: '休整' };
       }
-      if (depth === 5 && lane === shopLane) {
+      if (depth === shopDepth && lane === shopLane) {
         return { type: 'S', id: `SHOP-A${act}-${key}`, completed: false, label: '坊市' };
       }
+      if (functionLayout?.extraEliteDepth === depth && lane === earlyEliteLane && hasEarlyElite) type = 'L';
       if (depth === 9 && hasElite && lane === eliteLane) type = 'L';
       if (type === 'C' || type === 'L') {
         const id = this.freezeEnemy(type, depth, key);
@@ -623,13 +659,12 @@ export class ShanhaiGame {
   private coreCandidatesAt(depth: number): string[] {
     const state = this.state as RunStateInternals;
     const candidates = routeTemplates(this.content, this.state.act)
-      .flatMap(route => {
-        const source = route.nodes[depth];
+      .flatMap(route => (this.state.act === 1 ? route.nodes : [route.nodes[depth]]).flatMap(source => {
         if (!isObject(source) || source.type !== 'K') return [];
         return Array.isArray(source.candidate_ids)
           ? source.candidate_ids.filter((id: unknown): id is string => typeof id === 'string')
           : typeof source.id === 'string' ? [source.id] : [];
-      });
+      }));
     const [firstLine, secondLine] = coreEventIds(this.content, state._plannedStoryline);
     const eligible = [...new Set(candidates)].filter(id => {
       const event = contentEntity(this.content, id);
@@ -951,6 +986,7 @@ export class ShanhaiGame {
       state._eventSettled = false;
       state._previewKind = undefined;
       state._eventCostTravelApplied = false;
+      this.advanceCommitments('entered');
     }
     if (['C', 'L', 'B', 'F'].includes(node.type)) {
       state._previewKind = 'node';
@@ -1213,6 +1249,10 @@ export class ShanhaiGame {
       const issue = this.rewardAvailability(reward);
       if (issue) return { available: false, reason: issue };
     }
+    for (const reward of option.commitment?.rewards ?? []) {
+      const issue = this.rewardAvailability(reward);
+      if (issue) return { available: false, reason: issue };
+    }
     return { available: true, reason: '' };
   }
 
@@ -1227,6 +1267,9 @@ export class ShanhaiGame {
     const availability = this.checkOption(event, option);
     if (!availability.available) throw new Error(availability.reason);
     const encounter = eventEncounter(option, event.id, this.content);
+    const commitment = option.commitment
+      ? createEventCommitment(event.id, option.id, { act: this.state.act, step: this.state.step + 1 }, option.commitment)
+      : undefined;
     this.applyCosts(optionCosts(option));
     this.state.eventOption = id;
     if (encounter) {
@@ -1239,6 +1282,7 @@ export class ShanhaiGame {
     this.applyFlags(option);
     this.state.phase = 'event_result';
     this.applyRewards(optionRewards(option));
+    if (commitment) (this.state.eventCommitments ??= []).push(commitment);
     this.state.resultText = option.outcome ?? '';
     this.ensureTalentQueue();
   }
@@ -1713,6 +1757,52 @@ export class ShanhaiGame {
     else this.state.xp += amount;
   }
 
+  private advanceCommitments(phase: 'entered' | 'completed'): void {
+    if (this.state.hp <= 0 || this.state.phase === 'lost') return;
+    const node = this.node;
+    if (!node) return;
+    const result = advanceEventCommitments(this.state.eventCommitments, {
+      act: this.state.act,
+      step: this.state.step + 1,
+      type: node.type,
+    }, phase);
+    this.state.eventCommitments = result.eventCommitments;
+    for (const record of result.fulfilled) {
+      let fallbackCoins = 0;
+      const delivered: string[] = [];
+      for (const reward of record.snapshot.rewards) {
+        if (reward.type !== 'artifact') {
+          this.applyRewards([reward]);
+          delivered.push(`${reward.amount}${({ hp: '气血', coins: '灵石', xp: '修为' })[reward.resource]}`);
+          continue;
+        }
+        let acquired = 0;
+        for (let count = 0; count < reward.count; count++) {
+          if (this.canAcquireArtifact(reward.id, 1)) {
+            this.applyRewards([{ ...reward, count: 1 }]);
+            acquired++;
+          } else fallbackCoins += 4;
+        }
+        if (acquired) delivered.push(`${artifactEntity(this.content, reward.id).name}×${acquired}`);
+      }
+      this.state.coins += fallbackCoins;
+      const text = fallbackCoins
+        ? `${record.snapshot.name}已兑现：${delivered.length ? `${delivered.join('，')}；` : ''}满层或冲突部分折为${fallbackCoins}灵石。`
+        : record.snapshot.success_outcome;
+      record.resultText = text;
+      const entry = this.state.history.at(-1);
+      if (entry) entry.text = `${entry.text} ${text}`.trim();
+    }
+    for (const record of [...result.broken, ...result.expired]) {
+      record.resultText = record.status === 'expired'
+        ? '已抵达天门，约定未兑现；不补发奖励，已付代价不退。'
+        : record.snapshot.failure_outcome;
+      const entry = this.state.history.find(item =>
+        item.act === record.originAct && item.step + 1 === record.originStep);
+      if (entry) entry.text = `${entry.text} ${record.resultText}`.trim();
+    }
+  }
+
   private canAcquireArtifact(id: string, count: number): boolean {
     try {
       return artifactCapacity(this.content, this.state, id, count).ok;
@@ -1782,6 +1872,8 @@ export class ShanhaiGame {
       step: this.state.step,
       title: entity?.name ?? node.id,
       text: this.state.resultText || entity?.summary || '',
+      ...(['E', 'K'].includes(node.type) && this.state.eventOption
+        ? { eventId: node.id, optionId: this.state.eventOption } : {}),
     });
     node.completed = true;
     const routeKey = state.routeMap?.path[this.state.step];
@@ -1791,6 +1883,8 @@ export class ShanhaiGame {
       this.state.completedCore.push(node.id);
     }
     this.applyTravel(node, source);
+    this.advanceCommitments('completed');
+    this.ensureTalentQueue(false);
     this.state.eventOption = undefined;
     this.state.battle = undefined;
     this.state.battleInput = undefined;
@@ -2064,6 +2158,7 @@ function ensureStateInternals(content: Content, state: RunStateInternals): void 
     throw new Error('Invalid run state collections');
   }
   if (state.firstStrike === undefined) state.firstStrike = 0;
+  if (state.eventCommitments === undefined) state.eventCommitments = [];
   if (state.firstStrike !== undefined && (!finite(state.firstStrike) || state.firstStrike < 0)) {
     throw new Error('Invalid first strike');
   }
@@ -2321,6 +2416,29 @@ export function validateRunState(content: Content, raw: RunState): void {
   }
   if (!Array.isArray(state.nodes) || !Array.isArray(state.routes) || !Array.isArray(state.artifacts) ||
     !Array.isArray(state.history)) throw new Error('Invalid run collections');
+  assertEventCommitmentRecords(state.eventCommitments);
+  for (const record of state.eventCommitments ?? []) {
+    const source = contentEntity(content, record.eventId);
+    const option = source?.options?.find((candidate: AnyRecord) => candidate.id === record.optionId);
+    if (source?.kind !== 'event' || !option?.commitment ||
+      JSON.stringify(record.snapshot) !== JSON.stringify(createEventCommitment(
+        record.eventId, record.optionId,
+        { act: record.originAct, step: record.originStep }, option.commitment,
+      ).snapshot)) throw new Error('Invalid event commitment source');
+    const originPosition = (record.originAct - 1) * 11 + record.originStep;
+    const currentPosition = (state.act - 1) * 11 + state.step + 1;
+    const origin = state.history.find(entry =>
+      entry.act === record.originAct && entry.step + 1 === record.originStep);
+    const pendingOrigin = originPosition === currentPosition &&
+      ['event_result', 'talent'].includes(state.phase) &&
+      ['E', 'K'].includes(state.nodes[state.step]?.type ?? '') &&
+      state.nodes[state.step]?.id === record.eventId && state.eventOption === record.optionId;
+    if ((!pendingOrigin && (origin?.eventId !== record.eventId || origin?.optionId !== record.optionId)) ||
+      originPosition > currentPosition || record.processedNodes.some(key => {
+      const [act, step] = key.split(':').map(Number);
+      return !state.history.some(entry => entry.act === act && entry.step + 1 === step);
+    })) throw new Error('Invalid event commitment history');
+  }
   if (state._routeMapVersion !== undefined && state._routeMapVersion !== 1) {
     throw new Error('Invalid route map version');
   }

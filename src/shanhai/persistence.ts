@@ -6,6 +6,7 @@ import {
   simulateBattle,
 } from './run.js';
 import { validateRouteMap } from './route-map.js';
+import { assertEventCommitmentRecords } from './event-commitments.js';
 
 export const SHANHAI_SAVE_KEY = 'suishi-shanhai-run-v1';
 export const SHANHAI_BUILD_KEY = 'suishi-shanhai-build-v1';
@@ -186,6 +187,7 @@ function assertStateShapeWithoutContent(state: RunState): void {
     typeof entry.title !== 'string' || typeof entry.text !== 'string')) {
     throw new Error('Invalid Shanhai history');
   }
+  assertEventCommitmentRecords(state.eventCommitments);
   if (!isObject(state.flags) || Object.values(state.flags).some(value => typeof value !== 'boolean') ||
     !Array.isArray(state.seenEvents) || state.seenEvents.some(id => typeof id !== 'string') ||
     !Array.isArray(state.completedCore) || state.completedCore.some(id => typeof id !== 'string') ||
