@@ -9,7 +9,7 @@ import { ShanhaiGame, registerCombatWorker } from '../build/shanhai/run.js';
 import { serializeRun } from '../build/shanhai/persistence.js';
 import { pauseNextReplay } from './shanhai-replay-fixture.mjs';
 
-const url = process.env.BROWSER_URL || 'http://127.0.0.1:4175/';
+const url = process.env.BROWSER_URL || 'http://localhost:4173/';
 const reportDir = process.env.SHANHAI_TALENT_TREE_REPORT_DIR
   ? path.resolve(process.env.SHANHAI_TALENT_TREE_REPORT_DIR)
   : path.join(os.tmpdir(), 'shanhai-talent-tree-browser');
@@ -414,9 +414,11 @@ async function assertReadOnlyTree(page, fixture, {
       };
     }));
   assert.equal(nodes.length, 12);
-  assert.ok(nodes.every(node => node.name && node.quick && node.width > 0 &&
+  assert.ok(nodes.every(node => node.name && node.width > 0 &&
     node.height >= 44 && node.fontSize >= 12 && node.opacity >= 0.5),
   `树节点文字/触控区不可读 ${JSON.stringify(nodes)}`);
+  assert.ok(nodes.every(node => Boolean(node.quick) === (node.selected || node.choice)),
+    `只有已悟或当前可选天赋应常驻机制摘要 ${JSON.stringify(nodes)}`);
   assert.equal(nodes.filter(node => node.selected).length, selectedCount,
     `应有 ${selectedCount} 个已悟节点`);
   const unlockedTier = fixture.initial?.n ?? selectedCount;

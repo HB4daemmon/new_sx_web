@@ -331,7 +331,8 @@ async function startRealRun(page, width, height) {
   await page.locator('[data-action="reward"]').first().click();
   await waitForPhase(page, 'map');
   assert.equal((await page.locator('.map-step').innerText()).trim(), '1 / 11');
-  assert.match(await page.locator('.map-goal').innerText(), /已行 1 格/);
+  assert.equal(await page.locator('.map-step').getAttribute('aria-label'), '本幕行程',
+    `${width}: 地图行程计数缺少可访问名称`);
   const choices = page.locator('.map-node.available:not([disabled])');
   assert.equal(await choices.count(), 3, `${width}: 第一战后没有三个可选节点`);
   const key = await choices.last().getAttribute('data-id');
@@ -405,11 +406,9 @@ async function assertRewardChoiceLayout(page, width) {
     const gridRect = element.getBoundingClientRect();
     const rects = cards.map(card => {
       const rect = card.getBoundingClientRect();
-      const emblem = card.querySelector('.choice-emblem');
-      const emblemRect = emblem?.getBoundingClientRect();
-      const detail = card.querySelector(
-        '.compact-choice-actions [data-action="inspect-artifact"]',
-      );
+      const art = card.querySelector('.reward-inspect .artifact-art');
+      const artRect = art?.getBoundingClientRect();
+      const detail = card.querySelector('.reward-inspect[data-action="inspect-artifact"]');
       const detailRect = detail?.getBoundingClientRect();
       const select = card.querySelector('.compact-choice-actions [data-action="reward"]');
       const selectRect = select?.getBoundingClientRect();
@@ -420,11 +419,10 @@ async function assertRewardChoiceLayout(page, width) {
         height: rect.height,
         right: rect.right,
         bottom: rect.bottom,
-        emblem: emblemRect ? {
-          width: emblemRect.width,
-          height: emblemRect.height,
-          opacity: Number(getComputedStyle(emblem).opacity),
-          pointerEvents: getComputedStyle(emblem).pointerEvents,
+        art: artRect ? {
+          width: artRect.width,
+          height: artRect.height,
+          loaded: art.complete && art.naturalWidth > 0,
         } : null,
         detail: detailRect ? {
           x: detailRect.x,
@@ -434,6 +432,7 @@ async function assertRewardChoiceLayout(page, width) {
           right: detailRect.right,
           bottom: detailRect.bottom,
           fontSize: Number.parseFloat(getComputedStyle(detail).fontSize),
+          label: detail.getAttribute('aria-label'),
         } : null,
         select: selectRect ? {
           width: selectRect.width,
@@ -469,16 +468,14 @@ async function assertRewardChoiceLayout(page, width) {
     `${width} reward: 选择页发生整体横向溢出 ${JSON.stringify(geometry)}`);
   assert.ok(geometry.cards.every(card => card.bottom <= geometry.visibleBottom),
     `${width} reward: 三张奖励卡超出首屏 ${JSON.stringify(geometry)}`);
-  assert.ok(geometry.cards.every(card => card.emblem?.width > 0 && card.emblem?.height > 0),
-    `${width} reward: 卡片背景纹样未渲染`);
-  assert.ok(geometry.cards.every(card => card.emblem.opacity > 0 &&
-    card.emblem.pointerEvents === 'none'),
-  `${width} reward: 背景纹样遮挡卡片交互 ${JSON.stringify(geometry.cards)}`);
+  assert.ok(geometry.cards.every(card => card.art?.width >= 36 &&
+    card.art.height >= 36 && card.art.loaded),
+  `${width} reward: 法宝图像未完整渲染 ${JSON.stringify(geometry.cards)}`);
   assert.ok(geometry.cards.every(card => card.detail &&
     card.detail.width >= 44 && card.detail.height >= 44 &&
-    card.detail.x + card.detail.width / 2 >= card.x + card.width / 2 &&
-    card.detail.bottom <= card.bottom + 1 && card.detail.fontSize >= 11),
-  `${width} reward: 右下详录入口尺寸、位置或字号不合格 ${JSON.stringify(geometry.cards)}`);
+    card.detail.x >= card.x && card.detail.right <= card.right &&
+    card.detail.bottom <= card.bottom + 1 && card.detail.fontSize >= 11 && card.detail.label),
+  `${width} reward: 图像详录入口尺寸、位置或字号不合格 ${JSON.stringify(geometry.cards)}`);
   assert.ok(geometry.cards.every(card => card.select &&
     card.select.width >= 44 && card.select.height >= 44 &&
     card.select.text === '收入' && card.select.mode === 'horizontal-tb' &&

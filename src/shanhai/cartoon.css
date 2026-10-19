@@ -92,6 +92,259 @@ button:disabled {
   min-height: 100dvh;
 }
 
+/* Keep the route in the viewport; only the mountain path scrolls. */
+.game-page.view-journey.phase-map {
+  display: flex;
+  height: 100dvh;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.game-page.view-journey.phase-map > :is(.topbar, .mobile-hud, .bottom-nav) {
+  flex-shrink: 0;
+}
+
+.game-page.view-journey.phase-map .game-layout.full-map {
+  width: min(100%, 1200px);
+  max-width: 1200px;
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0;
+  padding: 0 24px;
+}
+
+.game-page.view-journey.phase-map .main-stage {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.game-page.view-journey.phase-map .map-heading {
+  display: flex;
+  min-height: 52px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  padding: 6px 0;
+}
+
+.game-page .map-heading > div {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.game-page .map-heading .map-act,
+.game-page .map-heading .map-step {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.game-page .map-heading h1 {
+  margin: 0;
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+
+.game-page.view-journey.phase-map .map-scroll {
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  flex: 1;
+  border: 0;
+  border-radius: 0;
+}
+
+.game-page.view-journey.phase-map .bottom-nav {
+  position: static;
+  width: 100%;
+}
+
+.game-page .map-node .node-completed {
+  position: absolute;
+  top: 0;
+  right: 18px;
+  color: var(--jade);
+}
+
+.game-page .top-tools.header-actions {
+  min-width: 0;
+}
+
+.game-page:not(.phase-map):not(.phase-battle) .header-run-summary,
+.game-page:not(.view-journey) .header-run-summary {
+  display: none;
+}
+
+.game-page .run-identity {
+  min-height: 44px;
+  text-align: left;
+}
+
+.game-page .rail-method {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 14px;
+  text-align: left;
+}
+
+.game-page .rail-method > .icon:last-child {
+  margin-left: auto;
+}
+
+.game-page .rail-method:hover,
+.game-page .method-inspect:hover {
+  color: var(--vermilion);
+}
+
+.game-page .method-inspect {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 6px;
+}
+
+.game-page .preview-detail-trigger {
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: inherit;
+  font: inherit;
+  overflow-wrap: anywhere;
+}
+
+.game-page .preview-detail-trigger > .icon {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+.game-page .preview-detail-trigger:hover {
+  color: var(--vermilion);
+}
+
+.game-page.phase-preview .preview-contender h2:has(.preview-detail-trigger) {
+  margin: 0;
+}
+
+.game-page .reward-inspect {
+  display: grid;
+  width: 100%;
+  min-height: 90px;
+  gap: 4px;
+  color: var(--ink);
+  text-align: left;
+}
+
+.game-page .reward-inspect :is(.artifact-art, .sigil) {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto;
+}
+
+.game-page .reward-inspect h2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px;
+  margin: 0;
+}
+
+.game-page .reward-inspect h2 > .icon {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+.game-page .reward-inspect:hover h2 {
+  color: var(--vermilion);
+}
+
+.game-page .reward-card .compact-choice-actions {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.game-page :is(.event-passage, .rest-rules, .node-preview-detail) > summary {
+  min-height: 44px;
+  color: var(--jade);
+  font-size: 14px;
+}
+
+.game-page .rest-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.game-page .rest-swap > summary {
+  display: grid;
+  min-height: 80px;
+  justify-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.game-page .rest-swap > summary .sigil {
+  width: 44px;
+  height: 44px;
+}
+
+.game-page .rest-swap .method-swap-list {
+  margin: 0;
+}
+
+.game-page .settings-dialog .chapter-strip {
+  display: flex;
+  min-height: 44px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+  border: 0;
+}
+
+.game-page .settings-dialog {
+  animation: none;
+}
+
+.game-page .event-option-main > .event-risk {
+  color: var(--vermilion);
+}
+
+.game-page .settings-dialog .chapter:not(.active) .chapter-name {
+  display: none;
+}
+
+@media (max-width: 1050px) {
+  .game-page.view-journey.phase-map .game-layout.full-map {
+    width: 100%;
+    padding: 0 10px;
+  }
+
+  .game-page.view-journey.phase-map .map-heading {
+    min-height: 48px;
+  }
+
+  .game-page .map-heading > div {
+    gap: 8px;
+  }
+
+  .game-page .map-heading h1 {
+    font-size: 18px;
+  }
+}
+
 .landing-page {
   min-height: 100dvh;
   overflow-x: clip;
@@ -3936,5 +4189,126 @@ button:disabled {
   .game-page .combat-feedback-group > .combat-float {
     animation: none !important;
     transform: none !important;
+  }
+}
+
+.game-page.phase-shop .shop-grid .shop-item {
+  display: grid;
+  min-height: 76px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+}
+
+.game-page .shop-heading {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.game-page .shop-heading .stage-heading {
+  margin: 0;
+}
+
+.game-page .shop-stock {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.game-page .shop-item .shop-content {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  min-height: 54px;
+  grid-area: 1 / 1;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  text-align: left;
+}
+
+.game-page .shop-item .shop-content .shop-item-art {
+  width: 44px;
+  height: 48px;
+  grid-area: auto;
+}
+
+.game-page .shop-item .shop-content .shop-item-copy {
+  min-width: 0;
+  grid-area: auto;
+}
+
+.game-page .shop-content .rarity-chip {
+  display: inline;
+  margin-right: 5px;
+  padding: 0;
+  border: 0;
+  font-size: 12px;
+}
+
+.game-page .shop-item .shop-content h2 {
+  display: inline;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.game-page .shop-content h2 .icon {
+  margin-left: 4px;
+  color: var(--muted);
+  vertical-align: middle;
+}
+
+.game-page .shop-item .shop-content p {
+  margin: 2px 0;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.game-page .shop-inspect .shop-item-copy p {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.game-page .shop-content .shop-item-unavailable {
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.game-page.phase-shop .shop-grid {
+  gap: 6px;
+}
+
+.game-page .shop-inspect:hover h2 {
+  color: var(--vermilion);
+}
+
+.game-page.phase-shop .shop-item > :is(.button, .sold-stamp) {
+  width: 60px;
+  min-width: 60px;
+  min-height: 44px;
+  grid-area: 1 / 2;
+  padding: 5px;
+}
+
+.game-page.phase-preview .preview-matchup .preview-contender h2 {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .game-page.phase-preview .preview-matchup .preview-contender {
+    grid-template-rows: 150px auto;
   }
 }

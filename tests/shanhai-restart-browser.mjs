@@ -113,9 +113,19 @@ async function confirmRestart(page) {
   await clickAction(page, 'confirm-restart');
 }
 
+async function openSettings(page) {
+  await clickAction(page, 'settings', '.topbar [data-action="settings"]');
+  await page.locator('.settings-dialog[role="dialog"]').waitFor({ state: 'visible' });
+}
+
+async function clickRestart(page) {
+  await openSettings(page);
+  await clickAction(page, 'restart', '.settings-dialog [data-action="restart"]');
+}
+
 async function assertRestartCancel(page, mode) {
   const before = await storageSnapshot(page);
-  await clickAction(page, 'restart', '.topbar [data-action="restart"]');
+  await clickRestart(page);
   const dialog = page.locator('.modal-backdrop .modal[role="dialog"]');
   await dialog.waitFor({ state: 'visible' });
   assert.match(await dialog.textContent() || '', /结束当前命途|通关构筑保留/);
@@ -212,29 +222,19 @@ async function run() {
       const context = await browser.newContext({ viewport: { width, height } });
       const page = await context.newPage();
       page.setDefaultTimeout(15000);
-      await check(`${width}px 顶部重开命令尺寸与布局`, async () => {
+      await check(`${width}px 设置重开命令尺寸与布局`, async () => {
         await clearAndOpen(page);
         assert.equal(await page.locator('[name="player-name"]').inputValue(), defaultName,
           '首页姓名输入框没有真实默认值');
         await startFromLanding(page);
-        const restart = page.locator('.topbar [data-action="restart"]');
+        await openSettings(page);
+        const restart = page.locator('.settings-dialog [data-action="restart"]');
         await restart.waitFor({ state: 'visible' });
         assert.equal(await restart.getAttribute('aria-label'), '重开',
-          `${width}px: 重开图标缺少无障碍名称`);
+          `${width}px: 设置中的重开命令缺少无障碍名称`);
         const rect = await restart.boundingBox();
         assert.ok(rect && rect.width >= 44 && rect.height >= 44,
           `重开按钮触控区域不足 44px ${JSON.stringify(rect)}`);
-        const talentTree = page.locator('.topbar .global-talent-tree');
-        await talentTree.waitFor({ state: 'visible' });
-        assert.equal(await talentTree.getAttribute('aria-label'), '查看当前功法天赋树',
-          `${width}px: 顶部天赋树图标缺少无障碍名称`);
-        const talentTreeRect = await talentTree.boundingBox();
-        assert.ok(talentTreeRect && talentTreeRect.width >= 44 && talentTreeRect.height >= 44,
-          `${width}px: 顶部天赋树入口触控区域不足 44px ${JSON.stringify(talentTreeRect)}`);
-        if (width <= 1050) {
-          assert.equal(await restart.locator('.restart-label').isVisible(), false,
-            `${width}px: 移动端重开命令应使用纯图标`);
-        }
         const controls = await page.locator('.header-actions button').evaluateAll(buttons =>
           buttons.map(button => {
             const rect = button.getBoundingClientRect();
@@ -242,6 +242,8 @@ async function run() {
           }));
         assert.ok(controls.every(control => control.width >= 44 && control.height >= 44),
           `顶部按钮触控区域不足 44px ${JSON.stringify(controls)}`);
+        await clickAction(page, 'modal-close',
+          '.settings-dialog [data-action="modal-close"][data-autofocus]');
         await noOverflow(page, width);
       });
       await context.close();
@@ -279,7 +281,7 @@ async function run() {
           return Storage.prototype.__restartWorkerOriginal.call(this, target);
         };
       }, saveKey);
-      await clickAction(page, 'restart', '.topbar [data-action="restart"]');
+      await clickRestart(page);
       await confirmRestart(page);
       await page.locator('.modal-backdrop').waitFor({ state: 'visible' });
       assert.match(await page.locator('.modal-backdrop').innerText(), /删除本局存档失败/);
@@ -303,7 +305,7 @@ async function run() {
       const old = await savedRun(page);
       const method = old.state.method;
       const oldSeed = old.state.seed;
-      await clickAction(page, 'restart', '.topbar [data-action="restart"]');
+      await clickRestart(page);
       await confirmRestart(page);
       await page.locator('.landing-page').waitFor({ state: 'visible' });
       assert.equal(await page.evaluate(key => localStorage.getItem(key), saveKey), null);
@@ -411,7 +413,7 @@ async function run() {
     await buildBattleFixture(battlePage);
     await check('战斗取消保持原暂停状态，播放状态关闭弹窗后恢复', async () => {
       const pausedSnapshot = await storageSnapshot(battlePage);
-      await clickAction(battlePage, 'restart', '.topbar [data-action="restart"]');
+      await clickRestart(battlePage);
       assert.equal(await battlePage.locator('.battle-shell').getAttribute('data-paused'), 'true');
       await battlePage.waitForTimeout(250);
       assert.deepEqual(await storageSnapshot(battlePage), pausedSnapshot,
@@ -424,7 +426,7 @@ async function run() {
 
       await clickAction(battlePage, 'battle-pause');
       await battlePage.locator('.battle-shell[data-paused="false"]').waitFor();
-      await clickAction(battlePage, 'restart', '.topbar [data-action="restart"]');
+      await clickRestart(battlePage);
       const held = await storageSnapshot(battlePage);
       const cursor = JSON.parse(held[replayKey] || 'null')?.cursor ?? 0;
       await battlePage.waitForTimeout(300);
@@ -449,7 +451,7 @@ async function run() {
         localStorage.setItem(key, '[]');
         localStorage.setItem('restart-worker-other-key', 'keep-me');
       }, archiveKey);
-      await clickAction(battlePage, 'restart', '.topbar [data-action="restart"]');
+      await clickRestart(battlePage);
       await confirmRestart(battlePage);
       await battlePage.locator('.landing-page').waitFor({ state: 'visible' });
       await battlePage.waitForTimeout(350);

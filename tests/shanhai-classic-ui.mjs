@@ -405,8 +405,10 @@ async function enterMap(page) {
 async function assertNavigationShell(page, width) {
   assert.equal(await page.locator('.topbar').count(), 1, `${width}: 缺少 topbar`);
   assert.equal(await page.locator('.game-layout').count(), 1, `${width}: 缺少 game-layout`);
-  assert.equal(await page.locator('.game-layout .player-rail').count(), 1,
-    `${width}: 山河页面缺少左侧 player-rail`);
+  assert.equal(await page.locator('.game-layout.full-map .player-rail').count(), 0,
+    `${width}: 全屏山河页面不应重复显示人物侧栏`);
+  assert.equal(await page.locator('.game-layout.full-map').count(), 1,
+    `${width}: 山河页面没有全屏地图布局`);
   assert.equal(await page.locator('.game-layout .main-stage').count(), 1,
     `${width}: 山河页面缺少 main-stage`);
 
@@ -788,7 +790,7 @@ async function assertTabReadOnly(page, width) {
   const expectedHeadings = {
     build: /命盘/,
     karma: /因缘/,
-    journey: /山河|第一幕|地图/,
+    journey: /山河|第1幕|第一幕|地图/,
   };
   for (const id of ['build', 'karma', 'journey']) {
     const tab = await clickVisibleAction(page, 'tab', { id });
@@ -1480,12 +1482,17 @@ async function assertShopUnavailableReason(page) {
         return { x: rect.x, y: rect.y, right: rect.right, bottom: rect.bottom };
       };
       return {
+        height: item.getBoundingClientRect().height,
+        rows: getComputedStyle(item).gridTemplateRows.split(/\s+/).length,
+        detailEntries: item.querySelectorAll('[data-action="inspect-artifact"]').length,
         copy: box(item.querySelector('.shop-item-copy')),
         art: box(item.querySelector('.shop-item-art')),
         buttons: [...item.querySelectorAll(':scope > .button')].map(box),
       };
     }));
   for (const item of shopGeometry) {
+    assert.ok(item.height <= 140 && item.rows === 1 && item.detailEntries <= 1,
+      `坊市商品没有收拢为单行操作 ${JSON.stringify(item)}`);
     const disjoint = (a, b) => a.right <= b.x + 1 || b.right <= a.x + 1 ||
       a.bottom <= b.y + 1 || b.bottom <= a.y + 1;
     assert.ok(disjoint(item.art, item.copy) &&

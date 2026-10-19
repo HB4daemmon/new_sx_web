@@ -20,6 +20,10 @@ const suites = [
     reportEnv: 'SHANHAI_COMPACT_BROWSER_REPORT_DIR',
   },
   {
+    name: 'streamlined-ui',
+    script: 'tests/shanhai-streamlined-ui.mjs',
+  },
+  {
     name: 'restart',
     script: 'tests/shanhai-restart-browser.mjs',
     reportEnv: 'SHANHAI_RESTART_REPORT_DIR',
@@ -35,9 +39,11 @@ const results = [];
 await mkdir(reportDir, { recursive: true });
 for (const suite of suites) {
   const suiteReportDir = path.join(reportDir, suite.name);
+  const suiteEnv = { ...process.env };
+  if (suite.reportEnv) suiteEnv[suite.reportEnv] = suiteReportDir;
   const result = spawnSync(process.execPath, [suite.script], {
     cwd: root,
-    env: { ...process.env, [suite.reportEnv]: suiteReportDir },
+    env: suiteEnv,
     stdio: 'inherit',
   });
   results.push({

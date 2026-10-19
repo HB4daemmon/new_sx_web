@@ -160,6 +160,10 @@ async function clickAndWaitForDispatch(page, command, beforePhase, beforeSaveTex
     case 'rest':
       if (command.choice === 'swap_method') {
         assert.ok(command.method, '换法命令没有目标功法');
+        const swap = page.locator('details.rest-swap');
+        if (await swap.count() && !await swap.evaluate(element => element.open)) {
+          await swap.locator('summary').click();
+        }
         await clickMatchingAction(page, 'rest-method', { id: command.method });
       } else {
         await clickMatchingAction(page, 'rest', { choice: command.choice });

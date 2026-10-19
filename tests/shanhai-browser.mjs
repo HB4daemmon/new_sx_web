@@ -570,7 +570,9 @@ async function run() {
         }
         if (target === 'won') {
           assert.equal(await desktop.locator('.end-seal.win').count(), 1);
-          await desktop.locator('.header-actions [data-action="archives"]').click();
+          await desktop.locator('.topbar [data-action="settings"]').click();
+          await desktop.locator('.settings-dialog[role="dialog"]').waitFor({ state: 'visible' });
+          await desktop.locator('.settings-dialog [data-action="archives"]').click();
           assert.equal(await desktop.locator('.dialog .archive-item').count(), 1);
           assert.equal(await desktop.locator('[data-action="export-archive"]').count(), 1);
           await desktop.locator('.dialog-close').click();
