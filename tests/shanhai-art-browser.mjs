@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
 import { pauseNextReplay } from './shanhai-replay-fixture.mjs';
+import { setSetupSeed } from './shanhai-setup-fixture.mjs';
 
 const url = process.env.BROWSER_URL || 'http://localhost:4173/';
 const saveKey = 'suishi-shanhai-run-v1';
@@ -216,7 +217,7 @@ async function armPauseAtFrame(page, index) {
 async function startRealBattle(page, { method = 'RKF01', seed = 'art-rage-player-enemy' } = {}) {
   await page.locator(`.method-choice[data-id="${method}"]`).click();
   await page.locator('[name="player-name"]').fill('手绘验收行者');
-  await page.locator('[name="seed"]').fill(seed);
+  await setSetupSeed(page, seed);
   await clickAction(page, 'start');
   await waitForPhase(page, 'map');
 

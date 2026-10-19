@@ -3,6 +3,7 @@ import { createRequire } from 'node:module';
 import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { setSetupSeed } from './shanhai-setup-fixture.mjs';
 
 const url = process.env.BROWSER_URL || 'http://localhost:4173/';
 const saveKey = 'suishi-shanhai-run-v1';
@@ -95,7 +96,7 @@ async function openFreshRun(page) {
 async function startRealBattle(page, { seed = 'enemy-art-0' } = {}) {
   await page.locator('.method-choice[data-id="RKF01"]').click();
   await page.locator('[name="player-name"]').fill('敌帧验收行者');
-  await page.locator('[name="seed"]').fill(seed);
+  await setSetupSeed(page, seed);
   await clickAction(page, 'start');
   await waitForPhase(page, 'map');
 

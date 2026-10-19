@@ -15,6 +15,7 @@ import {
   selectBattleDetailTab,
 } from './shanhai-battle-detail-fixture.mjs';
 import { pauseNextReplay } from './shanhai-replay-fixture.mjs';
+import { setSetupSeed } from './shanhai-setup-fixture.mjs';
 
 const url = process.env.BROWSER_URL || 'http://localhost:4173/';
 const saveKey = 'suishi-shanhai-run-v1';
@@ -381,11 +382,8 @@ async function setupRun(page, seed = 'classic-ui-navigation') {
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: 'networkidle' });
   await page.locator('.method-choice').first().waitFor({ state: 'visible' });
-  const seedInput = page.locator('[name="seed"]');
-  assert.equal(await seedInput.isVisible(), true, '命数种子输入框应直接显示');
-  assert.equal(await seedInput.isEditable(), true, '命数种子输入框应可编辑');
   await page.locator('[name="player-name"]').fill('经典UI行者');
-  await seedInput.fill(seed);
+  await setSetupSeed(page, seed);
   const method = await page.locator('.method-choice').first().getAttribute('data-id');
   assert.ok(method, '开局功法没有 data-id');
   await page.locator('.method-choice').first().click();

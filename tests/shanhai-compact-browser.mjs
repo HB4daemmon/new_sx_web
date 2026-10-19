@@ -14,6 +14,7 @@ import {
   openBattleDetail,
   selectBattleDetailTab,
 } from './shanhai-battle-detail-fixture.mjs';
+import { setSetupSeed } from './shanhai-setup-fixture.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const url = process.env.BROWSER_URL || 'http://localhost:4173/';
@@ -174,17 +175,14 @@ async function startRealRun(page, width, height) {
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: 'networkidle' });
   const seed = page.locator('[name="seed"]');
-  assert.equal(await seed.isVisible(), true, `${width}: 命数种子输入框没有直接显示`);
-  assert.equal(await seed.isEditable(), true, `${width}: 命数种子输入框不能编辑`);
+  assert.equal(await seed.getAttribute('type'), 'hidden',
+    `${width}: 测试命数种子必须位于隐藏表单字段`);
   const start = page.locator('[data-action="start"]');
   await start.waitFor({ state: 'visible' });
   const startRect = await start.boundingBox();
   assert.ok(startRect, `${width}: 开局主按钮没有布局框`);
   assert.ok(startRect.y >= 0 && startRect.y + startRect.height <= height,
     `${width}: 首屏开局主按钮不可见 ${JSON.stringify(startRect)}`);
-  const seedRect = await seed.boundingBox();
-  assert.ok(seedRect && seedRect.y >= 0 && seedRect.y + seedRect.height <= height,
-    `${width}: 首屏命数种子输入框不可见 ${JSON.stringify(seedRect)}`);
   assert.equal(await page.locator('.method-choice').count(), 5);
   for (const choice of await page.locator('.method-choice').all()) {
     const rect = await choice.boundingBox();
@@ -196,7 +194,7 @@ async function startRealRun(page, width, height) {
   await screenshot(page, width, 'landing');
 
   await page.locator('[name="player-name"]').fill('紧凑测试');
-  await seed.fill('compact-probe-1');
+  await setSetupSeed(page, 'compact-probe-1');
   await page.locator('.method-choice').first().click();
   const landingCanScroll = await page.evaluate(() =>
     document.documentElement.scrollHeight > window.innerHeight + 1);

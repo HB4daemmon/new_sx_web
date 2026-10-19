@@ -8,6 +8,7 @@ import { contentFromEntities } from '../build/shanhai/content.js';
 import { parseRunSave } from '../build/shanhai/persistence.js';
 import { ShanhaiGame } from '../build/shanhai/run.js';
 import { nextCommand } from './shanhai-policy.mjs';
+import { setSetupSeed } from './shanhai-setup-fixture.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const url = process.env.BROWSER_URL || 'http://localhost:4173/';
@@ -272,14 +273,9 @@ async function setupRun(page, record) {
   await page.reload({ waitUntil: 'networkidle' });
   await page.locator('.landing-page').waitFor({ state: 'visible' });
   await page.locator('.method-choice').nth(4).waitFor({ state: 'visible' });
-  const seedInput = page.locator('[name="seed"]');
-  assert.equal(await seedInput.isVisible(), true,
-    `${record.viewport}: 命数种子输入框应直接显示`);
-  assert.equal(await seedInput.isEditable(), true,
-    `${record.viewport}: 命数种子输入框应可编辑`);
   assert.equal(await page.locator('.method-choice').count(), 5, `${record.viewport}: 开局功法不是五门`);
   await page.locator('[name="player-name"]').fill(playerName);
-  await seedInput.fill(seed);
+  await setSetupSeed(page, seed);
   const method = await page.locator('.method-choice').first().getAttribute('data-id');
   assert.ok(method, '开局功法没有 data-id');
   await page.locator('.method-choice').first().click();
@@ -494,7 +490,7 @@ async function run() {
         seed,
         playerName,
         contentVersion: content.version,
-        policy: 'tests/shanhai-policy.mjs nextCommand',
+        policy: 'tests/shanhai-policy.mjs nextCommand; fixed seed pre-set through hidden setup input; all game phases use browser clicks',
         phases: new Set(),
         stages: [],
         battles: [],
@@ -575,7 +571,7 @@ async function run() {
       playerName,
       generatedAt: new Date().toISOString(),
       contentVersion: content.version,
-      policy: 'tests/shanhai-policy.mjs nextCommand; Node-side read-only ShanhaiGame decisions; browser clicks only',
+      policy: 'tests/shanhai-policy.mjs nextCommand; fixed seed pre-set through hidden setup input; Node-side read-only ShanhaiGame decisions; all game phases use browser clicks',
       reports,
       failures,
       errors,

@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
 import { pauseNextReplay } from './shanhai-replay-fixture.mjs';
+import { setSetupSeed } from './shanhai-setup-fixture.mjs';
 
 const url = process.env.BROWSER_URL || 'http://localhost:4173/';
 const saveKey = 'suishi-shanhai-run-v1';
@@ -414,7 +415,7 @@ async function assertSteadyFirstBattle(page, width) {
   await page.reload({ waitUntil: 'networkidle' });
   await page.locator('.method-choice[data-id="RKF01"]').waitFor({ state: 'visible' });
   await page.locator('[name="player-name"]').fill(`动画验收${width}`);
-  await page.locator('[name="seed"]').fill(`motion-real-opening-${width}`);
+  await setSetupSeed(page, `motion-real-opening-${width}`);
   await page.locator('.method-choice[data-id="RKF01"]').click();
   await clickAction(page, 'start');
   await waitForPhase(page, 'map');

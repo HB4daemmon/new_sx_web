@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
 import { pauseNextReplay } from './shanhai-replay-fixture.mjs';
+import { setSetupSeed } from './shanhai-setup-fixture.mjs';
 
 const url = process.env.BROWSER_URL || 'http://localhost:4173/';
 const reportDir = process.env.SHANHAI_RESTART_REPORT_DIR
@@ -12,7 +13,7 @@ const reportDir = process.env.SHANHAI_RESTART_REPORT_DIR
 const saveKey = 'suishi-shanhai-run-v1';
 const replayKey = 'suishi-shanhai-replay-v1';
 const archiveKey = 'suishi-shanhai-build-v1';
-const defaultName = '无名行者';
+const fallbackName = '无名行者';
 const checks = [];
 
 function playwrightModule() {
@@ -99,8 +100,7 @@ async function clearAndOpen(page) {
 
 async function startFromLanding(page) {
   const seedInput = page.locator('[name="seed"]');
-  assert.equal(await seedInput.isVisible(), true, '首页命数种子输入框应直接显示');
-  assert.equal(await seedInput.isEditable(), true, '首页命数种子输入框应可编辑');
+  assert.equal(await seedInput.getAttribute('type'), 'hidden', '首页测试种子应为隐藏字段');
   const method = await page.locator('.method-choice').first().getAttribute('data-id');
   assert.ok(method, '没有可用的开局功法');
   await clickAction(page, 'start');
@@ -224,8 +224,10 @@ async function run() {
       page.setDefaultTimeout(15000);
       await check(`${width}px 设置重开命令尺寸与布局`, async () => {
         await clearAndOpen(page);
-        assert.equal(await page.locator('[name="player-name"]').inputValue(), defaultName,
-          '首页姓名输入框没有真实默认值');
+        const initialName = await page.locator('[name="player-name"]').inputValue();
+        assert.ok(initialName.trim(), '首页姓名输入框没有默认道号');
+        assert.notEqual(initialName, fallbackName, '新访问不应固定使用无名行者');
+        assert.match(initialName, /[\p{Script=Han}]{2,}/u, '默认道号不是中文');
         await startFromLanding(page);
         await openSettings(page);
         const restart = page.locator('.settings-dialog [data-action="restart"]');
@@ -253,8 +255,70 @@ async function run() {
     const page = await context.newPage();
     page.setDefaultTimeout(15000);
     await clearAndOpen(page);
-    await check('默认姓名可直接开局并生成新命数', async () => {
-      assert.equal(await page.locator('[name="player-name"]').inputValue(), defaultName);
+    await check('随机道号可重抽且重渲染保留手动姓名', async () => {
+      const nameInput = page.locator('[name="player-name"]');
+      const seedInput = page.locator('[name="seed"]');
+      const shuffle = page.locator('[data-action="shuffle-name"]');
+      const initialName = await nameInput.inputValue();
+      const initialSeed = await seedInput.inputValue();
+      assert.ok(initialName.trim(), '首页没有生成默认道号');
+      assert.notEqual(initialName, fallbackName, '新访问不应固定使用无名行者');
+      assert.match(initialName, /[\p{Script=Han}]{2,}/u, '默认道号不是中文');
+      assert.equal(await seedInput.getAttribute('type'), 'hidden',
+        '命数种子必须使用隐藏字段');
+      assert.equal(await seedInput.isVisible(), false, '命数种子字段不应可见');
+      const visibleSeedLabels = await page.locator('label:has([name="seed"])')
+        .evaluateAll(labels => labels.filter(label =>
+          label.getClientRects().length > 0 &&
+          getComputedStyle(label).visibility !== 'hidden').length);
+      assert.equal(visibleSeedLabels, 0, '首页不应显示命数种子标签');
+      assert.equal(await page.locator('[data-action="shuffle-seed"]').count(), 0,
+        '首页不应显示另择命数操作');
+      assert.equal((await page.locator('.landing-page').innerText()).includes('命数种子'), false,
+        '首页不应出现可见命数种子文案');
+      assert.equal(await shuffle.count(), 1, '首页缺少随机道号按钮');
+      assert.equal(await shuffle.evaluate(element => element.tagName), 'BUTTON');
+      assert.equal(await shuffle.getAttribute('title'), '随机道号');
+      assert.equal(await shuffle.getAttribute('aria-label'), '随机道号');
+      const shuffleRect = await shuffle.boundingBox();
+      assert.ok(shuffleRect && shuffleRect.width >= 44 && shuffleRect.height >= 44,
+        `随机道号按钮触控区域不足 44px ${JSON.stringify(shuffleRect)}`);
+
+      const beforeShuffle = await storageSnapshot(page);
+      let previousName = initialName;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        await shuffle.click();
+        const nextName = await nameInput.inputValue();
+        assert.ok(nextName.trim(), '随机道号按钮生成了空姓名');
+        assert.notEqual(nextName, previousName, '连续随机道号不能与当前姓名相同');
+        assert.equal(await seedInput.inputValue(), initialSeed,
+          '随机道号不应修改命数种子');
+        assert.deepEqual(await storageSnapshot(page), beforeShuffle,
+          '随机道号不应写入或修改存档');
+        assert.equal(await page.evaluate(key => localStorage.getItem(key), saveKey), null,
+          '随机道号不应创建本局存档');
+        previousName = nextName;
+      }
+
+      const manualName = '手动留下的道号';
+      await nameInput.fill(manualName);
+      await page.locator('.method-choice').nth(1).click();
+      assert.equal(await nameInput.inputValue(), manualName,
+        '切换开局功法重渲染丢失手动姓名');
+      const detail = page.locator('details[data-details="landing-method"]');
+      await detail.locator('summary').click();
+      await detail.waitFor({ state: 'visible' });
+      assert.equal(await detail.evaluate(element => element.open), true,
+        '功法详录没有展开');
+      assert.equal(await nameInput.inputValue(), manualName,
+        '展开功法详录重渲染丢失手动姓名');
+    });
+
+    await clearAndOpen(page);
+    await check('随机默认道号可直接开局并生成新命数', async () => {
+      const defaultName = await page.locator('[name="player-name"]').inputValue();
+      assert.ok(defaultName.trim());
+      assert.notEqual(defaultName, fallbackName);
       const first = await startFromLanding(page);
       assert.equal(first.state.name, defaultName);
       assert.ok(first.state.seed);
@@ -315,6 +379,7 @@ async function run() {
         localStorage.getItem('restart-worker-other-key')), 'keep-me');
       assert.equal(await page.locator('[name="player-name"]').inputValue(), old.state.name);
       assert.equal(await page.locator('[name="seed"]').inputValue(), '');
+      assert.equal(await page.locator('[name="seed"]').getAttribute('type'), 'hidden');
       assert.equal(await page.locator('.method-choice[aria-pressed="true"]').getAttribute('data-id'),
         method);
       assert.equal(await page.locator('.resume-card').count(), 0);
@@ -324,10 +389,39 @@ async function run() {
         '刷新后旧局存档重新出现');
       assert.equal(await page.locator('.resume-card').count(), 0,
         '刷新后旧局继续入口重新出现');
+      const newName = await page.locator('[name="player-name"]').inputValue();
+      assert.ok(newName.trim(), '刷新首页后没有随机默认道号');
+      assert.notEqual(newName, fallbackName, '刷新首页后不应使用固定默认姓名');
       const next = await startFromLanding(page);
-      assert.equal(next.state.name, old.state.name);
+      assert.equal(next.state.name, newName, '刷新后开局没有使用首页显示的道号');
       assert.equal(next.state.method, method);
       assert.notEqual(next.state.seed, oldSeed);
+    });
+
+    await check('回首页新开自动换命数，继续旧局保留原命数', async () => {
+      const before = await savedRun(page);
+      await clickAction(page, 'home', '.topbar [data-action="home"]');
+      await page.locator('.landing-page').waitFor({ state: 'visible' });
+      assert.equal(await page.locator('[name="seed"]').inputValue(), '',
+        '回首页不应把旧局命数预填到新局');
+      assert.equal((await savedRun(page)).text, before.text,
+        '回首页清理种子预填值不应修改旧局存档');
+      await clickAction(page, 'continue', '.resume-card[data-action="continue"]');
+      await waitForPhase(page, 'map');
+      assert.equal((await savedRun(page)).text, before.text,
+        '继续旧局应保留原命数和存档');
+
+      await clickAction(page, 'home', '.topbar [data-action="home"]');
+      await page.locator('.landing-page').waitFor({ state: 'visible' });
+      await clickAction(page, 'start');
+      assert.equal((await savedRun(page)).text, before.text,
+        '确认新开前不应改写旧局存档');
+      await confirmRestart(page);
+      await waitForPhase(page, 'map');
+      const next = await savedRun(page);
+      assert.equal(next.state.name, before.state.name, '新局应沿用当前道号');
+      assert.ok(next.state.seed, '新局没有自动生成命数');
+      assert.notEqual(next.state.seed, before.state.seed, '新局沿用了旧局命数');
     });
 
     await check('首页覆盖旧存档先确认并使用已选姓名、种子与功法', async () => {
@@ -337,11 +431,8 @@ async function run() {
       const chosenName = '新名'.repeat(14);
       const expectedName = chosenName.slice(0, 24);
       const method = await page.locator('.method-choice').nth(1).getAttribute('data-id');
-      const seedInput = page.locator('[name="seed"]');
-      assert.equal(await seedInput.isVisible(), true, '首页命数种子输入框应直接显示');
-      assert.equal(await seedInput.isEditable(), true, '首页命数种子输入框应可编辑');
       await page.locator('[name="player-name"]').fill(chosenName);
-      await seedInput.fill('homepage-selected-seed');
+      await setSetupSeed(page, 'homepage-selected-seed');
       await page.locator('.method-choice').nth(1).click();
       await clickAction(page, 'start');
       assert.equal(await page.locator('.modal-backdrop').count(), 1,
@@ -402,7 +493,7 @@ async function run() {
       await page.locator('[name="player-name"]').fill('   ');
       await clickAction(page, 'start');
       await waitForPhase(page, 'map');
-      assert.equal((await savedRun(page)).state.name, defaultName);
+      assert.equal((await savedRun(page)).state.name, fallbackName);
     });
     await context.close();
 
@@ -462,6 +553,7 @@ async function run() {
         localStorage.getItem('restart-worker-other-key')), 'keep-me');
       assert.equal(await battlePage.locator('[name="player-name"]').inputValue(), '斗法行者');
       assert.equal(await battlePage.locator('[name="seed"]').inputValue(), '');
+      assert.equal(await battlePage.locator('[name="seed"]').getAttribute('type'), 'hidden');
     });
     await battleContext.close();
   } finally {

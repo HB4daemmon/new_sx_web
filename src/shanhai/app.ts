@@ -144,6 +144,12 @@ const STATUS_ICON: Record<string, string> = {
 };
 const ARTIFACT_ICONS = ['jade', 'pearl', 'mirror', 'bell', 'gourd', 'ring', 'seal', 'feather', 'flame'];
 const DEFAULT_PLAYER_NAME = '无名行者';
+const RANDOM_PLAYER_NAMES = [
+  '沈听澜', '陆清衡', '顾行舟', '苏照夜', '林怀玉', '谢长风',
+  '云知微', '柳归尘', '宁问川', '叶临渊', '江望舒', '秦映雪',
+  '宋疏影', '温见山', '白沐青', '许星河', '洛明霄', '楚云岫',
+  '方闻溪', '程远山', '季南枝', '萧清和', '孟青岚', '夏初霁',
+];
 
 type RuntimeGame = ShanhaiGame;
 
@@ -198,6 +204,11 @@ function clamp(value: number, min: number, max: number): number {
 
 function normalizedPlayerName(value: unknown): string {
   return asText(value).trim().slice(0, 24) || DEFAULT_PLAYER_NAME;
+}
+
+function randomPlayerName(previous = ''): string {
+  const choices = RANDOM_PLAYER_NAMES.filter((name) => name !== previous);
+  return choices[Math.floor(Math.random() * choices.length)];
 }
 
 function normalizedSeed(value: unknown): string {
@@ -286,7 +297,7 @@ class ShanhaiApp {
   private game: RuntimeGame | null = null;
   private view: 'journey' | 'build' | 'karma' = 'journey';
   private selectedMethod = '';
-  private playerName = DEFAULT_PLAYER_NAME;
+  private playerName = randomPlayerName();
   private seed = '';
   private restartDestination: 'setup' | 'start' = 'setup';
   private notice = '';
@@ -1636,9 +1647,8 @@ class ShanhaiApp {
         <div class="hero-card-stage" data-game-start-stage><div class="hero-back"></div>${characterArt(asText(selected?.id, 'RKF01'))}<canvas class="game-start-canvas" data-game-start role="img" aria-label="${esc(asText(selected?.name, '开局功法'))}"></canvas></div>
         <section class="setup" aria-labelledby="setup-title">
           <div class="setup-top"><div><h2 class="setup-title" id="setup-title">择一门功法</h2></div></div>
-          <div class="setup-fields"><label class="field name-input"><span>道号</span><input name="player-name" maxlength="24" value="${esc(this.playerName)}" placeholder="无名行者" autocomplete="nickname"></label>
-            <div class="seed-field-row"><label class="field seed-field"><span>命数种子</span><input class="seed-input" name="seed" maxlength="48" value="${esc(this.seed)}" placeholder="留空则随机"></label><button class="seed-action" data-action="shuffle-seed" title="另择命数" aria-label="另择命数">${icon('mirror', 16)}</button></div>
-          </div>
+          <div class="setup-fields"><div class="name-field-row"><label class="field name-input"><span>道号</span><input name="player-name" maxlength="24" value="${esc(this.playerName)}" placeholder="无名行者" autocomplete="nickname"></label><button type="button" class="name-action" data-action="shuffle-name" title="随机道号" aria-label="随机道号">${icon('mirror', 18)}</button></div></div>
+          <input type="hidden" name="seed" value="${esc(this.seed)}">
           <div class="method-grid">${methods.map((method, index) => this.methodChoice(method, index)).join('')}</div>
           <div class="method-detail">${this.methodQuickDetail(selected)}<details class="method-full-detail disclosure" data-details="landing-method"><summary>功法详录</summary>${this.methodDetail(selected)}</details></div>
           <div class="actions"><button class="button primary small" data-action="start" data-autofocus>入山海 ${icon('arrow', 17)}</button></div>${this.inlineMessage()}
@@ -3122,6 +3132,7 @@ class ShanhaiApp {
         this.stopPlayback();
         this.view = 'journey';
         this.game = null;
+        this.seed = '';
         this.modal = null;
         this.modalId = '';
         this.scrollToStageTop = true;
@@ -3144,10 +3155,12 @@ class ShanhaiApp {
         this.selectedMethod = asText(target.dataset.id);
         this.render();
         break;
-      case 'shuffle-seed':
-        this.seed = `${Date.now()}${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
-        this.render();
+      case 'shuffle-name': {
+        this.playerName = randomPlayerName(this.playerName.trim());
+        const nameInput = this.root.querySelector<HTMLInputElement>('[name="player-name"]');
+        if (nameInput) nameInput.value = this.playerName;
         break;
+      }
       case 'start':
         this.createRun(target);
         break;
