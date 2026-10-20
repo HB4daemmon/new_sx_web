@@ -1,0 +1,25 @@
+[Unit]
+Description=Model Inbox file handoff service
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/product/new_sx_web/tools/model-inbox
+Environment=HOST=0.0.0.0
+Environment=PORT=4175
+Environment=INBOX_DIR=/product/new_sx_web/var/model-inbox
+Environment=PUBLIC_URL=http://sg.229465154.xyz:4175/
+UMask=0077
+ExecStart=/home/ubuntu/.local/bin/node /product/new_sx_web/tools/model-inbox/server.mjs
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/product/new_sx_web/var/model-inbox
+
+[Install]
+WantedBy=multi-user.target

@@ -38,6 +38,12 @@ jobs:
       - name: Verify content contracts
         run: npm run test:content
 
+      - name: Install private file inbox
+        run: npm ci --prefix tools/model-inbox --no-audit --no-fund
+
+      - name: Verify private file inbox
+        run: npm --prefix tools/model-inbox test
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:

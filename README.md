@@ -106,3 +106,19 @@ npm run calibrate
 
 具体实现边界见 [运行时说明](docs/SHANHAI_RUNTIME.md)，参数调整与测量边界见
 [首轮校准记录](docs/SHANHAI_CALIBRATION.md)。
+
+## 模型文件交接
+
+全项目交接见 [HANDOFF](docs/HANDOFF_2026-10-20.md)。
+独立上传服务位于 `tools/model-inbox/`，默认端口 `4175`，不改变游戏或文档站：
+
+```sh
+npm ci --prefix tools/model-inbox
+npm --prefix tools/model-inbox test
+npm --prefix tools/model-inbox run dev
+```
+
+使用服务生成的专用链接上传文档、补丁或压缩包。原件与备注保存在被 Git 忽略的
+`var/model-inbox/uploads/<记录 ID>/`，供后续人工读取、审查和应用；
+不会自动执行、解压或覆盖项目。访问密钥与上传内容不发布到文档站。
+运行、限额和持久化部署见 [服务说明](tools/model-inbox/README.md)。

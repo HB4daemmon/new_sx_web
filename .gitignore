@@ -16,3 +16,6 @@ __pycache__/
 /verification/shanhai/browser-journey/screenshots/
 /verification/shanhai/commitments/*.png
 /output/imagegen/
+
+# Private model handoff files and access token, never published or committed.
+/var/model-inbox/

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>随时修仙 · 文件交接</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="icon" href="/brand.png" type="image/png">
+    <script src="/lucide.js" defer></script>
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <img class="brand-mark" src="/brand.png" alt="随时修仙" width="36" height="36">
+        <h1>随时修仙</h1>
+        <span class="brand-divider" aria-hidden="true">/</span>
+        <span class="brand-context">文件交接</span>
+      </div>
+      <p class="security-note">请勿上传密码或密钥</p>
+    </header>
+
+    <main class="page-shell">
+      <section id="auth-view" class="auth-view" aria-labelledby="auth-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">随时修仙 · 文件交接</p>
+            <h2 id="auth-title">连接工作区</h2>
+          </div>
+          <span id="connection-state" class="connection-state" aria-live="polite">
+            <span class="state-dot" aria-hidden="true"></span>
+            <span id="connection-label">未连接</span>
+          </span>
+        </div>
+
+        <form id="auth-form" class="auth-form" method="post" action="/">
+          <label for="access-key">访问密钥</label>
+          <div class="auth-controls">
+            <input id="access-key" name="access-key" type="password" autocomplete="current-password" required>
+            <button id="connect-button" class="button button-primary" type="submit" title="使用访问密钥连接工作区">
+              <i data-lucide="plug-zap" aria-hidden="true"></i>
+              <span>连接</span>
+            </button>
+          </div>
+          <p id="auth-message" class="form-message" role="status" aria-live="polite"></p>
+        </form>
+
+      </section>
+
+      <section id="workspace-view" class="workspace-view" aria-labelledby="workspace-title" hidden>
+        <div class="workspace-heading">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">随时修仙 · 文件交接</p>
+              <h2 id="workspace-title">交接工作区</h2>
+            </div>
+            <span class="connection-state is-connected" aria-live="polite">
+              <span class="state-dot" aria-hidden="true"></span>
+              <span>已连接</span>
+            </span>
+          </div>
+          <div class="workspace-actions">
+            <div class="limit-labels" aria-label="存储限额">
+              <span class="data-label">单文件 <strong id="single-limit">50 MiB</strong></span>
+              <span class="data-label">已用 <strong id="quota-used">0 B / 500 MiB</strong></span>
+              <span class="data-label"><strong id="file-count">0 / 200</strong> 个文件</span>
+            </div>
+            <button id="change-key" class="button button-subtle" type="button" title="清除此会话并更换访问密钥">
+              <i data-lucide="key-round" aria-hidden="true"></i>
+              <span>更换密钥</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="panel-grid">
+          <section class="work-panel upload-panel" aria-labelledby="upload-title">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">文件与备注</p>
+                <h3 id="upload-title">上传文件</h3>
+              </div>
+              <span id="queue-count" class="subtle-count">0 个文件</span>
+            </div>
+
+            <div id="drop-zone" class="drop-zone" role="group" aria-label="添加交接文件" tabindex="0">
+              <div class="drop-copy">
+                <i data-lucide="files" aria-hidden="true"></i>
+                <span>拖放文件，或选择文件</span>
+              </div>
+              <button id="choose-files" class="button button-outline" type="button" title="选择多个文件">
+                <i data-lucide="folder-open" aria-hidden="true"></i>
+                <span>选择文件</span>
+              </button>
+              <input id="file-input" class="visually-hidden" type="file" multiple tabindex="-1">
+            </div>
+
+            <ul id="queue-list" class="queue-list" aria-label="待上传文件"></ul>
+            <p id="queue-empty" class="queue-empty">尚未选择文件</p>
+
+            <div class="note-field">
+              <label for="upload-note">备注 <span>可选</span></label>
+              <textarea id="upload-note" maxlength="4000" rows="3"></textarea>
+              <div class="note-footer">
+                <span id="note-count">0 / 2000</span>
+                <span class="note-limit">最多 2000 字</span>
+              </div>
+            </div>
+
+            <div class="upload-footer">
+              <p id="upload-message" class="form-message" role="status" aria-live="polite"></p>
+              <button id="upload-button" class="button button-primary" type="button" title="上传待传文件" disabled>
+                <i data-lucide="upload" aria-hidden="true"></i>
+                <span>开始上传</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="work-panel records-panel" aria-labelledby="records-title">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">最近文件</p>
+                <h3 id="records-title">交接记录</h3>
+              </div>
+              <button id="refresh-records" class="button button-subtle button-icon" type="button" title="刷新交接记录" aria-label="刷新交接记录">
+                <i data-lucide="refresh-cw" aria-hidden="true"></i>
+              </button>
+            </div>
+            <p id="records-message" class="records-message" role="status" aria-live="polite"></p>
+            <ul id="records-list" class="records-list" aria-label="交接记录列表"></ul>
+            <p id="records-empty" class="records-empty" hidden>暂无交接记录</p>
+          </section>
+        </div>
+      </section>
+
+      <div id="announcer" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></div>
+    </main>
+  </body>
+</html>
