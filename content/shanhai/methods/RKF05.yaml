@@ -47,7 +47,7 @@ actions:
         operation: damage
         target: enemy
         params:
-          attack_ratio: 1.05
+          attack_ratio: 1.40
           segments: 1
           can_crit: true
           damage_kind: direct
@@ -55,7 +55,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按攻击的1.05倍造成一段可暴击剑击；伤害还会按出手时的剑势层数提高。
+        text: 按攻击的1.40倍造成一段可暴击剑击；伤害还会按出手时的剑势层数提高。
       - id: RKF05-BASIC-INTENT
         trigger: action_end
         operation: apply_status
@@ -81,7 +81,7 @@ actions:
         operation: damage
         target: enemy
         params:
-          attack_ratio: 1.50
+          attack_ratio: 2.10
           segments: 1
           can_crit: true
           damage_kind: direct
@@ -91,7 +91,7 @@ actions:
         consumes: [rage_locked_action_cost]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 消耗本次怒技所需的怒气后，按攻击的1.50倍造成一段可暴击剑击；怒技不会消耗剑势，伤害仍按出手时的剑势层数提高。
+        text: 消耗本次怒技所需的怒气后，按攻击的2.10倍造成一段可暴击剑击；怒技不会消耗剑势，伤害仍按出手时的剑势层数提高。
 passives:
   - id: RKF05-PASSIVE-EDGE
     trigger: always
@@ -100,7 +100,7 @@ passives:
     params:
       mode: add_formula
       effect_ids: [RKF05-BASIC-DAMAGE, RKF05-RAGE-DAMAGE]
-      sword_intent_ratio_per_stack: 0.04
+      sword_intent_ratio_per_stack: 0.07
       applies_to: base_direct_segments
       snapshot: action_start
       no_crit_for_added_ratio: true
@@ -108,7 +108,7 @@ passives:
     consumes: []
     replaces: []
     limit: {scope: permanent, count: 1}
-    text: 普攻和怒技按出手时的剑势层数提高直接伤害，每层增加攻击0.04倍；此加成不影响追剑等追加效果。
+    text: 普攻和怒技按出手时的剑势层数提高直接伤害，每层增加攻击0.07倍；此加成不影响追剑等追加效果。
 travel:
   - id: RKF05-TRAVEL-NEXT-STRIKE
     trigger: node_complete
@@ -310,7 +310,7 @@ talents:
         params:
           action_types: [basic_action, rage_action]
           defense_ratio: 0.16
-          max_hp_ratio_per_stack: 0.025
+          max_hp_ratio_per_stack: 0.012
           source_status: sword_intent
           snapshot: action_start
           cap_ratio: 1
@@ -319,7 +319,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 每次普攻或怒技完成后，获得防御0.16倍加当前每层剑势最大气血0.025倍的护盾；此效果不消耗剑势。
+        text: 每次普攻或怒技完成后，获得防御0.16倍加当前每层剑势最大气血0.012倍的护盾；此效果不消耗剑势。
   - id: RKF05-J3-C
     tier: 3
     branch: C
@@ -359,15 +359,15 @@ talents:
           mode: replace_segments
           effect_id: RKF05-RAGE-DAMAGE
           segments: 2
-          attack_ratio_per_segment: 0.85
-          total_ratio: 1.70
+          attack_ratio_per_segment: 1.05
+          total_ratio: 2.10
           can_crit: true
           sword_intent_formula_unchanged: true
         requires: []
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 断水养锋改为同一次怒技内造成两段剑击，每段为攻击的0.85倍且可暴击；两段均按出手时的剑势层数计算伤害。
+        text: 断水养锋改为同一次怒技内造成两段剑击，每段为攻击的1.05倍、合计2.10倍且可暴击；两段均按出手时的剑势层数计算伤害。
   - id: RKF05-J4-B
     tier: 4
     branch: B

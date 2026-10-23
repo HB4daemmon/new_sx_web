@@ -29,7 +29,7 @@ artifacts:
   - {id: RC03, stacks: 1}
   - {id: RC11, stacks: 1}
 stats:
-  attack: 14
+  attack: 68
   defense: 32
   max_hp: 330
   crit_rate: 0.05

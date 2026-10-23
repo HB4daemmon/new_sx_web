@@ -19,12 +19,12 @@
 
 ::: details 普攻开发详情
 - `RKF03-BASIC-DAMAGE`；按攻击的0.88倍对敌方造成一段可暴击直接伤害。；操作：造成伤害；触发：普攻动作；目标：敌人；参数：攻击倍率=0.88；段数=1；can_crit=是；伤害类型=direct；限制：范围=action；次数=1
-- `RKF03-BASIC-HEAL`；普攻完成后恢复最大气血10%的气血；先填补气血缺口，超出气血上限的部分按所学天赋转为伤害或中毒。佩戴琉璃法印时，溢疗改为护盾。；操作：治疗；触发：动作结束；目标：自身；参数：action=basic_action；最大气血倍率=0.1；时机=after_damage；overflow_selector=标识=RKF03-OVERFLOW-OUTLET；default=damage_enemy；alternatives=琉璃法印（`RL01`）；mutually_exclusive=是；consume_once=是；outlet_order=琉璃法印（`RL01`）、method_default；heal_first_then_overflow=是；限制：范围=action；次数=1
+- `RKF03-BASIC-HEAL`；普攻完成后恢复最大气血2%的气血；先填补气血缺口，超出气血上限的部分按所学天赋转为伤害或中毒。佩戴琉璃法印时，溢疗改为护盾。；操作：治疗；触发：动作结束；目标：自身；参数：action=basic_action；最大气血倍率=0.02；时机=after_damage；overflow_selector=标识=RKF03-OVERFLOW-OUTLET；default=damage_enemy；alternatives=琉璃法印（`RL01`）；mutually_exclusive=是；consume_once=是；outlet_order=琉璃法印（`RL01`）、method_default；heal_first_then_overflow=是；限制：范围=action；次数=1
 :::
 
 ::: details 怒技开发详情
 - `RKF03-RAGE-DAMAGE`；消耗本次怒技所需的怒气后，按攻击的1.35倍对敌方造成一段可暴击直接伤害。；操作：造成伤害；触发：怒技动作；目标：敌人；参数：攻击倍率=1.35；段数=1；can_crit=是；伤害类型=direct；rage_cost=locked_action_cost；消费：rage_locked_action_cost；限制：范围=action；次数=1
-- `RKF03-RAGE-HEAL`；怒技完成后恢复最大气血24%的气血；先填补气血缺口，超出气血上限的部分按所学天赋转化，不会同时转为伤害、中毒和护盾。；操作：治疗；触发：动作结束；目标：自身；参数：action=rage_action；最大气血倍率=0.24；时机=after_damage；overflow_selector=标识=RKF03-OVERFLOW-OUTLET；default=damage_enemy；alternatives=琉璃法印（`RL01`）；mutually_exclusive=是；consume_once=是；outlet_order=琉璃法印（`RL01`）、method_default；heal_first_then_overflow=是；限制：范围=action；次数=1
+- `RKF03-RAGE-HEAL`；怒技完成后恢复最大气血5%的气血；先填补气血缺口，超出气血上限的部分按所学天赋转化，不会同时转为伤害、中毒和护盾。；操作：治疗；触发：动作结束；目标：自身；参数：action=rage_action；最大气血倍率=0.05；时机=after_damage；overflow_selector=标识=RKF03-OVERFLOW-OUTLET；default=damage_enemy；alternatives=琉璃法印（`RL01`）；mutually_exclusive=是；consume_once=是；outlet_order=琉璃法印（`RL01`）、method_default；heal_first_then_overflow=是；限制：范围=action；次数=1
 :::
 
 ## 固有被动
@@ -64,7 +64,7 @@
 - 玩家摘要：基础自疗提高
 - 类别：强化
 - 开发标识：`RKF03-J1-B`
-- `RKF03-J1-B-BASIC-HEAL`；回春引气恢复的气血增加最大气血的6%；超过气血上限的部分仍按所学天赋转化。；操作：修改效果；触发：动作结束；目标：自身；参数：模式=add_input；效果 ID=RKF03-BASIC-HEAL；最大气血倍率增量=0.06；时机=after_damage；overflow_selector_unchanged=是；限制：范围=action；次数=1
+- `RKF03-J1-B-BASIC-HEAL`；回春引气恢复的气血增加最大气血的1%；超过气血上限的部分仍按所学天赋转化。；操作：修改效果；触发：动作结束；目标：自身；参数：模式=add_input；效果 ID=RKF03-BASIC-HEAL；最大气血倍率增量=0.01；时机=after_damage；overflow_selector_unchanged=是；限制：范围=action；次数=1
 :::
 ::: details 1层C：丹田厚养
 - 玩家摘要：最大气血提高
@@ -82,7 +82,7 @@
 - 玩家摘要：怒技治疗提高
 - 类别：强化
 - 开发标识：`RKF03-J2-B`
-- `RKF03-J2-B-RAGE-HEAL`；枯木回天恢复的气血增加最大气血的10%；超过气血上限的部分仍按一种溢疗效果转化。；操作：修改效果；触发：动作结束；目标：自身；参数：模式=add_input；效果 ID=RKF03-RAGE-HEAL；最大气血倍率增量=0.1；时机=after_damage；overflow_selector_unchanged=是；限制：范围=action；次数=1
+- `RKF03-J2-B-RAGE-HEAL`；枯木回天恢复的气血增加最大气血的2.5%；超过气血上限的部分仍按一种溢疗效果转化。；操作：修改效果；触发：动作结束；目标：自身；参数：模式=add_input；效果 ID=RKF03-RAGE-HEAL；最大气血倍率增量=0.025；时机=after_damage；overflow_selector_unchanged=是；限制：范围=action；次数=1
 :::
 ::: details 2层C：回气养元
 - 玩家摘要：有效治疗返怒
@@ -106,13 +106,13 @@
 - 玩家摘要：有效治疗造盾
 - 类别：强化
 - 开发标识：`RKF03-J3-C`
-- `RKF03-J3-C-SHIELD`；每次普攻或怒技首次实际回复气血后，获得相当于回复量35%的护盾；治疗溢出不计入，气血回复照常保留。；操作：生成护盾；触发：治疗结算；目标：自身；参数：来源=effective_heal；effective_heal_ratio=0.35；read_only=是；consume_heal=否；overflow_excluded=是；上限比例=1；前置：effective_self_heal；限制：范围=action；次数=1
+- `RKF03-J3-C-SHIELD`；每次普攻或怒技首次实际回复气血后，获得相当于回复量15%的护盾；治疗溢出不计入，气血回复照常保留。；操作：生成护盾；触发：治疗结算；目标：自身；参数：来源=effective_heal；effective_heal_ratio=0.15；read_only=是；consume_heal=否；overflow_excluded=是；上限比例=1；前置：effective_self_heal；限制：范围=action；次数=1
 :::
 ::: details 4层A：春回大地
 - 玩家摘要：怒技治疗与溢伤提高
 - 类别：强化
 - 开发标识：`RKF03-J4-A`
-- `RKF03-J4-A-RAGE-HEAL`；枯木回天恢复的气血增加最大气血的14%；超过气血上限的部分仍只触发一种溢疗效果。；操作：修改效果；触发：动作结束；目标：自身；参数：模式=add_input；效果 ID=RKF03-RAGE-HEAL；最大气血倍率增量=0.14；时机=after_damage；overflow_selector_unchanged=是；限制：范围=action；次数=1
+- `RKF03-J4-A-RAGE-HEAL`；枯木回天恢复的气血增加最大气血的1%；超过气血上限的部分仍只触发一种溢疗效果。；操作：修改效果；触发：动作结束；目标：自身；参数：模式=add_input；效果 ID=RKF03-RAGE-HEAL；最大气血倍率增量=0.01；时机=after_damage；overflow_selector_unchanged=是；限制：范围=action；次数=1
 :::
 ::: details 4层B：生死回春
 - 玩家摘要：重伤时治疗增强

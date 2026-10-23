@@ -19,7 +19,7 @@ const reportDir = reportOverride
 const screenshotDir = path.join(reportDir, 'screenshots');
 const saveKey = 'suishi-shanhai-run-v1';
 const buildKey = 'suishi-shanhai-build-v1';
-const seed = process.env.SHANHAI_JOURNEY_SEED || 'browser-journey-45';
+const seed = process.env.SHANHAI_JOURNEY_SEED || 'balance-functional-RKF01-3';
 const playerName = '真实浏览器行者';
 
 function playwrightModule() {

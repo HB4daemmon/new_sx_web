@@ -132,18 +132,18 @@ test('RC11 grants one attributable shield after a real direct break per battle',
 
 test('RC12 cleansing leaves RL01 overflow conversion intact and is once per battle', () => {
   const battle = stacks => {
-    const maxHp = 1_000 + 10 * stacks;
+    const player = makeLoadout('RKF03', [
+      { id: 'RC12', stacks },
+      { id: 'RL01', stacks: 1 },
+    ], {
+      attack: 0,
+      max_hp: 1_000,
+      speed: 10,
+    });
+    player.hp = calculateStats(content, player).max_hp - 10;
     return simulateBattle(
       content,
-      makeLoadout('RKF03', [
-        { id: 'RC12', stacks },
-        { id: 'RL01', stacks: 1 },
-      ], {
-        attack: 0,
-        max_hp: 1_000,
-        speed: 10,
-        hp: maxHp - 10,
-      }),
+      player,
       makeLoadout('RKF06', [], {
         attack: 1,
         defense: 0,

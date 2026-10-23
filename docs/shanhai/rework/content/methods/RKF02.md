@@ -18,11 +18,11 @@
 - **归元震脉**：怒技攻击并返还实际怒耗
 
 ::: details 普攻开发详情
-- `RKF02-BASIC-DAMAGE`；按攻击的1.00倍对敌方造成一段可暴击直接伤害；普攻完成后获得25点怒气。；操作：造成伤害；触发：普攻动作；目标：敌人；参数：攻击倍率=1；段数=1；can_crit=是；伤害类型=direct；限制：范围=action；次数=1
+- `RKF02-BASIC-DAMAGE`；按攻击的1.90倍对敌方造成一段可暴击直接伤害；普攻完成后获得25点怒气。；操作：造成伤害；触发：普攻动作；目标：敌人；参数：攻击倍率=1.9；段数=1；can_crit=是；伤害类型=direct；限制：范围=action；次数=1
 :::
 
 ::: details 怒技开发详情
-- `RKF02-RAGE-DAMAGE`；消耗本次怒技所需的怒气后，按攻击的1.40倍造成一段可暴击直接伤害；怒技不会触发普攻回怒。；操作：造成伤害；触发：怒技动作；目标：敌人；参数：攻击倍率=1.4；段数=1；can_crit=是；伤害类型=direct；rage_cost=locked_action_cost；消费：rage_locked_action_cost；限制：范围=action；次数=1
+- `RKF02-RAGE-DAMAGE`；消耗本次怒技所需的怒气后，按攻击的2.50倍造成一段可暴击直接伤害；怒技不会触发普攻回怒。；操作：造成伤害；触发：怒技动作；目标：敌人；参数：攻击倍率=2.5；段数=1；can_crit=是；伤害类型=direct；rage_cost=locked_action_cost；消费：rage_locked_action_cost；限制：范围=action；次数=1
 :::
 
 ## 固有被动

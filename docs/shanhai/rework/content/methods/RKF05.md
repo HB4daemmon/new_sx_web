@@ -18,17 +18,17 @@
 - **断水养锋**：怒技剑击并保留剑势
 
 ::: details 普攻开发详情
-- `RKF05-BASIC-DAMAGE`；按攻击的1.05倍造成一段可暴击剑击；伤害还会按出手时的剑势层数提高。；操作：造成伤害；触发：普攻动作；目标：敌人；参数：攻击倍率=1.05；段数=1；can_crit=是；伤害类型=direct；限制：范围=action；次数=1
+- `RKF05-BASIC-DAMAGE`；按攻击的1.40倍造成一段可暴击剑击；伤害还会按出手时的剑势层数提高。；操作：造成伤害；触发：普攻动作；目标：敌人；参数：攻击倍率=1.4；段数=1；can_crit=是；伤害类型=direct；限制：范围=action；次数=1
 - `RKF05-BASIC-INTENT`；普攻完成后增加1层剑势，最多5层；普攻仍获得25点基础怒气。；操作：施加状态；触发：动作结束；目标：自身；参数：状态=sword_intent；层数=1；最大层数=5；持续范围=battle；来源=basic_action；no_extra_action=是；限制：范围=action；次数=1
 :::
 
 ::: details 怒技开发详情
-- `RKF05-RAGE-DAMAGE`；消耗本次怒技所需的怒气后，按攻击的1.50倍造成一段可暴击剑击；怒技不会消耗剑势，伤害仍按出手时的剑势层数提高。；操作：造成伤害；触发：怒技动作；目标：敌人；参数：攻击倍率=1.5；段数=1；can_crit=是；伤害类型=direct；preserve_sword_intent=是；rage_cost=locked_action_cost；消费：rage_locked_action_cost；限制：范围=action；次数=1
+- `RKF05-RAGE-DAMAGE`；消耗本次怒技所需的怒气后，按攻击的2.10倍造成一段可暴击剑击；怒技不会消耗剑势，伤害仍按出手时的剑势层数提高。；操作：造成伤害；触发：怒技动作；目标：敌人；参数：攻击倍率=2.1；段数=1；can_crit=是；伤害类型=direct；preserve_sword_intent=是；rage_cost=locked_action_cost；消费：rage_locked_action_cost；限制：范围=action；次数=1
 :::
 
 ## 固有被动
 
-- 普攻和怒技按出手时的剑势层数提高直接伤害，每层增加攻击0.04倍；此加成不影响追剑等追加效果。
+- 普攻和怒技按出手时的剑势层数提高直接伤害，每层增加攻击0.07倍；此加成不影响追剑等追加效果。
 
 ## 行旅能力
 
@@ -99,7 +99,7 @@
 - 玩家摘要：出剑按剑势造盾
 - 类别：强化
 - 开发标识：`RKF05-J3-B`
-- `RKF05-J3-B-SHIELD`；每次普攻或怒技完成后，获得防御0.16倍加当前每层剑势最大气血0.025倍的护盾；此效果不消耗剑势。；操作：生成护盾；触发：动作结束；目标：自身；参数：action_types=basic_action、rage_action；防御倍率=0.16；max_hp_ratio_per_stack=0.025；source_status=sword_intent；snapshot=action_start；上限比例=1；no_sword_consumption=是；前置：sword_intent_snapshot；限制：范围=action；次数=1
+- `RKF05-J3-B-SHIELD`；每次普攻或怒技完成后，获得防御0.16倍加当前每层剑势最大气血0.012倍的护盾；此效果不消耗剑势。；操作：生成护盾；触发：动作结束；目标：自身；参数：action_types=basic_action、rage_action；防御倍率=0.16；max_hp_ratio_per_stack=0.012；source_status=sword_intent；snapshot=action_start；上限比例=1；no_sword_consumption=是；前置：sword_intent_snapshot；限制：范围=action；次数=1
 :::
 ::: details 3层C：追锋入骨
 - 玩家摘要：暴击后追加追剑
@@ -111,7 +111,7 @@
 - 玩家摘要：怒技变为两段剑击
 - 类别：强化
 - 开发标识：`RKF05-J4-A`
-- `RKF05-J4-A-RAGE-SEGMENTS`；断水养锋改为同一次怒技内造成两段剑击，每段为攻击的0.85倍且可暴击；两段均按出手时的剑势层数计算伤害。；操作：修改效果；触发：怒技动作；目标：自身；参数：模式=replace_segments；效果 ID=RKF05-RAGE-DAMAGE；段数=2；每段攻击倍率=0.85；total_ratio=1.7；can_crit=是；sword_intent_formula_unchanged=是；限制：范围=action；次数=1
+- `RKF05-J4-A-RAGE-SEGMENTS`；断水养锋改为同一次怒技内造成两段剑击，每段为攻击的1.05倍、合计2.10倍且可暴击；两段均按出手时的剑势层数计算伤害。；操作：修改效果；触发：怒技动作；目标：自身；参数：模式=replace_segments；效果 ID=RKF05-RAGE-DAMAGE；段数=2；每段攻击倍率=1.05；total_ratio=2.1；can_crit=是；sword_intent_formula_unchanged=是；限制：范围=action；次数=1
 :::
 ::: details 4层B：剑意回潮
 - 玩家摘要：出剑后额外回怒
@@ -135,7 +135,7 @@
 | 追剑回气 | 通过暴击追剑和两档出剑回怒维持循环，并以基础暴击率提高追剑机会；代价是必须暴击才会触发追加剑击。 | 剑气凝神（`RKF05-J1-C`）、归鞘回气（`RKF05-J2-C`）、追锋入骨（`RKF05-J3-C`）、剑意回潮（`RKF05-J4-B`） |
 
 ::: details 战斗被动开发详情
-- `RKF05-PASSIVE-EDGE`；普攻和怒技按出手时的剑势层数提高直接伤害，每层增加攻击0.04倍；此加成不影响追剑等追加效果。；操作：修改效果；触发：始终；目标：自身；参数：模式=add_formula；效果 ID=RKF05-BASIC-DAMAGE、RKF05-RAGE-DAMAGE；sword_intent_ratio_per_stack=0.04；applies_to=base_direct_segments；snapshot=action_start；no_crit_for_added_ratio=是；限制：范围=permanent；次数=1
+- `RKF05-PASSIVE-EDGE`；普攻和怒技按出手时的剑势层数提高直接伤害，每层增加攻击0.07倍；此加成不影响追剑等追加效果。；操作：修改效果；触发：始终；目标：自身；参数：模式=add_formula；效果 ID=RKF05-BASIC-DAMAGE、RKF05-RAGE-DAMAGE；sword_intent_ratio_per_stack=0.07；applies_to=base_direct_segments；snapshot=action_start；no_crit_for_added_ratio=是；限制：范围=permanent；次数=1
 :::
 
 ::: details 行旅效果开发详情

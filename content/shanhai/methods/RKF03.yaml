@@ -56,7 +56,7 @@ actions:
         target: self
         params:
           action: basic_action
-          max_hp_ratio: 0.10
+          max_hp_ratio: 0.02
           timing: after_damage
           overflow_selector:
             id: RKF03-OVERFLOW-OUTLET
@@ -70,7 +70,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 普攻完成后恢复最大气血10%的气血；先填补气血缺口，超出气血上限的部分按所学天赋转为伤害或中毒。佩戴琉璃法印时，溢疗改为护盾。
+        text: 普攻完成后恢复最大气血2%的气血；先填补气血缺口，超出气血上限的部分按所学天赋转为伤害或中毒。佩戴琉璃法印时，溢疗改为护盾。
   rage:
     name: 枯木回天
     quick: 怒技攻击并强化自疗
@@ -96,7 +96,7 @@ actions:
         target: self
         params:
           action: rage_action
-          max_hp_ratio: 0.24
+          max_hp_ratio: 0.05
           timing: after_damage
           overflow_selector:
             id: RKF03-OVERFLOW-OUTLET
@@ -110,7 +110,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 怒技完成后恢复最大气血24%的气血；先填补气血缺口，超出气血上限的部分按所学天赋转化，不会同时转为伤害、中毒和护盾。
+        text: 怒技完成后恢复最大气血5%的气血；先填补气血缺口，超出气血上限的部分按所学天赋转化，不会同时转为伤害、中毒和护盾。
 passives:
   - id: RKF03-PASSIVE-OVERFLOW
     trigger: overflow_resolved
@@ -194,14 +194,14 @@ talents:
         params:
           mode: add_input
           effect_id: RKF03-BASIC-HEAL
-          max_hp_ratio_add: 0.06
+          max_hp_ratio_add: 0.01
           timing: after_damage
           overflow_selector_unchanged: true
         requires: []
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 回春引气恢复的气血增加最大气血的6%；超过气血上限的部分仍按所学天赋转化。
+        text: 回春引气恢复的气血增加最大气血的1%；超过气血上限的部分仍按所学天赋转化。
   - id: RKF03-J1-C
     tier: 1
     branch: C
@@ -272,14 +272,14 @@ talents:
         params:
           mode: add_input
           effect_id: RKF03-RAGE-HEAL
-          max_hp_ratio_add: 0.10
+          max_hp_ratio_add: 0.025
           timing: after_damage
           overflow_selector_unchanged: true
         requires: []
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 枯木回天恢复的气血增加最大气血的10%；超过气血上限的部分仍按一种溢疗效果转化。
+        text: 枯木回天恢复的气血增加最大气血的2.5%；超过气血上限的部分仍按一种溢疗效果转化。
   - id: RKF03-J2-C
     tier: 2
     branch: C
@@ -363,7 +363,7 @@ talents:
         target: self
         params:
           source: effective_heal
-          effective_heal_ratio: 0.35
+          effective_heal_ratio: 0.15
           read_only: true
           consume_heal: false
           overflow_excluded: true
@@ -372,7 +372,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 每次普攻或怒技首次实际回复气血后，获得相当于回复量35%的护盾；治疗溢出不计入，气血回复照常保留。
+        text: 每次普攻或怒技首次实际回复气血后，获得相当于回复量15%的护盾；治疗溢出不计入，气血回复照常保留。
   - id: RKF03-J4-A
     tier: 4
     branch: A
@@ -387,14 +387,14 @@ talents:
         params:
           mode: add_input
           effect_id: RKF03-RAGE-HEAL
-          max_hp_ratio_add: 0.14
+          max_hp_ratio_add: 0.01
           timing: after_damage
           overflow_selector_unchanged: true
         requires: []
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 枯木回天恢复的气血增加最大气血的14%；超过气血上限的部分仍只触发一种溢疗效果。
+        text: 枯木回天恢复的气血增加最大气血的1%；超过气血上限的部分仍只触发一种溢疗效果。
   - id: RKF03-J4-B
     tier: 4
     branch: B

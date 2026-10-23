@@ -28,9 +28,9 @@ artifacts:
   - {id: RC11, stacks: 1}
   - {id: RR03, stacks: 1}
 stats:
-  attack: 21
+  attack: 84
   defense: 56
-  max_hp: 353
+  max_hp: 459
   crit_rate: 0.09
   speed: 12
 pressure: [持续伤害, 稳定护盾]

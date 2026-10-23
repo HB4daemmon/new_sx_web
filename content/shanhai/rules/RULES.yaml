@@ -186,6 +186,8 @@ pools:
   method_legendary: {kind: method, rarity: legendary}
   owned_methods: {kind: method, owned_only: true}
 calibration:
+  cumulative_act_pass_rates: [0.80, 0.65, 0.50, 0.35]
+  pass_rate_basis: 同一开局样本累计通过第1至4幕；第五幕为独立终战，另列入场后的胜率。自动策略模拟不等同人类玩家实测。
   current_artifact_values: 保留44张卡现有数值，逐卡测A/J后再修订；基础属性参考不构成全部卡达标的证明。
   damage_and_status_values: 新填系数、状态和成长表均是首轮实现输入，必须通过共享参照和实际遭遇复测。
   measured: null

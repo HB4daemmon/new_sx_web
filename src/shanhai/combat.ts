@@ -1892,7 +1892,9 @@ function resolveActionEnd(runtime: BattleRuntime, action: ActionContext): void {
       if (effect.id === 'RKF01-BASIC-SHIELD' || effect.id === 'RKF01-RAGE-SHIELD') {
         if (actor.method.id !== 'RKF01') continue;
         if (effect.id === 'RKF01-RAGE-SHIELD' && selectedEffect(actor, 'RKF01-J4-B-CONSUME-SHIELD')) continue;
-        const hpRatio = selectedEffect(actor, effect.id === 'RKF01-BASIC-SHIELD' ? 'RKF01-J2-C-BASIC-HP-SHIELD' : 'RKF01-J2-C-RAGE-HP-SHIELD') ? 0.12 : 0;
+        const hpShield = selectedEffect(actor, effect.id === 'RKF01-BASIC-SHIELD'
+          ? 'RKF01-J2-C-BASIC-HP-SHIELD' : 'RKF01-J2-C-RAGE-HP-SHIELD');
+        const hpRatio = n(p.max_hp_ratio, 0) + n(hpShield?.params?.max_hp_ratio_add, 0);
         const amount = action.actionStats.defense * n(p.defense_ratio, 0) + actor.stats.max_hp * hpRatio;
         const bonus = selectedEffect(actor, 'RKF01-J1-A-SHIELD');
         const shieldBonus = bonus ? n(bonus.params?.shield_ratio_add, 0.18) : 0;

@@ -56,7 +56,7 @@ actions:
         target: self
         params:
           action: basic_action
-          defense_ratio: 0.42
+          defense_ratio: 0.10
           max_hp_ratio: 0
           cap_ratio: 1
           timing: after_damage
@@ -65,7 +65,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 普攻完成后获得相当于防御0.42倍的护盾。
+        text: 普攻完成后获得相当于防御0.10倍的护盾。
   rage:
     name: 撼岳怒印
     quick: 怒技攻击并按防御造盾
@@ -91,7 +91,7 @@ actions:
         target: self
         params:
           action: rage_action
-          defense_ratio: 0.55
+          defense_ratio: 0.18
           max_hp_ratio: 0
           cap_ratio: 1
           timing: after_damage
@@ -101,7 +101,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 怒技完成后获得相当于防御0.55倍的护盾，不消耗已有护盾。
+        text: 怒技完成后获得相当于防御0.18倍的护盾，不消耗已有护盾。
 passives:
   - id: RKF01-PASSIVE-RECOIL
     trigger: shield_absorbed
@@ -276,14 +276,14 @@ talents:
         params:
           mode: add_input
           effect_id: RKF01-BASIC-SHIELD
-          max_hp_ratio_add: 0.12
+          max_hp_ratio_add: 0.01
           preserve_defense_input: true
           source: max_hp
         requires: []
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 金刚镇岳获得的护盾额外增加最大气血的12%；按防御计算的护盾仍保留。
+        text: 金刚镇岳获得的护盾额外增加最大气血的1%；按防御计算的护盾仍保留。
       - id: RKF01-J2-C-RAGE-HP-SHIELD
         trigger: always
         operation: modify_effect
@@ -291,14 +291,14 @@ talents:
         params:
           mode: add_input
           effect_id: RKF01-RAGE-SHIELD
-          max_hp_ratio_add: 0.12
+          max_hp_ratio_add: 0.01
           preserve_defense_input: true
           source: max_hp
         requires: []
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 撼岳怒印获得的护盾额外增加最大气血的12%；按防御计算的护盾仍保留。选择盾转破阵后，此项对怒技不再生效。
+        text: 撼岳怒印获得的护盾额外增加最大气血的1%；按防御计算的护盾仍保留。选择盾转破阵后，此项对怒技不再生效。
   - id: RKF01-J3-A
     tier: 3
     branch: A
@@ -332,7 +332,7 @@ talents:
         operation: shield
         target: self
         params:
-          max_hp_ratio: 0.24
+          max_hp_ratio: 0.12
           defense_ratio: 0
           condition: first_direct_break_per_battle
           requires_alive: true
@@ -342,7 +342,7 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: battle, count: 1}
-        text: 每场战斗首次被敌方直接攻击打破护盾且自身仍存活时，获得最大气血24%的护盾；主动消耗护盾不触发。
+        text: 每场战斗首次被敌方直接攻击打破护盾且自身仍存活时，获得最大气血12%的护盾；主动消耗护盾不触发。
   - id: RKF01-J3-C
     tier: 3
     branch: C

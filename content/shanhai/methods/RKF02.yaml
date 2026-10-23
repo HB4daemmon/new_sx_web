@@ -41,7 +41,7 @@ actions:
         operation: damage
         target: enemy
         params:
-          attack_ratio: 1.00
+          attack_ratio: 1.90
           segments: 1
           can_crit: true
           damage_kind: direct
@@ -49,7 +49,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按攻击的1.00倍对敌方造成一段可暴击直接伤害；普攻完成后获得25点怒气。
+        text: 按攻击的1.90倍对敌方造成一段可暴击直接伤害；普攻完成后获得25点怒气。
   rage:
     name: 归元震脉
     quick: 怒技攻击并返还实际怒耗
@@ -59,7 +59,7 @@ actions:
         operation: damage
         target: enemy
         params:
-          attack_ratio: 1.40
+          attack_ratio: 2.50
           segments: 1
           can_crit: true
           damage_kind: direct
@@ -68,7 +68,7 @@ actions:
         consumes: [rage_locked_action_cost]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 消耗本次怒技所需的怒气后，按攻击的1.40倍造成一段可暴击直接伤害；怒技不会触发普攻回怒。
+        text: 消耗本次怒技所需的怒气后，按攻击的2.50倍造成一段可暴击直接伤害；怒技不会触发普攻回怒。
 passives:
   - id: RKF02-PASSIVE-RAGE-REFUND
     trigger: action_end

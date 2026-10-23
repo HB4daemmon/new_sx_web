@@ -30,7 +30,7 @@ artifacts:
   - {id: RC17, stacks: 1}
   - {id: RR05, stacks: 1}
 stats:
-  attack: 19
+  attack: 27
   defense: 45
   max_hp: 300
   crit_rate: 0.07

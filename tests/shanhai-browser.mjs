@@ -92,7 +92,9 @@ async function createFixture(page, target, seed = `browser-${target}`) {
       if (game.state.phase === 'battle') game.dispatch({ type: 'battle_done' });
     };
     const finishReward = () => {
-      if (game.state.phase === 'reward') game.dispatch({ type: 'reward', id: null });
+      if (game.state.phase === 'reward') {
+        game.dispatch({ type: 'reward', id: game.state.rewardCandidates[0] ?? null });
+      }
     };
     const advance = () => {
       if (game.state.phase === 'map') {

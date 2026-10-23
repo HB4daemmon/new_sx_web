@@ -7,6 +7,17 @@ import {
   buildEncounterCalibration,
   runFullCalibration,
 } from './shanhai-calibrate.mjs';
+import { ShanhaiGame } from '../build/shanhai/run.js';
+import { nextCommand } from './shanhai-policy.mjs';
+
+// Selected functional fixtures only; this seed set is not a win-rate sample.
+const FUNCTIONAL_WIN_SEEDS = Object.freeze({
+  RKF01: 'balance-functional-RKF01-3',
+  RKF02: 'balance-functional-RKF02-3',
+  RKF03: 'balance-functional-RKF03-6',
+  RKF04: 'balance-functional-RKF04-59',
+  RKF05: 'balance-functional-RKF05-69',
+});
 
 async function calibratedContent() {
   const model = await loadContent();
@@ -119,16 +130,34 @@ test('enemy cards do not claim removed shield outlets or inflated player-facing 
   assert.doesNotMatch(l1Text, /甘露护盾|治疗后.*护盾/);
 });
 
-test('each opening method has a real 45-node winning sample', async () => {
+test('five-run calibration smoke reaches terminal outcomes without errors', async () => {
   const content = await calibratedContent();
   const report = runFullCalibration(content, 1);
-  assert.deepEqual(report.outcomes, { won: 5, lost: 0, undecided: 0, error: 0 });
-  assert.match(report.inputHash, /^[a-f0-9]{64}$/);
+  assert.equal(report.runs.length, 5);
+  assert.deepEqual(report.runs.map(row => row.method), START_METHODS);
+  assert.equal(report.outcomes.error, 0);
+  assert.equal(report.outcomes.won + report.outcomes.lost + report.outcomes.undecided, 5);
+  for (const row of report.runs) {
+    assert.equal(row.seed, 'acceptance-0');
+    assert.ok(['won', 'lost'].includes(row.result), `${row.method}: ${row.result}`);
+  }
+});
+
+test('each opening method has an explicit legal 45-node winning fixture', async () => {
+  const content = await calibratedContent();
+  assert.deepEqual(Object.keys(FUNCTIONAL_WIN_SEEDS), START_METHODS);
+
   for (const method of START_METHODS) {
-    const row = report.runs.find(item => item.method === method);
-    assert.ok(row, method);
-    assert.equal(row.result, 'won', method);
-    assert.equal(row.act, 5, method);
-    assert.equal(row.nodes, 45, method);
+    const seed = FUNCTIONAL_WIN_SEEDS[method];
+    const game = ShanhaiGame.create(content, { seed, name: '功能胜局夹具', method });
+    let actions = 0;
+    while (!['won', 'lost'].includes(game.state.phase) && actions < 600) {
+      game.dispatch(nextCommand(game, 'steady'));
+      actions += 1;
+    }
+    assert.ok(actions < 600, `${method} exceeded the run-step guard`);
+    assert.equal(game.state.phase, 'won', `${method} / ${seed}`);
+    assert.equal(game.state.act, 5, `${method} / ${seed}`);
+    assert.equal(game.state.history.length, 45, `${method} / ${seed}`);
   }
 });

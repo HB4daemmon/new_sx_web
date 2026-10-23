@@ -19,12 +19,12 @@
 
 ::: details 普攻开发详情
 - `RKF01-BASIC-DAMAGE`；按攻击的0.95倍对敌方造成一段可暴击直接伤害。；操作：造成伤害；触发：普攻动作；目标：敌人；参数：攻击倍率=0.95；段数=1；can_crit=是；伤害类型=direct；限制：范围=action；次数=1
-- `RKF01-BASIC-SHIELD`；普攻完成后获得相当于防御0.42倍的护盾。；操作：生成护盾；触发：动作结束；目标：自身；参数：action=basic_action；防御倍率=0.42；最大气血倍率=0；上限比例=1；时机=after_damage；来源=defense；限制：范围=action；次数=1
+- `RKF01-BASIC-SHIELD`；普攻完成后获得相当于防御0.10倍的护盾。；操作：生成护盾；触发：动作结束；目标：自身；参数：action=basic_action；防御倍率=0.1；最大气血倍率=0；上限比例=1；时机=after_damage；来源=defense；限制：范围=action；次数=1
 :::
 
 ::: details 怒技开发详情
 - `RKF01-RAGE-DAMAGE`；消耗本次怒技所需的怒气后，按攻击的1.35倍对敌方造成一段可暴击直接伤害。；操作：造成伤害；触发：怒技动作；目标：敌人；参数：攻击倍率=1.35；段数=1；can_crit=是；伤害类型=direct；rage_cost=locked_action_cost；消费：rage_locked_action_cost；限制：范围=action；次数=1
-- `RKF01-RAGE-SHIELD`；怒技完成后获得相当于防御0.55倍的护盾，不消耗已有护盾。；操作：生成护盾；触发：动作结束；目标：自身；参数：action=rage_action；防御倍率=0.55；最大气血倍率=0；上限比例=1；时机=after_damage；来源=defense；consumes_existing_shield=否；限制：范围=action；次数=1
+- `RKF01-RAGE-SHIELD`；怒技完成后获得相当于防御0.18倍的护盾，不消耗已有护盾。；操作：生成护盾；触发：动作结束；目标：自身；参数：action=rage_action；防御倍率=0.18；最大气血倍率=0；上限比例=1；时机=after_damage；来源=defense；consumes_existing_shield=否；限制：范围=action；次数=1
 :::
 
 ## 固有被动
@@ -89,8 +89,8 @@
 - 玩家摘要：气血越高盾越厚
 - 类别：强化
 - 开发标识：`RKF01-J2-C`
-- `RKF01-J2-C-BASIC-HP-SHIELD`；金刚镇岳获得的护盾额外增加最大气血的12%；按防御计算的护盾仍保留。；操作：修改效果；触发：始终；目标：自身；参数：模式=add_input；效果 ID=RKF01-BASIC-SHIELD；最大气血倍率增量=0.12；preserve_defense_input=是；来源=max_hp；限制：范围=permanent；次数=1
-- `RKF01-J2-C-RAGE-HP-SHIELD`；撼岳怒印获得的护盾额外增加最大气血的12%；按防御计算的护盾仍保留。选择盾转破阵后，此项对怒技不再生效。；操作：修改效果；触发：始终；目标：自身；参数：模式=add_input；效果 ID=RKF01-RAGE-SHIELD；最大气血倍率增量=0.12；preserve_defense_input=是；来源=max_hp；限制：范围=permanent；次数=1
+- `RKF01-J2-C-BASIC-HP-SHIELD`；金刚镇岳获得的护盾额外增加最大气血的1%；按防御计算的护盾仍保留。；操作：修改效果；触发：始终；目标：自身；参数：模式=add_input；效果 ID=RKF01-BASIC-SHIELD；最大气血倍率增量=0.01；preserve_defense_input=是；来源=max_hp；限制：范围=permanent；次数=1
+- `RKF01-J2-C-RAGE-HP-SHIELD`；撼岳怒印获得的护盾额外增加最大气血的1%；按防御计算的护盾仍保留。选择盾转破阵后，此项对怒技不再生效。；操作：修改效果；触发：始终；目标：自身；参数：模式=add_input；效果 ID=RKF01-RAGE-SHIELD；最大气血倍率增量=0.01；preserve_defense_input=是；来源=max_hp；限制：范围=permanent；次数=1
 :::
 ::: details 3层A：反震定势
 - 玩家摘要：盾返伤害提高
@@ -102,7 +102,7 @@
 - 玩家摘要：首次破盾补盾
 - 类别：强化
 - 开发标识：`RKF01-J3-B`
-- `RKF01-J3-B-RECHARGE`；每场战斗首次被敌方直接攻击打破护盾且自身仍存活时，获得最大气血24%的护盾；主动消耗护盾不触发。；操作：生成护盾；触发：护盾破碎；目标：自身；参数：最大气血倍率=0.24；防御倍率=0；条件=first_direct_break_per_battle；requires_alive=是；active_shield_consumption_triggers=否；self_reentry=否；前置：first_direct_break_alive；限制：范围=battle；次数=1
+- `RKF01-J3-B-RECHARGE`；每场战斗首次被敌方直接攻击打破护盾且自身仍存活时，获得最大气血12%的护盾；主动消耗护盾不触发。；操作：生成护盾；触发：护盾破碎；目标：自身；参数：最大气血倍率=0.12；防御倍率=0；条件=first_direct_break_per_battle；requires_alive=是；active_shield_consumption_triggers=否；self_reentry=否；前置：first_direct_break_alive；限制：范围=battle；次数=1
 :::
 ::: details 3层C：怒后追击
 - 玩家摘要：怒后强化普攻

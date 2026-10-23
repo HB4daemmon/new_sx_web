@@ -28,9 +28,9 @@ artifacts:
   - {id: RC08, stacks: 3}
   - {id: RR13, stacks: 1}
 stats:
-  attack: 42
+  attack: 202
   defense: 114
-  max_hp: 990
+  max_hp: 1782
   crit_rate: 0.18
   speed: 15
 pressure: [多段, 削怒]

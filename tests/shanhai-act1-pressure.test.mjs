@@ -74,6 +74,10 @@ test('act-one pressure mechanisms appear in actual battle frames', async () => {
 
   const lightning = content.byId['EN-A1-C2'];
   const lightningLoadouts = referenceLoadouts(content, lightning, 'RKF02');
+  // A durable, low-output observer lets the authored rage cycle complete.
+  lightningLoadouts.player.baseStats.attack = 20;
+  lightningLoadouts.player.baseStats.max_hp = 10_000;
+  lightningLoadouts.player.hp = 10_000;
   const lightningResult = simulateBattle(
     content,
     lightningLoadouts.player,
@@ -87,6 +91,9 @@ test('act-one pressure mechanisms appear in actual battle frames', async () => {
 
   const reflector = content.byId['EN-A1-C4'];
   const reflectorLoadouts = referenceLoadouts(content, reflector, 'RKF02');
+  reflectorLoadouts.player.baseStats.attack = 20;
+  reflectorLoadouts.player.baseStats.max_hp = 10_000;
+  reflectorLoadouts.player.hp = 10_000;
   const reflectorResult = simulateBattle(
     content,
     reflectorLoadouts.player,
@@ -100,6 +107,9 @@ test('act-one pressure mechanisms appear in actual battle frames', async () => {
 
   const healer = content.byId['EN-A1-B2'];
   const healerLoadouts = referenceLoadouts(content, healer, 'RKF02');
+  healerLoadouts.player.baseStats.attack = 20;
+  healerLoadouts.player.baseStats.max_hp = 10_000;
+  healerLoadouts.player.hp = 10_000;
   const healerResult = simulateBattle(
     content,
     healerLoadouts.player,

@@ -28,9 +28,9 @@ artifacts:
   - {id: RC10, stacks: 2}
   - {id: RR14, stacks: 1}
 stats:
-  attack: 26
+  attack: 104
   defense: 84
-  max_hp: 620
+  max_hp: 806
   crit_rate: 0.1
   speed: 8
 pressure: [虚弱/破甲, 削怒]

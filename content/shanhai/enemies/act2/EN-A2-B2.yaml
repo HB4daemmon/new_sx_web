@@ -31,7 +31,7 @@ artifacts:
   - {id: RR05, stacks: 1}
   - {id: RL03, stacks: 1}
 stats:
-  attack: 23
+  attack: 32
   defense: 77
   max_hp: 740
   crit_rate: 0.12
