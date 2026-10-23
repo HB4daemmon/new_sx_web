@@ -4,8 +4,8 @@ kind: event
 id: RE001
 name: 潮痕药篓
 status: design_target
-summary: 在倒灌潮边处理伤口、留药防身，或付盘缠接下限时护送。
-description: 退潮留下的药篓卡在礁缝间，药师正要把药箱送往上游避水处。眼下止痛、留作后用与接下护送，各有不同代价。
+summary: 在倒灌潮边处理伤口、留药防身，或付盘缠沿水寻找物资。
+description: 退潮留下的药篓卡在礁缝间，药师正把药箱送往上游避水处。你可先疗伤、封存药物，或付盘缠沿水寻找散落的物资。
 tags: [ordinary, heal, artifact]
 source:
   basis: original
@@ -18,7 +18,7 @@ balance:
   measured: null
 event_type: ordinary
 acts: [1]
-scene: 逆潮冲散了药棚，药师从礁缝里找回一味药和一只待送的箱子。先顾眼前伤口、留药备用，或出资护送，都不会替你堵住上游水路。
+scene: 逆潮冲散了药棚，药师从礁缝里找回一味药和一只待送的箱子。你可先顾眼前伤口、留药备用，或出资沿水寻找散落物资。
 options:
   - id: RE001-A
     label: 趁药未湿煎服
@@ -40,17 +40,30 @@ options:
     outcome: 你把一层回春瓶封好带走，留给之后实际发生的疗伤。
     story_echo: 你把一层回春瓶收进随身行囊，药篓则留在退潮后的礁缝。
   - id: RE001-C
-    label: 付盘缠接下护送
-    quick: 先付盘缠；接下来3处地点不进休整，送达后取得两层行医囊。盘缠不足或该法宝剩余可叠层数不足两层时不能选；失约或到终战未兑现均不退款。
+    label: 付盘缠沿水寻物
+    quick: 先付公开标价的盘缠，沿水寻找散落物资；具体所得暂不公开，失败不另扣气血或资源。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC17, count: 2}
     costs:
       - {type: resource, resource: coins, amount: 0.3, basis: common_price}
-    rewards: []
-    outcome: 你交出盘缠，与药师约好护送药箱；两层行医囊尚未到手，失约不会退款。
-    story_echo: 你交出盘缠立下护送之约，药箱尚未送达，两层行医囊也未到手。
-    commitment:
+    rewards:
+      - {type: artifact, id: RC17, count: 2}
+    outcome: 你沿水找到并收下药物，随后离开礁缝继续前行。
+    story_echo: 你沿着退潮留下的水痕找到药物，收好后重新辨认上游方向。
+    reveal: hint
+    check:
+      kind: chance
+      hint: 沿水寻物可能空手而归，盘缠不退；身法与行装会影响搜寻机会。
+      chance: 0.4
+      bonuses:
+        - {type: stat, stat: speed, threshold: 12, amount: 0.1}
+        - {type: method, id: RKF06, amount: 0.1}
+        - {type: artifact, id: RC08, amount: 0.1}
+      failure_rewards: []
+      failure_outcome: 你只找到泡坏的药渣，盘缠已付，没有取得物资。
+      failure_echo: 你沿水痕搜寻药物，只拾到泡坏的药渣，盘缠已付出。
+    legacy_commitment:
       name: 护送药箱
       after_nodes: 3
       avoid_node_types: [R]
@@ -58,6 +71,7 @@ options:
         - {type: artifact, id: RC17, count: 2}
       success_outcome: 药箱送达，取得两层行医囊。
       failure_outcome: 护送失约或未能在终战前送达，盘缠不退，也没有行医囊。
+    legacy_story_echo: 你交出盘缠立下护送之约，药箱尚未送达，两层行医囊也未到手。
 settlement:
   once: true
   internal_battle_package: false

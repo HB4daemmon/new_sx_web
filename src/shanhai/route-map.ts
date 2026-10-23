@@ -1,4 +1,5 @@
 import type { RouteMapNode, RunNode, RunPhase } from './types.js';
+import { routeProfilesForAct, type RouteLayoutProfile } from './route-profiles.js';
 
 export const ACT1_CORE_DEPTHS = [1, 4, 7] as const;
 
@@ -6,8 +7,6 @@ export const ACT1_FUNCTION_LAYOUTS = {
   early_challenge: { restDepth: 3, shopDepth: 5, extraEliteDepth: 2 },
   late_preparation: { restDepth: 6, shopDepth: 8, extraEliteDepth: null },
 } as const;
-
-type Act1Cadence = keyof typeof ACT1_FUNCTION_LAYOUTS;
 
 export type RouteMapNodeFactory = (depth: number, lane: number, key: string) => RunNode & {
   label?: string;
@@ -72,7 +71,16 @@ function act1TypeAllowedAtDepth(type: string, depth: number): boolean {
   return false;
 }
 
-function isOldAct1Distribution(nodes: RouteMapNode[]): boolean {
+function laterActTypeAllowedAtDepth(type: string, depth: number): boolean {
+  if (depth === 0) return type === 'C';
+  if ((ACT1_CORE_DEPTHS as readonly number[]).includes(depth)) return type === 'E' || type === 'K';
+  if (depth === 10) return type === 'B';
+  if (depth === 9) return type === 'C' || type === 'L';
+  if ([2, 3, 5, 6, 8].includes(depth)) return ['C', 'R', 'S', 'L'].includes(type);
+  return false;
+}
+
+function isOldFixedDistribution(nodes: RouteMapNode[]): boolean {
   const rests = nodes.filter(node => node.type === 'R');
   const shops = nodes.filter(node => node.type === 'S');
   const elites = nodes.filter(node => node.type === 'L');
@@ -82,22 +90,41 @@ function isOldAct1Distribution(nodes: RouteMapNode[]): boolean {
     elites.length <= 1 && elites.every(node => node.depth === 9);
 }
 
-function isNewAct1Distribution(nodes: RouteMapNode[], cadence: Act1Cadence): boolean {
-  const layout = ACT1_FUNCTION_LAYOUTS[cadence];
+function isRouteLayoutProfile(layout: RouteLayoutProfile): boolean {
+  const allowedDepths = new Set([2, 3, 5, 6, 8]);
+  const featureDepths = [
+    layout.restDepth,
+    layout.shopDepth,
+    ...(layout.extraEliteDepth === null ? [] : [layout.extraEliteDepth]),
+  ];
+  return featureDepths.every(depth => allowedDepths.has(depth)) &&
+    new Set(featureDepths).size === featureDepths.length;
+}
+
+function isProfileDistribution(
+  nodes: RouteMapNode[],
+  layout: RouteLayoutProfile,
+  act: number,
+): boolean {
+  if (!isRouteLayoutProfile(layout)) return false;
   const rests = nodes.filter(node => node.type === 'R');
   const shops = nodes.filter(node => node.type === 'S');
   const elites = nodes.filter(node => node.type === 'L');
-  return nodes.filter(node => node.type === 'K').length <= 1 &&
+  const lateElites = elites.filter(node => node.depth === 9);
+  const extraElites = layout.extraEliteDepth === null ? [] :
+    elites.filter(node => node.depth === layout.extraEliteDepth);
+  return nodes.filter(node => node.type === 'K').length <= (act === 1 ? 1 : 3) &&
     rests.length === 1 && rests[0]!.depth === layout.restDepth &&
     shops.length === 1 && shops[0]!.depth === layout.shopDepth &&
+    lateElites.length <= 1 && extraElites.length <= 1 &&
     elites.every(node => node.depth === 9 ||
       (layout.extraEliteDepth !== null && node.depth === layout.extraEliteDepth)) &&
-    (cadence !== 'early_challenge' ||
-      !elites.some(node => node.depth === 2) ||
+    (layout.extraEliteDepth === null ||
+      !elites.some(node => node.depth === layout.extraEliteDepth) ||
       elites.some(node => node.depth === 9));
 }
 
-function everyAct1PathHasThreeCommonBattles(nodes: RouteMapNode[]): boolean {
+function everyRoutePathHasThreeCommonBattles(nodes: RouteMapNode[]): boolean {
   const byKey = new Map(nodes.map(node => [node.key, node]));
   const memo = new Map<string, number>();
   const minCommonFrom = (key: string): number => {
@@ -119,7 +146,8 @@ function everyAct1PathHasThreeCommonBattles(nodes: RouteMapNode[]): boolean {
   return starts.length > 0 && Math.min(...starts.map(node => minCommonFrom(node.key))) >= 3;
 }
 
-export function isValidAct1RouteDistribution(
+export function isValidRouteDistribution(
+  act: number,
   nodes: RouteMapNode[],
   legacyKeys: ReadonlySet<string> = new Set(),
 ): boolean {
@@ -128,15 +156,32 @@ export function isValidAct1RouteDistribution(
   if ((counts.get('C') ?? 0) < 3 || (counts.get('R') ?? 0) > 1 ||
     (counts.get('S') ?? 0) > 1 || (counts.get('L') ?? 0) > 2 ||
     (counts.get('K') ?? 0) > 3) return false;
+  const coreCountsByDepth = new Map<number, number>();
+  for (const node of nodes) {
+    if (node.type === 'K') {
+      coreCountsByDepth.set(node.depth, (coreCountsByDepth.get(node.depth) ?? 0) + 1);
+    }
+  }
+  if ([...coreCountsByDepth.values()].some(count => count > 1)) return false;
 
   const authored = nodes.filter(node => !legacyKeys.has(node.key));
-  if (!authored.every(node => act1TypeAllowedAtDepth(node.type, node.depth))) return false;
-  if (legacyKeys.size) return everyAct1PathHasThreeCommonBattles(nodes);
+  if (!authored.every(node =>
+    act === 1
+      ? act1TypeAllowedAtDepth(node.type, node.depth)
+      : laterActTypeAllowedAtDepth(node.type, node.depth))) return false;
+  if (legacyKeys.size) return everyRoutePathHasThreeCommonBattles(nodes);
 
-  return everyAct1PathHasThreeCommonBattles(nodes) &&
-    (isOldAct1Distribution(nodes) ||
-    isNewAct1Distribution(nodes, 'early_challenge') ||
-    isNewAct1Distribution(nodes, 'late_preparation'));
+  const layouts = routeProfilesForAct(act);
+  return everyRoutePathHasThreeCommonBattles(nodes) &&
+    (isOldFixedDistribution(nodes) ||
+      layouts.some(layout => isProfileDistribution(nodes, layout, act)));
+}
+
+export function isValidAct1RouteDistribution(
+  nodes: RouteMapNode[],
+  legacyKeys: ReadonlySet<string> = new Set(),
+): boolean {
+  return isValidRouteDistribution(1, nodes, legacyKeys);
 }
 
 export function validateRouteMap(
@@ -185,23 +230,12 @@ export function validateRouteMap(
       if (!act1TypeAllowedAtDepth(node.type, node.depth)) invalidRouteMap();
     } else if (act === 5) {
       if (node.type !== 'F' || node.next.length) invalidRouteMap();
-    } else if (node.depth === 0 && node.type !== 'C') {
-      invalidRouteMap();
-    } else if (node.depth === 2 || node.depth === 6 || node.depth === 8) {
-      if (node.type !== 'C') invalidRouteMap();
-    } else if (node.depth === 10 && node.type !== 'B') {
-      invalidRouteMap();
-    } else if ([1, 4, 7].includes(node.depth) && !['E', 'K'].includes(node.type)) {
-      invalidRouteMap();
-    } else if (node.depth === 3 && !['C', 'R'].includes(node.type)) {
-      invalidRouteMap();
-    } else if (node.depth === 5 && !['C', 'S'].includes(node.type)) {
-      invalidRouteMap();
-    } else if (node.depth === 9 && !['C', 'L'].includes(node.type)) {
+    } else if (!laterActTypeAllowedAtDepth(node.type, node.depth)) {
       invalidRouteMap();
     }
   }
-  if (act === 1 && !isValidAct1RouteDistribution(map.nodes as RouteMapNode[], legacyKeys)) {
+  if (act < 5 &&
+    !isValidRouteDistribution(act, map.nodes as RouteMapNode[], legacyKeys)) {
     invalidRouteMap();
   }
 

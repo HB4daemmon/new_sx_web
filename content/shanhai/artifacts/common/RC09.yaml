@@ -34,5 +34,17 @@ effects:
     replaces: []
     limit: {scope: permanent, count: 1}
     text: 每层使普攻基础直接伤害提高6%，不作用于毒火、盾返或法宝追加段。
+  - id: RC09-AWAKENING-ARMOR-BREAK
+    trigger: basic_hit
+    operation: apply_status
+    target: enemy
+    min_stacks: 3
+    params: {status: armor_break, stacks: 1, duration_rounds: 2, max_stacks: 5, first_effective_base_hit: true, once_per_round: true}
+    requires: [effective_basic_base_hit]
+    consumes: []
+    replaces: []
+    limit: {scope: round, count: 1}
+    text: 集齐3层后，每轮首次普攻基础段有效命中时施加1层护甲破坏，持续至下一轮结束；不由追击触发。
+awakening: {at_stacks: 3, name: 裂甲剑穗, quick: 普攻首段每轮破甲}
 acquisition:
   pools: [common_artifact]

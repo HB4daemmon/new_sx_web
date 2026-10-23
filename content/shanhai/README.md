@@ -144,11 +144,16 @@ category: enhance, effects: [...]}`。
 `acquisition.pools` 引用 `common_artifact/rare_artifact/legendary_artifact` 等公共池。
 `balance.target: {B: 1, A: 5, J: 0}`；旅途型按法宝基线分摊，不能在B外再免费加属性。
 所有44个已有ID、名称、已定效果和数值保留；补全未定参数时写清首测值。
+可选 `awakening: {at_stacks: 3, name: ..., quick: ...}` 只能在
+`at_stacks == max_stacks` 时声明完整叠层觉醒；相应法宝效果可写顶层 `min_stacks`，
+必须为不超过该法宝上限的正整数。达门槛后该效果只触发一次，不乘总层数；
+其它实体效果不能使用 `min_stacks`。阅读页显示觉醒条件与效果门槛。
 
 ### 事件
 
 字段：`event_type/acts/scene/options/settlement`，普通为`ordinary`、核心为`core`。
-`acts` 为允许出现幕的整数数组。场景尽量两句内，每项2-3个互斥选项。
+`acts` 为允许出现幕的整数数组。场景尽量两句内，通常2-3个互斥选项；已有三个
+风险或交易分支的事件可增加第4个无成本离开选项，不删除旧选项或改写旧选择的含义。
 每个选项含 `id/label/quick/requirements/costs/rewards/outcome`，可选含 `commitment`；
 `requirements/costs/rewards` 均为数组，`outcome` 是玩家选择后的短文案。
 选项 ID 必须以事件ID开头。代价或奖励条目：
@@ -198,6 +203,35 @@ commitment:
 （来源事件/选项、幕/步、剩余节点数、状态及选项内容快照）保存在本局状态中，旧存档缺少
 该字段按空列表读取。
 
+即时检定可加在不含内部战斗的选项上；检定不作为选项可用性条件，不能暗扣气血或另加
+失败成本。`rewards/outcome/story_echo` 是成功分支，`check.failure_rewards`,
+`check.failure_outcome` 与 `check.failure_echo` 是失败分支：
+
+```yaml
+check:
+  kind: stat
+  hint: 稳住身形后再压入炉料。
+  stat: hp_ratio
+  threshold: 0.55
+  failure_rewards: []
+  failure_outcome: 炉料滑脱，没有取得器物。
+  failure_echo: 炉料滑脱，你收拾行装继续前行。
+```
+
+`kind: stat` 比较 `stats[stat] >= threshold`；`stat` 可为五维 `attack/defense/max_hp/
+crit_rate/speed` 或当前气血比 `hp_ratio`。概率检定使用 `kind: chance` 与 `chance: 0..1`，
+可选 `bonuses` 为 `{type: stat, stat, threshold, amount}`、
+`{type: method, id, amount}` 或 `{type: artifact, id, amount}`；各满足条件的 `amount`
+累加到基础概率，最后限制在 `0.05..0.95`。检定按固定命名种子
+`seed/act/step/eventId/optionId` 计算，不消费全局随机序列；一次选择只结算一次。失败奖励
+使用已支持的奖励类型，失败回声最多 100 个 Unicode 字符。检定对象和加成只允许协议字段，
+非法属性/功法/法宝引用及未知字段均会使内容校验失败。
+
+可选 `reveal: hint` 在选择前隐藏具体奖励与分支结果，但照常公开成本、条件和 `check.hint`。
+RE001-C、RE002-B 的 `legacy_commitment` 与 `legacy_story_echo` 仅供旧存档读取，不能作为新局
+延迟承诺；迁移时保留原承诺对象与原成功回声，不把它们显示为新局奖励。
+同一选项不能同时有 `encounter` 和 `check`。每个事件仍应保留至少一个不依赖灵石或法宝容量的安全退出。
+
 兑现法宝时若容量已满，或实际唯一组冲突导致无法取得对应层数，未取得的每层按公开政策
 折为4枚灵石；不能把无效层数作为白送奖励，也不按失约原因额外补偿。事件快读文案和阅读
 页必须分别说明即时效果、兑现条件、失约/终战过期及不退款；选了承诺不会追加节点或候选。
@@ -206,6 +240,9 @@ commitment:
 `{once: true, internal_battle_package: false, travel_triggers: 1, fallback: coins}`。
 如需更多效果，先明确结构，不用无定义的新资源、无限随机数或免费追加节点。
 按事件基线给 `balance.target.gross_U` 区间；购买列成本，不按免费获得累计。
+
+新局不再投放 `commitment` 型延后任务。上面的承诺协议仅维护已有付费存档；
+新内容采用即时奖励、即时检定或当场内部挑战，不增加“走若干节点后再领奖”的任务。
 
 ### 人物线
 

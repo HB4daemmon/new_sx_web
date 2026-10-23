@@ -8,6 +8,16 @@ import { parseRunSave, serializeRun } from '../build/shanhai/persistence.js';
 
 const model = await loadContent();
 const content = contentFromEntities(model.entities, model.manifest.content_version);
+const legacyEntities = structuredClone(model.entities);
+for (const [eventId, optionId] of [['RE001', 'RE001-C'], ['RE002', 'RE002-B']]) {
+  const option = legacyEntities.find(entity => entity.id === eventId).options
+    .find(candidate => candidate.id === optionId);
+  option.commitment = structuredClone(option.legacy_commitment);
+  option.story_echo = option.legacy_story_echo;
+  option.rewards = [];
+  delete option.check;
+}
+const legacyContent = contentFromEntities(legacyEntities, model.manifest.content_version);
 let loseNextBattle = false;
 registerCombatWorker({
   calculateStats,
@@ -51,8 +61,8 @@ function enter(game, desiredType) {
   return selected;
 }
 
-function atEvent(eventId) {
-  const game = ShanhaiGame.create(content, { seed: 'commitment-run', name: '行者', method: 'RKF02' });
+function atEvent(eventId, gameContent = content) {
+  const game = ShanhaiGame.create(gameContent, { seed: 'commitment-run', name: '行者', method: 'RKF02' });
   enter(game, 'C');
   finish(game);
   const event = game.availableNodes().find(node => node.type === 'E');
@@ -63,12 +73,15 @@ function atEvent(eventId) {
 }
 
 function atCommitment(eventId = 'RE001', optionId = 'RE001-C') {
-  const game = atEvent(eventId);
-  const beforeCoins = game.state.coins;
-  game.dispatch({ type: 'event', id: optionId });
-  assert.ok(game.state.coins < beforeCoins);
-  assert.equal(game.state.eventCommitments[0].remaining, eventId === 'RE001' ? 3 : 2);
-  assert.doesNotThrow(() => parseRunSave(content, serializeRun(game)), 'pending event result must be restorable');
+  const legacyGame = atEvent(eventId, legacyContent);
+  const beforeCoins = legacyGame.state.coins;
+  legacyGame.dispatch({ type: 'event', id: optionId });
+  assert.ok(legacyGame.state.coins < beforeCoins);
+  assert.equal(legacyGame.state.eventCommitments[0].remaining, eventId === 'RE001' ? 3 : 2);
+  const savedLegacyPayment = serializeRun(legacyGame);
+  const game = new ShanhaiGame(content, parseRunSave(content, savedLegacyPayment));
+  assert.doesNotThrow(() => parseRunSave(content, savedLegacyPayment), 'legacy paid result must restore with current content');
+  assert.equal(game.state.artifacts.some(item => item.id === (eventId === 'RE001' ? 'RC17' : 'RC19')), false);
   finish(game);
   return game;
 }

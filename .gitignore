@@ -14,6 +14,8 @@ __pycache__/
 /verification/browser-node/
 /verification/shanhai/browser/*.png
 /verification/shanhai/browser-journey/screenshots/
+/verification/shanhai/roguelite-browser/screenshots/
+/verification/shanhai/roguelite-root-*.png
 /verification/shanhai/commitments/*.png
 /output/imagegen/
 

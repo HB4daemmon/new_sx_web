@@ -66,6 +66,14 @@ options:
       - {type: artifact, id: RC10, count: 1}
     outcome: 你付出灵石带走一层雷纹印，没有参加试锋。
     story_echo: 你付石取下雷纹印，绕开试锋石线，独自沿云阶继续攀行。
+  - id: RE032-D
+    label: 绕过石线继续登阶
+    quick: 不试锋、不付灵石、不取法宝。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 你沿外侧石阶绕开试锋者，没有付出资源或取走法宝。
+    story_echo: 你绕过试锋石线，带着原有行装继续向昆仑前门攀行。
 settlement:
   once: true
   internal_battle_package: false

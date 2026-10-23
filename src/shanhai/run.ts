@@ -5,7 +5,6 @@ import {
 } from './combat.js';
 import {
   ACT1_CORE_DEPTHS,
-  ACT1_FUNCTION_LAYOUTS,
   createRouteMapNodes,
   validateRouteMap,
 } from './route-map.js';
@@ -14,6 +13,8 @@ import {
   assertEventCommitmentRecords,
   createEventCommitment,
 } from './event-commitments.js';
+import { assertEventCheckResult, resolveEventCheck } from './event-checks.js';
+import { routeLayoutForAct } from './route-profiles.js';
 import type {
   ArtifactStack,
   BattleResult,
@@ -42,7 +43,7 @@ export interface ShanhaiCombatWorker {
     player: Loadout,
     enemy: Loadout,
     seed: string,
-    options?: { roundLimit?: number },
+    options?: { roundLimit?: number; artifactAwakenings?: boolean },
   ): BattleResult;
 }
 
@@ -399,6 +400,14 @@ function allFiniteNumbers(value: unknown): boolean {
   return true;
 }
 
+function validateSavedEventCheck(option: AnyRecord | undefined, result: unknown, outcome?: string): void {
+  assertEventCheckResult(result);
+  if (!option?.check || result.kind !== option.check.kind ||
+    (result.kind === 'stat' &&
+      (result.stat !== option.check.stat || result.threshold !== option.check.threshold)) ||
+    outcome !== (result.success ? 'success' : 'failure')) throw new Error('Event check snapshot mismatch');
+}
+
 export class ShanhaiGame {
   readonly content: Content;
   state: RunState;
@@ -546,22 +555,17 @@ export class ShanhaiGame {
         coreSlots.set(depth * 3 + lane, candidates[pick] ?? candidates[0]!);
       }
     }
-    const cadence = act === 1
-      ? seededRandom(`${this.state.seed}:route-map:1:function-cadence`)() < 0.5
-        ? 'early_challenge'
-        : 'late_preparation'
-      : undefined;
-    const functionLayout = cadence ? ACT1_FUNCTION_LAYOUTS[cadence] : undefined;
+    const functionLayout = routeLayoutForAct(this.actContent, this.state.seed);
     const restLane = Math.floor(seededRandom(`${this.state.seed}:route-map:${act}:rest-lane`)() * 3);
     const shopLane = Math.floor(seededRandom(`${this.state.seed}:route-map:${act}:shop-lane`)() * 3);
     const eliteLane = Math.floor(seededRandom(`${this.state.seed}:route-map:${act}:elite-lane`)() * 3);
-    const earlyEliteLane = Math.floor(seededRandom(`${this.state.seed}:route-map:1:early-elite-lane`)() * 3);
+    const earlyEliteLane = Math.floor(seededRandom(`${this.state.seed}:route-map:${act}:early-elite-lane`)() * 3);
     const eliteLimit = this.maxElitesPerAct();
     const actElites = (this.state as RunStateInternals)._actEliteCount ?? 0;
     const hasElite = act < 5 &&
       actElites < eliteLimit &&
       (actElites === 0 || this.state.extraElites < this.maxExtraElites());
-    const hasEarlyElite = cadence === 'early_challenge' && hasElite && actElites === 0 &&
+    const hasEarlyElite = functionLayout.extraEliteDepth !== null && hasElite && actElites === 0 &&
       eliteLimit > 1 && this.state.extraElites < this.maxExtraElites();
     const nodes = createRouteMapNodes(act, (depth, lane, key) => {
       if (act === 5) {
@@ -585,13 +589,13 @@ export class ShanhaiGame {
           description: contentEntity(this.content, id)?.name,
         };
       }
-      const restDepth = functionLayout?.restDepth ?? 3;
-      const shopDepth = functionLayout?.shopDepth ?? 5;
+      const restDepth = functionLayout.restDepth;
+      const shopDepth = functionLayout.shopDepth;
       if (depth === restDepth && lane === restLane) {
-        return { type: 'R', id: `R-A${act}-${key}`, completed: false, label: '休整' };
+        return { type: 'R', id: `R-A${act}-${key}`, completed: false, label: '休整', description: functionLayout.label };
       }
       if (depth === shopDepth && lane === shopLane) {
-        return { type: 'S', id: `SHOP-A${act}-${key}`, completed: false, label: '坊市' };
+        return { type: 'S', id: `SHOP-A${act}-${key}`, completed: false, label: '坊市', description: functionLayout.label };
       }
       if (functionLayout?.extraEliteDepth === depth && lane === earlyEliteLane && hasEarlyElite) type = 'L';
       if (depth === 9 && hasElite && lane === eliteLane) type = 'L';
@@ -836,11 +840,14 @@ export class ShanhaiGame {
         case 'buy':
           this.buy(command.id);
           break;
+        case 'reforge':
+          this.reforge(command.source, command.target);
+          break;
         case 'leave_shop':
           this.leaveShop();
           break;
         case 'rest':
-          this.rest(command.choice, command.method);
+          this.rest(command.choice, command.method, command.artifact);
           break;
         case 'talent':
           this.chooseTalent(command.id);
@@ -988,6 +995,9 @@ export class ShanhaiGame {
       state._previewKind = undefined;
       state._eventCostTravelApplied = false;
       state._eventOutcome = undefined;
+      this.state.eventCheck = undefined;
+      this.state.eventStoryEcho = undefined;
+      if (node.type === 'S') state._shopReforged = false;
       this.state.eventOption = undefined;
       this.state.resultText = '';
       this.advanceCommitments('entered');
@@ -1064,12 +1074,15 @@ export class ShanhaiGame {
       enemy,
       seed: `${this.state.seed}:battle:${this.state.act}:${this.state.step}:${state._previewKind ?? 'node'}`,
       roundLimit: 256,
+      rules: 'awakening-v1',
     };
     // Preparation is a one-battle input.  It is consumed at battle start and
     // therefore is not replayed by `continue_battle`.
     this.state.preparation = 0;
     this.state.firstStrike = 0;
-    const result = worker().simulateBattle(this.content, input.player, input.enemy, input.seed, { roundLimit: input.roundLimit });
+    const result = worker().simulateBattle(this.content, input.player, input.enemy, input.seed, {
+      roundLimit: input.roundLimit, artifactAwakenings: input.rules === 'awakening-v1',
+    });
     validateBattleResult(result);
     this.state.battleInput = input;
     this.state.battle = clone(result);
@@ -1086,7 +1099,9 @@ export class ShanhaiGame {
       throw new Error('Battle reached the maximum 4096-round horizon; retire the run explicitly');
     }
     input.roundLimit = Math.min(4096, input.roundLimit * 2);
-    const result = worker().simulateBattle(this.content, input.player, input.enemy, input.seed, { roundLimit: input.roundLimit });
+    const result = worker().simulateBattle(this.content, input.player, input.enemy, input.seed, {
+      roundLimit: input.roundLimit, artifactAwakenings: input.rules === 'awakening-v1',
+    });
     validateBattleResult(result);
     this.state.battleInput = input;
     this.state.battle = clone(result);
@@ -1154,6 +1169,7 @@ export class ShanhaiGame {
     );
     this.state.phase = 'event_result';
     state._eventOutcome = battle.outcome === 'player' ? 'success' : 'failure';
+    this.state.eventStoryEcho = battle.outcome === 'player' ? option.story_echo : option.story_failure_echo;
     if (battle.outcome === 'player') {
       this.applyFlags(option);
       this.applyRewards(optionRewards(option));
@@ -1263,6 +1279,10 @@ export class ShanhaiGame {
       const issue = this.rewardAvailability(reward);
       if (issue) return { available: false, reason: issue };
     }
+    for (const reward of option.check?.failure_rewards ?? []) {
+      const issue = this.rewardAvailability(reward);
+      if (issue) return { available: false, reason: issue };
+    }
     for (const reward of option.commitment?.rewards ?? []) {
       const issue = this.rewardAvailability(reward);
       if (issue) return { available: false, reason: issue };
@@ -1284,8 +1304,14 @@ export class ShanhaiGame {
     const commitment = option.commitment
       ? createEventCommitment(event.id, option.id, { act: this.state.act, step: this.state.step + 1 }, option.commitment)
       : undefined;
+    const check = option.check ? resolveEventCheck(option.check, {
+      seed: this.state.seed, act: this.state.act, step: this.state.step + 1,
+      eventId: event.id, optionId: option.id, stats: this.stats, hp: this.state.hp,
+      ownedMethods: this.state.ownedMethods, artifacts: this.state.artifacts,
+    }) : undefined;
     this.applyCosts(optionCosts(option));
     this.state.eventOption = id;
+    this.state.eventCheck = check;
     if (encounter) {
       const state = this.state as RunStateInternals;
       state._pendingEvent = encounter;
@@ -1293,12 +1319,15 @@ export class ShanhaiGame {
       this.state.phase = 'preview';
       return;
     }
-    this.applyFlags(option);
-    (this.state as RunStateInternals)._eventOutcome = 'success';
+    const success = check?.success !== false;
+    if (success) this.applyFlags(option);
+    (this.state as RunStateInternals)._eventOutcome = success ? 'success' : 'failure';
     this.state.phase = 'event_result';
-    this.applyRewards(optionRewards(option));
+    this.applyRewards(success ? optionRewards(option) : option.check.failure_rewards);
     if (commitment) (this.state.eventCommitments ??= []).push(commitment);
-    this.state.resultText = option.outcome ?? '';
+    this.state.resultText = (success ? option.outcome : option.check.failure_outcome) ?? '';
+    this.state.eventStoryEcho = success ? option.story_echo : option.check.failure_echo;
+    (this.state as RunStateInternals)._eventSettled = true;
     this.ensureTalentQueue();
   }
 
@@ -1346,6 +1375,7 @@ export class ShanhaiGame {
     state._eventSettled = false;
     state._eventOutcome = undefined;
     state._previewKind = undefined;
+    state._shopReforged = false;
     this.state.phase = 'map';
   }
 
@@ -1445,10 +1475,58 @@ export class ShanhaiGame {
     this.completeNode();
   }
 
-  private rest(choice: 'heal' | 'preparation' | 'swap_method', method?: string): void {
+  reforgePrice(): number {
+    return Math.ceil((this.actContent.economy?.shop?.common_price ?? 40) * 0.2);
+  }
+
+  reforgeOptions(sourceId: string): string[] {
+    if (!this.state.artifacts.some(stack => stack.id === sourceId && stack.stacks > 0) ||
+      contentEntity(this.content, sourceId)?.rarity !== 'common') return [];
+    const candidates = this.artifactPool('common').filter(id => id !== sourceId);
+    const random = seededRandom(`${this.state.seed}:reforge:${this.state.act}:${this.state.step}:${sourceId}`);
+    const fixed: string[] = [];
+    while (candidates.length && fixed.length < 3) {
+      fixed.push(candidates.splice(Math.floor(random() * candidates.length), 1)[0]!);
+    }
+    return fixed.filter(id => this.canAcquireArtifact(id, 1));
+  }
+
+  reforgeAvailability(sourceId: string, targetId: string): { available: boolean; reason: string } {
+    if (this.state.phase !== 'shop') return { available: false, reason: 'not-shop' };
+    if (this.state._shopReforged) return { available: false, reason: 'already-reforged' };
+    if (!this.reforgeOptions(sourceId).includes(targetId)) return { available: false, reason: 'invalid-source-or-target' };
+    if (this.state.coins < this.reforgePrice()) return { available: false, reason: 'cannot-pay' };
+    return { available: true, reason: '' };
+  }
+
+  private reforge(sourceId: string, targetId: string): void {
+    const availability = this.reforgeAvailability(sourceId, targetId);
+    if (!availability.available) throw new Error(availability.reason);
+    this.state.coins -= this.reforgePrice();
+    const source = this.state.artifacts.find(stack => stack.id === sourceId)!;
+    source.stacks -= 1;
+    this.state.artifacts = this.state.artifacts.filter(stack => stack.stacks > 0);
+    addArtifact(this.content, this.state, targetId, 1);
+    this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
+    this.state._shopReforged = true;
+    this.state.resultText = `献祭${artifactEntity(this.content, sourceId).name}一层，重铸为${artifactEntity(this.content, targetId).name}。`;
+  }
+
+  warmCost(): number {
+    return Math.ceil((this.actContent.economy?.shop?.common_price ?? 40) * 0.5);
+  }
+
+  warmableArtifacts(): string[] {
+    return this.state.artifacts
+      .filter(stack => contentEntity(this.content, stack.id)?.rarity === 'common' &&
+        this.canAcquireArtifact(stack.id, 1))
+      .map(stack => stack.id);
+  }
+
+  private rest(choice: 'heal' | 'preparation' | 'swap_method' | 'temper', method?: string, artifact?: string): void {
     if (this.state.phase !== 'rest') throw new Error('Rest is not available');
     const state = this.state as RunStateInternals;
-    if (!['heal', 'preparation', 'swap_method'].includes(choice)) throw new Error('Unknown rest choice');
+    if (!['heal', 'preparation', 'swap_method', 'temper'].includes(choice)) throw new Error('Unknown rest choice');
     if (state._restFromEvent && choice !== 'swap_method') throw new Error('This event only grants a method swap');
     if (choice === 'heal') {
       this.state.hp = Math.min(this.stats.max_hp, this.state.hp + (rulesOf(this.content).economy?.rest_heal_ratio ?? 0.25) * currentReferenceHp(this.content, this.state.act));
@@ -1456,6 +1534,12 @@ export class ShanhaiGame {
     } else if (choice === 'preparation') {
       this.state.preparation += 0.1 * currentReferenceHp(this.content, this.state.act);
       this.state.resultText = '下一场战斗前的护盾准备完成。';
+    } else if (choice === 'temper') {
+      if (typeof artifact !== 'string' || !this.warmableArtifacts().includes(artifact)) throw new Error('Artifact cannot be tempered');
+      if (this.state.coins < this.warmCost()) throw new Error('Cannot afford tempering');
+      this.state.coins -= this.warmCost();
+      addArtifact(this.content, this.state, artifact, 1);
+      this.state.resultText = `${artifactEntity(this.content, artifact).name}温养一层。`;
     } else {
       if (typeof method !== 'string' || !this.state.ownedMethods.includes(method)) throw new Error('Method is not owned');
       if (method === this.state.method) throw new Error('Method is already active');
@@ -1697,7 +1781,8 @@ export class ShanhaiGame {
       }
       case 'method':
         if (typeof reward.id === 'string') {
-          return contentEntity(this.content, reward.id)?.kind === 'method' ? undefined : 'unknown-method';
+          if (contentEntity(this.content, reward.id)?.kind !== 'method') return 'unknown-method';
+          return this.state.ownedMethods.includes(reward.id) ? 'method-already-known' : undefined;
         }
         if (typeof reward.pool !== 'string' || !this.poolRewardIds(reward).length) return 'unknown-method-pool';
         return this.resolvePoolRewardId(reward, 0) ? undefined : 'method-pool-exhausted';
@@ -1883,6 +1968,10 @@ export class ShanhaiGame {
       phase: this.state.phase,
     });
     const entity = contentEntity(this.content, node.id);
+    const selected = this.state.eventOption && entity?.kind === 'event'
+      ? eventOption(entity, this.state.eventOption) : undefined;
+    const echo = this.state.eventStoryEcho ??
+      (selected?.legacy_story_echo && !this.state.eventCheck ? selected.legacy_story_echo : undefined);
     this.state.history.push({
       act: this.state.act,
       step: this.state.step,
@@ -1893,6 +1982,8 @@ export class ShanhaiGame {
           eventId: node.id,
           optionId: this.state.eventOption,
           ...(state._eventOutcome ? { eventOutcome: state._eventOutcome } : {}),
+          ...(this.state.eventCheck ? { eventCheck: clone(this.state.eventCheck) } : {}),
+          ...(echo ? { storyEcho: echo } : {}),
         } : {}),
     });
     node.completed = true;
@@ -1906,6 +1997,8 @@ export class ShanhaiGame {
     this.advanceCommitments('completed');
     this.ensureTalentQueue(false);
     this.state.eventOption = undefined;
+    this.state.eventCheck = undefined;
+    this.state.eventStoryEcho = undefined;
     this.state.battle = undefined;
     this.state.battleInput = undefined;
     state._pendingEvent = undefined;
@@ -1919,6 +2012,7 @@ export class ShanhaiGame {
     state._rewardSettled = false;
     this.state.rewardCandidates = [];
     this.state.shop = [];
+    state._shopReforged = false;
     this.state.step += 1;
     this.state.nodeEntry = undefined;
     state._nodeEntry = undefined;
@@ -2444,10 +2538,11 @@ export function validateRunState(content: Content, raw: RunState): void {
   for (const record of state.eventCommitments ?? []) {
     const source = contentEntity(content, record.eventId);
     const option = source?.options?.find((candidate: AnyRecord) => candidate.id === record.optionId);
-    if (source?.kind !== 'event' || !option?.commitment ||
+    const definition = option?.commitment ?? option?.legacy_commitment;
+    if (source?.kind !== 'event' || !definition ||
       JSON.stringify(record.snapshot) !== JSON.stringify(createEventCommitment(
         record.eventId, record.optionId,
-        { act: record.originAct, step: record.originStep }, option.commitment,
+        { act: record.originAct, step: record.originStep }, definition,
       ).snapshot)) throw new Error('Invalid event commitment source');
     const originPosition = (record.originAct - 1) * 11 + record.originStep;
     const currentPosition = (state.act - 1) * 11 + state.step + 1;
@@ -2552,6 +2647,7 @@ export function validateRunState(content: Content, raw: RunState): void {
     '_eventCostTravelApplied',
     '_rewardSettled',
     '_eventSettled',
+    '_shopReforged',
   ] as const) {
     if (state[key] !== undefined && typeof state[key] !== 'boolean') throw new Error(`Invalid ${key}`);
   }
@@ -2594,9 +2690,14 @@ export function validateRunState(content: Content, raw: RunState): void {
         ? eventOption(event, entry.optionId) : undefined;
       if (!option || (entry.eventOutcome !== undefined &&
         !['success', 'failure'].includes(entry.eventOutcome)) ||
-        (entry.eventOutcome === 'failure' && !option.encounter)) {
+        (entry.eventOutcome === 'failure' && !option.encounter && !option.check)) {
         throw new Error('Invalid event history outcome');
       }
+      if (entry.eventCheck !== undefined) {
+        validateSavedEventCheck(option, entry.eventCheck, entry.eventOutcome);
+      }
+      if (entry.storyEcho !== undefined &&
+        (typeof entry.storyEcho !== 'string' || entry.storyEcho.length > 2000)) throw new Error('Invalid history story echo');
     }
   }
   const finalHistory = state.history.filter(entry => entry.act === 5);
@@ -2746,12 +2847,21 @@ export function validateRunState(content: Content, raw: RunState): void {
     if (!isObject(state.battleInput) || typeof state.battleInput.seed !== 'string' || !integer(state.battleInput.roundLimit) ||
       state.battleInput.roundLimit <= 0 || state.battleInput.roundLimit > 4096 ||
       !isObject(state.battleInput.player) || !isObject(state.battleInput.enemy)) throw new Error('Invalid battle input');
+    if (state.battleInput.rules !== undefined && state.battleInput.rules !== 'awakening-v1') throw new Error('Invalid battle rules');
     validateLoadoutReferences(content, state.battleInput.player);
     validateLoadoutReferences(content, state.battleInput.enemy, true);
   }
   if (state.battle) validateBattleResult(state.battle);
   if (state.eventOption !== undefined && typeof state.eventOption !== 'string') throw new Error('Invalid event option');
   const currentNode = state.nodes[state.step];
+  if (state.eventCheck !== undefined) {
+    const event = currentNode ? contentEntity(content, currentNode.id) : undefined;
+    const option = event ? eventOption(event, state.eventOption ?? '') : undefined;
+    if (!['event_result', 'talent', 'rest', 'lost'].includes(state.phase)) throw new Error('Invalid event check phase');
+    validateSavedEventCheck(option, state.eventCheck, state._eventOutcome);
+  }
+  if (state.eventStoryEcho !== undefined &&
+    (typeof state.eventStoryEcho !== 'string' || state.eventStoryEcho.length > 2000)) throw new Error('Invalid event story echo');
   if (state.phase === 'event' && (!currentNode || !['E', 'K'].includes(currentNode.type))) {
     throw new Error('Event phase without event node');
   }
@@ -2799,7 +2909,7 @@ export function simulateBattle(
   player: Loadout,
   enemy: Loadout,
   seed: string,
-  options?: { roundLimit?: number },
+  options?: { roundLimit?: number; artifactAwakenings?: boolean },
 ): BattleResult {
   const result = worker().simulateBattle(content, player, enemy, seed, options);
   validateBattleResult(result);

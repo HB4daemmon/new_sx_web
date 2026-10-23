@@ -66,6 +66,14 @@ options:
       - {type: artifact, id: RC04, count: 1}
     outcome: 你付出灵石带走一层厚土环，没有参加火门试手。
     story_echo: 你付石取走厚土环，绕过白线与试场，沿冷石边缘继续前行。
+  - id: RE023-D
+    label: 退离白线继续赶路
+    quick: 不试手、不付灵石、不取法宝。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 你退离白线，沿冷石绕过火门，没有付出资源或取走法宝。
+    story_echo: 你收紧行囊绕过火门，试场与器物留给后来者。
 settlement:
   once: true
   internal_battle_package: false

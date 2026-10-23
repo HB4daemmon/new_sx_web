@@ -37,6 +37,7 @@ import {
 } from './persistence.js';
 import { semanticTextMarkup } from './ui-text.js';
 import { GameArt } from './game-art.js';
+import { battleInsights } from './battle-insights.js';
 import {
   artifactArt,
   characterArt,
@@ -317,6 +318,8 @@ class ShanhaiApp {
   private talentTreeParent: { methodId: string; focusSelector: string } | null = null;
   private talentTreeReturnFocus = '';
   private pendingTalentResetItemId = '';
+  private reforgeSourceId = '';
+  private warmArtifactId = '';
   private buildFilter: 'owned' | 'all' = 'owned';
   private buildRarityFilter: 'all' | 'common' | 'rare' | 'legendary' = 'all';
   private loading = true;
@@ -350,6 +353,7 @@ class ShanhaiApp {
     this.root = root;
     this.root.addEventListener('click', (event) => this.onClick(event));
     this.root.addEventListener('input', (event) => this.onInput(event));
+    this.root.addEventListener('change', (event) => this.onChange(event));
     this.root.addEventListener('keydown', (event) => this.onKeyDown(event));
     window.addEventListener('resize', () => {
       const map = this.root.querySelector<HTMLElement>('.map-scroll');
@@ -1921,6 +1925,18 @@ class ShanhaiApp {
     ).join('');
   }
 
+  private artifactAwakeningMarkup(artifact: Entity | undefined, stacks: number): string {
+    const awakening = isRecord(artifact?.awakening) ? artifact.awakening : undefined;
+    if (!awakening) return '';
+    const atStacks = Math.floor(asNumber(awakening.at_stacks));
+    if (atStacks < 1) return '';
+    const currentStacks = Math.max(0, Math.floor(stacks));
+    const distance = Math.max(0, atStacks - currentStacks);
+    const progress = distance ? `距觉醒还差 ${formatNumber(distance)} 层` : `已达第 ${formatNumber(atStacks)} 层`;
+    const quick = this.displayText(asText(awakening.quick, ''));
+    return `<div class="artifact-awakening"><b>觉醒 · ${esc(asText(awakening.name, '觉醒'))}</b><span>${esc(progress)}</span>${quick ? `<small>${esc(quick)}</small>` : ''}</div>`;
+  }
+
   private artifactEffectMarkup(artifact: Entity, limit = 2): string {
     return listOf<any>(artifact.effects).slice(0, limit)
       .map((effect) => `<p>${this.textMarkup(effectText(effect, (value) => this.displayText(value)))}</p>`)
@@ -2083,9 +2099,28 @@ class ShanhaiApp {
     }).join('');
     const completed = state.nodes.filter((node) => node.completed).length;
     const progress = `${completed} / ${nodes.length ? maxDepth + 1 : 0}`;
+    const bossHint = this.mapBossPressureHint(nodes);
     return `${this.mapHeading(state, asText(act.name), progress)}
+      ${bossHint}
       <div class="map-scroll" data-map-key="${esc(this.mapIdentity(state))}" tabindex="0" aria-label="山河路线图"><div class="map-wrap" style="height:${height}px">${sceneArt('map')}<svg class="map-lines" viewBox="0 0 800 ${height}" preserveAspectRatio="none" aria-hidden="true">${connectors}</svg>${nodeMarkup}</div></div>
       ${this.inlineMessage()}`;
+  }
+
+  private mapBossPressureHint(nodes: RouteMapNode[]): string {
+    const bossNode = nodes.find(node => node.type === 'B');
+    const boss = this.byId(bossNode?.id);
+    if (!boss) return '';
+    const pressure = listOf<unknown>(boss.pressure)
+      .map(value => this.displayText(isRecord(value) ? value.quick || value.text || value.name : value))
+      .filter(Boolean)[0]?.replace(/[。；;，,]+$/u, '');
+    const counterplay = listOf<unknown>(boss.counterplay)
+      .map(value => this.displayText(isRecord(value) ? value.quick || value.text || value.name : value))
+      .filter(Boolean)[0]?.replace(/[。；;，,]+$/u, '');
+    if (!pressure) return '';
+    const sentence = `${asText(boss.name, '本幕首领')}的主要压力：${pressure}。`;
+    return counterplay
+      ? `<details class="disclosure boss-map-hint" data-details="boss-pressure"><summary>${esc(sentence)}</summary><p>${esc(counterplay)}。</p></details>`
+      : `<p class="boss-map-hint">${esc(sentence)}</p>`;
   }
 
   private reachableMapNode(id: string): RouteMapNode | undefined {
@@ -2370,7 +2405,27 @@ class ShanhaiApp {
         ? `<button class="button primary" data-action="continue-battle" ${asNumber(state.battleInput?.roundLimit) < 4096 ? '' : 'disabled'}>继续交锋 ${icon('arrow', 15)}</button><button class="button quiet" data-action="retire">收手结束本局</button>`
         : `<button class="button primary" data-action="battle-finish">${result.outcome === 'player' ? '收下战果' : '回望此局'} ${icon('arrow', 15)}</button>`
       : '';
-    return `<div class="battle-result-detail"><section class="detail-section"><h3>最终结果</h3><div class="detail-stat-grid"><span>胜负 <b>${outcome}</b></span><span>回合 <b>${formatNumber(result.rounds)}</b></span><span>我方气血 <b>${formatNumber(result.playerHp)}</b></span><span>敌方气血 <b>${formatNumber(result.enemyHp)}</b></span></div></section><section class="detail-section"><h3>效果来源</h3>${this.battleDiagnostics(result)}</section>${resultActions ? `<div class="battle-result-actions">${resultActions}</div>` : ''}</div>`;
+    return `<div class="battle-result-detail"><section class="detail-section"><h3>最终结果</h3><div class="detail-stat-grid"><span>胜负 <b>${outcome}</b></span><span>回合 <b>${formatNumber(result.rounds)}</b></span><span>我方气血 <b>${formatNumber(result.playerHp)}</b></span><span>敌方气血 <b>${formatNumber(result.enemyHp)}</b></span></div></section>${this.battleInsightsMarkup(result)}<section class="detail-section"><h3>效果来源</h3>${this.battleDiagnostics(result)}</section>${resultActions ? `<div class="battle-result-actions">${resultActions}</div>` : ''}</div>`;
+  }
+
+  private battleInsightsMarkup(result?: BattleResult): string {
+    if (!result) return '';
+    const insights = battleInsights(result);
+    const metricLabels = {
+      damage: '造成伤害',
+      healing: '有效治疗',
+      shield: '提供护盾',
+      rage: '获得怒气',
+    } as const;
+    const highlights = insights.highlights.map(item =>
+      `<li><b>${esc(this.sourceLabel(item.source))}</b><span>${metricLabels[item.metric]} ${formatNumber(item.amount)}</span></li>`,
+    ).join('');
+    const hit = insights.keyDamage;
+    const damage = hit
+      ? `<p class="battle-insight-hit"><b>关键伤害 · 第 ${formatNumber(hit.round)} 回合${hit.lethal ? ' · 致命帧' : ''}</b><span>${esc(this.sourceLabel(hit.source))}：气血 -${formatNumber(hit.hpLost)}${hit.shieldLost ? `，护盾 -${formatNumber(hit.shieldLost)}` : ''} · ${hit.target === 'player' ? '我方受击' : '敌方受击'}</span></p>`
+      : '';
+    if (!highlights && !damage) return '';
+    return `<section class="battle-insights" aria-label="斗法简报">${highlights ? `<div><h3>构筑显效</h3><ul>${highlights}</ul></div>` : ''}${damage}</section>`;
   }
 
   private battleControlAction(state: RunState): string {
@@ -2395,7 +2450,7 @@ class ShanhaiApp {
           ? '胜负未分，可继续交锋。'
           : '僵持已久，可收手离去。'
         : '';
-    return `<section class="battle-settlement" aria-label="斗法结算">${note ? `<p>${note}</p>` : ''}</section>`;
+    return `<section class="battle-settlement" aria-label="斗法结算">${note ? `<p>${note}</p>` : ''}${this.battleInsightsMarkup(result)}</section>`;
   }
 
   private fighterStatusMarkup(fighter: FighterView): string {
@@ -2712,6 +2767,7 @@ class ShanhaiApp {
         <h2>${esc(asText(artifact?.name, '未名法宝'))}${icon('eye', 14)}</h2>
       </button>
       ${mechanism ? `<p class="reward-mechanic" title="${esc(mechanism)}">${this.textMarkup(mechanism)}</p>` : ''}
+      ${this.artifactAwakeningMarkup(artifact, asNumber(owned?.stacks) + 1)}
       ${stats ? `<div class="attribute-list">${stats}</div>` : ''}
       <div class="compact-choice-actions">
         <button type="button" class="button primary" data-action="reward" data-id="${esc(id)}" title="收入命盘" aria-label="收入${esc(asText(artifact?.name, '未名法宝'))}至命盘">收入</button>
@@ -2726,8 +2782,12 @@ class ShanhaiApp {
     const options = listOf<Entity>(event.options);
     const passage = this.displayText(asText(event.scene || event.description, '风声停在你面前。'));
     const brief = [...new Intl.Segmenter('zh', { granularity: 'sentence' }).segment(passage)][0]?.segment.trim() || passage;
+    const eventCheck = isRecord((state as any).eventCheck) ? (state as any).eventCheck : undefined;
+    const checkResult = typeof eventCheck?.success === 'boolean'
+      ? `<span class="event-check-result ${eventCheck.success ? 'success' : 'failure'}">${eventCheck.success ? '检验成功' : '检验未成'}</span>`
+      : '';
     return `<section class="event-page"><div class="event-scene-head"><div class="event-portrait">${this.characterMarkup(event, event)}</div><div><span class="eyebrow">${esc(event.event_type === 'core' ? '人物机缘' : '行旅事件')}</span><h2>${esc(asText(event.name, '山海一刻'))}</h2></div></div>
-      ${resultPhase ? `<div class="event-result"><p>${this.textMarkup(asText(state.resultText, '选择已经落定。'))}</p></div>` : `<p class="story-text">${esc(brief)}</p>${brief !== passage ? `<details class="disclosure event-passage" data-details="event-passage"><summary>前情详录</summary><p>${esc(passage)}</p></details>` : ''}<div class="story-choices">${options.map((option) => `<div class="story-choice-wrap">${this.eventOption(option)}</div>`).join('')}</div>`}
+      ${resultPhase ? `<div class="event-result">${checkResult}<p>${this.textMarkup(asText(state.resultText, '选择已经落定。'))}</p></div>` : `<p class="story-text">${esc(brief)}</p>${brief !== passage ? `<details class="disclosure event-passage" data-details="event-passage"><summary>前情详录</summary><p>${esc(passage)}</p></details>` : ''}<div class="story-choices">${options.map((option) => `<div class="story-choice-wrap">${this.eventOption(option)}</div>`).join('')}</div>`}
       ${resultPhase ? `<div class="actions"><button class="button primary" data-action="continue" data-autofocus>继续前行 ${icon('arrow', 16)}</button></div>` : ''}${this.inlineMessage()}</section>`;
   }
 
@@ -2751,6 +2811,11 @@ class ShanhaiApp {
     const check = this.optionAvailability(option);
     const costs = listOf<any>(option.costs);
     const rewards = listOf<any>(option.rewards);
+    const label = this.textMarkup(asText(option.label, option.name));
+    if (option.reveal === 'hint') {
+      const hint = this.displayText(asText(option.check?.hint || option.quick, ''));
+      return `<button class="event-option ${check.available ? '' : 'disabled'} event-option-hint" data-action="event" data-id="${esc(option.id)}" ${check.available ? '' : 'disabled'}><span class="event-option-main"><b>${label}</b>${hint ? `<small>${semanticTextMarkup(hint)}</small>` : ''}${costs.length ? `<span class="event-costs">${costs.map((cost) => `<i>${this.textMarkup(this.effectLabel(cost, true))}</i>`).join('')}</span>` : ''}</span>${icon(check.available ? 'arrow' : 'close', 18)}</button>`;
+    }
     const hasResolvedEffects = costs.length > 0 || rewards.length > 0;
     const quick = this.displayText(asText(option.quick || option.description, ''));
     const encounter = isRecord(option.encounter) ? option.encounter : undefined;
@@ -2763,7 +2828,7 @@ class ShanhaiApp {
     const delayed = commitment
       ? `${commitment.after_nodes}处后：${listOf<any>(commitment.rewards).map(reward => this.effectLabel(reward, false)).join('，')}。期间不进${listOf<string>(commitment.avoid_node_types).map(type => nodeMeta(type).label).join('、')}，失约不退费，终战前未兑现作废。`
       : '';
-    return `<button class="event-option ${check.available ? '' : 'disabled'}" data-action="event" data-id="${esc(option.id)}" ${check.available ? '' : 'disabled'}><span class="event-option-main"><b>${this.textMarkup(asText(option.label, option.name))}</b>${risk ? `<small class="event-risk">${this.textMarkup(risk)}</small>` : ''}${!hasResolvedEffects && quick && !commitment ? `<small>${semanticTextMarkup(quick)}</small>` : ''}${costs.length ? `<span class="event-costs">${costs.map((cost) => `<i>${this.textMarkup(this.effectLabel(cost, true))}</i>`).join('')}</span>` : ''}${rewards.length ? `<span class="event-rewards">${encounter ? '<span>胜后</span>' : ''}${rewards.map((reward) => `<i>${this.textMarkup(this.effectLabel(reward, false))}</i>`).join('')}</span>` : ''}${delayed ? `<small class="event-commitment-terms">${this.textMarkup(delayed)}</small>` : ''}${!check.available ? `<em class="disabled-reason">${esc(check.reason || '当前条件不满足')}</em>` : ''}</span>${icon(check.available ? 'arrow' : 'close', 18)}</button>`;
+    return `<button class="event-option ${check.available ? '' : 'disabled'}" data-action="event" data-id="${esc(option.id)}" ${check.available ? '' : 'disabled'}><span class="event-option-main"><b>${label}</b>${risk ? `<small class="event-risk">${this.textMarkup(risk)}</small>` : ''}${!hasResolvedEffects && quick && !commitment ? `<small>${semanticTextMarkup(quick)}</small>` : ''}${costs.length ? `<span class="event-costs">${costs.map((cost) => `<i>${this.textMarkup(this.effectLabel(cost, true))}</i>`).join('')}</span>` : ''}${rewards.length ? `<span class="event-rewards">${encounter ? '<span>胜后</span>' : ''}${rewards.map((reward) => `<i>${this.textMarkup(this.effectLabel(reward, false))}</i>`).join('')}</span>` : ''}${delayed ? `<small class="event-commitment-terms">${this.textMarkup(delayed)}</small>` : ''}${!check.available ? `<em class="disabled-reason">${esc(check.reason || '当前条件不满足')}</em>` : ''}</span>${icon(check.available ? 'arrow' : 'close', 18)}</button>`;
   }
 
   private effectLabel(effect: any, cost: boolean): string {
@@ -2783,10 +2848,134 @@ class ShanhaiApp {
     return `${cost ? '消耗' : '获得'}机缘`;
   }
 
+  private reforgePrice(): number {
+    try {
+      return Math.max(0, asNumber(this.game?.reforgePrice()));
+    } catch {
+      return 0;
+    }
+  }
+
+  private reforgeOptions(sourceId: string): string[] {
+    try {
+      const options = this.game?.reforgeOptions(sourceId);
+      return unique(listOf<string>(options)).slice(0, 3);
+    } catch {
+      return [];
+    }
+  }
+
+  private reforgeAvailability(sourceId: string, targetId: string): { available: boolean; reason: string } {
+    try {
+      const result = this.game?.reforgeAvailability(sourceId, targetId);
+      if (isRecord(result)) {
+        return { available: Boolean(result.available), reason: asText(result.reason) };
+      }
+    } catch {
+      // Render this option as unavailable if the runtime cannot verify it.
+    }
+    return { available: false, reason: '当前无法确认此重铸' };
+  }
+
+  private reforgeReason(reason: string): string {
+    const key = reason.toLowerCase();
+    if (/[一-鿿]/.test(reason)) return reason;
+    if (/already.?used|already.?reforged|once.?per.?shop/.test(key)) return '本店已重铸过一次';
+    if (/coin|price|pay|fund/.test(key)) return '灵石不足';
+    if (/full|capacity|stack/.test(key)) return '目标法宝已满层';
+    if (/unique|conflict|group/.test(key)) return '与已有唯一法宝冲突';
+    if (/owned|source|artifact/.test(key)) return '没有可献祭的普通法宝';
+    return '当前无法重铸';
+  }
+
+  private reforgeSources(state: RunState): Array<{ id: string; name: string; stacks: number }> {
+    return listOf<ArtifactStack>(state.artifacts)
+      .filter(stack => asNumber(stack.stacks) > 0 &&
+        Boolean(this.artifactEntity(stack.id)) &&
+        entityRarity(this.artifactEntity(stack.id)) === 'common')
+      .map(stack => ({
+        id: stack.id,
+        name: asText(this.artifactEntity(stack.id)?.name, stack.id),
+        stacks: asNumber(stack.stacks),
+      }));
+  }
+
+  private reforgeTargetsMarkup(state: RunState, sourceId: string): string {
+    const source = this.artifactEntity(sourceId);
+    const price = this.reforgePrice();
+    const used = Boolean((state as any)._shopReforged);
+    const options = this.reforgeOptions(sourceId);
+    if (!sourceId) return '<p class="empty-note" role="status">尚无可献祭的普通法宝。</p>';
+    if (!options.length) return '<p class="empty-note" role="status">没有可重铸目标，候选可能已满层或与唯一法宝冲突。</p>';
+    return `<p class="reforge-sacrifice">献祭 ${esc(asText(source?.name, sourceId))} 1 层，支付 ${formatNumber(price)} 灵石；目标法宝增加 1 层。</p>${options.map(targetId => {
+      const target = this.artifactEntity(targetId);
+      const availability = this.reforgeAvailability(sourceId, targetId);
+      const targetStack = state.artifacts.find(stack => stack.id === targetId);
+      const maxStacks = Math.max(1, asNumber(target?.max_stacks, 1));
+      const currentStacks = asNumber(targetStack?.stacks);
+      const reason = used ? '本店已重铸过一次' :
+        asNumber(state.coins) < price ? '灵石不足' :
+          availability.available ? '' : this.reforgeReason(availability.reason);
+      const canReforge = !used && asNumber(state.coins) >= price && availability.available;
+      const description = entitySummary(target);
+      return `<article class="reforge-option"><div><b>${esc(asText(target?.name, targetId))}</b><span>叠层 ${formatNumber(currentStacks)} → ${formatNumber(Math.min(maxStacks, currentStacks + 1))} / ${formatNumber(maxStacks)}</span>${description ? `<small>${this.textMarkup(description)}</small>` : ''}${reason ? `<em>${esc(reason)}</em>` : ''}</div><button class="button small primary" data-action="reforge" data-source="${esc(sourceId)}" data-target="${esc(targetId)}" ${canReforge ? '' : 'disabled'}>重铸</button></article>`;
+    }).join('')}`;
+  }
+
+  private reforgeToolMarkup(state: RunState): string {
+    const sources = this.reforgeSources(state);
+    const sourceId = sources.some(source => source.id === this.reforgeSourceId)
+      ? this.reforgeSourceId
+      : asText(sources[0]?.id);
+    this.reforgeSourceId = sourceId;
+    const price = this.reforgePrice();
+    const used = Boolean((state as any)._shopReforged);
+    const balanceReason = asNumber(state.coins) < price ? '灵石不足' : '';
+    return `<details class="disclosure reforge-tool" data-details="shop-reforge"><summary>${icon('mirror', 16)}重铸普通法宝</summary><div class="reforge-tool-body"><label for="reforge-source">献祭器物</label><select id="reforge-source" data-reforge-source ${sources.length ? '' : 'disabled'}>${sources.map(source => `<option value="${esc(source.id)}" ${source.id === sourceId ? 'selected' : ''}>${esc(source.name)} ×${formatNumber(source.stacks)}</option>`).join('') || '<option value="">没有普通法宝</option>'}</select>${!sources.length ? '<p class="reforge-unavailable" role="status">需要持有一件普通法宝。</p>' : ''}<p class="reforge-terms">本店限一次</p>${balanceReason ? `<p class="reforge-unavailable" role="status">${balanceReason}</p>` : ''}${used && !balanceReason ? '<p class="reforge-unavailable" role="status">本店已重铸过一次。</p>' : ''}<div class="reforge-targets" data-reforge-targets>${this.reforgeTargetsMarkup(state, sourceId)}</div></div></details>`;
+  }
+
+  private warmableArtifacts(): string[] {
+    try {
+      return unique(listOf<string>(this.game?.warmableArtifacts()))
+        .filter(id => Boolean(this.artifactEntity(id)));
+    } catch {
+      return [];
+    }
+  }
+
+  private warmCost(): number {
+    try {
+      return Math.max(0, asNumber(this.game?.warmCost()));
+    } catch {
+      return 0;
+    }
+  }
+
+  private restTemperPanelMarkup(state: RunState): string {
+    const artifactIds = this.warmableArtifacts();
+    const artifactId = artifactIds.includes(this.warmArtifactId)
+      ? this.warmArtifactId
+      : asText(artifactIds[0]);
+    this.warmArtifactId = artifactId;
+    const cost = this.warmCost();
+    const artifact = this.artifactEntity(artifactId);
+    if (!artifactId || !artifact) {
+      return '<p class="empty-note" role="status">暂无可温养的法宝，候选可能已满层或冲突。</p>';
+    }
+    const owned = state.artifacts.find(stack => stack.id === artifactId);
+    const maxStacks = Math.max(1, asNumber(artifact.max_stacks, 1));
+    const currentStacks = asNumber(owned?.stacks);
+    const enoughCoins = asNumber(state.coins) >= cost;
+    return `<label for="rest-temper-artifact">温养法宝</label><select id="rest-temper-artifact" data-temper-artifact>${artifactIds.map(id => {
+      const entity = this.artifactEntity(id);
+      return `<option value="${esc(id)}" ${id === artifactId ? 'selected' : ''}>${esc(asText(entity?.name, id))}</option>`;
+    }).join('')}</select><p class="rest-temper-result">${esc(asText(artifact.name, artifactId))}：叠层 ${formatNumber(currentStacks)} → ${formatNumber(Math.min(maxStacks, currentStacks + 1))} / ${formatNumber(maxStacks)}</p><p class="reforge-terms">定向提升 1 层 · ${formatNumber(cost)} 灵石</p>${enoughCoins ? '' : '<p class="reforge-unavailable" role="status">灵石不足</p>'}<button class="button small primary" data-action="rest" data-choice="temper" data-artifact="${esc(artifactId)}" ${enoughCoins ? '' : 'disabled'}>温养此物</button>`;
+  }
+
   private shopView(state: RunState): string {
     const items = listOf<any>(state.shop);
     return `<header class="shop-heading">${this.stageHeading('', '坊市')}<span class="shop-stock">库存 ${items.filter((item) => !item.sold).length} / ${items.length || 5}</span></header>
-      <div class="shop-grid">${items.map((item) => this.shopItem(item)).join('') || '<p class="empty-note">坊市没有可展示的库存。</p>'}</div><div class="stage-actions"><button class="button primary" data-action="leave-shop" data-autofocus>离开坊市 ${icon('arrow', 16)}</button></div>${this.inlineMessage()}`;
+      <div class="shop-grid">${items.map((item) => this.shopItem(item)).join('') || '<p class="empty-note">坊市没有可展示的库存。</p>'}</div>${this.reforgeToolMarkup(state)}<div class="stage-actions"><button class="button primary" data-action="leave-shop" data-autofocus>离开坊市 ${icon('arrow', 16)}</button></div>${this.inlineMessage()}`;
   }
 
   private shopItem(item: any): string {
@@ -2830,7 +3019,7 @@ class ShanhaiApp {
       : '';
     const choices = fromEvent
       ? `<div class="rest-event-note">这份机缘只留下换法的机会。</div>${swapList}`
-      : `<p class="rest-limit">本次休整仅选一项</p><div class="rest-grid"><button class="rest-choice" data-action="rest" data-choice="heal"><span>${sigil('gourd', 'shield')}</span><b>调息</b><p>${this.textMarkup(`恢复 ${formatNumber(healAmount)} 气血`)}</p></button><button class="rest-choice" data-action="rest" data-choice="preparation" ${state.preparation > 0 ? 'disabled' : ''}><span>${sigil('shield', 'jade')}</span><b>备战</b><p>${this.textMarkup(`下战护盾 +${formatNumber(prepAmount)}`)}</p>${state.preparation > 0 ? `<small>${this.textMarkup(`已有 ${formatNumber(state.preparation)} 护盾`)}</small>` : ''}</button>${swapDisabled ? '' : `<details class="rest-choice rest-swap" data-details="rest-swap"><summary>${sigil('book', 'gold')}<b>换法</b></summary>${swapList}</details>`}</div><details class="disclosure rest-rules" data-details="rest-rules"><summary>休整详情</summary><p>调息不增加怒气。预备护盾用于下一场战斗，不能重复准备。换法只切换已拥有的功法，各门天赋保留；完成换法同样消耗本次休整。</p></details>`;
+      : `<p class="rest-limit">本次休整仅选一项</p><div class="rest-grid"><button class="rest-choice" data-action="rest" data-choice="heal"><span>${sigil('gourd', 'shield')}</span><b>调息</b><p>${this.textMarkup(`恢复 ${formatNumber(healAmount)} 气血`)}</p></button><button class="rest-choice" data-action="rest" data-choice="preparation" ${state.preparation > 0 ? 'disabled' : ''}><span>${sigil('shield', 'jade')}</span><b>备战</b><p>${this.textMarkup(`下战护盾 +${formatNumber(prepAmount)}`)}</p>${state.preparation > 0 ? `<small>${this.textMarkup(`已有 ${formatNumber(state.preparation)} 护盾`)}</small>` : ''}</button>${swapDisabled ? '' : `<details class="rest-choice rest-swap" data-details="rest-swap"><summary>${sigil('book', 'gold')}<b>换法</b></summary>${swapList}</details>`}<details class="rest-choice rest-temper" data-details="rest-temper"><summary>${sigil('pearl', 'jade')}<b>温养</b><small>定向提升法宝一层</small></summary><div class="rest-temper-panel" data-temper-panel>${this.restTemperPanelMarkup(state)}</div></details></div><details class="disclosure rest-rules" data-details="rest-rules"><summary>休整详情</summary><p>调息不增加怒气。预备护盾用于下一场战斗，不能重复准备。温养定向提升一件可温养法宝一层并支付灵石。换法只切换已拥有的功法，各门天赋保留；完成任一选项同样消耗本次休整。</p></details>`;
     return `${this.stageHeading('途中歇息', '山中一息')}
       <section class="rest-summary"><div><span>预备护盾</span><b>${this.textMarkup(state.preparation)}</b></div><div><span>当前功法</span><b>${esc(asText(currentMethod?.name, state.method))}</b></div></section>
       ${choices}${this.inlineMessage()}`;
@@ -3023,7 +3212,7 @@ class ShanhaiApp {
       const effects = listOf<any>(artifact.effects)
         .map((effect) => this.textMarkup(effectText(effect, (value) => this.displayText(value))))
         .filter(Boolean);
-      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow item-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><div class="item-dialog-head"><span class="item-dialog-motif">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), entityRarity(artifact) === 'legendary' ? 'mythic' : 'jade'))}</span><div><p class="eyebrow">${esc(rarityLabel(entityRarity(artifact)))} · ${this.textMarkup(ownership)}</p><h2 id="dialog-title">${esc(artifact.name)}</h2></div></div><div class="item-dialog-art">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), entityRarity(artifact) === 'legendary' ? 'mythic' : 'jade'))}</div><p class="item-dialog-summary">${this.textMarkup(entitySummary(artifact))}</p><div class="attribute-list">${stats || '<span class="muted">无额外属性</span>'}</div><div class="effect-list">${effects.map((effect) => `<p>${effect}</p>`).join('') || '<p class="muted">没有额外触发效果。</p>'}</div><div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
+      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow item-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><div class="item-dialog-head"><span class="item-dialog-motif">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), entityRarity(artifact) === 'legendary' ? 'mythic' : 'jade'))}</span><div><p class="eyebrow">${esc(rarityLabel(entityRarity(artifact)))} · ${this.textMarkup(ownership)}</p><h2 id="dialog-title">${esc(artifact.name)}</h2></div></div><div class="item-dialog-art">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), entityRarity(artifact) === 'legendary' ? 'mythic' : 'jade'))}</div><p class="item-dialog-summary">${this.textMarkup(entitySummary(artifact))}</p>${this.artifactAwakeningMarkup(artifact, asNumber(owned?.stacks))}<div class="attribute-list">${stats || '<span class="muted">无额外属性</span>'}</div><div class="effect-list">${effects.map((effect) => `<p>${effect}</p>`).join('') || '<p class="muted">没有额外触发效果。</p>'}</div><div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
     }
     if (this.modal === 'talent') {
       const talent = this.talentEntity(this.modalMethodId, this.modalId);
@@ -3077,6 +3266,28 @@ class ShanhaiApp {
     if (!target) return;
     if (target.name === 'player-name') this.playerName = target.value;
     if (target.name === 'seed') this.seed = target.value;
+  }
+
+  private onChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    if (!target) return;
+    const state = this.gameState();
+    if (!state) return;
+    if (target.matches('[data-reforge-source]')) {
+      this.reforgeSourceId = target.value;
+      const panel = target.closest<HTMLElement>('.reforge-tool')?.querySelector<HTMLElement>('[data-reforge-targets]');
+      if (panel) {
+        panel.innerHTML = this.reforgeTargetsMarkup(state, target.value);
+        target.focus({ preventScroll: true });
+      }
+    } else if (target.matches('[data-temper-artifact]')) {
+      this.warmArtifactId = target.value;
+      const panel = target.closest<HTMLElement>('.rest-temper')?.querySelector<HTMLElement>('[data-temper-panel]');
+      if (panel) {
+        panel.innerHTML = this.restTemperPanelMarkup(state);
+        panel.querySelector<HTMLSelectElement>('[data-temper-artifact]')?.focus({ preventScroll: true });
+      }
+    }
   }
 
   private rememberModalTrigger(target: HTMLElement): void {
@@ -3461,10 +3672,47 @@ class ShanhaiApp {
           this.send({ type: 'buy', id });
         }
         break;
+      case 'reforge':
+        {
+          const state = this.gameState();
+          const source = asText(target.dataset.source);
+          const targetId = asText(target.dataset.target);
+          const used = Boolean((state as any)?._shopReforged);
+          const availability = this.reforgeAvailability(source, targetId);
+          const reason = used ? '本店已重铸过一次' :
+            !state || asNumber(state.coins) < this.reforgePrice() ? '灵石不足' :
+              availability.available ? '' : this.reforgeReason(availability.reason);
+          if (!state || state.phase !== 'shop' || !source || !targetId || reason) {
+            this.notice = reason || '当前无法重铸。';
+            this.render();
+            break;
+          }
+          this.reforgeSourceId = '';
+          this.send({ type: 'reforge', source, target: targetId });
+        }
+        break;
       case 'leave-shop':
         this.send({ type: 'leave_shop' });
         break;
       case 'rest':
+        if (target.dataset.choice === 'temper') {
+          const state = this.gameState();
+          const artifact = asText(target.dataset.artifact);
+          const cost = this.warmCost();
+          if (!state || state.phase !== 'rest' || !this.warmableArtifacts().includes(artifact)) {
+            this.notice = '这件法宝目前无法温养。';
+            this.render();
+            break;
+          }
+          if (asNumber(state.coins) < cost) {
+            this.notice = '灵石不足，温养没有执行。';
+            this.render();
+            break;
+          }
+          this.warmArtifactId = '';
+          this.send({ type: 'rest', choice: 'temper', artifact });
+          break;
+        }
         if (target.dataset.choice === 'swap_method') {
           this.notice = '请在下方选择一门已拥有的功法。';
           this.render();

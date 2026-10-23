@@ -10,6 +10,8 @@ interface NarrativeHistoryEntry {
   eventId?: string;
   optionId?: string;
   eventOutcome?: EventOutcome;
+  storyEcho?: string;
+  eventCheck?: { success: boolean };
 }
 
 interface NarrativeCommitmentRecord {
@@ -44,6 +46,9 @@ function selectedOption(content: Content, entry: NarrativeHistoryEntry): Entity 
 }
 
 function optionEcho(entry: NarrativeHistoryEntry, option: Entity): string | undefined {
+  if (typeof entry.storyEcho === 'string') return entry.storyEcho.trim() || undefined;
+  if (!entry.eventCheck && typeof option.legacy_story_echo === 'string') return option.legacy_story_echo;
+  if (entry.eventCheck?.success === false) return option.check?.failure_echo;
   if (isRecord(option.encounter)) {
     if (entry.eventOutcome === 'success') {
       return typeof option.story_echo === 'string' && option.story_echo.trim()
@@ -68,7 +73,8 @@ function commitmentResult(
   entry: NarrativeHistoryEntry,
   option: Entity,
 ): string | undefined {
-  if (!isRecord(option.commitment) || !Array.isArray(state.eventCommitments)) return undefined;
+  if ((!isRecord(option.commitment) && !isRecord(option.legacy_commitment)) ||
+    !Array.isArray(state.eventCommitments)) return undefined;
   const record = (state.eventCommitments as NarrativeCommitmentRecord[]).find(item =>
     item.eventId === entry.eventId &&
     item.optionId === entry.optionId &&

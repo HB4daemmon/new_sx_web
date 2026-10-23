@@ -34,5 +34,17 @@ effects:
     replaces: []
     limit: {scope: permanent, count: 1}
     text: 每层使自身施加的燃烧伤害提高6%；不增加燃烧层数。
+  - id: RC15-AWAKENING-BURN-ON-POISON
+    trigger: always
+    operation: modify_effect
+    target: self
+    min_stacks: 3
+    params: {target_status: poison, attack_ratio_per_stack_add: 0.04, new_layers_only: true, once_per_round: true}
+    requires: [enemy_has_poison]
+    consumes: []
+    replaces: []
+    limit: {scope: round, count: 1}
+    text: 集齐3层后，每轮首次成功给已有中毒的敌人施加燃烧时，该次新增燃烧层的伤害系数额外提高0.04；持续伤害结算不会再次触发。
+awakening: {at_stacks: 3, name: 赤炎逐毒, quick: 毒敌后首次添火增效}
 acquisition:
   pools: [common_artifact]

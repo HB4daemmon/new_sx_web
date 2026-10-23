@@ -4,8 +4,8 @@ kind: event
 id: RE002
 name: 旧炉余温
 status: design_target
-summary: 在退潮时加固衣甲、预付炉工等候成器，或把灵石留作渡路之用。
-description: 旧炉的余火只够再炼一炉。现成玄铁甲可即刻取走，凝气珠则要先付折价炉钱、避开坊市并走完两处行程。
+summary: 在退潮时加固衣甲、付折价炉钱试炼炉料，或把灵石留作渡路之用。
+description: 旧炉的余火只够再炼一炉。现成玄铁甲可即刻取走，另一炉料须先付折价炉钱并把握火候；也可收起灵石离开。
 tags: [ordinary, purchase, attack, defense]
 source:
   basis: original
@@ -18,7 +18,7 @@ balance:
   measured: null
 event_type: ordinary
 acts: [1]
-scene: 炉膛被倒灌的水汽压得忽明忽暗，炉工只来得及照看一件旧器。现成的玄铁甲能立刻带走；未成的凝气珠须预付并等候，空手离开则保住盘缠。
+scene: 炉膛被倒灌的水汽压得忽明忽暗，炉工只来得及照看一件旧器。现成的玄铁甲能立刻带走；另一件炉料尚未成形，空手离开则保住盘缠。
 options:
   - id: RE002-A
     label: 即时取走玄铁甲
@@ -33,17 +33,29 @@ options:
     outcome: 你按现价付清灵石，玄铁甲当场离炉，穿过湿冷风口时多了防护。
     story_echo: 你付清现价取走玄铁甲，沿着退潮露出的干石继续前行。
   - id: RE002-B
-    label: 预付炉钱等凝气珠
-    quick: 先付折价炉钱；接下来2处地点不进坊市，之后取得两层凝气珠。炉钱不足或该法宝剩余可叠层数不足两层时不能选；失约或到终战未兑现均不退款。
+    label: 付炉钱试炼炉料
+    quick: 先付公开标价的折价炉钱并把握火候；具体所得暂不公开，失败不另扣气血或资源。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC19, count: 2}
     costs:
       - {type: resource, resource: coins, amount: 0.45, basis: common_price}
-    rewards: []
-    outcome: 你先付折价炉钱与炉工立约；凝气珠尚未炼成，失约不会退款。
-    story_echo: 你预付炉钱与炉工立约，两处行程尚未走完，凝气珠仍未到手。
-    commitment:
+    rewards:
+      - {type: artifact, id: RC19, count: 2}
+    outcome: 炉料顺利成形，你收下新器后离开旧炉。
+    story_echo: 你把炉料炼成新器收好，炉火熄下后继续赶路。
+    reveal: hint
+    check:
+      kind: chance
+      hint: 潮汽可能压灭炉火，炉钱不退；防御稳固或携带铁甲时更易护住炉温。
+      chance: 0.45
+      bonuses:
+        - {type: stat, stat: defense, threshold: 110, amount: 0.1}
+        - {type: artifact, id: RC03, amount: 0.1}
+      failure_rewards: []
+      failure_outcome: 潮汽压灭炉火，炉料报废，折价炉钱已经付出。
+      failure_echo: 炉火被潮汽压灭，炉料没有成形，折价炉钱已付。
+    legacy_commitment:
       name: 等候凝气珠
       after_nodes: 2
       avoid_node_types: [S]
@@ -51,6 +63,7 @@ options:
         - {type: artifact, id: RC19, count: 2}
       success_outcome: 两处行程顺利结束，取得两层凝气珠。
       failure_outcome: 等待期间进入坊市，或到终战仍未兑现，折价炉钱不退，也没有凝气珠。
+    legacy_story_echo: 你预付炉钱与炉工立约，两处行程尚未走完，凝气珠仍未到手。
   - id: RE002-C
     label: 收起灵石离炉
     quick: 放弃两种交易，保留灵石和已有法宝。

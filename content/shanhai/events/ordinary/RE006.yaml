@@ -40,13 +40,22 @@ options:
     story_echo: 你把护身符留给下一场战斗，离开时伤势和修为都没有改变。
   - id: RE006-C
     label: 借余火静坐
-    quick: 静坐片刻，增加下一次完整突破需求的两成修为。
+    quick: 身法稳健方能在嘈杂中入定；未成不扣资源。
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
     outcome: 你在余火旁静坐，修为向下一次完整突破需求推进两成。
     story_echo: 你趁避水的一刻静坐，将余火的明灭记进修行，随后重新启程。
+    reveal: hint
+    check:
+      kind: stat
+      hint: 嘈杂中入定须身法稳健；未能静下心便没有所得。
+      stat: speed
+      threshold: 12
+      failure_rewards: []
+      failure_outcome: 你未能在嘈杂中入定，修为没有增加。
+      failure_echo: 你在嘈杂中未能入定，修为没有增加，随后离开石檐。
 settlement:
   once: true
   internal_battle_package: false

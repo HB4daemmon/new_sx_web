@@ -7,6 +7,7 @@ import {
 } from './run.js';
 import { validateRouteMap } from './route-map.js';
 import { assertEventCommitmentRecords } from './event-commitments.js';
+import { assertEventCheckResult } from './event-checks.js';
 
 export const SHANHAI_SAVE_KEY = 'suishi-shanhai-run-v1';
 export const SHANHAI_BUILD_KEY = 'suishi-shanhai-build-v1';
@@ -187,6 +188,14 @@ function assertStateShapeWithoutContent(state: RunState): void {
     typeof entry.title !== 'string' || typeof entry.text !== 'string')) {
     throw new Error('Invalid Shanhai history');
   }
+  for (const entry of state.history) {
+    if (entry.eventCheck !== undefined) assertEventCheckResult(entry.eventCheck);
+    if (entry.storyEcho !== undefined && (typeof entry.storyEcho !== 'string' ||
+      entry.storyEcho.length > 2000)) throw new Error('Invalid saved story echo');
+  }
+  if (state.eventCheck !== undefined) assertEventCheckResult(state.eventCheck);
+  if (state.eventStoryEcho !== undefined && (typeof state.eventStoryEcho !== 'string' ||
+    state.eventStoryEcho.length > 2000)) throw new Error('Invalid saved event echo');
   assertEventCommitmentRecords(state.eventCommitments);
   if (!isObject(state.flags) || Object.values(state.flags).some(value => typeof value !== 'boolean') ||
     !Array.isArray(state.seenEvents) || state.seenEvents.some(id => typeof id !== 'string') ||
@@ -239,6 +248,7 @@ function assertStateShapeWithoutContent(state: RunState): void {
     }
     assertLoadoutShapeWithoutContent(state.battleInput.player);
     assertLoadoutShapeWithoutContent(state.battleInput.enemy);
+    if (state.battleInput.rules !== undefined && state.battleInput.rules !== 'awakening-v1') throw new Error('Invalid saved battle rules');
   }
   if (state.battle !== undefined) validateBattleResult(state.battle);
   if (state._talentQueue !== undefined && (!Array.isArray(state._talentQueue) ||
@@ -313,6 +323,7 @@ function assertStateShapeWithoutContent(state: RunState): void {
     '_rewardSettled',
     '_eventSettled',
     '_restFromEvent',
+    '_shopReforged',
   ]) {
     if (state[key] !== undefined && typeof state[key] !== 'boolean') {
       throw new Error('Invalid Shanhai internal flag');
@@ -409,7 +420,9 @@ export function parseRunSave(content: Content, text: string): RunState {
       throw new Error('Corrupted Shanhai replay input');
     }
     const input = state.battleInput;
-    const replay = simulateBattle(content, input.player, input.enemy, input.seed, { roundLimit: input.roundLimit });
+    const replay = simulateBattle(content, input.player, input.enemy, input.seed, {
+      roundLimit: input.roundLimit, artifactAwakenings: input.rules === 'awakening-v1',
+    });
     for (const key of ['outcome', 'rounds', 'playerHp', 'enemyHp'] as const) {
       if (replay[key] !== state.battle[key]) throw new Error('Stored battle no longer matches its deterministic input');
     }

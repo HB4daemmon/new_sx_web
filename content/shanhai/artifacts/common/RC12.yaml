@@ -34,5 +34,17 @@ effects:
     replaces: []
     limit: {scope: permanent, count: 1}
     text: 每层使自身治疗量提高6%；提高后的治疗先用于回复气血，超出上限的部分仍计为治疗溢出。
+  - id: RC12-AWAKENING-CLEANSE
+    trigger: heal_resolved
+    operation: consume_status
+    target: self
+    min_stacks: 3
+    params: {statuses: [poison, burn, weakness, armor_break], stacks: 1, once_per_battle: true, preserves_overflow_outlet: true}
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: battle, count: 1}
+    text: 集齐3层后，首次正数治疗结算时净化自身1层负面状态（中毒、燃烧、虚弱或护甲破坏）；净化不替代治疗溢出出口。
+awakening: {at_stacks: 3, name: 回春灵瓶, quick: 首疗净化一层负面}
 acquisition:
   pools: [common_artifact]

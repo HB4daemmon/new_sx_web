@@ -144,9 +144,11 @@
 - 玩家看到：剑柄上的短穗随普攻起落，强化普攻的基础直接段。
 - 获取池：common_artifact
 - 唯一组：无
+- 觉醒条件：集齐 3 层；裂甲剑穗：普攻首段每轮破甲
 
 ::: details 法宝开发效果
 - `RC09-BASIC-DIRECT-BONUS`；每层使普攻基础直接伤害提高6%，不作用于毒火、盾返或法宝追加段。；操作：修改效果；触发：始终；目标：自身；参数：effect_selector=action=basic_action；伤害范围=base_direct；比例=0.06；stacking=linear；限制：范围=permanent；次数=1
+- `RC09-AWAKENING-ARMOR-BREAK`；集齐3层后，每轮首次普攻基础段有效命中时施加1层护甲破坏，持续至下一轮结束；不由追击触发。；操作：施加状态；触发：普攻命中；目标：敌人；参数：状态=破甲；层数=1；持续轮数=2；最大层数=5；first_effective_base_hit=是；once_per_round=是；前置：effective_basic_base_hit；限制：范围=round；次数=1；法宝觉醒门槛：至少 3 层；触发时只生效一次，不随总层数重复
 :::
 
 ### 雷纹印
@@ -170,9 +172,11 @@
 - 玩家看到：符面铁线收束护体之力，提高自身获得的护盾总量。
 - 获取池：common_artifact
 - 唯一组：无
+- 觉醒条件：集齐 3 层；铁壁续符：首次破盾补护
 
 ::: details 法宝开发效果
 - `RC11-SHIELD-GAIN-BONUS`；每层使自身最终获得的护盾量提高6%。；操作：修改效果；触发：始终；目标：自身；参数：effect_selector=操作=生成护盾；direction=received_by_self；比例=0.06；stacking=linear；限制：范围=permanent；次数=1
+- `RC11-AWAKENING-SHIELD`；集齐3层后，每场战斗首次被敌方直接攻击打破护盾且自身存活时，获得最大气血6%的护盾；造盾不会再次触发破盾。；操作：生成护盾；触发：护盾破碎；目标：自身；参数：最大气血倍率=0.06；once_per_battle=是；requires_alive=是；direct_attack_only=是；self_reentry=否；前置：first_direct_break_alive；限制：范围=battle；次数=1；法宝觉醒门槛：至少 3 层；触发时只生效一次，不随总层数重复
 :::
 
 ### 回春瓶
@@ -183,9 +187,11 @@
 - 玩家看到：瓶中春息回旋，抬高最大气血并放大自身治疗总量。
 - 获取池：common_artifact
 - 唯一组：无
+- 觉醒条件：集齐 3 层；回春灵瓶：首疗净化一层负面
 
 ::: details 法宝开发效果
 - `RC12-SELF-HEAL-BONUS`；每层使自身治疗量提高6%；提高后的治疗先用于回复气血，超出上限的部分仍计为治疗溢出。；操作：修改效果；触发：始终；目标：自身；参数：effect_selector=操作=治疗；来源=self；比例=0.06；stacking=linear；限制：范围=permanent；次数=1
+- `RC12-AWAKENING-CLEANSE`；集齐3层后，首次正数治疗结算时净化自身1层负面状态（中毒、燃烧、虚弱或护甲破坏）；净化不替代治疗溢出出口。；操作：消费状态；触发：治疗结算；目标：自身；参数：statuses=poison、burn、weakness、armor_break；层数=1；once_per_battle=是；preserves_overflow_outlet=是；限制：范围=battle；次数=1；法宝觉醒门槛：至少 3 层；触发时只生效一次，不随总层数重复
 :::
 
 ### 震山环
@@ -209,9 +215,11 @@
 - 玩家看到：瓶口蛇纹吐出阴息，强化自身施加的中毒持续伤害。
 - 获取池：common_artifact
 - 唯一组：无
+- 觉醒条件：集齐 3 层；蛇纹引焰：灼敌后首次添毒增效
 
 ::: details 法宝开发效果
 - `RC14-SELF-POISON-BONUS`；每层使自身施加的中毒伤害提高6%；不增加中毒层数。；操作：修改效果；触发：始终；目标：自身；参数：effect_selector=操作=造成伤害；状态=中毒；来源=self；比例=0.06；stacking=linear；限制：范围=permanent；次数=1
+- `RC14-AWAKENING-POISON-ON-BURN`；集齐3层后，每轮首次成功给已有燃烧的敌人施加中毒时，该次新增中毒层的伤害系数额外提高0.04；持续伤害结算不会再次触发。；操作：修改效果；触发：始终；目标：自身；参数：target_status=burn；每层攻击倍率增量=0.04；new_layers_only=是；once_per_round=是；前置：enemy_has_burn；限制：范围=round；次数=1；法宝觉醒门槛：至少 3 层；触发时只生效一次，不随总层数重复
 :::
 
 ### 赤炎珠
@@ -222,9 +230,11 @@
 - 玩家看到：珠内存着赤热火种，强化自身施加的燃烧持续伤害。
 - 获取池：common_artifact
 - 唯一组：无
+- 觉醒条件：集齐 3 层；赤炎逐毒：毒敌后首次添火增效
 
 ::: details 法宝开发效果
 - `RC15-SELF-BURN-BONUS`；每层使自身施加的燃烧伤害提高6%；不增加燃烧层数。；操作：修改效果；触发：始终；目标：自身；参数：effect_selector=操作=造成伤害；状态=燃烧；来源=self；比例=0.06；stacking=linear；限制：范围=permanent；次数=1
+- `RC15-AWAKENING-BURN-ON-POISON`；集齐3层后，每轮首次成功给已有中毒的敌人施加燃烧时，该次新增燃烧层的伤害系数额外提高0.04；持续伤害结算不会再次触发。；操作：修改效果；触发：始终；目标：自身；参数：target_status=poison；每层攻击倍率增量=0.04；new_layers_only=是；once_per_round=是；前置：enemy_has_poison；限制：范围=round；次数=1；法宝觉醒门槛：至少 3 层；触发时只生效一次，不随总层数重复
 :::
 
 ### 采气袋

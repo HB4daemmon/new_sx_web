@@ -39,6 +39,7 @@ interface ArtifactRuntime {
 }
 
 interface Fighter {
+  artifactAwakenings: boolean;
   side: 'player' | 'enemy';
   lockedAction?: ActionType;
   loadout: Loadout;
@@ -127,6 +128,7 @@ interface HitResult {
 }
 
 interface BattleRuntime {
+  artifactAwakenings: boolean;
   content: Content;
   random: () => number;
   seed: string;
@@ -283,17 +285,36 @@ function allMethodEffects(method: AnyMap): Effect[] {
   return result;
 }
 
+function artifactEffectStacks(effect: Effect, stacks: number): number | undefined {
+  const minStacks = Math.max(1, int(effect.min_stacks, 1));
+  if (stacks < minStacks) return undefined;
+  return effect.min_stacks === undefined ? stacks : 1;
+}
+
 function activeEffects(method: AnyMap, talents: AnyMap[], artifacts: ArtifactRuntime[]): ActiveEffect[] {
   const result: ActiveEffect[] = [];
-  const add = (effect: Effect, ownerId: string, ownerName: string, ownerKind: SourceKind, stacks = 1) => {
-    result.push(Object.assign(clone(effect), { ownerId, ownerName, ownerKind, stacks }));
+  const add = (
+    effect: Effect,
+    ownerId: string,
+    ownerName: string,
+    ownerKind: SourceKind,
+    stacks = 1,
+    artifactEffect = false,
+  ) => {
+    const effectStacks = artifactEffect ? artifactEffectStacks(effect, stacks) : stacks;
+    if (effectStacks === undefined) return;
+    result.push(Object.assign(clone(effect), { ownerId, ownerName, ownerKind, stacks: effectStacks }));
   };
   for (const action of [method.actions?.basic, method.actions?.rage]) {
     for (const effect of action?.effects ?? []) add(effect, method.id, method.name, 'method');
   }
   for (const effect of method.passives ?? []) add(effect, method.id, method.name, 'method');
   for (const talent of talents) for (const effect of talent.effects ?? []) add(effect, talent.id, talent.name, 'talent');
-  for (const artifact of artifacts) for (const effect of artifact.entity.effects ?? []) add(effect, artifact.entity.id, artifact.entity.name, 'artifact', artifact.stacks);
+  for (const artifact of artifacts) {
+    for (const effect of artifact.entity.effects ?? []) {
+      add(effect, artifact.entity.id, artifact.entity.name, 'artifact', artifact.stacks, true);
+    }
+  }
   return result;
 }
 
@@ -791,11 +812,26 @@ function fighterRuntimeEffects(fighter: Fighter): ActiveEffect[] {
   if (fighter.runtimeEffects) return fighter.runtimeEffects;
   const method = fighter.method;
   const result: ActiveEffect[] = [];
-  const add = (effect: Effect, ownerId: string, ownerName: string, ownerKind: SourceKind, stacks = 1) =>
-    result.push(Object.assign(clone(effect), { ownerId, ownerName, ownerKind, ownerSide: fighter.side, stacks }));
+  const add = (
+    effect: Effect,
+    ownerId: string,
+    ownerName: string,
+    ownerKind: SourceKind,
+    stacks = 1,
+    artifactEffect = false,
+  ) => {
+    const effectStacks = artifactEffect ? artifactEffectStacks(effect, stacks) : stacks;
+    if (effectStacks === undefined) return;
+    result.push(Object.assign(clone(effect), { ownerId, ownerName, ownerKind, ownerSide: fighter.side, stacks: effectStacks }));
+  };
   for (const effect of method.passives ?? []) add(effect, method.id, method.name, 'method');
   for (const talent of fighter.talents) for (const effect of talent.effects ?? []) add(effect, talent.id, talent.name, 'talent');
-  for (const artifact of fighter.artifacts) for (const effect of artifact.entity.effects ?? []) add(effect, artifact.entity.id, artifact.entity.name, 'artifact', artifact.stacks);
+  for (const artifact of fighter.artifacts) {
+    for (const effect of artifact.entity.effects ?? []) {
+      if (!fighter.artifactAwakenings && effect.min_stacks !== undefined) continue;
+      add(effect, artifact.entity.id, artifact.entity.name, 'artifact', artifact.stacks, true);
+    }
+  }
   fighter.runtimeEffects = result;
   return result;
 }
@@ -1311,13 +1347,20 @@ function sourceTargetSide(runtime: BattleRuntime, source: ActiveEffect | string)
 }
 
 function triggerShieldBreak(runtime: BattleRuntime, target: Fighter, source: Fighter, action: ActionContext | null): void {
-  if (!action || target.hp <= 0) return;
-  const effect = selectedEffect(target, 'RKF01-J3-B-RECHARGE');
-  if (target.method.id !== 'RKF01' || !effect || target.battleFlags.has(effect.id)) return;
+  if (!action || target.hp <= 0 || source.side === target.side) return;
   if (action.type !== 'basic_action' && action.type !== 'rage_action') return;
-  target.battleFlags.add(effect.id);
-  addShield(runtime, target, target.stats.max_hp * n(effect.params?.max_hp_ratio, 0.24), effect, '破盾后续护');
-  frame(runtime, 'status', `${target.side === 'player' ? '玩家' : '敌人'}首次破盾后续护`, target.side, target.side, effect.id);
+  const methodEffect = selectedEffect(target, 'RKF01-J3-B-RECHARGE');
+  if (target.method.id === 'RKF01' && methodEffect && !target.battleFlags.has(methodEffect.id)) {
+    target.battleFlags.add(methodEffect.id);
+    addShield(runtime, target, target.stats.max_hp * n(methodEffect.params?.max_hp_ratio, 0.24), methodEffect, '破盾后续护');
+    frame(runtime, 'status', `${target.side === 'player' ? '玩家' : '敌人'}首次破盾后续护`, target.side, target.side, methodEffect.id);
+  }
+  const awakening = selectedEffect(target, 'RC11-AWAKENING-SHIELD');
+  const battleFlag = 'RC11-AWAKENING-SHIELD';
+  if (awakening && !target.battleFlags.has(battleFlag)) {
+    target.battleFlags.add(battleFlag);
+    addShield(runtime, target, target.stats.max_hp * n(awakening.params?.max_hp_ratio, 0.06), awakening, '铁壁符觉醒续护');
+  }
 }
 
 function triggerShieldAbsorbed(runtime: BattleRuntime, target: Fighter, source: Fighter, action: ActionContext, absorbed: number): void {
@@ -1415,7 +1458,24 @@ function applyDot(
     }
   }
   const damage = snapshotAttack * ratio;
-  return addRegularStatus(runtime, target, status, stacks, duration, effect, { damage, attackRatio: ratio, ownerId: owner.method.id }, maxStacks);
+  const added = addRegularStatus(runtime, target, status, stacks, duration, effect, { damage, attackRatio: ratio, ownerId: owner.method.id }, maxStacks);
+  if (added <= 0) return added;
+  const awakeningId = status === 'poison'
+    ? 'RC14-AWAKENING-POISON-ON-BURN'
+    : 'RC15-AWAKENING-BURN-ON-POISON';
+  const awakening = selectedEffect(owner, awakeningId);
+  const oppositeStatus = status === 'poison' ? 'burn' : 'poison';
+  const roundFlag = `${awakeningId}:${runtime.round}`;
+  if (!awakening || !hasStatus(target, oppositeStatus) || owner.battleFlags.has(roundFlag)) return added;
+  owner.battleFlags.add(roundFlag);
+  const ratioAdd = n(awakening.params?.attack_ratio_per_stack_add, 0.04);
+  const addedLayers = getStatusLayers(target, status).slice(-added);
+  for (const layer of addedLayers) {
+    layer.damage = n(layer.damage, 0) + snapshotAttack * ratioAdd;
+    layer.attackRatio = n(layer.attackRatio, ratio) + ratioAdd;
+  }
+  mark(runtime, awakening);
+  return added;
 }
 
 function effectValueForStatus(
@@ -1495,6 +1555,17 @@ function resolveDirectHitAdditions(runtime: BattleRuntime, action: ActionContext
   const target = action.target;
   const actionType = action.type;
   const firstBase = action.baseDirectHitCount === 1;
+  if (actionType === 'basic_action' && firstBase) {
+    const awakening = selectedEffect(actor, 'RC09-AWAKENING-ARMOR-BREAK');
+    const roundFlag = `RC09-AWAKENING-ARMOR-BREAK:${action.round}`;
+    if (awakening && !actor.battleFlags.has(roundFlag)) {
+      const added = addRegularStatus(runtime, target, 'armor_break', 1, 2, awakening, undefined, 5);
+      if (added > 0) {
+        actor.battleFlags.add(roundFlag);
+        action.actualDebuffApplied = true;
+      }
+    }
+  }
   if (actionType === 'basic_action' && firstBase) {
     for (const artifact of actor.artifacts) {
       if (artifact.entity.id === 'RL03') {
@@ -1641,6 +1712,17 @@ function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: numb
   (action as AnyMap).lastEffectiveHeal = effective;
   mark(runtime, source, 1, fighter.side);
   addContribution(runtime, source, 'healing', effective, fighter.side);
+  const cleanse = selectedEffect(fighter, 'RC12-AWAKENING-CLEANSE');
+  const cleanseFlag = 'RC12-AWAKENING-CLEANSE';
+  if (total > 0 && cleanse && !fighter.battleFlags.has(cleanseFlag)) {
+    const status = (['poison', 'burn', 'weakness', 'armor_break'] as StatusName[])
+      .find(candidate => hasStatus(fighter, candidate));
+    if (status && removeStatusLayers(fighter, status, 1) > 0) {
+      fighter.battleFlags.add(cleanseFlag);
+      mark(runtime, cleanse, 1, fighter.side);
+      frame(runtime, 'status', `${fighter.side === 'player' ? '玩家' : '敌人'}治疗净化${status}1层`, fighter.side, fighter.side, cleanse.id, 1);
+    }
+  }
   if (effective > 0) {
     frame(runtime, 'heal', `${fighter.side === 'player' ? '玩家' : '敌人'}恢复 ${Math.round(effective)}`, fighter.side, fighter.side, source.id, effective);
     const rr02 = fighter.artifacts.find(artifact => artifact.entity.id === 'RR02');
@@ -2380,6 +2462,7 @@ function createFighter(runtime: BattleRuntime, side: 'player' | 'enemy', loadout
   const compiled = validateLoadout(runtime.content, loadout);
   const stats = calculateStats(runtime.content, loadout);
   const fighter: Fighter = {
+    artifactAwakenings: runtime.artifactAwakenings,
     side,
     loadout,
     method: compiled.method,
@@ -2422,12 +2505,13 @@ export function simulateBattle(
   player: Loadout,
   enemy: Loadout,
   seed: string,
-  options: { roundLimit?: number } = {},
+  options: { roundLimit?: number; artifactAwakenings?: boolean } = {},
 ): BattleResult {
   if (typeof seed !== 'string') throw new Error('Battle seed must be a string');
   const roundLimit = options.roundLimit === undefined ? 256 : options.roundLimit;
   if (!Number.isInteger(roundLimit) || roundLimit <= 0) throw new Error('roundLimit must be a positive integer');
   const runtime = {
+    artifactAwakenings: options.artifactAwakenings !== false,
     content,
     random: seededRandom(`${seed}:combat`),
     seed,

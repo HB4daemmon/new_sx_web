@@ -1,4 +1,5 @@
 import type { EventCommitmentRecord } from './event-commitments.js';
+import type { EventCheckResult } from './event-checks.js';
 
 // Authored entities are validated by content-kit before entering this boundary.
 export interface Entity {
@@ -126,6 +127,8 @@ export interface RunState {
     eventId?: string;
     optionId?: string;
     eventOutcome?: 'success' | 'failure';
+    eventCheck?: EventCheckResult;
+    storyEcho?: string;
   }[];
   seenEvents: string[];
   completedCore: string[];
@@ -136,8 +139,11 @@ export interface RunState {
   shop: ShopItem[];
   resultText: string;
   battle?: BattleResult;
-  battleInput?: { player: Loadout; enemy: Loadout; seed: string; roundLimit: number };
+  battleInput?: { player: Loadout; enemy: Loadout; seed: string; roundLimit: number; rules?: 'awakening-v1' };
   eventOption?: string;
+  eventCheck?: EventCheckResult;
+  eventStoryEcho?: string;
+  _shopReforged?: boolean;
   returnPhase?: RunPhase;
   nodeEntry?: { method: string; talents: string[]; artifacts: ArtifactStack[] };
   [key: string]: any;
@@ -153,7 +159,8 @@ export type RunCommand =
   | { type: 'event'; id: string }
   | { type: 'continue' }
   | { type: 'buy'; id: string }
+  | { type: 'reforge'; source: string; target: string }
   | { type: 'leave_shop' }
-  | { type: 'rest'; choice: 'heal' | 'preparation' | 'swap_method'; method?: string }
+  | { type: 'rest'; choice: 'heal' | 'preparation' | 'swap_method' | 'temper'; method?: string; artifact?: string }
   | { type: 'talent'; id: string }
   | { type: 'retire' };

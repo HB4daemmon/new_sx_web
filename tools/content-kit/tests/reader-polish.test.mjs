@@ -46,7 +46,10 @@ test('reader pages use player-facing rewards, bases, categories, and method abil
   const eventPage = pages.get('events/ACT1.md')
   assert.match(eventPage, /- 获得：气血 20%（当前幕参考气血）/)
   assert.match(eventPage, /- 成本：灵石 75%（普通法宝价格参照）/)
-  assert.match(eventPage, /- 获得：修为 20%（当前境界下一次完整突破需求）/)
+  assert.match(eventPage, /- 检定提示：嘈杂中入定须身法稳健/)
+  const meditation = eventPage.split('### 借余火静坐')[1].split('::: details')[0]
+  assert.match(meditation, /选择前隐藏具体奖励与分支结果/)
+  assert.doesNotMatch(meditation, /检定成功获得|修为 20%/)
   assert.match(eventPage, /- 胜利获得：青锋石（`RC01`） ×2/)
   assert.doesNotMatch(eventPage, /- 胜利兑现：/)
   assert.doesNotMatch(eventPage, /H\*|C\*|X\*/)

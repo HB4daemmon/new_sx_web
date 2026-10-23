@@ -34,5 +34,17 @@ effects:
     replaces: []
     limit: {scope: permanent, count: 1}
     text: 每层使自身施加的中毒伤害提高6%；不增加中毒层数。
+  - id: RC14-AWAKENING-POISON-ON-BURN
+    trigger: always
+    operation: modify_effect
+    target: self
+    min_stacks: 3
+    params: {target_status: burn, attack_ratio_per_stack_add: 0.04, new_layers_only: true, once_per_round: true}
+    requires: [enemy_has_burn]
+    consumes: []
+    replaces: []
+    limit: {scope: round, count: 1}
+    text: 集齐3层后，每轮首次成功给已有燃烧的敌人施加中毒时，该次新增中毒层的伤害系数额外提高0.04；持续伤害结算不会再次触发。
+awakening: {at_stacks: 3, name: 蛇纹引焰, quick: 灼敌后首次添毒增效}
 acquisition:
   pools: [common_artifact]

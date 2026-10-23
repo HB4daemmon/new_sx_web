@@ -127,6 +127,8 @@ const fieldLabels = {
   max_hp_ratio: '最大气血倍率',
   max_hp_ratio_add: '最大气血倍率增量',
   max_stacks: '最大层数',
+  min_stacks: '最低层数',
+  hp_ratio: '当前气血比例',
   mechanic: '专属机制',
   measured: '实测',
   method: '功法',
@@ -475,6 +477,9 @@ function effectText(effect, context) {
   if (Array.isArray(effect.consumes) && effect.consumes.length > 0) parts.push(`消费：${list(effect.consumes, context)}`)
   if (Array.isArray(effect.replaces) && effect.replaces.length > 0) parts.push(`替代：${list(effect.replaces, context)}`)
   if (isRecord(effect.limit)) parts.push(`限制：${structuredText(effect.limit, 'limit', context)}`)
+  if (effect.min_stacks !== undefined) {
+    parts.push(`法宝觉醒门槛：至少 ${scalarText(effect.min_stacks)} 层；触发时只生效一次，不随总层数重复`)
+  }
   return parts.join('；')
 }
 
@@ -557,12 +562,13 @@ function rewardText(rewards, context) {
   }).join('；')
 }
 
-function requirementText(requirements, context) {
+function requirementText(requirements, context, { concealArtifact = false } = {}) {
   if (!Array.isArray(requirements) || requirements.length === 0) return '无'
   return requirements.map((requirement) => {
     if (!isRecord(requirement)) return line(requirement, context)
     if (requirement.type === 'can_pay') return '资源足够支付'
     if (requirement.type === 'capacity') {
+      if (concealArtifact) return `奖励空间可容纳 ${scalarText(requirement.count)} 层`
       return `${readableArtifact(requirement.id, context)}可容纳 ${scalarText(requirement.count)} 层`
     }
     if (requirement.type === 'owned_artifact') {
@@ -931,6 +937,9 @@ function renderArtifacts(artifacts, rarity, context) {
     lines.push(`- 玩家看到：${line(artifact.description, context)}`)
     lines.push(`- 获取池：${list(artifact.acquisition?.pools, context)}`)
     lines.push(`- 唯一组：${artifact.unique_group ? line(artifact.unique_group, context) : '无'}`)
+    if (artifact.awakening) {
+      lines.push(`- 觉醒条件：集齐 ${scalarText(artifact.awakening.at_stacks)} 层；${line(artifact.awakening.name, context)}：${line(artifact.awakening.quick, context)}`)
+    }
     lines.push(effectSection(artifact.effects, '法宝开发效果', context))
     lines.push('')
   }
@@ -943,15 +952,37 @@ function renderArtifacts(artifacts, rarity, context) {
 }
 
 function renderOption(option, context) {
-  const rewardLabel = option.encounter ? '胜利获得' : option.commitment ? '即时获得' : '获得'
+  const hidden = option.reveal === 'hint' && option.check
+  const rewardLabel = option.encounter ? '胜利获得' : option.commitment ? '即时获得' : option.check ? '检定成功获得' : '获得'
   const lines = [
     `### ${line(option.label, context)}`,
     '',
     `- 玩家摘要：${line(option.quick, context)}`,
-    `- 条件：${requirementText(option.requirements, context)}`,
+    `- 条件：${requirementText(option.requirements, context, { concealArtifact: hidden })}`,
     `- 成本：${costText(option.costs, context)}`,
-    `- ${rewardLabel}：${rewardText(option.rewards, context)}`,
+    hidden
+      ? '- 检定结果：选择前隐藏具体奖励与分支结果；已知成本如上。'
+      : `- ${rewardLabel}：${rewardText(option.rewards, context)}`,
   ]
+  if (option.check) {
+    const check = option.check
+    if (hidden) {
+      lines.push(`- 检定提示：${line(check.hint, context)}`)
+      lines.push('- 失败分支：选择后揭示。')
+    } else if (check.kind === 'stat') {
+      const threshold = check.stat === 'hp_ratio' ? percentageText(check.threshold) : scalarText(check.threshold)
+      lines.push(`- 检定：${line(check.hint, context)}；${fieldLabel(check.stat)} ${threshold} 以上成功。`)
+      lines.push(`- 成功结果：${line(option.outcome, context)}；成功行迹：${line(option.story_echo, context)}`)
+      lines.push(`- 失败奖励：${rewardText(check.failure_rewards, context)}；${line(check.failure_outcome, context)}`)
+      lines.push(`- 失败行迹：${line(check.failure_echo, context)}`)
+    } else {
+      const bonuses = (check.bonuses ?? []).map((bonus) => structuredText(bonus, 'bonuses', context)).join('；') || '无'
+      lines.push(`- 检定：${line(check.hint, context)}；基础概率 ${percentageText(check.chance)}，满足的加成累加后限制在 5% 至 95%（${bonuses}）。`)
+      lines.push(`- 成功结果：${line(option.outcome, context)}；成功行迹：${line(option.story_echo, context)}`)
+      lines.push(`- 失败奖励：${rewardText(check.failure_rewards, context)}；${line(check.failure_outcome, context)}`)
+      lines.push(`- 失败行迹：${line(check.failure_echo, context)}`)
+    }
+  }
   if (option.encounter) {
     const encounter = option.encounter
     const enemy = context?.byId?.get(encounter.enemy_id)
@@ -971,8 +1002,8 @@ function renderOption(option, context) {
     lines.push(`- 延后奖励：${rewardText(commitment.rewards, context)}；${line(commitment.success_outcome, context)}`)
     lines.push(`- 失约与过期：进入避让节点即告失约；未到终战前兑现而进入终战时过期。${line(commitment.failure_outcome, context)}；已付成本不退，失败或过期不发延后奖励。`)
   }
-  lines.push(`- 结果：${line(option.outcome, context)}`)
-  if (option.story_echo !== undefined) lines.push(`- 成功行迹：${line(option.story_echo, context)}`)
+  if (!option.check) lines.push(`- 结果：${line(option.outcome, context)}`)
+  if (!option.check && option.story_echo !== undefined) lines.push(`- 成功行迹：${line(option.story_echo, context)}`)
   if (option.story_failure_echo !== undefined) lines.push(`- 失败行迹：${line(option.story_failure_echo, context)}`)
   if (option.set_flags) lines.push(`- 标记变化：${targetText(option.set_flags, context)}`)
   lines.push('')

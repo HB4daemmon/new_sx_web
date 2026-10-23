@@ -281,7 +281,7 @@ test('ordinary event choices can use their authored echo in legacy history and r
 });
 
 test('commitment echoes report only matching fulfilled or broken results and never mutate state', () => {
-  const echo = content.byId.RE001.options.find(option => option.id === 'RE001-C').story_echo;
+  const echo = content.byId.RE001.options.find(option => option.id === 'RE001-C').legacy_story_echo;
   const active = {
     eventId: 'RE001',
     optionId: 'RE001-C',
@@ -323,7 +323,7 @@ test('only the originating commitment record may append its actual result text',
   });
   const [result] = eventEchoes(content, state);
   assert.equal(result.text, content.byId.RE001.options
-    .find(option => option.id === 'RE001-C').story_echo);
+    .find(option => option.id === 'RE001-C').legacy_story_echo);
 });
 
 test('both narrative readers leave the complete run state unchanged', () => {

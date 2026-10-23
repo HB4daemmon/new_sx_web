@@ -14,6 +14,7 @@ import {
   saveWinningBuild,
   serializeRun,
 } from '../build/shanhai/persistence.js';
+import { routeLayoutForAct } from '../build/shanhai/route-profiles.js';
 import { nextCommand } from './shanhai-policy.mjs';
 
 const loaded = await loadContent();
@@ -491,11 +492,12 @@ test('RKF05 prepares first strike on nodes 2 and 4, preserves it across a method
   assert.equal(game.state.firstStrike, 0);
 
   const rest = routeToNode(game, node => node.type === 'R');
-  assert.equal(rest.depth, 3);
+  const layout = routeLayoutForAct(game.actContent, game.state.seed);
+  assert.equal(rest.depth, layout.restDepth);
   game.dispatch({ type: 'rest', choice: 'swap_method', method: 'RKF01' });
   assert.ok(game.state.firstStrike > 0);
   const secondStrikeBattle = routeToNode(game, node => node.type === 'C');
-  assert.equal(secondStrikeBattle.depth, 5);
+  assert.equal(secondStrikeBattle.depth, layout.restDepth + 2);
   game.dispatch({ type: 'fight' });
   assert.ok(battles[2].player.firstStrike > 0);
   assert.equal(game.state.firstStrike, 0);
@@ -505,13 +507,13 @@ test('preparation rewards and rest preparation are additive', () => {
   installCombat();
   const game = make('preparation-seed');
   const firstRest = routeToNode(game, node => node.type === 'R');
-  assert.equal(firstRest.depth, 3);
+  assert.equal(firstRest.depth, routeLayoutForAct(game.actContent, game.state.seed).restDepth);
   game.dispatch({ type: 'rest', choice: 'preparation' });
   const first = game.state.preparation;
   assert.ok(first > 0);
   reachAct(game, 2);
   const secondRest = routeToNode(game, node => node.type === 'R');
-  assert.equal(secondRest.depth, 3);
+  assert.equal(secondRest.depth, routeLayoutForAct(game.actContent, game.state.seed).restDepth);
   game.dispatch({ type: 'rest', choice: 'preparation' });
   assert.ok(game.state.preparation > first);
 });
@@ -526,7 +528,7 @@ test('travel artifacts use their authored stack and max-hp parameters', () => {
     { id: 'RR06', stacks: 1 },
   ];
   const rest = routeToNode(game, node => node.type === 'R');
-  assert.equal(rest.depth, 3);
+  assert.equal(rest.depth, routeLayoutForAct(game.actContent, game.state.seed).restDepth);
   game.state.hp = 100;
   game.state.xp = 0;
   game.state.coins = 0;

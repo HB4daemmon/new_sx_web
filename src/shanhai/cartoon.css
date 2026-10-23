@@ -2632,6 +2632,59 @@ button:disabled {
   color: var(--muted);
 }
 
+.game-page .battle-insights {
+  padding: 8px 0 8px 10px;
+  background: transparent;
+  border-color: var(--jade);
+}
+
+.game-page .battle-insights :is(h3, b) {
+  color: var(--ink);
+}
+
+.game-page .battle-insights :is(li, .battle-insight-hit) {
+  color: var(--muted);
+}
+
+.game-page .boss-map-hint {
+  flex-shrink: 0;
+  margin: 0 0 8px;
+  padding: 0 10px;
+  border-color: var(--jade);
+  color: var(--ink);
+  background: transparent;
+}
+
+.game-page .boss-map-hint > summary {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  list-style: none;
+}
+
+.game-page .boss-map-hint > summary::after {
+  margin-left: auto;
+  color: var(--jade);
+  content: '+';
+}
+
+.game-page .boss-map-hint[open] > summary::after {
+  content: '-';
+}
+
+.game-page .boss-map-hint > p {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.game-page .reforge-option > div > b,
+.game-page .rest-temper > summary {
+  color: var(--ink);
+}
+
 .game-page .battle-detail-actions {
   display: flex;
   flex-wrap: wrap;
@@ -3463,6 +3516,21 @@ button:disabled {
   .game-page .rest-choice > p,
   .game-page .rest-choice > small {
     grid-column: 2;
+  }
+
+  .game-page .rest-temper {
+    display: block;
+  }
+
+  .game-page .rest-temper > summary {
+    width: 100%;
+    min-height: 62px;
+    grid-template-columns: 38px minmax(0, 1fr) 24px;
+  }
+
+  .game-page .rest-temper > summary .sigil {
+    width: 38px;
+    height: 38px;
   }
 
   .game-page .karma-ledger {
@@ -4440,5 +4508,31 @@ button:disabled {
 @media (max-width: 600px) {
   .game-page.phase-preview .preview-matchup .preview-contender {
     grid-template-rows: 150px auto;
+  }
+}
+
+@media (max-width: 900px) {
+  .game-page {
+    display: flex;
+    height: 100dvh;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .game-page > :is(.topbar, .mobile-hud, .bottom-nav) {
+    flex-shrink: 0;
+  }
+
+  .game-page .game-layout:not(.full-map) {
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    padding-bottom: 12px;
+  }
+
+  .game-page .bottom-nav {
+    position: static;
   }
 }

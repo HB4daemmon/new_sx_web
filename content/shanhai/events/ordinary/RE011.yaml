@@ -21,17 +21,29 @@ acts: [2]
 scene: 船底刮过露出水面的碎礁，旧铁片在船工手里只够炼成一件。付标价灵石取剑穗、取铁壁符，或不取器物直接过水。
 options:
   - id: RE011-A
-    label: 付石锻成剑穗
-    quick: 付出标价灵石，带走一层剑穗以强化普攻；灵石不足或该法宝已满层时不能选。
+    label: 付折价炉钱试锻
+    quick: 付折价炉钱试锻旧铁，成器才有所得；失手不退炉钱，不另扣气血。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC09, count: 1}
     costs:
-      - {type: resource, resource: coins, amount: 1.0, basis: common_price}
+      - {type: resource, resource: coins, amount: 0.4, basis: common_price}
     rewards:
       - {type: artifact, id: RC09, count: 1}
     outcome: 你付石带走一层剑穗，系紧兵刃后仍需自己找出碎礁间的落脚处。
     story_echo: 你付石系上剑穗，普攻得到强化，驳船顺着礁间水道向前。
+    reveal: hint
+    check:
+      kind: chance
+      hint: 试锻可能失手，炉钱不退；攻势越稳、越熟悉兵刃，成器机会越高。
+      chance: 0.45
+      bonuses:
+        - {type: stat, stat: attack, threshold: 180, amount: 0.12}
+        - {type: method, id: RKF01, amount: 0.1}
+        - {type: artifact, id: RC01, amount: 0.1}
+      failure_rewards: []
+      failure_outcome: 锻造未成，旧铁裂开，标价灵石已经付出。
+      failure_echo: 旧铁在炉中裂开，锻造未成，标价灵石已付。
   - id: RE011-B
     label: 付石钉上铁壁符
     quick: 付出标价灵石，带走一层铁壁符以提升防御并增强护盾；灵石不足或该法宝已满层时不能选。

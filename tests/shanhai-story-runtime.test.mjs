@@ -266,6 +266,7 @@ test('legacy event history without an outcome remains readable and indeterminate
   const payload = JSON.parse(serializeRun(failed));
   const entry = payload.state.history.find(item => item.eventId === 'RK009');
   delete entry.eventOutcome;
+  delete entry.storyEcho;
   delete payload.state.flags['RS05-promised'];
 
   const restored = parseRunSave(content, JSON.stringify(payload));

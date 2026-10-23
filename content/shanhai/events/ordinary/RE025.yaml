@@ -22,16 +22,27 @@ scene: 一块旧石面映出你的修行痕迹，返气环在旁边随风轻响�
 options:
   - id: RE025-A
     label: 付石照见旧法
-    quick: 付出标价灵石后选择另一门已学功法改修；未学适用功法或灵石不足则不能选，不回血、不洗点。
+    quick: 付少量灵石尝试唤起旧法回响；映影未成不退灵石，成功后可换修另一门已学功法。
     requirements:
       - {type: known_method, id: RKF03}
       - {type: can_pay}
     costs:
-      - {type: resource, resource: coins, amount: 1.0, basis: common_price}
+      - {type: resource, resource: coins, amount: 0.3, basis: common_price}
     rewards:
       - {type: swap_method, pool: owned_methods}
     outcome: 回身石已亮，灵石已经付出；接下来须从其他已学功法中选一门改修，各门已悟天赋仍保留。
     story_echo: 你付石照见已学功法，重新择定修行方向，越过映着旧日身影的石面。
+    reveal: hint
+    check:
+      kind: chance
+      hint: 映影可能散去，灵石不退；修习过相近路数、佩有返气之物时更容易唤起回响。
+      chance: 0.35
+      bonuses:
+        - {type: method, id: RKF04, amount: 0.15}
+        - {type: artifact, id: RC23, amount: 0.1}
+      failure_rewards: []
+      failure_outcome: 回身石的映影未能成形，灵石已经付出，仍沿当前功法前行。
+      failure_echo: 回身石的映影散去，灵石已付，你沿当前功法继续前行。
   - id: RE025-B
     label: 付石带走返气环
     quick: 付出标价灵石，带走一层返气环以在怒技后额外回怒；灵石不足或该法宝已满层时不能选。

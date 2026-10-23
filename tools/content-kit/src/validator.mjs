@@ -162,6 +162,7 @@ const NUMERIC_KEYS = new Set([
   'sword_intent_ratio_per_stack_add',
   'terminal_nodes',
   'tier',
+  'threshold',
   'total_ratio',
   'value',
   'window',
@@ -427,6 +428,17 @@ function validateEffectArray(entity, fieldPath, effects, errors, effectIds, { de
       addIssue(errors, 'effect-map', 'effect must be a mapping', location)
       continue
     }
+    if (Object.hasOwn(effect, 'min_stacks')) {
+      if (entity.kind !== 'artifact') {
+        addIssue(errors, 'effect-min-stacks-owner', 'min_stacks is only valid on artifact effects', location)
+      } else {
+        finiteNumber(errors, effect.min_stacks, location, 'effect.min_stacks', {
+          integer: true,
+          min: 1,
+          max: entity.max_stacks,
+        })
+      }
+    }
     for (const field of ['id', 'trigger', 'operation', 'target', 'params', 'requires', 'consumes', 'replaces', 'limit', 'text']) {
       if (!(field in effect)) addIssue(errors, 'effect-field', `effect.${field} is required`, location)
     }
@@ -657,6 +669,26 @@ function validateArtifact(entity, errors, effectIds) {
   if (entity.id === 'RL01' && entity.unique_group !== 'overflow_outlet') {
     addIssue(errors, 'artifact-unique-group', 'RL01 must use unique_group overflow_outlet', source)
   }
+  if (entity.awakening !== undefined) {
+    const awakening = entity.awakening
+    if (!isRecord(awakening)) {
+      addIssue(errors, 'artifact-awakening', 'awakening must be a mapping', source)
+    } else {
+      if (!exactKeys(awakening, ['at_stacks', 'name', 'quick'])) {
+        addIssue(errors, 'artifact-awakening-fields', 'awakening must use exactly at_stacks, name, and quick', source)
+      }
+      finiteNumber(errors, awakening.at_stacks, source, 'awakening.at_stacks', {
+        integer: true,
+        min: 1,
+        max: entity.max_stacks,
+      })
+      if (awakening.at_stacks !== entity.max_stacks) {
+        addIssue(errors, 'artifact-awakening-stacks', 'awakening.at_stacks must equal max_stacks', source)
+      }
+      requiredString(errors, awakening, 'name', source)
+      requiredString(errors, awakening, 'quick', source)
+    }
+  }
   if (!isRecord(entity.attributes)) {
     addIssue(errors, 'artifact-attributes', 'attributes must be a mapping', source)
   } else {
@@ -871,6 +903,110 @@ function validateCommitment(commitment, option, known, errors, source) {
   }
 }
 
+function validateCheckReward(reward, known, errors, source) {
+  if (!isRecord(reward)) {
+    addIssue(errors, 'event-check-failure-reward', 'failure reward must be a mapping', source)
+    return
+  }
+  const fieldsByType = {
+    resource: ['type', 'resource', 'amount', 'basis'],
+    artifact: ['type', 'id', 'count'],
+    method: ['type', 'id'],
+    preparation: ['type', 'effect', 'amount', 'basis'],
+    swap_method: ['type', 'pool'],
+  }
+  const fields = fieldsByType[reward.type]
+  if (!fields) {
+    addIssue(errors, 'event-check-failure-reward', `unsupported failure reward type ${reward.type}`, source)
+    return
+  }
+  if (!exactKeys(reward, fields)) {
+    addIssue(errors, 'event-check-failure-reward-fields', 'failure reward has unknown or missing fields', source)
+  }
+  validateReward(reward, known, errors, source)
+}
+
+function validateEventCheck(check, option, known, errors, source) {
+  if (!isRecord(check)) {
+    addIssue(errors, 'event-check', 'option.check must be a mapping', source)
+    return
+  }
+  const kind = check.kind
+  const statKeys = ['kind', 'hint', 'stat', 'threshold', 'failure_rewards', 'failure_outcome', 'failure_echo']
+  const chanceKeys = ['kind', 'hint', 'chance', ...(check.bonuses === undefined ? [] : ['bonuses']),
+    'failure_rewards', 'failure_outcome', 'failure_echo']
+  const expectedKeys = kind === 'stat' ? statKeys : kind === 'chance' ? chanceKeys : ['kind']
+  if (!exactKeys(check, expectedKeys)) {
+    addIssue(errors, 'event-check-fields', 'check has unknown or missing fields', source)
+  }
+  if (kind !== 'stat' && kind !== 'chance') {
+    addIssue(errors, 'event-check-kind', 'check.kind must be stat or chance', source)
+  }
+  requiredString(errors, check, 'hint', source)
+  if (kind === 'stat') {
+    if (!['attack', 'defense', 'max_hp', 'crit_rate', 'speed', 'hp_ratio'].includes(check.stat)) {
+      addIssue(errors, 'event-check-stat', 'check.stat must be a supported stat or hp_ratio', source)
+    }
+    finiteNumber(errors, check.threshold, source, 'check.threshold')
+  } else if (kind === 'chance') {
+    finiteNumber(errors, check.chance, source, 'check.chance', { min: 0, max: 1 })
+    if (check.bonuses !== undefined) {
+      if (!Array.isArray(check.bonuses)) {
+        addIssue(errors, 'event-check-bonuses', 'check.bonuses must be an array', source)
+      } else {
+        for (const [index, bonus] of check.bonuses.entries()) {
+          const location = `${source}:bonuses[${index}]`
+          if (!isRecord(bonus)) {
+            addIssue(errors, 'event-check-bonus', 'chance bonus must be a mapping', location)
+            continue
+          }
+          let expected
+          if (bonus.type === 'stat') {
+            expected = ['type', 'stat', 'threshold', 'amount']
+            if (!['attack', 'defense', 'max_hp', 'crit_rate', 'speed', 'hp_ratio'].includes(bonus.stat)) {
+              addIssue(errors, 'event-check-bonus-stat', 'stat bonus must reference a supported stat or hp_ratio', location)
+            }
+            finiteNumber(errors, bonus.threshold, location, 'bonus.threshold')
+          } else if (bonus.type === 'method') {
+            expected = ['type', 'id', 'amount']
+            if (typeof bonus.id !== 'string' || !known.methods.has(bonus.id)) {
+              addIssue(errors, 'event-check-bonus-reference', `unknown bonus method ${bonus.id}`, location)
+            }
+          } else if (bonus.type === 'artifact') {
+            expected = ['type', 'id', 'amount']
+            if (typeof bonus.id !== 'string' || !known.artifacts.has(bonus.id)) {
+              addIssue(errors, 'event-check-bonus-reference', `unknown bonus artifact ${bonus.id}`, location)
+            }
+          } else {
+            expected = ['type']
+            addIssue(errors, 'event-check-bonus-type', `unsupported bonus type ${bonus.type}`, location)
+          }
+          if (!exactKeys(bonus, expected)) {
+            addIssue(errors, 'event-check-bonus-fields', 'bonus has unknown or missing fields', location)
+          }
+          finiteNumber(errors, bonus.amount, location, 'bonus.amount')
+        }
+      }
+    }
+  }
+  if (!Array.isArray(check.failure_rewards)) {
+    addIssue(errors, 'event-check-failure-rewards', 'check.failure_rewards must be an array', source)
+  } else {
+    check.failure_rewards.forEach((reward, index) => (
+      validateCheckReward(reward, known, errors, `${source}:failure_rewards[${index}]`)
+    ))
+  }
+  requiredString(errors, check, 'failure_outcome', source)
+  requiredString(errors, check, 'failure_echo', source)
+  optionalStoryEcho(errors, check, 'failure_echo', source)
+  if (option.encounter !== undefined) {
+    addIssue(errors, 'encounter-check', 'an option cannot combine encounter and check', source)
+  }
+  if (option.story_echo === undefined) {
+    addIssue(errors, 'event-check-success-echo', 'checked options must define story_echo for success', source)
+  }
+}
+
 function validateEvent(entity, errors, known) {
   const source = sourceFor(entity)
   const expectedCore = CORE_EVENT_IDS.includes(entity.id)
@@ -887,8 +1023,8 @@ function validateEvent(entity, errors, known) {
     addIssue(errors, 'event-acts', 'acts must not repeat an act number', source)
   }
   requiredString(errors, entity, 'scene', source)
-  if (!Array.isArray(entity.options) || entity.options.length < 2 || entity.options.length > 3) {
-    addIssue(errors, 'event-options', 'events must have 2 or 3 mutually exclusive options', source)
+  if (!Array.isArray(entity.options) || entity.options.length < 2 || entity.options.length > 4) {
+    addIssue(errors, 'event-options', 'events must have 2 to 4 mutually exclusive options', source)
   }
   const options = Array.isArray(entity.options) ? entity.options : []
   const optionIds = new Set()
@@ -912,6 +1048,25 @@ function validateEvent(entity, errors, known) {
     for (const field of ['label', 'quick', 'outcome']) requiredString(errors, option, field, location)
     optionalStoryEcho(errors, option, 'story_echo', location)
     optionalStoryEcho(errors, option, 'story_failure_echo', location)
+    optionalStoryEcho(errors, option, 'legacy_story_echo', location)
+    if (option.reveal !== undefined && option.reveal !== 'hint') {
+      addIssue(errors, 'option-reveal', 'option.reveal must be hint when provided', location)
+    }
+    if (option.reveal !== undefined && option.check === undefined) {
+      addIssue(errors, 'option-reveal-check', 'option.reveal requires an option.check', location)
+    }
+    if (option.legacy_commitment !== undefined) {
+      if (!['RE001-C', 'RE002-B'].includes(option.id)) {
+        addIssue(errors, 'legacy-commitment-location', 'legacy_commitment is reserved for migrated RE001-C and RE002-B saves', location)
+      }
+      if (option.commitment !== undefined || option.encounter !== undefined) {
+        addIssue(errors, 'legacy-commitment-state', 'legacy_commitment cannot also be an active commitment or encounter', location)
+      }
+      validateCommitment(option.legacy_commitment, option, known, errors, `${location}:legacy_commitment`)
+    }
+    if (option.legacy_story_echo !== undefined && option.legacy_commitment === undefined) {
+      addIssue(errors, 'legacy-story-echo', 'legacy_story_echo requires legacy_commitment', location)
+    }
     if (option.story_failure_echo !== undefined && option.encounter === undefined) {
       addIssue(errors, 'story-failure-echo', 'story_failure_echo is only valid for options with an encounter', location)
     }
@@ -941,6 +1096,7 @@ function validateEvent(entity, errors, known) {
     }
     if (option.encounter !== undefined) validateEncounter(option.encounter, option, known, errors, `${location}:encounter`)
     if (option.commitment !== undefined) validateCommitment(option.commitment, option, known, errors, `${location}:commitment`)
+    if (option.check !== undefined) validateEventCheck(option.check, option, known, errors, `${location}:check`)
   }
   if (!isRecord(entity.settlement)) {
     addIssue(errors, 'settlement', 'settlement must be a mapping', source)
@@ -1403,6 +1559,12 @@ function validateRules(entity, errors) {
 }
 
 function validateEntityKind(entity, errors, known, effectIds, storylineEncounterIds) {
+  if (entity.awakening !== undefined && entity.kind !== 'artifact') {
+    addIssue(errors, 'artifact-awakening-owner', 'awakening is only valid on artifacts', sourceFor(entity))
+  }
+  if (Object.hasOwn(entity, 'min_stacks')) {
+    addIssue(errors, 'effect-min-stacks-location', 'min_stacks is only valid on an artifact effect', sourceFor(entity))
+  }
   switch (entity.kind) {
     case 'rules':
       validateRules(entity, errors)

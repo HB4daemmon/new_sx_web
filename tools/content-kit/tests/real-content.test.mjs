@@ -78,6 +78,10 @@ test('real content validates and preserves the authored entity and talent counts
   const finalEnemies = entitiesOf('enemy').filter((enemy) => enemy.tier === 'final')
   assert.equal(ordinaryEvents.length, 36)
   assert.equal(coreEvents.length, 16)
+  const eventOptions = entitiesOf('event').flatMap((event) => event.options)
+  assert.equal(eventOptions.length, 157)
+  assert.equal(eventOptions.filter((option) => option.encounter).length, 21)
+  assert.equal(eventOptions.filter((option) => option.check).length, 8)
   assert.equal(actEnemies.length, 32)
   assert.equal(finalEnemies.length, 2)
 
@@ -216,7 +220,7 @@ test('all event encounters are attached to options, never to the event entity', 
   assert.ok(encounterCount > 0)
 })
 
-test('first-act event choices preserve their IDs and publish distinct commitment conditions', () => {
+test('first-act event choices preserve IDs while legacy commitments stay inactive for new runs', () => {
   const events = new Map(entitiesOf('event').map((event) => [event.id, event]))
   for (let index = 1; index <= 9; index += 1) {
     const id = `RE${String(index).padStart(3, '0')}`
@@ -228,15 +232,23 @@ test('first-act event choices preserve their IDs and publish distinct commitment
   }
 
   const escort = events.get('RE001').options.find((option) => option.id === 'RE001-C')
-  assert.equal(escort.commitment.after_nodes, 3)
-  assert.deepEqual(escort.commitment.avoid_node_types, ['R'])
-  assert.deepEqual(escort.commitment.rewards, [{ type: 'artifact', id: 'RC17', count: 2 }])
+  assert.equal(escort.commitment, undefined)
+  assert.equal(escort.legacy_commitment.after_nodes, 3)
+  assert.deepEqual(escort.legacy_commitment.avoid_node_types, ['R'])
+  assert.deepEqual(escort.legacy_commitment.rewards, [{ type: 'artifact', id: 'RC17', count: 2 }])
+  assert.equal(escort.legacy_story_echo, '你交出盘缠立下护送之约，药箱尚未送达，两层行医囊也未到手。')
+  assert.equal(escort.check.kind, 'chance')
+  assert.deepEqual(escort.rewards, [{ type: 'artifact', id: 'RC17', count: 2 }])
   assert.equal(escort.costs[0].resource, 'coins')
 
   const forge = events.get('RE002').options.find((option) => option.id === 'RE002-B')
-  assert.equal(forge.commitment.after_nodes, 2)
-  assert.deepEqual(forge.commitment.avoid_node_types, ['S'])
-  assert.deepEqual(forge.commitment.rewards, [{ type: 'artifact', id: 'RC19', count: 2 }])
+  assert.equal(forge.commitment, undefined)
+  assert.equal(forge.legacy_commitment.after_nodes, 2)
+  assert.deepEqual(forge.legacy_commitment.avoid_node_types, ['S'])
+  assert.deepEqual(forge.legacy_commitment.rewards, [{ type: 'artifact', id: 'RC19', count: 2 }])
+  assert.equal(forge.legacy_story_echo, '你预付炉钱与炉工立约，两处行程尚未走完，凝气珠仍未到手。')
+  assert.equal(forge.check.kind, 'chance')
+  assert.deepEqual(forge.rewards, [{ type: 'artifact', id: 'RC19', count: 2 }])
   assert.ok(forge.costs[0].amount < 0.75)
 
   const xpChoice = events.get('RE004').options.find((option) => option.id === 'RE004-A')
@@ -246,13 +258,9 @@ test('first-act event choices preserve their IDs and publish distinct commitment
 
   const pages = renderDocuments(report)
   const actOne = pages.get('events/ACT1.md')
-  assert.match(actOne, /本事件节点不计数/)
-  assert.match(actOne, /进入避让节点即告失约/)
-  assert.match(actOne, /已付成本不退/)
-  assert.match(actOne, /3 个真实非终战节点/)
-  assert.match(actOne, /2 个真实非终战节点/)
-  assert.match(actOne, /R 休整/)
-  assert.match(actOne, /S 商店/)
+  assert.match(actOne, /选择前隐藏具体奖励与分支结果/)
+  assert.match(actOne, /检定提示：沿水寻物可能空手而归，盘缠不退/)
+  assert.doesNotMatch(actOne, /护送药箱|凝气珠|本事件节点不计数|已付成本不退/)
 })
 
 test('regular acts keep shop mappings and methods keep rarity acquisition mappings', () => {

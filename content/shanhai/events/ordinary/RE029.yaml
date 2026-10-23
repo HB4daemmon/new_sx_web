@@ -33,17 +33,26 @@ options:
     outcome: 你付石炼成一层虎纹佩，攻击提高，前门的旧阵仍需亲自穿过。
     story_echo: 你付石炼下虎纹佩，带着增强的攻击越过炉边门槛，旧阵仍待独自通过。
   - id: RE029-B
-    label: 付石炼一层厚土环
-    quick: 付出标价灵石，带走一层厚土环以提升防御；灵石不足或该法宝已满层时不能选。
+    label: 亲手压入云铁
+    quick: 付折价炉钱亲自压铁，伤势过重会失手；失败不退炉钱，不额外扣血。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC04, count: 1}
     costs:
-      - {type: resource, resource: coins, amount: 1.0, basis: common_price}
+      - {type: resource, resource: coins, amount: 0.5, basis: common_price}
     rewards:
       - {type: artifact, id: RC04, count: 1}
     outcome: 你付石炼成一层厚土环，防御提高，前方的阵路仍须独自面对。
     story_echo: 你付石扣上厚土环，带着更稳的护身走过前门，同行者仍不在身边。
+    reveal: hint
+    check:
+      kind: stat
+      hint: 伤势未平便难以压稳云铁；失手后炉钱不退，但不会额外受伤。
+      stat: hp_ratio
+      threshold: 0.55
+      failure_rewards: []
+      failure_outcome: 你伤势未平，云铁在炉中滑脱，标价灵石已经付出。
+      failure_echo: 云铁从炉中滑脱，旧伤仍在，标价灵石已付出。
   - id: RE029-C
     label: 熄炉带旧物过门
     quick: 不付灵石、不取新法宝，保留灵石与当前法宝通过。

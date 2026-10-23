@@ -21,17 +21,29 @@ acts: [3]
 scene: 岩层深处的火流短暂变缓，铸工用赤铁压住一段要塌的热沟。余火只够炼一件，你可付石取剑穗、取厚土环，或退回冷灰边。
 options:
   - id: RE020-A
-    label: 付石炼出剑穗
-    quick: 付出标价灵石，带走一层剑穗以强化普攻；灵石不足或该法宝已满层时不能选。
+    label: 趁火试炼赤铁
+    quick: 付少量炉钱试炼赤铁，成器才有所得；失手不退炉钱，不另扣气血。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC09, count: 1}
     costs:
-      - {type: resource, resource: coins, amount: 0.75, basis: common_price}
+      - {type: resource, resource: coins, amount: 0.35, basis: common_price}
     rewards:
       - {type: artifact, id: RC09, count: 1}
     outcome: 你付石取下新炼的一层剑穗，普攻增强，热沟仍需自己跨过。
     story_echo: 你付石收下剑穗，借它稳住兵刃，沿冷却的岩面越过热沟。
+    reveal: hint
+    check:
+      kind: chance
+      hint: 熔脉随时可能翻涌，炉钱不退；强攻与合适器物能增加成器机会。
+      chance: 0.4
+      bonuses:
+        - {type: stat, stat: attack, threshold: 230, amount: 0.12}
+        - {type: method, id: RKF03, amount: 0.1}
+        - {type: artifact, id: RC09, amount: 0.1}
+      failure_rewards: []
+      failure_outcome: 熔脉过早翻涌，赤铁没能成器，标价灵石已经付出。
+      failure_echo: 赤铁未能成器便被热流吞没，标价灵石已付。
   - id: RE020-B
     label: 付石炼出厚土环
     quick: 付出标价灵石，带走一层厚土环以提升防御；灵石不足或该法宝已满层时不能选。

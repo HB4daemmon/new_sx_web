@@ -100,7 +100,7 @@
 - 玩家摘要：失败蓄运转为护盾
 - 类别：转化
 - 开发标识：`RKF07-J3-B`
-- `RKF07-J3-B-SHIELD`；普攻或怒技开始时，已有蓄势优先用于护盾；行动结束且自身存活时，每消耗1层蓄势获得防御0.22倍的护盾。用于护盾的蓄势不提高连雷概率，行动中新增的蓄势留待之后使用。；操作：生成护盾；触发：动作结束；目标：自身；参数：防御倍率=0.22；条件=状态=charge_luck；min_stacks=1；consume_status=charge_luck；consume_key=charge_luck；outlet_group=charge_luck；max_per_action=1；preexisting_only=是；reserve_at=action_start；resolve_at=action_end；priority_over_chain=是；no_new_stack_while_reserved=是；前置：charge_luck_available；消费：charge_luck；限制：范围=action；次数=1
+- `RKF07-J3-B-SHIELD`；普攻或怒技开始时，已有蓄势优先用于护盾；行动结束且自身存活时，每消耗1层蓄势获得防御0.22倍的护盾。用于护盾的蓄势不提高连雷概率，行动中新增的蓄势留待之后使用。；操作：生成护盾；触发：动作结束；目标：自身；参数：防御倍率=0.22；条件=状态=charge_luck；最低层数=1；consume_status=charge_luck；consume_key=charge_luck；outlet_group=charge_luck；max_per_action=1；preexisting_only=是；reserve_at=action_start；resolve_at=action_end；priority_over_chain=是；no_new_stack_while_reserved=是；前置：charge_luck_available；消费：charge_luck；限制：范围=action；次数=1
 :::
 ::: details 3层C：雷行回气
 - 玩家摘要：追加雷击后额外回怒
@@ -124,7 +124,7 @@
 - 玩家摘要：预存蓄运得护盾
 - 类别：转化
 - 开发标识：`RKF07-J4-C`
-- `RKF07-J4-C-CHAIN`；普攻或怒技开始时，已有蓄势优先用于护盾；行动结束且自身存活时，获得防御0.30倍的护盾。此效果取代较弱的蓄势护盾；用于护盾的蓄势不提高连雷概率，也不需要先选择蓄运护身。；操作：生成护盾；触发：动作结束；目标：自身；参数：防御倍率=0.3；条件=状态=charge_luck；min_stacks=1；consume_status=charge_luck；consume_key=charge_luck；outlet_group=charge_luck；max_per_action=1；preexisting_only=是；reserve_at=action_start；resolve_at=action_end；priority_over_chain=是；no_new_stack_while_reserved=是；前置：charge_luck_available；消费：charge_luck；替代：RKF07-J3-B-SHIELD；限制：范围=action；次数=1
+- `RKF07-J4-C-CHAIN`；普攻或怒技开始时，已有蓄势优先用于护盾；行动结束且自身存活时，获得防御0.30倍的护盾。此效果取代较弱的蓄势护盾；用于护盾的蓄势不提高连雷概率，也不需要先选择蓄运护身。；操作：生成护盾；触发：动作结束；目标：自身；参数：防御倍率=0.3；条件=状态=charge_luck；最低层数=1；consume_status=charge_luck；consume_key=charge_luck；outlet_group=charge_luck；max_per_action=1；preexisting_only=是；reserve_at=action_start；resolve_at=action_end；priority_over_chain=是；no_new_stack_while_reserved=是；前置：charge_luck_available；消费：charge_luck；替代：RKF07-J3-B-SHIELD；限制：范围=action；次数=1
 :::
 
 ## 推荐路线

@@ -354,6 +354,136 @@ test('event story echoes are bounded and failure echoes require an encounter', a
   assert.ok(report.errors.some((error) => error.code === 'story-failure-echo'))
 })
 
+test('event checks strictly validate both branches, bonus references, and reward fields', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  const event = structuredClone(fixture.entities.get('RE001'))
+  const option = event.options[0]
+  option.story_echo = '成功行迹。'
+  option.check = {
+    kind: 'chance',
+    hint: '把握机会。',
+    chance: 0.4,
+    bonuses: [
+      { type: 'stat', stat: 'speed', threshold: 10, amount: 0.1 },
+      { type: 'method', id: 'RKF01', amount: 0.1 },
+      { type: 'artifact', id: 'RC01', amount: 0.1 },
+    ],
+    failure_rewards: [],
+    failure_outcome: '没有成功。',
+    failure_echo: '你未能成事，继续前行。',
+  }
+  await rewriteEntity(fixture, 'RE001', event)
+  let report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map((error) => error.message).join('\n'))
+
+  option.check.unknown = true
+  await rewriteEntity(fixture, 'RE001', event)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'event-check-fields'))
+  delete option.check.unknown
+  const bonuses = option.check.bonuses
+  delete option.check.bonuses
+  await rewriteEntity(fixture, 'RE001', event)
+  report = await reportFor(fixture)
+  assert.equal(report.ok, true, 'chance bonuses are optional')
+  option.check.bonuses = bonuses
+
+  option.check.bonuses[1].id = 'RKF99'
+  await rewriteEntity(fixture, 'RE001', event)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'event-check-bonus-reference'))
+  option.check.bonuses[1].id = 'RKF01'
+
+  option.check.failure_rewards = [{ type: 'resource', resource: 'coins', amount: 1, basis: 'flat', hidden: true }]
+  await rewriteEntity(fixture, 'RE001', event)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'event-check-failure-reward-fields'))
+  option.check.failure_rewards = []
+  option.check.failure_rewards = [{ type: 'pool', pool: 'common_artifact', count: 1 }]
+  await rewriteEntity(fixture, 'RE001', event)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'event-check-failure-reward'))
+  option.check.failure_rewards = []
+
+  option.check.failure_echo = '迹'.repeat(101)
+  await rewriteEntity(fixture, 'RE001', event)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'story-echo-length'))
+
+  option.check.failure_echo = '你未能成事，继续前行。'
+  option.encounter = {
+    enemy_id: 'EN-A1-C1',
+    mode: 'nonlethal',
+    failure_hp_floor: 1,
+    failure_rewards: [],
+    failure_outcome: '挑战失败。',
+  }
+  await rewriteEntity(fixture, 'RE001', event)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'encounter-check'))
+})
+
+test('hint reveal keeps known costs visible while hiding concrete check branches', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  const event = structuredClone(fixture.entities.get('RE001'))
+  const option = event.options[0]
+  option.label = '沿水搜寻'
+  option.quick = '付出公开的灵石成本，依提示寻找物资。'
+  option.costs = [{ type: 'resource', resource: 'coins', amount: 0.3, basis: 'common_price' }]
+  option.rewards = [{ type: 'artifact', id: 'RC17', count: 1 }]
+  option.outcome = '秘密成功结果不应提前展示。'
+  option.story_echo = '秘密成功回声不应提前展示。'
+  option.reveal = 'hint'
+  option.check = {
+    kind: 'stat',
+    hint: '观察水痕。',
+    stat: 'speed',
+    threshold: 10,
+    failure_rewards: [{ type: 'resource', resource: 'xp', amount: 0.1, basis: 'next_xp' }],
+    failure_outcome: '秘密失败结果也应隐藏。',
+    failure_echo: '秘密失败回声也应隐藏。',
+  }
+  await rewriteEntity(fixture, 'RE001', event)
+  const report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map((error) => error.message).join('\n'))
+  const page = renderDocuments(report).get('events/ACT1.md')
+  assert.match(page, /成本：灵石 30%（普通法宝价格参照）/)
+  assert.match(page, /选择前隐藏具体奖励与分支结果/)
+  assert.match(page, /检定提示：观察水痕/)
+  assert.doesNotMatch(page, /秘密成功结果|秘密成功回声|秘密失败结果|秘密失败回声|行医囊/)
+})
+
+test('artifact awakening and min_stacks are bounded to the owning artifact', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  const artifact = structuredClone(fixture.entities.get('RC01'))
+  artifact.awakening = { at_stacks: 5, name: '青锋觉醒', quick: '满层时额外触发一次。' }
+  artifact.effects[0].min_stacks = 5
+  await rewriteEntity(fixture, 'RC01', artifact)
+  let report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map((error) => error.message).join('\n'))
+  const page = renderDocuments(report).get('artifacts/COMMON.md')
+  assert.match(page, /觉醒条件：集齐 5 层/)
+  assert.match(page, /至少 5 层；触发时只生效一次，不随总层数重复/)
+
+  artifact.awakening.at_stacks = 4
+  artifact.effects[0].min_stacks = 6
+  await rewriteEntity(fixture, 'RC01', artifact)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'artifact-awakening-stacks'))
+  assert.ok(report.errors.some((error) => error.code === 'number-range'))
+
+  const method = structuredClone(fixture.entities.get('RKF01'))
+  method.actions.basic.effects[0].min_stacks = 1
+  method.awakening = { at_stacks: 1, name: '无效', quick: '无效。' }
+  await rewriteEntity(fixture, 'RKF01', method)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'effect-min-stacks-owner'))
+  assert.ok(report.errors.some((error) => error.code === 'artifact-awakening-owner'))
+})
+
 test('missing files are errors and are not silently skipped', async (t) => {
   const fixture = await writeFixture()
   t.after(() => rm(fixture.root, { recursive: true, force: true }))

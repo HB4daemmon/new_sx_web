@@ -6581,6 +6581,316 @@ small {
   font-size: 13px !important;
 }
 
+.game-page select:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 3px;
+}
+
+.boss-map-hint {
+  margin: -2px 0 12px;
+  padding: 9px 12px;
+  border-left: 2px solid var(--vermilion-soft);
+  color: var(--paper-muted);
+  background: #251f1b;
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.artifact-awakening {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  margin: 7px 0;
+  padding-left: 9px;
+  border-left: 2px solid var(--gold);
+  color: var(--paper-muted);
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.artifact-awakening b {
+  color: var(--gold-bright);
+  font-weight: 600;
+}
+
+.artifact-awakening small {
+  color: var(--paper-muted);
+  font-size: 14px;
+}
+
+.reforge-tool {
+  margin-top: 10px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.reforge-tool > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  color: var(--paper);
+}
+
+.reforge-tool > summary::after {
+  margin-left: auto;
+  color: var(--gold);
+  content: '+';
+}
+
+.reforge-tool[open] > summary::after {
+  content: '-';
+}
+
+.reforge-tool > summary .icon {
+  color: var(--gold);
+}
+
+.game-page .reforge-tool > summary,
+.game-page .rest-temper > summary {
+  font-size: 14px !important;
+}
+
+.reforge-tool-body {
+  display: grid;
+  gap: 8px;
+  max-width: 780px;
+  padding: 0 0 12px 20px;
+}
+
+.reforge-tool-body > label,
+.rest-temper-panel > label {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.reforge-tool-body > select,
+.rest-temper-panel > select {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  color: var(--paper);
+  background: #091613;
+  font: 14px var(--serif);
+}
+
+.reforge-terms,
+.reforge-sacrifice,
+.rest-temper-result {
+  color: var(--paper-muted);
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.reforge-targets {
+  display: grid;
+  gap: 6px;
+}
+
+.reforge-option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.reforge-option > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.reforge-option > div > b {
+  color: var(--paper);
+  font: 15px var(--serif);
+  overflow-wrap: anywhere;
+}
+
+.reforge-option > div > span,
+.reforge-option > div > small {
+  color: var(--paper-muted);
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.reforge-option > div > em,
+.reforge-unavailable {
+  color: var(--vermilion-soft);
+  font-size: 14px;
+  font-style: normal;
+  line-height: 1.4;
+}
+
+.rest-temper {
+  min-height: 0;
+  grid-column: 1 / -1;
+  padding: 0 15px;
+}
+
+.rest-temper > summary {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 24px;
+  align-items: center;
+  column-gap: 8px;
+  min-height: 62px;
+  color: var(--paper);
+}
+
+.rest-temper > summary .sigil {
+  width: 48px;
+  height: 48px;
+  grid-row: span 2;
+  color: var(--jade);
+}
+
+.rest-temper > summary b {
+  margin: 0;
+  font: 16px var(--serif);
+}
+
+.rest-temper > summary small {
+  grid-column: 2;
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.game-page .rest-temper > summary small {
+  font-size: 14px !important;
+}
+
+.rest-temper > summary::after {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  justify-self: end;
+  color: var(--gold);
+  content: '+';
+}
+
+.rest-temper[open] > summary::after {
+  content: '-';
+}
+
+.rest-temper-panel {
+  display: grid;
+  gap: 7px;
+  padding: 0 0 12px;
+}
+
+.rest-temper-panel .button {
+  justify-self: start;
+  font-size: 14px !important;
+}
+
+.reforge-option .button {
+  font-size: 14px !important;
+}
+
+.event-check-result {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-bottom: 7px;
+  padding: 4px 9px;
+  border: 1px solid var(--line);
+  color: var(--paper);
+  font-size: 14px;
+}
+
+.event-check-result.success {
+  border-color: #83aa8c88;
+  color: var(--jade-strong);
+}
+
+.event-check-result.failure {
+  border-color: #bf7b6d88;
+  color: var(--vermilion-soft);
+}
+
+.battle-insights {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  grid-column: 1 / -1;
+  padding: 9px 10px;
+  border-left: 2px solid var(--gold);
+  background: #16251f;
+}
+
+.battle-insights h3 {
+  margin-bottom: 4px;
+  color: var(--gold-bright);
+  font-size: 14px;
+}
+
+.battle-insights ul {
+  display: grid;
+  gap: 3px;
+  padding: 0;
+  list-style: none;
+}
+
+.battle-insights li,
+.battle-insight-hit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  color: var(--paper-muted);
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.battle-insights li b,
+.battle-insight-hit b {
+  color: var(--paper);
+  font-weight: 600;
+}
+
+.battle-insight-hit {
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 600px) {
+  .boss-map-hint {
+    margin-bottom: 8px;
+    padding: 8px 9px;
+    font-size: 14px;
+  }
+
+  .reforge-tool-body {
+    padding-left: 0;
+  }
+
+  .reforge-option {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 7px;
+  }
+
+  .reforge-option .button {
+    min-width: 76px;
+    padding: 5px 8px;
+  }
+
+  .rest-temper {
+    grid-column: 1 / -1;
+  }
+
+  .battle-settlement {
+    grid-template-columns: 1fr;
+  }
+}
+
 .landing-page .method-copy b,
 .landing-page .setup-fields input {
   font-size: 13px !important;

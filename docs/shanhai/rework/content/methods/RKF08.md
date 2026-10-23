@@ -113,13 +113,13 @@
 - 玩家摘要：破甲敌人受到怒技增伤
 - 类别：强化
 - 开发标识：`RKF08-J4-A`
-- `RKF08-J4-A-MODIFY`；怒技开始时若敌方至少有1层破甲，本次怒技直接伤害提高攻击的0.28倍。；操作：修改效果；触发：怒技动作；目标：自身；参数：效果 ID=RKF08-RAGE-DAMAGE；field=params.attack_ratio；模式=add；数值=0.28；条件=enemy_status=破甲；min_stacks=1；前置：enemy_has_armor_break；限制：范围=action；次数=1
+- `RKF08-J4-A-MODIFY`；怒技开始时若敌方至少有1层破甲，本次怒技直接伤害提高攻击的0.28倍。；操作：修改效果；触发：怒技动作；目标：自身；参数：效果 ID=RKF08-RAGE-DAMAGE；field=params.attack_ratio；模式=add；数值=0.28；条件=enemy_status=破甲；最低层数=1；前置：enemy_has_armor_break；限制：范围=action；次数=1
 :::
 ::: details 4层B：削怒回元
 - 玩家摘要：破甲敌人命中后回怒
 - 类别：循环
 - 开发标识：`RKF08-J4-B`
-- `RKF08-J4-B-RAGE`；普攻或怒技命中处于破甲状态的敌方后，额外获得10点怒气；每次行动最多触发一次。；操作：获得怒气；触发：直接命中；目标：自身；参数：数量=10；来源=talent；条件=enemy_status=破甲；min_stacks=1；once_per_action=是；additive_to_public_sources=是；record_at=round_end；no_extra_action=是；前置：enemy_has_armor_break；限制：范围=action；次数=1
+- `RKF08-J4-B-RAGE`；普攻或怒技命中处于破甲状态的敌方后，额外获得10点怒气；每次行动最多触发一次。；操作：获得怒气；触发：直接命中；目标：自身；参数：数量=10；来源=talent；条件=enemy_status=破甲；最低层数=1；once_per_action=是；additive_to_public_sources=是；record_at=round_end；no_extra_action=是；前置：enemy_has_armor_break；限制：范围=action；次数=1
 :::
 ::: details 4层C：月沉无伤
 - 玩家摘要：减益敌人时提高防御

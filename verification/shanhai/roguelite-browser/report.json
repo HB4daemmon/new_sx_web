@@ -1,0 +1,842 @@
+{
+  "url": "http://localhost:4176/",
+  "generatedAt": "2026-10-23T02:28:35.510Z",
+  "viewports": [
+    {
+      "name": "390x844",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "430x932",
+      "width": 430,
+      "height": 932
+    },
+    {
+      "name": "1440x1000",
+      "width": 1440,
+      "height": 1000
+    }
+  ],
+  "checks": [
+    {
+      "name": "390x844 boss pressure map",
+      "ok": true,
+      "fixture": {
+        "phase": "map",
+        "seed": "390x844-map"
+      },
+      "text": "共工遗影试炼的主要压力：多段。",
+      "result": {
+        "geometry": {
+          "width": 390,
+          "height": 844,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "documentHeight": 844
+        },
+        "textOverlapCount": 0
+      }
+    },
+    {
+      "name": "390x844 artifact awakening detail",
+      "ok": true,
+      "fixture": {
+        "phase": "map",
+        "seed": "390x844-artifact"
+      },
+      "text": "觉醒 · 铁壁续符\n距觉醒还差 1 层\n首次破盾补护",
+      "result": {
+        "geometry": {
+          "width": 390,
+          "height": 844,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "documentHeight": 844
+        },
+        "textOverlapCount": 0
+      }
+    },
+    {
+      "name": "390x844 event hint and success settlement",
+      "ok": true,
+      "fixture": {
+        "phase": "event",
+        "seed": "390x844-event-true:3",
+        "check": {
+          "kind": "chance",
+          "success": true,
+          "chance": 0.4,
+          "roll": 0.14471311564557254
+        }
+      },
+      "text": "付盘缠沿水寻物\n沿水寻物可能空手而归，盘缠不退；身法与行装会影响搜寻机会。\n-灵石 12",
+      "result": {
+        "geometry": {
+          "width": 390,
+          "height": 844,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "documentHeight": 844
+        },
+        "textOverlapCount": 0
+      },
+      "check": {
+        "kind": "chance",
+        "success": true,
+        "chance": 0.4,
+        "roll": 0.14471311564557254
+      },
+      "outcomeText": "检验成功 你沿水找到并收下药物，随后离开礁缝继续前行。"
+    },
+    {
+      "name": "390x844 event hint and failure settlement",
+      "ok": true,
+      "fixture": {
+        "phase": "event",
+        "seed": "390x844-event-false:0",
+        "check": {
+          "kind": "chance",
+          "success": false,
+          "chance": 0.4,
+          "roll": 0.5900278338231146
+        }
+      },
+      "text": "付盘缠沿水寻物\n沿水寻物可能空手而归，盘缠不退；身法与行装会影响搜寻机会。\n-灵石 12",
+      "result": {
+        "geometry": {
+          "width": 390,
+          "height": 844,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "documentHeight": 844
+        },
+        "textOverlapCount": 0
+      },
+      "check": {
+        "kind": "chance",
+        "success": false,
+        "chance": 0.4,
+        "roll": 0.5900278338231146
+      },
+      "outcomeText": "检验未成 你只找到泡坏的药渣，盘缠已付，没有取得物资。"
+    },
+    {
+      "name": "390x844 shop reforge stability and persistence",
+      "ok": true,
+      "fixture": {
+        "phase": "shop",
+        "seed": "390x844-shop:0",
+        "step": 5,
+        "nodeType": "S",
+        "artifacts": [
+          {
+            "id": "RC11",
+            "stacks": 2
+          },
+          {
+            "id": "RC12",
+            "stacks": 2
+          },
+          {
+            "id": "RC20",
+            "stacks": 1
+          }
+        ]
+      },
+      "runtimeOptions": {
+        "ids": [
+          "RC21",
+          "RC08",
+          "RC22"
+        ],
+        "availability": [
+          {
+            "available": true,
+            "reason": ""
+          },
+          {
+            "available": true,
+            "reason": ""
+          },
+          {
+            "available": true,
+            "reason": ""
+          }
+        ],
+        "price": 8,
+        "coins": 486
+      },
+      "sourceIds": [
+        "RC11",
+        "RC12",
+        "RC20"
+      ],
+      "targetId": "RC21",
+      "result": {
+        "geometry": {
+          "width": 390,
+          "height": 844,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "documentHeight": 844
+        },
+        "textOverlapCount": 0
+      }
+    },
+    {
+      "name": "390x844 rest temper and once-only consumption",
+      "ok": true,
+      "fixture": {
+        "phase": "rest",
+        "seed": "390x844-rest:0",
+        "step": 3,
+        "nodeType": "R",
+        "artifacts": [
+          {
+            "id": "RC11",
+            "stacks": 2
+          },
+          {
+            "id": "RC12",
+            "stacks": 1
+          },
+          {
+            "id": "RC20",
+            "stacks": 1
+          },
+          {
+            "id": "RC01",
+            "stacks": 2
+          }
+        ]
+      },
+      "runtime": {
+        "cost": 20,
+        "warmable": [
+          "RC11",
+          "RC12",
+          "RC20",
+          "RC01"
+        ],
+        "current": 2,
+        "max": 3,
+        "coins": 518
+      },
+      "artifactId": "RC11",
+      "result": {
+        "geometry": {
+          "width": 390,
+          "height": 844,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "documentHeight": 844
+        },
+        "textOverlapCount": 0
+      },
+      "summaryGeometry": {
+        "detailsWidth": 370,
+        "summaryWidth": 336
+      }
+    },
+    {
+      "name": "390x844 compact battle result disclosure",
+      "ok": true,
+      "fixture": {
+        "phase": "battle",
+        "seed": "390x844-battle",
+        "outcome": "player",
+        "frames": 32
+      },
+      "settlementText": "留存气血 500\n\n构筑显效\n金刚功\n造成伤害 340\n引气符\n获得怒气 10\n\n关键伤害 · 第 3 回合 · 致命帧\n撼岳怒印效果：气血 -97 · 敌方受击",
+      "result": {
+        "geometry": {
+          "width": 390,
+          "height": 844,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "documentHeight": 844
+        },
+        "textOverlapCount": 0
+      },
+      "activeResult": {
+        "geometry": {
+          "width": 390,
+          "height": 844,
+          "documentWidth": 390,
+          "bodyWidth": 390,
+          "documentHeight": 844
+        },
+        "textOverlapCount": 0
+      }
+    },
+    {
+      "name": "430x932 boss pressure map",
+      "ok": true,
+      "fixture": {
+        "phase": "map",
+        "seed": "430x932-map"
+      },
+      "text": "河伯试潮遗影的主要压力：恢复。",
+      "result": {
+        "geometry": {
+          "width": 430,
+          "height": 932,
+          "documentWidth": 430,
+          "bodyWidth": 430,
+          "documentHeight": 932
+        },
+        "textOverlapCount": 0
+      }
+    },
+    {
+      "name": "430x932 artifact awakening detail",
+      "ok": true,
+      "fixture": {
+        "phase": "map",
+        "seed": "430x932-artifact"
+      },
+      "text": "觉醒 · 铁壁续符\n距觉醒还差 1 层\n首次破盾补护",
+      "result": {
+        "geometry": {
+          "width": 430,
+          "height": 932,
+          "documentWidth": 430,
+          "bodyWidth": 430,
+          "documentHeight": 932
+        },
+        "textOverlapCount": 0
+      }
+    },
+    {
+      "name": "430x932 event hint and success settlement",
+      "ok": true,
+      "fixture": {
+        "phase": "event",
+        "seed": "430x932-event-true:0",
+        "check": {
+          "kind": "chance",
+          "success": true,
+          "chance": 0.4,
+          "roll": 0.2072994306217879
+        }
+      },
+      "text": "付盘缠沿水寻物\n沿水寻物可能空手而归，盘缠不退；身法与行装会影响搜寻机会。\n-灵石 12",
+      "result": {
+        "geometry": {
+          "width": 430,
+          "height": 932,
+          "documentWidth": 430,
+          "bodyWidth": 430,
+          "documentHeight": 932
+        },
+        "textOverlapCount": 0
+      },
+      "check": {
+        "kind": "chance",
+        "success": true,
+        "chance": 0.4,
+        "roll": 0.2072994306217879
+      },
+      "outcomeText": "检验成功 你沿水找到并收下药物，随后离开礁缝继续前行。"
+    },
+    {
+      "name": "430x932 event hint and failure settlement",
+      "ok": true,
+      "fixture": {
+        "phase": "event",
+        "seed": "430x932-event-false:0",
+        "check": {
+          "kind": "chance",
+          "success": false,
+          "chance": 0.4,
+          "roll": 0.7781039206311107
+        }
+      },
+      "text": "付盘缠沿水寻物\n沿水寻物可能空手而归，盘缠不退；身法与行装会影响搜寻机会。\n-灵石 12",
+      "result": {
+        "geometry": {
+          "width": 430,
+          "height": 932,
+          "documentWidth": 430,
+          "bodyWidth": 430,
+          "documentHeight": 932
+        },
+        "textOverlapCount": 0
+      },
+      "check": {
+        "kind": "chance",
+        "success": false,
+        "chance": 0.4,
+        "roll": 0.7781039206311107
+      },
+      "outcomeText": "检验未成 你只找到泡坏的药渣，盘缠已付，没有取得物资。"
+    },
+    {
+      "name": "430x932 shop reforge stability and persistence",
+      "ok": true,
+      "fixture": {
+        "phase": "shop",
+        "seed": "430x932-shop:0",
+        "step": 8,
+        "nodeType": "S",
+        "artifacts": [
+          {
+            "id": "RC11",
+            "stacks": 2
+          },
+          {
+            "id": "RC12",
+            "stacks": 1
+          },
+          {
+            "id": "RC20",
+            "stacks": 1
+          },
+          {
+            "id": "RC03",
+            "stacks": 2
+          }
+        ]
+      },
+      "runtimeOptions": {
+        "ids": [
+          "RC03",
+          "RC09",
+          "RC01"
+        ],
+        "availability": [
+          {
+            "available": true,
+            "reason": ""
+          },
+          {
+            "available": true,
+            "reason": ""
+          },
+          {
+            "available": true,
+            "reason": ""
+          }
+        ],
+        "price": 8,
+        "coins": 470
+      },
+      "sourceIds": [
+        "RC11",
+        "RC12",
+        "RC20",
+        "RC03"
+      ],
+      "targetId": "RC03",
+      "result": {
+        "geometry": {
+          "width": 430,
+          "height": 932,
+          "documentWidth": 430,
+          "bodyWidth": 430,
+          "documentHeight": 932
+        },
+        "textOverlapCount": 0
+      }
+    },
+    {
+      "name": "430x932 rest temper and once-only consumption",
+      "ok": true,
+      "fixture": {
+        "phase": "rest",
+        "seed": "430x932-rest:0",
+        "step": 6,
+        "nodeType": "R",
+        "artifacts": [
+          {
+            "id": "RC11",
+            "stacks": 2
+          },
+          {
+            "id": "RC12",
+            "stacks": 1
+          },
+          {
+            "id": "RC20",
+            "stacks": 1
+          },
+          {
+            "id": "RC03",
+            "stacks": 1
+          },
+          {
+            "id": "RC01",
+            "stacks": 1
+          }
+        ]
+      },
+      "runtime": {
+        "cost": 20,
+        "warmable": [
+          "RC11",
+          "RC12",
+          "RC20",
+          "RC03",
+          "RC01"
+        ],
+        "current": 2,
+        "max": 3,
+        "coins": 462
+      },
+      "artifactId": "RC11",
+      "result": {
+        "geometry": {
+          "width": 430,
+          "height": 932,
+          "documentWidth": 430,
+          "bodyWidth": 430,
+          "documentHeight": 932
+        },
+        "textOverlapCount": 0
+      },
+      "summaryGeometry": {
+        "detailsWidth": 410,
+        "summaryWidth": 376
+      }
+    },
+    {
+      "name": "430x932 compact battle result disclosure",
+      "ok": true,
+      "fixture": {
+        "phase": "battle",
+        "seed": "430x932-battle",
+        "outcome": "player",
+        "frames": 32
+      },
+      "settlementText": "留存气血 500\n\n构筑显效\n金刚功\n造成伤害 340\n引气符\n获得怒气 10\n\n关键伤害 · 第 3 回合 · 致命帧\n撼岳怒印效果：气血 -97 · 敌方受击",
+      "result": {
+        "geometry": {
+          "width": 430,
+          "height": 932,
+          "documentWidth": 430,
+          "bodyWidth": 430,
+          "documentHeight": 932
+        },
+        "textOverlapCount": 0
+      },
+      "activeResult": {
+        "geometry": {
+          "width": 430,
+          "height": 932,
+          "documentWidth": 430,
+          "bodyWidth": 430,
+          "documentHeight": 932
+        },
+        "textOverlapCount": 0
+      }
+    },
+    {
+      "name": "1440x1000 boss pressure map",
+      "ok": true,
+      "fixture": {
+        "phase": "map",
+        "seed": "1440x1000-map"
+      },
+      "text": "河伯试潮遗影的主要压力：恢复。",
+      "result": {
+        "geometry": {
+          "width": 1440,
+          "height": 1000,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "documentHeight": 1000
+        },
+        "textOverlapCount": 0
+      }
+    },
+    {
+      "name": "1440x1000 artifact awakening detail",
+      "ok": true,
+      "fixture": {
+        "phase": "map",
+        "seed": "1440x1000-artifact"
+      },
+      "text": "觉醒 · 铁壁续符\n距觉醒还差 1 层\n首次破盾补护",
+      "result": {
+        "geometry": {
+          "width": 1440,
+          "height": 1000,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "documentHeight": 1248
+        },
+        "textOverlapCount": 0
+      }
+    },
+    {
+      "name": "1440x1000 event hint and success settlement",
+      "ok": true,
+      "fixture": {
+        "phase": "event",
+        "seed": "1440x1000-event-true:2",
+        "check": {
+          "kind": "chance",
+          "success": true,
+          "chance": 0.4,
+          "roll": 0.15362648596055806
+        }
+      },
+      "text": "付盘缠沿水寻物\n沿水寻物可能空手而归，盘缠不退；身法与行装会影响搜寻机会。\n-灵石 12",
+      "result": {
+        "geometry": {
+          "width": 1440,
+          "height": 1000,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "documentHeight": 1000
+        },
+        "textOverlapCount": 0
+      },
+      "check": {
+        "kind": "chance",
+        "success": true,
+        "chance": 0.4,
+        "roll": 0.15362648596055806
+      },
+      "outcomeText": "检验成功 你沿水找到并收下药物，随后离开礁缝继续前行。"
+    },
+    {
+      "name": "1440x1000 event hint and failure settlement",
+      "ok": true,
+      "fixture": {
+        "phase": "event",
+        "seed": "1440x1000-event-false:0",
+        "check": {
+          "kind": "chance",
+          "success": false,
+          "chance": 0.4,
+          "roll": 0.848385423887521
+        }
+      },
+      "text": "付盘缠沿水寻物\n沿水寻物可能空手而归，盘缠不退；身法与行装会影响搜寻机会。\n-灵石 12",
+      "result": {
+        "geometry": {
+          "width": 1440,
+          "height": 1000,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "documentHeight": 1000
+        },
+        "textOverlapCount": 0
+      },
+      "check": {
+        "kind": "chance",
+        "success": false,
+        "chance": 0.4,
+        "roll": 0.848385423887521
+      },
+      "outcomeText": "检验未成 你只找到泡坏的药渣，盘缠已付，没有取得物资。"
+    },
+    {
+      "name": "1440x1000 shop reforge stability and persistence",
+      "ok": true,
+      "fixture": {
+        "phase": "shop",
+        "seed": "1440x1000-shop:0",
+        "step": 8,
+        "nodeType": "S",
+        "artifacts": [
+          {
+            "id": "RC11",
+            "stacks": 2
+          },
+          {
+            "id": "RC12",
+            "stacks": 3
+          },
+          {
+            "id": "RC20",
+            "stacks": 1
+          },
+          {
+            "id": "RC03",
+            "stacks": 1
+          },
+          {
+            "id": "RC01",
+            "stacks": 1
+          }
+        ]
+      },
+      "runtimeOptions": {
+        "ids": [
+          "RC21",
+          "RC22",
+          "RC14"
+        ],
+        "availability": [
+          {
+            "available": true,
+            "reason": ""
+          },
+          {
+            "available": true,
+            "reason": ""
+          },
+          {
+            "available": true,
+            "reason": ""
+          }
+        ],
+        "price": 8,
+        "coins": 470
+      },
+      "sourceIds": [
+        "RC11",
+        "RC12",
+        "RC20",
+        "RC03",
+        "RC01"
+      ],
+      "targetId": "RC21",
+      "result": {
+        "geometry": {
+          "width": 1440,
+          "height": 1000,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "documentHeight": 1180
+        },
+        "textOverlapCount": 0
+      }
+    },
+    {
+      "name": "1440x1000 rest temper and once-only consumption",
+      "ok": true,
+      "fixture": {
+        "phase": "rest",
+        "seed": "1440x1000-rest:0",
+        "step": 6,
+        "nodeType": "R",
+        "artifacts": [
+          {
+            "id": "RC11",
+            "stacks": 2
+          },
+          {
+            "id": "RC12",
+            "stacks": 2
+          },
+          {
+            "id": "RC20",
+            "stacks": 1
+          }
+        ]
+      },
+      "runtime": {
+        "cost": 20,
+        "warmable": [
+          "RC11",
+          "RC12",
+          "RC20"
+        ],
+        "current": 2,
+        "max": 3,
+        "coins": 502
+      },
+      "artifactId": "RC11",
+      "result": {
+        "geometry": {
+          "width": 1440,
+          "height": 1000,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "documentHeight": 1000
+        },
+        "textOverlapCount": 0
+      },
+      "summaryGeometry": {
+        "detailsWidth": 957.984375,
+        "summaryWidth": 909.984375
+      }
+    },
+    {
+      "name": "1440x1000 compact battle result disclosure",
+      "ok": true,
+      "fixture": {
+        "phase": "battle",
+        "seed": "1440x1000-battle",
+        "outcome": "player",
+        "frames": 26
+      },
+      "settlementText": "留存气血 500\n\n构筑显效\n金刚功\n造成伤害 280\n引气符\n获得怒气 10\n\n关键伤害 · 第 3 回合 · 致命帧\n撼岳怒印效果：气血 -34 · 敌方受击",
+      "result": {
+        "geometry": {
+          "width": 1440,
+          "height": 1000,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "documentHeight": 1106
+        },
+        "textOverlapCount": 0
+      },
+      "activeResult": {
+        "geometry": {
+          "width": 1440,
+          "height": 1000,
+          "documentWidth": 1440,
+          "bodyWidth": 1440,
+          "documentHeight": 1000
+        },
+        "textOverlapCount": 0
+      }
+    },
+    {
+      "name": "browser console and uncaught page errors",
+      "ok": true,
+      "errors": []
+    }
+  ],
+  "browserErrors": [],
+  "textObstructions": [],
+  "screenshots": [
+    "screenshots/390x844-map-boss-pressure.png",
+    "screenshots/390x844-map-boss-counterplay.png",
+    "screenshots/390x844-artifact-awakening.png",
+    "screenshots/390x844-event-hint.png",
+    "screenshots/390x844-event-success.png",
+    "screenshots/390x844-event-hint.png",
+    "screenshots/390x844-event-failure.png",
+    "screenshots/390x844-shop-reforge.png",
+    "screenshots/390x844-shop-reforged.png",
+    "screenshots/390x844-rest-temper.png",
+    "screenshots/390x844-rest-tempered.png",
+    "screenshots/390x844-battle-unfinished.png",
+    "screenshots/390x844-battle-settlement.png",
+    "screenshots/390x844-battle-result-detail.png",
+    "screenshots/430x932-map-boss-pressure.png",
+    "screenshots/430x932-map-boss-counterplay.png",
+    "screenshots/430x932-artifact-awakening.png",
+    "screenshots/430x932-event-hint.png",
+    "screenshots/430x932-event-success.png",
+    "screenshots/430x932-event-hint.png",
+    "screenshots/430x932-event-failure.png",
+    "screenshots/430x932-shop-reforge.png",
+    "screenshots/430x932-shop-reforged.png",
+    "screenshots/430x932-rest-temper.png",
+    "screenshots/430x932-rest-tempered.png",
+    "screenshots/430x932-battle-unfinished.png",
+    "screenshots/430x932-battle-settlement.png",
+    "screenshots/430x932-battle-result-detail.png",
+    "screenshots/1440x1000-map-boss-pressure.png",
+    "screenshots/1440x1000-map-boss-counterplay.png",
+    "screenshots/1440x1000-artifact-awakening.png",
+    "screenshots/1440x1000-event-hint.png",
+    "screenshots/1440x1000-event-success.png",
+    "screenshots/1440x1000-event-hint.png",
+    "screenshots/1440x1000-event-failure.png",
+    "screenshots/1440x1000-shop-reforge.png",
+    "screenshots/1440x1000-shop-reforged.png",
+    "screenshots/1440x1000-rest-temper.png",
+    "screenshots/1440x1000-rest-tempered.png",
+    "screenshots/1440x1000-battle-unfinished.png",
+    "screenshots/1440x1000-battle-settlement.png",
+    "screenshots/1440x1000-battle-result-detail.png"
+  ]
+}

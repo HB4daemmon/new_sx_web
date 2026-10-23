@@ -34,5 +34,17 @@ effects:
     replaces: []
     limit: {scope: permanent, count: 1}
     text: 每层使自身最终获得的护盾量提高6%。
+  - id: RC11-AWAKENING-SHIELD
+    trigger: shield_broken
+    operation: shield
+    target: self
+    min_stacks: 3
+    params: {max_hp_ratio: 0.06, once_per_battle: true, requires_alive: true, direct_attack_only: true, self_reentry: false}
+    requires: [first_direct_break_alive]
+    consumes: []
+    replaces: []
+    limit: {scope: battle, count: 1}
+    text: 集齐3层后，每场战斗首次被敌方直接攻击打破护盾且自身存活时，获得最大气血6%的护盾；造盾不会再次触发破盾。
+awakening: {at_stacks: 3, name: 铁壁续符, quick: 首次破盾补护}
 acquisition:
   pools: [common_artifact]

@@ -21,16 +21,27 @@ acts: [4]
 scene: 昆仑前的风掠过空筹牌，牌面不再指向别处市集，只留下一份行路余料。你可付石备下一战护盾、折回盘缠，或将心神留给修行。
 options:
   - id: RE031-A
-    label: 付石准备下一战
-    quick: 付出标价灵石，为下一场战斗准备一层护盾；灵石不足不能选。
+    label: 付石修补护行灵材
+    quick: 付少量灵石尝试修补护行灵材，成形后才可备战；未成不退灵石。
     requirements:
       - {type: can_pay}
     costs:
-      - {type: resource, resource: coins, amount: 1.0, basis: common_price}
+      - {type: resource, resource: coins, amount: 0.2, basis: common_price}
     rewards:
       - {type: preparation, effect: shield, amount: 0.1, basis: reference_hp}
     outcome: 你付出标价灵石，把护行灵材留作下一场战斗的一层护盾准备。
     story_echo: 你付石备好下一战护盾，收束行囊后仍要独自走完门前这段路。
+    reveal: hint
+    check:
+      kind: chance
+      hint: 余料可能无法成形，灵石不退；护体路数与持盾器物能提高成功机会。
+      chance: 0.55
+      bonuses:
+        - {type: method, id: RKF05, amount: 0.1}
+        - {type: artifact, id: RC22, amount: 0.1}
+      failure_rewards: []
+      failure_outcome: 灵材受损，未能留作护盾准备，标价灵石已经付出。
+      failure_echo: 灵材没能撑住，未能制成护盾准备，标价灵石已付出。
   - id: RE031-B
     label: 折回盘缠带上路
     quick: 不付灵石，取得一笔灵石留给最后一段路。

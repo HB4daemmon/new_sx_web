@@ -4,6 +4,7 @@ import { loadContent } from '../tools/content-kit/src/loader.mjs';
 import { ShanhaiGame } from '../build/shanhai/run.js';
 import { parseRunSave, serializeRun } from '../build/shanhai/persistence.js';
 import { isValidAct1RouteDistribution } from '../build/shanhai/route-map.js';
+import { routeLayoutForAct } from '../build/shanhai/route-profiles.js';
 
 const loaded = await loadContent();
 const content = {
@@ -218,10 +219,12 @@ test('later acts retain their original template-bound core and service layers', 
     for (const act of [2, 3, 4]) {
       game.startAct(act);
       const nodes = game.state.routeMap.nodes;
+      const layout = routeLayoutForAct(game.actContent, game.state.seed);
       assert.ok(nodes.filter(node => node.type === 'K').every(node => node.depth === 1));
-      assert.deepEqual(nodes.filter(node => node.type === 'R').map(node => node.depth), [3]);
-      assert.deepEqual(nodes.filter(node => node.type === 'S').map(node => node.depth), [5]);
-      assert.deepEqual(nodes.filter(node => node.type === 'L').map(node => node.depth), [9]);
+      assert.deepEqual(nodes.filter(node => node.type === 'R').map(node => node.depth), [layout.restDepth]);
+      assert.deepEqual(nodes.filter(node => node.type === 'S').map(node => node.depth), [layout.shopDepth]);
+      assert.deepEqual(nodes.filter(node => node.type === 'L').map(node => node.depth).sort((a, b) => a - b),
+        [layout.extraEliteDepth, 9].filter(depth => depth !== null).sort((a, b) => a - b));
     }
   }
 });

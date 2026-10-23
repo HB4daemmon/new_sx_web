@@ -84,13 +84,13 @@
 - 玩家摘要：中毒敌人再施虚弱
 - 类别：强化
 - 开发标识：`RKF06-J2-B`
-- `RKF06-J2-B-WEAKNESS`；普攻或怒技命中中毒的敌方时，额外施加1层虚弱；不因中毒层数增加而重复施加。；操作：施加状态；触发：直接命中；目标：敌人；参数：状态=虚弱；层数=1；持续轮数=2；最大层数=5；refresh=否；条件=enemy_status=中毒；min_stacks=1；only_once_per_action=是；前置：enemy_has_poison；限制：范围=action；次数=1
+- `RKF06-J2-B-WEAKNESS`；普攻或怒技命中中毒的敌方时，额外施加1层虚弱；不因中毒层数增加而重复施加。；操作：施加状态；触发：直接命中；目标：敌人；参数：状态=虚弱；层数=1；持续轮数=2；最大层数=5；refresh=否；条件=enemy_status=中毒；最低层数=1；only_once_per_action=是；前置：enemy_has_poison；限制：范围=action；次数=1
 :::
 ::: details 2层C：毒雾护体
 - 玩家摘要：毒敌在场时造盾
 - 类别：强化
 - 开发标识：`RKF06-J2-C`
-- `RKF06-J2-C-SHIELD`；普攻或怒技结束时，若敌方仍有中毒，获得防御0.24倍的护盾。；操作：生成护盾；触发：动作结束；目标：自身；参数：防御倍率=0.24；条件=enemy_status=中毒；min_stacks=1；max_per_action=1；前置：enemy_has_poison；限制：范围=action；次数=1
+- `RKF06-J2-C-SHIELD`；普攻或怒技结束时，若敌方仍有中毒，获得防御0.24倍的护盾。；操作：生成护盾；触发：动作结束；目标：自身；参数：防御倍率=0.24；条件=enemy_status=中毒；最低层数=1；max_per_action=1；前置：enemy_has_poison；限制：范围=action；次数=1
 :::
 ::: details 3层A：毒潮翻涌
 - 玩家摘要：怒技再叠两层毒
@@ -102,7 +102,7 @@
 - 玩家摘要：毒敌额外施加虚弱
 - 类别：强化
 - 开发标识：`RKF06-J3-B`
-- `RKF06-J3-B-WEAKNESS`；普攻或怒技命中中毒的敌方时，额外施加1层虚弱；虚弱最多叠加5层。；操作：施加状态；触发：直接命中；目标：敌人；参数：状态=虚弱；层数=1；持续轮数=2；最大层数=5；refresh=否；条件=enemy_status=中毒；min_stacks=1；only_once_per_action=是；前置：enemy_has_poison；限制：范围=action；次数=1
+- `RKF06-J3-B-WEAKNESS`；普攻或怒技命中中毒的敌方时，额外施加1层虚弱；虚弱最多叠加5层。；操作：施加状态；触发：直接命中；目标：敌人；参数：状态=虚弱；层数=1；持续轮数=2；最大层数=5；refresh=否；条件=enemy_status=中毒；最低层数=1；only_once_per_action=是；前置：enemy_has_poison；限制：范围=action；次数=1
 :::
 ::: details 3层C：吞毒回元
 - 玩家摘要：消耗毒层治疗自身
@@ -121,13 +121,13 @@
 - 玩家摘要：毒敌额外破甲
 - 类别：强化
 - 开发标识：`RKF06-J4-B`
-- `RKF06-J4-B-ARMOR`；普攻或怒技命中中毒的敌方时，额外施加1层破甲；破甲会降低敌方受到后续直接攻击时的防御。；操作：施加状态；触发：直接命中；目标：敌人；参数：状态=破甲；层数=1；持续轮数=2；最大层数=5；refresh=否；条件=enemy_status=中毒；min_stacks=1；only_once_per_action=是；前置：enemy_has_poison；限制：范围=action；次数=1
+- `RKF06-J4-B-ARMOR`；普攻或怒技命中中毒的敌方时，额外施加1层破甲；破甲会降低敌方受到后续直接攻击时的防御。；操作：施加状态；触发：直接命中；目标：敌人；参数：状态=破甲；层数=1；持续轮数=2；最大层数=5；refresh=否；条件=enemy_status=中毒；最低层数=1；only_once_per_action=是；前置：enemy_has_poison；限制：范围=action；次数=1
 :::
 ::: details 4层C：毒尽护生
 - 玩家摘要：毒敌在场时护盾更厚
 - 类别：强化
 - 开发标识：`RKF06-J4-C`
-- `RKF06-J4-C-SHIELD`；普攻或怒技结束时，若敌方带有中毒，获得防御0.28倍加最大气血0.04倍的护盾。；操作：生成护盾；触发：动作结束；目标：自身；参数：防御倍率=0.28；最大气血倍率=0.04；条件=enemy_status=中毒；min_stacks=1；max_per_action=1；前置：enemy_has_poison；限制：范围=action；次数=1
+- `RKF06-J4-C-SHIELD`；普攻或怒技结束时，若敌方带有中毒，获得防御0.28倍加最大气血0.04倍的护盾。；操作：生成护盾；触发：动作结束；目标：自身；参数：防御倍率=0.28；最大气血倍率=0.04；条件=enemy_status=中毒；最低层数=1；max_per_action=1；前置：enemy_has_poison；限制：范围=action；次数=1
 :::
 
 ## 推荐路线

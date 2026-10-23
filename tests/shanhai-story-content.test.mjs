@@ -52,7 +52,7 @@ test('all event options have a bounded story echo and all encounter branches hav
   assert.equal(events.length, 52);
 
   const options = events.flatMap(event => event.options);
-  assert.equal(options.length, 155);
+  assert.equal(options.length, 157);
 
   let encounterCount = 0;
   for (const option of options) {
