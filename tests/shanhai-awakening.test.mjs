@@ -78,9 +78,16 @@ function syntheticRoundDrainContent() {
   ], `${content.version}-awakening-drain`);
 }
 
+function withoutCoreRules(...ids) {
+  const entities = structuredClone(content.entities);
+  for (const id of ids) delete entities.find(item => item.id === id).core_rule;
+  return contentFromEntities(entities, content.version);
+}
+
 test('RC09 awakens only at cap, applies once per round, and works on either side', () => {
+  const authoredContent = withoutCoreRules('RC09');
   const battle = stacks => simulateBattle(
-    content,
+    authoredContent,
     makeLoadout('RKF01', [{ id: 'RC09', stacks }], { max_hp: 100_000, speed: 11 }),
     makeLoadout('RKF01', [{ id: 'RC09', stacks }], { max_hp: 100_000, speed: 10 }),
     `awakening-rc09-${stacks}`,
@@ -99,8 +106,9 @@ test('RC09 awakens only at cap, applies once per round, and works on either side
 });
 
 test('RC11 grants one attributable shield after a real direct break per battle', () => {
+  const authoredContent = withoutCoreRules('RC11');
   const battle = stacks => simulateBattle(
-    content,
+    authoredContent,
     makeLoadout('RKF01', [{ id: 'RC11', stacks }], {
       max_hp: 100_000,
       attack: 0,
@@ -130,11 +138,11 @@ test('RC11 grants one attributable shield after a real direct break per battle',
   assert.equal(contribution(atCap, 'RC11').shield, shields[0].amount);
 });
 
-test('RC12 cleansing leaves RL01 overflow conversion intact and is once per battle', () => {
+test('RC12 cleanse is once per battle; the incompatible second core is rejected', () => {
+  const authoredContent = withoutCoreRules('RC12');
   const battle = stacks => {
     const player = makeLoadout('RKF03', [
       { id: 'RC12', stacks },
-      { id: 'RL01', stacks: 1 },
     ], {
       attack: 0,
       max_hp: 1_000,
@@ -142,7 +150,7 @@ test('RC12 cleansing leaves RL01 overflow conversion intact and is once per batt
     });
     player.hp = calculateStats(content, player).max_hp - 10;
     return simulateBattle(
-      content,
+      authoredContent,
       player,
       makeLoadout('RKF06', [], {
         attack: 1,
@@ -157,21 +165,28 @@ test('RC12 cleansing leaves RL01 overflow conversion intact and is once per batt
 
   const belowCap = battle(2);
   assert.equal(framesFrom(belowCap, frame => frame.source === 'RC12-AWAKENING-CLEANSE').length, 0);
-  assert.ok(framesFrom(belowCap, frame =>
-    frame.kind === 'shield' && frame.source === 'RL01-HEAL-OVERFLOW-TO-SHIELD').length > 0);
 
   const atCap = battle(3);
   const cleanses = framesFrom(atCap, frame =>
     frame.kind === 'status' && frame.source === 'RC12-AWAKENING-CLEANSE');
   assert.equal(cleanses.length, 1);
-  assert.ok(framesFrom(atCap, frame =>
-    frame.kind === 'shield' && frame.source === 'RL01-HEAL-OVERFLOW-TO-SHIELD').length > 0);
-  assert.equal(contribution(atCap, 'RC12').triggers, 10);
+  assert.ok(framesFrom(atCap, frame => frame.kind === 'heal').length > 0);
+
+  assert.throws(() => simulateBattle(
+    content,
+    makeLoadout('RKF03', [
+      { id: 'RC12', stacks: 1 },
+      { id: 'RL01', stacks: 1 },
+    ]),
+    makeLoadout('RKF01'),
+    'awakening-rc12-and-rl01-invalid-cores',
+    { roundLimit: 1 },
+  ), /one core equipment slot/);
 });
 
 test('RC14 and RC15 amplify only newly applied DOT layers under their condition', () => {
   const makeDotBattle = (artifactId, stacks) => simulateBattle(
-    content,
+    withoutCoreRules(artifactId),
     makeLoadout('RKF04', [
       { id: 'RR03', stacks: 1 },
       { id: artifactId, stacks },
@@ -219,6 +234,7 @@ test('RC14 and RC15 amplify only newly applied DOT layers under their condition'
 });
 
 test('an enemy carrying fully awakened RC15 applies the same conditional DOT bonus', () => {
+  const authoredContent = withoutCoreRules('RC15');
   const enemy = makeLoadout('RKF04', [
     { id: 'RR03', stacks: 1 },
     { id: 'RC15', stacks: 3 },
@@ -229,7 +245,7 @@ test('an enemy carrying fully awakened RC15 applies the same conditional DOT bon
     max_hp: 1_000_000,
     speed: 1,
   });
-  const result = simulateBattle(content, player, enemy, 'awakening-rc15-enemy', { roundLimit: 1 });
+  const result = simulateBattle(authoredContent, player, enemy, 'awakening-rc15-enemy', { roundLimit: 1 });
   const enemyBurn = framesFrom(result, frame =>
     frame.round === 1 && frame.kind === 'dot' && frame.actor === 'enemy' &&
     frame.source === 'RKF04-BASIC-BURN');
@@ -238,23 +254,37 @@ test('an enemy carrying fully awakened RC15 applies the same conditional DOT bon
   assert.equal(enemyBurn[0].amount, enemyAttack * ((0.08 + 0.02) * 1.18 + 0.04));
 });
 
-test('awakenings do not alter the existing rage-action cadence', () => {
+test('legal awakened loadout preserves rage cadence and the former multi-core setup is rejected', () => {
+  const authoredContent = withoutCoreRules('RC09', 'RC11', 'RC12', 'RC14', 'RC15');
   const enemy = makeLoadout('RKF01', [], { max_hp: 1_000_000_000, attack: 0, speed: 9 });
   const plain = simulateBattle(
-    content,
+    authoredContent,
     makeLoadout('RKF01', [], { max_hp: 100_000, attack: 0, speed: 10 }),
     enemy,
     'awakening-rage-contract',
     { roundLimit: 3 },
   );
-  const awakened = simulateBattle(
+  const formerMultiCoreLoadout = makeLoadout('RKF01', [
+    { id: 'RC09', stacks: 3 },
+    { id: 'RC11', stacks: 3 },
+    { id: 'RC12', stacks: 3 },
+    { id: 'RC14', stacks: 3 },
+    { id: 'RC15', stacks: 3 },
+  ], { max_hp: 100_000, attack: 0, speed: 10 });
+  assert.throws(() => simulateBattle(
     content,
+    formerMultiCoreLoadout,
+    enemy,
+    'awakening-former-multi-core-loadout',
+    { roundLimit: 3 },
+  ), /one core equipment slot/);
+  const awakened = simulateBattle(
+    authoredContent,
     makeLoadout('RKF01', [
       { id: 'RC09', stacks: 3 },
-      { id: 'RC11', stacks: 3 },
-      { id: 'RC12', stacks: 3 },
-      { id: 'RC14', stacks: 3 },
-      { id: 'RC15', stacks: 3 },
+      { id: 'RC01', stacks: 1 },
+      { id: 'RC02', stacks: 1 },
+      { id: 'RC03', stacks: 1 },
     ], { max_hp: 100_000, attack: 0, speed: 10 }),
     enemy,
     'awakening-rage-contract',
@@ -270,16 +300,13 @@ test('awakenings do not alter the existing rage-action cadence', () => {
   assert.deepEqual(rageSettlements(awakened), rageSettlements(plain));
 });
 
-test('the 20-per-round rage drain cap still holds alongside fully awakened artifacts', () => {
+test('the 20-per-round rage drain cap holds with one fully awakened core and legal supports', () => {
   const drainContent = syntheticRoundDrainContent();
   const result = simulateBattle(
     drainContent,
     makeLoadout('RKF01', [
-      { id: 'RC09', stacks: 3 },
-      { id: 'RC11', stacks: 3 },
-      { id: 'RC12', stacks: 3 },
-      { id: 'RC14', stacks: 3 },
       { id: 'RC15', stacks: 3 },
+      { id: 'RR03', stacks: 1 },
       { id: 'TEST-AWAKENING-DRAIN-A', stacks: 1 },
       { id: 'TEST-AWAKENING-DRAIN-B', stacks: 1 },
     ], { attack: 0, max_hp: 100_000, speed: 10 }),

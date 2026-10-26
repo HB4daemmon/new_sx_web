@@ -1,6 +1,6 @@
 # 山海版首发内容库
 
-版本：`shanhai-content-0.1`，日期：2026-09-21。
+版本：`shanhai-content-0.2`，日期：2026-10-26。
 
 这里是新版内容的单一编辑来源，采用 YAML 1.2，每个实体一个文件；根游戏构建先校验内容，
 再为 `src/shanhai/` 运行时按目录编译独立实体文件。文档站的内容阅读页由独立工具生成，
@@ -57,7 +57,7 @@ YAML 文件、校验报告、内部工具不作为静态资源公开。
 
 ```yaml
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RC01
 name: 青锋石
@@ -75,6 +75,7 @@ balance:
 ```
 
 - `kind` 为 `rules/method/artifact/event/storyline/enemy/act`。
+- V2 内容版本为 `shanhai-content-0.2`；schema shape 仍是 1。它取代 V1 的法宝无限生效规则。
 - `source.basis` 为 `original/myth_adaptation`；人物原典确认与游戏原创能力分开写。
   不确定来源使用 `reference:null` 并注明待核验，不编造知识库 ID、回目或校对状态。
 - 所有记录 `status:design_target`、`balance.measured:null`。可写首测系数，
@@ -134,12 +135,43 @@ category: enhance, effects: [...]}`。
 `balance.target` 至少包含 `P_by_tier`，普通100/125/150/175/200，稀有乘1.1，
 传奇乘1.25。动作系数只是初版输入，不声称实际P达到目标。
 
+### 共享突破天赋
+
+`rules.insights` 是12项跨功法共享天赋，每阶三项，ID 固定为
+`V2-J1-A` 至 `V2-J4-C`，字段与功法天赋相同：
+`{id, tier, branch, name, quick, category, effects}`。候选可给任何功法使用；
+每次突破仍只选该阶的一项。共享效果必须来自下列可执行组合：
+`always/modify_stat`、`battle_start/shield`、`round_end/rage_gain`、
+`action_end/heal` 或 `action_end/shield`。使用标准效果 ID 与字段，不写任意脚本、
+未知字段或功法专属条件；效果目标为自身，不能替代功法本地效果。
+
 ### 法宝
 
-字段：`rarity/max_stacks/unique_group/attributes/effects/acquisition`。
+字段：`rarity/max_stacks/unique_group/equipment_role/attributes/effects/acquisition`；
+普通核心法宝另有受限枚举的 `core_rule`。
 `attributes: {flat: {attack: 6}, percent: {}}`，只允许五维
 `attack/defense/max_hp/crit_rate/speed`；暴击率放flat且按比例加。
-普通按已定3或5层，稀有/传奇1层；不设全局槽位。
+普通按已定3或5层，稀有/传奇1层。装备槽位固定为一个核心位和三个支援位：
+`RC09-RC12`、`RC14-RC15`、`RL01-RL05` 为 `equipment_role: core`，其余均为
+`support`。层数不额外占槽，但获得与持有层数仍受法宝 `max_stacks` 约束。
+库存仍记录在 `state.artifacts`；只有已装备的法宝层数进入属性、战斗配装和节点行旅快照，
+未装备法宝没有属性或行旅收益。兼容槽位空缺时新取得的法宝自动装备；替换或卸下不治疗、
+不刷新节点、不重抽遭遇。地图、奖励、商店、休整和幕间可调整，事件、斗法及战前预览中不可调整。
+法宝获取机会与装备槽互不替代；满槽可保留库存中的法宝，但不会使其生效。
+核心/支援槽有真实机会成本；可保留纯属性支援法宝，不要越槽，也不要在已定 A/J/B 预算外补免费属性。
+核心法宝的玩家摘要与说明必须讲明能力、代价与槽位，不把 `core_rule` 再复制成普通 `effects`。
+只有已装备核心的独立规则生效，参数不乘法宝叠层数。六件普通核心规则如下：
+
+| 法宝 | 规则 | 参数与取舍 |
+| --- | --- | --- |
+| RC09 | `basic_echo` | `ratio: 0.45`；怒技基础伤害倍率 `0.65` |
+| RC10 | `rage_gambit` | 怒技完成返怒 `20`；受到直接伤害倍率 `1.12` |
+| RC11 | `shield_burst` | 开场护盾为最大气血 `0.12`；怒技消耗实际护盾，参数 `shield_ratio: 0.5`、`damage_ratio: 1.4` |
+| RC12 | `healing_guard` | 普攻按最大气血 `0.04` 自疗；有效治疗转护盾比例 `0.6`；直接伤害倍率 `0.8` |
+| RC14 | `poison_detonation` | 普攻施加1层中毒；怒技消费自身施加的中毒，按剩余 tick 与倍率 `1.1` 造成伤害 |
+| RC15 | `burn_siphon` | 普攻施加1层燃烧；燃烧实际造成气血伤害的 `0.25` 转为治疗；怒技基础伤害倍率 `0.8` |
+
+传奇核心 `RL01-RL05` 保留原卡面机制，不添加第二套 `core_rule`。
 `unique_group:null` 或真实互斥组，RL01为`overflow_outlet`。
 `acquisition.pools` 引用 `common_artifact/rare_artifact/legendary_artifact` 等公共池。
 `balance.target: {B: 1, A: 5, J: 0}`；旅途型按法宝基线分摊，不能在B外再免费加属性。
@@ -257,7 +289,8 @@ RE001-C、RE002-B 的 `legacy_commitment` 与 `legacy_story_echo` 仅供旧存�
 preview/phases/reward_profile`。
 `tier: normal/elite/boss/final`，`method` 为真实RKF ID，
 `talents` 为完整ID数组，每阶最多一项且不越n；`artifacts: [{id: RC01, stacks: 1}]`。
-`stats` 是装备和功法修正前的五维基础值；计算预览时再加合法法宝，禁止双计。
+`stats` 是装备和功法修正前的五维基础值；敌方法宝同样必须符合槽位，
+最多1件核心与3件支援；计算预览时再加合法已装备法宝，禁止双计。
 `pressure` 为1-3个标签，`counterplay` 至少两条具体战前选择。
 `phases` 可为空，非空必须有现有卡面来源；不能私造隐藏倍率或流派免疫。
 `reward_profile` 为`C/L/B/F`；掉落由节点决定，不掉敌人整套装备。

@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RR08
 name: 血勇佩
 status: design_target
-summary: 最大气血 +30；敌方行动造成气血损失后额外获得10点怒气
-description: 敌方行动造成气血损失时，额外获得10点怒气；每次敌方行动最多触发一次。
+summary: 最大气血 +30；敌方行动造成气血损失后额外获得10点怒气；占一个支援位（共3席）
+description: 敌方行动造成气血损失时，额外获得10点怒气；每次敌方行动最多触发一次。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [max_hp, rage_gain, enemy_action, rare]
 source:
   basis: original
@@ -38,5 +38,6 @@ effects:
     replaces: []
     limit: {scope: enemy_action, count: 1}
     text: 敌方一次行动造成气血损失后，额外获得10点怒气；同次行动最多触发一次。伤害被护盾完全吸收，或来自中毒、燃烧、反击、事件扣血时不触发。
+equipment_role: support
 acquisition:
   pools: [rare_artifact]

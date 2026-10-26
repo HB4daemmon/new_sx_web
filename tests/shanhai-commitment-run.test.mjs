@@ -61,8 +61,8 @@ function enter(game, desiredType) {
   return selected;
 }
 
-function atEvent(eventId, gameContent = content) {
-  const game = ShanhaiGame.create(gameContent, { seed: 'commitment-run', name: '行者', method: 'RKF02' });
+function atEvent(eventId, gameContent = content, seed = 'commitment-run') {
+  const game = ShanhaiGame.create(gameContent, { seed, name: '行者', method: 'RKF02' });
   enter(game, 'C');
   finish(game);
   const event = game.availableNodes().find(node => node.type === 'E');
@@ -72,8 +72,8 @@ function atEvent(eventId, gameContent = content) {
   return game;
 }
 
-function atCommitment(eventId = 'RE001', optionId = 'RE001-C') {
-  const legacyGame = atEvent(eventId, legacyContent);
+function atCommitment(eventId = 'RE001', optionId = 'RE001-C', seed = 'commitment-run') {
+  const legacyGame = atEvent(eventId, legacyContent, seed);
   const beforeCoins = legacyGame.state.coins;
   legacyGame.dispatch({ type: 'event', id: optionId });
   assert.ok(legacyGame.state.coins < beforeCoins);
@@ -84,6 +84,17 @@ function atCommitment(eventId = 'RE001', optionId = 'RE001-C') {
   assert.equal(game.state.artifacts.some(item => item.id === (eventId === 'RE001' ? 'RC17' : 'RC19')), false);
   finish(game);
   return game;
+}
+
+function atEarlyRestAfterCommitment() {
+  for (let index = 0; index < 128; index += 1) {
+    const seed = `v2-commitment-early-rest-${index}`;
+    const game = atCommitment('RE001', 'RE001-C', seed);
+    enter(game, 'C');
+    finish(game);
+    if (game.availableNodes().some(node => node.type === 'R')) return { game, seed };
+  }
+  throw new Error('No V2 route seed exposes the early rest fixture');
 }
 
 function reload(game) {
@@ -112,12 +123,10 @@ test('a real event commitment survives saves, excludes its origin, and grants tr
 });
 
 test('entering an avoided node breaks the promise before services and never refunds or grants', () => {
-  let game = atCommitment();
-  enter(game, 'C');
-  finish(game);
+  let { game, seed } = atEarlyRestAfterCommitment();
   const beforeCoins = game.state.coins;
   const rest = game.availableNodes().find(node => node.type === 'R');
-  assert.ok(rest, 'fixture seed has its early rest on this layer');
+  assert.ok(rest, `fixture seed ${seed} has its early rest on this layer`);
   game.dispatch({ type: 'enter', id: rest.key });
   assert.equal(game.state.eventCommitments[0].status, 'broken');
   assert.equal(game.state.coins, beforeCoins, 'entry cannot refund the upfront payment');

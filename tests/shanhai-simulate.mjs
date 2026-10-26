@@ -39,7 +39,8 @@ export async function simulateRuns(count = 5) {
   }
   return {
     contentVersion: content.version, policy: 'tests/shanhai-policy.mjs',
-    note: 'Real combat, unmodified authored numbers, deterministic heuristic decisions. Not a player win rate or a balance approval.',
+    experimentTrack: 'V2 experimental; shanhai-content-0.2; uncalibrated',
+    note: 'Real combat, unmodified authored numbers, deterministic heuristic decisions including legal equipment upgrades. Win/loss counts are the observed sample only, not a player win rate, V1 calibration result, or balance approval.',
     total: rows.length, wins: rows.filter(row => row.result === 'won').length,
     byMethod: Object.fromEntries([...new Set(rows.map(row => row.method))].map(id => [id, {
       runs: rows.filter(row => row.method === id).length,
@@ -52,7 +53,7 @@ export async function simulateRuns(count = 5) {
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const report = await simulateRuns(Number(process.env.SIM_SEEDS ?? 5));
-  await mkdir('verification/shanhai', { recursive: true });
-  await writeFile('verification/shanhai/simulation.json', JSON.stringify(report, null, 2) + '\n');
+  await mkdir('verification/shanhai/v2', { recursive: true });
+  await writeFile('verification/shanhai/v2/simulation.json', JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify({ total: report.total, wins: report.wins, byMethod: report.byMethod }, null, 2));
 }

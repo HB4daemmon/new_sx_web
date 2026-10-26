@@ -1,5 +1,5 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: enemy
 id: EN-A4-C3
 name: 玄门再铸
@@ -25,7 +25,6 @@ n: 4
 talents: [RKF01-J1-C, RKF01-J2-C, RKF01-J3-B, RKF01-J4-C]
 artifacts:
   - {id: RC03, stacks: 3}
-  - {id: RC05, stacks: 3}
   - {id: RC13, stacks: 2}
   - {id: RR09, stacks: 1}
 stats:

@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RR07
 name: 回元佩
 status: design_target
-summary: 防御 +8；首个怒技完成后本战怒气上限 -15
-description: 首个怒技完成后，本场战斗的怒气上限降低15点。
+summary: 防御 +8；首个怒技完成后本战怒气上限 -15；占一个支援位（共3席）
+description: 首个怒技完成后，本场战斗的怒气上限降低15点。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [defense, rage_cap, rage, rare]
 source:
   basis: original
@@ -37,5 +37,6 @@ effects:
     replaces: []
     limit: {scope: battle, count: 1}
     text: 首个怒技完成后，本场战斗的怒气上限降低15点，并在本轮结束时生效；不改变这次怒技已确定并支付的怒气。
+equipment_role: support
 acquisition:
   pools: [rare_artifact]

@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RC08
 name: 疾风履
 status: design_target
-summary: 速度 +1
-description: 鞋底刻着短促风痕，只改变先后顺序，不直接增加伤害。
+summary: 速度 +1；占一个支援位（共3席）
+description: 鞋底刻着短促风痕，只改变先后顺序，不直接增加伤害。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [speed, tempo, combat]
 source:
   basis: original
@@ -21,5 +21,6 @@ attributes:
   flat: {speed: 1}
   percent: {}
 effects: []
+equipment_role: support
 acquisition:
   pools: [common_artifact]

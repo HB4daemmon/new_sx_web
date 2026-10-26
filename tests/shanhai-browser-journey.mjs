@@ -15,11 +15,11 @@ const url = process.env.BROWSER_URL || 'http://localhost:4173/';
 const reportOverride = process.env.BROWSER_REPORT_DIR || process.env.BROWSER_OUTPUT_DIR;
 const reportDir = reportOverride
   ? path.resolve(reportOverride)
-  : path.join(root, 'verification', 'shanhai', 'browser-journey');
+  : path.join(root, 'verification', 'shanhai', 'v2', 'journey');
 const screenshotDir = path.join(reportDir, 'screenshots');
-const saveKey = 'suishi-shanhai-run-v1';
-const buildKey = 'suishi-shanhai-build-v1';
-const seed = process.env.SHANHAI_JOURNEY_SEED || 'balance-functional-RKF01-3';
+const saveKey = 'suishi-shanhai-run-v2';
+const buildKey = 'suishi-shanhai-build-v2';
+const seed = process.env.SHANHAI_JOURNEY_SEED || 'v2-functional-RKF01-0';
 const playerName = '真实浏览器行者';
 
 function playwrightModule() {
@@ -87,6 +87,7 @@ async function readSave(page) {
   assert.ok(text, '浏览器没有自动存档');
   const record = JSON.parse(text);
   assert.equal(record?.key, saveKey, '自动存档 key 不正确');
+  assert.equal(record?.contentVersion, 'shanhai-content-0.2', '自动存档内容版本不正确');
   assert.ok(record?.state, '自动存档没有 state');
   return { text, record, state: record.state };
 }
@@ -115,6 +116,40 @@ async function clickMatchingAction(page, action, attributes = {}) {
     }
   }
   throw new Error(`找不到可见按钮 data-action=${action} ${JSON.stringify(attributes)}`);
+}
+
+async function openBuild(page) {
+  const view = page.locator('.game-layout.view-build');
+  if (await view.count() && await view.isVisible()) return;
+  const mobileTab = page.locator('.bottom-nav [data-action="tab"][data-id="build"]');
+  const desktopTab = page.locator('.desktop-nav [data-action="tab"][data-id="build"]');
+  await (await mobileTab.isVisible() ? mobileTab : desktopTab).click();
+  await page.locator('.game-layout.view-build .equipment-section').waitFor({ state: 'visible' });
+}
+
+async function clickEquipmentCommand(page, command) {
+  await openBuild(page);
+  const item = page.locator(
+    `.deck-grid [data-action="inspect-artifact"][data-id="${command.id}"]`,
+  );
+  await item.scrollIntoViewIfNeeded();
+  await item.click();
+  const detail = page.locator('.item-dialog[role="dialog"]');
+  await detail.waitFor({ state: 'visible' });
+  await detail.locator(`[data-action="equipment-equip"][data-id="${command.id}"]`).click();
+
+  if (command.replace) {
+    const replacement = page.locator('.equipment-replace-dialog[role="dialog"]');
+    await replacement.waitFor({ state: 'visible' });
+    await clickMatchingAction(page, 'equipment-confirm', {
+      id: command.id,
+      replace: command.replace,
+    });
+  } else {
+    await page.locator('.item-dialog[role="dialog"]').waitFor({ state: 'detached' });
+    assert.equal(await page.locator('.equipment-replace-dialog[role="dialog"]').count(), 0,
+      '未指定替换目标的装备命令意外打开了替换对话框');
+  }
 }
 
 async function clickAndWaitForDispatch(page, command, beforePhase, beforeSaveText) {
@@ -155,8 +190,18 @@ async function clickAndWaitForDispatch(page, command, beforePhase, beforeSaveTex
     case 'buy':
       await clickMatchingAction(page, 'buy', { id: command.id });
       break;
+    case 'reforge':
+      await clickMatchingAction(page, 'reforge', {
+        source: command.source,
+        target: command.target,
+      });
+      break;
     case 'leave_shop':
       await clickMatchingAction(page, 'leave-shop');
+      break;
+    case 'equip':
+      assert.ok(command.id, '装备命令没有法宝 ID');
+      await clickEquipmentCommand(page, command);
       break;
     case 'rest':
       if (command.choice === 'swap_method') {
@@ -166,8 +211,22 @@ async function clickAndWaitForDispatch(page, command, beforePhase, beforeSaveTex
           await swap.locator('summary').click();
         }
         await clickMatchingAction(page, 'rest-method', { id: command.method });
+      } else if (command.choice === 'temper') {
+        const temper = page.locator('details[data-details="rest-temper"]');
+        if (await temper.count() && !await temper.evaluate(element => element.open)) {
+          await temper.locator('summary').click();
+        }
+        const select = page.locator('[data-temper-artifact]');
+        await select.waitFor({ state: 'visible' });
+        if (command.artifact) {
+          await select.selectOption(command.artifact);
+        }
+        const artifact = command.artifact || await select.inputValue();
+        assert.ok(artifact, '温养命令没有可选法宝');
+        await clickMatchingAction(page, 'rest', { choice: 'temper', artifact });
       } else {
-        await clickMatchingAction(page, 'rest', { choice: command.choice });
+        const choice = command.choice === 'meditate' ? 'heal' : command.choice;
+        await clickMatchingAction(page, 'rest', { choice });
       }
       break;
     case 'talent':
@@ -192,10 +251,21 @@ async function clickAndWaitForDispatch(page, command, beforePhase, beforeSaveTex
   }
 
   if (command.type === 'retire') return;
-  if (command.type === 'continue_battle' || command.type === 'buy') {
+  if (['continue_battle', 'buy', 'reforge', 'equip'].includes(command.type)) {
     await waitForSaveChange(page, beforeSaveText);
   } else {
     await waitForPhaseChange(page, beforePhase);
+  }
+  if (command.type === 'equip') {
+    await clickMatchingAction(page, 'tab', { id: 'journey' });
+    const desktopJourneyTab = page.locator(
+      '.desktop-nav [data-action="tab"][data-id="journey"][aria-current="page"]',
+    );
+    const mobileJourneyTab = page.locator(
+      '.bottom-nav [data-action="tab"][data-id="journey"][aria-current="page"]',
+    );
+    await (await desktopJourneyTab.isVisible() ? desktopJourneyTab : mobileJourneyTab)
+      .waitFor({ state: 'visible' });
   }
 }
 
@@ -235,6 +305,10 @@ function stateSnapshot(game) {
     coins: state.coins,
     preparation: state.preparation,
     artifacts: state.artifacts.map(item => ({ id: item.id, stacks: item.stacks })),
+    equipment: {
+      core: state.equipment.core,
+      support: [...state.equipment.support],
+    },
     history: state.history.length,
     routes: [...state.routes],
     routeMapPath: [...(state.routeMap?.path ?? [])],
@@ -402,7 +476,11 @@ async function runJourney(page, record, stopAfterFirstTransition) {
     assert.equal(phase, model.state.phase, `${record.viewport}: 第 ${actionCount} 步页面与存档阶段不一致`);
     await assertRenderedState(page, model, `${record.viewport} ${phase} a${model.state.act} s${model.state.step}`);
     const visibleText = await page.locator('#shanhai-app').innerText();
-    assert.doesNotMatch(visibleText, /[A-Za-z]/,
+    const englishLines = visibleText.split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(line => /[A-Za-z]/.test(line))
+      .filter(line => !['V2 试验版', 'V2 试验版 · 山海行'].includes(line));
+    assert.deepEqual(englishLines, [],
       `${record.viewport} ${phase}: 玩家可见页面不应包含英文`);
     await recordStage(record, model);
 

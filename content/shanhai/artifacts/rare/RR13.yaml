@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RR13
 name: 截脉针
 status: design_target
-summary: 攻击 +8；普攻命中后削减敌方怒气10点，每次普攻一次
-description: 普攻首次命中后，使敌方本轮怒气减少10点。
+summary: 攻击 +8；普攻命中后削减敌方怒气10点，每次普攻一次；占一个支援位（共3席）
+description: 普攻首次命中后，使敌方本轮怒气减少10点。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [attack, rage_drain, basic, rare]
 source:
   basis: original
@@ -40,5 +40,6 @@ effects:
     replaces: []
     limit: {scope: action, count: 1}
     text: 普攻首段基础攻击命中后，使敌方本轮怒气最多减少10点，并在本轮结束时结算；来自我方的削怒每轮最多减少20点，且会受敌方削怒抗性影响。
+equipment_role: support
 acquisition:
   pools: [rare_artifact]

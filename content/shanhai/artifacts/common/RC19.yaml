@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RC19
 name: 凝气珠
 status: design_target
-summary: 攻击 +2；怒气上限 -5
-description: 珠中气流压缩丹田，换取较低怒气上限与更快的蓄怒门槛。
+summary: 攻击 +2；怒气上限 -5；占一个支援位（共3席）
+description: 珠中气流压缩丹田，换取较低怒气上限与更快的蓄怒门槛。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [attack, rage_cap, combat]
 source:
   basis: original
@@ -35,5 +35,6 @@ effects:
     replaces: []
     limit: {scope: permanent, count: 1}
     text: 每层使本场战斗的怒气上限降低5点，最低降至60点；失去此法宝后只提高怒气上限，不补充怒气。
+equipment_role: support
 acquisition:
   pools: [common_artifact]

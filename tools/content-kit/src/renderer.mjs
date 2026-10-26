@@ -639,6 +639,7 @@ function renderIndex(report) {
   const finalEnemies = enemies.filter((enemy) => enemy.tier === 'final')
   const acts = entities.filter((entity) => entity?.kind === 'act')
   const talentCount = methods.reduce((total, method) => total + (method.talents?.length ?? 0), 0)
+  const insightCount = entities.find((entity) => entity?.id === 'RULES')?.insights?.length ?? 0
   const counts = report.counts ?? {}
   const entityLink = (id, relativePath, fallbackLabel = id) => {
     const entity = byId.get(id)
@@ -670,7 +671,7 @@ function renderIndex(report) {
     '',
     '| 类型 | 数量 | 阅读页 |',
     '| --- | ---: | --- |',
-    `| 功法 | ${counts.methods ?? methods.length} 门 / ${talentCount} 天赋 | ${link('功法阅读入口', './methods/RKF01.md')} |`,
+    `| 功法 | ${counts.methods ?? methods.length} 门 / ${talentCount} 专属天赋 + ${insightCount} 共享突破天赋 | ${link('功法阅读入口', './methods/RKF01.md')} |`,
     `| 法宝 | ${counts.artifacts ?? artifacts.length} 件 / 3 页 | ${link('法宝阅读入口', './artifacts/COMMON.md')} |`,
     `| 事件 | ${ordinaryEvents.length || '36'} 普通 / ${coreEvents.length || '16'} 核心 | ${link('事件阅读入口', './events/ACT1.md')} |`,
     `| 故事线 | ${counts.storylines ?? storylines.length} 条人物线 + 4 项独立核心 | ${link('人物线阅读入口', './storylines/RS01.md')} |`,
@@ -685,7 +686,7 @@ function renderIndex(report) {
     `- ${link('共用规则', './RULES.md')}`,
     `- ${link('幕结构、路线与经济', './ACTS.md')}`,
     '',
-    `### 功法（${methods.length || counts.methods || 10}页；${talentCount}天赋）`,
+    `### 功法（${methods.length || counts.methods || 10}页；${talentCount}专属天赋 + ${insightCount}共享突破天赋）`,
     '',
     ...methodLinks.map((entry) => `- ${entry}`),
     '',
@@ -719,12 +720,13 @@ function renderIndex(report) {
   ].join('\n')
 }
 
-function renderRules(rules) {
+function renderRules(rules, context) {
   const statusEntries = Object.entries(rules?.statuses ?? {}).filter(([, status]) => isRecord(status))
   const statusNotes = Object.entries(rules?.statuses ?? {}).filter(([, status]) => !isRecord(status))
   const statuses = statusEntries.map(([name, status]) => (
     `| ${table(statusLabels[name] ?? name)} | ${table(status.max_stacks ?? '未设')} | ${table(status.duration_rounds ?? '未设')} | ${table(status.duration_policy ?? status.stat ?? '未设')} |`
   ))
+  const insights = [...(rules?.insights ?? [])].sort((left, right) => left.tier - right.tier || left.branch.localeCompare(right.branch))
   return [
     header('共用规则', '玩家先看：资源、属性、战斗窗口和状态的共同边界。具体卡面仍以功法、法宝、事件和敌人页为准。'),
     '',
@@ -739,6 +741,22 @@ function renderRules(rules) {
     '| --- | ---: | ---: | --- |',
     ...(statuses.length > 0 ? statuses : ['| 未填写 | 未设 | 未设 | 未设 |']),
     '',
+    '## 共享突破天赋',
+    '',
+    '每阶三项可选，候选可供任何功法选择；每次突破仍只选一项。',
+    '',
+    '| 阶 | 支 | 天赋 | 效果摘要 |',
+    '| ---: | :---: | --- | --- |',
+    ...insights.map((talent) => `| ${talent.tier} | ${talent.branch} | ${table(talent.name, context)} | ${table(talent.quick, context)} |`),
+    '',
+    ...insights.flatMap((talent) => [
+      `::: details ${talent.tier}阶${talent.branch}：${line(talent.name, context)}`,
+      `- 开发标识：${code(talent.id)}`,
+      `- 类别：${talentCategoryLabels[talent.category] ?? line(talent.category, context)}`,
+      ...effectLines(talent.effects, context),
+      ':::',
+      '',
+    ]),
     '::: details 状态与首测配置',
     ...(statusNotes.length > 0
       ? statusNotes.map(([name, value]) => `- ${statusLabels[name] ?? fieldLabel(name)}：${line(value)}`)
@@ -915,28 +933,42 @@ function renderMethod(method, context) {
 function renderArtifacts(artifacts, rarity, context) {
   const pageTitle = `${rarityLabels[rarity]}法宝`
   const intro = rarity === 'common'
-    ? '同名普通法宝按卡面上限叠层；属性与能力同时存在，取得后从下一个合法窗口起生效。'
-    : '单件法宝展示属性、能力和预算；位阶不是境界，不保证每局出现。'
+    ? '同名普通法宝按卡面上限叠层；装备后属性与能力生效，一核心位加三支援位。'
+    : '单件法宝展示装备位、属性、能力和预算；位阶不是境界，不保证每局出现。'
   const lines = [
     header(pageTitle, intro, '..'),
     '',
-    '| 名称 | 属性 | 上限 | 预算 A/J/B |',
-    '| --- | --- | ---: | --- |',
+    '| 名称 | 装备位 | 属性 | 上限 | 预算 A/J/B |',
+    '| --- | --- | --- | ---: | --- |',
   ]
   for (const artifact of artifacts.filter((item) => item.rarity === rarity)) {
     const target = artifact.balance?.target ?? {}
-    lines.push(`| ${table(artifact.name, context)} | ${table(attributesText(artifact.attributes), context)} | ${scalarText(artifact.max_stacks)} | ${table(`${scalarText(target.A)}/${scalarText(target.J)}/${scalarText(target.B)}`)} |`)
+    const role = artifact.equipment_role === 'core' ? '核心位' : '支援位'
+    lines.push(`| ${table(artifact.name, context)} | ${role} | ${table(attributesText(artifact.attributes), context)} | ${scalarText(artifact.max_stacks)} | ${table(`${scalarText(target.A)}/${scalarText(target.J)}/${scalarText(target.B)}`)} |`)
   }
   lines.push('')
   for (const artifact of artifacts.filter((item) => item.rarity === rarity)) {
     lines.push(`### ${entityTitle(artifact)}`)
     lines.push('')
     lines.push(entityDevId(artifact))
+    lines.push(`- 装备位置：${artifact.equipment_role === 'core' ? '核心位（最多1件）' : '支援位（最多3件）'}`)
     lines.push(line(artifact.summary, context))
     lines.push('')
     lines.push(`- 玩家看到：${line(artifact.description, context)}`)
     lines.push(`- 获取池：${list(artifact.acquisition?.pools, context)}`)
     lines.push(`- 唯一组：${artifact.unique_group ? line(artifact.unique_group, context) : '无'}`)
+    if (artifact.core_rule) {
+      const rule = artifact.core_rule
+      const text = {
+        basic_echo: `普攻后追击一段，倍率 ${scalarText(rule.ratio)}；怒技基础伤害倍率 ${scalarText(rule.rage_damage_ratio)}，追击不递归。`,
+        rage_gambit: `怒技完成返还 ${scalarText(rule.rage_refund)} 点怒气；受到的直接伤害倍率 ${scalarText(rule.incoming_damage_ratio)}。`,
+        shield_burst: `开场获得最大气血 ${percentageText(rule.opening_shield_ratio)} 的护盾；怒技消耗实际护盾发动伤害。参数：护盾 ${scalarText(rule.shield_ratio)}、伤害 ${scalarText(rule.damage_ratio)}。`,
+        healing_guard: `普攻回复最大气血 ${percentageText(rule.heal_ratio)}；有效治疗按 ${percentageText(rule.shield_ratio)} 转为护盾；直接伤害倍率 ${scalarText(rule.direct_damage_ratio)}。`,
+        poison_detonation: `普攻施加 ${scalarText(rule.poison_stacks)} 层中毒；怒技消耗自身施加的中毒，按剩余 tick 造成 ${scalarText(rule.damage_ratio)} 倍伤害。`,
+        burn_siphon: `普攻施加 ${scalarText(rule.burn_stacks)} 层燃烧；燃烧实际造成的气血伤害按 ${percentageText(rule.heal_ratio)} 治疗；怒技基础伤害倍率 ${scalarText(rule.rage_damage_ratio)}。`,
+      }[rule.kind]
+      lines.push(`- 核心规则（仅装备时生效）：${text}`)
+    }
     if (artifact.awakening) {
       lines.push(`- 觉醒条件：集齐 ${scalarText(artifact.awakening.at_stacks)} 层；${line(artifact.awakening.name, context)}：${line(artifact.awakening.quick, context)}`)
     }
@@ -1198,7 +1230,7 @@ export function renderDocuments(input) {
   const enemies = entities.filter((entity) => entity.kind === 'enemy').sort((left, right) => ENEMY_IDS.indexOf(left.id) - ENEMY_IDS.indexOf(right.id))
   const pages = new Map()
   pages.set('INDEX.md', renderIndex(report))
-  pages.set('RULES.md', renderRules(rules))
+  pages.set('RULES.md', renderRules(rules, context))
   pages.set('ACTS.md', renderActs(acts, context))
   for (const method of methods) pages.set(`methods/${method.id}.md`, renderMethod(method, context))
   pages.set('artifacts/COMMON.md', renderArtifacts(artifacts, 'common', context))

@@ -1,5 +1,5 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: enemy
 id: EN-A2-C1
 name: 断桥青蛇
@@ -37,9 +37,9 @@ stats:
   speed: 10
 pressure: [持续伤害]
 counterplay:
-  - 用短战爆发或破甲尽快击倒青蛇，减少中毒在多个轮尾继续结算。
-  - 以治疗或护盾接住毒层期间的直接段，并用能持续造成有效伤害的普攻路线保持压力。
-preview: 基础五维为装备前值；五毒经普攻与怒技会公开施加中毒，J1-A使每次基础动作多叠一层，蛇纹瓶只放大自身毒 tick，阶段列表为空。
+  - 用短战爆发或破甲尽快击倒青蛇，避免毒层累积后又被怒技消费成一次爆发。
+  - 以治疗或护盾接住毒层期间的直接段，并维持有效普攻压力，不让它从容完成毒层引爆。
+preview: 基础五维为装备前值；五毒经普攻与怒技会公开施加中毒，J1-A使每次基础动作多叠一层，蛇纹瓶放大自身毒 tick；RC14核心让普攻额外施毒1层，怒技消费敌人身上由自身施加的毒，按剩余tick造成1.1倍伤害，阶段列表为空。
 phases: []
 reward_profile: C
 measured: null

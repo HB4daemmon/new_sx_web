@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RR15
 name: 定心佩
 status: design_target
-summary: 最大气血 +30；受到的外来削怒量减半
-description: 来自其他来源的削怒效果减半。
+summary: 最大气血 +30；受到的外来削怒量减半；占一个支援位（共3席）
+description: 来自其他来源的削怒效果减半。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [max_hp, rage_drain_resist, combat, rare]
 source:
   basis: original
@@ -37,5 +37,6 @@ effects:
     replaces: []
     limit: {scope: permanent, count: 1}
     text: 受到来自其他来源的削怒效果降低50%；多项削怒抗性相加，最高降低100%，不影响获得怒气或受击回怒。
+equipment_role: support
 acquisition:
   pools: [rare_artifact]

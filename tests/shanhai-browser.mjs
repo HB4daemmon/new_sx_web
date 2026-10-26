@@ -18,7 +18,7 @@ const url = process.env.BROWSER_URL || 'http://localhost:4173/';
 const reportOverride = process.env.BROWSER_REPORT_DIR || process.env.BROWSER_OUTPUT_DIR;
 const reportDir = reportOverride
   ? path.resolve(reportOverride)
-  : path.join(root, 'verification', 'shanhai', 'browser');
+  : path.join(root, 'verification', 'shanhai', 'v2', 'browser');
 
 function playwrightModule() {
   const require = createRequire(import.meta.url);
@@ -41,6 +41,7 @@ function playwrightModule() {
 const { chromium } = playwrightModule();
 const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH ||
   '/home/ubuntu/.cache/ms-playwright/chromium-1228/chrome-linux/chrome';
+const replayKey = 'suishi-shanhai-replay-v2';
 const checks = [];
 
 async function check(name, fn) {
@@ -63,7 +64,10 @@ async function noOverflow(page, label) {
   assert.ok(result.documentWidth <= result.width + 1, `${label}: document overflow ${JSON.stringify(result)}`);
   assert.ok(result.bodyWidth <= result.width + 1, `${label}: body overflow ${JSON.stringify(result)}`);
   const englishLines = (await page.locator('#shanhai-app').innerText())
-    .split(/\r?\n/).filter(line => /[A-Za-z]/.test(line));
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(line => /[A-Za-z]/.test(line))
+    .filter(line => !['V2 试验版', 'V2 试验版 · 山海行'].includes(line));
   assert.deepEqual(englishLines, [], `${label}: 玩家界面包含英文`);
   return result;
 }
@@ -199,7 +203,7 @@ async function createFixture(page, target, seed = `browser-${target}`) {
 async function setReplayFrame(page, kind, target) {
   const pause = page.locator('[data-action="battle-pause"]');
   if (await pause.getAttribute('aria-pressed') !== 'true') await pause.click();
-  const selection = await page.evaluate(async ({ kind, target }) => {
+  const selection = await page.evaluate(async ({ kind, target, replayKey }) => {
     const [{ loadContent }, { loadRun }] = await Promise.all([
       import('/shanhai/content.js'),
       import('/shanhai/persistence.js'),
@@ -231,14 +235,14 @@ async function setReplayFrame(page, kind, target) {
     }
     const state = game.state;
     const key = `${state.id}:${state.act}:${state.step}:${state.battle.frames.length}`;
-    localStorage.setItem('suishi-shanhai-replay-v1', JSON.stringify({ key, cursor: index }));
+    localStorage.setItem(replayKey, JSON.stringify({ key, cursor: index }));
     const { localizeBattleText } = await import('/shanhai/localization.js');
     return {
       index,
       text: localizeBattleText(frame.text),
       outcome: deltas.join('；'),
     };
-  }, { kind, target });
+  }, { kind, target, replayKey });
   await pauseNextReplay(page);
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.locator('#shanhai-app').waitFor();
@@ -252,7 +256,7 @@ async function setReplayFrame(page, kind, target) {
 }
 
 async function forceMaxDraw(page) {
-  await page.evaluate(async () => {
+  await page.evaluate(async replayKey => {
     const [{ loadContent }, { loadRun, saveRun }, { simulateBattle }] = await Promise.all([
       import('/shanhai/content.js'),
       import('/shanhai/persistence.js'),
@@ -280,8 +284,8 @@ async function forceMaxDraw(page) {
     game.state.battle = simulateBattle(content, input.player, input.enemy, input.seed, { roundLimit: input.roundLimit });
     if (game.state.battle.outcome !== 'draw') throw new Error(`Expected draw fixture, got ${game.state.battle.outcome}`);
     saveRun(game);
-    localStorage.removeItem('suishi-shanhai-replay-v1');
-  });
+    localStorage.removeItem(replayKey);
+  }, replayKey);
   await page.reload({ waitUntil: 'networkidle' });
   await page.locator('#shanhai-app').waitFor();
   await page.waitForTimeout(80);
@@ -324,6 +328,7 @@ async function forceMissingArtifactEvent(page) {
     state.phase = 'event';
     state.eventOption = undefined;
     state.artifacts = [];
+    state.equipment = { core: null, support: [] };
     state.flags = {};
     state._pendingEvent = undefined;
     state._eventSettled = false;
@@ -335,7 +340,7 @@ async function forceMissingArtifactEvent(page) {
 }
 
 async function forceZeroContribution(page) {
-  await page.evaluate(async () => {
+  await page.evaluate(async replayKey => {
     const [{ loadContent }, { loadRun, saveRun }, { simulateBattle }] = await Promise.all([
       import('/shanhai/content.js'),
       import('/shanhai/persistence.js'),
@@ -344,6 +349,15 @@ async function forceZeroContribution(page) {
     const content = await loadContent('/content/');
     const game = loadRun(content);
     if (!game?.state.battle || !game.state.battleInput) throw new Error('Contribution fixture has no battle');
+    if (!game.state.artifacts.some(stack => stack.id === 'RC07')) {
+      game.state.artifacts.push({ id: 'RC07', stacks: 1 });
+    }
+    if (!game.state.equipment.support.includes('RC07')) {
+      if (game.state.equipment.support.length >= 3) {
+        throw new Error('Contribution fixture has no free support slot for RC07');
+      }
+      game.state.equipment.support.push('RC07');
+    }
     const input = game.state.battleInput;
     input.roundLimit = 1;
     input.player.n = 3;
@@ -358,8 +372,8 @@ async function forceZeroContribution(page) {
     };
     game.state.battle = simulateBattle(content, input.player, input.enemy, input.seed, { roundLimit: input.roundLimit });
     saveRun(game);
-    localStorage.removeItem('suishi-shanhai-replay-v1');
-  });
+    localStorage.removeItem(replayKey);
+  }, replayKey);
   await page.reload({ waitUntil: 'networkidle' });
   await page.locator('#shanhai-app').waitFor();
   await page.waitForTimeout(80);
@@ -529,7 +543,8 @@ async function run() {
       await forceZeroContribution(desktop);
       await desktop.locator('[data-action="battle-skip"]').click();
       const diagnostics = await assertBattleResultAccessible(desktop, 'contribution battle result');
-      assert.match(diagnostics, /属性已生效/);
+      assert.doesNotMatch(diagnostics, /明目珠/,
+        '纯属性法宝不应列入尚未显效');
       assert.match(diagnostics, /本局没有遇到合适时机/);
       assert.doesNotMatch(diagnostics, /permanent|conditional|invalid|absent/i);
     });
@@ -570,7 +585,7 @@ async function run() {
         if (target === 'shop') assert.ok(await desktop.locator('.shop-item').count() > 0);
         if (target === 'rest') assert.ok(await desktop.locator('.rest-choice').count() > 0 || await desktop.locator('.method-swap').count() > 0);
         if (target === 'talent') {
-          assert.ok(await desktop.locator('.talent-tree-selecting .talent-select').count() > 0);
+          assert.ok(await desktop.locator('.talent-candidate-grid .talent-candidate-select').count() > 0);
         }
         if (target === 'won') {
           assert.equal(await desktop.locator('.end-seal.win').count(), 1);

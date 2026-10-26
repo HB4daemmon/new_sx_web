@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RC17
 name: 行医囊
 status: design_target
-summary: 最大气血 +10；完成节点后恢复2点气血
-description: 行医囊收着便携药材，提升最大气血并在节点结束时补回少量气血。
+summary: 最大气血 +10；完成节点后恢复2点气血；占一个支援位（共3席）
+description: 行医囊收着便携药材，提升最大气血并在节点结束时补回少量气血。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [max_hp, travel, heal, node]
 source:
   basis: original
@@ -36,5 +36,6 @@ effects:
     replaces: []
     limit: {scope: node, count: 1}
     text: 获得此物后，每完成一个行旅节点，每层恢复2点气血；每个节点只触发一次。
+equipment_role: support
 acquisition:
   pools: [common_artifact]

@@ -7,7 +7,7 @@ import { loadContent } from '../tools/content-kit/src/loader.mjs';
 import { contentFromEntities } from '../build/shanhai/content.js';
 import { calculateStats } from '../build/shanhai/combat.js';
 import { ShanhaiGame } from '../build/shanhai/run.js';
-import { amount, artifactScore, nextCommand } from './shanhai-policy.mjs';
+import { amount, artifactScore, equipmentCommand, nextCommand } from './shanhai-policy.mjs';
 import { aggregateDifficultyRuns } from './shanhai-difficulty-metrics.mjs';
 import { renderDifficultyReport } from './shanhai-difficulty-report.mjs';
 
@@ -197,6 +197,8 @@ function stateLocation(game) {
 }
 
 export function difficultyCommand(game, policy) {
+  const equipment = equipmentCommand(game);
+  if (equipment) return equipment;
   const state = game.state;
   if (state.phase === 'map' && policy === 'steady') {
     const missing = game.stats.max_hp - state.hp;
@@ -387,7 +389,7 @@ function runtimeHash() {
 export function runDifficulty({
   content,
   seedCount = 10,
-  seedPrefix = 'difficulty',
+  seedPrefix = 'v2-difficulty',
   split = 'train',
   policy = 'steady',
   enemyMultipliers = {},
@@ -422,6 +424,9 @@ export function runDifficulty({
   }
   const configuration = {
     mode: 'real_shanhai_game_stratified_difficulty',
+    experimentTrack: 'V2 experimental; shanhai-content-0.2; uncalibrated',
+    sampleInterpretation: 'Observed results from this exact deterministic policy and seed batch only; no V1 calibration or fitted win rate is carried forward.',
+    calibrationStatus: 'uncalibrated; sample only',
     contentVersion: content.version,
     sourceContentHash,
     runtimeAndPolicyHash: runtimeHash(),
@@ -433,10 +438,10 @@ export function runDifficulty({
     seedDesign: 'independent method-specific seed labels; each of the five methods receives exactly N seeds',
     policy,
     policySource: 'tests/shanhai-difficulty.mjs difficultyCommand; tests/shanhai-policy.mjs nextCommand',
-    policyContract: 'uses current phase, reachable nodes, current visible rewards and public costs; never reads hinted event rewards, future battle results, or future reward candidates',
+    policyContract: 'uses the current phase, currently reachable nodes, currently visible rewards, public costs, owned artifacts and current equipment; never reads future route nodes, hinted event outcomes, future battle results, or future reward candidates',
     policyNotes: policy === 'steady'
-      ? 'Prioritizes reachable rest at 18% missing HP or shop at 20% missing HP when recovery is affordable; otherwise prefers common battles. Uses a fixed talent plan; does not use reforge or temper.'
-      : 'Uses the existing reachable-node preference, with hinted event rewards excluded.',
+      ? 'Uses the fixed V2 talent plan and fills empty equipment slots, then replaces the weakest same-role slot only for a strictly higher inventory score. Prioritizes reachable rest at 18% missing HP or shop at 20% missing HP when recovery is affordable; otherwise prefers common battles. Does not use reforge or temper.'
+      : 'Uses the fixed V2 talent plan, fills empty equipment slots, and upgrades only when an owned same-role artifact scores strictly higher. Route choices consider only currently reachable nodes; hinted event rewards are excluded.',
     runStepGuard: RUN_STEP_GUARD,
     battleRoundLimit: BATTLE_ROUND_LIMIT,
     enemyStatAdjustment: {
@@ -454,7 +459,7 @@ export function runDifficulty({
       cumulativeActPassRates: Object.fromEntries(targets.map((rate, index) => [`act${index + 1}`, rate])),
       finalAct: 'standalone final battle; reported only among runs entering act 5',
       measuredContentFieldsRemainNull: true,
-      interpretation: 'Pass rates are conditional on the selected deterministic policy; they are not measured human-player win rates.',
+      interpretation: 'Pass rates are direct observations in this V2 seed batch under the selected deterministic policy; they are not calibrated targets or measured human-player win rates.',
     },
     metrics: aggregateDifficultyRuns(runs, methods),
     runs,
@@ -472,11 +477,11 @@ function parseJson(value, option) {
 export function parseDifficultyArgs(argv) {
   const options = {
     seedCount: 10,
-    seedPrefix: 'difficulty',
+    seedPrefix: 'v2-difficulty',
     split: 'train',
     policy: 'steady',
     enemyMultipliers: {},
-    outputDir: 'verification/shanhai/difficulty',
+    outputDir: 'verification/shanhai/v2/difficulty',
     outputFile: null,
     summaryOnly: false,
     help: false,
@@ -619,16 +624,16 @@ export function helpText() {
     'Options:',
     '  --seeds N                      Seeds per each of the five start methods (default: 10)',
     '  --split train|holdout           Appended to every seed prefix (default: train)',
-    '  --seed-prefix PREFIX            Base seed prefix (default: difficulty)',
+    '  --seed-prefix PREFIX            Base seed prefix (default: v2-difficulty)',
     '  --policy steady|balanced|tracking (default: steady)',
     '  --enemy-multipliers JSON        Shared stat factors or per-act factors for attack/defense/max_hp',
-    '  --output-dir DIR                Write the full JSON report in DIR',
+    '  --output-dir DIR                Write the full JSON report in DIR (default: verification/shanhai/v2/difficulty)',
     '  --output-file FILE              Write the full JSON report to FILE',
     '  --summary-only                  Keep raw runs in the report; print compact metrics to stdout',
     '  --help                          Show this help',
     '',
-    'Train and holdout seed prefixes are independent, for example balance-train-RKF01-0001 and balance-holdout-RKF01-0001.',
-    'The default steady policy uses only current reachable nodes and current frozen choices.',
+    'Train and holdout are seed-label splits only; this uncalibrated V2 run does not fit enemy stats or carry forward V1 rates.',
+    'The policy uses only public current choices and current equipment, and upgrades gear only when its fixed score exceeds the current slot value.',
   ].join('\n');
 }
 

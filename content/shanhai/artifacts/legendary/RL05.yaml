@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RL05
 name: 回澜印
 status: design_target
-summary: 攻击 +12、防御 +6；怒技完成固定返怒 50
-description: 怒技完成后固定返还50点怒气，留待下一轮使用。
+summary: 攻击 +12、防御 +6；怒技完成固定返怒 50；占唯一核心位，最多另带3件支援
+description: 怒技完成后固定返还50点怒气，留待下一轮使用。装备后占用唯一核心位，可另带最多3件支援；未装备时不提供属性或效果。
 tags: [attack, defense, rage_gain, rage, legendary]
 source:
   basis: original
@@ -38,5 +38,6 @@ effects:
     replaces: []
     limit: {scope: action, count: 1}
     text: 怒技完成后固定返还50点怒气，在本轮结束时结算，下一轮才可使用。
+equipment_role: core
 acquisition:
   pools: [legendary_artifact]

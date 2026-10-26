@@ -1,5 +1,5 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 status: design_target
 files:
   - {id: RULES, kind: rules, path: rules/RULES.yaml}

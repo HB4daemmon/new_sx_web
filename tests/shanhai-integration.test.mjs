@@ -222,6 +222,6 @@ test('a 45-node branching journey survives every save boundary and archives once
   const builds = loadWinningBuilds(storage);
   assert.equal(builds.length, 1);
   assert.equal(builds[0].runId, game.state.id);
-  assert.deepEqual(builds[0].artifacts, game.state.artifacts);
+  assert.deepEqual(builds[0].artifacts, game.equippedArtifacts());
   assert.deepEqual(builds[0].talents, game.state.talents[game.state.method]);
 });

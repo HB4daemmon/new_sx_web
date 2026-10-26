@@ -93,9 +93,27 @@ const SOURCE_LABELS: Record<string, string> = {
 const TOKENS = Object.keys(TEXT_LABELS).sort((left, right) => right.length - left.length);
 // Status names can be directly followed by stack counts, such as "burn2层".
 const TOKEN_PATTERN = new RegExp(`(?<![A-Za-z_])(${TOKENS.join('|')})(?![A-Za-z_])`, 'gi');
-const EMBEDDED_SOURCE_PATTERN = /\b(RKF\d{2}(?:-[A-Z0-9_-]+)?|(?:RC|RR|RL)\d{2}(?:-[A-Z0-9_-]+)?|J\d-[A-C]|RULES-[A-Z0-9_-]+)\b/gi;
+const EMBEDDED_SOURCE_PATTERN = /\b(RKF\d{2}(?:-[A-Z0-9_-]+)?|(?:RC|RR|RL)\d{2}(?:-[A-Z0-9_-]+)?|V2-J\d-[A-C]|J\d-[A-C]|RULES-[A-Z0-9_-]+)\b/gi;
+
+export interface TalentSourceReference {
+  methodId: string;
+  talentId: string;
+}
+
+export function talentSourceReference(source: unknown): TalentSourceReference | undefined {
+  if (typeof source !== 'string') return undefined;
+  const match = source.match(/^(?:(RKF\d{2})-)?((?:V2-)?J\d-[A-C])(?:-|$)/);
+  if (!match) return undefined;
+  return {
+    methodId: match[1] || '',
+    talentId: match[1] && !match[2].startsWith('V2-')
+      ? `${match[1]}-${match[2]}`
+      : match[2],
+  };
+}
 
 function genericSourceLabel(source: string): string {
+  if (/^V2-J\d-[A-C]$/i.test(source)) return '山海共悟';
   if (/^RKF\d{2}-J\d-[A-C]$/i.test(source)) return '功法天赋';
   if (/^RKF\d{2}-/i.test(source)) return '功法招式';
   if (/^(RC|RR|RL)\d{2}-/i.test(source)) return '法宝效果';
@@ -139,6 +157,7 @@ export function localizeBranch(value: unknown): string {
   if (value === 'A') return '甲';
   if (value === 'B') return '乙';
   if (value === 'C') return '丙';
+  if (['shared', 'insight', 'universal'].includes(typeof value === 'string' ? value.toLowerCase() : '')) return '共通';
   return '自选';
 }
 

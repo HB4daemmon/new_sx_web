@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RC12
 name: 回春瓶
 status: design_target
-summary: 最大气血 +10；自身治疗量 +6%
-description: 瓶中春息回旋，抬高最大气血并放大自身治疗总量。
+summary: 最大气血 +10；每层自身治疗量 +6%；普攻自疗4%，所有有效自疗额外转60%护盾，直接伤害降至80%；占唯一核心位
+description: 回春瓶抬高最大气血并放大原有自疗；核心规则使普攻额外回复最大气血4%，任意来源有效自疗量的60%额外转成护盾，不含溢出治疗；自身造成的直接伤害倍率降至0.8。核心位仅1席，可另带最多3件支援。
 tags: [max_hp, heal, combat]
 source:
   basis: original
@@ -46,5 +46,7 @@ effects:
     limit: {scope: battle, count: 1}
     text: 集齐3层后，首次正数治疗结算时净化自身1层负面状态（中毒、燃烧、虚弱或护甲破坏）；净化不替代治疗溢出出口。
 awakening: {at_stacks: 3, name: 回春灵瓶, quick: 首疗净化一层负面}
+equipment_role: core
+core_rule: {kind: healing_guard, heal_ratio: 0.04, shield_ratio: 0.6, direct_damage_ratio: 0.8}
 acquisition:
   pools: [common_artifact]

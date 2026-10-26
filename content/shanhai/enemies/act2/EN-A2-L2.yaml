@@ -1,5 +1,5 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: enemy
 id: EN-A2-L2
 name: 玄甲截流将
@@ -38,9 +38,9 @@ stats:
   speed: 9
 pressure: [稳打护盾, 削怒]
 counterplay:
-  - 用持续伤害或破甲先处理护盾，再在盾返窗口外使用高伤动作，并以治疗承受直接段。
+  - 用持续伤害或破甲先处理护盾，降低RC11核心怒技可消耗的实际护盾，再在盾返窗口外安排高伤动作。
   - 用普攻和轮尾回怒维持自己的循环，或选择明示抗削怒来源应对封元镜的开场请求。
-preview: 基础五维为装备前值；封元镜在开场登记一次削怒，金刚功每次动作后造盾，J2-B只强化怒技伤害，震岳鼓仅在护盾真实吸收敌方直接段并触发盾返后回怒，阶段列表为空。
+preview: 基础五维为装备前值；封元镜在开场登记一次削怒，金刚功每次动作后造盾，J2-B只强化怒技伤害，震岳鼓仅在护盾真实吸收敌方直接段并触发盾返后回怒；RC11核心开场获得最大气血12%的护盾，怒技消耗实际护盾发动伤害，阶段列表为空。
 phases: []
 reward_profile: L
 measured: null

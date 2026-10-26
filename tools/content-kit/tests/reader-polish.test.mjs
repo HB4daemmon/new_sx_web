@@ -31,7 +31,7 @@ test('INDEX exposes every fixed reader page with readable names and counts', () 
     assert.match(index, new RegExp(`\\]\\(\\./${escapeRegExp(relativePath)}\\)`), relativePath)
   }
 
-  assert.match(index, /10 门 \/ 120 天赋/)
+  assert.match(index, /10 门 \/ 120 专属天赋 \+ 12 共享突破天赋/)
   assert.match(index, /36 普通 \/ 16 核心/)
   assert.match(index, /6 条人物线 \+ 4 项独立核心/)
   assert.match(index, /32 套幕敌人 \+ 2 套终战/)
@@ -40,6 +40,25 @@ test('INDEX exposes every fixed reader page with readable names and counts', () 
   assert.match(index, /第4幕事件/)
   assert.match(index, /独立核心机缘（4项）/)
   assert.match(index, /终战敌人/)
+
+  const rules = pages.get('RULES.md')
+  assert.match(rules, /## 共享突破天赋/)
+  assert.match(rules, /每阶三项可选，候选可供任何功法选择/)
+  assert.match(rules, /V2-J1-A/)
+  assert.match(rules, /V2-J4-C/)
+})
+
+test('artifact reader pages disclose equipment slots and equipped core tradeoffs', () => {
+  const page = pages.get('artifacts/COMMON.md')
+  assert.match(page, /\| 名称 \| 装备位 \| 属性 \| 上限 \| 预算 A\/J\/B \|/)
+  assert.match(page, /核心位（最多1件）/)
+  assert.match(page, /支援位（最多3件）/)
+  assert.match(page, /RC09[\s\S]*核心规则（仅装备时生效）：普攻后追击一段/)
+  assert.match(page, /RC12[\s\S]*直接伤害倍率 0\.8/)
+
+  const legendary = pages.get('artifacts/LEGENDARY.md')
+  assert.match(legendary, /RL01[\s\S]*核心位（最多1件）/)
+  assert.doesNotMatch(legendary, /核心规则（仅装备时生效）/)
 })
 
 test('reader pages use player-facing rewards, bases, categories, and method abilities', () => {

@@ -11,6 +11,8 @@
     "test:content": "npm --prefix tools/content-kit test",
     "simulate": "node tests/shanhai-simulate.mjs",
     "test:browser": "node tests/shanhai-browser.mjs",
+    "test:v2": "npm run build && node --test tests/shanhai-v2-*.test.mjs",
+    "test:v2:ui": "node tests/shanhai-v2-ui.mjs",
     "test:journey": "node tests/shanhai-browser-journey.mjs",
     "test:commitments": "node tests/shanhai-commitment-browser.mjs",
     "test:story": "node tests/shanhai-story-browser.mjs",

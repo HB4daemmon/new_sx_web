@@ -1,0 +1,3073 @@
+{
+  "contentVersion": "shanhai-content-0.2",
+  "input": {
+    "experimentTrack": "V2 experimental; shanhai-content-0.2; uncalibrated",
+    "fullRunSeeds": [
+      "acceptance-0",
+      "acceptance-1",
+      "acceptance-2",
+      "acceptance-3",
+      "acceptance-4",
+      "acceptance-0",
+      "acceptance-1",
+      "acceptance-2",
+      "acceptance-3",
+      "acceptance-4",
+      "acceptance-0",
+      "acceptance-1",
+      "acceptance-2",
+      "acceptance-3",
+      "acceptance-4",
+      "acceptance-0",
+      "acceptance-1",
+      "acceptance-2",
+      "acceptance-3",
+      "acceptance-4",
+      "acceptance-0",
+      "acceptance-1",
+      "acceptance-2",
+      "acceptance-3",
+      "acceptance-4"
+    ],
+    "encounterSeeds": [
+      "calibration-EN-A1-C1-RKF01-0",
+      "calibration-EN-A1-C1-RKF01-1",
+      "calibration-EN-A1-C1-RKF01-2",
+      "calibration-EN-A1-C1-RKF01-3",
+      "calibration-EN-A1-C1-RKF01-4",
+      "calibration-EN-A1-C1-RKF02-0",
+      "calibration-EN-A1-C1-RKF02-1",
+      "calibration-EN-A1-C1-RKF02-2",
+      "calibration-EN-A1-C1-RKF02-3",
+      "calibration-EN-A1-C1-RKF02-4",
+      "calibration-EN-A1-C1-RKF03-0",
+      "calibration-EN-A1-C1-RKF03-1",
+      "calibration-EN-A1-C1-RKF03-2",
+      "calibration-EN-A1-C1-RKF03-3",
+      "calibration-EN-A1-C1-RKF03-4",
+      "calibration-EN-A1-C1-RKF04-0",
+      "calibration-EN-A1-C1-RKF04-1",
+      "calibration-EN-A1-C1-RKF04-2",
+      "calibration-EN-A1-C1-RKF04-3",
+      "calibration-EN-A1-C1-RKF04-4",
+      "calibration-EN-A1-C1-RKF05-0",
+      "calibration-EN-A1-C1-RKF05-1",
+      "calibration-EN-A1-C1-RKF05-2",
+      "calibration-EN-A1-C1-RKF05-3",
+      "calibration-EN-A1-C1-RKF05-4",
+      "calibration-EN-A1-C2-RKF01-0",
+      "calibration-EN-A1-C2-RKF01-1",
+      "calibration-EN-A1-C2-RKF01-2",
+      "calibration-EN-A1-C2-RKF01-3",
+      "calibration-EN-A1-C2-RKF01-4",
+      "calibration-EN-A1-C2-RKF02-0",
+      "calibration-EN-A1-C2-RKF02-1",
+      "calibration-EN-A1-C2-RKF02-2",
+      "calibration-EN-A1-C2-RKF02-3",
+      "calibration-EN-A1-C2-RKF02-4",
+      "calibration-EN-A1-C2-RKF03-0",
+      "calibration-EN-A1-C2-RKF03-1",
+      "calibration-EN-A1-C2-RKF03-2",
+      "calibration-EN-A1-C2-RKF03-3",
+      "calibration-EN-A1-C2-RKF03-4",
+      "calibration-EN-A1-C2-RKF04-0",
+      "calibration-EN-A1-C2-RKF04-1",
+      "calibration-EN-A1-C2-RKF04-2",
+      "calibration-EN-A1-C2-RKF04-3",
+      "calibration-EN-A1-C2-RKF04-4",
+      "calibration-EN-A1-C2-RKF05-0",
+      "calibration-EN-A1-C2-RKF05-1",
+      "calibration-EN-A1-C2-RKF05-2",
+      "calibration-EN-A1-C2-RKF05-3",
+      "calibration-EN-A1-C2-RKF05-4",
+      "calibration-EN-A1-C3-RKF01-0",
+      "calibration-EN-A1-C3-RKF01-1",
+      "calibration-EN-A1-C3-RKF01-2",
+      "calibration-EN-A1-C3-RKF01-3",
+      "calibration-EN-A1-C3-RKF01-4",
+      "calibration-EN-A1-C3-RKF02-0",
+      "calibration-EN-A1-C3-RKF02-1",
+      "calibration-EN-A1-C3-RKF02-2",
+      "calibration-EN-A1-C3-RKF02-3",
+      "calibration-EN-A1-C3-RKF02-4",
+      "calibration-EN-A1-C3-RKF03-0",
+      "calibration-EN-A1-C3-RKF03-1",
+      "calibration-EN-A1-C3-RKF03-2",
+      "calibration-EN-A1-C3-RKF03-3",
+      "calibration-EN-A1-C3-RKF03-4",
+      "calibration-EN-A1-C3-RKF04-0",
+      "calibration-EN-A1-C3-RKF04-1",
+      "calibration-EN-A1-C3-RKF04-2",
+      "calibration-EN-A1-C3-RKF04-3",
+      "calibration-EN-A1-C3-RKF04-4",
+      "calibration-EN-A1-C3-RKF05-0",
+      "calibration-EN-A1-C3-RKF05-1",
+      "calibration-EN-A1-C3-RKF05-2",
+      "calibration-EN-A1-C3-RKF05-3",
+      "calibration-EN-A1-C3-RKF05-4",
+      "calibration-EN-A1-C4-RKF01-0",
+      "calibration-EN-A1-C4-RKF01-1",
+      "calibration-EN-A1-C4-RKF01-2",
+      "calibration-EN-A1-C4-RKF01-3",
+      "calibration-EN-A1-C4-RKF01-4",
+      "calibration-EN-A1-C4-RKF02-0",
+      "calibration-EN-A1-C4-RKF02-1",
+      "calibration-EN-A1-C4-RKF02-2",
+      "calibration-EN-A1-C4-RKF02-3",
+      "calibration-EN-A1-C4-RKF02-4",
+      "calibration-EN-A1-C4-RKF03-0",
+      "calibration-EN-A1-C4-RKF03-1",
+      "calibration-EN-A1-C4-RKF03-2",
+      "calibration-EN-A1-C4-RKF03-3",
+      "calibration-EN-A1-C4-RKF03-4",
+      "calibration-EN-A1-C4-RKF04-0",
+      "calibration-EN-A1-C4-RKF04-1",
+      "calibration-EN-A1-C4-RKF04-2",
+      "calibration-EN-A1-C4-RKF04-3",
+      "calibration-EN-A1-C4-RKF04-4",
+      "calibration-EN-A1-C4-RKF05-0",
+      "calibration-EN-A1-C4-RKF05-1",
+      "calibration-EN-A1-C4-RKF05-2",
+      "calibration-EN-A1-C4-RKF05-3",
+      "calibration-EN-A1-C4-RKF05-4",
+      "calibration-EN-A1-L1-RKF01-0",
+      "calibration-EN-A1-L1-RKF01-1",
+      "calibration-EN-A1-L1-RKF01-2",
+      "calibration-EN-A1-L1-RKF01-3",
+      "calibration-EN-A1-L1-RKF01-4",
+      "calibration-EN-A1-L1-RKF02-0",
+      "calibration-EN-A1-L1-RKF02-1",
+      "calibration-EN-A1-L1-RKF02-2",
+      "calibration-EN-A1-L1-RKF02-3",
+      "calibration-EN-A1-L1-RKF02-4",
+      "calibration-EN-A1-L1-RKF03-0",
+      "calibration-EN-A1-L1-RKF03-1",
+      "calibration-EN-A1-L1-RKF03-2",
+      "calibration-EN-A1-L1-RKF03-3",
+      "calibration-EN-A1-L1-RKF03-4",
+      "calibration-EN-A1-L1-RKF04-0",
+      "calibration-EN-A1-L1-RKF04-1",
+      "calibration-EN-A1-L1-RKF04-2",
+      "calibration-EN-A1-L1-RKF04-3",
+      "calibration-EN-A1-L1-RKF04-4",
+      "calibration-EN-A1-L1-RKF05-0",
+      "calibration-EN-A1-L1-RKF05-1",
+      "calibration-EN-A1-L1-RKF05-2",
+      "calibration-EN-A1-L1-RKF05-3",
+      "calibration-EN-A1-L1-RKF05-4",
+      "calibration-EN-A1-L2-RKF01-0",
+      "calibration-EN-A1-L2-RKF01-1",
+      "calibration-EN-A1-L2-RKF01-2",
+      "calibration-EN-A1-L2-RKF01-3",
+      "calibration-EN-A1-L2-RKF01-4",
+      "calibration-EN-A1-L2-RKF02-0",
+      "calibration-EN-A1-L2-RKF02-1",
+      "calibration-EN-A1-L2-RKF02-2",
+      "calibration-EN-A1-L2-RKF02-3",
+      "calibration-EN-A1-L2-RKF02-4",
+      "calibration-EN-A1-L2-RKF03-0",
+      "calibration-EN-A1-L2-RKF03-1",
+      "calibration-EN-A1-L2-RKF03-2",
+      "calibration-EN-A1-L2-RKF03-3",
+      "calibration-EN-A1-L2-RKF03-4",
+      "calibration-EN-A1-L2-RKF04-0",
+      "calibration-EN-A1-L2-RKF04-1",
+      "calibration-EN-A1-L2-RKF04-2",
+      "calibration-EN-A1-L2-RKF04-3",
+      "calibration-EN-A1-L2-RKF04-4",
+      "calibration-EN-A1-L2-RKF05-0",
+      "calibration-EN-A1-L2-RKF05-1",
+      "calibration-EN-A1-L2-RKF05-2",
+      "calibration-EN-A1-L2-RKF05-3",
+      "calibration-EN-A1-L2-RKF05-4",
+      "calibration-EN-A1-B1-RKF01-0",
+      "calibration-EN-A1-B1-RKF01-1",
+      "calibration-EN-A1-B1-RKF01-2",
+      "calibration-EN-A1-B1-RKF01-3",
+      "calibration-EN-A1-B1-RKF01-4",
+      "calibration-EN-A1-B1-RKF02-0",
+      "calibration-EN-A1-B1-RKF02-1",
+      "calibration-EN-A1-B1-RKF02-2",
+      "calibration-EN-A1-B1-RKF02-3",
+      "calibration-EN-A1-B1-RKF02-4",
+      "calibration-EN-A1-B1-RKF03-0",
+      "calibration-EN-A1-B1-RKF03-1",
+      "calibration-EN-A1-B1-RKF03-2",
+      "calibration-EN-A1-B1-RKF03-3",
+      "calibration-EN-A1-B1-RKF03-4",
+      "calibration-EN-A1-B1-RKF04-0",
+      "calibration-EN-A1-B1-RKF04-1",
+      "calibration-EN-A1-B1-RKF04-2",
+      "calibration-EN-A1-B1-RKF04-3",
+      "calibration-EN-A1-B1-RKF04-4",
+      "calibration-EN-A1-B1-RKF05-0",
+      "calibration-EN-A1-B1-RKF05-1",
+      "calibration-EN-A1-B1-RKF05-2",
+      "calibration-EN-A1-B1-RKF05-3",
+      "calibration-EN-A1-B1-RKF05-4",
+      "calibration-EN-A1-B2-RKF01-0",
+      "calibration-EN-A1-B2-RKF01-1",
+      "calibration-EN-A1-B2-RKF01-2",
+      "calibration-EN-A1-B2-RKF01-3",
+      "calibration-EN-A1-B2-RKF01-4",
+      "calibration-EN-A1-B2-RKF02-0",
+      "calibration-EN-A1-B2-RKF02-1",
+      "calibration-EN-A1-B2-RKF02-2",
+      "calibration-EN-A1-B2-RKF02-3",
+      "calibration-EN-A1-B2-RKF02-4",
+      "calibration-EN-A1-B2-RKF03-0",
+      "calibration-EN-A1-B2-RKF03-1",
+      "calibration-EN-A1-B2-RKF03-2",
+      "calibration-EN-A1-B2-RKF03-3",
+      "calibration-EN-A1-B2-RKF03-4",
+      "calibration-EN-A1-B2-RKF04-0",
+      "calibration-EN-A1-B2-RKF04-1",
+      "calibration-EN-A1-B2-RKF04-2",
+      "calibration-EN-A1-B2-RKF04-3",
+      "calibration-EN-A1-B2-RKF04-4",
+      "calibration-EN-A1-B2-RKF05-0",
+      "calibration-EN-A1-B2-RKF05-1",
+      "calibration-EN-A1-B2-RKF05-2",
+      "calibration-EN-A1-B2-RKF05-3",
+      "calibration-EN-A1-B2-RKF05-4",
+      "calibration-EN-A2-C1-RKF01-0",
+      "calibration-EN-A2-C1-RKF01-1",
+      "calibration-EN-A2-C1-RKF01-2",
+      "calibration-EN-A2-C1-RKF01-3",
+      "calibration-EN-A2-C1-RKF01-4",
+      "calibration-EN-A2-C1-RKF02-0",
+      "calibration-EN-A2-C1-RKF02-1",
+      "calibration-EN-A2-C1-RKF02-2",
+      "calibration-EN-A2-C1-RKF02-3",
+      "calibration-EN-A2-C1-RKF02-4",
+      "calibration-EN-A2-C1-RKF03-0",
+      "calibration-EN-A2-C1-RKF03-1",
+      "calibration-EN-A2-C1-RKF03-2",
+      "calibration-EN-A2-C1-RKF03-3",
+      "calibration-EN-A2-C1-RKF03-4",
+      "calibration-EN-A2-C1-RKF04-0",
+      "calibration-EN-A2-C1-RKF04-1",
+      "calibration-EN-A2-C1-RKF04-2",
+      "calibration-EN-A2-C1-RKF04-3",
+      "calibration-EN-A2-C1-RKF04-4",
+      "calibration-EN-A2-C1-RKF05-0",
+      "calibration-EN-A2-C1-RKF05-1",
+      "calibration-EN-A2-C1-RKF05-2",
+      "calibration-EN-A2-C1-RKF05-3",
+      "calibration-EN-A2-C1-RKF05-4",
+      "calibration-EN-A2-C2-RKF01-0",
+      "calibration-EN-A2-C2-RKF01-1",
+      "calibration-EN-A2-C2-RKF01-2",
+      "calibration-EN-A2-C2-RKF01-3",
+      "calibration-EN-A2-C2-RKF01-4",
+      "calibration-EN-A2-C2-RKF02-0",
+      "calibration-EN-A2-C2-RKF02-1",
+      "calibration-EN-A2-C2-RKF02-2",
+      "calibration-EN-A2-C2-RKF02-3",
+      "calibration-EN-A2-C2-RKF02-4",
+      "calibration-EN-A2-C2-RKF03-0",
+      "calibration-EN-A2-C2-RKF03-1",
+      "calibration-EN-A2-C2-RKF03-2",
+      "calibration-EN-A2-C2-RKF03-3",
+      "calibration-EN-A2-C2-RKF03-4",
+      "calibration-EN-A2-C2-RKF04-0",
+      "calibration-EN-A2-C2-RKF04-1",
+      "calibration-EN-A2-C2-RKF04-2",
+      "calibration-EN-A2-C2-RKF04-3",
+      "calibration-EN-A2-C2-RKF04-4",
+      "calibration-EN-A2-C2-RKF05-0",
+      "calibration-EN-A2-C2-RKF05-1",
+      "calibration-EN-A2-C2-RKF05-2",
+      "calibration-EN-A2-C2-RKF05-3",
+      "calibration-EN-A2-C2-RKF05-4",
+      "calibration-EN-A2-C3-RKF01-0",
+      "calibration-EN-A2-C3-RKF01-1",
+      "calibration-EN-A2-C3-RKF01-2",
+      "calibration-EN-A2-C3-RKF01-3",
+      "calibration-EN-A2-C3-RKF01-4",
+      "calibration-EN-A2-C3-RKF02-0",
+      "calibration-EN-A2-C3-RKF02-1",
+      "calibration-EN-A2-C3-RKF02-2",
+      "calibration-EN-A2-C3-RKF02-3",
+      "calibration-EN-A2-C3-RKF02-4",
+      "calibration-EN-A2-C3-RKF03-0",
+      "calibration-EN-A2-C3-RKF03-1",
+      "calibration-EN-A2-C3-RKF03-2",
+      "calibration-EN-A2-C3-RKF03-3",
+      "calibration-EN-A2-C3-RKF03-4",
+      "calibration-EN-A2-C3-RKF04-0",
+      "calibration-EN-A2-C3-RKF04-1",
+      "calibration-EN-A2-C3-RKF04-2",
+      "calibration-EN-A2-C3-RKF04-3",
+      "calibration-EN-A2-C3-RKF04-4",
+      "calibration-EN-A2-C3-RKF05-0",
+      "calibration-EN-A2-C3-RKF05-1",
+      "calibration-EN-A2-C3-RKF05-2",
+      "calibration-EN-A2-C3-RKF05-3",
+      "calibration-EN-A2-C3-RKF05-4",
+      "calibration-EN-A2-C4-RKF01-0",
+      "calibration-EN-A2-C4-RKF01-1",
+      "calibration-EN-A2-C4-RKF01-2",
+      "calibration-EN-A2-C4-RKF01-3",
+      "calibration-EN-A2-C4-RKF01-4",
+      "calibration-EN-A2-C4-RKF02-0",
+      "calibration-EN-A2-C4-RKF02-1",
+      "calibration-EN-A2-C4-RKF02-2",
+      "calibration-EN-A2-C4-RKF02-3",
+      "calibration-EN-A2-C4-RKF02-4",
+      "calibration-EN-A2-C4-RKF03-0",
+      "calibration-EN-A2-C4-RKF03-1",
+      "calibration-EN-A2-C4-RKF03-2",
+      "calibration-EN-A2-C4-RKF03-3",
+      "calibration-EN-A2-C4-RKF03-4",
+      "calibration-EN-A2-C4-RKF04-0",
+      "calibration-EN-A2-C4-RKF04-1",
+      "calibration-EN-A2-C4-RKF04-2",
+      "calibration-EN-A2-C4-RKF04-3",
+      "calibration-EN-A2-C4-RKF04-4",
+      "calibration-EN-A2-C4-RKF05-0",
+      "calibration-EN-A2-C4-RKF05-1",
+      "calibration-EN-A2-C4-RKF05-2",
+      "calibration-EN-A2-C4-RKF05-3",
+      "calibration-EN-A2-C4-RKF05-4",
+      "calibration-EN-A2-L1-RKF01-0",
+      "calibration-EN-A2-L1-RKF01-1",
+      "calibration-EN-A2-L1-RKF01-2",
+      "calibration-EN-A2-L1-RKF01-3",
+      "calibration-EN-A2-L1-RKF01-4",
+      "calibration-EN-A2-L1-RKF02-0",
+      "calibration-EN-A2-L1-RKF02-1",
+      "calibration-EN-A2-L1-RKF02-2",
+      "calibration-EN-A2-L1-RKF02-3",
+      "calibration-EN-A2-L1-RKF02-4",
+      "calibration-EN-A2-L1-RKF03-0",
+      "calibration-EN-A2-L1-RKF03-1",
+      "calibration-EN-A2-L1-RKF03-2",
+      "calibration-EN-A2-L1-RKF03-3",
+      "calibration-EN-A2-L1-RKF03-4",
+      "calibration-EN-A2-L1-RKF04-0",
+      "calibration-EN-A2-L1-RKF04-1",
+      "calibration-EN-A2-L1-RKF04-2",
+      "calibration-EN-A2-L1-RKF04-3",
+      "calibration-EN-A2-L1-RKF04-4",
+      "calibration-EN-A2-L1-RKF05-0",
+      "calibration-EN-A2-L1-RKF05-1",
+      "calibration-EN-A2-L1-RKF05-2",
+      "calibration-EN-A2-L1-RKF05-3",
+      "calibration-EN-A2-L1-RKF05-4",
+      "calibration-EN-A2-L2-RKF01-0",
+      "calibration-EN-A2-L2-RKF01-1",
+      "calibration-EN-A2-L2-RKF01-2",
+      "calibration-EN-A2-L2-RKF01-3",
+      "calibration-EN-A2-L2-RKF01-4",
+      "calibration-EN-A2-L2-RKF02-0",
+      "calibration-EN-A2-L2-RKF02-1",
+      "calibration-EN-A2-L2-RKF02-2",
+      "calibration-EN-A2-L2-RKF02-3",
+      "calibration-EN-A2-L2-RKF02-4",
+      "calibration-EN-A2-L2-RKF03-0",
+      "calibration-EN-A2-L2-RKF03-1",
+      "calibration-EN-A2-L2-RKF03-2",
+      "calibration-EN-A2-L2-RKF03-3",
+      "calibration-EN-A2-L2-RKF03-4",
+      "calibration-EN-A2-L2-RKF04-0",
+      "calibration-EN-A2-L2-RKF04-1",
+      "calibration-EN-A2-L2-RKF04-2",
+      "calibration-EN-A2-L2-RKF04-3",
+      "calibration-EN-A2-L2-RKF04-4",
+      "calibration-EN-A2-L2-RKF05-0",
+      "calibration-EN-A2-L2-RKF05-1",
+      "calibration-EN-A2-L2-RKF05-2",
+      "calibration-EN-A2-L2-RKF05-3",
+      "calibration-EN-A2-L2-RKF05-4",
+      "calibration-EN-A2-B1-RKF01-0",
+      "calibration-EN-A2-B1-RKF01-1",
+      "calibration-EN-A2-B1-RKF01-2",
+      "calibration-EN-A2-B1-RKF01-3",
+      "calibration-EN-A2-B1-RKF01-4",
+      "calibration-EN-A2-B1-RKF02-0",
+      "calibration-EN-A2-B1-RKF02-1",
+      "calibration-EN-A2-B1-RKF02-2",
+      "calibration-EN-A2-B1-RKF02-3",
+      "calibration-EN-A2-B1-RKF02-4",
+      "calibration-EN-A2-B1-RKF03-0",
+      "calibration-EN-A2-B1-RKF03-1",
+      "calibration-EN-A2-B1-RKF03-2",
+      "calibration-EN-A2-B1-RKF03-3",
+      "calibration-EN-A2-B1-RKF03-4",
+      "calibration-EN-A2-B1-RKF04-0",
+      "calibration-EN-A2-B1-RKF04-1",
+      "calibration-EN-A2-B1-RKF04-2",
+      "calibration-EN-A2-B1-RKF04-3",
+      "calibration-EN-A2-B1-RKF04-4",
+      "calibration-EN-A2-B1-RKF05-0",
+      "calibration-EN-A2-B1-RKF05-1",
+      "calibration-EN-A2-B1-RKF05-2",
+      "calibration-EN-A2-B1-RKF05-3",
+      "calibration-EN-A2-B1-RKF05-4",
+      "calibration-EN-A2-B2-RKF01-0",
+      "calibration-EN-A2-B2-RKF01-1",
+      "calibration-EN-A2-B2-RKF01-2",
+      "calibration-EN-A2-B2-RKF01-3",
+      "calibration-EN-A2-B2-RKF01-4",
+      "calibration-EN-A2-B2-RKF02-0",
+      "calibration-EN-A2-B2-RKF02-1",
+      "calibration-EN-A2-B2-RKF02-2",
+      "calibration-EN-A2-B2-RKF02-3",
+      "calibration-EN-A2-B2-RKF02-4",
+      "calibration-EN-A2-B2-RKF03-0",
+      "calibration-EN-A2-B2-RKF03-1",
+      "calibration-EN-A2-B2-RKF03-2",
+      "calibration-EN-A2-B2-RKF03-3",
+      "calibration-EN-A2-B2-RKF03-4",
+      "calibration-EN-A2-B2-RKF04-0",
+      "calibration-EN-A2-B2-RKF04-1",
+      "calibration-EN-A2-B2-RKF04-2",
+      "calibration-EN-A2-B2-RKF04-3",
+      "calibration-EN-A2-B2-RKF04-4",
+      "calibration-EN-A2-B2-RKF05-0",
+      "calibration-EN-A2-B2-RKF05-1",
+      "calibration-EN-A2-B2-RKF05-2",
+      "calibration-EN-A2-B2-RKF05-3",
+      "calibration-EN-A2-B2-RKF05-4",
+      "calibration-EN-A3-C1-RKF01-0",
+      "calibration-EN-A3-C1-RKF01-1",
+      "calibration-EN-A3-C1-RKF01-2",
+      "calibration-EN-A3-C1-RKF01-3",
+      "calibration-EN-A3-C1-RKF01-4",
+      "calibration-EN-A3-C1-RKF02-0",
+      "calibration-EN-A3-C1-RKF02-1",
+      "calibration-EN-A3-C1-RKF02-2",
+      "calibration-EN-A3-C1-RKF02-3",
+      "calibration-EN-A3-C1-RKF02-4",
+      "calibration-EN-A3-C1-RKF03-0",
+      "calibration-EN-A3-C1-RKF03-1",
+      "calibration-EN-A3-C1-RKF03-2",
+      "calibration-EN-A3-C1-RKF03-3",
+      "calibration-EN-A3-C1-RKF03-4",
+      "calibration-EN-A3-C1-RKF04-0",
+      "calibration-EN-A3-C1-RKF04-1",
+      "calibration-EN-A3-C1-RKF04-2",
+      "calibration-EN-A3-C1-RKF04-3",
+      "calibration-EN-A3-C1-RKF04-4",
+      "calibration-EN-A3-C1-RKF05-0",
+      "calibration-EN-A3-C1-RKF05-1",
+      "calibration-EN-A3-C1-RKF05-2",
+      "calibration-EN-A3-C1-RKF05-3",
+      "calibration-EN-A3-C1-RKF05-4",
+      "calibration-EN-A3-C2-RKF01-0",
+      "calibration-EN-A3-C2-RKF01-1",
+      "calibration-EN-A3-C2-RKF01-2",
+      "calibration-EN-A3-C2-RKF01-3",
+      "calibration-EN-A3-C2-RKF01-4",
+      "calibration-EN-A3-C2-RKF02-0",
+      "calibration-EN-A3-C2-RKF02-1",
+      "calibration-EN-A3-C2-RKF02-2",
+      "calibration-EN-A3-C2-RKF02-3",
+      "calibration-EN-A3-C2-RKF02-4",
+      "calibration-EN-A3-C2-RKF03-0",
+      "calibration-EN-A3-C2-RKF03-1",
+      "calibration-EN-A3-C2-RKF03-2",
+      "calibration-EN-A3-C2-RKF03-3",
+      "calibration-EN-A3-C2-RKF03-4",
+      "calibration-EN-A3-C2-RKF04-0",
+      "calibration-EN-A3-C2-RKF04-1",
+      "calibration-EN-A3-C2-RKF04-2",
+      "calibration-EN-A3-C2-RKF04-3",
+      "calibration-EN-A3-C2-RKF04-4",
+      "calibration-EN-A3-C2-RKF05-0",
+      "calibration-EN-A3-C2-RKF05-1",
+      "calibration-EN-A3-C2-RKF05-2",
+      "calibration-EN-A3-C2-RKF05-3",
+      "calibration-EN-A3-C2-RKF05-4",
+      "calibration-EN-A3-C3-RKF01-0",
+      "calibration-EN-A3-C3-RKF01-1",
+      "calibration-EN-A3-C3-RKF01-2",
+      "calibration-EN-A3-C3-RKF01-3",
+      "calibration-EN-A3-C3-RKF01-4",
+      "calibration-EN-A3-C3-RKF02-0",
+      "calibration-EN-A3-C3-RKF02-1",
+      "calibration-EN-A3-C3-RKF02-2",
+      "calibration-EN-A3-C3-RKF02-3",
+      "calibration-EN-A3-C3-RKF02-4",
+      "calibration-EN-A3-C3-RKF03-0",
+      "calibration-EN-A3-C3-RKF03-1",
+      "calibration-EN-A3-C3-RKF03-2",
+      "calibration-EN-A3-C3-RKF03-3",
+      "calibration-EN-A3-C3-RKF03-4",
+      "calibration-EN-A3-C3-RKF04-0",
+      "calibration-EN-A3-C3-RKF04-1",
+      "calibration-EN-A3-C3-RKF04-2",
+      "calibration-EN-A3-C3-RKF04-3",
+      "calibration-EN-A3-C3-RKF04-4",
+      "calibration-EN-A3-C3-RKF05-0",
+      "calibration-EN-A3-C3-RKF05-1",
+      "calibration-EN-A3-C3-RKF05-2",
+      "calibration-EN-A3-C3-RKF05-3",
+      "calibration-EN-A3-C3-RKF05-4",
+      "calibration-EN-A3-C4-RKF01-0",
+      "calibration-EN-A3-C4-RKF01-1",
+      "calibration-EN-A3-C4-RKF01-2",
+      "calibration-EN-A3-C4-RKF01-3",
+      "calibration-EN-A3-C4-RKF01-4",
+      "calibration-EN-A3-C4-RKF02-0",
+      "calibration-EN-A3-C4-RKF02-1",
+      "calibration-EN-A3-C4-RKF02-2",
+      "calibration-EN-A3-C4-RKF02-3",
+      "calibration-EN-A3-C4-RKF02-4",
+      "calibration-EN-A3-C4-RKF03-0",
+      "calibration-EN-A3-C4-RKF03-1",
+      "calibration-EN-A3-C4-RKF03-2",
+      "calibration-EN-A3-C4-RKF03-3",
+      "calibration-EN-A3-C4-RKF03-4",
+      "calibration-EN-A3-C4-RKF04-0",
+      "calibration-EN-A3-C4-RKF04-1",
+      "calibration-EN-A3-C4-RKF04-2",
+      "calibration-EN-A3-C4-RKF04-3",
+      "calibration-EN-A3-C4-RKF04-4",
+      "calibration-EN-A3-C4-RKF05-0",
+      "calibration-EN-A3-C4-RKF05-1",
+      "calibration-EN-A3-C4-RKF05-2",
+      "calibration-EN-A3-C4-RKF05-3",
+      "calibration-EN-A3-C4-RKF05-4",
+      "calibration-EN-A3-L1-RKF01-0",
+      "calibration-EN-A3-L1-RKF01-1",
+      "calibration-EN-A3-L1-RKF01-2",
+      "calibration-EN-A3-L1-RKF01-3",
+      "calibration-EN-A3-L1-RKF01-4",
+      "calibration-EN-A3-L1-RKF02-0",
+      "calibration-EN-A3-L1-RKF02-1",
+      "calibration-EN-A3-L1-RKF02-2",
+      "calibration-EN-A3-L1-RKF02-3",
+      "calibration-EN-A3-L1-RKF02-4",
+      "calibration-EN-A3-L1-RKF03-0",
+      "calibration-EN-A3-L1-RKF03-1",
+      "calibration-EN-A3-L1-RKF03-2",
+      "calibration-EN-A3-L1-RKF03-3",
+      "calibration-EN-A3-L1-RKF03-4",
+      "calibration-EN-A3-L1-RKF04-0",
+      "calibration-EN-A3-L1-RKF04-1",
+      "calibration-EN-A3-L1-RKF04-2",
+      "calibration-EN-A3-L1-RKF04-3",
+      "calibration-EN-A3-L1-RKF04-4",
+      "calibration-EN-A3-L1-RKF05-0",
+      "calibration-EN-A3-L1-RKF05-1",
+      "calibration-EN-A3-L1-RKF05-2",
+      "calibration-EN-A3-L1-RKF05-3",
+      "calibration-EN-A3-L1-RKF05-4",
+      "calibration-EN-A3-L2-RKF01-0",
+      "calibration-EN-A3-L2-RKF01-1",
+      "calibration-EN-A3-L2-RKF01-2",
+      "calibration-EN-A3-L2-RKF01-3",
+      "calibration-EN-A3-L2-RKF01-4",
+      "calibration-EN-A3-L2-RKF02-0",
+      "calibration-EN-A3-L2-RKF02-1",
+      "calibration-EN-A3-L2-RKF02-2",
+      "calibration-EN-A3-L2-RKF02-3",
+      "calibration-EN-A3-L2-RKF02-4",
+      "calibration-EN-A3-L2-RKF03-0",
+      "calibration-EN-A3-L2-RKF03-1",
+      "calibration-EN-A3-L2-RKF03-2",
+      "calibration-EN-A3-L2-RKF03-3",
+      "calibration-EN-A3-L2-RKF03-4",
+      "calibration-EN-A3-L2-RKF04-0",
+      "calibration-EN-A3-L2-RKF04-1",
+      "calibration-EN-A3-L2-RKF04-2",
+      "calibration-EN-A3-L2-RKF04-3",
+      "calibration-EN-A3-L2-RKF04-4",
+      "calibration-EN-A3-L2-RKF05-0",
+      "calibration-EN-A3-L2-RKF05-1",
+      "calibration-EN-A3-L2-RKF05-2",
+      "calibration-EN-A3-L2-RKF05-3",
+      "calibration-EN-A3-L2-RKF05-4",
+      "calibration-EN-A3-B1-RKF01-0",
+      "calibration-EN-A3-B1-RKF01-1",
+      "calibration-EN-A3-B1-RKF01-2",
+      "calibration-EN-A3-B1-RKF01-3",
+      "calibration-EN-A3-B1-RKF01-4",
+      "calibration-EN-A3-B1-RKF02-0",
+      "calibration-EN-A3-B1-RKF02-1",
+      "calibration-EN-A3-B1-RKF02-2",
+      "calibration-EN-A3-B1-RKF02-3",
+      "calibration-EN-A3-B1-RKF02-4",
+      "calibration-EN-A3-B1-RKF03-0",
+      "calibration-EN-A3-B1-RKF03-1",
+      "calibration-EN-A3-B1-RKF03-2",
+      "calibration-EN-A3-B1-RKF03-3",
+      "calibration-EN-A3-B1-RKF03-4",
+      "calibration-EN-A3-B1-RKF04-0",
+      "calibration-EN-A3-B1-RKF04-1",
+      "calibration-EN-A3-B1-RKF04-2",
+      "calibration-EN-A3-B1-RKF04-3",
+      "calibration-EN-A3-B1-RKF04-4",
+      "calibration-EN-A3-B1-RKF05-0",
+      "calibration-EN-A3-B1-RKF05-1",
+      "calibration-EN-A3-B1-RKF05-2",
+      "calibration-EN-A3-B1-RKF05-3",
+      "calibration-EN-A3-B1-RKF05-4",
+      "calibration-EN-A3-B2-RKF01-0",
+      "calibration-EN-A3-B2-RKF01-1",
+      "calibration-EN-A3-B2-RKF01-2",
+      "calibration-EN-A3-B2-RKF01-3",
+      "calibration-EN-A3-B2-RKF01-4",
+      "calibration-EN-A3-B2-RKF02-0",
+      "calibration-EN-A3-B2-RKF02-1",
+      "calibration-EN-A3-B2-RKF02-2",
+      "calibration-EN-A3-B2-RKF02-3",
+      "calibration-EN-A3-B2-RKF02-4",
+      "calibration-EN-A3-B2-RKF03-0",
+      "calibration-EN-A3-B2-RKF03-1",
+      "calibration-EN-A3-B2-RKF03-2",
+      "calibration-EN-A3-B2-RKF03-3",
+      "calibration-EN-A3-B2-RKF03-4",
+      "calibration-EN-A3-B2-RKF04-0",
+      "calibration-EN-A3-B2-RKF04-1",
+      "calibration-EN-A3-B2-RKF04-2",
+      "calibration-EN-A3-B2-RKF04-3",
+      "calibration-EN-A3-B2-RKF04-4",
+      "calibration-EN-A3-B2-RKF05-0",
+      "calibration-EN-A3-B2-RKF05-1",
+      "calibration-EN-A3-B2-RKF05-2",
+      "calibration-EN-A3-B2-RKF05-3",
+      "calibration-EN-A3-B2-RKF05-4",
+      "calibration-EN-A4-C1-RKF01-0",
+      "calibration-EN-A4-C1-RKF01-1",
+      "calibration-EN-A4-C1-RKF01-2",
+      "calibration-EN-A4-C1-RKF01-3",
+      "calibration-EN-A4-C1-RKF01-4",
+      "calibration-EN-A4-C1-RKF02-0",
+      "calibration-EN-A4-C1-RKF02-1",
+      "calibration-EN-A4-C1-RKF02-2",
+      "calibration-EN-A4-C1-RKF02-3",
+      "calibration-EN-A4-C1-RKF02-4",
+      "calibration-EN-A4-C1-RKF03-0",
+      "calibration-EN-A4-C1-RKF03-1",
+      "calibration-EN-A4-C1-RKF03-2",
+      "calibration-EN-A4-C1-RKF03-3",
+      "calibration-EN-A4-C1-RKF03-4",
+      "calibration-EN-A4-C1-RKF04-0",
+      "calibration-EN-A4-C1-RKF04-1",
+      "calibration-EN-A4-C1-RKF04-2",
+      "calibration-EN-A4-C1-RKF04-3",
+      "calibration-EN-A4-C1-RKF04-4",
+      "calibration-EN-A4-C1-RKF05-0",
+      "calibration-EN-A4-C1-RKF05-1",
+      "calibration-EN-A4-C1-RKF05-2",
+      "calibration-EN-A4-C1-RKF05-3",
+      "calibration-EN-A4-C1-RKF05-4",
+      "calibration-EN-A4-C2-RKF01-0",
+      "calibration-EN-A4-C2-RKF01-1",
+      "calibration-EN-A4-C2-RKF01-2",
+      "calibration-EN-A4-C2-RKF01-3",
+      "calibration-EN-A4-C2-RKF01-4",
+      "calibration-EN-A4-C2-RKF02-0",
+      "calibration-EN-A4-C2-RKF02-1",
+      "calibration-EN-A4-C2-RKF02-2",
+      "calibration-EN-A4-C2-RKF02-3",
+      "calibration-EN-A4-C2-RKF02-4",
+      "calibration-EN-A4-C2-RKF03-0",
+      "calibration-EN-A4-C2-RKF03-1",
+      "calibration-EN-A4-C2-RKF03-2",
+      "calibration-EN-A4-C2-RKF03-3",
+      "calibration-EN-A4-C2-RKF03-4",
+      "calibration-EN-A4-C2-RKF04-0",
+      "calibration-EN-A4-C2-RKF04-1",
+      "calibration-EN-A4-C2-RKF04-2",
+      "calibration-EN-A4-C2-RKF04-3",
+      "calibration-EN-A4-C2-RKF04-4",
+      "calibration-EN-A4-C2-RKF05-0",
+      "calibration-EN-A4-C2-RKF05-1",
+      "calibration-EN-A4-C2-RKF05-2",
+      "calibration-EN-A4-C2-RKF05-3",
+      "calibration-EN-A4-C2-RKF05-4",
+      "calibration-EN-A4-C3-RKF01-0",
+      "calibration-EN-A4-C3-RKF01-1",
+      "calibration-EN-A4-C3-RKF01-2",
+      "calibration-EN-A4-C3-RKF01-3",
+      "calibration-EN-A4-C3-RKF01-4",
+      "calibration-EN-A4-C3-RKF02-0",
+      "calibration-EN-A4-C3-RKF02-1",
+      "calibration-EN-A4-C3-RKF02-2",
+      "calibration-EN-A4-C3-RKF02-3",
+      "calibration-EN-A4-C3-RKF02-4",
+      "calibration-EN-A4-C3-RKF03-0",
+      "calibration-EN-A4-C3-RKF03-1",
+      "calibration-EN-A4-C3-RKF03-2",
+      "calibration-EN-A4-C3-RKF03-3",
+      "calibration-EN-A4-C3-RKF03-4",
+      "calibration-EN-A4-C3-RKF04-0",
+      "calibration-EN-A4-C3-RKF04-1",
+      "calibration-EN-A4-C3-RKF04-2",
+      "calibration-EN-A4-C3-RKF04-3",
+      "calibration-EN-A4-C3-RKF04-4",
+      "calibration-EN-A4-C3-RKF05-0",
+      "calibration-EN-A4-C3-RKF05-1",
+      "calibration-EN-A4-C3-RKF05-2",
+      "calibration-EN-A4-C3-RKF05-3",
+      "calibration-EN-A4-C3-RKF05-4",
+      "calibration-EN-A4-C4-RKF01-0",
+      "calibration-EN-A4-C4-RKF01-1",
+      "calibration-EN-A4-C4-RKF01-2",
+      "calibration-EN-A4-C4-RKF01-3",
+      "calibration-EN-A4-C4-RKF01-4",
+      "calibration-EN-A4-C4-RKF02-0",
+      "calibration-EN-A4-C4-RKF02-1",
+      "calibration-EN-A4-C4-RKF02-2",
+      "calibration-EN-A4-C4-RKF02-3",
+      "calibration-EN-A4-C4-RKF02-4",
+      "calibration-EN-A4-C4-RKF03-0",
+      "calibration-EN-A4-C4-RKF03-1",
+      "calibration-EN-A4-C4-RKF03-2",
+      "calibration-EN-A4-C4-RKF03-3",
+      "calibration-EN-A4-C4-RKF03-4",
+      "calibration-EN-A4-C4-RKF04-0",
+      "calibration-EN-A4-C4-RKF04-1",
+      "calibration-EN-A4-C4-RKF04-2",
+      "calibration-EN-A4-C4-RKF04-3",
+      "calibration-EN-A4-C4-RKF04-4",
+      "calibration-EN-A4-C4-RKF05-0",
+      "calibration-EN-A4-C4-RKF05-1",
+      "calibration-EN-A4-C4-RKF05-2",
+      "calibration-EN-A4-C4-RKF05-3",
+      "calibration-EN-A4-C4-RKF05-4",
+      "calibration-EN-A4-L1-RKF01-0",
+      "calibration-EN-A4-L1-RKF01-1",
+      "calibration-EN-A4-L1-RKF01-2",
+      "calibration-EN-A4-L1-RKF01-3",
+      "calibration-EN-A4-L1-RKF01-4",
+      "calibration-EN-A4-L1-RKF02-0",
+      "calibration-EN-A4-L1-RKF02-1",
+      "calibration-EN-A4-L1-RKF02-2",
+      "calibration-EN-A4-L1-RKF02-3",
+      "calibration-EN-A4-L1-RKF02-4",
+      "calibration-EN-A4-L1-RKF03-0",
+      "calibration-EN-A4-L1-RKF03-1",
+      "calibration-EN-A4-L1-RKF03-2",
+      "calibration-EN-A4-L1-RKF03-3",
+      "calibration-EN-A4-L1-RKF03-4",
+      "calibration-EN-A4-L1-RKF04-0",
+      "calibration-EN-A4-L1-RKF04-1",
+      "calibration-EN-A4-L1-RKF04-2",
+      "calibration-EN-A4-L1-RKF04-3",
+      "calibration-EN-A4-L1-RKF04-4",
+      "calibration-EN-A4-L1-RKF05-0",
+      "calibration-EN-A4-L1-RKF05-1",
+      "calibration-EN-A4-L1-RKF05-2",
+      "calibration-EN-A4-L1-RKF05-3",
+      "calibration-EN-A4-L1-RKF05-4",
+      "calibration-EN-A4-L2-RKF01-0",
+      "calibration-EN-A4-L2-RKF01-1",
+      "calibration-EN-A4-L2-RKF01-2",
+      "calibration-EN-A4-L2-RKF01-3",
+      "calibration-EN-A4-L2-RKF01-4",
+      "calibration-EN-A4-L2-RKF02-0",
+      "calibration-EN-A4-L2-RKF02-1",
+      "calibration-EN-A4-L2-RKF02-2",
+      "calibration-EN-A4-L2-RKF02-3",
+      "calibration-EN-A4-L2-RKF02-4",
+      "calibration-EN-A4-L2-RKF03-0",
+      "calibration-EN-A4-L2-RKF03-1",
+      "calibration-EN-A4-L2-RKF03-2",
+      "calibration-EN-A4-L2-RKF03-3",
+      "calibration-EN-A4-L2-RKF03-4",
+      "calibration-EN-A4-L2-RKF04-0",
+      "calibration-EN-A4-L2-RKF04-1",
+      "calibration-EN-A4-L2-RKF04-2",
+      "calibration-EN-A4-L2-RKF04-3",
+      "calibration-EN-A4-L2-RKF04-4",
+      "calibration-EN-A4-L2-RKF05-0",
+      "calibration-EN-A4-L2-RKF05-1",
+      "calibration-EN-A4-L2-RKF05-2",
+      "calibration-EN-A4-L2-RKF05-3",
+      "calibration-EN-A4-L2-RKF05-4",
+      "calibration-EN-A4-B1-RKF01-0",
+      "calibration-EN-A4-B1-RKF01-1",
+      "calibration-EN-A4-B1-RKF01-2",
+      "calibration-EN-A4-B1-RKF01-3",
+      "calibration-EN-A4-B1-RKF01-4",
+      "calibration-EN-A4-B1-RKF02-0",
+      "calibration-EN-A4-B1-RKF02-1",
+      "calibration-EN-A4-B1-RKF02-2",
+      "calibration-EN-A4-B1-RKF02-3",
+      "calibration-EN-A4-B1-RKF02-4",
+      "calibration-EN-A4-B1-RKF03-0",
+      "calibration-EN-A4-B1-RKF03-1",
+      "calibration-EN-A4-B1-RKF03-2",
+      "calibration-EN-A4-B1-RKF03-3",
+      "calibration-EN-A4-B1-RKF03-4",
+      "calibration-EN-A4-B1-RKF04-0",
+      "calibration-EN-A4-B1-RKF04-1",
+      "calibration-EN-A4-B1-RKF04-2",
+      "calibration-EN-A4-B1-RKF04-3",
+      "calibration-EN-A4-B1-RKF04-4",
+      "calibration-EN-A4-B1-RKF05-0",
+      "calibration-EN-A4-B1-RKF05-1",
+      "calibration-EN-A4-B1-RKF05-2",
+      "calibration-EN-A4-B1-RKF05-3",
+      "calibration-EN-A4-B1-RKF05-4",
+      "calibration-EN-A4-B2-RKF01-0",
+      "calibration-EN-A4-B2-RKF01-1",
+      "calibration-EN-A4-B2-RKF01-2",
+      "calibration-EN-A4-B2-RKF01-3",
+      "calibration-EN-A4-B2-RKF01-4",
+      "calibration-EN-A4-B2-RKF02-0",
+      "calibration-EN-A4-B2-RKF02-1",
+      "calibration-EN-A4-B2-RKF02-2",
+      "calibration-EN-A4-B2-RKF02-3",
+      "calibration-EN-A4-B2-RKF02-4",
+      "calibration-EN-A4-B2-RKF03-0",
+      "calibration-EN-A4-B2-RKF03-1",
+      "calibration-EN-A4-B2-RKF03-2",
+      "calibration-EN-A4-B2-RKF03-3",
+      "calibration-EN-A4-B2-RKF03-4",
+      "calibration-EN-A4-B2-RKF04-0",
+      "calibration-EN-A4-B2-RKF04-1",
+      "calibration-EN-A4-B2-RKF04-2",
+      "calibration-EN-A4-B2-RKF04-3",
+      "calibration-EN-A4-B2-RKF04-4",
+      "calibration-EN-A4-B2-RKF05-0",
+      "calibration-EN-A4-B2-RKF05-1",
+      "calibration-EN-A4-B2-RKF05-2",
+      "calibration-EN-A4-B2-RKF05-3",
+      "calibration-EN-A4-B2-RKF05-4",
+      "calibration-EN-F1-RKF01-0",
+      "calibration-EN-F1-RKF01-1",
+      "calibration-EN-F1-RKF01-2",
+      "calibration-EN-F1-RKF01-3",
+      "calibration-EN-F1-RKF01-4",
+      "calibration-EN-F1-RKF02-0",
+      "calibration-EN-F1-RKF02-1",
+      "calibration-EN-F1-RKF02-2",
+      "calibration-EN-F1-RKF02-3",
+      "calibration-EN-F1-RKF02-4",
+      "calibration-EN-F1-RKF03-0",
+      "calibration-EN-F1-RKF03-1",
+      "calibration-EN-F1-RKF03-2",
+      "calibration-EN-F1-RKF03-3",
+      "calibration-EN-F1-RKF03-4",
+      "calibration-EN-F1-RKF04-0",
+      "calibration-EN-F1-RKF04-1",
+      "calibration-EN-F1-RKF04-2",
+      "calibration-EN-F1-RKF04-3",
+      "calibration-EN-F1-RKF04-4",
+      "calibration-EN-F1-RKF05-0",
+      "calibration-EN-F1-RKF05-1",
+      "calibration-EN-F1-RKF05-2",
+      "calibration-EN-F1-RKF05-3",
+      "calibration-EN-F1-RKF05-4",
+      "calibration-EN-F2-RKF01-0",
+      "calibration-EN-F2-RKF01-1",
+      "calibration-EN-F2-RKF01-2",
+      "calibration-EN-F2-RKF01-3",
+      "calibration-EN-F2-RKF01-4",
+      "calibration-EN-F2-RKF02-0",
+      "calibration-EN-F2-RKF02-1",
+      "calibration-EN-F2-RKF02-2",
+      "calibration-EN-F2-RKF02-3",
+      "calibration-EN-F2-RKF02-4",
+      "calibration-EN-F2-RKF03-0",
+      "calibration-EN-F2-RKF03-1",
+      "calibration-EN-F2-RKF03-2",
+      "calibration-EN-F2-RKF03-3",
+      "calibration-EN-F2-RKF03-4",
+      "calibration-EN-F2-RKF04-0",
+      "calibration-EN-F2-RKF04-1",
+      "calibration-EN-F2-RKF04-2",
+      "calibration-EN-F2-RKF04-3",
+      "calibration-EN-F2-RKF04-4",
+      "calibration-EN-F2-RKF05-0",
+      "calibration-EN-F2-RKF05-1",
+      "calibration-EN-F2-RKF05-2",
+      "calibration-EN-F2-RKF05-3",
+      "calibration-EN-F2-RKF05-4"
+    ],
+    "functionalWinSeeds": {
+      "RKF01": "v2-functional-RKF01-0",
+      "RKF02": "v2-functional-RKF02-0",
+      "RKF03": "v2-functional-RKF03-0",
+      "RKF04": "v2-functional-RKF04-0",
+      "RKF05": "v2-functional-RKF05-0"
+    },
+    "functionalWinPolicy": "tests/shanhai-policy.mjs nextCommand(game, steady); real battle and authored enemy stats",
+    "roundLimit": 256,
+    "measuredFieldsRemainNull": true,
+    "referenceBoard": "V2 fixed reference equipment; authored enemy.n; no runtime node growth or rewards",
+    "encounterInputHash": "2137e3d517080f0d95867a1370f0a466eecf2bd66cc0b0bafd91d1324e9115d8",
+    "fullRunInputHash": "a5b85f7a61b8d8f926989b28a70777a2eb3b6c03515a1fb1b53dba0148a8ea5d",
+    "referenceEquipment": {
+      "core": "RC11",
+      "support": [
+        "RC01",
+        "RC03",
+        "RC17"
+      ]
+    }
+  },
+  "encounterSummary": {
+    "EN-A1-C1": {
+      "tier": "normal",
+      "act": 1,
+      "acts": [
+        1
+      ],
+      "segment": "early",
+      "referenceTier": 0,
+      "target": {
+        "rounds": [
+          3,
+          5
+        ],
+        "net_hp_loss_pct": [
+          3,
+          6
+        ],
+        "burst_warning_pct": 12,
+        "observation_window": 15,
+        "note": "首轮普通前段参考目标带，不是胜率或准确命中承诺。"
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 2,
+        "p25": 2,
+        "p50": 3,
+        "p75": 3,
+        "p90": 3
+      },
+      "playerNetHpLossPct": {
+        "p10": 4.31817372359572,
+        "p25": 11.106950838306332,
+        "p50": 13.55479397556124,
+        "p75": 15.55479397556124,
+        "p90": 15.55479397556124
+      },
+      "playerMinimumHp": {
+        "p10": 405.35799033816426,
+        "p25": 430.6705507246377,
+        "p50": 440.87055072463767,
+        "p75": 453.3545507246377,
+        "p90": 487.9773140096618
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 4.31817372359572,
+        "p25": 9.012698683338071,
+        "p50": 9.236620251965522,
+        "p75": 11.236620251965519,
+        "p90": 11.28142085819835
+      },
+      "survivorWinLossPctMedian": 13.55479397556124,
+      "survivorWinSamples": 25,
+      "minRounds": 2,
+      "maxRounds": 3
+    },
+    "EN-A1-C2": {
+      "tier": "normal",
+      "act": 1,
+      "acts": [
+        1
+      ],
+      "segment": "early",
+      "referenceTier": 0,
+      "target": {
+        "rounds": [
+          3,
+          5
+        ],
+        "net_hp_loss_pct": [
+          3,
+          6
+        ],
+        "burst_warning_pct": 12,
+        "observation_window": 15,
+        "note": "首轮普通前段参考目标带，不是胜率或准确命中承诺。"
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 2,
+        "p25": 3,
+        "p50": 3,
+        "p75": 3,
+        "p90": 3
+      },
+      "playerNetHpLossPct": {
+        "p10": 0.41669792554702606,
+        "p25": 1.9659903381642494,
+        "p50": 10.27516908212561,
+        "p75": 13.366956521739137,
+        "p90": 16.072270531400974
+      },
+      "playerMinimumHp": {
+        "p10": 422.463304347826,
+        "p25": 441.8285217391304,
+        "p50": 457.5966376811594,
+        "p75": 499.9734492753623,
+        "p90": 507.87484057971017
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0.41669792554702606,
+        "p25": 1.9659903381642494,
+        "p50": 10.27516908212561,
+        "p75": 12.980483091787448,
+        "p90": 14.106280193236726
+      },
+      "survivorWinLossPctMedian": 10.27516908212561,
+      "survivorWinSamples": 25,
+      "minRounds": 2,
+      "maxRounds": 3
+    },
+    "EN-A1-C3": {
+      "tier": "normal",
+      "act": 1,
+      "acts": [
+        1
+      ],
+      "segment": "late",
+      "referenceTier": 1,
+      "target": {
+        "rounds": [
+          3,
+          5
+        ],
+        "net_hp_loss_pct": [
+          3,
+          6
+        ],
+        "burst_warning_pct": 12,
+        "observation_window": 15,
+        "note": "首轮普通后段参考目标带，不是胜率或准确命中承诺。"
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 2,
+        "p25": 3,
+        "p50": 3,
+        "p75": 3,
+        "p90": 3
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0.9564485473798614,
+        "p75": 6.111724137931041,
+        "p90": 6.111724137931041
+      },
+      "playerMinimumHp": {
+        "p10": 596.1905517241379,
+        "p25": 596.1905517241379,
+        "p50": 628.9265517241379,
+        "p75": 635,
+        "p90": 635
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0.9564485473798614,
+        "p75": 6.111724137931041,
+        "p90": 6.111724137931041
+      },
+      "survivorWinLossPctMedian": 0.9564485473798614,
+      "survivorWinSamples": 25,
+      "minRounds": 2,
+      "maxRounds": 3
+    },
+    "EN-A1-C4": {
+      "tier": "normal",
+      "act": 1,
+      "acts": [
+        1
+      ],
+      "segment": "late",
+      "referenceTier": 1,
+      "target": {
+        "rounds": [
+          3,
+          5
+        ],
+        "net_hp_loss_pct": [
+          3,
+          6
+        ],
+        "burst_warning_pct": 12,
+        "observation_window": 15,
+        "note": "首轮普通后段参考目标带，不是胜率或准确命中承诺。"
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 2,
+        "p25": 3,
+        "p50": 3,
+        "p75": 3,
+        "p90": 4
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0.7177409720336653,
+        "p90": 6.23133315232148
+      },
+      "playerMinimumHp": {
+        "p10": 595.4310344827586,
+        "p25": 630.4423448275862,
+        "p50": 635,
+        "p75": 635,
+        "p90": 635
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0.7177409720336653,
+        "p90": 5.513592180287814
+      },
+      "survivorWinLossPctMedian": 0,
+      "survivorWinSamples": 25,
+      "minRounds": 2,
+      "maxRounds": 4
+    },
+    "EN-A1-L1": {
+      "tier": "elite",
+      "act": 1,
+      "acts": [
+        1
+      ],
+      "segment": "elite",
+      "referenceTier": 1,
+      "target": {
+        "rounds": [
+          5,
+          8
+        ],
+        "net_hp_loss_pct": [
+          8,
+          14
+        ],
+        "burst_warning_pct": 22,
+        "observation_window": 15,
+        "note": "首轮精英参考目标带，不是胜率、TTK或准确命中承诺。"
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 3,
+        "p25": 3,
+        "p50": 3,
+        "p75": 4,
+        "p90": 5
+      },
+      "playerNetHpLossPct": {
+        "p10": 8.297301113222913,
+        "p25": 14.377075210426282,
+        "p50": 24.172098832473544,
+        "p75": 30.708943795818655,
+        "p90": 35.156405104534365
+      },
+      "playerMinimumHp": {
+        "p10": 386.2213793103448,
+        "p25": 439.99820689655155,
+        "p50": 481.507172413793,
+        "p75": 543.7055724137931,
+        "p90": 549.5761379310344
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 8.297301113222913,
+        "p25": 10.874938908498512,
+        "p50": 13.45257670377411,
+        "p75": 14.536844963345102,
+        "p90": 15.020363833831121
+      },
+      "survivorWinLossPctMedian": 24.172098832473544,
+      "survivorWinSamples": 25,
+      "minRounds": 2,
+      "maxRounds": 5
+    },
+    "EN-A1-L2": {
+      "tier": "elite",
+      "act": 1,
+      "acts": [
+        1
+      ],
+      "segment": "elite",
+      "referenceTier": 1,
+      "target": {
+        "rounds": [
+          5,
+          8
+        ],
+        "net_hp_loss_pct": [
+          8,
+          14
+        ],
+        "burst_warning_pct": 22,
+        "observation_window": 15,
+        "note": "首轮精英参考目标带，不是胜率、TTK或准确命中承诺。"
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 4,
+        "p25": 4,
+        "p50": 4,
+        "p75": 4,
+        "p90": 6
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 3.4723408794098853,
+        "p50": 10.947490485709087,
+        "p75": 10.947490485709087,
+        "p90": 14.741951522907017
+      },
+      "playerMinimumHp": {
+        "p10": 539.4696423122989,
+        "p25": 565.4834354157473,
+        "p50": 565.4834354157473,
+        "p75": 612.9506354157472,
+        "p90": 635
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 3.250956138709361,
+        "p50": 5.570830154457383,
+        "p75": 5.570830154457383,
+        "p90": 7.588922074395879
+      },
+      "survivorWinLossPctMedian": 10.947490485709087,
+      "survivorWinSamples": 25,
+      "minRounds": 4,
+      "maxRounds": 7
+    },
+    "EN-A1-B1": {
+      "tier": "boss",
+      "act": 1,
+      "acts": [
+        1
+      ],
+      "segment": "boss_entry",
+      "referenceTier": 1,
+      "target": {
+        "rounds": [
+          6,
+          10
+        ],
+        "net_hp_loss_pct": [
+          12,
+          20
+        ],
+        "burst_warning_pct": 30,
+        "observation_window": 15,
+        "note": "首轮幕首领参考目标带，不是胜率、TTK或准确命中承诺。"
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 5,
+        "p25": 5,
+        "p50": 5,
+        "p75": 6,
+        "p90": 8
+      },
+      "playerNetHpLossPct": {
+        "p10": 18.20121639967419,
+        "p25": 21.235060548465942,
+        "p50": 31.422003801249005,
+        "p75": 34.035362476242206,
+        "p90": 37.93137116481134
+      },
+      "playerMinimumHp": {
+        "p10": 321.3797586206893,
+        "p25": 418.87544827586197,
+        "p50": 435.47027586206883,
+        "p75": 500.15736551724126,
+        "p90": 510.30942068965516
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 5.939451534075481,
+        "p25": 7.400640781971224,
+        "p50": 9.978278577246813,
+        "p75": 9.978278577246822,
+        "p90": 11.308715720879729
+      },
+      "survivorWinLossPctMedian": 31.422003801249005,
+      "survivorWinSamples": 25,
+      "minRounds": 5,
+      "maxRounds": 10
+    },
+    "EN-A1-B2": {
+      "tier": "boss",
+      "act": 1,
+      "acts": [
+        1
+      ],
+      "segment": "boss_entry",
+      "referenceTier": 1,
+      "target": {
+        "rounds": [
+          6,
+          10
+        ],
+        "net_hp_loss_pct": [
+          12,
+          20
+        ],
+        "burst_warning_pct": 30,
+        "observation_window": 15,
+        "note": "首轮幕首领参考目标带，不是胜率、TTK或准确命中承诺。"
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 3,
+        "p25": 3,
+        "p50": 4,
+        "p75": 5,
+        "p90": 8
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 1.4192826500135827,
+        "p75": 9.007874015748039,
+        "p90": 9.424077111050785
+      },
+      "playerMinimumHp": {
+        "p10": 569.8071103448275,
+        "p25": 577.6859999999999,
+        "p50": 625.9875551724137,
+        "p75": 635,
+        "p90": 635
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 1.4192826500135827,
+        "p75": 4.157480314960626,
+        "p90": 4.857707846863968
+      },
+      "survivorWinLossPctMedian": 1.4192826500135827,
+      "survivorWinSamples": 25,
+      "minRounds": 3,
+      "maxRounds": 8
+    },
+    "EN-A2-C1": {
+      "tier": "normal",
+      "act": 2,
+      "acts": [
+        2
+      ],
+      "segment": "early",
+      "referenceTier": 1,
+      "target": {
+        "rounds": [
+          3,
+          5
+        ],
+        "net_hp_loss_pct": [
+          3,
+          6
+        ],
+        "burst_warning_pct": 12,
+        "observation_window": 15,
+        "note": "首轮第二幕普通前段参考目标带，不是胜率或准确命中承诺。"
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 2,
+        "p25": 3,
+        "p50": 3,
+        "p75": 3,
+        "p90": 4
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p90": 1.498169970133042
+      },
+      "playerMinimumHp": {
+        "p10": 623.3178620689654,
+        "p25": 635,
+        "p50": 635,
+        "p75": 635,
+        "p90": 635
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p90": 1.498169970133042
+      },
+      "survivorWinLossPctMedian": 0,
+      "survivorWinSamples": 25,
+      "minRounds": 2,
+      "maxRounds": 4
+    },
+    "EN-A2-C2": {
+      "tier": "normal",
+      "act": 2,
+      "acts": [
+        2
+      ],
+      "segment": "early",
+      "referenceTier": 1,
+      "target": {
+        "rounds": [
+          3,
+          5
+        ],
+        "net_hp_loss_pct": [
+          3,
+          6
+        ],
+        "burst_warning_pct": 12,
+        "observation_window": 15,
+        "note": "首轮第二幕普通前段参考目标带，不是胜率或准确命中承诺。"
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 2,
+        "p25": 3,
+        "p50": 3,
+        "p75": 3,
+        "p90": 4
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 3.5303393972305175,
+        "p90": 4.900896008688573
+      },
+      "playerMinimumHp": {
+        "p10": 603.8793103448276,
+        "p25": 612.5823448275862,
+        "p50": 635,
+        "p75": 635,
+        "p90": 635
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 3.5303393972305175,
+        "p90": 4.900896008688573
+      },
+      "survivorWinLossPctMedian": 0,
+      "survivorWinSamples": 25,
+      "minRounds": 2,
+      "maxRounds": 4
+    },
+    "EN-A2-C3": {
+      "tier": "normal",
+      "act": 2,
+      "acts": [
+        2
+      ],
+      "segment": "late",
+      "referenceTier": 2,
+      "target": {
+        "rounds": [
+          3,
+          5
+        ],
+        "net_hp_loss_pct": [
+          3,
+          6
+        ],
+        "burst_warning_pct": 12,
+        "observation_window": 15,
+        "note": "首轮第二幕普通后段参考目标带，不是胜率或准确命中承诺。"
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 2,
+        "p25": 3,
+        "p50": 3,
+        "p75": 3,
+        "p90": 3
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p90": 0
+      },
+      "playerMinimumHp": {
+        "p10": 785,
+        "p25": 785,
+        "p50": 785,
+        "p75": 785,
+        "p90": 785
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p90": 0
+      },
+      "survivorWinLossPctMedian": 0,
+      "survivorWinSamples": 25,
+      "minRounds": 2,
+      "maxRounds": 3
+    },
+    "EN-A2-C4": {
+      "tier": "normal",
+      "act": 2,
+      "acts": [
+        2
+      ],
+      "segment": "late",
+      "referenceTier": 2,
+      "target": {
+        "rounds": [
+          3,
+          5
+        ],
+        "net_hp_loss_pct": [
+          3,
+          6
+        ],
+        "burst_warning_pct": 12,
+        "observation_window": 15,
+        "note": "首轮第二幕普通后段参考目标带，不是胜率或准确命中承诺。"
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 2,
+        "p25": 3,
+        "p50": 3,
+        "p75": 3,
+        "p90": 3
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p90": 0
+      },
+      "playerMinimumHp": {
+        "p10": 785,
+        "p25": 785,
+        "p50": 785,
+        "p75": 785,
+        "p90": 785
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p90": 0
+      },
+      "survivorWinLossPctMedian": 0,
+      "survivorWinSamples": 25,
+      "minRounds": 2,
+      "maxRounds": 3
+    },
+    "EN-A2-L1": {
+      "tier": "elite",
+      "act": 2,
+      "acts": [
+        2
+      ],
+      "segment": "elite",
+      "referenceTier": 2,
+      "target": {
+        "rounds": [
+          5,
+          8
+        ],
+        "net_hp_loss_pct": [
+          8,
+          14
+        ],
+        "burst_warning_pct": 22,
+        "observation_window": 15,
+        "note": "首轮第二幕精英参考目标带，不是胜率、TTK或准确命中承诺。"
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 2,
+        "p25": 3,
+        "p50": 3,
+        "p75": 3,
+        "p90": 3
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p90": 0
+      },
+      "playerMinimumHp": {
+        "p10": 785,
+        "p25": 785,
+        "p50": 785,
+        "p75": 785,
+        "p90": 785
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p90": 0
+      },
+      "survivorWinLossPctMedian": 0,
+      "survivorWinSamples": 25,
+      "minRounds": 2,
+      "maxRounds": 3
+    },
+    "EN-A2-L2": {
+      "tier": "elite",
+      "act": 2,
+      "acts": [
+        2
+      ],
+      "segment": "elite",
+      "referenceTier": 2,
+      "target": {
+        "rounds": [
+          5,
+          8
+        ],
+        "net_hp_loss_pct": [
+          8,
+          14
+        ],
+        "burst_warning_pct": 22,
+        "observation_window": 15,
+        "note": "首轮第二幕精英参考目标带，不是胜率、TTK或准确命中承诺。"
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 3,
+        "p25": 3,
+        "p50": 3,
+        "p75": 3,
+        "p90": 5
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p90": 3.560648343205528
+      },
+      "playerMinimumHp": {
+        "p10": 743.4794552529183,
+        "p25": 785,
+        "p50": 785,
+        "p75": 785,
+        "p90": 785
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p90": 2.289241369054994
+      },
+      "survivorWinLossPctMedian": 0,
+      "survivorWinSamples": 25,
+      "minRounds": 2,
+      "maxRounds": 5
+    },
+    "EN-A2-B1": {
+      "tier": "boss",
+      "act": 2,
+      "acts": [
+        2
+      ],
+      "segment": "boss_entry",
+      "referenceTier": 2,
+      "target": {
+        "rounds": [
+          8,
+          12
+        ],
+        "net_hp_loss_pct": [
+          12,
+          20
+        ],
+        "burst_warning_pct": 30,
+        "observation_window": 15,
+        "note": "首轮第二幕首领参考目标带，不是胜率、TTK或准确命中承诺。"
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 4,
+        "p25": 5,
+        "p50": 5,
+        "p75": 5,
+        "p90": 8
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 7.510321445388993,
+        "p75": 8.606516543160955,
+        "p90": 8.606516543160955
+      },
+      "playerMinimumHp": {
+        "p10": 696.552810894941,
+        "p25": 717.4388451361865,
+        "p50": 726.0439766536964,
+        "p75": 785,
+        "p90": 785
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 3.3354860839178464,
+        "p75": 4.740377803663058,
+        "p90": 5.592058291407475
+      },
+      "survivorWinLossPctMedian": 7.510321445388993,
+      "survivorWinSamples": 25,
+      "minRounds": 4,
+      "maxRounds": 8
+    },
+    "EN-A2-B2": {
+      "tier": "boss",
+      "act": 2,
+      "acts": [
+        2
+      ],
+      "segment": "boss_entry",
+      "referenceTier": 2,
+      "target": {
+        "rounds": [
+          8,
+          12
+        ],
+        "net_hp_loss_pct": [
+          12,
+          20
+        ],
+        "burst_warning_pct": 30,
+        "observation_window": 15,
+        "note": "首轮第二幕首领参考目标带，不是胜率、TTK或准确命中承诺。"
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 4,
+        "p25": 4,
+        "p50": 5,
+        "p75": 5,
+        "p90": 7
+      },
+      "playerNetHpLossPct": {
+        "p10": 1.6157624386668703,
+        "p25": 5.057383330441889,
+        "p50": 10.291713797120131,
+        "p75": 12.295737688666389,
+        "p90": 13.878456962997902
+      },
+      "playerMinimumHp": {
+        "p10": 670.0618949416338,
+        "p25": 688.4784591439688,
+        "p50": 704.210046692607,
+        "p75": 745.2995408560312,
+        "p90": 755.7559379513107
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 1.1423283409323057,
+        "p25": 2.9373833304418824,
+        "p50": 5.234330466678243,
+        "p75": 6.761010186126058,
+        "p90": 6.870058737515186
+      },
+      "survivorWinLossPctMedian": 10.291713797120131,
+      "survivorWinSamples": 25,
+      "minRounds": 3,
+      "maxRounds": 7
+    },
+    "EN-A3-C1": {
+      "tier": "normal",
+      "act": 3,
+      "acts": [
+        3
+      ],
+      "segment": "early",
+      "referenceTier": 2,
+      "target": {
+        "rounds": [
+          3,
+          5
+        ],
+        "net_hp_loss_pct": [
+          3,
+          6
+        ],
+        "burst_warning_pct": 12
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 3,
+        "p25": 3,
+        "p50": 4,
+        "p75": 4,
+        "p90": 6
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 2.2831088750650554,
+        "p50": 3.1133792255957,
+        "p75": 10.676981337827447,
+        "p90": 14.886545391459505
+      },
+      "playerMinimumHp": {
+        "p10": 631.635832684825,
+        "p25": 701.1856964980545,
+        "p50": 760.5599730790738,
+        "p75": 767.0775953307393,
+        "p90": 785
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 2.2831088750650554,
+        "p50": 3.1133792255957,
+        "p75": 6.0778358819301515,
+        "p90": 6.3455005080671185
+      },
+      "survivorWinLossPctMedian": 3.1133792255957,
+      "survivorWinSamples": 25,
+      "minRounds": 3,
+      "maxRounds": 7
+    },
+    "EN-A3-C2": {
+      "tier": "normal",
+      "act": 3,
+      "acts": [
+        3
+      ],
+      "segment": "early",
+      "referenceTier": 2,
+      "target": {
+        "rounds": [
+          3,
+          5
+        ],
+        "net_hp_loss_pct": [
+          3,
+          6
+        ],
+        "burst_warning_pct": 12
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 2,
+        "p25": 3,
+        "p50": 3,
+        "p75": 3,
+        "p90": 4
+      },
+      "playerNetHpLossPct": {
+        "p10": 6.904785744380288,
+        "p25": 6.908739250043371,
+        "p50": 11.767415781876924,
+        "p75": 15.384785744380286,
+        "p90": 16.037478500086756
+      },
+      "playerMinimumHp": {
+        "p10": 659.105793774319,
+        "p25": 664.2294319066148,
+        "p50": 692.6257861122662,
+        "p75": 730.7663968871595,
+        "p90": 730.7974319066147
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 4.236046494336916,
+        "p25": 5.328244135940161,
+        "p50": 6.908739250043371,
+        "p75": 8.476046494336915,
+        "p90": 11.152692755706466
+      },
+      "survivorWinLossPctMedian": 11.767415781876924,
+      "survivorWinSamples": 25,
+      "minRounds": 2,
+      "maxRounds": 4
+    },
+    "EN-A3-C3": {
+      "tier": "normal",
+      "act": 3,
+      "acts": [
+        3
+      ],
+      "segment": "late",
+      "referenceTier": 3,
+      "target": {
+        "rounds": [
+          3,
+          5
+        ],
+        "net_hp_loss_pct": [
+          3,
+          6
+        ],
+        "burst_warning_pct": 12
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 2,
+        "p25": 2,
+        "p50": 3,
+        "p75": 3,
+        "p90": 3
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p90": 0
+      },
+      "playerMinimumHp": {
+        "p10": 960,
+        "p25": 960,
+        "p50": 960,
+        "p75": 960,
+        "p90": 960
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p90": 0
+      },
+      "survivorWinLossPctMedian": 0,
+      "survivorWinSamples": 25,
+      "minRounds": 2,
+      "maxRounds": 3
+    },
+    "EN-A3-C4": {
+      "tier": "normal",
+      "act": 3,
+      "acts": [
+        3
+      ],
+      "segment": "late",
+      "referenceTier": 3,
+      "target": {
+        "rounds": [
+          3,
+          5
+        ],
+        "net_hp_loss_pct": [
+          3,
+          6
+        ],
+        "burst_warning_pct": 12
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 2,
+        "p25": 2,
+        "p50": 3,
+        "p75": 3,
+        "p90": 4
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 2.4357326872724983,
+        "p90": 11.232891986062677
+      },
+      "playerMinimumHp": {
+        "p10": 852.1642369337983,
+        "p25": 936.616966202184,
+        "p50": 960,
+        "p75": 960,
+        "p90": 960
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 2.4357326872724983,
+        "p90": 5.299790940766513
+      },
+      "survivorWinLossPctMedian": 0,
+      "survivorWinSamples": 25,
+      "minRounds": 2,
+      "maxRounds": 4
+    },
+    "EN-A3-L1": {
+      "tier": "elite",
+      "act": 3,
+      "acts": [
+        3
+      ],
+      "segment": "elite",
+      "referenceTier": 3,
+      "target": {
+        "rounds": [
+          5,
+          8
+        ],
+        "net_hp_loss_pct": [
+          8,
+          14
+        ],
+        "burst_warning_pct": 22
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 2,
+        "p25": 3,
+        "p50": 3,
+        "p75": 3,
+        "p90": 5
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 0.3989861943078429,
+        "p50": 2.523902439024385,
+        "p75": 8.964213124274103,
+        "p90": 12.56910569105692
+      },
+      "playerMinimumHp": {
+        "p10": 839.3365853658536,
+        "p25": 873.9435540069686,
+        "p50": 935.7705365853659,
+        "p75": 956.1697325346447,
+        "p90": 960
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 0.3989861943078429,
+        "p50": 2.523902439024385,
+        "p75": 6.697828106852495,
+        "p90": 10.65040650406504
+      },
+      "survivorWinLossPctMedian": 2.523902439024385,
+      "survivorWinSamples": 25,
+      "minRounds": 2,
+      "maxRounds": 5
+    },
+    "EN-A3-L2": {
+      "tier": "elite",
+      "act": 3,
+      "acts": [
+        3
+      ],
+      "segment": "elite",
+      "referenceTier": 3,
+      "target": {
+        "rounds": [
+          5,
+          8
+        ],
+        "net_hp_loss_pct": [
+          8,
+          14
+        ],
+        "burst_warning_pct": 22
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 3,
+        "p25": 3,
+        "p50": 3,
+        "p75": 4,
+        "p90": 9
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0.7238397212543528,
+        "p90": 10.443126596980257
+      },
+      "playerMinimumHp": {
+        "p10": 859.7459846689895,
+        "p25": 953.0511386759582,
+        "p50": 960,
+        "p75": 960,
+        "p90": 960
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0.7238397212543528,
+        "p90": 4.420775842044134
+      },
+      "survivorWinLossPctMedian": 0,
+      "survivorWinSamples": 25,
+      "minRounds": 2,
+      "maxRounds": 10
+    },
+    "EN-A3-B1": {
+      "tier": "boss",
+      "act": 3,
+      "acts": [
+        3
+      ],
+      "segment": "boss_entry",
+      "referenceTier": 3,
+      "target": {
+        "rounds": [
+          8,
+          12
+        ],
+        "net_hp_loss_pct": [
+          12,
+          20
+        ],
+        "burst_warning_pct": 30
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 3,
+        "p25": 3,
+        "p50": 4,
+        "p75": 4,
+        "p90": 6
+      },
+      "playerNetHpLossPct": {
+        "p10": 4.412819396051107,
+        "p25": 4.786567829352926,
+        "p50": 9.479478008023664,
+        "p75": 15.285226480836252,
+        "p90": 22.28348432055751
+      },
+      "playerMinimumHp": {
+        "p10": 730.750327526132,
+        "p25": 813.261825783972,
+        "p50": 868.9970111229728,
+        "p75": 914.0489488382119,
+        "p90": 917.6369337979094
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 3.6506242740998944,
+        "p25": 4.5877259001161494,
+        "p50": 8.3027112657881,
+        "p75": 14.449477351916377,
+        "p90": 15.285226480836242
+      },
+      "survivorWinLossPctMedian": 9.479478008023664,
+      "survivorWinSamples": 25,
+      "minRounds": 3,
+      "maxRounds": 6
+    },
+    "EN-A3-B2": {
+      "tier": "boss",
+      "act": 3,
+      "acts": [
+        3
+      ],
+      "segment": "boss_entry",
+      "referenceTier": 3,
+      "target": {
+        "rounds": [
+          8,
+          12
+        ],
+        "net_hp_loss_pct": [
+          12,
+          20
+        ],
+        "burst_warning_pct": 30
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 3,
+        "p25": 3,
+        "p50": 4,
+        "p75": 4,
+        "p90": 7
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 2.818796113460979,
+        "p90": 15.401950910429735
+      },
+      "playerMinimumHp": {
+        "p10": 812.1412712598745,
+        "p25": 932.9395573107746,
+        "p50": 960,
+        "p75": 960,
+        "p90": 960
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 2.818796113460979,
+        "p90": 6.948379446794313
+      },
+      "survivorWinLossPctMedian": 0,
+      "survivorWinSamples": 25,
+      "minRounds": 3,
+      "maxRounds": 7
+    },
+    "EN-A4-C1": {
+      "tier": "normal",
+      "act": 4,
+      "acts": [
+        4
+      ],
+      "segment": "early",
+      "referenceTier": 3,
+      "target": {
+        "rounds": [
+          3,
+          5
+        ],
+        "net_hp_loss_pct": [
+          3,
+          6
+        ],
+        "burst_warning_pct": 12
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 15,
+        "lost": 10,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 4,
+        "p25": 4,
+        "p50": 6,
+        "p75": 11,
+        "p90": 12
+      },
+      "playerNetHpLossPct": {
+        "p10": 23.11063153310105,
+        "p25": 26.679381533101036,
+        "p50": 41.13418118466898,
+        "p75": 100,
+        "p90": 100
+      },
+      "playerMinimumHp": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 565.1118606271777,
+        "p75": 703.87793728223,
+        "p90": 738.1379372822299
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 9.879132984901275,
+        "p25": 10.778623693379798,
+        "p50": 13.257935540069685,
+        "p75": 14.856782810685257,
+        "p90": 14.934982578397207
+      },
+      "survivorWinLossPctMedian": 26.83083042973286,
+      "survivorWinSamples": 15,
+      "minRounds": 3,
+      "maxRounds": 13
+    },
+    "EN-A4-C2": {
+      "tier": "normal",
+      "act": 4,
+      "acts": [
+        4
+      ],
+      "segment": "early",
+      "referenceTier": 3,
+      "target": {
+        "rounds": [
+          3,
+          5
+        ],
+        "net_hp_loss_pct": [
+          3,
+          6
+        ],
+        "burst_warning_pct": 12
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 4,
+        "p25": 4,
+        "p50": 4,
+        "p75": 5,
+        "p90": 8
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0.7391840882694585,
+        "p75": 7.999211672473868,
+        "p90": 8.20725464576076
+      },
+      "playerMinimumHp": {
+        "p10": 844.4716794425085,
+        "p25": 883.2075679442509,
+        "p50": 952.9038327526132,
+        "p75": 960,
+        "p90": 960
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0.7391840882694585,
+        "p75": 4.868767421602793,
+        "p90": 6.011360336817653
+      },
+      "survivorWinLossPctMedian": 0.7391840882694585,
+      "survivorWinSamples": 25,
+      "minRounds": 3,
+      "maxRounds": 8
+    },
+    "EN-A4-C3": {
+      "tier": "normal",
+      "act": 4,
+      "acts": [
+        4
+      ],
+      "segment": "late",
+      "referenceTier": 4,
+      "target": {
+        "rounds": [
+          3,
+          5
+        ],
+        "net_hp_loss_pct": [
+          3,
+          6
+        ],
+        "burst_warning_pct": 12
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 2,
+        "p25": 3,
+        "p50": 3,
+        "p75": 3,
+        "p90": 4
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p90": 4.338409514388908
+      },
+      "playerMinimumHp": {
+        "p10": 1082.4322641499634,
+        "p25": 1160,
+        "p50": 1160,
+        "p75": 1160,
+        "p90": 1160
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p90": 3.541190906627129
+      },
+      "survivorWinLossPctMedian": 0,
+      "survivorWinSamples": 25,
+      "minRounds": 2,
+      "maxRounds": 5
+    },
+    "EN-A4-C4": {
+      "tier": "normal",
+      "act": 4,
+      "acts": [
+        4
+      ],
+      "segment": "late",
+      "referenceTier": 4,
+      "target": {
+        "rounds": [
+          3,
+          5
+        ],
+        "net_hp_loss_pct": [
+          3,
+          6
+        ],
+        "burst_warning_pct": 12
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 3,
+        "p25": 3,
+        "p50": 4,
+        "p75": 4,
+        "p90": 7
+      },
+      "playerNetHpLossPct": {
+        "p10": 13.26020047737545,
+        "p25": 14.429829942171772,
+        "p50": 15.021967873206249,
+        "p75": 24.057554080102815,
+        "p90": 41.8273386164061
+      },
+      "playerMinimumHp": {
+        "p10": 646.207667080745,
+        "p25": 880.9323726708074,
+        "p50": 985.7451726708075,
+        "p75": 992.6139726708075,
+        "p90": 1006.1816744624448
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 12.092118815702602,
+        "p25": 14.429829942171772,
+        "p50": 15.021967873206249,
+        "p75": 16.561934461340762,
+        "p90": 22.229470978796318
+      },
+      "survivorWinLossPctMedian": 15.021967873206249,
+      "survivorWinSamples": 25,
+      "minRounds": 3,
+      "maxRounds": 7
+    },
+    "EN-A4-L1": {
+      "tier": "elite",
+      "act": 4,
+      "acts": [
+        4
+      ],
+      "segment": "elite",
+      "referenceTier": 4,
+      "target": {
+        "rounds": [
+          5,
+          8
+        ],
+        "net_hp_loss_pct": [
+          8,
+          14
+        ],
+        "burst_warning_pct": 22
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 3,
+        "p25": 4,
+        "p50": 5,
+        "p75": 6,
+        "p90": 17
+      },
+      "playerNetHpLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p90": 1.9737331334332882
+      },
+      "playerMinimumHp": {
+        "p10": 1124.8765217391303,
+        "p25": 1160,
+        "p50": 1160,
+        "p75": 1160,
+        "p90": 1160
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p90": 1.9737331334332882
+      },
+      "survivorWinLossPctMedian": 0,
+      "survivorWinSamples": 25,
+      "minRounds": 3,
+      "maxRounds": 19
+    },
+    "EN-A4-L2": {
+      "tier": "elite",
+      "act": 4,
+      "acts": [
+        4
+      ],
+      "segment": "elite",
+      "referenceTier": 4,
+      "target": {
+        "rounds": [
+          5,
+          8
+        ],
+        "net_hp_loss_pct": [
+          8,
+          14
+        ],
+        "burst_warning_pct": 22
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 3,
+        "p25": 3,
+        "p50": 4,
+        "p75": 5,
+        "p90": 7
+      },
+      "playerNetHpLossPct": {
+        "p10": 9.326857571214386,
+        "p25": 9.908173449086034,
+        "p50": 14.55506618119513,
+        "p75": 24.2846819447419,
+        "p90": 42.987093210537566
+      },
+      "playerMinimumHp": {
+        "p10": 660.1018176397521,
+        "p25": 878.297689440994,
+        "p50": 991.1612322981365,
+        "p75": 1045.065187990602,
+        "p90": 1047.0704695652173
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 8.666752623688149,
+        "p25": 9.447423259798667,
+        "p50": 10.39662454487042,
+        "p75": 11.187625615763544,
+        "p90": 12.374127222103231
+      },
+      "survivorWinLossPctMedian": 14.55506618119513,
+      "survivorWinSamples": 25,
+      "minRounds": 2,
+      "maxRounds": 7
+    },
+    "EN-A4-B1": {
+      "tier": "boss",
+      "act": 4,
+      "acts": [
+        4
+      ],
+      "segment": "boss_entry",
+      "referenceTier": 4,
+      "target": {
+        "rounds": [
+          8,
+          12
+        ],
+        "net_hp_loss_pct": [
+          12,
+          20
+        ],
+        "burst_warning_pct": 30
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 20,
+        "lost": 5,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 4,
+        "p25": 4,
+        "p50": 5,
+        "p75": 6,
+        "p90": 21
+      },
+      "playerNetHpLossPct": {
+        "p10": 10.235871604653088,
+        "p25": 12.51597001499252,
+        "p50": 15.515809381023777,
+        "p75": 27.3445213107732,
+        "p90": 100
+      },
+      "playerMinimumHp": {
+        "p10": 0,
+        "p25": 842.8035527950309,
+        "p50": 980.0166111801242,
+        "p75": 1014.8147478260868,
+        "p90": 1039.4711503105589
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 4.258608695652168,
+        "p25": 5.304095818862969,
+        "p50": 9.198401799100454,
+        "p75": 10.577211394302845,
+        "p90": 12.910419790104946
+      },
+      "survivorWinLossPctMedian": 14.738073249089755,
+      "survivorWinSamples": 20,
+      "minRounds": 4,
+      "maxRounds": 25
+    },
+    "EN-A4-B2": {
+      "tier": "boss",
+      "act": 4,
+      "acts": [
+        4
+      ],
+      "segment": "boss_entry",
+      "referenceTier": 4,
+      "target": {
+        "rounds": [
+          8,
+          12
+        ],
+        "net_hp_loss_pct": [
+          12,
+          20
+        ],
+        "burst_warning_pct": 30
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 20,
+        "lost": 5,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 5,
+        "p25": 6,
+        "p50": 9,
+        "p75": 10,
+        "p90": 18
+      },
+      "playerNetHpLossPct": {
+        "p10": 17.64886740158735,
+        "p25": 19.249493629643418,
+        "p50": 38.407942745114624,
+        "p75": 48.88654507312489,
+        "p90": 100
+      },
+      "playerMinimumHp": {
+        "p10": 0,
+        "p25": 592.9160771517512,
+        "p50": 714.4678641566703,
+        "p75": 936.7058738961364,
+        "p90": 951.2213957853423
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 5.787558542341937,
+        "p25": 7.9860443513096335,
+        "p50": 8.698705792337801,
+        "p75": 11.205895898848635,
+        "p90": 11.439834430526814
+      },
+      "survivorWinLossPctMedian": 22.434043881260937,
+      "survivorWinSamples": 20,
+      "minRounds": 4,
+      "maxRounds": 20
+    },
+    "EN-F1": {
+      "tier": "final",
+      "act": 5,
+      "acts": [
+        5
+      ],
+      "segment": "final",
+      "referenceTier": 4,
+      "target": {
+        "rounds": [
+          10,
+          15
+        ],
+        "net_hp_loss_pct": [
+          18,
+          30
+        ],
+        "burst_warning_pct": 35
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 5,
+        "p25": 6,
+        "p50": 8,
+        "p75": 8,
+        "p90": 14
+      },
+      "playerNetHpLossPct": {
+        "p10": 30.176743628185896,
+        "p25": 37.34503448275861,
+        "p50": 50.247958020989515,
+        "p75": 56.06480395393103,
+        "p90": 76.35404797601197
+      },
+      "playerMinimumHp": {
+        "p10": 234.6789565217392,
+        "p25": 509.6482741344,
+        "p50": 577.1236869565216,
+        "p75": 726.7976000000002,
+        "p90": 755.0468521739131
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 17.907733133433265,
+        "p25": 20.493355322338825,
+        "p50": 22.009745127436283,
+        "p75": 23.697526236881554,
+        "p90": 24.90404797601201
+      },
+      "survivorWinLossPctMedian": 50.247958020989515,
+      "survivorWinSamples": 25,
+      "minRounds": 5,
+      "maxRounds": 14
+    },
+    "EN-F2": {
+      "tier": "final",
+      "act": 5,
+      "acts": [
+        5
+      ],
+      "segment": "final",
+      "referenceTier": 4,
+      "target": {
+        "rounds": [
+          10,
+          15
+        ],
+        "net_hp_loss_pct": [
+          18,
+          30
+        ],
+        "burst_warning_pct": 35
+      },
+      "samples": 25,
+      "outcomes": {
+        "won": 25,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "p10": 6,
+        "p25": 7,
+        "p50": 9,
+        "p75": 10,
+        "p90": 21
+      },
+      "playerNetHpLossPct": {
+        "p10": 4.479551938316545,
+        "p25": 13.313821375026755,
+        "p50": 21.512098510916722,
+        "p75": 42.38708931248661,
+        "p90": 58.21542086099812
+      },
+      "playerMinimumHp": {
+        "p10": 367.5334161490676,
+        "p25": 668.3097639751553,
+        "p50": 910.459657273366,
+        "p75": 1005.5596720496897,
+        "p90": 1074.0161093167703
+      },
+      "maxSingleRoundNetLossPct": {
+        "p10": 3.3173279074748248,
+        "p25": 7.061526976400775,
+        "p50": 10.598431355750693,
+        "p75": 12.616191904047975,
+        "p90": 12.616191904047975
+      },
+      "survivorWinLossPctMedian": 21.512098510916722,
+      "survivorWinSamples": 25,
+      "minRounds": 6,
+      "maxRounds": 22
+    }
+  },
+  "fullRunSummary": {
+    "outcomes": {
+      "won": 14,
+      "lost": 11,
+      "undecided": 0,
+      "error": 0
+    },
+    "byMethod": {
+      "RKF01": {
+        "runs": 5,
+        "outcomes": {
+          "won": 5,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "furthestAct": 5,
+        "furthestNode": 45,
+        "finalHp": [
+          825.443327877344,
+          102.17982522441127,
+          113.32446927922058,
+          556.5304416684445,
+          1144.5096733944954
+        ],
+        "finalBattleRounds": [
+          8,
+          8,
+          6,
+          11,
+          5
+        ]
+      },
+      "RKF02": {
+        "runs": 5,
+        "outcomes": {
+          "won": 5,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "furthestAct": 5,
+        "furthestNode": 45,
+        "finalHp": [
+          781.1824169154637,
+          99.75554654344263,
+          177.61818770650257,
+          664.8942995911212,
+          368.23663569873077
+        ],
+        "finalBattleRounds": [
+          6,
+          5,
+          4,
+          6,
+          5
+        ]
+      },
+      "RKF03": {
+        "runs": 5,
+        "outcomes": {
+          "won": 1,
+          "lost": 4,
+          "undecided": 0,
+          "error": 0
+        },
+        "furthestAct": 5,
+        "furthestNode": 45,
+        "finalHp": [
+          0,
+          0,
+          1220,
+          1260,
+          1337.8368179999995
+        ],
+        "finalBattleRounds": [
+          12
+        ]
+      },
+      "RKF04": {
+        "runs": 5,
+        "outcomes": {
+          "won": 2,
+          "lost": 3,
+          "undecided": 0,
+          "error": 0
+        },
+        "furthestAct": 5,
+        "furthestNode": 45,
+        "finalHp": [
+          938.2429391878017,
+          0,
+          0,
+          1053.9540425531916,
+          0
+        ],
+        "finalBattleRounds": [
+          6,
+          10
+        ]
+      },
+      "RKF05": {
+        "runs": 5,
+        "outcomes": {
+          "won": 1,
+          "lost": 4,
+          "undecided": 0,
+          "error": 0
+        },
+        "furthestAct": 5,
+        "furthestNode": 45,
+        "finalHp": [
+          0,
+          0,
+          0,
+          1048.0543669727854,
+          0
+        ],
+        "finalBattleRounds": [
+          6,
+          3,
+          9
+        ]
+      }
+    },
+    "inputHash": "a5b85f7a61b8d8f926989b28a70777a2eb3b6c03515a1fb1b53dba0148a8ea5d"
+  }
+}

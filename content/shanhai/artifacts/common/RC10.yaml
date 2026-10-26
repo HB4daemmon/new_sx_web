@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RC10
 name: 雷纹印
 status: design_target
-summary: 攻击 +2；怒技基础直接伤害 +6%
-description: 印面雷纹在怒技起手时发亮，强化怒技的基础直接段。
+summary: 攻击 +2；每层怒技基础直接伤害 +6%；怒技完成返怒20、受到直接伤害提高12%；占唯一核心位，最多另带3件支援
+description: 印面雷纹强化怒技基础段；核心规则在怒技完成后返还20点怒气，但自身受到的直接伤害提高12%。核心位仅1席，可另带最多3件支援；未装备时无属性或效果。
 tags: [attack, rage, direct, combat]
 source:
   basis: original
@@ -34,5 +34,7 @@ effects:
     replaces: []
     limit: {scope: permanent, count: 1}
     text: 每层使怒技基础直接伤害提高6%，不作用于毒火、盾返或法宝追加段。
+equipment_role: core
+core_rule: {kind: rage_gambit, rage_refund: 20, incoming_damage_ratio: 1.12}
 acquisition:
   pools: [common_artifact]

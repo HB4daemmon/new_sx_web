@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RR10
 name: 引雷针
 status: design_target
-summary: 攻击 +8；直接攻击暴击后获得5点怒气，每次行动最多两次
-description: 基础或追加直接攻击暴击后，额外获得5点怒气。
+summary: 攻击 +8；直接攻击暴击后获得5点怒气，每次行动最多两次；占一个支援位（共3席）
+description: 基础或追加直接攻击暴击后，额外获得5点怒气。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [attack, crit_rate, rage_gain, direct, rare]
 source:
   basis: original
@@ -37,5 +37,6 @@ effects:
     replaces: []
     limit: {scope: action, count: 2}
     text: 每次基础或追加直接攻击暴击后获得5点怒气；每次普攻或怒技最多触发两次，中毒、燃烧和反击不触发。
+equipment_role: support
 acquisition:
   pools: [rare_artifact]

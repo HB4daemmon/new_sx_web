@@ -33,6 +33,12 @@ function makeLoadout(method = 'RKF01', branches = {}, artifacts = [], overrides 
   };
 }
 
+function openingRageContent(amount = 100) {
+  const entities = structuredClone(content.entities);
+  entities.find(entity => entity.id === 'RULES').rage.opening = amount;
+  return contentFromEntities(entities, content.version);
+}
+
 function syntheticDrainContent() {
   const template = content.byId.RR14;
   const makeArtifact = (id, trigger, amount) => {
@@ -126,10 +132,10 @@ test('varied artifact categories survive ten-round smoke battles', () => {
   const methods = content.entities.filter(entity => entity.kind === 'method');
   const artifactCombos = [
     [],
-    [{ id: 'RC09', stacks: 1 }, { id: 'RC11', stacks: 1 }],
+    [{ id: 'RC09', stacks: 1 }, { id: 'RC01', stacks: 1 }],
     [{ id: 'RR01', stacks: 1 }, { id: 'RR10', stacks: 1 }],
     [{ id: 'RR13', stacks: 1 }, { id: 'RR15', stacks: 1 }],
-    [{ id: 'RL01', stacks: 1 }, { id: 'RL04', stacks: 1 }],
+    [{ id: 'RL01', stacks: 1 }, { id: 'RR01', stacks: 1 }],
     [{ id: 'RC24', stacks: 2 }, { id: 'RR05', stacks: 1 }],
   ];
   let count = 0;
@@ -367,7 +373,10 @@ test('rage drain uses additive resistance and opening drain has its own window',
 });
 
 test('resistance is applied before the round and opening drain caps', () => {
-  const synthetic = syntheticDrainContent();
+  const drainContent = syntheticDrainContent();
+  const entities = structuredClone(drainContent.entities);
+  entities.find(entity => entity.id === 'TEST-ROUND-DRAIN-A').equipment_role = 'core';
+  const synthetic = contentFromEntities(entities, drainContent.version);
   const target = makeLoadout('RKF01', {}, [{ id: 'RR15', stacks: 1 }], { attack: 0, max_hp: 100000 });
   const source = makeLoadout('RKF01', {}, [
     { id: 'TEST-ROUND-DRAIN-A', stacks: 1 },
@@ -436,14 +445,13 @@ test('synthetic drain sources obey the exact 20-per-round and 50-opening caps', 
 
 test('actual lowered rage cap is floored at 60 and refund reads the locked paid cost once', () => {
   const result = simulateBattle(
-    content,
+    openingRageContent(),
     makeLoadout(
       'RKF02',
       { 1: 'A' },
       [
         { id: 'RC19', stacks: 3 },
         { id: 'RR07', stacks: 1 },
-        { id: 'RL04', stacks: 1 },
         { id: 'RL05', stacks: 1 },
       ],
       { attack: 0, defense: 100, max_hp: 1_000_000_000, speed: 10 },
@@ -758,11 +766,22 @@ test('RKF01 J1-A and RC11 combine on method shields, while preparation stays out
     frame.kind === 'shield' && frame.source === 'RKF01-BASIC-SHIELD');
   assert.ok(Math.abs(basicShield.amount - ((100 * 0.10 + 1_000 * 0.01) * (1 + 0.18 + 0.06))) < 1e-9);
   assert.equal(contribution(basic, 'RKF01-J1-A').triggers, 1);
-  assert.equal(contribution(basic, 'RC11').triggers, 1);
+  assert.equal(contribution(basic, 'RC11').triggers, 3);
+
+  assert.throws(() => simulateBattle(
+    content,
+    makeLoadout('RKF01', { 1: 'A', 2: 'C' }, [
+      { id: 'RC11', stacks: 1 },
+      { id: 'RL04', stacks: 1 },
+    ]),
+    makeLoadout('RKF01'),
+    'rkf01-rc11-rl04-two-cores',
+    { roundLimit: 1 },
+  ), /one core equipment slot/);
 
   const rage = simulateBattle(
-    content,
-    makeLoadout('RKF01', { 1: 'A', 2: 'C' }, [{ id: 'RC11', stacks: 1 }, { id: 'RL04', stacks: 1 }], {
+    openingRageContent(),
+    makeLoadout('RKF01', { 1: 'A', 2: 'C' }, [{ id: 'RC11', stacks: 1 }], {
       attack: 0,
       defense: 98,
       max_hp: 1_000,

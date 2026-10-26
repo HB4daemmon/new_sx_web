@@ -1,5 +1,5 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: rules
 id: RULES
 name: 山海版首轮内容规则
@@ -14,6 +14,103 @@ source:
 balance:
   target: {window: 15}
   measured: null
+insights:
+  - id: V2-J1-A
+    tier: 1
+    branch: A
+    name: 砺锋常在
+    quick: 攻击提高4
+    category: enhance
+    effects:
+      - {id: V2-J1-A-ATTACK, trigger: always, operation: modify_stat, target: self, params: {stat: attack, mode: add, amount: 4}, requires: [], consumes: [], replaces: [], limit: {scope: permanent, count: 1}, text: 永久提高攻击4点。}
+  - id: V2-J1-B
+    tier: 1
+    branch: B
+    name: 开局筑垒
+    quick: 开场获得6%护盾
+    category: enhance
+    effects:
+      - {id: V2-J1-B-OPENING-SHIELD, trigger: battle_start, operation: shield, target: self, params: {max_hp_ratio: 0.06, cap_ratio: 1}, requires: [], consumes: [], replaces: [], limit: {scope: battle, count: 1}, text: 每场战斗开始时获得最大气血6%的护盾，受公共护盾上限约束。}
+  - id: V2-J1-C
+    tier: 1
+    branch: C
+    name: 周天纳气
+    quick: 存活轮末额外回怒4
+    category: cycle
+    effects:
+      - {id: V2-J1-C-ROUND-RAGE, trigger: round_end, operation: rage_gain, target: self, params: {amount: 4, timing: round_end, requires_self_alive: true, requires_battle_active: true, after_public_natural_gain: true}, requires: [], consumes: [], replaces: [], limit: {scope: round, count: 1}, text: 每个完整战斗轮结束后，若自身存活且战斗仍在继续，在公共自然回怒后额外获得4点怒气。}
+  - id: V2-J2-A
+    tier: 2
+    branch: A
+    name: 固本运劲
+    quick: 防御提高4
+    category: enhance
+    effects:
+      - {id: V2-J2-A-DEFENSE, trigger: always, operation: modify_stat, target: self, params: {stat: defense, mode: add, amount: 4}, requires: [], consumes: [], replaces: [], limit: {scope: permanent, count: 1}, text: 永久提高防御4点。}
+  - id: V2-J2-B
+    tier: 2
+    branch: B
+    name: 动后回春
+    quick: 每次行动后回复2%气血
+    category: cycle
+    effects:
+      - {id: V2-J2-B-ACTION-HEAL, trigger: action_end, operation: heal, target: self, params: {max_hp_ratio: 0.02, timing: after_damage, heal_first_then_overflow: true}, requires: [], consumes: [], replaces: [], limit: {scope: action, count: 1}, text: 每次普攻或怒技结算后，尝试回复最大气血2%；溢出交给当前法宝或功法规则处理。}
+  - id: V2-J2-C
+    tier: 2
+    branch: C
+    name: 子夜蓄气
+    quick: 存活轮末额外回怒6
+    category: cycle
+    effects:
+      - {id: V2-J2-C-ROUND-RAGE, trigger: round_end, operation: rage_gain, target: self, params: {amount: 6, timing: round_end, requires_self_alive: true, requires_battle_active: true, after_public_natural_gain: true}, requires: [], consumes: [], replaces: [], limit: {scope: round, count: 1}, text: 每个完整战斗轮结束后，若自身存活且战斗仍在继续，在公共自然回怒后额外获得6点怒气。}
+  - id: V2-J3-A
+    tier: 3
+    branch: A
+    name: 迅风借势
+    quick: 速度提高1
+    category: enhance
+    effects:
+      - {id: V2-J3-A-SPEED, trigger: always, operation: modify_stat, target: self, params: {stat: speed, mode: add, amount: 1}, requires: [], consumes: [], replaces: [], limit: {scope: permanent, count: 1}, text: 永久提高速度1点；同速先后仍按战前固定顺序处理。}
+  - id: V2-J3-B
+    tier: 3
+    branch: B
+    name: 收势成盾
+    quick: 每次行动后获得2.5%护盾
+    category: enhance
+    effects:
+      - {id: V2-J3-B-ACTION-SHIELD, trigger: action_end, operation: shield, target: self, params: {max_hp_ratio: 0.025, cap_ratio: 1}, requires: [], consumes: [], replaces: [], limit: {scope: action, count: 1}, text: 每次普攻或怒技结算后获得最大气血2.5%的护盾，受公共护盾上限约束。}
+  - id: V2-J3-C
+    tier: 3
+    branch: C
+    name: 循环纳气
+    quick: 存活轮末额外回怒8
+    category: cycle
+    effects:
+      - {id: V2-J3-C-ROUND-RAGE, trigger: round_end, operation: rage_gain, target: self, params: {amount: 8, timing: round_end, requires_self_alive: true, requires_battle_active: true, after_public_natural_gain: true}, requires: [], consumes: [], replaces: [], limit: {scope: round, count: 1}, text: 每个完整战斗轮结束后，若自身存活且战斗仍在继续，在公共自然回怒后额外获得8点怒气。}
+  - id: V2-J4-A
+    tier: 4
+    branch: A
+    name: 劲力久长
+    quick: 攻击提高8
+    category: enhance
+    effects:
+      - {id: V2-J4-A-ATTACK, trigger: always, operation: modify_stat, target: self, params: {stat: attack, mode: add, amount: 8}, requires: [], consumes: [], replaces: [], limit: {scope: permanent, count: 1}, text: 永久提高攻击8点。}
+  - id: V2-J4-B
+    tier: 4
+    branch: B
+    name: 先机护身
+    quick: 开场获得10%护盾
+    category: enhance
+    effects:
+      - {id: V2-J4-B-OPENING-SHIELD, trigger: battle_start, operation: shield, target: self, params: {max_hp_ratio: 0.1, cap_ratio: 1}, requires: [], consumes: [], replaces: [], limit: {scope: battle, count: 1}, text: 每场战斗开始时获得最大气血10%的护盾，受公共护盾上限约束。}
+  - id: V2-J4-C
+    tier: 4
+    branch: C
+    name: 行动疗伤
+    quick: 每次行动后回复3%气血
+    category: cycle
+    effects:
+      - {id: V2-J4-C-ACTION-HEAL, trigger: action_end, operation: heal, target: self, params: {max_hp_ratio: 0.03, timing: after_damage, heal_first_then_overflow: true}, requires: [], consumes: [], replaces: [], limit: {scope: action, count: 1}, text: 每次普攻或怒技结算后，尝试回复最大气血3%；溢出交给当前法宝或功法规则处理。}
 attributes: [attack, defense, max_hp, crit_rate, speed]
 rarities:
   common: {method_multiplier: 1, artifact_B: 1}

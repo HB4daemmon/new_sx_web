@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RL03
 name: 裂空宝轮
 status: design_target
-summary: 攻击 +12、暴击率 +3 个百分点；普攻首次命中后追加两段伤害
-description: 普攻首次命中后，宝轮会接续两段不可暴击的直接攻击。
+summary: 攻击 +12、暴击率 +3 个百分点；普攻首次命中后追加两段伤害；占唯一核心位，最多另带3件支援
+description: 普攻首次命中后，宝轮会接续两段不可暴击的直接攻击。装备后占用唯一核心位，可另带最多3件支援；未装备时不提供属性或效果。
 tags: [attack, crit_rate, basic, followup, legendary]
 source:
   basis: original
@@ -41,5 +41,6 @@ effects:
     replaces: []
     limit: {scope: action, count: 1}
     text: 每次普攻首次命中后，追加两段各为攻击0.5倍的不可暴击直接伤害；追加段不会再次触发此效果。
+equipment_role: core
 acquisition:
   pools: [legendary_artifact]

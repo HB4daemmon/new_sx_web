@@ -7,15 +7,35 @@ const BRANCHES = {
   RKF09: ['B', 'C', 'C', 'C'], RKF10: ['A', 'C', 'B', 'A'],
 };
 
+const CORE_VALUE = Object.freeze({
+  RC09: 30,
+  RC10: 18,
+  RC11: 36,
+  RC12: 23,
+  RC14: 27,
+  RC15: 26,
+  RL01: 30,
+  RL02: 30,
+  RL03: 30,
+  RL04: 30,
+  RL05: 30,
+});
+
+const EQUIPMENT_PHASES = new Set(['map', 'reward', 'shop', 'rest', 'transition']);
+
 export function artifactScore(game, id) {
   const entity = game.content.byId[id], { method, act } = game.state;
   if (!entity) return 0;
   const flat = entity.attributes.flat, percent = entity.attributes.percent;
-  let score = (flat.attack ?? 0) + (flat.defense ?? 0) * 0.9 +
-    (flat.max_hp ?? 0) * 0.13 + (flat.crit_rate ?? 0) * 80 +
-    (percent.attack ?? 0) * game.stats.attack +
-    (percent.defense ?? 0) * game.stats.defense +
-    (percent.max_hp ?? 0) * game.stats.max_hp * 0.13;
+  const stackCount = Math.max(1, game.state.artifacts?.find(stack => stack.id === id)?.stacks ?? 1);
+  const statsByTier = game.content.rules.cultivation?.base_stats_by_tier;
+  const baseStats = statsByTier?.[game.state.n] ?? game.stats;
+  let score = ((flat.attack ?? 0) + (flat.defense ?? 0) * 0.9 +
+    (flat.max_hp ?? 0) * 0.13 + (flat.crit_rate ?? 0) * 80) * stackCount +
+    (percent.attack ?? 0) * baseStats.attack * stackCount +
+    (percent.defense ?? 0) * baseStats.defense * stackCount +
+    (percent.max_hp ?? 0) * baseStats.max_hp * 0.13 * stackCount;
+  if (entity.equipment_role === 'core') score += CORE_VALUE[id] ?? 18;
   if (id === 'RC17') score += 32 - act * 4;
   if (id === 'RC18') score += 25 - act * 4;
   if (id === 'RC16') score += 10 - act;
@@ -30,6 +50,63 @@ export function artifactScore(game, id) {
   return score;
 }
 
+function artifactEntity(game, id) {
+  const byId = game.content.byId;
+  return byId instanceof Map ? byId.get(id) : byId?.[id];
+}
+
+export function equipmentCommand(game) {
+  if (!EQUIPMENT_PHASES.has(game.state.phase) ||
+    (typeof game.canChangeEquipment === 'function' && !game.canChangeEquipment())) return null;
+
+  const inventory = (game.state.artifacts ?? [])
+    .filter(stack => typeof stack?.id === 'string' && stack.stacks > 0);
+  const equipment = game.state.equipment ?? { core: null, support: [] };
+  const core = equipment.core ?? null;
+  const support = equipment.support ?? [];
+  const equipped = new Set([core, ...support].filter(Boolean));
+  const candidates = role => inventory
+    .map(stack => ({ id: stack.id, role: artifactEntity(game, stack.id)?.equipment_role }))
+    .filter(item => item.role === role && !equipped.has(item.id))
+    .sort((left, right) =>
+      artifactScore(game, right.id) - artifactScore(game, left.id) ||
+      left.id.localeCompare(right.id));
+
+  if (!core) {
+    const best = candidates('core')[0];
+    if (best) return { type: 'equip', id: best.id };
+  }
+  if (support.length < 3) {
+    const best = candidates('support')[0];
+    if (best) return { type: 'equip', id: best.id };
+  }
+
+  const upgrades = [];
+  if (core) {
+    const currentScore = artifactScore(game, core);
+    for (const candidate of candidates('core')) {
+      const gain = artifactScore(game, candidate.id) - currentScore;
+      if (gain > 0.001) upgrades.push({ id: candidate.id, replace: core, gain });
+    }
+  }
+  if (support.length >= 3) {
+    const weakest = support
+      .map(id => ({ id, score: artifactScore(game, id) }))
+      .sort((left, right) => left.score - right.score || left.id.localeCompare(right.id))[0];
+    if (weakest) {
+      for (const candidate of candidates('support')) {
+        const gain = artifactScore(game, candidate.id) - weakest.score;
+        if (gain > 0.001) upgrades.push({ id: candidate.id, replace: weakest.id, gain });
+      }
+    }
+  }
+
+  upgrades.sort((left, right) =>
+    right.gain - left.gain || left.id.localeCompare(right.id));
+  const best = upgrades[0];
+  return best ? { type: 'equip', id: best.id, replace: best.replace } : null;
+}
+
 export function amount(game, reward) {
   const rules = game.content.rules;
   const basis = reward.basis === 'reference_hp' ? rules.economy.reference_hp_by_act[game.state.act - 1] :
@@ -40,6 +117,8 @@ export function amount(game, reward) {
 
 export function nextCommand(game, preference = 'balanced') {
   const state = game.state;
+  const equipment = equipmentCommand(game);
+  if (equipment) return equipment;
   switch (state.phase) {
     case 'map': {
       const available = game.availableNodes();
@@ -49,24 +128,6 @@ export function nextCommand(game, preference = 'balanced') {
         if (preference === 'avoid') return ({ R: 0, S: 1, E: 2, C: 3, K: 8, L: 9 })[node.type] ?? 6;
         return ({ C: 0, E: 1, R: 2, S: 3, K: 4, L: 8 })[node.type] ?? 6;
       };
-      if (preference === 'avoid' && game.state.routeMap) {
-        const nodesByKey = new Map(game.state.routeMap.nodes.map(item => [item.key, item]));
-        const costs = new Map();
-        const pathCost = item => {
-          if (costs.has(item.key)) return costs.get(item.key);
-          const children = item.next
-            .map(key => nodesByKey.get(key))
-            .filter(Boolean);
-          const cost = rank(item) + (children.length
-            ? Math.min(...children.map(pathCost))
-            : 0);
-          costs.set(item.key, cost);
-          return cost;
-        };
-        const node = available.slice().sort((left, right) =>
-          pathCost(left) - pathCost(right) || left.lane - right.lane)[0];
-        return { type: 'enter', id: node.key };
-      }
       const node = available.slice().sort((left, right) =>
         rank(left) - rank(right) || left.lane - right.lane)[0];
       return { type: 'enter', id: node.key };

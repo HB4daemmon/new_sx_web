@@ -1,0 +1,5232 @@
+{
+  "schemaVersion": 1,
+  "configuration": {
+    "mode": "real_shanhai_game_stratified_difficulty",
+    "experimentTrack": "V2 experimental; shanhai-content-0.2; uncalibrated",
+    "sampleInterpretation": "Observed results from this exact deterministic policy and seed batch only; no V1 calibration or fitted win rate is carried forward.",
+    "calibrationStatus": "uncalibrated; sample only",
+    "contentVersion": "shanhai-content-0.2",
+    "sourceContentHash": "5a53cc9acec3748827f6b9a1e747c8d479696aa163b13c501c46ce502320835f",
+    "runtimeAndPolicyHash": "0d132dfd022242647ee3daf2043a10ef235af5ac915d99e72e8a8387add3446e",
+    "methods": [
+      "RKF01",
+      "RKF02",
+      "RKF03",
+      "RKF04",
+      "RKF05"
+    ],
+    "seedsPerMethod": 1,
+    "split": "train",
+    "seedPrefix": "v2-smoke-0-train",
+    "seeds": [
+      "v2-smoke-0-train-RKF01-0001",
+      "v2-smoke-0-train-RKF02-0001",
+      "v2-smoke-0-train-RKF03-0001",
+      "v2-smoke-0-train-RKF04-0001",
+      "v2-smoke-0-train-RKF05-0001"
+    ],
+    "seedDesign": "independent method-specific seed labels; each of the five methods receives exactly N seeds",
+    "policy": "steady",
+    "policySource": "tests/shanhai-difficulty.mjs difficultyCommand; tests/shanhai-policy.mjs nextCommand",
+    "policyContract": "uses the current phase, currently reachable nodes, currently visible rewards, public costs, owned artifacts and current equipment; never reads future route nodes, hinted event outcomes, future battle results, or future reward candidates",
+    "policyNotes": "Uses the fixed V2 talent plan and fills empty equipment slots, then replaces the weakest same-role slot only for a strictly higher inventory score. Prioritizes reachable rest at 18% missing HP or shop at 20% missing HP when recovery is affordable; otherwise prefers common battles. Does not use reforge or temper.",
+    "runStepGuard": 600,
+    "battleRoundLimit": 4096,
+    "enemyStatAdjustment": {
+      "mode": "offline_memory_enemy_entity_base_stats_only",
+      "fields": [
+        "attack",
+        "defense",
+        "max_hp"
+      ],
+      "multipliers": {
+        "1": {
+          "attack": 1,
+          "defense": 1,
+          "max_hp": 1
+        },
+        "2": {
+          "attack": 1,
+          "defense": 1,
+          "max_hp": 1
+        },
+        "3": {
+          "attack": 1,
+          "defense": 1,
+          "max_hp": 1
+        },
+        "4": {
+          "attack": 1,
+          "defense": 1,
+          "max_hp": 1
+        },
+        "5": {
+          "attack": 1,
+          "defense": 1,
+          "max_hp": 1
+        }
+      },
+      "note": "Applies only to cloned enemy entity stats in memory; player stats, runtime node values, seed, and YAML files are unchanged."
+    }
+  },
+  "inputHash": "c97b4bc95fc980646f575ffb891e7b6c5984282d1198de5252e0b79ccee17a8a",
+  "targets": {
+    "cumulativeActPassRates": {
+      "act1": 0.8,
+      "act2": 0.65,
+      "act3": 0.5,
+      "act4": 0.35
+    },
+    "finalAct": "standalone final battle; reported only among runs entering act 5",
+    "measuredContentFieldsRemainNull": true,
+    "interpretation": "Pass rates are direct observations in this V2 seed batch under the selected deterministic policy; they are not calibrated targets or measured human-player win rates."
+  },
+  "metrics": {
+    "totalRuns": 5,
+    "outcomes": {
+      "won": 2,
+      "lost": 3,
+      "undecided": 0,
+      "error": 0
+    },
+    "acts": {
+      "1": {
+        "cumulative": {
+          "successes": 2,
+          "total": 5,
+          "rate": 0.4,
+          "wilson95": {
+            "lower": 0.11762077423264783,
+            "upper": 0.769275718723987
+          }
+        },
+        "conditional": {
+          "successes": 2,
+          "total": 5,
+          "rate": 0.4,
+          "wilson95": {
+            "lower": 0.11762077423264783,
+            "upper": 0.769275718723987
+          }
+        },
+        "entered": 5
+      },
+      "2": {
+        "cumulative": {
+          "successes": 2,
+          "total": 5,
+          "rate": 0.4,
+          "wilson95": {
+            "lower": 0.11762077423264783,
+            "upper": 0.769275718723987
+          }
+        },
+        "conditional": {
+          "successes": 2,
+          "total": 2,
+          "rate": 1,
+          "wilson95": {
+            "lower": 0.34238022750665303,
+            "upper": 1
+          }
+        },
+        "entered": 2
+      },
+      "3": {
+        "cumulative": {
+          "successes": 2,
+          "total": 5,
+          "rate": 0.4,
+          "wilson95": {
+            "lower": 0.11762077423264783,
+            "upper": 0.769275718723987
+          }
+        },
+        "conditional": {
+          "successes": 2,
+          "total": 2,
+          "rate": 1,
+          "wilson95": {
+            "lower": 0.34238022750665303,
+            "upper": 1
+          }
+        },
+        "entered": 2
+      },
+      "4": {
+        "cumulative": {
+          "successes": 2,
+          "total": 5,
+          "rate": 0.4,
+          "wilson95": {
+            "lower": 0.11762077423264783,
+            "upper": 0.769275718723987
+          }
+        },
+        "conditional": {
+          "successes": 2,
+          "total": 2,
+          "rate": 1,
+          "wilson95": {
+            "lower": 0.34238022750665303,
+            "upper": 1
+          }
+        },
+        "entered": 2
+      }
+    },
+    "finalBattle": {
+      "eligibleRuns": 2,
+      "wins": 2,
+      "outcomes": {
+        "won": 2,
+        "lost": 0,
+        "undecided": 0,
+        "error": 0
+      },
+      "winRate": {
+        "successes": 2,
+        "total": 2,
+        "rate": 1,
+        "wilson95": {
+          "lower": 0.34238022750665303,
+          "upper": 1
+        }
+      }
+    },
+    "battles": {
+      "battles": 75,
+      "outcomes": {
+        "won": 72,
+        "lost": 3,
+        "undecided": 0,
+        "error": 0
+      },
+      "rounds": {
+        "min": 2,
+        "p50": 3,
+        "p90": 5,
+        "max": 8,
+        "mean": 3.0533333333333332
+      },
+      "playerNetHpLoss": {
+        "total": 3697.1224240700244,
+        "min": 0,
+        "p50": 0,
+        "p90": 139.63,
+        "max": 426.6694638297872,
+        "mean": 49.294965654267
+      },
+      "playerNetHpLossPct": {
+        "min": 0,
+        "p50": 0,
+        "p90": 25.970100000000002,
+        "max": 76.66274509803921,
+        "mean": 7.589023921766088
+      }
+    },
+    "byMethod": {
+      "RKF01": {
+        "runs": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "acts": {
+          "1": {
+            "cumulative": {
+              "successes": 1,
+              "total": 1,
+              "rate": 1,
+              "wilson95": {
+                "lower": 0.20654931437723745,
+                "upper": 1
+              }
+            },
+            "conditional": {
+              "successes": 1,
+              "total": 1,
+              "rate": 1,
+              "wilson95": {
+                "lower": 0.20654931437723745,
+                "upper": 1
+              }
+            },
+            "entered": 1
+          },
+          "2": {
+            "cumulative": {
+              "successes": 1,
+              "total": 1,
+              "rate": 1,
+              "wilson95": {
+                "lower": 0.20654931437723745,
+                "upper": 1
+              }
+            },
+            "conditional": {
+              "successes": 1,
+              "total": 1,
+              "rate": 1,
+              "wilson95": {
+                "lower": 0.20654931437723745,
+                "upper": 1
+              }
+            },
+            "entered": 1
+          },
+          "3": {
+            "cumulative": {
+              "successes": 1,
+              "total": 1,
+              "rate": 1,
+              "wilson95": {
+                "lower": 0.20654931437723745,
+                "upper": 1
+              }
+            },
+            "conditional": {
+              "successes": 1,
+              "total": 1,
+              "rate": 1,
+              "wilson95": {
+                "lower": 0.20654931437723745,
+                "upper": 1
+              }
+            },
+            "entered": 1
+          },
+          "4": {
+            "cumulative": {
+              "successes": 1,
+              "total": 1,
+              "rate": 1,
+              "wilson95": {
+                "lower": 0.20654931437723745,
+                "upper": 1
+              }
+            },
+            "conditional": {
+              "successes": 1,
+              "total": 1,
+              "rate": 1,
+              "wilson95": {
+                "lower": 0.20654931437723745,
+                "upper": 1
+              }
+            },
+            "entered": 1
+          }
+        },
+        "finalBattle": {
+          "eligibleRuns": 1,
+          "wins": 1,
+          "outcomes": {
+            "won": 1,
+            "lost": 0,
+            "undecided": 0,
+            "error": 0
+          },
+          "winRate": {
+            "successes": 1,
+            "total": 1,
+            "rate": 1,
+            "wilson95": {
+              "lower": 0.20654931437723745,
+              "upper": 1
+            }
+          }
+        },
+        "battles": {
+          "battles": 29,
+          "outcomes": {
+            "won": 29,
+            "lost": 0,
+            "undecided": 0,
+            "error": 0
+          },
+          "rounds": {
+            "min": 2,
+            "p50": 3,
+            "p90": 5,
+            "max": 7,
+            "mean": 3.2413793103448274
+          },
+          "playerNetHpLoss": {
+            "total": 992.0266635490406,
+            "min": 0,
+            "p50": 0,
+            "p90": 100.24453905579401,
+            "max": 426.6694638297872,
+            "mean": 34.207815984449674
+          },
+          "playerNetHpLossPct": {
+            "min": 0,
+            "p50": 0,
+            "p90": 18.254337778069,
+            "max": 36.15842913811756,
+            "mean": 4.378557418718193
+          }
+        }
+      },
+      "RKF02": {
+        "runs": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "acts": {
+          "1": {
+            "cumulative": {
+              "successes": 1,
+              "total": 1,
+              "rate": 1,
+              "wilson95": {
+                "lower": 0.20654931437723745,
+                "upper": 1
+              }
+            },
+            "conditional": {
+              "successes": 1,
+              "total": 1,
+              "rate": 1,
+              "wilson95": {
+                "lower": 0.20654931437723745,
+                "upper": 1
+              }
+            },
+            "entered": 1
+          },
+          "2": {
+            "cumulative": {
+              "successes": 1,
+              "total": 1,
+              "rate": 1,
+              "wilson95": {
+                "lower": 0.20654931437723745,
+                "upper": 1
+              }
+            },
+            "conditional": {
+              "successes": 1,
+              "total": 1,
+              "rate": 1,
+              "wilson95": {
+                "lower": 0.20654931437723745,
+                "upper": 1
+              }
+            },
+            "entered": 1
+          },
+          "3": {
+            "cumulative": {
+              "successes": 1,
+              "total": 1,
+              "rate": 1,
+              "wilson95": {
+                "lower": 0.20654931437723745,
+                "upper": 1
+              }
+            },
+            "conditional": {
+              "successes": 1,
+              "total": 1,
+              "rate": 1,
+              "wilson95": {
+                "lower": 0.20654931437723745,
+                "upper": 1
+              }
+            },
+            "entered": 1
+          },
+          "4": {
+            "cumulative": {
+              "successes": 1,
+              "total": 1,
+              "rate": 1,
+              "wilson95": {
+                "lower": 0.20654931437723745,
+                "upper": 1
+              }
+            },
+            "conditional": {
+              "successes": 1,
+              "total": 1,
+              "rate": 1,
+              "wilson95": {
+                "lower": 0.20654931437723745,
+                "upper": 1
+              }
+            },
+            "entered": 1
+          }
+        },
+        "finalBattle": {
+          "eligibleRuns": 1,
+          "wins": 1,
+          "outcomes": {
+            "won": 1,
+            "lost": 0,
+            "undecided": 0,
+            "error": 0
+          },
+          "winRate": {
+            "successes": 1,
+            "total": 1,
+            "rate": 1,
+            "wilson95": {
+              "lower": 0.20654931437723745,
+              "upper": 1
+            }
+          }
+        },
+        "battles": {
+          "battles": 29,
+          "outcomes": {
+            "won": 29,
+            "lost": 0,
+            "undecided": 0,
+            "error": 0
+          },
+          "rounds": {
+            "min": 2,
+            "p50": 2,
+            "p90": 4,
+            "max": 7,
+            "mean": 2.689655172413793
+          },
+          "playerNetHpLoss": {
+            "total": 987.7457605209851,
+            "min": 0,
+            "p50": 0,
+            "p90": 130.75800000000004,
+            "max": 290.82179811912204,
+            "mean": 34.060198638654654
+          },
+          "playerNetHpLossPct": {
+            "min": 0,
+            "p50": 0,
+            "p90": 21.746946798955197,
+            "max": 26.15160000000001,
+            "mean": 4.402389678726081
+          }
+        }
+      },
+      "RKF03": {
+        "runs": 1,
+        "outcomes": {
+          "won": 0,
+          "lost": 1,
+          "undecided": 0,
+          "error": 0
+        },
+        "acts": {
+          "1": {
+            "cumulative": {
+              "successes": 0,
+              "total": 1,
+              "rate": 0,
+              "wilson95": {
+                "lower": 0,
+                "upper": 0.7934506856227626
+              }
+            },
+            "conditional": {
+              "successes": 0,
+              "total": 1,
+              "rate": 0,
+              "wilson95": {
+                "lower": 0,
+                "upper": 0.7934506856227626
+              }
+            },
+            "entered": 1
+          },
+          "2": {
+            "cumulative": {
+              "successes": 0,
+              "total": 1,
+              "rate": 0,
+              "wilson95": {
+                "lower": 0,
+                "upper": 0.7934506856227626
+              }
+            },
+            "conditional": {
+              "successes": 0,
+              "total": 0,
+              "rate": null,
+              "wilson95": null
+            },
+            "entered": 0
+          },
+          "3": {
+            "cumulative": {
+              "successes": 0,
+              "total": 1,
+              "rate": 0,
+              "wilson95": {
+                "lower": 0,
+                "upper": 0.7934506856227626
+              }
+            },
+            "conditional": {
+              "successes": 0,
+              "total": 0,
+              "rate": null,
+              "wilson95": null
+            },
+            "entered": 0
+          },
+          "4": {
+            "cumulative": {
+              "successes": 0,
+              "total": 1,
+              "rate": 0,
+              "wilson95": {
+                "lower": 0,
+                "upper": 0.7934506856227626
+              }
+            },
+            "conditional": {
+              "successes": 0,
+              "total": 0,
+              "rate": null,
+              "wilson95": null
+            },
+            "entered": 0
+          }
+        },
+        "finalBattle": {
+          "eligibleRuns": 0,
+          "wins": 0,
+          "outcomes": {
+            "won": 0,
+            "lost": 0,
+            "undecided": 0,
+            "error": 0
+          },
+          "winRate": {
+            "successes": 0,
+            "total": 0,
+            "rate": null,
+            "wilson95": null
+          }
+        },
+        "battles": {
+          "battles": 2,
+          "outcomes": {
+            "won": 1,
+            "lost": 1,
+            "undecided": 0,
+            "error": 0
+          },
+          "rounds": {
+            "min": 4,
+            "p50": 4,
+            "p90": 4,
+            "max": 8,
+            "mean": 6
+          },
+          "playerNetHpLoss": {
+            "total": 530.6,
+            "min": 139.62000000000006,
+            "p50": 139.62000000000006,
+            "p90": 139.62000000000006,
+            "max": 390.97999999999996,
+            "mean": 265.3
+          },
+          "playerNetHpLossPct": {
+            "min": 27.92400000000001,
+            "p50": 27.92400000000001,
+            "p90": 27.92400000000001,
+            "max": 76.66274509803921,
+            "mean": 52.29337254901961
+          }
+        }
+      },
+      "RKF04": {
+        "runs": 1,
+        "outcomes": {
+          "won": 0,
+          "lost": 1,
+          "undecided": 0,
+          "error": 0
+        },
+        "acts": {
+          "1": {
+            "cumulative": {
+              "successes": 0,
+              "total": 1,
+              "rate": 0,
+              "wilson95": {
+                "lower": 0,
+                "upper": 0.7934506856227626
+              }
+            },
+            "conditional": {
+              "successes": 0,
+              "total": 1,
+              "rate": 0,
+              "wilson95": {
+                "lower": 0,
+                "upper": 0.7934506856227626
+              }
+            },
+            "entered": 1
+          },
+          "2": {
+            "cumulative": {
+              "successes": 0,
+              "total": 1,
+              "rate": 0,
+              "wilson95": {
+                "lower": 0,
+                "upper": 0.7934506856227626
+              }
+            },
+            "conditional": {
+              "successes": 0,
+              "total": 0,
+              "rate": null,
+              "wilson95": null
+            },
+            "entered": 0
+          },
+          "3": {
+            "cumulative": {
+              "successes": 0,
+              "total": 1,
+              "rate": 0,
+              "wilson95": {
+                "lower": 0,
+                "upper": 0.7934506856227626
+              }
+            },
+            "conditional": {
+              "successes": 0,
+              "total": 0,
+              "rate": null,
+              "wilson95": null
+            },
+            "entered": 0
+          },
+          "4": {
+            "cumulative": {
+              "successes": 0,
+              "total": 1,
+              "rate": 0,
+              "wilson95": {
+                "lower": 0,
+                "upper": 0.7934506856227626
+              }
+            },
+            "conditional": {
+              "successes": 0,
+              "total": 0,
+              "rate": null,
+              "wilson95": null
+            },
+            "entered": 0
+          }
+        },
+        "finalBattle": {
+          "eligibleRuns": 0,
+          "wins": 0,
+          "outcomes": {
+            "won": 0,
+            "lost": 0,
+            "undecided": 0,
+            "error": 0
+          },
+          "winRate": {
+            "successes": 0,
+            "total": 0,
+            "rate": null,
+            "wilson95": null
+          }
+        },
+        "battles": {
+          "battles": 7,
+          "outcomes": {
+            "won": 6,
+            "lost": 1,
+            "undecided": 0,
+            "error": 0
+          },
+          "rounds": {
+            "min": 2,
+            "p50": 3,
+            "p90": 3,
+            "max": 6,
+            "mean": 3.2857142857142856
+          },
+          "playerNetHpLoss": {
+            "total": 593,
+            "min": 0,
+            "p50": 52.143930348258664,
+            "p90": 149.24849999999998,
+            "max": 214.0291807628524,
+            "mean": 84.71428571428571
+          },
+          "playerNetHpLossPct": {
+            "min": 0,
+            "p50": 8.211642574528923,
+            "p90": 29.849699999999995,
+            "max": 32.676210803488914,
+            "mean": 14.872575244478739
+          }
+        }
+      },
+      "RKF05": {
+        "runs": 1,
+        "outcomes": {
+          "won": 0,
+          "lost": 1,
+          "undecided": 0,
+          "error": 0
+        },
+        "acts": {
+          "1": {
+            "cumulative": {
+              "successes": 0,
+              "total": 1,
+              "rate": 0,
+              "wilson95": {
+                "lower": 0,
+                "upper": 0.7934506856227626
+              }
+            },
+            "conditional": {
+              "successes": 0,
+              "total": 1,
+              "rate": 0,
+              "wilson95": {
+                "lower": 0,
+                "upper": 0.7934506856227626
+              }
+            },
+            "entered": 1
+          },
+          "2": {
+            "cumulative": {
+              "successes": 0,
+              "total": 1,
+              "rate": 0,
+              "wilson95": {
+                "lower": 0,
+                "upper": 0.7934506856227626
+              }
+            },
+            "conditional": {
+              "successes": 0,
+              "total": 0,
+              "rate": null,
+              "wilson95": null
+            },
+            "entered": 0
+          },
+          "3": {
+            "cumulative": {
+              "successes": 0,
+              "total": 1,
+              "rate": 0,
+              "wilson95": {
+                "lower": 0,
+                "upper": 0.7934506856227626
+              }
+            },
+            "conditional": {
+              "successes": 0,
+              "total": 0,
+              "rate": null,
+              "wilson95": null
+            },
+            "entered": 0
+          },
+          "4": {
+            "cumulative": {
+              "successes": 0,
+              "total": 1,
+              "rate": 0,
+              "wilson95": {
+                "lower": 0,
+                "upper": 0.7934506856227626
+              }
+            },
+            "conditional": {
+              "successes": 0,
+              "total": 0,
+              "rate": null,
+              "wilson95": null
+            },
+            "entered": 0
+          }
+        },
+        "finalBattle": {
+          "eligibleRuns": 0,
+          "wins": 0,
+          "outcomes": {
+            "won": 0,
+            "lost": 0,
+            "undecided": 0,
+            "error": 0
+          },
+          "winRate": {
+            "successes": 0,
+            "total": 0,
+            "rate": null,
+            "wilson95": null
+          }
+        },
+        "battles": {
+          "battles": 8,
+          "outcomes": {
+            "won": 7,
+            "lost": 1,
+            "undecided": 0,
+            "error": 0
+          },
+          "rounds": {
+            "min": 2,
+            "p50": 2,
+            "p90": 4,
+            "max": 4,
+            "mean": 2.75
+          },
+          "playerNetHpLoss": {
+            "total": 593.75,
+            "min": 0,
+            "p50": 70.27064377682399,
+            "p90": 94.24000000000001,
+            "max": 193.38684210526316,
+            "mean": 74.21875
+          },
+          "playerNetHpLossPct": {
+            "min": 0,
+            "p50": 11.243303004291839,
+            "p90": 18.848000000000003,
+            "max": 38.677368421052634,
+            "mean": 13.22931956214777
+          }
+        }
+      }
+    },
+    "byAct": {
+      "1": {
+        "act": 1,
+        "deaths": 3,
+        "battles": 32,
+        "outcomes": {
+          "won": 29,
+          "lost": 3,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 3,
+          "p90": 4,
+          "max": 8,
+          "mean": 3.125
+        },
+        "playerNetHpLoss": {
+          "total": 2592.950244282673,
+          "min": 0,
+          "p50": 70.27064377682399,
+          "p90": 149.24849999999998,
+          "max": 390.97999999999996,
+          "mean": 81.02969513383357
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 11.243303004291839,
+          "p90": 27.926000000000002,
+          "max": 76.66274509803921,
+          "mean": 14.753334534248292
+        }
+      },
+      "2": {
+        "act": 2,
+        "deaths": 0,
+        "battles": 13,
+        "outcomes": {
+          "won": 13,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 3,
+          "max": 5,
+          "mean": 2.5384615384615383
+        },
+        "playerNetHpLoss": {
+          "total": 71.46799134615401,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 57.067437500000096,
+          "mean": 5.497537795858
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 7.363540322580657,
+          "mean": 0.7040329999324242
+        }
+      },
+      "3": {
+        "act": 3,
+        "deaths": 0,
+        "battles": 14,
+        "outcomes": {
+          "won": 14,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 3,
+          "max": 4,
+          "mean": 2.4285714285714284
+        },
+        "playerNetHpLoss": {
+          "total": 19.513000000000034,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 19.513000000000034,
+          "mean": 1.3937857142857166
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 2.0540000000000034,
+          "mean": 0.14671428571428596
+        }
+      },
+      "4": {
+        "act": 4,
+        "deaths": 0,
+        "battles": 14,
+        "outcomes": {
+          "won": 14,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 3,
+          "p90": 5,
+          "max": 6,
+          "mean": 3.4285714285714284
+        },
+        "playerNetHpLoss": {
+          "total": 295.6999264922887,
+          "min": 0,
+          "p50": 0,
+          "p90": 58.50574745445192,
+          "max": 143.85931034482758,
+          "mean": 21.121423320877764
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 4.958114191055247,
+          "max": 12.191466978375217,
+          "mean": 1.789951128887946
+        }
+      },
+      "5": {
+        "act": 5,
+        "deaths": 0,
+        "battles": 2,
+        "outcomes": {
+          "won": 2,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 7,
+          "p50": 7,
+          "p90": 7,
+          "max": 7,
+          "mean": 7
+        },
+        "playerNetHpLoss": {
+          "total": 717.4912619489093,
+          "min": 290.82179811912204,
+          "p50": 290.82179811912204,
+          "p90": 290.82179811912204,
+          "max": 426.6694638297872,
+          "mean": 358.7456309744546
+        },
+        "playerNetHpLossPct": {
+          "min": 24.645915094840852,
+          "p50": 24.645915094840852,
+          "p90": 24.645915094840852,
+          "max": 36.15842913811756,
+          "mean": 30.402172116479207
+        }
+      }
+    },
+    "byNode": {
+      "1:B:EN-A1-B1": {
+        "act": 1,
+        "nodeType": "B",
+        "nodeId": "EN-A1-B1",
+        "deaths": 2,
+        "battles": 4,
+        "outcomes": {
+          "won": 2,
+          "lost": 2,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 4,
+          "p50": 4,
+          "p90": 5,
+          "max": 6,
+          "mean": 4.75
+        },
+        "playerNetHpLoss": {
+          "total": 575.2559309387684,
+          "min": 91.49765781324612,
+          "p50": 119.56591244635194,
+          "p90": 150.16317991631797,
+          "max": 214.0291807628524,
+          "mean": 143.8139827346921
+        },
+        "playerNetHpLossPct": {
+          "min": 13.96910806309101,
+          "p50": 18.254337778069,
+          "p90": 24.026108786610877,
+          "max": 32.676210803488914,
+          "mean": 22.23144135781495
+        }
+      },
+      "1:C:EN-A1-C1": {
+        "act": 1,
+        "nodeType": "C",
+        "nodeId": "EN-A1-C1",
+        "deaths": 0,
+        "battles": 7,
+        "outcomes": {
+          "won": 7,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 3,
+          "max": 3,
+          "mean": 2.2857142857142856
+        },
+        "playerNetHpLoss": {
+          "total": 307.42155319148935,
+          "min": 0,
+          "p50": 0,
+          "p90": 129.8505,
+          "max": 149.24849999999998,
+          "mean": 43.917364741641336
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 25.970100000000002,
+          "max": 29.849699999999995,
+          "mean": 8.621629787234042
+        }
+      },
+      "1:C:EN-A1-C2": {
+        "act": 1,
+        "nodeType": "C",
+        "nodeId": "EN-A1-C2",
+        "deaths": 0,
+        "battles": 4,
+        "outcomes": {
+          "won": 4,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 3,
+          "max": 4,
+          "mean": 2.75
+        },
+        "playerNetHpLoss": {
+          "total": 397.0591663997609,
+          "min": 52.143930348258664,
+          "p50": 65.66523605150218,
+          "p90": 139.62000000000006,
+          "max": 139.63,
+          "mean": 99.26479159994022
+        },
+        "playerNetHpLossPct": {
+          "min": 8.211642574528923,
+          "p50": 10.506437768240348,
+          "p90": 27.92400000000001,
+          "max": 27.926000000000002,
+          "mean": 18.64202008569232
+        }
+      },
+      "1:C:EN-A1-C3": {
+        "act": 1,
+        "nodeType": "C",
+        "nodeId": "EN-A1-C3",
+        "deaths": 0,
+        "battles": 4,
+        "outcomes": {
+          "won": 4,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 3,
+          "max": 3,
+          "mean": 2.5
+        },
+        "playerNetHpLoss": {
+          "total": 178.34466666666677,
+          "min": 0,
+          "p50": 0,
+          "p90": 47.58666666666673,
+          "max": 130.75800000000004,
+          "mean": 44.58616666666669
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 7.377777777777787,
+          "max": 26.15160000000001,
+          "mean": 8.382344444444449
+        }
+      },
+      "1:C:EN-A1-C4": {
+        "act": 1,
+        "nodeType": "C",
+        "nodeId": "EN-A1-C4",
+        "deaths": 0,
+        "battles": 7,
+        "outcomes": {
+          "won": 7,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 3,
+          "max": 3,
+          "mean": 2.4285714285714284
+        },
+        "playerNetHpLoss": {
+          "total": 164.6518659990462,
+          "min": 0,
+          "p50": 0,
+          "p90": 70.27064377682399,
+          "max": 94.24000000000001,
+          "mean": 23.521695142720887
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 11.243303004291839,
+          "max": 18.848000000000003,
+          "mean": 4.301985508549628
+        }
+      },
+      "1:L:EN-A1-L1": {
+        "act": 1,
+        "nodeType": "L",
+        "nodeId": "EN-A1-L1",
+        "deaths": 1,
+        "battles": 3,
+        "outcomes": {
+          "won": 2,
+          "lost": 1,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 3,
+          "p50": 3,
+          "p90": 3,
+          "max": 8,
+          "mean": 4.666666666666667
+        },
+        "playerNetHpLoss": {
+          "total": 569.9141593089585,
+          "min": 78.68962025316455,
+          "p50": 100.24453905579401,
+          "p90": 100.24453905579401,
+          "max": 390.97999999999996,
+          "mean": 189.97138643631948
+        },
+        "playerNetHpLossPct": {
+          "min": 12.59033924050633,
+          "p50": 15.304509779510536,
+          "p90": 15.304509779510536,
+          "max": 76.66274509803921,
+          "mean": 34.852531372685355
+        }
+      },
+      "1:L:EN-A1-L2": {
+        "act": 1,
+        "nodeType": "L",
+        "nodeId": "EN-A1-L2",
+        "deaths": 0,
+        "battles": 3,
+        "outcomes": {
+          "won": 3,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 4,
+          "p50": 4,
+          "p90": 4,
+          "max": 5,
+          "mean": 4.333333333333333
+        },
+        "playerNetHpLoss": {
+          "total": 400.30290177798344,
+          "min": 98.1813256779443,
+          "p50": 108.73473399477598,
+          "p90": 108.73473399477598,
+          "max": 193.38684210526316,
+          "mean": 133.43430059266115
+        },
+        "playerNetHpLossPct": {
+          "min": 19.63626513558886,
+          "p50": 21.746946798955197,
+          "p90": 21.746946798955197,
+          "max": 38.677368421052634,
+          "mean": 26.686860118532234
+        }
+      },
+      "2:B:EN-A2-B1": {
+        "act": 2,
+        "nodeType": "B",
+        "nodeId": "EN-A2-B1",
+        "deaths": 0,
+        "battles": 2,
+        "outcomes": {
+          "won": 2,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 4,
+          "p50": 4,
+          "p90": 4,
+          "max": 5,
+          "mean": 4.5
+        },
+        "playerNetHpLoss": {
+          "total": 71.46799134615401,
+          "min": 14.400553846153912,
+          "p50": 14.400553846153912,
+          "p90": 14.400553846153912,
+          "max": 57.067437500000096,
+          "mean": 35.733995673077004
+        },
+        "playerNetHpLossPct": {
+          "min": 1.7888886765408587,
+          "p50": 1.7888886765408587,
+          "p90": 1.7888886765408587,
+          "max": 7.363540322580657,
+          "mean": 4.576214499560757
+        }
+      },
+      "2:C:EN-A2-C1": {
+        "act": 2,
+        "nodeType": "C",
+        "nodeId": "EN-A2-C1",
+        "deaths": 0,
+        "battles": 3,
+        "outcomes": {
+          "won": 3,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 2,
+          "mean": 2
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "2:C:EN-A2-C2": {
+        "act": 2,
+        "nodeType": "C",
+        "nodeId": "EN-A2-C2",
+        "deaths": 0,
+        "battles": 2,
+        "outcomes": {
+          "won": 2,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 3,
+          "mean": 2.5
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "2:C:EN-A2-C3": {
+        "act": 2,
+        "nodeType": "C",
+        "nodeId": "EN-A2-C3",
+        "deaths": 0,
+        "battles": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 2,
+          "mean": 2
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "2:C:EN-A2-C4": {
+        "act": 2,
+        "nodeType": "C",
+        "nodeId": "EN-A2-C4",
+        "deaths": 0,
+        "battles": 4,
+        "outcomes": {
+          "won": 4,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 3,
+          "mean": 2.25
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "2:L:EN-A2-L1": {
+        "act": 2,
+        "nodeType": "L",
+        "nodeId": "EN-A2-L1",
+        "deaths": 0,
+        "battles": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 2,
+          "mean": 2
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "3:B:EN-A3-B1": {
+        "act": 3,
+        "nodeType": "B",
+        "nodeId": "EN-A3-B1",
+        "deaths": 0,
+        "battles": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 3,
+          "p50": 3,
+          "p90": 3,
+          "max": 3,
+          "mean": 3
+        },
+        "playerNetHpLoss": {
+          "total": 19.513000000000034,
+          "min": 19.513000000000034,
+          "p50": 19.513000000000034,
+          "p90": 19.513000000000034,
+          "max": 19.513000000000034,
+          "mean": 19.513000000000034
+        },
+        "playerNetHpLossPct": {
+          "min": 2.0540000000000034,
+          "p50": 2.0540000000000034,
+          "p90": 2.0540000000000034,
+          "max": 2.0540000000000034,
+          "mean": 2.0540000000000034
+        }
+      },
+      "3:B:EN-A3-B2": {
+        "act": 3,
+        "nodeType": "B",
+        "nodeId": "EN-A3-B2",
+        "deaths": 0,
+        "battles": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 4,
+          "p50": 4,
+          "p90": 4,
+          "max": 4,
+          "mean": 4
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "3:C:EN-A3-C1": {
+        "act": 3,
+        "nodeType": "C",
+        "nodeId": "EN-A3-C1",
+        "deaths": 0,
+        "battles": 4,
+        "outcomes": {
+          "won": 4,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 3,
+          "p90": 3,
+          "max": 3,
+          "mean": 2.75
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "3:C:EN-A3-C2": {
+        "act": 3,
+        "nodeType": "C",
+        "nodeId": "EN-A3-C2",
+        "deaths": 0,
+        "battles": 3,
+        "outcomes": {
+          "won": 3,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 2,
+          "mean": 2
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "3:C:EN-A3-C3": {
+        "act": 3,
+        "nodeType": "C",
+        "nodeId": "EN-A3-C3",
+        "deaths": 0,
+        "battles": 2,
+        "outcomes": {
+          "won": 2,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 2,
+          "mean": 2
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "3:C:EN-A3-C4": {
+        "act": 3,
+        "nodeType": "C",
+        "nodeId": "EN-A3-C4",
+        "deaths": 0,
+        "battles": 2,
+        "outcomes": {
+          "won": 2,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 2,
+          "mean": 2
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "3:L:EN-A3-L2": {
+        "act": 3,
+        "nodeType": "L",
+        "nodeId": "EN-A3-L2",
+        "deaths": 0,
+        "battles": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 2,
+          "mean": 2
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "4:B:EN-A4-B1": {
+        "act": 4,
+        "nodeType": "B",
+        "nodeId": "EN-A4-B1",
+        "deaths": 0,
+        "battles": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 5,
+          "p50": 5,
+          "p90": 5,
+          "max": 5,
+          "mean": 5
+        },
+        "playerNetHpLoss": {
+          "total": 78.06377264437697,
+          "min": 78.06377264437697,
+          "p50": 78.06377264437697,
+          "p90": 78.06377264437697,
+          "max": 78.06377264437697,
+          "mean": 78.06377264437697
+        },
+        "playerNetHpLossPct": {
+          "min": 6.615573952913302,
+          "p50": 6.615573952913302,
+          "p90": 6.615573952913302,
+          "max": 6.615573952913302,
+          "mean": 6.615573952913302
+        }
+      },
+      "4:B:EN-A4-B2": {
+        "act": 4,
+        "nodeType": "B",
+        "nodeId": "EN-A4-B2",
+        "deaths": 0,
+        "battles": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 5,
+          "p50": 5,
+          "p90": 5,
+          "max": 5,
+          "mean": 5
+        },
+        "playerNetHpLoss": {
+          "total": 58.50574745445192,
+          "min": 58.50574745445192,
+          "p50": 58.50574745445192,
+          "p90": 58.50574745445192,
+          "max": 58.50574745445192,
+          "mean": 58.50574745445192
+        },
+        "playerNetHpLossPct": {
+          "min": 4.958114191055247,
+          "p50": 4.958114191055247,
+          "p90": 4.958114191055247,
+          "max": 4.958114191055247,
+          "mean": 4.958114191055247
+        }
+      },
+      "4:C:EN-A4-C1": {
+        "act": 4,
+        "nodeType": "C",
+        "nodeId": "EN-A4-C1",
+        "deaths": 0,
+        "battles": 3,
+        "outcomes": {
+          "won": 3,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 3,
+          "p50": 3,
+          "p90": 3,
+          "max": 4,
+          "mean": 3.3333333333333335
+        },
+        "playerNetHpLoss": {
+          "total": 15.271096048632216,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 15.271096048632216,
+          "mean": 5.090365349544072
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 1.294160682087476,
+          "mean": 0.4313868940291587
+        }
+      },
+      "4:C:EN-A4-C2": {
+        "act": 4,
+        "nodeType": "C",
+        "nodeId": "EN-A4-C2",
+        "deaths": 0,
+        "battles": 5,
+        "outcomes": {
+          "won": 5,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 3,
+          "p90": 3,
+          "max": 4,
+          "mean": 3
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "4:C:EN-A4-C3": {
+        "act": 4,
+        "nodeType": "C",
+        "nodeId": "EN-A4-C3",
+        "deaths": 0,
+        "battles": 2,
+        "outcomes": {
+          "won": 2,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 2,
+          "mean": 2
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "4:C:EN-A4-C4": {
+        "act": 4,
+        "nodeType": "C",
+        "nodeId": "EN-A4-C4",
+        "deaths": 0,
+        "battles": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 3,
+          "p50": 3,
+          "p90": 3,
+          "max": 3,
+          "mean": 3
+        },
+        "playerNetHpLoss": {
+          "total": 143.85931034482758,
+          "min": 143.85931034482758,
+          "p50": 143.85931034482758,
+          "p90": 143.85931034482758,
+          "max": 143.85931034482758,
+          "mean": 143.85931034482758
+        },
+        "playerNetHpLossPct": {
+          "min": 12.191466978375217,
+          "p50": 12.191466978375217,
+          "p90": 12.191466978375217,
+          "max": 12.191466978375217,
+          "mean": 12.191466978375217
+        }
+      },
+      "4:L:EN-A4-L1": {
+        "act": 4,
+        "nodeType": "L",
+        "nodeId": "EN-A4-L1",
+        "deaths": 0,
+        "battles": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 6,
+          "p50": 6,
+          "p90": 6,
+          "max": 6,
+          "mean": 6
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "5:F:EN-F1": {
+        "act": 5,
+        "nodeType": "F",
+        "nodeId": "EN-F1",
+        "deaths": 0,
+        "battles": 2,
+        "outcomes": {
+          "won": 2,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 7,
+          "p50": 7,
+          "p90": 7,
+          "max": 7,
+          "mean": 7
+        },
+        "playerNetHpLoss": {
+          "total": 717.4912619489093,
+          "min": 290.82179811912204,
+          "p50": 290.82179811912204,
+          "p90": 290.82179811912204,
+          "max": 426.6694638297872,
+          "mean": 358.7456309744546
+        },
+        "playerNetHpLossPct": {
+          "min": 24.645915094840852,
+          "p50": 24.645915094840852,
+          "p90": 24.645915094840852,
+          "max": 36.15842913811756,
+          "mean": 30.402172116479207
+        }
+      }
+    },
+    "byEnemy": {
+      "EN-A1-B1": {
+        "enemyId": "EN-A1-B1",
+        "deaths": 2,
+        "battles": 4,
+        "outcomes": {
+          "won": 2,
+          "lost": 2,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 4,
+          "p50": 4,
+          "p90": 5,
+          "max": 6,
+          "mean": 4.75
+        },
+        "playerNetHpLoss": {
+          "total": 575.2559309387684,
+          "min": 91.49765781324612,
+          "p50": 119.56591244635194,
+          "p90": 150.16317991631797,
+          "max": 214.0291807628524,
+          "mean": 143.8139827346921
+        },
+        "playerNetHpLossPct": {
+          "min": 13.96910806309101,
+          "p50": 18.254337778069,
+          "p90": 24.026108786610877,
+          "max": 32.676210803488914,
+          "mean": 22.23144135781495
+        }
+      },
+      "EN-A1-C1": {
+        "enemyId": "EN-A1-C1",
+        "deaths": 0,
+        "battles": 7,
+        "outcomes": {
+          "won": 7,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 3,
+          "max": 3,
+          "mean": 2.2857142857142856
+        },
+        "playerNetHpLoss": {
+          "total": 307.42155319148935,
+          "min": 0,
+          "p50": 0,
+          "p90": 129.8505,
+          "max": 149.24849999999998,
+          "mean": 43.917364741641336
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 25.970100000000002,
+          "max": 29.849699999999995,
+          "mean": 8.621629787234042
+        }
+      },
+      "EN-A1-C2": {
+        "enemyId": "EN-A1-C2",
+        "deaths": 0,
+        "battles": 4,
+        "outcomes": {
+          "won": 4,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 3,
+          "max": 4,
+          "mean": 2.75
+        },
+        "playerNetHpLoss": {
+          "total": 397.0591663997609,
+          "min": 52.143930348258664,
+          "p50": 65.66523605150218,
+          "p90": 139.62000000000006,
+          "max": 139.63,
+          "mean": 99.26479159994022
+        },
+        "playerNetHpLossPct": {
+          "min": 8.211642574528923,
+          "p50": 10.506437768240348,
+          "p90": 27.92400000000001,
+          "max": 27.926000000000002,
+          "mean": 18.64202008569232
+        }
+      },
+      "EN-A1-C3": {
+        "enemyId": "EN-A1-C3",
+        "deaths": 0,
+        "battles": 4,
+        "outcomes": {
+          "won": 4,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 3,
+          "max": 3,
+          "mean": 2.5
+        },
+        "playerNetHpLoss": {
+          "total": 178.34466666666677,
+          "min": 0,
+          "p50": 0,
+          "p90": 47.58666666666673,
+          "max": 130.75800000000004,
+          "mean": 44.58616666666669
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 7.377777777777787,
+          "max": 26.15160000000001,
+          "mean": 8.382344444444449
+        }
+      },
+      "EN-A1-C4": {
+        "enemyId": "EN-A1-C4",
+        "deaths": 0,
+        "battles": 7,
+        "outcomes": {
+          "won": 7,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 3,
+          "max": 3,
+          "mean": 2.4285714285714284
+        },
+        "playerNetHpLoss": {
+          "total": 164.6518659990462,
+          "min": 0,
+          "p50": 0,
+          "p90": 70.27064377682399,
+          "max": 94.24000000000001,
+          "mean": 23.521695142720887
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 11.243303004291839,
+          "max": 18.848000000000003,
+          "mean": 4.301985508549628
+        }
+      },
+      "EN-A1-L1": {
+        "enemyId": "EN-A1-L1",
+        "deaths": 1,
+        "battles": 3,
+        "outcomes": {
+          "won": 2,
+          "lost": 1,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 3,
+          "p50": 3,
+          "p90": 3,
+          "max": 8,
+          "mean": 4.666666666666667
+        },
+        "playerNetHpLoss": {
+          "total": 569.9141593089585,
+          "min": 78.68962025316455,
+          "p50": 100.24453905579401,
+          "p90": 100.24453905579401,
+          "max": 390.97999999999996,
+          "mean": 189.97138643631948
+        },
+        "playerNetHpLossPct": {
+          "min": 12.59033924050633,
+          "p50": 15.304509779510536,
+          "p90": 15.304509779510536,
+          "max": 76.66274509803921,
+          "mean": 34.852531372685355
+        }
+      },
+      "EN-A1-L2": {
+        "enemyId": "EN-A1-L2",
+        "deaths": 0,
+        "battles": 3,
+        "outcomes": {
+          "won": 3,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 4,
+          "p50": 4,
+          "p90": 4,
+          "max": 5,
+          "mean": 4.333333333333333
+        },
+        "playerNetHpLoss": {
+          "total": 400.30290177798344,
+          "min": 98.1813256779443,
+          "p50": 108.73473399477598,
+          "p90": 108.73473399477598,
+          "max": 193.38684210526316,
+          "mean": 133.43430059266115
+        },
+        "playerNetHpLossPct": {
+          "min": 19.63626513558886,
+          "p50": 21.746946798955197,
+          "p90": 21.746946798955197,
+          "max": 38.677368421052634,
+          "mean": 26.686860118532234
+        }
+      },
+      "EN-A2-B1": {
+        "enemyId": "EN-A2-B1",
+        "deaths": 0,
+        "battles": 2,
+        "outcomes": {
+          "won": 2,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 4,
+          "p50": 4,
+          "p90": 4,
+          "max": 5,
+          "mean": 4.5
+        },
+        "playerNetHpLoss": {
+          "total": 71.46799134615401,
+          "min": 14.400553846153912,
+          "p50": 14.400553846153912,
+          "p90": 14.400553846153912,
+          "max": 57.067437500000096,
+          "mean": 35.733995673077004
+        },
+        "playerNetHpLossPct": {
+          "min": 1.7888886765408587,
+          "p50": 1.7888886765408587,
+          "p90": 1.7888886765408587,
+          "max": 7.363540322580657,
+          "mean": 4.576214499560757
+        }
+      },
+      "EN-A2-C1": {
+        "enemyId": "EN-A2-C1",
+        "deaths": 0,
+        "battles": 3,
+        "outcomes": {
+          "won": 3,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 2,
+          "mean": 2
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "EN-A2-C2": {
+        "enemyId": "EN-A2-C2",
+        "deaths": 0,
+        "battles": 2,
+        "outcomes": {
+          "won": 2,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 3,
+          "mean": 2.5
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "EN-A2-C3": {
+        "enemyId": "EN-A2-C3",
+        "deaths": 0,
+        "battles": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 2,
+          "mean": 2
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "EN-A2-C4": {
+        "enemyId": "EN-A2-C4",
+        "deaths": 0,
+        "battles": 4,
+        "outcomes": {
+          "won": 4,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 3,
+          "mean": 2.25
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "EN-A2-L1": {
+        "enemyId": "EN-A2-L1",
+        "deaths": 0,
+        "battles": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 2,
+          "mean": 2
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "EN-A3-B1": {
+        "enemyId": "EN-A3-B1",
+        "deaths": 0,
+        "battles": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 3,
+          "p50": 3,
+          "p90": 3,
+          "max": 3,
+          "mean": 3
+        },
+        "playerNetHpLoss": {
+          "total": 19.513000000000034,
+          "min": 19.513000000000034,
+          "p50": 19.513000000000034,
+          "p90": 19.513000000000034,
+          "max": 19.513000000000034,
+          "mean": 19.513000000000034
+        },
+        "playerNetHpLossPct": {
+          "min": 2.0540000000000034,
+          "p50": 2.0540000000000034,
+          "p90": 2.0540000000000034,
+          "max": 2.0540000000000034,
+          "mean": 2.0540000000000034
+        }
+      },
+      "EN-A3-B2": {
+        "enemyId": "EN-A3-B2",
+        "deaths": 0,
+        "battles": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 4,
+          "p50": 4,
+          "p90": 4,
+          "max": 4,
+          "mean": 4
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "EN-A3-C1": {
+        "enemyId": "EN-A3-C1",
+        "deaths": 0,
+        "battles": 4,
+        "outcomes": {
+          "won": 4,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 3,
+          "p90": 3,
+          "max": 3,
+          "mean": 2.75
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "EN-A3-C2": {
+        "enemyId": "EN-A3-C2",
+        "deaths": 0,
+        "battles": 3,
+        "outcomes": {
+          "won": 3,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 2,
+          "mean": 2
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "EN-A3-C3": {
+        "enemyId": "EN-A3-C3",
+        "deaths": 0,
+        "battles": 2,
+        "outcomes": {
+          "won": 2,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 2,
+          "mean": 2
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "EN-A3-C4": {
+        "enemyId": "EN-A3-C4",
+        "deaths": 0,
+        "battles": 2,
+        "outcomes": {
+          "won": 2,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 2,
+          "mean": 2
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "EN-A3-L2": {
+        "enemyId": "EN-A3-L2",
+        "deaths": 0,
+        "battles": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 2,
+          "mean": 2
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "EN-A4-B1": {
+        "enemyId": "EN-A4-B1",
+        "deaths": 0,
+        "battles": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 5,
+          "p50": 5,
+          "p90": 5,
+          "max": 5,
+          "mean": 5
+        },
+        "playerNetHpLoss": {
+          "total": 78.06377264437697,
+          "min": 78.06377264437697,
+          "p50": 78.06377264437697,
+          "p90": 78.06377264437697,
+          "max": 78.06377264437697,
+          "mean": 78.06377264437697
+        },
+        "playerNetHpLossPct": {
+          "min": 6.615573952913302,
+          "p50": 6.615573952913302,
+          "p90": 6.615573952913302,
+          "max": 6.615573952913302,
+          "mean": 6.615573952913302
+        }
+      },
+      "EN-A4-B2": {
+        "enemyId": "EN-A4-B2",
+        "deaths": 0,
+        "battles": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 5,
+          "p50": 5,
+          "p90": 5,
+          "max": 5,
+          "mean": 5
+        },
+        "playerNetHpLoss": {
+          "total": 58.50574745445192,
+          "min": 58.50574745445192,
+          "p50": 58.50574745445192,
+          "p90": 58.50574745445192,
+          "max": 58.50574745445192,
+          "mean": 58.50574745445192
+        },
+        "playerNetHpLossPct": {
+          "min": 4.958114191055247,
+          "p50": 4.958114191055247,
+          "p90": 4.958114191055247,
+          "max": 4.958114191055247,
+          "mean": 4.958114191055247
+        }
+      },
+      "EN-A4-C1": {
+        "enemyId": "EN-A4-C1",
+        "deaths": 0,
+        "battles": 3,
+        "outcomes": {
+          "won": 3,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 3,
+          "p50": 3,
+          "p90": 3,
+          "max": 4,
+          "mean": 3.3333333333333335
+        },
+        "playerNetHpLoss": {
+          "total": 15.271096048632216,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 15.271096048632216,
+          "mean": 5.090365349544072
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 1.294160682087476,
+          "mean": 0.4313868940291587
+        }
+      },
+      "EN-A4-C2": {
+        "enemyId": "EN-A4-C2",
+        "deaths": 0,
+        "battles": 5,
+        "outcomes": {
+          "won": 5,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 3,
+          "p90": 3,
+          "max": 4,
+          "mean": 3
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "EN-A4-C3": {
+        "enemyId": "EN-A4-C3",
+        "deaths": 0,
+        "battles": 2,
+        "outcomes": {
+          "won": 2,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 2,
+          "p50": 2,
+          "p90": 2,
+          "max": 2,
+          "mean": 2
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "EN-A4-C4": {
+        "enemyId": "EN-A4-C4",
+        "deaths": 0,
+        "battles": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 3,
+          "p50": 3,
+          "p90": 3,
+          "max": 3,
+          "mean": 3
+        },
+        "playerNetHpLoss": {
+          "total": 143.85931034482758,
+          "min": 143.85931034482758,
+          "p50": 143.85931034482758,
+          "p90": 143.85931034482758,
+          "max": 143.85931034482758,
+          "mean": 143.85931034482758
+        },
+        "playerNetHpLossPct": {
+          "min": 12.191466978375217,
+          "p50": 12.191466978375217,
+          "p90": 12.191466978375217,
+          "max": 12.191466978375217,
+          "mean": 12.191466978375217
+        }
+      },
+      "EN-A4-L1": {
+        "enemyId": "EN-A4-L1",
+        "deaths": 0,
+        "battles": 1,
+        "outcomes": {
+          "won": 1,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 6,
+          "p50": 6,
+          "p90": 6,
+          "max": 6,
+          "mean": 6
+        },
+        "playerNetHpLoss": {
+          "total": 0,
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "playerNetHpLossPct": {
+          "min": 0,
+          "p50": 0,
+          "p90": 0,
+          "max": 0,
+          "mean": 0
+        }
+      },
+      "EN-F1": {
+        "enemyId": "EN-F1",
+        "deaths": 0,
+        "battles": 2,
+        "outcomes": {
+          "won": 2,
+          "lost": 0,
+          "undecided": 0,
+          "error": 0
+        },
+        "rounds": {
+          "min": 7,
+          "p50": 7,
+          "p90": 7,
+          "max": 7,
+          "mean": 7
+        },
+        "playerNetHpLoss": {
+          "total": 717.4912619489093,
+          "min": 290.82179811912204,
+          "p50": 290.82179811912204,
+          "p90": 290.82179811912204,
+          "max": 426.6694638297872,
+          "mean": 358.7456309744546
+        },
+        "playerNetHpLossPct": {
+          "min": 24.645915094840852,
+          "p50": 24.645915094840852,
+          "p90": 24.645915094840852,
+          "max": 36.15842913811756,
+          "mean": 30.402172116479207
+        }
+      }
+    },
+    "deaths": {
+      "total": 3,
+      "byAct": {
+        "1": 3
+      },
+      "byNode": {
+        "1:B:EN-A1-B1": 2,
+        "1:L:EN-A1-L1": 1
+      },
+      "byEnemy": {
+        "EN-A1-B1": 2,
+        "EN-A1-L1": 1
+      },
+      "unknownLocation": 0
+    },
+    "errors": {
+      "total": 0,
+      "records": []
+    }
+  },
+  "runs": [
+    {
+      "seed": "v2-smoke-0-train-RKF01-0001",
+      "method": "RKF01",
+      "result": "won",
+      "enteredActs": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "clearedActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "battles": [
+        {
+          "act": 1,
+          "step": 0,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C2",
+          "enemyId": "EN-A1-C2",
+          "enemyName": "风穴雷獭",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 500,
+          "playerPostHp": 360.37,
+          "playerNetHpLoss": 139.63,
+          "playerNetHpLossPct": 27.926000000000002,
+          "enemyEntryHp": 295,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 295
+        },
+        {
+          "act": 1,
+          "step": 2,
+          "nodeType": "L",
+          "nodeId": "EN-A1-L2",
+          "enemyId": "EN-A1-L2",
+          "enemyName": "月蚀断脉客",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 5,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 360.37,
+          "playerPostHp": 262.1886743220557,
+          "playerNetHpLoss": 98.1813256779443,
+          "playerNetHpLossPct": 19.63626513558886,
+          "enemyEntryHp": 460,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 460
+        },
+        {
+          "act": 1,
+          "step": 5,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C3",
+          "enemyId": "EN-A1-C3",
+          "enemyName": "灰潮火螭",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 418.4386743220557,
+          "playerPostHp": 418.4386743220557,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 340,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 340
+        },
+        {
+          "act": 1,
+          "step": 6,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C4",
+          "enemyId": "EN-A1-C4",
+          "enemyName": "岩汐甲蜥",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 470.8386743220557,
+          "playerPostHp": 470.8386743220557,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 330,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 330
+        },
+        {
+          "act": 1,
+          "step": 8,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C1",
+          "enemyId": "EN-A1-C1",
+          "enemyName": "浅滩石鼋",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 523.2386743220557,
+          "playerPostHp": 523.2386743220557,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 280,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 280
+        },
+        {
+          "act": 1,
+          "step": 9,
+          "nodeType": "L",
+          "nodeId": "EN-A1-L1",
+          "enemyId": "EN-A1-L1",
+          "enemyName": "养锋石卫",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 575.6386743220556,
+          "playerPostHp": 475.3941352662616,
+          "playerNetHpLoss": 100.24453905579401,
+          "playerNetHpLossPct": 15.304509779510536,
+          "enemyEntryHp": 450,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 450
+        },
+        {
+          "act": 1,
+          "step": 10,
+          "nodeType": "B",
+          "nodeId": "EN-A1-B1",
+          "enemyId": "EN-A1-B1",
+          "enemyName": "共工遗影试炼",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 5,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 527.7941352662616,
+          "playerPostHp": 408.22822281990966,
+          "playerNetHpLoss": 119.56591244635194,
+          "playerNetHpLossPct": 18.254337778069,
+          "enemyEntryHp": 650,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 650
+        },
+        {
+          "act": 2,
+          "step": 0,
+          "nodeType": "C",
+          "nodeId": "EN-A2-C4",
+          "enemyId": "EN-A2-C4",
+          "enemyName": "断桥雷鲛",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 460.62822281990964,
+          "playerPostHp": 460.62822281990964,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 400,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 400
+        },
+        {
+          "act": 2,
+          "step": 2,
+          "nodeType": "C",
+          "nodeId": "EN-A2-C2",
+          "enemyId": "EN-A2-C2",
+          "enemyName": "断桥回气魈",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 513.0282228199096,
+          "playerPostHp": 513.0282228199096,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 375,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 375
+        },
+        {
+          "act": 2,
+          "step": 5,
+          "nodeType": "L",
+          "nodeId": "EN-A2-L1",
+          "enemyId": "EN-A2-L1",
+          "enemyName": "养元桥守",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 670.4282228199096,
+          "playerPostHp": 670.4282228199096,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 363.00000000000006,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 363.00000000000006
+        },
+        {
+          "act": 2,
+          "step": 8,
+          "nodeType": "C",
+          "nodeId": "EN-A2-C4",
+          "enemyId": "EN-A2-C4",
+          "enemyName": "断桥雷鲛",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 805,
+          "playerPostHp": 805,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 400,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 400
+        },
+        {
+          "act": 2,
+          "step": 9,
+          "nodeType": "C",
+          "nodeId": "EN-A2-C1",
+          "enemyId": "EN-A2-C1",
+          "enemyName": "断桥青蛇",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 805,
+          "playerPostHp": 805,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 395,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 395
+        },
+        {
+          "act": 2,
+          "step": 10,
+          "nodeType": "B",
+          "nodeId": "EN-A2-B1",
+          "enemyId": "EN-A2-B1",
+          "enemyName": "相柳残蜕试阵",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 5,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 805,
+          "playerPostHp": 790.5994461538461,
+          "playerNetHpLoss": 14.400553846153912,
+          "playerNetHpLossPct": 1.7888886765408587,
+          "enemyEntryHp": 777,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 777
+        },
+        {
+          "act": 3,
+          "step": 0,
+          "nodeType": "C",
+          "nodeId": "EN-A3-C4",
+          "enemyId": "EN-A3-C4",
+          "enemyName": "赤砂引火客",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 805,
+          "playerPostHp": 805,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 459,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 459
+        },
+        {
+          "act": 3,
+          "step": 2,
+          "nodeType": "C",
+          "nodeId": "EN-A3-C4",
+          "enemyId": "EN-A3-C4",
+          "enemyName": "赤砂引火客",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 883.4,
+          "playerPostHp": 883.4,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 459,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 459
+        },
+        {
+          "act": 3,
+          "step": 3,
+          "nodeType": "C",
+          "nodeId": "EN-A3-C1",
+          "enemyId": "EN-A3-C1",
+          "enemyName": "沉甲巡谷",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 961.8,
+          "playerPostHp": 961.8,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 449,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 449
+        },
+        {
+          "act": 3,
+          "step": 5,
+          "nodeType": "C",
+          "nodeId": "EN-A3-C2",
+          "enemyId": "EN-A3-C2",
+          "enemyName": "归元行客",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 980,
+          "playerPostHp": 980,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 416,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 416
+        },
+        {
+          "act": 3,
+          "step": 6,
+          "nodeType": "C",
+          "nodeId": "EN-A3-C1",
+          "enemyId": "EN-A3-C1",
+          "enemyName": "沉甲巡谷",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 980,
+          "playerPostHp": 980,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 449,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 449
+        },
+        {
+          "act": 3,
+          "step": 8,
+          "nodeType": "C",
+          "nodeId": "EN-A3-C1",
+          "enemyId": "EN-A3-C1",
+          "enemyName": "沉甲巡谷",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 980,
+          "playerPostHp": 980,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 449,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 449
+        },
+        {
+          "act": 3,
+          "step": 9,
+          "nodeType": "C",
+          "nodeId": "EN-A3-C3",
+          "enemyId": "EN-A3-C3",
+          "enemyName": "春庭采药人",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 980,
+          "playerPostHp": 980,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 450,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 450
+        },
+        {
+          "act": 3,
+          "step": 10,
+          "nodeType": "B",
+          "nodeId": "EN-A3-B2",
+          "enemyId": "EN-A3-B2",
+          "enemyName": "祝融试火",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 4,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 980,
+          "playerPostHp": 980,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 806,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 806
+        },
+        {
+          "act": 4,
+          "step": 0,
+          "nodeType": "C",
+          "nodeId": "EN-A4-C2",
+          "enemyId": "EN-A4-C2",
+          "enemyName": "晨昏守碑",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 980,
+          "playerPostHp": 980,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 870,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 870
+        },
+        {
+          "act": 4,
+          "step": 2,
+          "nodeType": "C",
+          "nodeId": "EN-A4-C3",
+          "enemyId": "EN-A4-C3",
+          "enemyName": "玄门再铸",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 1074.4,
+          "playerPostHp": 1074.4,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 525,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 525
+        },
+        {
+          "act": 4,
+          "step": 3,
+          "nodeType": "L",
+          "nodeId": "EN-A4-L1",
+          "enemyId": "EN-A4-L1",
+          "enemyName": "春脉护谷",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 6,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 1168.8000000000002,
+          "playerPostHp": 1168.8000000000002,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 929.5000000000001,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 929.5000000000001
+        },
+        {
+          "act": 4,
+          "step": 5,
+          "nodeType": "C",
+          "nodeId": "EN-A4-C2",
+          "enemyId": "EN-A4-C2",
+          "enemyName": "晨昏守碑",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 4,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 1180,
+          "playerPostHp": 1180,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 870,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 870
+        },
+        {
+          "act": 4,
+          "step": 8,
+          "nodeType": "C",
+          "nodeId": "EN-A4-C2",
+          "enemyId": "EN-A4-C2",
+          "enemyName": "晨昏守碑",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 1180,
+          "playerPostHp": 1180,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 870,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 870
+        },
+        {
+          "act": 4,
+          "step": 9,
+          "nodeType": "C",
+          "nodeId": "EN-A4-C1",
+          "enemyId": "EN-A4-C1",
+          "enemyName": "金焰巡天",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 4,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 1180,
+          "playerPostHp": 1164.7289039513678,
+          "playerNetHpLoss": 15.271096048632216,
+          "playerNetHpLossPct": 1.294160682087476,
+          "enemyEntryHp": 755,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 755
+        },
+        {
+          "act": 4,
+          "step": 10,
+          "nodeType": "B",
+          "nodeId": "EN-A4-B1",
+          "enemyId": "EN-A4-B1",
+          "enemyName": "陆吾守门",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 5,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 1180,
+          "playerPostHp": 1101.936227355623,
+          "playerNetHpLoss": 78.06377264437697,
+          "playerNetHpLossPct": 6.615573952913302,
+          "enemyEntryHp": 1185,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 1185
+        },
+        {
+          "act": 5,
+          "step": 0,
+          "nodeType": "F",
+          "nodeId": "EN-F1",
+          "enemyId": "EN-F1",
+          "enemyName": "雷劫化身",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 7,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 1180,
+          "playerPostHp": 753.3305361702128,
+          "playerNetHpLoss": 426.6694638297872,
+          "playerNetHpLossPct": 36.15842913811756,
+          "enemyEntryHp": 1782,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 1782
+        }
+      ],
+      "finalBattle": {
+        "act": 5,
+        "step": 0,
+        "nodeType": "F",
+        "nodeId": "EN-F1",
+        "enemyId": "EN-F1",
+        "enemyName": "雷劫化身",
+        "enemyStatMultipliers": {
+          "attack": 1,
+          "defense": 1,
+          "max_hp": 1
+        },
+        "result": "won",
+        "outcome": "player",
+        "rounds": 7,
+        "continues": 0,
+        "roundLimits": [
+          256
+        ],
+        "playerEntryHp": 1180,
+        "playerPostHp": 753.3305361702128,
+        "playerNetHpLoss": 426.6694638297872,
+        "playerNetHpLossPct": 36.15842913811756,
+        "enemyEntryHp": 1782,
+        "enemyPostHp": 0,
+        "enemyNetHpLoss": 1782
+      },
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "n": 4,
+      "hp": 753.3305361702128,
+      "xp": 3152,
+      "coins": 173,
+      "commandCount": 172
+    },
+    {
+      "seed": "v2-smoke-0-train-RKF02-0001",
+      "method": "RKF02",
+      "result": "won",
+      "enteredActs": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "clearedActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "battles": [
+        {
+          "act": 1,
+          "step": 0,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C3",
+          "enemyId": "EN-A1-C3",
+          "enemyName": "灰潮火螭",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 500,
+          "playerPostHp": 369.24199999999996,
+          "playerNetHpLoss": 130.75800000000004,
+          "playerNetHpLossPct": 26.15160000000001,
+          "enemyEntryHp": 340,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 340
+        },
+        {
+          "act": 1,
+          "step": 2,
+          "nodeType": "L",
+          "nodeId": "EN-A1-L2",
+          "enemyId": "EN-A1-L2",
+          "enemyName": "月蚀断脉客",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 4,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 369.24199999999996,
+          "playerPostHp": 260.507266005224,
+          "playerNetHpLoss": 108.73473399477598,
+          "playerNetHpLossPct": 21.746946798955197,
+          "enemyEntryHp": 460,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 460
+        },
+        {
+          "act": 1,
+          "step": 3,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C1",
+          "enemyId": "EN-A1-C1",
+          "enemyName": "浅滩石鼋",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 260.507266005224,
+          "playerPostHp": 232.18471281373462,
+          "playerNetHpLoss": 28.322553191489362,
+          "playerNetHpLossPct": 4.531608510638298,
+          "enemyEntryHp": 280,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 280
+        },
+        {
+          "act": 1,
+          "step": 5,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C1",
+          "enemyId": "EN-A1-C1",
+          "enemyName": "浅滩石鼋",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 232.18471281373462,
+          "playerPostHp": 232.18471281373462,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 280,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 280
+        },
+        {
+          "act": 1,
+          "step": 6,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C4",
+          "enemyId": "EN-A1-C4",
+          "enemyName": "岩汐甲蜥",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 232.18471281373462,
+          "playerPostHp": 232.18471281373462,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 330,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 330
+        },
+        {
+          "act": 1,
+          "step": 8,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C3",
+          "enemyId": "EN-A1-C3",
+          "enemyName": "灰潮火螭",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 357.1847128137346,
+          "playerPostHp": 357.1847128137346,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 340,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 340
+        },
+        {
+          "act": 1,
+          "step": 9,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C4",
+          "enemyId": "EN-A1-C4",
+          "enemyName": "岩汐甲蜥",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 357.1847128137346,
+          "playerPostHp": 357.1847128137346,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 330,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 330
+        },
+        {
+          "act": 1,
+          "step": 10,
+          "nodeType": "B",
+          "nodeId": "EN-A1-B1",
+          "enemyId": "EN-A1-B1",
+          "enemyName": "共工遗影试炼",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 4,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 357.1847128137346,
+          "playerPostHp": 207.02153289741665,
+          "playerNetHpLoss": 150.16317991631797,
+          "playerNetHpLossPct": 24.026108786610877,
+          "enemyEntryHp": 650,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 650
+        },
+        {
+          "act": 2,
+          "step": 0,
+          "nodeType": "C",
+          "nodeId": "EN-A2-C1",
+          "enemyId": "EN-A2-C1",
+          "enemyName": "断桥青蛇",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 207.02153289741665,
+          "playerPostHp": 207.02153289741665,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 395,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 395
+        },
+        {
+          "act": 2,
+          "step": 3,
+          "nodeType": "C",
+          "nodeId": "EN-A2-C3",
+          "enemyId": "EN-A2-C3",
+          "enemyName": "断桥赤羽",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 400.77153289741665,
+          "playerPostHp": 400.77153289741665,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 445,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 445
+        },
+        {
+          "act": 2,
+          "step": 5,
+          "nodeType": "C",
+          "nodeId": "EN-A2-C4",
+          "enemyId": "EN-A2-C4",
+          "enemyName": "断桥雷鲛",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 555.7715328974166,
+          "playerPostHp": 555.7715328974166,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 400,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 400
+        },
+        {
+          "act": 2,
+          "step": 6,
+          "nodeType": "C",
+          "nodeId": "EN-A2-C2",
+          "enemyId": "EN-A2-C2",
+          "enemyName": "断桥回气魈",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 555.7715328974166,
+          "playerPostHp": 555.7715328974166,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 375,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 375
+        },
+        {
+          "act": 2,
+          "step": 8,
+          "nodeType": "C",
+          "nodeId": "EN-A2-C1",
+          "enemyId": "EN-A2-C1",
+          "enemyName": "断桥青蛇",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 555.7715328974166,
+          "playerPostHp": 555.7715328974166,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 395,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 395
+        },
+        {
+          "act": 2,
+          "step": 9,
+          "nodeType": "C",
+          "nodeId": "EN-A2-C4",
+          "enemyId": "EN-A2-C4",
+          "enemyName": "断桥雷鲛",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 555.7715328974166,
+          "playerPostHp": 555.7715328974166,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 400,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 400
+        },
+        {
+          "act": 2,
+          "step": 10,
+          "nodeType": "B",
+          "nodeId": "EN-A2-B1",
+          "enemyId": "EN-A2-B1",
+          "enemyName": "相柳残蜕试阵",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 4,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 555.7715328974166,
+          "playerPostHp": 498.7040953974165,
+          "playerNetHpLoss": 57.067437500000096,
+          "playerNetHpLossPct": 7.363540322580657,
+          "enemyEntryHp": 777,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 777
+        },
+        {
+          "act": 3,
+          "step": 0,
+          "nodeType": "C",
+          "nodeId": "EN-A3-C1",
+          "enemyId": "EN-A3-C1",
+          "enemyName": "沉甲巡谷",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 498.7040953974165,
+          "playerPostHp": 498.7040953974165,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 449,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 449
+        },
+        {
+          "act": 3,
+          "step": 2,
+          "nodeType": "C",
+          "nodeId": "EN-A3-C2",
+          "enemyId": "EN-A3-C2",
+          "enemyName": "归元行客",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 498.7040953974165,
+          "playerPostHp": 498.7040953974165,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 416,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 416
+        },
+        {
+          "act": 3,
+          "step": 5,
+          "nodeType": "C",
+          "nodeId": "EN-A3-C3",
+          "enemyId": "EN-A3-C3",
+          "enemyName": "春庭采药人",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 926.2040953974165,
+          "playerPostHp": 926.2040953974165,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 450,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 450
+        },
+        {
+          "act": 3,
+          "step": 6,
+          "nodeType": "C",
+          "nodeId": "EN-A3-C2",
+          "enemyId": "EN-A3-C2",
+          "enemyName": "归元行客",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 926.2040953974165,
+          "playerPostHp": 926.2040953974165,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 416,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 416
+        },
+        {
+          "act": 3,
+          "step": 9,
+          "nodeType": "L",
+          "nodeId": "EN-A3-L2",
+          "enemyId": "EN-A3-L2",
+          "enemyName": "五毒行舟客",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 926.2040953974165,
+          "playerPostHp": 926.2040953974165,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 708,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 708
+        },
+        {
+          "act": 3,
+          "step": 10,
+          "nodeType": "B",
+          "nodeId": "EN-A3-B1",
+          "enemyId": "EN-A3-B1",
+          "enemyName": "毕方烈羽",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 926.2040953974165,
+          "playerPostHp": 906.6910953974165,
+          "playerNetHpLoss": 19.513000000000034,
+          "playerNetHpLossPct": 2.0540000000000034,
+          "enemyEntryHp": 767,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 767
+        },
+        {
+          "act": 4,
+          "step": 0,
+          "nodeType": "C",
+          "nodeId": "EN-A4-C2",
+          "enemyId": "EN-A4-C2",
+          "enemyName": "晨昏守碑",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 906.6910953974165,
+          "playerPostHp": 906.6910953974165,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 870,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 870
+        },
+        {
+          "act": 4,
+          "step": 2,
+          "nodeType": "C",
+          "nodeId": "EN-A4-C1",
+          "enemyId": "EN-A4-C1",
+          "enemyName": "金焰巡天",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 1001.0910953974164,
+          "playerPostHp": 1001.0910953974164,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 755,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 755
+        },
+        {
+          "act": 4,
+          "step": 3,
+          "nodeType": "C",
+          "nodeId": "EN-A4-C4",
+          "enemyId": "EN-A4-C4",
+          "enemyName": "归元石台",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 1095.4910953974165,
+          "playerPostHp": 951.631785052589,
+          "playerNetHpLoss": 143.85931034482758,
+          "playerNetHpLossPct": 12.191466978375217,
+          "enemyEntryHp": 890,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 890
+        },
+        {
+          "act": 4,
+          "step": 5,
+          "nodeType": "C",
+          "nodeId": "EN-A4-C2",
+          "enemyId": "EN-A4-C2",
+          "enemyName": "晨昏守碑",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 1046.031785052589,
+          "playerPostHp": 1046.031785052589,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 870,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 870
+        },
+        {
+          "act": 4,
+          "step": 6,
+          "nodeType": "C",
+          "nodeId": "EN-A4-C3",
+          "enemyId": "EN-A4-C3",
+          "enemyName": "玄门再铸",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 1140.431785052589,
+          "playerPostHp": 1140.431785052589,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 525,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 525
+        },
+        {
+          "act": 4,
+          "step": 9,
+          "nodeType": "C",
+          "nodeId": "EN-A4-C1",
+          "enemyId": "EN-A4-C1",
+          "enemyName": "金焰巡天",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 1180,
+          "playerPostHp": 1180,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 755,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 755
+        },
+        {
+          "act": 4,
+          "step": 10,
+          "nodeType": "B",
+          "nodeId": "EN-A4-B2",
+          "enemyId": "EN-A4-B2",
+          "enemyName": "开明镇阶",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 5,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 1180,
+          "playerPostHp": 1121.494252545548,
+          "playerNetHpLoss": 58.50574745445192,
+          "playerNetHpLossPct": 4.958114191055247,
+          "enemyEntryHp": 1275,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 1275
+        },
+        {
+          "act": 5,
+          "step": 0,
+          "nodeType": "F",
+          "nodeId": "EN-F1",
+          "enemyId": "EN-F1",
+          "enemyName": "雷劫化身",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 7,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 1180,
+          "playerPostHp": 889.178201880878,
+          "playerNetHpLoss": 290.82179811912204,
+          "playerNetHpLossPct": 24.645915094840852,
+          "enemyEntryHp": 1782,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 1782
+        }
+      ],
+      "finalBattle": {
+        "act": 5,
+        "step": 0,
+        "nodeType": "F",
+        "nodeId": "EN-F1",
+        "enemyId": "EN-F1",
+        "enemyName": "雷劫化身",
+        "enemyStatMultipliers": {
+          "attack": 1,
+          "defense": 1,
+          "max_hp": 1
+        },
+        "result": "won",
+        "outcome": "player",
+        "rounds": 7,
+        "continues": 0,
+        "roundLimits": [
+          256
+        ],
+        "playerEntryHp": 1180,
+        "playerPostHp": 889.178201880878,
+        "playerNetHpLoss": 290.82179811912204,
+        "playerNetHpLossPct": 24.645915094840852,
+        "enemyEntryHp": 1782,
+        "enemyPostHp": 0,
+        "enemyNetHpLoss": 1782
+      },
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "n": 4,
+      "hp": 889.178201880878,
+      "xp": 3218,
+      "coins": 98,
+      "commandCount": 177
+    },
+    {
+      "seed": "v2-smoke-0-train-RKF03-0001",
+      "method": "RKF03",
+      "result": "lost",
+      "enteredActs": [
+        1
+      ],
+      "clearedActs": [],
+      "battles": [
+        {
+          "act": 1,
+          "step": 0,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C2",
+          "enemyId": "EN-A1-C2",
+          "enemyName": "风穴雷獭",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 4,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 500,
+          "playerPostHp": 360.37999999999994,
+          "playerNetHpLoss": 139.62000000000006,
+          "playerNetHpLossPct": 27.92400000000001,
+          "enemyEntryHp": 295,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 295
+        },
+        {
+          "act": 1,
+          "step": 2,
+          "nodeType": "L",
+          "nodeId": "EN-A1-L1",
+          "enemyId": "EN-A1-L1",
+          "enemyName": "养锋石卫",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "lost",
+          "outcome": "enemy",
+          "rounds": 8,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 390.97999999999996,
+          "playerPostHp": 0,
+          "playerNetHpLoss": 390.97999999999996,
+          "playerNetHpLossPct": 76.66274509803921,
+          "enemyEntryHp": 450,
+          "enemyPostHp": 31.840490797546096,
+          "enemyNetHpLoss": 418.15950920245393
+        }
+      ],
+      "finalBattle": null,
+      "fatal": {
+        "act": 1,
+        "step": 2,
+        "nodeType": "L",
+        "nodeId": "EN-A1-L1",
+        "enemyId": "EN-A1-L1"
+      },
+      "act": 1,
+      "step": 2,
+      "nodes": 2,
+      "n": 0,
+      "hp": 0,
+      "xp": 60,
+      "coins": 24,
+      "commandCount": 10
+    },
+    {
+      "seed": "v2-smoke-0-train-RKF04-0001",
+      "method": "RKF04",
+      "result": "lost",
+      "enteredActs": [
+        1
+      ],
+      "clearedActs": [],
+      "battles": [
+        {
+          "act": 1,
+          "step": 0,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C1",
+          "enemyId": "EN-A1-C1",
+          "enemyName": "浅滩石鼋",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 500,
+          "playerPostHp": 350.7515,
+          "playerNetHpLoss": 149.24849999999998,
+          "playerNetHpLossPct": 29.849699999999995,
+          "enemyEntryHp": 280,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 280
+        },
+        {
+          "act": 1,
+          "step": 2,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C1",
+          "enemyId": "EN-A1-C1",
+          "enemyName": "浅滩石鼋",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 350.7515,
+          "playerPostHp": 220.901,
+          "playerNetHpLoss": 129.8505,
+          "playerNetHpLossPct": 25.970100000000002,
+          "enemyEntryHp": 280,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 280
+        },
+        {
+          "act": 1,
+          "step": 3,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C4",
+          "enemyId": "EN-A1-C4",
+          "enemyName": "岩汐甲蜥",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 220.901,
+          "playerPostHp": 220.7597777777778,
+          "playerNetHpLoss": 0.14122222222221126,
+          "playerNetHpLossPct": 0.0225955555555538,
+          "enemyEntryHp": 330,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 330
+        },
+        {
+          "act": 1,
+          "step": 6,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C2",
+          "enemyId": "EN-A1-C2",
+          "enemyName": "风穴雷獭",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 299.7597777777778,
+          "playerPostHp": 247.61584742951914,
+          "playerNetHpLoss": 52.143930348258664,
+          "playerNetHpLossPct": 8.211642574528923,
+          "enemyEntryHp": 295,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 295
+        },
+        {
+          "act": 1,
+          "step": 8,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C3",
+          "enemyId": "EN-A1-C3",
+          "enemyName": "灰潮火螭",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 253.61584742951914,
+          "playerPostHp": 206.0291807628524,
+          "playerNetHpLoss": 47.58666666666673,
+          "playerNetHpLossPct": 7.377777777777787,
+          "enemyEntryHp": 340,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 340
+        },
+        {
+          "act": 1,
+          "step": 9,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C4",
+          "enemyId": "EN-A1-C4",
+          "enemyName": "岩汐甲蜥",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 210.0291807628524,
+          "playerPostHp": 210.0291807628524,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 330,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 330
+        },
+        {
+          "act": 1,
+          "step": 10,
+          "nodeType": "B",
+          "nodeId": "EN-A1-B1",
+          "enemyId": "EN-A1-B1",
+          "enemyName": "共工遗影试炼",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "lost",
+          "outcome": "enemy",
+          "rounds": 6,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 214.0291807628524,
+          "playerPostHp": 0,
+          "playerNetHpLoss": 214.0291807628524,
+          "playerNetHpLossPct": 32.676210803488914,
+          "enemyEntryHp": 650,
+          "enemyPostHp": 17.675510917030493,
+          "enemyNetHpLoss": 632.3244890829695
+        }
+      ],
+      "finalBattle": null,
+      "fatal": {
+        "act": 1,
+        "step": 10,
+        "nodeType": "B",
+        "nodeId": "EN-A1-B1",
+        "enemyId": "EN-A1-B1"
+      },
+      "act": 1,
+      "step": 10,
+      "nodes": 10,
+      "n": 1,
+      "hp": 0,
+      "xp": 360,
+      "coins": 55,
+      "commandCount": 41
+    },
+    {
+      "seed": "v2-smoke-0-train-RKF05-0001",
+      "method": "RKF05",
+      "result": "lost",
+      "enteredActs": [
+        1
+      ],
+      "clearedActs": [],
+      "battles": [
+        {
+          "act": 1,
+          "step": 0,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C4",
+          "enemyId": "EN-A1-C4",
+          "enemyName": "岩汐甲蜥",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 500,
+          "playerPostHp": 405.76,
+          "playerNetHpLoss": 94.24000000000001,
+          "playerNetHpLossPct": 18.848000000000003,
+          "enemyEntryHp": 330,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 330
+        },
+        {
+          "act": 1,
+          "step": 2,
+          "nodeType": "L",
+          "nodeId": "EN-A1-L2",
+          "enemyId": "EN-A1-L2",
+          "enemyName": "月蚀断脉客",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 4,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 405.76,
+          "playerPostHp": 212.37315789473683,
+          "playerNetHpLoss": 193.38684210526316,
+          "playerNetHpLossPct": 38.677368421052634,
+          "enemyEntryHp": 460,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 460
+        },
+        {
+          "act": 1,
+          "step": 3,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C2",
+          "enemyId": "EN-A1-C2",
+          "enemyName": "风穴雷獭",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 212.37315789473683,
+          "playerPostHp": 146.70792184323466,
+          "playerNetHpLoss": 65.66523605150218,
+          "playerNetHpLossPct": 10.506437768240348,
+          "enemyEntryHp": 295,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 295
+        },
+        {
+          "act": 1,
+          "step": 5,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C4",
+          "enemyId": "EN-A1-C4",
+          "enemyName": "岩汐甲蜥",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 240.45792184323466,
+          "playerPostHp": 170.18727806641067,
+          "playerNetHpLoss": 70.27064377682399,
+          "playerNetHpLossPct": 11.243303004291839,
+          "enemyEntryHp": 330,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 330
+        },
+        {
+          "act": 1,
+          "step": 6,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C1",
+          "enemyId": "EN-A1-C1",
+          "enemyName": "浅滩石鼋",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 170.18727806641067,
+          "playerPostHp": 170.18727806641067,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 280,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 280
+        },
+        {
+          "act": 1,
+          "step": 8,
+          "nodeType": "C",
+          "nodeId": "EN-A1-C1",
+          "enemyId": "EN-A1-C1",
+          "enemyName": "浅滩石鼋",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 2,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 170.18727806641067,
+          "playerPostHp": 170.18727806641067,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
+          "enemyEntryHp": 280,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 280
+        },
+        {
+          "act": 1,
+          "step": 9,
+          "nodeType": "L",
+          "nodeId": "EN-A1-L1",
+          "enemyId": "EN-A1-L1",
+          "enemyName": "养锋石卫",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "won",
+          "outcome": "player",
+          "rounds": 3,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 170.18727806641067,
+          "playerPostHp": 91.49765781324612,
+          "playerNetHpLoss": 78.68962025316455,
+          "playerNetHpLossPct": 12.59033924050633,
+          "enemyEntryHp": 450,
+          "enemyPostHp": 0,
+          "enemyNetHpLoss": 450
+        },
+        {
+          "act": 1,
+          "step": 10,
+          "nodeType": "B",
+          "nodeId": "EN-A1-B1",
+          "enemyId": "EN-A1-B1",
+          "enemyName": "共工遗影试炼",
+          "enemyStatMultipliers": {
+            "attack": 1,
+            "defense": 1,
+            "max_hp": 1
+          },
+          "result": "lost",
+          "outcome": "enemy",
+          "rounds": 4,
+          "continues": 0,
+          "roundLimits": [
+            256
+          ],
+          "playerEntryHp": 91.49765781324612,
+          "playerPostHp": 0,
+          "playerNetHpLoss": 91.49765781324612,
+          "playerNetHpLossPct": 13.96910806309101,
+          "enemyEntryHp": 650,
+          "enemyPostHp": 272.7298165938864,
+          "enemyNetHpLoss": 377.2701834061136
+        }
+      ],
+      "finalBattle": null,
+      "fatal": {
+        "act": 1,
+        "step": 10,
+        "nodeType": "B",
+        "nodeId": "EN-A1-B1",
+        "enemyId": "EN-A1-B1"
+      },
+      "act": 1,
+      "step": 10,
+      "nodes": 10,
+      "n": 1,
+      "hp": 0,
+      "xp": 500,
+      "coins": 60,
+      "commandCount": 42
+    }
+  ]
+}

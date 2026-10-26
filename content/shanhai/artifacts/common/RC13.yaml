@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RC13
 name: 震山环
 status: design_target
-summary: 防御 +2；已有盾返伤害 +6%
-description: 环身沉稳如山，只放大已经存在的盾返伤害。
+summary: 防御 +2；已有盾返伤害 +6%；占一个支援位（共3席）
+description: 环身沉稳如山，只放大已经存在的盾返伤害。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [defense, shield_reflect, combat]
 source:
   basis: original
@@ -34,5 +34,6 @@ effects:
     replaces: []
     limit: {scope: permanent, count: 1}
     text: 每层使已有盾返伤害提高6%；没有盾返效果时，此法宝不会赋予盾返。
+equipment_role: support
 acquisition:
   pools: [common_artifact]

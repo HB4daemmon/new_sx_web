@@ -19,6 +19,7 @@ const SHANHAI_MODULES = [
   'battle-insights.js',
   'combat.js',
   'content.js',
+  'equipment.js',
   'event-commitments.js',
   'event-checks.js',
   'cartoon.css',
@@ -143,7 +144,7 @@ async function startServer(port) {
 test('dist contains only the Shanhai Pages artifact and all 152 manifest entities', async () => {
   const manifest = await readDistributionManifest();
   const gameArt = JSON.parse(await readFile(path.join(DIST, 'assets/game-art.json'), 'utf8'));
-  assert.equal(manifest.version, 'shanhai-content-0.1');
+  assert.equal(manifest.version, 'shanhai-content-0.2');
   assert.equal(manifest.files.length, EXPECTED_ENTITY_COUNT);
   assert.equal(new Set(manifest.files).size, EXPECTED_ENTITY_COUNT);
   assert.ok(manifest.files.every(file =>

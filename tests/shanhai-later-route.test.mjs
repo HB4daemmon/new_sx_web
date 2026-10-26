@@ -175,17 +175,17 @@ test('later profile maps retain graph reachability, optional elites, and three c
   }
 });
 
-test('old fixed later-act distributions remain accepted', () => {
+test('V1 fixed later-act distributions are rejected', () => {
   for (const act of [2, 3, 4]) {
-    validateEmptyProgress(oldFixedMap(act), act);
+    assert.throws(() => validateEmptyProgress(oldFixedMap(act), act), /Invalid route map/);
   }
 });
 
-test('first-act cadence and old fixed distribution remain accepted', () => {
+test('V2 first-act cadence passes and the V1 fixed distribution is rejected', () => {
   for (const profile of ROUTE_PROFILES_BY_ACT[1]) {
     validateEmptyProgress(makeProfileMap(1, profile), 1);
   }
-  validateEmptyProgress(oldFixedMap(1), 1);
+  assert.throws(() => validateEmptyProgress(oldFixedMap(1), 1), /Invalid route map/);
 });
 
 test('later route validation rejects duplicate services and misplaced event or boss nodes', () => {

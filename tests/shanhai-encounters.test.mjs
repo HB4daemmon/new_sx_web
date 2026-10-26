@@ -3,22 +3,16 @@ import test from 'node:test';
 import { loadContent } from '../tools/content-kit/src/loader.mjs';
 import { contentFromEntities } from '../build/shanhai/content.js';
 import {
+  FUNCTIONAL_WIN_SEEDS,
   START_METHODS,
   buildEncounterCalibration,
+  REFERENCE_EQUIPMENT,
   runFullCalibration,
 } from './shanhai-calibrate.mjs';
 import { ShanhaiGame } from '../build/shanhai/run.js';
 import { nextCommand } from './shanhai-policy.mjs';
 
 // Selected functional fixtures only; this seed set is not a win-rate sample.
-const FUNCTIONAL_WIN_SEEDS = Object.freeze({
-  RKF01: 'balance-functional-RKF01-3',
-  RKF02: 'balance-functional-RKF02-3',
-  RKF03: 'balance-functional-RKF03-6',
-  RKF04: 'balance-functional-RKF04-59',
-  RKF05: 'balance-functional-RKF05-69',
-});
-
 async function calibratedContent() {
   const model = await loadContent();
   return contentFromEntities(model.entities, model.manifest.content_version);
@@ -54,9 +48,23 @@ test('fixed reference board uses authored early/late tiers and traces its input 
   const report = buildEncounterCalibration(content, 1);
   const enemies = content.entities.filter(entity => entity.kind === 'enemy');
   assert.equal(report.input.mode, 'fixed_reference_board');
+  assert.equal(report.calibrationStatus, 'uncalibrated V2 sample; observations do not modify authored measured fields');
+  assert.equal(Object.hasOwn(report, 'statsChanges'), false);
+  assert.equal(Object.hasOwn(report.input, 'loadoutChanges'), false);
   assert.match(report.inputHash, /^[a-f0-9]{64}$/);
   assert.equal(report.inputHash, report.records[0].inputHash);
+  assert.deepEqual(report.input.referenceEquipment, REFERENCE_EQUIPMENT);
   assert.equal(report.input.matrix.length, enemies.length * START_METHODS.length);
+  for (const row of report.input.matrix) {
+    for (const side of [row.player, row.enemy]) {
+      const coreCount = side.artifacts.filter(stack =>
+        content.byId[stack.id].equipment_role === 'core').length;
+      const supportCount = side.artifacts.filter(stack =>
+        content.byId[stack.id].equipment_role === 'support').length;
+      assert.ok(coreCount <= 1, `${row.enemyId}/${row.method} has at most one core`);
+      assert.ok(supportCount <= 3, `${row.enemyId}/${row.method} has at most three supports`);
+    }
+  }
   for (const row of report.records) {
     const enemy = content.byId[row.enemyId];
     assert.equal(row.referenceTier, enemy.n, row.enemyId);
@@ -134,6 +142,8 @@ test('five-run calibration smoke reaches terminal outcomes without errors', asyn
   const content = await calibratedContent();
   const report = runFullCalibration(content, 1);
   assert.equal(report.runs.length, 5);
+  assert.equal(report.experimentTrack, 'V2 experimental; shanhai-content-0.2; uncalibrated');
+  assert.deepEqual(report.input.functionalWinSeeds, FUNCTIONAL_WIN_SEEDS);
   assert.deepEqual(report.runs.map(row => row.method), START_METHODS);
   assert.equal(report.outcomes.error, 0);
   assert.equal(report.outcomes.won + report.outcomes.lost + report.outcomes.undecided, 5);

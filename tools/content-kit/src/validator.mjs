@@ -2,11 +2,13 @@ import path from 'node:path'
 import {
   ARTIFACT_BASELINE,
   ARTIFACT_BUDGET,
+  ARTIFACT_EQUIPMENT_ROLES,
   ARTIFACT_IDS,
   ARTIFACT_RARITIES,
   ATTRIBUTES,
   CONTENT_VERSION,
   CORE_EVENT_IDS,
+  CORE_ARTIFACT_RULES,
   EFFECT_LIMIT_SCOPES,
   EFFECT_OPERATIONS,
   EFFECT_TARGETS,
@@ -21,6 +23,7 @@ import {
   ORDINARY_EVENT_IDS,
   RARITIES,
   SCHEMA_VERSION,
+  SHARED_INSIGHT_IDS,
   STORYLINE_IDS,
 } from './constants.mjs'
 import { loadContent } from './loader.mjs'
@@ -656,11 +659,44 @@ function validateArtifact(entity, errors, effectIds) {
     addIssue(errors, 'artifact-id', `unknown artifact ${entity.id}`, source)
     return
   }
-  for (const field of ['rarity', 'max_stacks', 'unique_group', 'attributes', 'effects', 'acquisition']) {
+  for (const field of ['rarity', 'max_stacks', 'unique_group', 'attributes', 'effects', 'acquisition', 'equipment_role']) {
     if (!(field in entity)) addIssue(errors, 'artifact-field', `missing artifact field ${field}`, source)
   }
   const expectedRarity = ARTIFACT_RARITIES[entity.id]
   if (entity.rarity !== expectedRarity) addIssue(errors, 'artifact-rarity', `artifact rarity must be ${expectedRarity}`, source)
+  const expectedRole = ARTIFACT_EQUIPMENT_ROLES[entity.id]
+  if (entity.equipment_role !== expectedRole) {
+    addIssue(errors, 'artifact-equipment-role', `equipment_role for ${entity.id} must be ${expectedRole}`, source)
+  }
+  const expectedCoreRule = CORE_ARTIFACT_RULES[entity.id]
+  if (expectedCoreRule) {
+    if (!isRecord(entity.core_rule)) {
+      addIssue(errors, 'artifact-core-rule', `${entity.id} must define its V2 core_rule`, source)
+    } else {
+      if (!exactKeys(entity.core_rule, expectedCoreRule)) {
+        addIssue(errors, 'artifact-core-rule-fields', `${entity.id}.core_rule must use exactly ${Object.keys(expectedCoreRule).join(', ')}`, source)
+      }
+      for (const [key, expectedValue] of Object.entries(expectedCoreRule)) {
+        const value = entity.core_rule[key]
+        if (key === 'kind') {
+          if (value !== expectedValue) addIssue(errors, 'artifact-core-rule-kind', `${entity.id}.core_rule.kind must be ${expectedValue}`, source)
+        } else {
+          finiteNumber(errors, value, source, `core_rule.${key}`, { min: 0 })
+          if (value !== expectedValue) {
+            addIssue(errors, 'artifact-core-rule-value', `${entity.id}.core_rule.${key} must be ${expectedValue}`, source)
+          }
+        }
+      }
+      for (const [key, value] of Object.entries(entity.core_rule)) {
+        if (!Object.hasOwn(expectedCoreRule, key)) {
+          addIssue(errors, 'artifact-core-rule-fields', `unknown core_rule field ${key}`, source)
+        }
+        finiteTree(errors, value, source, `core_rule.${key}`, key)
+      }
+    }
+  } else if (Object.hasOwn(entity, 'core_rule')) {
+    addIssue(errors, 'artifact-core-rule-role', `only ${Object.keys(CORE_ARTIFACT_RULES).join(', ')} define a new core_rule`, source)
+  }
   if (entity.name !== expected.name) addIssue(errors, 'artifact-name', `artifact name must be ${expected.name}`, source)
   if (entity.max_stacks !== expected.max_stacks) addIssue(errors, 'artifact-stacks', `max_stacks must be ${expected.max_stacks}`, source)
   if (entity.unique_group !== null && typeof entity.unique_group !== 'string') {
@@ -1238,6 +1274,8 @@ function validateEnemy(entity, errors, known) {
     addIssue(errors, 'enemy-artifacts', 'enemy.artifacts must be an array', source)
   } else {
     const artifactIds = new Set()
+    let coreCount = 0
+    let supportCount = 0
     for (const [index, artifact] of entity.artifacts.entries()) {
       const location = `${source}:artifacts[${index}]`
       if (!isRecord(artifact)) {
@@ -1247,12 +1285,17 @@ function validateEnemy(entity, errors, known) {
       if (!known.artifacts.has(artifact.id)) addIssue(errors, 'enemy-artifact-reference', `unknown enemy artifact ${artifact.id}`, location)
       if (artifactIds.has(artifact.id)) addIssue(errors, 'enemy-artifact-duplicate', `enemy repeats artifact ${artifact.id}`, location)
       artifactIds.add(artifact.id)
+      const role = known.byId.get(artifact.id)?.equipment_role
+      if (role === 'core') coreCount += 1
+      if (role === 'support') supportCount += 1
       finiteNumber(errors, artifact.stacks, location, 'artifact.stacks', { integer: true, min: 1 })
       const limit = artifactStackLimit(artifact.id)
       if (limit !== null && typeof artifact.stacks === 'number' && artifact.stacks > limit) {
         addIssue(errors, 'enemy-artifact-stacks', `${artifact.id} stacks exceed authored max ${limit}`, location)
       }
     }
+    if (coreCount > 1) addIssue(errors, 'enemy-equipment-core', 'enemy may equip at most one core artifact', source)
+    if (supportCount > 3) addIssue(errors, 'enemy-equipment-support', 'enemy may equip at most three support artifacts', source)
   }
   if (!isRecord(entity.stats)) {
     addIssue(errors, 'enemy-stats', 'enemy.stats must be a mapping', source)
@@ -1547,14 +1590,145 @@ function validateAct(entity, errors, known) {
   }
 }
 
-function validateRules(entity, errors) {
+const SHARED_TALENT_FIELDS = ['id', 'tier', 'branch', 'name', 'quick', 'category', 'effects']
+const SHARED_EFFECT_FIELDS = ['id', 'trigger', 'operation', 'target', 'params', 'requires', 'consumes', 'replaces', 'limit', 'text']
+const SHARED_EFFECT_PARAMS = Object.freeze({
+  'always/modify_stat': ['stat', 'mode', 'amount'],
+  'battle_start/shield': ['max_hp_ratio', 'cap_ratio'],
+  'round_end/rage_gain': ['amount', 'timing', 'requires_self_alive', 'requires_battle_active', 'after_public_natural_gain'],
+  'action_end/heal': ['max_hp_ratio', 'timing', 'heal_first_then_overflow'],
+  'action_end/shield': ['max_hp_ratio', 'cap_ratio'],
+})
+
+function validateSharedInsightEffect(entity, talent, effect, index, effectIndex, errors, effectIds) {
+  const source = `${sourceFor(entity)}:insights[${index}].effects[${effectIndex}]`
+  validateEffectArray(entity, `insights[${index}].effects`, [effect], errors, effectIds, { deferReplaces: true })
+  if (!isRecord(effect)) return
+  if (!exactKeys(effect, SHARED_EFFECT_FIELDS)) {
+    addIssue(errors, 'insight-effect-fields', 'shared insight effects may only use the standard effect fields', source)
+  }
+  if (typeof effect.id !== 'string' || !effect.id.startsWith(`${talent.id}-`)) {
+    addIssue(errors, 'insight-effect-source', 'shared effect ids must start with their insight id', source)
+  }
+  const pair = `${effect.trigger}/${effect.operation}`
+  const expectedParams = SHARED_EFFECT_PARAMS[pair]
+  if (!expectedParams) {
+    addIssue(errors, 'insight-effect-kind', `unsupported shared insight effect ${pair}`, source)
+    return
+  }
+  if (effect.target !== 'self') addIssue(errors, 'insight-effect-target', 'shared insight effects must target self', source)
+  for (const field of ['requires', 'consumes', 'replaces']) {
+    if (!Array.isArray(effect[field]) || effect[field].length !== 0) {
+      addIssue(errors, 'insight-effect-boundary', `shared effects must use an empty ${field} array`, source)
+    }
+  }
+  const expectedScope = {
+    'always/modify_stat': 'permanent',
+    'battle_start/shield': 'battle',
+    'round_end/rage_gain': 'round',
+    'action_end/heal': 'action',
+    'action_end/shield': 'action',
+  }[pair]
+  if (!isRecord(effect.limit) || !exactKeys(effect.limit, ['scope', 'count'])) {
+    addIssue(errors, 'insight-effect-limit', 'shared effect limit must use exactly scope and count', source)
+  } else {
+    if (effect.limit.scope !== expectedScope || effect.limit.count !== 1) {
+      addIssue(errors, 'insight-effect-limit', `${pair} limit must be ${expectedScope} once`, source)
+    }
+  }
+  if (!isRecord(effect.params)) return
+  if (!exactKeys(effect.params, expectedParams)) {
+    addIssue(errors, 'insight-effect-params', `${pair} params must use exactly ${expectedParams.join(', ')}`, source)
+  }
+  const params = effect.params
+  if (pair === 'always/modify_stat') {
+    if (!ATTRIBUTES.includes(params.stat)) addIssue(errors, 'insight-effect-stat', 'modify_stat.stat must be a shared player attribute', source)
+    if (!['add', 'percent_add'].includes(params.mode)) addIssue(errors, 'insight-effect-mode', 'modify_stat.mode must be add or percent_add', source)
+    finiteNumber(errors, params.amount, source, 'insight effect amount', {
+      min: 0,
+      max: params.mode === 'percent_add' ? 1 : 100,
+    })
+  } else if (pair === 'battle_start/shield' || pair === 'action_end/shield') {
+    finiteNumber(errors, params.max_hp_ratio, source, 'insight shield max_hp_ratio', { min: 0, max: 1 })
+    finiteNumber(errors, params.cap_ratio, source, 'insight shield cap_ratio', { min: 0, max: 1 })
+  } else if (pair === 'round_end/rage_gain') {
+    finiteNumber(errors, params.amount, source, 'insight rage amount', { min: 0, max: 100 })
+    if (params.timing !== 'round_end') addIssue(errors, 'insight-effect-timing', 'round_end rage must use timing round_end', source)
+    for (const key of ['requires_self_alive', 'requires_battle_active', 'after_public_natural_gain']) {
+      if (params[key] !== true) addIssue(errors, 'insight-effect-boundary', `${key} must be true`, source)
+    }
+  } else if (pair === 'action_end/heal') {
+    finiteNumber(errors, params.max_hp_ratio, source, 'insight heal max_hp_ratio', { min: 0, max: 1 })
+    if (params.timing !== 'after_damage') addIssue(errors, 'insight-effect-timing', 'action_end heal must use timing after_damage', source)
+    if (params.heal_first_then_overflow !== true) {
+      addIssue(errors, 'insight-effect-heal', 'action_end heal must resolve healing before any overflow outlet', source)
+    }
+  }
+  for (const [key, value] of Object.entries(params)) {
+    finiteTree(errors, value, source, `insights[${index}].effect.params.${key}`, key)
+  }
+}
+
+function validateInsights(entity, errors, effectIds) {
   const source = sourceFor(entity)
-  for (const field of ['attributes', 'rarities', 'cultivation', 'combat', 'rage', 'statuses', 'adventure', 'economy', 'pools', 'calibration']) {
+  if (!Array.isArray(entity.insights) || entity.insights.length !== SHARED_INSIGHT_IDS.length) {
+    addIssue(errors, 'insight-count', `rules.insights must contain exactly ${SHARED_INSIGHT_IDS.length} shared talents`, source)
+    return
+  }
+  const seenIds = new Set()
+  for (const [index, talent] of entity.insights.entries()) {
+    const location = `${source}:insights[${index}]`
+    if (!isRecord(talent)) {
+      addIssue(errors, 'insight-map', 'shared insight must be a mapping', location)
+      continue
+    }
+    if (!exactKeys(talent, SHARED_TALENT_FIELDS)) {
+      addIssue(errors, 'insight-fields', `shared insight must use exactly ${SHARED_TALENT_FIELDS.join(', ')}`, location)
+    }
+    for (const field of SHARED_TALENT_FIELDS) {
+      if (!(field in talent)) addIssue(errors, 'insight-field', `insight.${field} is required`, location)
+    }
+    requiredString(errors, talent, 'id', location)
+    if (!SHARED_INSIGHT_IDS.includes(talent.id)) {
+      addIssue(errors, 'insight-id', `unknown shared insight id ${talent.id}`, location)
+    }
+    const expectedId = `V2-J${talent.tier}-${talent.branch}`
+    if (talent.id !== expectedId) {
+      addIssue(errors, 'insight-source', `insight id must match its tier and branch: ${expectedId}`, location)
+    }
+    if (seenIds.has(talent.id)) addIssue(errors, 'insight-duplicate', `duplicate shared insight ${talent.id}`, location)
+    seenIds.add(talent.id)
+    finiteNumber(errors, talent.tier, location, 'insight.tier', { integer: true, min: 1, max: 4 })
+    if (!['A', 'B', 'C'].includes(talent.branch)) addIssue(errors, 'insight-branch', 'insight.branch must be A, B or C', location)
+    if (typeof talent.name !== 'string' || !/^[\u3400-\u9fff]{4}$/u.test(talent.name)) {
+      addIssue(errors, 'insight-name', 'insight.name must be exactly four Chinese characters', location)
+    }
+    requiredString(errors, talent, 'quick', location)
+    if (!['enhance', 'cycle', 'convert'].includes(talent.category)) {
+      addIssue(errors, 'insight-category', 'insight.category must be enhance, cycle or convert', location)
+    }
+    if (!Array.isArray(talent.effects) || talent.effects.length !== 1) {
+      addIssue(errors, 'insight-effects', 'each shared insight must define exactly one executable effect', location)
+      continue
+    }
+    for (const [effectIndex, effect] of talent.effects.entries()) {
+      validateSharedInsightEffect(entity, talent, effect, index, effectIndex, errors, effectIds)
+    }
+  }
+  for (const id of SHARED_INSIGHT_IDS) {
+    if (!seenIds.has(id)) addIssue(errors, 'insight-missing', `missing shared insight ${id}`, source)
+  }
+}
+
+function validateRules(entity, errors, effectIds) {
+  const source = sourceFor(entity)
+  for (const field of ['attributes', 'rarities', 'cultivation', 'combat', 'rage', 'statuses', 'adventure', 'economy', 'pools', 'calibration', 'insights']) {
     if (!(field in entity)) addIssue(errors, 'rules-field', `missing rules field ${field}`, source)
   }
   if (!Array.isArray(entity.attributes) || entity.attributes.length !== ATTRIBUTES.length || new Set(entity.attributes).size !== ATTRIBUTES.length || ATTRIBUTES.some((item) => !entity.attributes.includes(item))) {
     addIssue(errors, 'rules-attributes', 'rules.attributes must contain the five authored attributes', source)
   }
+  validateInsights(entity, errors, effectIds)
   finiteTree(errors, entity, source, 'rules')
 }
 
@@ -1567,7 +1741,7 @@ function validateEntityKind(entity, errors, known, effectIds, storylineEncounter
   }
   switch (entity.kind) {
     case 'rules':
-      validateRules(entity, errors)
+      validateRules(entity, errors, effectIds)
       break
     case 'method':
       validateMethod(entity, errors, effectIds)
@@ -1602,6 +1776,10 @@ function makeKnown(model) {
   const talents = new Set()
   const talentsById = new Map()
   const rules = model.entities.find((entity) => entity.kind === 'rules')
+  const sharedTalents = new Set((rules?.insights ?? []).map((talent) => talent?.id).filter((id) => typeof id === 'string'))
+  const sharedTalentsById = new Map((rules?.insights ?? [])
+    .filter((talent) => typeof talent?.id === 'string')
+    .map((talent) => [talent.id, talent]))
   for (const entity of model.entities) {
     if (typeof entity.id !== 'string') continue
     byId.set(entity.id, entity)
@@ -1631,6 +1809,8 @@ function makeKnown(model) {
     enemies,
     talents,
     talentsById,
+    sharedTalents,
+    sharedTalentsById,
     effects: new Set(),
   }
 }

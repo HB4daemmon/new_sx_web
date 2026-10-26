@@ -15,6 +15,13 @@ import {
 } from './event-commitments.js';
 import { assertEventCheckResult, resolveEventCheck } from './event-checks.js';
 import { routeLayoutForAct } from './route-profiles.js';
+import {
+  artifactRole,
+  autoEquipArtifact,
+  equippedArtifactStacks,
+  removeMissingEquipment,
+  validateEquipment,
+} from './equipment.js';
 import type {
   ArtifactStack,
   BattleResult,
@@ -145,6 +152,7 @@ interface RunStateInternals extends RunState {
   _rewardSettled?: boolean;
   _eventSettled?: boolean;
   _eventOutcome?: 'success' | 'failure';
+  _coreRewardOffered?: boolean;
 }
 
 function clone<T>(value: T): T {
@@ -260,7 +268,7 @@ function snapshotEntry(state: RunStateInternals): RunState['nodeEntry'] {
   return {
     method: state.method,
     talents: clone(state.talents[state.method] ?? []),
-    artifacts: clone(state.artifacts),
+    artifacts: equippedArtifactStacks(state),
   };
 }
 
@@ -292,6 +300,7 @@ function addArtifact(content: Content, state: RunState, id: string, count: numbe
   const existing = state.artifacts.find(stack => stack.id === id);
   if (existing) existing.stacks += count;
   else state.artifacts.push({ id, stacks: count });
+  autoEquipArtifact(content, state, id);
 }
 
 function removeArtifact(state: RunState, id: string, count: number): void {
@@ -299,6 +308,7 @@ function removeArtifact(state: RunState, id: string, count: number): void {
   if (!existing || existing.stacks < count) throw new Error(`Insufficient artifact: ${id}`);
   existing.stacks -= count;
   if (existing.stacks === 0) state.artifacts = state.artifacts.filter(stack => stack.id !== id);
+  removeMissingEquipment(state);
 }
 
 function currentReferenceHp(content: Content, act: number): number {
@@ -347,8 +357,31 @@ function methodTalents(content: Content, method: string): Entity[] {
   return Array.isArray(entity.talents) ? entity.talents.filter(isObject) as Entity[] : [];
 }
 
+function sharedTalents(content: Content): Entity[] {
+  const insights = rulesOf(content).insights;
+  return Array.isArray(insights) ? insights.filter(isObject) as Entity[] : [];
+}
+
+function talentEntity(content: Content, method: string, id: string): Entity | undefined {
+  return methodTalents(content, method).find(talent => talent.id === id) ??
+    sharedTalents(content).find(talent => talent.id === id);
+}
+
 function talentTier(content: Content, method: string, id: string): number | undefined {
-  return methodTalents(content, method).find(talent => talent.id === id)?.tier;
+  return talentEntity(content, method, id)?.tier;
+}
+
+function talentDraftKey(method: string, tier: number, generation: number): string {
+  return `${method}:${tier}:${generation}`;
+}
+
+function sample<T>(items: T[], count: number, random: () => number): T[] {
+  const pool = items.slice();
+  const result: T[] = [];
+  while (pool.length && result.length < count) {
+    result.push(pool.splice(Math.floor(random() * pool.length), 1)[0]!);
+  }
+  return result;
 }
 
 function unlockedTier(content: Content, state: RunState): number {
@@ -419,7 +452,7 @@ export class ShanhaiGame {
     if (this.state._routeMapVersion !== undefined && this.state._routeMapVersion !== 1) {
       throw new Error('Invalid route map version');
     }
-    if (!this.state.routeMap) this.migrateLegacyRouteMap();
+    if (!this.state.routeMap) this.initializeRouteMap();
     else (this.state as RunStateInternals)._routeMapVersion ??= 1;
     validateRunState(this.content, this.state);
   }
@@ -456,6 +489,9 @@ export class ShanhaiGame {
       xp: 0,
       coins: finite(rules.economy?.initial_coins) ? rules.economy.initial_coins : 20,
       artifacts: [],
+      equipment: { core: null, support: [] },
+      talentDraftGeneration: 0,
+      talentDrafts: {},
       preparation: 0,
       flags: {},
       storyline: '',
@@ -503,12 +539,20 @@ export class ShanhaiGame {
       method: state.method,
       n: state.n,
       talents: clone(state.talents[state.method] ?? []),
-      artifacts: clone(state.artifacts),
+      artifacts: equippedArtifactStacks(state),
       baseStats: baseStats(this.content, state.n),
       hp: state.hp,
       preparation: state.preparation,
       firstStrike: state.firstStrike,
     };
+  }
+
+  equippedArtifacts(): ArtifactStack[] {
+    return clone(equippedArtifactStacks(this.state));
+  }
+
+  canChangeEquipment(): boolean {
+    return ['map', 'reward', 'shop', 'rest', 'transition'].includes(this.state.phase);
   }
 
   get stats(): Stats {
@@ -532,7 +576,7 @@ export class ShanhaiGame {
     return entity;
   }
 
-  private createRouteMap(legacyPath: RunNode[] = []): RouteMapNode[] {
+  private createRouteMap(): RouteMapNode[] {
     const act = this.state.act;
     const coreSlots = new Map<number, string>();
     if (act === 1) {
@@ -620,30 +664,7 @@ export class ShanhaiGame {
       throw new Error(`Unsupported route map node at ${key}`);
     });
 
-    for (let depth = 0; depth < legacyPath.length; depth++) {
-      const selected = legacyPath[depth];
-      const candidate = nodes.find(node => node.depth === depth && node.lane === 1);
-      if (!selected || !candidate) throw new Error('Invalid legacy route path');
-      candidate.type = selected.type;
-      candidate.id = selected.id;
-      candidate.completed = selected.completed;
-      candidate.label = this.routeNodeLabel(selected.type);
-      candidate.description = contentEntity(this.content, selected.id)?.name;
-    }
     return nodes;
-  }
-
-  private routeNodeLabel(type: RunNode['type']): string {
-    return ({
-      C: '普通战',
-      E: '事件',
-      K: '机缘',
-      L: '精英',
-      S: '坊市',
-      R: '休整',
-      B: '首领',
-      F: '终战',
-    })[type];
   }
 
   private maxExtraElites(): number {
@@ -702,57 +723,16 @@ export class ShanhaiGame {
     return true;
   }
 
-  private migrateLegacyRouteMap(): void {
+  private initializeRouteMap(): void {
     const state = this.state as RunStateInternals;
-    if (state._routeMapVersion === 1) throw new Error('Saved route map is missing');
-    const oldNodes = clone(state.nodes);
-    const isLegacy = state.phase === 'route' || state.routes.length > 0 || oldNodes.length > 0;
-    const activePhases: RunPhase[] = [
-      'preview', 'battle', 'reward', 'event', 'event_result', 'shop', 'rest', 'lost', 'won',
-    ];
-    const mapHasActiveNode = ['map', 'talent'].includes(state.phase) && oldNodes[state.step] &&
-      !oldNodes[state.step]!.completed && (!!state.nodeEntry || !!state._nodeEntry);
-    const legacyPathLength = state.phase === 'transition'
-      ? Math.min(oldNodes.length, 11)
-      : activePhases.includes(state.phase) || mapHasActiveNode
-        ? Math.min(oldNodes.length, state.step + 1)
-        : Math.min(oldNodes.length, state.step);
-    const selected = oldNodes.slice(0, legacyPathLength);
-    const unvisited = oldNodes.slice(legacyPathLength);
-    const futureOrdinary = unvisited.filter(node => node.type === 'C' || node.type === 'E').length;
-    state.ordinaryCount = Math.max(0, state.ordinaryCount - futureOrdinary);
-
-    const futureCores = unvisited.filter(node => node.type === 'K').length;
-    state._coreCount = Math.max(0, (state._coreCount ?? 0) - futureCores);
-    state._actCoreCount = selected.filter(node => node.type === 'K').length;
-    const currentActStart = (state.act - 1) * 11;
-    state._corePositions = (state._corePositions ?? []).filter(position =>
-      position < currentActStart || position - currentActStart < legacyPathLength);
-    state._lastCorePosition = state._corePositions.at(-1);
-
-    const futureEnemies = unvisited.filter(node => ['C', 'L', 'B', 'F'].includes(node.type));
-    for (const node of futureEnemies) {
-      const index = state._seenEnemyIds?.indexOf(node.id) ?? -1;
-      if (index >= 0) state._seenEnemyIds!.splice(index, 1);
+    if (state._routeMapVersion !== undefined || state.phase !== 'map' ||
+      state.act !== 1 || state.step !== 0 || state.nodes.length || state.routes.length ||
+      state.history.length || state._routeMapLegacy) {
+      throw new Error('Invalid route map: V2 does not migrate legacy routes');
     }
-    state._lastEnemyId = state._seenEnemyIds?.at(-1);
-    state._actEliteCount = selected.filter(node => node.type === 'L').length;
-    const oldCurrentExtras = Math.max(0, oldNodes.filter(node => node.type === 'L').length - 1);
-    const selectedCurrentExtras = Math.max(0, selected.filter(node => node.type === 'L').length - 1);
-    state.extraElites = Math.max(0, state.extraElites - oldCurrentExtras + selectedCurrentExtras);
-
-    state.nodes = selected;
-    if (state.phase === 'route') state.phase = 'map';
-    state.routeMap = { nodes: this.createRouteMap(selected), path: selected.map((_node, depth) => `a${state.act}-d${depth}-l1`) };
+    state.routeMap = { nodes: this.createRouteMap(), path: [] };
     state._routeMapVersion = 1;
-    state._routeMapLegacy = isLegacy;
-    if (state.phase === 'won' && state.act === 5) {
-      state.step = 0;
-    } else if (selected.length && !selected.at(-1)?.completed) {
-      state.step = selected.length - 1;
-    } else {
-      state.step = selected.length;
-    }
+    state._routeMapLegacy = false;
   }
 
   get node(): RunNode | undefined {
@@ -789,7 +769,11 @@ export class ShanhaiGame {
     this.ensureTalentQueue(false);
     const item = state._talentQueue?.[0];
     if (!item) return [];
-    return methodTalents(this.content, item.method).filter(talent => talent.tier === item.tier);
+    const key = talentDraftKey(item.method, item.tier, state.talentDraftGeneration);
+    return (state.talentDrafts[key] ?? []).flatMap(id => {
+      const talent = talentEntity(this.content, item.method, id);
+      return talent ? [talent] : [];
+    });
   }
 
   optionAvailability(option: any): { available: boolean; reason: string } {
@@ -852,6 +836,12 @@ export class ShanhaiGame {
         case 'talent':
           this.chooseTalent(command.id);
           break;
+        case 'equip':
+          this.equipArtifact(command.id, command.replace);
+          break;
+        case 'unequip':
+          this.unequipArtifact(command.id);
+          break;
         case 'retire':
           this.retire();
           break;
@@ -862,6 +852,75 @@ export class ShanhaiGame {
       restore(this.state, before);
       throw error;
     }
+  }
+
+  private equipArtifact(id: string, replace?: string): void {
+    if (!this.canChangeEquipment()) throw new Error('Equipment cannot change now');
+    if (typeof id !== 'string') throw new Error('Invalid artifact ID');
+    if (replace !== undefined && typeof replace !== 'string') throw new Error('Invalid replacement artifact ID');
+    if (!this.state.artifacts.some(stack => stack.id === id && stack.stacks > 0)) {
+      throw new Error(`Artifact is not owned: ${id}`);
+    }
+    const role = artifactRole(this.content, id);
+    if (!role) throw new Error(`Unknown artifact: ${id}`);
+    if (this.state.equipment.core === id || this.state.equipment.support.includes(id)) {
+      throw new Error('Artifact is already equipped');
+    }
+
+    if (replace !== undefined) {
+      if (artifactRole(this.content, replace) !== role) throw new Error('Replacement slot has a different role');
+      if (role === 'core') {
+        if (this.state.equipment.core !== replace) throw new Error('Replacement artifact is not equipped');
+        this.state.equipment.core = id;
+      } else {
+        const index = this.state.equipment.support.indexOf(replace);
+        if (index < 0) throw new Error('Replacement artifact is not equipped');
+        this.state.equipment.support[index] = id;
+      }
+    } else if (role === 'core') {
+      if (this.state.equipment.core !== null) throw new Error('Core slot is occupied');
+      this.state.equipment.core = id;
+    } else {
+      if (this.state.equipment.support.length >= 3) throw new Error('Support slots are full');
+      this.state.equipment.support.push(id);
+    }
+    this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
+  }
+
+  private freezeTalentDraft(item: CoreQueueItem): void {
+    const state = this.state as RunStateInternals;
+    const key = talentDraftKey(item.method, item.tier, state.talentDraftGeneration);
+    if (state.talentDrafts[key]) return;
+    const local = methodTalents(this.content, item.method)
+      .filter(talent => talent.tier === item.tier);
+    const shared = sharedTalents(this.content)
+      .filter(talent => talent.tier === item.tier);
+    if (local.length < 2 || shared.length < 1) {
+      throw new Error(`Talent draft pool is incomplete for ${item.method} tier ${item.tier}`);
+    }
+    const localIds = sample(
+      local,
+      2,
+      seededRandom(`${state.seed}:talent-draft:${key}:local`),
+    ).map(talent => talent.id);
+    const sharedIds = sample(
+      shared,
+      1,
+      seededRandom(`${state.seed}:talent-draft:${key}:shared`),
+    ).map(talent => talent.id);
+    state.talentDrafts[key] = [...localIds, ...sharedIds];
+  }
+
+  private unequipArtifact(id: string): void {
+    if (!this.canChangeEquipment()) throw new Error('Equipment cannot change now');
+    if (typeof id !== 'string') throw new Error('Invalid artifact ID');
+    if (this.state.equipment.core === id) this.state.equipment.core = null;
+    else {
+      const index = this.state.equipment.support.indexOf(id);
+      if (index < 0) throw new Error('Artifact is not equipped');
+      this.state.equipment.support.splice(index, 1);
+    }
+    this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
   }
 
   private freezeEnemy(type: RunNode['type'], index: number, key: string): string {
@@ -1195,7 +1254,16 @@ export class ShanhaiGame {
     if (type === 'C') {
       this.state.xp += finite(economy.ordinary_xp_by_act?.[index]) ? economy.ordinary_xp_by_act[index] : 0;
       this.state.coins += finite(economy.ordinary_coins_by_act?.[index]) ? economy.ordinary_coins_by_act[index] : 0;
-      this.state.rewardCandidates = this.rollArtifacts('common', 3, `reward:${this.state.act}:${this.state.step}:common`);
+      const noCoreOwned = !this.state.artifacts.some(stack =>
+        artifactRole(this.content, stack.id) === 'core');
+      if (!state._coreRewardOffered) {
+        state._coreRewardOffered = true;
+        this.state.rewardCandidates = noCoreOwned
+          ? this.rollCoreArtifacts(3, `reward:${this.state.act}:${this.state.step}:first-core`)
+          : this.rollArtifacts('common', 3, `reward:${this.state.act}:${this.state.step}:common`);
+      } else {
+        this.state.rewardCandidates = this.rollArtifacts('common', 3, `reward:${this.state.act}:${this.state.step}:common`);
+      }
     } else if (type === 'L') {
       this.state.xp += finite(economy.elite_xp_by_act?.[index]) ? economy.elite_xp_by_act[index] : 0;
       this.state.coins += finite(economy.elite_coins_by_act?.[index]) ? economy.elite_coins_by_act[index] : 0;
@@ -1307,7 +1375,7 @@ export class ShanhaiGame {
     const check = option.check ? resolveEventCheck(option.check, {
       seed: this.state.seed, act: this.state.act, step: this.state.step + 1,
       eventId: event.id, optionId: option.id, stats: this.stats, hp: this.state.hp,
-      ownedMethods: this.state.ownedMethods, artifacts: this.state.artifacts,
+      ownedMethods: this.state.ownedMethods, artifacts: equippedArtifactStacks(this.state),
     }) : undefined;
     this.applyCosts(optionCosts(option));
     this.state.eventOption = id;
@@ -1454,8 +1522,10 @@ export class ShanhaiGame {
       }));
       this.state.coins -= item.price;
       item.sold = true;
+      state.talentDraftGeneration += 1;
       state.talents[state.method] = [];
       state._talentQueue = queue;
+      for (const draft of queue) this.freezeTalentDraft(draft);
       state._returnPhase = 'shop';
       this.state.phase = 'talent';
       this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
@@ -1503,9 +1573,7 @@ export class ShanhaiGame {
     const availability = this.reforgeAvailability(sourceId, targetId);
     if (!availability.available) throw new Error(availability.reason);
     this.state.coins -= this.reforgePrice();
-    const source = this.state.artifacts.find(stack => stack.id === sourceId)!;
-    source.stacks -= 1;
-    this.state.artifacts = this.state.artifacts.filter(stack => stack.stacks > 0);
+    removeArtifact(this.state, sourceId, 1);
     addArtifact(this.content, this.state, targetId, 1);
     this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
     this.state._shopReforged = true;
@@ -1564,8 +1632,10 @@ export class ShanhaiGame {
     this.ensureTalentQueue();
     const item = state._talentQueue?.[0];
     if (!item) throw new Error('No talent is pending');
-    const talent = methodTalents(this.content, item.method).find(candidate => candidate.id === id && candidate.tier === item.tier);
-    if (!talent) throw new Error('Talent is not an earned choice for the active method');
+    const key = talentDraftKey(item.method, item.tier, state.talentDraftGeneration);
+    if (!state.talentDrafts[key]?.includes(id)) throw new Error('Talent was not offered for this choice');
+    const talent = talentEntity(this.content, item.method, id);
+    if (!talent || talent.tier !== item.tier) throw new Error('Talent is not an earned choice for the active method');
     state.talents[item.method] ??= [];
     if (state.talents[item.method].includes(id)) throw new Error('Talent already selected');
     state.talents[item.method].push(id);
@@ -1594,6 +1664,7 @@ export class ShanhaiGame {
     state._talentQueue ??= [];
     state._returnPhase ??= state.returnPhase;
     if (state._talentQueue.length) {
+      for (const item of state._talentQueue) this.freezeTalentDraft(item);
       state._returnPhase ??= this.state.phase === 'talent' ? 'map' : this.state.phase;
       if (activate) this.state.phase = 'talent';
       return;
@@ -1603,11 +1674,15 @@ export class ShanhaiGame {
     const selectedTiers = new Set(currentTalents.map(id => talentTier(this.content, state.method, id)).filter(integer));
     let next = this.state.n + 1;
     if (unlocked >= next && !selectedTiers.has(next)) {
-      state._talentQueue.push({ method: state.method, tier: next, advance: true });
+      const item = { method: state.method, tier: next, advance: true };
+      state._talentQueue.push(item);
+      this.freezeTalentDraft(item);
     } else {
       for (let tier = 1; tier <= unlocked; tier++) {
         if (!selectedTiers.has(tier)) {
-          state._talentQueue.push({ method: state.method, tier, advance: false });
+          const item = { method: state.method, tier, advance: false };
+          state._talentQueue.push(item);
+          this.freezeTalentDraft(item);
           break;
         }
       }
@@ -1625,7 +1700,9 @@ export class ShanhaiGame {
     state._talentQueue ??= [];
     for (let tier = 1; tier <= unlocked; tier++) {
       if (!selected.has(tier) && !state._talentQueue.some(item => item.method === method && item.tier === tier)) {
-        state._talentQueue.push({ method, tier, advance });
+        const item = { method, tier, advance };
+        state._talentQueue.push(item);
+        this.freezeTalentDraft(item);
       }
     }
     if (state._talentQueue.length) this.state.phase = 'talent';
@@ -1931,6 +2008,20 @@ export class ShanhaiGame {
     return result;
   }
 
+  private rollCoreArtifacts(count: number, seed: string): string[] {
+    const pool = this.artifactPool('common')
+      .filter(id => artifactRole(this.content, id) === 'core' && this.canAcquireArtifact(id, 1));
+    if (!pool.length) return [];
+    const random = seededRandom(`${this.state.seed}:${seed}`);
+    const result: string[] = [];
+    const mutable = pool.slice();
+    while (result.length < count && mutable.length) {
+      const index = Math.floor(random() * mutable.length);
+      result.push(mutable.splice(index, 1)[0]!);
+    }
+    return result;
+  }
+
   private markNodeCompleteWithoutTravel(): void {
     const node = this.node;
     if (!node || node.completed) return;
@@ -2115,7 +2206,7 @@ export class ShanhaiGame {
       method: source?.method ?? this.state.method,
       n: this.state.n,
       talents: clone(source?.talents ?? this.state.talents[this.state.method] ?? []),
-      artifacts: clone(source?.artifacts ?? this.state.artifacts),
+      artifacts: clone(source?.artifacts ?? equippedArtifactStacks(this.state)),
       baseStats: baseStats(this.content, this.state.n),
       hp: this.state.hp,
       preparation: 0,
@@ -2189,8 +2280,20 @@ export class ShanhaiGame {
 
   private applyTravel(node: RunNode, source: RunState['nodeEntry']): void {
     const state = this.state as RunStateInternals;
-    const sourceMethod = source?.method ?? this.state.method;
-    const sourceStats = this.sourceStats(source);
+    const entry = source ?? snapshotEntry(state)!;
+    const currentlyEquipped = new Map(equippedArtifactStacks(state).map(stack => [stack.id, stack]));
+    const travelSource: NonNullable<RunState['nodeEntry']> = {
+      method: entry.method,
+      talents: entry.talents.slice(),
+      artifacts: entry.artifacts.flatMap(stack => {
+        const current = currentlyEquipped.get(stack.id);
+        if (!current) return [];
+        const stacks = Math.min(stack.stacks, current.stacks);
+        return stacks > 0 ? [{ id: stack.id, stacks }] : [];
+      }),
+    };
+    const sourceMethod = travelSource.method;
+    const sourceStats = this.sourceStats(travelSource);
     const method = methodEntity(this.content, sourceMethod);
     const isBattle = ['C', 'L', 'B'].includes(node.type);
     const isNonBattle = ['E', 'K', 'S', 'R'].includes(node.type);
@@ -2232,7 +2335,7 @@ export class ShanhaiGame {
         !(trigger === 'battle_node_complete' && isBattle)) continue;
       this.applyTravelEffect(effect, node, sourceStats);
     }
-    for (const stack of source?.artifacts ?? []) {
+    for (const stack of travelSource.artifacts) {
       const artifact = contentEntity(this.content, stack.id);
       if (!artifact) continue;
       for (const effect of Array.isArray(artifact.effects) ? artifact.effects.filter(isObject) : []) {
@@ -2366,7 +2469,7 @@ function validateLoadoutReferences(content: Content, loadout: Loadout, enemy = f
   const tiers = new Set<number>();
   for (const id of loadout.talents) {
     if (typeof id !== 'string') throw new Error('Invalid saved talent ID');
-    const talent = methodTalents(content, method.id).find(candidate => candidate.id === id);
+    const talent = talentEntity(content, method.id, id);
     if (!talent || !integer(talent.tier) || talent.tier < 1 || talent.tier > 4 ||
       talent.tier > loadout.n || tiers.has(talent.tier)) {
       throw new Error('Invalid saved loadout talent');
@@ -2375,6 +2478,8 @@ function validateLoadoutReferences(content: Content, loadout: Loadout, enemy = f
   }
   const ids = new Set<string>();
   const groups = new Set<string>();
+  let cores = 0;
+  let supports = 0;
   for (const stack of loadout.artifacts) {
     if (!isObject(stack) || typeof stack.id !== 'string' || !integer(stack.stacks) || stack.stacks <= 0 || ids.has(stack.id)) {
       throw new Error('Invalid saved loadout artifact');
@@ -2383,11 +2488,18 @@ function validateLoadoutReferences(content: Content, loadout: Loadout, enemy = f
     const artifact = contentEntity(content, stack.id);
     if (!artifact || artifact.kind !== 'artifact' ||
       stack.stacks > (integer(artifact.max_stacks) ? artifact.max_stacks : 1)) throw new Error('Invalid saved loadout artifact');
+    const role = artifactRole(content, stack.id);
+    if (!role) throw new Error('Invalid saved loadout artifact role');
+    if (role === 'core') cores += 1;
+    else supports += 1;
     if (artifact.unique_group) {
       if (groups.has(artifact.unique_group)) throw new Error('Invalid saved unique artifact group');
       groups.add(artifact.unique_group);
     }
   }
+  if (cores > 1 || supports > 3) throw new Error(enemy
+    ? 'Invalid enemy equipment slots'
+    : 'Invalid player equipment slots');
   if (loadout.hp !== undefined && (!finite(loadout.hp) || loadout.hp < 0)) {
     throw new Error(enemy ? 'Invalid saved enemy HP' : 'Invalid saved player loadout HP');
   }
@@ -2463,6 +2575,37 @@ function validatePendingEncounter(content: Content, pending: EventEncounter): vo
   }
 }
 
+function validateTalentDrafts(content: Content, state: RunStateInternals): void {
+  if (!integer(state.talentDraftGeneration) || state.talentDraftGeneration < 0 ||
+    !isObject(state.talentDrafts)) {
+    throw new Error('Invalid talent draft state');
+  }
+  for (const [key, ids] of Object.entries(state.talentDrafts)) {
+    const match = /^(RKF\d{2}):([1-4]):(0|[1-9]\d*)$/.exec(key);
+    if (!match || !state.ownedMethods.includes(match[1]!) ||
+      contentEntity(content, match[1]!)?.kind !== 'method' ||
+      Number(match[3]) > state.talentDraftGeneration ||
+      !Array.isArray(ids) || ids.length !== 3 ||
+      ids.some(id => typeof id !== 'string') || new Set(ids).size !== ids.length) {
+      throw new Error('Invalid frozen talent draft');
+    }
+    const method = match[1]!;
+    const tier = Number(match[2]);
+    const local = methodTalents(content, method).filter(talent => talent.tier === tier);
+    const shared = sharedTalents(content).filter(talent => talent.tier === tier);
+    if (local.length < 2 || shared.length < 1) {
+      throw new Error('Talent draft pool is incomplete');
+    }
+    const expected = [
+      ...sample(local, 2, seededRandom(`${state.seed}:talent-draft:${key}:local`)).map(talent => talent.id),
+      ...sample(shared, 1, seededRandom(`${state.seed}:talent-draft:${key}:shared`)).map(talent => talent.id),
+    ];
+    if (JSON.stringify(ids) !== JSON.stringify(expected)) {
+      throw new Error('Frozen talent draft does not match run seed');
+    }
+  }
+}
+
 export function validateRunState(content: Content, raw: RunState): void {
   content = normalizeContent(content);
   if (!isObject(raw)) throw new Error('Invalid run state');
@@ -2487,6 +2630,7 @@ export function validateRunState(content: Content, raw: RunState): void {
       tiers.add(tier);
     }
   }
+  validateTalentDrafts(content, state);
   if (!integer(state.n) || state.n < 0 || state.n > 4 || !finite(state.hp) || state.hp < 0 ||
     !finite(state.xp) || state.xp < 0 || !finite(state.coins) || state.coins < 0 ||
     !finite(state.preparation) || state.preparation < 0 ||
@@ -2503,9 +2647,11 @@ export function validateRunState(content: Content, raw: RunState): void {
       }
       const talent = methodTalents(content, item.method).find(candidate => candidate.tier === item.tier);
       if (!talent || item.tier > unlocked) throw new Error('Invalid talent queue tier');
-      const key = `${item.method}:${item.tier}`;
-      if (queued.has(key)) throw new Error('Duplicate talent queue item');
-      queued.add(key);
+      const queueKey = `${item.method}:${item.tier}`;
+      if (queued.has(queueKey)) throw new Error('Duplicate talent queue item');
+      queued.add(queueKey);
+      const draftKey = talentDraftKey(item.method, item.tier, state.talentDraftGeneration);
+      if (!state.talentDrafts[draftKey]) throw new Error('Talent queue has no frozen draft');
       const selected = state.talents[item.method] ?? [];
       if (selected.some(id => talentTier(content, item.method, id) === item.tier)) {
         throw new Error('Talent queue conflicts with selected talent');
@@ -2534,6 +2680,7 @@ export function validateRunState(content: Content, raw: RunState): void {
   }
   if (!Array.isArray(state.nodes) || !Array.isArray(state.routes) || !Array.isArray(state.artifacts) ||
     !Array.isArray(state.history)) throw new Error('Invalid run collections');
+  validateEquipment(content, state);
   assertEventCommitmentRecords(state.eventCommitments);
   for (const record of state.eventCommitments ?? []) {
     const source = contentEntity(content, record.eventId);
@@ -2564,10 +2711,8 @@ export function validateRunState(content: Content, raw: RunState): void {
   if (state._routeMapLegacy !== undefined && typeof state._routeMapLegacy !== 'boolean') {
     throw new Error('Invalid legacy route map marker');
   }
-  if (state._routeMapVersion === 1 && !state.routeMap) throw new Error('Saved route map is missing');
-  if (state.routeMap) {
-    validateRouteMap(state.routeMap, state.act, state.nodes, state.step, state.phase, state._routeMapLegacy === true);
-  }
+  if (!state.routeMap) throw new Error('Invalid route map: saved route map is missing');
+  validateRouteMap(state.routeMap, state.act, state.nodes, state.step, state.phase, state._routeMapLegacy === true);
   if (!integer(state.extraElites) || state.extraElites < 0 || state.extraElites > 3 ||
     !integer(state.ordinaryCount) || state.ordinaryCount < 0) throw new Error('Invalid run counters');
   if (state.returnPhase !== undefined && !PHASES.includes(state.returnPhase)) throw new Error('Invalid public return phase');
@@ -2648,6 +2793,7 @@ export function validateRunState(content: Content, raw: RunState): void {
     '_rewardSettled',
     '_eventSettled',
     '_shopReforged',
+    '_coreRewardOffered',
   ] as const) {
     if (state[key] !== undefined && typeof state[key] !== 'boolean') throw new Error(`Invalid ${key}`);
   }
@@ -2786,6 +2932,7 @@ export function validateRunState(content: Content, raw: RunState): void {
     stacks.add(stack.id);
     const artifact = contentEntity(content, stack.id);
     if (!artifact || artifact.kind !== 'artifact' || stack.stacks > (integer(artifact.max_stacks) ? artifact.max_stacks : 1)) throw new Error('Invalid artifact capacity');
+    if (!artifactRole(content, stack.id)) throw new Error('Invalid artifact equipment role');
     if (artifact.unique_group) {
       if (groups.has(artifact.unique_group)) throw new Error('Invalid artifact unique group');
       groups.add(artifact.unique_group);
@@ -2796,7 +2943,7 @@ export function validateRunState(content: Content, raw: RunState): void {
     method: state.method,
     n: state.n,
     talents: state.talents[state.method] ?? [],
-    artifacts: state.artifacts,
+    artifacts: equippedArtifactStacks(state),
     baseStats: baseStats(content, state.n),
     hp: state.hp,
     preparation: state.preparation,

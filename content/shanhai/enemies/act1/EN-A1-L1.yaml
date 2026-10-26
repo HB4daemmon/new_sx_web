@@ -1,5 +1,5 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: enemy
 id: EN-A1-L1
 name: 养锋石卫
@@ -37,9 +37,9 @@ stats:
   speed: 10
 pressure: [攻势渐强, 直接攻击]
 counterplay:
-  - 在镇心玉的攻击层和剑势都尚未成形时集中爆发，缩短它进入高输出循环的时间。
+  - 普攻追击不递归、怒技基础伤害较低；仍应在镇心玉攻击层和剑势尚未成形时集中爆发。
   - 用破甲或减攻来源压低成长后的单段伤害，并以护盾承受仍会逐步增加的直接段。
-preview: 基础五维为装备前值；普攻会积剑势，J1-B让一次普攻额外积一层，镇心玉在每次自身主动作完成后从下一次动作起获得攻击+4，最多三层，阶段列表为空。
+preview: 基础五维为装备前值；普攻会积剑势，J1-B让一次普攻额外积一层，镇心玉在每次自身主动作完成后从下一次动作起获得攻击+4，最多三层；RC09核心在普攻后追加0.45倍攻击且不递归，怒技基础伤害倍率为0.65，阶段列表为空。
 phases: []
 reward_profile: L
 measured: null

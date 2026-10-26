@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RL04
 name: 启明玉
 status: design_target
-summary: 攻击 +12、速度 +1；开场额外回怒 50
-description: 每场战斗开始时，额外获得50点怒气。
+summary: 攻击 +12、速度 +1；开场额外回怒 50；占唯一核心位，最多另带3件支援
+description: 每场战斗开始时，额外获得50点怒气。装备后占用唯一核心位，可另带最多3件支援；未装备时不提供属性或效果。
 tags: [attack, speed, rage_gain, battle_start, legendary]
 source:
   basis: original
@@ -37,5 +37,6 @@ effects:
     replaces: []
     limit: {scope: battle, count: 1}
     text: 每场战斗开始时额外获得50点怒气；这份怒气与基础开场怒气及其他开场回怒一并计入怒气上限。
+equipment_role: core
 acquisition:
   pools: [legendary_artifact]

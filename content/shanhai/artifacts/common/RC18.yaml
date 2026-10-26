@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RC18
 name: 聚财钱
 status: design_target
-summary: 防御 +2；完成节点后额外获得2枚灵石
-description: 钱面刻着聚拢财气的纹路，沿途积攒可实际使用的灵石。
+summary: 防御 +2；完成节点后额外获得2枚灵石；占一个支援位（共3席）
+description: 钱面刻着聚拢财气的纹路，沿途积攒可实际使用的灵石。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [defense, travel, coins, node]
 source:
   basis: original
@@ -35,5 +35,6 @@ effects:
     replaces: []
     limit: {scope: node, count: 1}
     text: 获得此物后，每完成一个行旅节点，每层额外获得2枚灵石。
+equipment_role: support
 acquisition:
   pools: [common_artifact]

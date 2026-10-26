@@ -225,7 +225,7 @@ test('only connected branch choices can be entered and the chosen path is retain
   assert.equal(right.state.routeMap.path.at(-1), 'a1-d1-l2');
 });
 
-test('legacy linear saves retain only visited nodes and roll back future counters', () => {
+test('V1 linear route snapshots are rejected instead of migrated', () => {
   installCombat();
   const game = make('legacy-map-seed');
   const legacy = structuredClone(game.state);
@@ -255,12 +255,7 @@ test('legacy linear saves retain only visited nodes and roll back future counter
     .map(node => node.id);
   legacy._lastEnemyId = legacy._seenEnemyIds.at(-1);
 
-  const migrated = parseRunSave(content, serializeRun(legacy));
-  assert.equal(migrated._routeMapLegacy, true);
-  assert.equal(migrated.nodes.length, 2);
-  assert.deepEqual(migrated.routeMap.path, ['a1-d0-l1', 'a1-d1-l1']);
-  assert.equal(migrated.ordinaryCount, 2);
-  assert.deepEqual(migrated._seenEnemyIds, ['EN-A1-C1']);
+  assert.throws(() => parseRunSave(content, serializeRun(legacy)), /Invalid route map/);
 });
 
 test('the first elite in every act does not consume the extra elite allowance', () => {
@@ -280,10 +275,10 @@ test('the first elite in every act does not consume the extra elite allowance', 
   }
 });
 
-test('linear save migration preserves active phases and does not select a node during breakthrough', () => {
+test('V1 linear route snapshots are rejected at all active run phases', () => {
   installCombat();
   const game = make('legacy-active-boundaries');
-  function checkMigration() {
+  function assertLegacyRejected() {
     const before = structuredClone(game.state);
     const legacy = structuredClone(before);
     const unvisited = before.routeMap.nodes.filter(node => node.depth >= before.nodes.length && node.lane === 1)
@@ -295,26 +290,20 @@ test('linear save migration preserves active phases and does not select a node d
     delete legacy.routeMap;
     delete legacy._routeMapVersion;
     delete legacy._routeMapLegacy;
-    const migrated = parseRunSave(content, serializeRun(legacy));
-    assert.equal(migrated.phase, before.phase);
-    assert.equal(migrated.step, before.step);
-    assert.deepEqual(migrated.nodes, before.nodes);
-    assert.equal(migrated.hp, before.hp);
-    assert.equal(migrated.ordinaryCount, before.ordinaryCount);
-    assert.deepEqual(migrated.rewardCandidates, before.rewardCandidates);
+    assert.throws(() => parseRunSave(content, serializeRun(legacy)), /Invalid route map/);
   }
   game.dispatch({ type: 'enter', id: game.availableNodes()[0].key });
-  checkMigration();
+  assertLegacyRejected();
   game.dispatch({ type: 'fight' });
-  checkMigration();
+  assertLegacyRejected();
   game.dispatch({ type: 'battle_done' });
-  checkMigration();
+  assertLegacyRejected();
   game.state.xp = 120;
   game.dispatch({ type: 'reward', id: null });
   assert.equal(game.state.phase, 'talent');
-  checkMigration();
+  assertLegacyRejected();
   game.dispatch({ type: 'talent', id: game.availableTalents()[0].id });
-  checkMigration();
+  assertLegacyRejected();
 });
 
 test('save/reload keeps frozen map and does not touch the legacy key', () => {
@@ -527,6 +516,7 @@ test('travel artifacts use their authored stack and max-hp parameters', () => {
     { id: 'RC18', stacks: 3 },
     { id: 'RR06', stacks: 1 },
   ];
+  game.state.equipment = { core: null, support: ['RC16', 'RC17', 'RC18'] };
   const rest = routeToNode(game, node => node.type === 'R');
   assert.equal(rest.depth, routeLayoutForAct(game.actContent, game.state.seed).restDepth);
   game.state.hp = 100;

@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RC22
 name: 先机符
 status: design_target
-summary: 攻击 +2；开场额外回怒 15
-description: 每层在战斗开始时额外带来15点怒气。
+summary: 攻击 +2；开场额外回怒 15；占一个支援位（共3席）
+description: 每层在战斗开始时额外带来15点怒气。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [attack, rage_gain, battle_start, combat]
 source:
   basis: original
@@ -35,5 +35,6 @@ effects:
     replaces: []
     limit: {scope: battle, count: 1}
     text: 每层在每场战斗开始时额外获得15点怒气；与基础开场怒气一并计入怒气上限。
+equipment_role: support
 acquisition:
   pools: [common_artifact]

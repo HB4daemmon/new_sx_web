@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RC20
 name: 引气符
 status: design_target
-summary: 攻击 +2；普攻完成后额外回怒 5
-description: 每次普攻完成后，符纸额外补回5点怒气。
+summary: 攻击 +2；普攻完成后额外回怒 5；占一个支援位（共3席）
+description: 每次普攻完成后，符纸额外补回5点怒气。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [attack, rage_gain, basic, combat]
 source:
   basis: original
@@ -35,5 +35,6 @@ effects:
     replaces: []
     limit: {scope: action, count: 1}
     text: 每层在普攻完成后额外获得5点怒气；普攻原有的回怒照常获得。
+equipment_role: support
 acquisition:
   pools: [common_artifact]

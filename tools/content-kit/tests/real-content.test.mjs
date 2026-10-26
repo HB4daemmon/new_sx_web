@@ -4,6 +4,11 @@ import test from 'node:test'
 import { loadContent } from '../src/loader.mjs'
 import { validateLoadedContent } from '../src/validator.mjs'
 import { renderDocuments } from '../src/renderer.mjs'
+import {
+  ARTIFACT_EQUIPMENT_ROLES,
+  CORE_ARTIFACT_RULES,
+  SHARED_INSIGHT_IDS,
+} from '../src/constants.mjs'
 
 const model = await loadContent()
 const report = validateLoadedContent(model)
@@ -87,6 +92,34 @@ test('real content validates and preserves the authored entity and talent counts
 
   const totalTalents = entitiesOf('method').reduce((total, method) => total + method.talents.length, 0)
   assert.equal(totalTalents, 120)
+  const insights = entitiesOf('rules')[0].insights
+  assert.equal(insights.length, 12)
+  assert.deepEqual(insights.map((talent) => talent.id).sort(), [...SHARED_INSIGHT_IDS].sort())
+  assert.deepEqual([...report.known.sharedTalents].sort(), [...SHARED_INSIGHT_IDS].sort())
+  for (const tier of [1, 2, 3, 4]) {
+    assert.deepEqual(
+      insights.filter((talent) => talent.tier === tier).map((talent) => talent.branch).sort(),
+      ['A', 'B', 'C'],
+    )
+  }
+
+  for (const artifact of entitiesOf('artifact')) {
+    assert.equal(artifact.equipment_role, ARTIFACT_EQUIPMENT_ROLES[artifact.id], `${artifact.id} equipment role`)
+    const slotLabel = artifact.equipment_role === 'core' ? '核心位' : '支援位'
+    assert.ok(artifact.summary.includes(slotLabel), `${artifact.id} summary discloses its slot`)
+    assert.ok(artifact.description.includes(slotLabel), `${artifact.id} description discloses its slot`)
+    if (CORE_ARTIFACT_RULES[artifact.id]) {
+      assert.deepEqual(artifact.core_rule, CORE_ARTIFACT_RULES[artifact.id], `${artifact.id} core rule`)
+    } else {
+      assert.equal(Object.hasOwn(artifact, 'core_rule'), false, `${artifact.id} has no parallel core rule`)
+    }
+  }
+
+  for (const enemy of entitiesOf('enemy')) {
+    const equipped = enemy.artifacts.map((loadout) => entitiesOf('artifact').find((artifact) => artifact.id === loadout.id))
+    assert.ok(equipped.filter((artifact) => artifact?.equipment_role === 'core').length <= 1, `${enemy.id} core slots`)
+    assert.ok(equipped.filter((artifact) => artifact?.equipment_role === 'support').length <= 3, `${enemy.id} support slots`)
+  }
 })
 
 test('every method has four A/B/C talent tiers and 81 structural builds', () => {

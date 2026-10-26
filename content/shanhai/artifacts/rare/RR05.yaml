@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RR05
 name: 镇心玉
 status: design_target
-summary: 防御 +8；普攻或怒技完成后攻击 +4，最多三层
-description: 每次普攻或怒技完成后，攻击提高4点，最多叠加3层。
+summary: 防御 +8；普攻或怒技完成后攻击 +4，最多三层；占一个支援位（共3席）
+description: 每次普攻或怒技完成后，攻击提高4点，最多叠加3层。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [defense, attack, stacking, rare]
 source:
   basis: original
@@ -40,5 +40,6 @@ effects:
     replaces: []
     limit: {scope: action, count: 1}
     text: 每次普攻或怒技完成后，攻击提高4点，最多叠加3层；加成从下次行动起生效，战斗结束时清除。
+equipment_role: support
 acquisition:
   pools: [rare_artifact]

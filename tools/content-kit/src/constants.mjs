@@ -7,7 +7,7 @@ export const CONTENT_ROOT = path.resolve(REPO_ROOT, 'content', 'shanhai')
 export const MANIFEST_PATH = path.resolve(CONTENT_ROOT, 'manifest.yaml')
 export const DOCS_ROOT = path.resolve(REPO_ROOT, 'docs', 'shanhai', 'rework', 'content')
 
-export const CONTENT_VERSION = 'shanhai-content-0.1'
+export const CONTENT_VERSION = 'shanhai-content-0.2'
 export const SCHEMA_VERSION = 1
 
 export const METHOD_IDS = Object.freeze(
@@ -36,6 +36,30 @@ export const ARTIFACT_RARITIES = Object.freeze({
   ...Object.fromEntries(Array.from({ length: 15 }, (_, index) => [`RR${String(index + 1).padStart(2, '0')}`, 'rare'])),
   ...Object.fromEntries(Array.from({ length: 5 }, (_, index) => [`RL${String(index + 1).padStart(2, '0')}`, 'legendary'])),
 })
+export const CORE_ARTIFACT_RULES = Object.freeze({
+  RC09: Object.freeze({ kind: 'basic_echo', ratio: 0.45, rage_damage_ratio: 0.65 }),
+  RC10: Object.freeze({ kind: 'rage_gambit', rage_refund: 20, incoming_damage_ratio: 1.12 }),
+  RC11: Object.freeze({ kind: 'shield_burst', opening_shield_ratio: 0.12, shield_ratio: 0.5, damage_ratio: 1.4 }),
+  RC12: Object.freeze({ kind: 'healing_guard', heal_ratio: 0.04, shield_ratio: 0.6, direct_damage_ratio: 0.8 }),
+  RC14: Object.freeze({ kind: 'poison_detonation', poison_stacks: 1, damage_ratio: 1.1 }),
+  RC15: Object.freeze({ kind: 'burn_siphon', burn_stacks: 1, heal_ratio: 0.25, rage_damage_ratio: 0.8 }),
+})
+export const CORE_ARTIFACT_IDS = Object.freeze([
+  ...Object.keys(CORE_ARTIFACT_RULES),
+  'RL01',
+  'RL02',
+  'RL03',
+  'RL04',
+  'RL05',
+])
+export const ARTIFACT_EQUIPMENT_ROLES = Object.freeze(Object.fromEntries(
+  ARTIFACT_IDS.map((id) => [id, CORE_ARTIFACT_IDS.includes(id) ? 'core' : 'support']),
+))
+export const SHARED_INSIGHT_IDS = Object.freeze(
+  Array.from({ length: 4 }, (_, index) =>
+    ['A', 'B', 'C'].map((branch) => `V2-J${index + 1}-${branch}`),
+  ).flat(),
+)
 
 export const ORDINARY_EVENT_IDS = Object.freeze(
   Array.from({ length: 36 }, (_, index) => `RE${String(index + 1).padStart(3, '0')}`),

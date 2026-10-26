@@ -21,9 +21,8 @@ function nextLanes(depth: number, lane: number): number[] {
   if (depth === 10) return [];
   if (depth === 0) return [0, 1, 2];
   if (depth === 9) return [1];
-  if (lane === 0) return [0, 1];
-  if (lane === 1) return [0, 1, 2];
-  return [1, 2];
+  if (depth === 3 || depth === 6) return [0, 1, 2];
+  return [lane];
 }
 
 export function createRouteMapNodes(
@@ -78,16 +77,6 @@ function laterActTypeAllowedAtDepth(type: string, depth: number): boolean {
   if (depth === 9) return type === 'C' || type === 'L';
   if ([2, 3, 5, 6, 8].includes(depth)) return ['C', 'R', 'S', 'L'].includes(type);
   return false;
-}
-
-function isOldFixedDistribution(nodes: RouteMapNode[]): boolean {
-  const rests = nodes.filter(node => node.type === 'R');
-  const shops = nodes.filter(node => node.type === 'S');
-  const elites = nodes.filter(node => node.type === 'L');
-  return nodes.filter(node => node.type === 'K').length <= 3 &&
-    rests.length === 1 && rests[0]!.depth === 3 &&
-    shops.length === 1 && shops[0]!.depth === 5 &&
-    elites.length <= 1 && elites.every(node => node.depth === 9);
 }
 
 function isRouteLayoutProfile(layout: RouteLayoutProfile): boolean {
@@ -146,6 +135,49 @@ function everyRoutePathHasThreeCommonBattles(nodes: RouteMapNode[]): boolean {
   return starts.length > 0 && Math.min(...starts.map(node => minCommonFrom(node.key))) >= 3;
 }
 
+function canReach(
+  byKey: ReadonlyMap<string, RouteMapNode>,
+  startKey: string,
+  targetKey: string,
+  excludedKey?: string,
+): boolean {
+  const queue = [startKey];
+  const visited = new Set<string>();
+  while (queue.length) {
+    const key = queue.shift()!;
+    if (key === excludedKey || visited.has(key)) continue;
+    if (key === targetKey) return true;
+    visited.add(key);
+    queue.push(...(byKey.get(key)?.next ?? []));
+  }
+  return false;
+}
+
+function hasRequiredRouteAccess(nodes: RouteMapNode[]): boolean {
+  const byKey = new Map(nodes.map(node => [node.key, node]));
+  const starts = nodes.filter(node => node.depth === 0);
+  const bosses = nodes.filter(node => node.depth === 10);
+  if (starts.length !== 1 || bosses.length !== 1) return false;
+
+  const start = starts[0]!;
+  const boss = bosses[0]!;
+  const reachable = new Set<string>();
+  const queue = [start.key];
+  while (queue.length) {
+    const key = queue.shift()!;
+    if (reachable.has(key)) continue;
+    reachable.add(key);
+    queue.push(...(byKey.get(key)?.next ?? []));
+  }
+  if (reachable.size !== nodes.length || !reachable.has(boss.key)) return false;
+
+  for (const service of nodes.filter(node => node.type === 'R' || node.type === 'S')) {
+    if (!reachable.has(service.key) || !canReach(byKey, service.key, boss.key)) return false;
+  }
+  return nodes.filter(node => node.type === 'L')
+    .every(elite => canReach(byKey, start.key, boss.key, elite.key));
+}
+
 export function isValidRouteDistribution(
   act: number,
   nodes: RouteMapNode[],
@@ -169,12 +201,11 @@ export function isValidRouteDistribution(
     act === 1
       ? act1TypeAllowedAtDepth(node.type, node.depth)
       : laterActTypeAllowedAtDepth(node.type, node.depth))) return false;
-  if (legacyKeys.size) return everyRoutePathHasThreeCommonBattles(nodes);
+  if (!hasRequiredRouteAccess(nodes) || !everyRoutePathHasThreeCommonBattles(nodes)) return false;
+  if (legacyKeys.size) return true;
 
   const layouts = routeProfilesForAct(act);
-  return everyRoutePathHasThreeCommonBattles(nodes) &&
-    (isOldFixedDistribution(nodes) ||
-      layouts.some(layout => isProfileDistribution(nodes, layout, act)));
+  return layouts.some(layout => isProfileDistribution(nodes, layout, act));
 }
 
 export function isValidAct1RouteDistribution(

@@ -12,6 +12,7 @@ import {
   summarizeBattles,
   wilson95,
 } from './shanhai-difficulty-metrics.mjs';
+import { nextCommand } from './shanhai-policy.mjs';
 
 const methods = ['RKF01', 'RKF02'];
 
@@ -151,6 +152,8 @@ test('CLI options build distinct train and holdout prefixes and validate adjustm
   assert.equal(train.seedCount, 3);
   assert.equal(train.outputFile, '/tmp/train.json');
   assert.equal(train.summaryOnly, true);
+  assert.equal(parseDifficultyArgs([]).seedPrefix, 'v2-difficulty');
+  assert.equal(parseDifficultyArgs([]).outputDir, 'verification/shanhai/v2/difficulty');
   assert.equal(holdout.enemyMultipliers['4'].attack, 1.1);
   assert.notEqual(`${train.seedPrefix}-${train.split}`, `${holdout.seedPrefix}-${holdout.split}`);
   assert.deepEqual(normalizeEnemyMultipliers({ 1: { attack: 1.2 } })['1'], {
@@ -194,4 +197,22 @@ test('difficulty policy cannot read hinted event rewards or check outcomes', () 
     optionAvailability: () => ({ available: true }),
   };
   assert.equal(difficultyCommand(game, 'steady').id, 'leave');
+});
+
+test('avoid route preference does not inspect route nodes beyond the current choices', () => {
+  const state = { phase: 'map' };
+  Object.defineProperty(state, 'routeMap', {
+    get() { throw new Error('future route read'); },
+  });
+  const game = {
+    state,
+    stats: { max_hp: 500 },
+    availableNodes: () => [
+      { type: 'C', key: 'combat', lane: 0 },
+      { type: 'R', key: 'rest', lane: 1 },
+    ],
+    canChangeEquipment: () => true,
+    content: { byId: {} },
+  };
+  assert.ok(['combat', 'rest'].includes(nextCommand(game, 'avoid').id));
 });

@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RR12
 name: 回生佩
 status: design_target
-summary: 最大气血 +30；普攻或怒技回复气血后额外获得10点怒气
-description: 自身普攻或怒技回复气血时，额外获得10点怒气。
+summary: 最大气血 +30；普攻或怒技回复气血后额外获得10点怒气；占一个支援位（共3席）
+description: 自身普攻或怒技回复气血时，额外获得10点怒气。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [max_hp, heal, rage_gain, rare]
 source:
   basis: original
@@ -38,5 +38,6 @@ effects:
     replaces: []
     limit: {scope: action, count: 1}
     text: 每次普攻或怒技只要实际回复了气血，就额外获得10点怒气；治疗溢出、战外治疗和战斗开场不触发。
+equipment_role: support
 acquisition:
   pools: [rare_artifact]

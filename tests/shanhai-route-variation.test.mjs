@@ -153,13 +153,11 @@ test('one core opportunity is frozen and a locked follow-up is not backfilled', 
   assert.equal(reloaded.routeMap.nodes.some(node => node.type === 'K' && node.id === second), false);
 });
 
-test('legacy first-act distributions load unchanged and invalid placement mixes are rejected', () => {
+test('V1 first-act route snapshots are rejected and invalid V2 placement mixes remain rejected', () => {
   const legacy = normalizeAsOldAct1Map(make('legacy-route-shape'));
-  const loadedLegacy = parseRunSave(content, serializeRun(legacy));
-  assert.deepEqual(loadedLegacy.routeMap, legacy.routeMap);
-  assert.equal(loadedLegacy.routeMap.nodes.filter(node => node.type === 'K').length, 3);
+  assert.throws(() => serializeRun(legacy), /Invalid route map/);
 
-  const invalid = structuredClone(legacy);
+  const invalid = structuredClone(make('invalid-v2-placement').state);
   const misplacedRest = invalid.routeMap.nodes.find(node => node.type === 'R');
   const displacedShop = invalid.routeMap.nodes.find(node => node.type === 'S');
   assert.ok(misplacedRest && displacedShop);
@@ -170,7 +168,7 @@ test('legacy first-act distributions load unchanged and invalid placement mixes 
   setNode(lateShop, 'S', `SHOP-A1-${lateShop.key}`);
   assert.throws(() => parseRunSave(content, serializeRun(invalid)), /Invalid route map/);
 
-  const lowBudget = structuredClone(legacy.routeMap.nodes);
+  const lowBudget = structuredClone(make('invalid-v2-battle-budget').state.routeMap.nodes);
   const byKey = new Map(lowBudget.map(node => [node.key, node]));
   const path = [];
   let cursor = byKey.get('a1-d0-l1');

@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RC16
 name: 采气袋
 status: design_target
-summary: 攻击 +2；完成节点后额外获得1点修为
-description: 小袋收纳沿途灵息，兼顾攻击与行旅中的修为积累。
+summary: 攻击 +2；完成节点后额外获得1点修为；占一个支援位（共3席）
+description: 小袋收纳沿途灵息，兼顾攻击与行旅中的修为积累。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [attack, travel, xp, node]
 source:
   basis: original
@@ -35,5 +35,6 @@ effects:
     replaces: []
     limit: {scope: node, count: 1}
     text: 获得此物后，每完成一个行旅节点，每层额外获得1点修为。
+equipment_role: support
 acquisition:
   pools: [common_artifact]

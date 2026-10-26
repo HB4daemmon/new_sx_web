@@ -1,5 +1,5 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: enemy
 id: EN-A1-B1
 name: 共工遗影试炼
@@ -28,7 +28,6 @@ talents: [RKF10-J1-A]
 artifacts:
   - {id: RL03, stacks: 1}
   - {id: RC04, stacks: 1}
-  - {id: RC11, stacks: 2}
 stats:
   attack: 58
   defense: 80

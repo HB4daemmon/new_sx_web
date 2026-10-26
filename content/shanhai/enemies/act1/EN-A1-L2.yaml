@@ -1,5 +1,5 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: enemy
 id: EN-A1-L2
 name: 月蚀断脉客
@@ -27,7 +27,6 @@ n: 1
 talents: [RKF08-J1-A]
 artifacts:
   - {id: RC04, stacks: 2}
-  - {id: RC08, stacks: 1}
   - {id: RR13, stacks: 1}
   - {id: RR14, stacks: 1}
 stats:

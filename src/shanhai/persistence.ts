@@ -9,9 +9,10 @@ import { validateRouteMap } from './route-map.js';
 import { assertEventCommitmentRecords } from './event-commitments.js';
 import { assertEventCheckResult } from './event-checks.js';
 
-export const SHANHAI_SAVE_KEY = 'suishi-shanhai-run-v1';
-export const SHANHAI_BUILD_KEY = 'suishi-shanhai-build-v1';
+export const SHANHAI_SAVE_KEY = 'suishi-shanhai-run-v2';
+export const SHANHAI_BUILD_KEY = 'suishi-shanhai-build-v2';
 export const SAVE_KEY = SHANHAI_SAVE_KEY;
+const SHANHAI_CONTENT_VERSION = 'shanhai-content-0.2';
 
 export interface StorageLike {
   getItem(key: string): string | null;
@@ -131,6 +132,9 @@ function assertStateShapeWithoutContent(state: RunState): void {
     !RUN_PHASES.has(state.phase)) {
     throw new Error('Invalid Shanhai run state');
   }
+  if (state.contentVersion !== SHANHAI_CONTENT_VERSION) {
+    throw new Error('V2 save requires shanhai-content-0.2');
+  }
   if (!Number.isInteger(state.act) || state.act < 1 || state.act > 5 ||
     !Number.isInteger(state.step) || state.step < 0) {
     throw new Error('Invalid Shanhai run position');
@@ -151,6 +155,23 @@ function assertStateShapeWithoutContent(state: RunState): void {
       throw new Error('Invalid Shanhai talents');
     }
   }
+  if (!isObject(state.equipment) ||
+    (state.equipment.core !== null && typeof state.equipment.core !== 'string') ||
+    !Array.isArray(state.equipment.support) || state.equipment.support.length > 3 ||
+    state.equipment.support.some(id => typeof id !== 'string') ||
+    new Set(state.equipment.support).size !== state.equipment.support.length ||
+    (state.equipment.core !== null && state.equipment.support.includes(state.equipment.core))) {
+    throw new Error('Invalid Shanhai equipment');
+  }
+  if (!Number.isInteger(state.talentDraftGeneration) || state.talentDraftGeneration < 0 ||
+    !isObject(state.talentDrafts) || Object.entries(state.talentDrafts).some(([key, ids]) => {
+      const match = /^RKF\d{2}:[1-4]:(0|[1-9]\d*)$/.exec(key);
+      return !match || Number(match[1]) > state.talentDraftGeneration ||
+        !Array.isArray(ids) || ids.length !== 3 ||
+        ids.some(id => typeof id !== 'string') || new Set(ids).size !== ids.length;
+    })) {
+    throw new Error('Invalid Shanhai talent drafts');
+  }
   if (![state.hp, state.xp, state.coins, state.preparation].every(nonNegative) ||
     (state.firstStrike !== undefined && !nonNegative(state.firstStrike))) {
     throw new Error('Invalid Shanhai run resources');
@@ -166,10 +187,8 @@ function assertStateShapeWithoutContent(state: RunState): void {
   if (state._routeMapLegacy !== undefined && typeof state._routeMapLegacy !== 'boolean') {
     throw new Error('Invalid saved legacy route map marker');
   }
-  if (state._routeMapVersion === 1 && !state.routeMap) throw new Error('Saved route map is missing');
-  if (state.routeMap) {
-    validateRouteMap(state.routeMap, state.act, state.nodes, state.step, state.phase, state._routeMapLegacy === true);
-  }
+  if (!state.routeMap) throw new Error('Invalid route map: saved route map is missing');
+  validateRouteMap(state.routeMap, state.act, state.nodes, state.step, state.phase, state._routeMapLegacy === true);
   if (!Array.isArray(state.routes) || state.routes.some(route => typeof route !== 'string')) {
     throw new Error('Invalid Shanhai routes');
   }
@@ -181,6 +200,10 @@ function assertStateShapeWithoutContent(state: RunState): void {
       throw new Error('Invalid Shanhai artifact stack');
     }
     artifactIds.add(stack.id);
+  }
+  if ((state.equipment.core !== null && !artifactIds.has(state.equipment.core)) ||
+    state.equipment.support.some(id => !artifactIds.has(id))) {
+    throw new Error('Invalid Shanhai equipment ownership');
   }
   if (!Array.isArray(state.history) || state.history.some(entry =>
     !isObject(entry) || !Number.isInteger(entry.act) || entry.act < 1 || entry.act > 5 ||
@@ -280,6 +303,9 @@ function assertStateShapeWithoutContent(state: RunState): void {
   if (state._pendingTravelCoins !== undefined && !nonNegative(state._pendingTravelCoins)) {
     throw new Error('Invalid Shanhai pending travel coins');
   }
+  if (state._coreRewardOffered !== undefined && typeof state._coreRewardOffered !== 'boolean') {
+    throw new Error('Invalid Shanhai core reward marker');
+  }
   if (state._methodConsecutiveNodes !== undefined &&
     (!isObject(state._methodConsecutiveNodes) ||
       Object.values(state._methodConsecutiveNodes).some(count => !Number.isInteger(count) || count < 0))) {
@@ -334,6 +360,9 @@ function assertStateShapeWithoutContent(state: RunState): void {
 
 function extractState(payload: unknown): RunState {
   if (!isObject(payload)) throw new Error('Corrupted Shanhai save: expected object');
+  if (payload.key === 'suishi-shanhai-run-v1') {
+    throw new Error('V1 Shanhai saves cannot be loaded by V2');
+  }
   const wrapped = Object.prototype.hasOwnProperty.call(payload, 'state');
   if (wrapped && (payload.schema !== 1 || payload.key !== SHANHAI_SAVE_KEY ||
     typeof payload.contentVersion !== 'string' || typeof payload.savedAt !== 'string' ||
@@ -494,7 +523,8 @@ export function saveWinningBuild(
 ): ShanhaiBuildRecord | null {
   if (game.state.phase !== 'won') return null;
   const state = game.state;
-  const buildId = `${state.id}:${state.method}:${state.n}:${state.talents[state.method]?.join(',') ?? ''}:${state.artifacts.map(item => `${item.id}x${item.stacks}`).join(',')}`;
+  const artifacts = game.equippedArtifacts();
+  const buildId = `${state.id}:${state.method}:${state.n}:${state.talents[state.method]?.join(',') ?? ''}:${artifacts.map(item => `${item.id}x${item.stacks}`).join(',')}`;
   const record: ShanhaiBuildRecord = {
     schema: 1,
     buildId,
@@ -505,7 +535,7 @@ export function saveWinningBuild(
     method: state.method,
     n: state.n,
     talents: clone(state.talents[state.method] ?? []),
-    artifacts: clone(state.artifacts),
+    artifacts: clone(artifacts),
     stats: clone(game.stats),
   };
   const target = storageOrDefault(storage);

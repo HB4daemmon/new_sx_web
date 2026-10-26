@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RR03
 name: 毒牙钉
 status: design_target
-summary: 攻击 +8；普攻首次命中后施加1层中毒
-description: 普攻首次命中后，施加1层中毒。
+summary: 攻击 +8；普攻首次命中后施加1层中毒；占一个支援位（共3席）
+description: 普攻首次命中后，施加1层中毒。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [attack, poison, dot, basic, rare]
 source:
   basis: original
@@ -38,5 +38,6 @@ effects:
     replaces: []
     limit: {scope: action, count: 1}
     text: 普攻首次命中后施加1层中毒；多段普攻只触发一次。
+equipment_role: support
 acquisition:
   pools: [rare_artifact]

@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RL02
 name: 薪火宝炉
 status: design_target
-summary: 攻击 +12、防御 +6；燃烧造成气血损失后按比例治疗
-description: 自身施加的燃烧造成气血损失后，按损失量回复气血；燃烧伤害照常结算。
+summary: 攻击 +12、防御 +6；燃烧造成气血损失后按比例治疗；占唯一核心位，最多另带3件支援
+description: 自身施加的燃烧造成气血损失后，按损失量回复气血；燃烧伤害照常结算。装备后占用唯一核心位，可另带最多3件支援；未装备时不提供属性或效果。
 tags: [attack, defense, burn, heal, legendary]
 source:
   basis: original
@@ -38,5 +38,6 @@ effects:
     replaces: []
     limit: {scope: round, count: 1}
     text: 每轮首次由自身施加的燃烧造成气血损失后，按该次损失量的25%恢复气血，不超过最大气血；每轮最多触发一次。
+equipment_role: core
 acquisition:
   pools: [legendary_artifact]

@@ -311,6 +311,9 @@ test('reforge candidates are fixed, forged targets fail, payment and HP clamp ar
   let targetMaxHp;
   for (const source of content.entities.filter(entity => entity.kind === 'artifact' && entity.rarity === 'common')) {
     game.state.artifacts = [{ id: source.id, stacks: 1 }];
+    game.state.equipment = source.equipment_role === 'core'
+      ? { core: source.id, support: [] }
+      : { core: null, support: [source.id] };
     const candidates = game.reforgeOptions(source.id);
     if (candidates.length !== 3) continue;
     const currentMaxHp = calculateStats(content, game.player).max_hp;
@@ -331,6 +334,9 @@ test('reforge candidates are fixed, forged targets fail, payment and HP clamp ar
   }
   assert.ok(sourceId && options && targetId, 'expected three fixed candidates including a lower max-HP target');
   game.state.artifacts = [{ id: sourceId, stacks: 1 }];
+  game.state.equipment = content.byId[sourceId].equipment_role === 'core'
+    ? { core: sourceId, support: [] }
+    : { core: null, support: [sourceId] };
   game.state.coins = 100;
   game.state.hp = sourceMaxHp;
   assert.deepEqual(game.reforgeOptions(sourceId), options);
@@ -447,6 +453,7 @@ function makeReplayBattle(seed, rules) {
   registerCombatWorker({ calculateStats, simulateBattle });
   const game = make(seed);
   game.state.artifacts = [{ id: 'RC09', stacks: 3 }];
+  game.state.equipment = { core: 'RC09', support: [] };
   game.dispatch({ type: 'enter', id: game.availableNodes()[0].key });
   game.dispatch({ type: 'fight' });
 

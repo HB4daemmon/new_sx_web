@@ -9,6 +9,17 @@ export interface RouteLayoutProfile {
   extraEliteDepth: number | null;
 }
 
+export const ROUTE_LANE_SEGMENTS = [
+  { startDepth: 1, endDepth: 3, label: '第一段（第1-3步）' },
+  { startDepth: 4, endDepth: 6, label: '第二段（第4-6步）' },
+  { startDepth: 7, endDepth: 9, label: '第三段（第7-9步）' },
+] as const;
+
+export function routeSegmentLabel(depth: number): string | null {
+  return ROUTE_LANE_SEGMENTS.find(segment =>
+    depth >= segment.startDepth && depth <= segment.endDepth)?.label ?? null;
+}
+
 export const ROUTE_PROFILES_BY_ACT: Readonly<Record<number, readonly RouteLayoutProfile[]>> = {
   1: [
     {

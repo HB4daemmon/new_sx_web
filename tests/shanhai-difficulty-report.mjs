@@ -184,15 +184,17 @@ export function renderDifficultyReport(report) {
   const adjustment = configuration.enemyStatAdjustment;
   const seeds = renderSeeds(configuration);
   const lines = [
-    '# 山海难度校准报告',
+    '# 山海 V2 难度样本报告',
     '',
-    '> 本报告是自动策略条件下的游戏模拟，不是人类玩家胜率或体验结论。',
+    '> V2 内容尚未校准；本报告只记录指定策略和种子批次的直接观测，不是人类玩家胜率或体验结论。',
     '',
     '## 运行配置',
     '',
     `- 报告结构版本：${count(report.schemaVersion)}`,
     `- 输入配置哈希：${escapeCell(report.inputHash ?? '未提供')}`,
+    `- 实验轨道：${escapeCell(configuration.experimentTrack ?? '未提供')}`,
     `- 内容版本：${escapeCell(configuration.contentVersion ?? '未提供')}`,
+    `- 样本解释：${escapeCell(configuration.sampleInterpretation ?? '未提供')}`,
     `- 源内容 SHA-256：${escapeCell(configuration.sourceContentHash ?? '未提供')}`,
     `- 运行时与策略 SHA-256：${escapeCell(configuration.runtimeAndPolicyHash ?? '未提供')}`,
     `- 种子前缀：${escapeCell(configuration.seedPrefix ?? '未提供')}`,

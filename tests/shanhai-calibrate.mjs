@@ -8,6 +8,13 @@ import { ShanhaiGame } from '../build/shanhai/run.js';
 import { nextCommand } from './shanhai-policy.mjs';
 
 export const START_METHODS = Object.freeze(['RKF01', 'RKF02', 'RKF03', 'RKF04', 'RKF05']);
+export const FUNCTIONAL_WIN_SEEDS = Object.freeze({
+  RKF01: 'v2-functional-RKF01-0',
+  RKF02: 'v2-functional-RKF02-0',
+  RKF03: 'v2-functional-RKF03-0',
+  RKF04: 'v2-functional-RKF04-0',
+  RKF05: 'v2-functional-RKF05-0',
+});
 export const METHOD_BRANCHES = Object.freeze({
   RKF01: 'A',
   RKF02: 'B',
@@ -16,67 +23,12 @@ export const METHOD_BRANCHES = Object.freeze({
   RKF05: 'B',
 });
 
-// The pre-calibration authored values are kept here so the generated report
-// records an explicit before/after table instead of inferring a multiplier.
-export const ORIGINAL_STATS = Object.freeze({
-  'EN-A1-C1': { attack: 88, defense: 72, max_hp: 560 },
-  'EN-A1-C2': { attack: 90, defense: 68, max_hp: 590 },
-  'EN-A1-C3': { attack: 94, defense: 78, max_hp: 630 },
-  'EN-A1-C4': { attack: 90, defense: 92, max_hp: 660 },
-  'EN-A1-L1': { attack: 111, defense: 110, max_hp: 900 },
-  'EN-A1-L2': { attack: 108, defense: 125, max_hp: 920 },
-  'EN-A1-B1': { attack: 136, defense: 158, max_hp: 1280 },
-  'EN-A1-B2': { attack: 132, defense: 146, max_hp: 1360 },
-  'EN-A2-C1': { attack: 108, defense: 88, max_hp: 720 },
-  'EN-A2-C2': { attack: 114, defense: 94, max_hp: 750 },
-  'EN-A2-C3': { attack: 116, defense: 92, max_hp: 780 },
-  'EN-A2-C4': { attack: 118, defense: 90, max_hp: 800 },
-  'EN-A2-L1': { attack: 128, defense: 128, max_hp: 1030 },
-  'EN-A2-L2': { attack: 126, defense: 142, max_hp: 1080 },
-  'EN-A2-B1': { attack: 148, defense: 150, max_hp: 1420 },
-  'EN-A2-B2': { attack: 152, defense: 154, max_hp: 1480 },
-  'EN-A3-C1': { attack: 118, defense: 132, max_hp: 690 },
-  'EN-A3-C2': { attack: 126, defense: 118, max_hp: 640 },
-  'EN-A3-C3': { attack: 108, defense: 126, max_hp: 750 },
-  'EN-A3-C4': { attack: 138, defense: 112, max_hp: 705 },
-  'EN-A3-L1': { attack: 162, defense: 145, max_hp: 910 },
-  'EN-A3-L2': { attack: 148, defense: 138, max_hp: 965 },
-  'EN-A3-B1': { attack: 184, defense: 156, max_hp: 1180 },
-  'EN-A3-B2': { attack: 174, defense: 168, max_hp: 1240 },
-  'EN-A4-C1': { attack: 212, defense: 166, max_hp: 1120 },
-  'EN-A4-C2': { attack: 198, defense: 178, max_hp: 1160 },
-  'EN-A4-C3': { attack: 205, defense: 194, max_hp: 1260 },
-  'EN-A4-C4': { attack: 228, defense: 172, max_hp: 1185 },
-  'EN-A4-L1': { attack: 190, defense: 182, max_hp: 1375 },
-  'EN-A4-L2': { attack: 236, defense: 168, max_hp: 1320 },
-  'EN-A4-B1': { attack: 258, defense: 200, max_hp: 1580 },
-  'EN-A4-B2': { attack: 246, defense: 210, max_hp: 1660 },
-  'EN-F1': { attack: 282, defense: 228, max_hp: 1980 },
-  'EN-F2': { attack: 268, defense: 242, max_hp: 2140 },
+export const REFERENCE_EQUIPMENT = Object.freeze({
+  core: 'RC11',
+  support: Object.freeze(['RC01', 'RC03', 'RC17']),
 });
 
-export const LOADOUT_CHANGES = Object.freeze([
-  {
-    id: 'EN-A1-B2',
-    removedArtifacts: ['RL01', 'RR02'],
-    reason: '治疗溢出护盾与有效治疗转盾叠加使n1输出无法形成终结缺口。',
-  },
-  {
-    id: 'EN-A2-L1',
-    removedArtifacts: ['RR12'],
-    reason: '治疗回怒与回春循环叠加，精英战超过观察档位。',
-  },
-  {
-    id: 'EN-A3-C3',
-    removedArtifacts: ['RR12'],
-    reason: '普通战额外治疗回怒造成长循环，保留J3-C护盾作为恢复主题。',
-  },
-  {
-    id: 'EN-A4-L1',
-    removedArtifacts: ['RR02'],
-    reason: '治疗后护盾与J3-B减伤同时存在时出现固定盾墙平局。',
-  },
-]);
+const V2_REPORT_DIRECTORY = 'verification/shanhai/v2';
 
 function clone(value) {
   return structuredClone(value);
@@ -165,6 +117,23 @@ function fixedReferenceTier(enemy) {
   return Math.min(4, Math.max(0, enemy.n));
 }
 
+function assertLegalEquipment(content, loadout, label) {
+  const core = [];
+  const support = [];
+  for (const stack of loadout.artifacts ?? []) {
+    const artifact = content.byId[stack.id];
+    if (!artifact || artifact.kind !== 'artifact') {
+      throw new Error(`${label} has unknown artifact ${stack.id}`);
+    }
+    if (artifact.equipment_role === 'core') core.push(stack.id);
+    else if (artifact.equipment_role === 'support') support.push(stack.id);
+    else throw new Error(`${label} has invalid equipment role for ${stack.id}`);
+  }
+  if (core.length > 1 || support.length > 3) {
+    throw new Error(`${label} exceeds the V2 limit of one core and three supports`);
+  }
+}
+
 function playerLoadout(content, enemy, method) {
   const n = fixedReferenceTier(enemy);
   const baseStats = clone(content.rules.cultivation.base_stats_by_tier[n]);
@@ -176,11 +145,15 @@ function playerLoadout(content, enemy, method) {
     method,
     n,
     talents,
-    artifacts: [],
+    artifacts: [
+      { id: REFERENCE_EQUIPMENT.core, stacks: 1 },
+      ...REFERENCE_EQUIPMENT.support.map(id => ({ id, stacks: 1 })),
+    ],
     baseStats,
     preparation: 0,
     firstStrike: 0,
   };
+  assertLegalEquipment(content, loadout, `reference loadout for ${method}`);
   return {
     ...loadout,
     hp: calculateStats(content, loadout).max_hp,
@@ -198,6 +171,7 @@ function enemyLoadout(content, entity) {
     preparation: 0,
     firstStrike: 0,
   };
+  assertLegalEquipment(content, loadout, `enemy loadout for ${entity.id}`);
   return {
     ...loadout,
     hp: calculateStats(content, loadout).max_hp,
@@ -280,30 +254,6 @@ function battleMetrics(content, result, player, enemy) {
   };
 }
 
-function changedStats(content) {
-  return content.entities
-    .filter(entity => entity.kind === 'enemy')
-    .map(entity => {
-      const before = ORIGINAL_STATS[entity.id];
-      const after = {
-        attack: entity.stats.attack,
-        defense: entity.stats.defense,
-        max_hp: entity.stats.max_hp,
-      };
-      return {
-        id: entity.id,
-        tier: entity.tier,
-        before: before ?? null,
-        after,
-        delta: before ? {
-          attack: after.attack - before.attack,
-          defense: after.defense - before.defense,
-          max_hp: after.max_hp - before.max_hp,
-        } : null,
-      };
-    });
-}
-
 export function buildEncounterCalibration(content, seedCount = 5) {
   const enemies = content.entities.filter(entity => entity.kind === 'enemy');
   const records = [];
@@ -374,8 +324,9 @@ export function buildEncounterCalibration(content, seedCount = 5) {
 
   const input = {
     mode: 'fixed_reference_board',
-    board: 'authored enemy.n; no runtime node growth, rewards, or route state',
+    board: 'V2 fixed reference loadout (1 core, 3 supports) against authored enemy.n; no runtime node growth, rewards, or route state',
     contentVersion: content.version,
+    referenceEquipment: clone(REFERENCE_EQUIPMENT),
     roundLimit: 256,
     seedCount,
     seeds,
@@ -415,7 +366,8 @@ export function buildEncounterCalibration(content, seedCount = 5) {
   }));
 
   return {
-    policy: 'canonical legal reference loadouts; direct simulateBattle; no mocked combat',
+    policy: 'V2 fixed legal 1-core/3-support reference loadouts; direct simulateBattle; no mocked combat',
+    calibrationStatus: 'uncalibrated V2 sample; observations do not modify authored measured fields',
     roundLimit: 256,
     seedCount,
     inputHash: hash,
@@ -511,10 +463,13 @@ export function runFullCalibration(content, seedCount = 5) {
   const seeds = runs.map(row => row.seed);
   const input = {
     mode: 'real_shanhai_game_policy',
+    experimentTrack: 'V2 experimental; uncalibrated',
+    functionalWinSeeds: clone(FUNCTIONAL_WIN_SEEDS),
     contentVersion: content.version,
     methods: [...START_METHODS],
     seeds,
-    routeSelection: 'seedIndex % 3 => avoid, steady, tracking',
+    routeSelection: 'seedIndex % 3 => avoid, steady, tracking; current reachable nodes only',
+    equipmentStrategy: 'fill empty slots and replace only a lower-scoring same-role equipped artifact using owned inventory',
     stepGuard: 600,
   };
   const hash = inputHash(input);
@@ -524,7 +479,8 @@ export function runFullCalibration(content, seedCount = 5) {
   }
   return {
     policy: 'tests/shanhai-policy.mjs',
-    note: '真实 ShanhaiGame 与 simulateBattle；校准迭代不逐指令读档，主回归另行执行。',
+    experimentTrack: 'V2 experimental; shanhai-content-0.2; uncalibrated',
+    note: '真实 ShanhaiGame 与 simulateBattle；胜率是当前种子样本的直接观测，不沿用 V1 校准结果。装备策略在合法阶段依据当前库存和槽位价值换装，选择器不读取未来路线节点、战斗结果或隐藏事件结果。',
     seedCount,
     inputHash: hash,
     input,
@@ -545,31 +501,32 @@ export async function runCalibration({
   return {
     contentVersion: content.version,
     input: {
+      experimentTrack: 'V2 experimental; shanhai-content-0.2; uncalibrated',
       fullRunSeeds,
       encounterSeeds,
+      functionalWinSeeds: clone(FUNCTIONAL_WIN_SEEDS),
+      functionalWinPolicy: 'tests/shanhai-policy.mjs nextCommand(game, steady); real battle and authored enemy stats',
       roundLimit: 256,
       measuredFieldsRemainNull: true,
-      referenceBoard: 'fixed_reference_board; authored enemy.n; no runtime node growth or rewards',
+      referenceBoard: 'V2 fixed reference equipment; authored enemy.n; no runtime node growth or rewards',
       encounterInputHash: encounter.inputHash,
       fullRunInputHash: fullRuns.inputHash,
+      referenceEquipment: clone(REFERENCE_EQUIPMENT),
       encounterSeeds: encounter.input.seeds,
       fullRunSeeds: fullRuns.input.seeds,
-      loadoutChanges: LOADOUT_CHANGES,
     },
-    statsChanges: changedStats(content),
     encounter,
     fullRuns,
   };
 }
 
-export async function writeCalibrationReports(report, outputDir = 'verification/shanhai') {
+export async function writeCalibrationReports(report, outputDir = V2_REPORT_DIRECTORY) {
   await mkdir(outputDir, { recursive: true });
   await writeFile(`${outputDir}/calibration-encounters.json`, JSON.stringify(report.encounter, null, 2) + '\n');
   await writeFile(`${outputDir}/calibration-runs.json`, JSON.stringify(report.fullRuns, null, 2) + '\n');
   await writeFile(`${outputDir}/calibration-summary.json`, JSON.stringify({
     contentVersion: report.contentVersion,
     input: report.input,
-    statsChanges: report.statsChanges,
     encounterSummary: report.encounter.byEnemy,
     fullRunSummary: {
       outcomes: report.fullRuns.outcomes,

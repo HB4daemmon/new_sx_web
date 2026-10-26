@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RC09
 name: 剑穗
 status: design_target
-summary: 攻击 +2；普攻基础直接伤害 +6%
-description: 剑柄上的短穗随普攻起落，强化普攻的基础直接段。
+summary: 攻击 +2；每层普攻基础直接伤害 +6%；普攻追击0.45倍，怒技基础伤害降至65%；占唯一核心位，最多另带3件支援
+description: 剑穗提升普攻基础段；核心规则令每次普攻后追加一段0.45倍攻击的派生伤害（不会再追击），代价是怒技基础伤害降至65%。核心位仅1席，可另带最多3件支援；未装备时无属性或效果。
 tags: [attack, basic, direct, combat]
 source:
   basis: original
@@ -46,5 +46,7 @@ effects:
     limit: {scope: round, count: 1}
     text: 集齐3层后，每轮首次普攻基础段有效命中时施加1层护甲破坏，持续至下一轮结束；不由追击触发。
 awakening: {at_stacks: 3, name: 裂甲剑穗, quick: 普攻首段每轮破甲}
+equipment_role: core
+core_rule: {kind: basic_echo, ratio: 0.45, rage_damage_ratio: 0.65}
 acquisition:
   pools: [common_artifact]

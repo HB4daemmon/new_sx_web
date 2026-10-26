@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RR06
 name: 长明灯
 status: design_target
-summary: 最大气血 +30；完成战斗节点后恢复最大气血的8%
-description: 每完成一次普通战、精英战或首领战节点，恢复最大气血的8%。
+summary: 最大气血 +30；完成战斗节点后恢复最大气血的8%；占一个支援位（共3席）
+description: 每完成一次普通战、精英战或首领战节点，恢复最大气血的8%。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [max_hp, travel, heal, battle_node, rare]
 source:
   basis: original
@@ -39,5 +39,6 @@ effects:
     replaces: []
     limit: {scope: node, count: 1}
     text: 完成普通战、精英战或首领战节点后，恢复最大气血的8%；每个节点只触发一次，非战斗节点不触发。
+equipment_role: support
 acquisition:
   pools: [rare_artifact]

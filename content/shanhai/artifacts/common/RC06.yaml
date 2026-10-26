@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RC06
 name: 长生结
 status: design_target
-summary: 最大气血 +5%
-description: 结绳的回环象征生机延续，使最大气血按比例增加。
+summary: 最大气血 +5%；占一个支援位（共3席）
+description: 结绳的回环象征生机延续，使最大气血按比例增加。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [max_hp, percent, combat]
 source:
   basis: original
@@ -21,5 +21,6 @@ attributes:
   flat: {}
   percent: {max_hp: 0.05}
 effects: []
+equipment_role: support
 acquisition:
   pools: [common_artifact]

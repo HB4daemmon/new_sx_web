@@ -1,5 +1,5 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: enemy
 id: EN-A1-C4
 name: 岩汐甲蜥
@@ -36,9 +36,9 @@ stats:
   speed: 8
 pressure: [稳打护盾]
 counterplay:
-  - 先打掉当轮护盾再用怒技，避免把高伤段直接交给盾返窗口。
+  - 先打掉当轮护盾再用怒技，既避开盾返，也减少RC11核心可消耗的真实护盾。
   - 用燃烧、中毒或破甲等不依赖一次盾返的公开来源持续制造缺口，并保留治疗应对直接段。
-preview: 基础五维为装备前值；普攻和怒技都按金刚功卡面造盾，盾实际吸收敌方主动直接攻击时才触发盾返，铁壁符提高入盾量，阶段列表为空。
+preview: 基础五维为装备前值；普攻和怒技都按金刚功卡面造盾，盾实际吸收敌方主动直接攻击时才触发盾返；RC11核心开场提供最大气血12%的护盾，怒技会消耗实际护盾发动伤害，阶段列表为空。
 phases: []
 reward_profile: C
 measured: null

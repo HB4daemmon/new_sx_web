@@ -39,6 +39,8 @@ function baseReport(metrics = emptyMetrics()) {
     schemaVersion: 1,
     inputHash: 'fixture-input-hash',
     configuration: {
+      experimentTrack: 'V2 experimental; shanhai-content-0.2; uncalibrated',
+      sampleInterpretation: '仅报告当前批次的直接观测，不沿用 V1 校准结果。',
       contentVersion: 'fixture-content-v1',
       sourceContentHash: 'a'.repeat(64),
       seedPrefix: 'balance-holdout',
@@ -89,6 +91,8 @@ test('zero-sample report renders missing intervals without presenting a zero rat
   assert.doesNotMatch(markdown, /0\/0（0\.0%）/);
   assert.match(markdown, /measured: null/);
   assert.match(markdown, /不是人类玩家胜率/);
+  assert.match(markdown, /V2 难度样本报告/);
+  assert.match(markdown, /不沿用 V1 校准结果/);
 });
 
 test('normal report includes fixed-cohort and conditional rates, goals, metadata, and method breakdowns', () => {

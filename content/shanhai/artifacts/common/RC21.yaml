@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RC21
 name: 调息玉
 status: design_target
-summary: 防御 +2；每整轮存活且战斗未结束时额外回怒 5
-description: 玉面随着呼吸明暗变化，在完整存活的战斗轮末稳定补怒。
+summary: 防御 +2；每整轮存活且战斗未结束时额外回怒 5；占一个支援位（共3席）
+description: 玉面随着呼吸明暗变化，在完整存活的战斗轮末稳定补怒。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [defense, rage_gain, round_end, combat]
 source:
   basis: original
@@ -36,5 +36,6 @@ effects:
     replaces: []
     limit: {scope: round, count: 1}
     text: 每轮结束时，若自身仍存活且战斗尚未结束，每层额外获得5点怒气。
+equipment_role: support
 acquisition:
   pools: [common_artifact]

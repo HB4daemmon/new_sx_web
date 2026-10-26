@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RC24
 name: 血气石
 status: design_target
-summary: 最大气血 +10；敌方每段主动直接攻击造成伤害或被护盾吸收时，额外获得2点怒气
-description: 敌方直接攻击造成伤害时，石中血光随受击闪动，为每一段攻击补充怒气。
+summary: 最大气血 +10；敌方每段主动直接攻击造成伤害或被护盾吸收时，额外获得2点怒气；占一个支援位（共3席）
+description: 敌方直接攻击造成伤害时，石中血光随受击闪动，为每一段攻击补充怒气。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [max_hp, rage_gain, incoming_segment, combat]
 source:
   basis: original
@@ -37,5 +37,6 @@ effects:
     replaces: []
     limit: {scope: segment, count: 1}
     text: 每层在敌方每段主动直接攻击造成气血或护盾损失时，额外获得2点怒气。
+equipment_role: support
 acquisition:
   pools: [common_artifact]

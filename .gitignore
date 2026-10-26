@@ -17,6 +17,7 @@ __pycache__/
 /verification/shanhai/roguelite-browser/screenshots/
 /verification/shanhai/roguelite-root-*.png
 /verification/shanhai/commitments/*.png
+/verification/shanhai/v2/**/*.png
 /output/imagegen/
 
 # Private model handoff files and access token, never published or committed.

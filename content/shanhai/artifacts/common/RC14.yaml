@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RC14
 name: 蛇纹瓶
 status: design_target
-summary: 攻击 +2；自身中毒持续伤害 +6%
-description: 瓶口蛇纹吐出阴息，强化自身施加的中毒持续伤害。
+summary: 攻击 +2；每层自身中毒伤害 +6%；普攻施毒1层，怒技引爆全部预存自身毒层，造成剩余伤害的1.1倍；占唯一核心位
+description: 蛇纹瓶放大自身施加的中毒；核心规则让普攻施加1层毒，怒技消费行动开始前敌人身上由自身施加的全部中毒层，按剩余结算次数造成1.1倍伤害。本次怒技新加的毒层不参与引爆。核心位仅1席，可另带最多3件支援；未装备时无属性或效果。
 tags: [attack, poison, dot, combat]
 source:
   basis: original
@@ -46,5 +46,7 @@ effects:
     limit: {scope: round, count: 1}
     text: 集齐3层后，每轮首次成功给已有燃烧的敌人施加中毒时，该次新增中毒层的伤害系数额外提高0.04；持续伤害结算不会再次触发。
 awakening: {at_stacks: 3, name: 蛇纹引焰, quick: 灼敌后首次添毒增效}
+equipment_role: core
+core_rule: {kind: poison_detonation, poison_stacks: 1, damage_ratio: 1.1}
 acquisition:
   pools: [common_artifact]

@@ -1,5 +1,5 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: enemy
 id: EN-F2
 name: 昼夜劫相
@@ -25,7 +25,6 @@ n: 4
 talents: [RKF10-J1-C, RKF10-J2-B, RKF10-J3-B, RKF10-J4-B]
 artifacts:
   - {id: RC03, stacks: 3}
-  - {id: RC10, stacks: 3}
   - {id: RR07, stacks: 1}
   - {id: RL04, stacks: 1}
 stats:

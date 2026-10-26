@@ -8,7 +8,9 @@ import { stringify } from 'yaml'
 import {
   ARTIFACT_BASELINE,
   ARTIFACT_BUDGET,
+  ARTIFACT_EQUIPMENT_ROLES,
   ARTIFACT_RARITIES,
+  CORE_ARTIFACT_RULES,
   CONTENT_VERSION,
   EXPECTED_MANIFEST_ENTRIES,
   METHOD_RARITIES,
@@ -75,6 +77,19 @@ function makeEntities() {
     economy: { initial_coins: 20 },
     pools: { common_artifact: { kind: 'artifact', rarity: 'common' } },
     calibration: { damage_and_status_values: 'fixture' },
+      insights: Array.from({ length: 4 }, (_, index) => ['A', 'B', 'C'].map((branch) => ({
+        id: `V2-J${index + 1}-${branch}`,
+        tier: index + 1,
+        branch,
+        name: '共享天赋',
+        quick: '测试共享效果',
+        category: 'enhance',
+        effects: [{
+          ...effect(`V2-J${index + 1}-${branch}-STAT`),
+          params: { stat: 'attack', mode: 'add', amount: 1 },
+          limit: { scope: 'permanent', count: 1 },
+        }],
+      }))).flat(),
   })
   entities.set('RULES', rules)
 
@@ -120,6 +135,8 @@ function makeEntities() {
       rarity,
       max_stacks: baseline.max_stacks,
       unique_group: entry.id === 'RL01' ? 'overflow_outlet' : null,
+      equipment_role: ARTIFACT_EQUIPMENT_ROLES[entry.id],
+      ...(CORE_ARTIFACT_RULES[entry.id] ? { core_rule: structuredClone(CORE_ARTIFACT_RULES[entry.id]) } : {}),
       attributes: { flat: baseline.flat, percent: baseline.percent },
       effects: [effect(`${entry.id}-EFFECT`)],
       acquisition: { pools: [`${rarity}_artifact`] },
@@ -482,6 +499,60 @@ test('artifact awakening and min_stacks are bounded to the owning artifact', asy
   report = await reportFor(fixture)
   assert.ok(report.errors.some((error) => error.code === 'effect-min-stacks-owner'))
   assert.ok(report.errors.some((error) => error.code === 'artifact-awakening-owner'))
+})
+
+test('V2 roles, core rules, and shared insight sources/effects are strict', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  const core = structuredClone(fixture.entities.get('RC09'))
+  core.equipment_role = 'support'
+  core.core_rule.extra = true
+  core.core_rule.ratio = Number.NaN
+  await rewriteEntity(fixture, 'RC09', core)
+
+  const rules = structuredClone(fixture.entities.get('RULES'))
+  rules.insights[0].id = 'RKF01-J1-A'
+  rules.insights[1].tier = 1
+  rules.insights[2].effects[0].params.amount = Number.NaN
+  rules.insights[3].effects[0].params.hidden_bonus = 1
+  rules.insights[4].effects[0].surprise = true
+  await rewriteEntity(fixture, 'RULES', rules)
+
+  const report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'artifact-equipment-role'))
+  assert.ok(report.errors.some((error) => error.code === 'artifact-core-rule-fields'))
+  assert.ok(report.errors.some((error) => error.code === 'invalid-number'))
+  assert.ok(report.errors.some((error) => error.code === 'insight-source'))
+  assert.ok(report.errors.some((error) => error.code === 'insight-effect-params'))
+  assert.ok(report.errors.some((error) => error.code === 'insight-effect-fields'))
+})
+
+test('enemy equipment enforces one core and three support slots', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  const enemy = structuredClone(fixture.entities.get('EN-A1-C1'))
+  enemy.artifacts = [
+    { id: 'RC09', stacks: 1 },
+    { id: 'RC10', stacks: 1 },
+    { id: 'RC01', stacks: 1 },
+    { id: 'RC02', stacks: 1 },
+    { id: 'RC03', stacks: 1 },
+    { id: 'RC04', stacks: 1 },
+  ]
+  await rewriteEntity(fixture, enemy.id, enemy)
+  let report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'enemy-equipment-core'))
+  assert.ok(report.errors.some((error) => error.code === 'enemy-equipment-support'))
+
+  enemy.artifacts = [
+    { id: 'RC09', stacks: 2 },
+    { id: 'RC01', stacks: 1 },
+    { id: 'RC02', stacks: 1 },
+    { id: 'RC03', stacks: 1 },
+  ]
+  await rewriteEntity(fixture, enemy.id, enemy)
+  report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map((error) => error.message).join('\n'))
 })
 
 test('missing files are errors and are not silently skipped', async (t) => {

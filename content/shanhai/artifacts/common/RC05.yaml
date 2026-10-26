@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RC05
 name: 养气玉
 status: design_target
-summary: 最大气血 +25
-description: 温润玉心缓慢养气，直接抬高最大气血。
+summary: 最大气血 +25；占一个支援位（共3席）
+description: 温润玉心缓慢养气，直接抬高最大气血。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [max_hp, combat, durable]
 source:
   basis: original
@@ -21,5 +21,6 @@ attributes:
   flat: {max_hp: 25}
   percent: {}
 effects: []
+equipment_role: support
 acquisition:
   pools: [common_artifact]

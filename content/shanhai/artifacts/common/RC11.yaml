@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RC11
 name: 铁壁符
 status: design_target
-summary: 防御 +2；获得的护盾量 +6%
-description: 符面铁线收束护体之力，提高自身获得的护盾总量。
+summary: 防御 +2；每层获得护盾量 +6%；开场护盾12%最大气血，怒技消耗实际护盾发动伤害；占唯一核心位
+description: 铁壁符强化获得的护盾；核心规则在战斗开始时提供最大气血12%的护盾，怒技会消耗实际护盾并按护盾系数0.5、伤害系数1.4结算。用于爆发的盾不再吸收后续伤害；核心位仅1席，可另带最多3件支援。
 tags: [defense, shield, combat]
 source:
   basis: original
@@ -46,5 +46,7 @@ effects:
     limit: {scope: battle, count: 1}
     text: 集齐3层后，每场战斗首次被敌方直接攻击打破护盾且自身存活时，获得最大气血6%的护盾；造盾不会再次触发破盾。
 awakening: {at_stacks: 3, name: 铁壁续符, quick: 首次破盾补护}
+equipment_role: core
+core_rule: {kind: shield_burst, opening_shield_ratio: 0.12, shield_ratio: 0.5, damage_ratio: 1.4}
 acquisition:
   pools: [common_artifact]

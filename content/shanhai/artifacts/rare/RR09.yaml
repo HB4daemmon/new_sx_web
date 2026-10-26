@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RR09
 name: 震岳鼓
 status: design_target
-summary: 防御 +8；盾返造成伤害后，敌方每次行动结束时你额外获得10点怒气
-description: 护盾成功反击后，每次敌方行动额外带来10点怒气。
+summary: 防御 +8；盾返造成伤害后，敌方每次行动结束时你额外获得10点怒气；占一个支援位（共3席）
+description: 护盾成功反击后，每次敌方行动额外带来10点怒气。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [defense, shield_reflect, rage_gain, rare]
 source:
   basis: original
@@ -38,5 +38,6 @@ effects:
     replaces: []
     limit: {scope: enemy_action, count: 1}
     text: 敌方行动中，若已有护盾反击造成伤害，该次敌方行动结束时额外获得10点怒气；此法宝不提供反击效果。
+equipment_role: support
 acquisition:
   pools: [rare_artifact]

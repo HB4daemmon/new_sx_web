@@ -22,6 +22,11 @@ export interface Stats {
   speed: number;
 }
 export interface ArtifactStack { id: string; stacks: number }
+export type EquipmentRole = 'core' | 'support';
+export interface RunEquipment {
+  core: string | null;
+  support: string[];
+}
 export interface Loadout {
   name: string;
   method: string;
@@ -114,6 +119,9 @@ export interface RunState {
   xp: number;
   coins: number;
   artifacts: ArtifactStack[];
+  equipment: RunEquipment;
+  talentDraftGeneration: number;
+  talentDrafts: Record<string, string[]>;
   preparation: number;
   firstStrike?: number;
   flags: Record<string, boolean>;
@@ -163,4 +171,6 @@ export type RunCommand =
   | { type: 'leave_shop' }
   | { type: 'rest'; choice: 'heal' | 'preparation' | 'swap_method' | 'temper'; method?: string; artifact?: string }
   | { type: 'talent'; id: string }
+  | { type: 'equip'; id: string; replace?: string }
+  | { type: 'unequip'; id: string }
   | { type: 'retire' };

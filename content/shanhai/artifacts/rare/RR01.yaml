@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RR01
 name: 蓄气珠
 status: design_target
-summary: 攻击 +8；普攻或怒技首段命中后额外获得10点怒气
-description: 普攻或怒技的首段基础攻击命中后，额外获得10点怒气。
+summary: 攻击 +8；普攻或怒技首段命中后额外获得10点怒气；占一个支援位（共3席）
+description: 普攻或怒技的首段基础攻击命中后，额外获得10点怒气。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [attack, rage_gain, basic, rage, rare]
 source:
   basis: original
@@ -38,5 +38,6 @@ effects:
     replaces: []
     limit: {scope: action, count: 1}
     text: 普攻或怒技的首段基础攻击命中敌方或被护盾吸收时，额外获得10点怒气；每次行动最多触发一次，追加攻击、反击、中毒和燃烧不触发。
+equipment_role: support
 acquisition:
   pools: [rare_artifact]

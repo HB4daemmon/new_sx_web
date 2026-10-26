@@ -1,5 +1,5 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: enemy
 id: EN-A1-C3
 name: 灰潮火螭
@@ -38,8 +38,8 @@ stats:
 pressure: [持续伤害]
 counterplay:
   - 用前几轮的爆发或破甲尽快结束战斗，减少燃烧在轮尾重复结算的次数。
-  - 以治疗或护盾承接燃烧覆盖期间的直接段，避免把未定义的净化效果当成必需条件。
-preview: 基础五维为装备前值；普攻实际结算后施加燃烧，怒技公开施加两层燃烧，J1-A只延长新燃烧持续时间，赤炎珠只放大自身燃烧伤害，阶段列表为空。
+  - 以护盾减少实际燃烧伤害，压低RC15核心按燃烧伤害提供的治疗；同时承接直接段，不依赖未定义的净化效果。
+preview: 基础五维为装备前值；普攻实际结算后施加燃烧，怒技公开施加两层燃烧，J1-A只延长新燃烧持续时间，赤炎珠放大自身燃烧伤害；RC15核心普攻施加1层燃烧，实际燃烧伤害的25%用于治疗，怒技基础伤害倍率为0.8，阶段列表为空。
 phases: []
 reward_profile: C
 measured: null

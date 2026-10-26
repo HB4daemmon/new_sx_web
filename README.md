@@ -3,6 +3,10 @@
 以中国古代神话为背景的功法构筑自动斗法游戏。四幕各 11 个节点，加一场终局渡劫。
 当前仓库只构建山海新版，不保留旧版游戏入口、内容包或存档兼容层。
 
+本分支是 **V2 构筑实验**，正式 V1 冻结在 `V1` 标签（`2f08f08`），不由本分支自动替换。
+V2 以好玩、爽、值得重开为首要原则，具体改动、试玩检查点与未完成边界见
+[V2 实验说明](docs/shanhai/rework/V2_EXPERIMENT.md)。
+
 ## 开发
 
 需要 Node.js 22 或以上。内容编译工具独立管理依赖：
@@ -20,22 +24,22 @@ npm run dev
 
 ## 已接入范围
 
-- 10 门功法、120 项天赋，5 门普通功法可开局选择；其他功法通过事件获取。
-- 44 件法宝，不设全局槽位，按各卡自身叠层上限累计，附带战斗或旅途能力。
+- 10 门功法、120 项本门天赋与 12 项共通洞见，5 门普通功法可开局选择。
+- 44 件法宝，背包与装备分离，同时生效 1 件核心与 3 件辅器；同名按卡面上限叠层。
 - 36 个普通事件、16 个核心事件、6 条两遇人物线。
 - 34 套敌方构筑，与玩家共用功法、天赋和法宝规则。
-- 每幕逐节点自由选路，三列分支与合流；不在幕前预选整条路线。
+- 每幕三列分段选路，三节点一段、段间再分叉；不在幕前预选整条路线。
   战前预览、冻结的奖励三选一、有限商店、休整和换法仍按实际进入的节点结算。
-- 突破手选天赋，过幕与突破不补满当前气血。
+- 突破从两张随机本门天赋和一张共通洞见中选择，候选冻结；过幕与突破不补满气血。
 - 自动斗法回放、倍速、暂停、跳过、来源贡献与未触发反馈。
 - 已批准的手绘界面、山河节点与法宝素材已接入正式游戏；斗法使用十二姿态逐帧人物，
   敌我保持独立站位，怒技按双方区分青碧与朱金光效。
-- 手机开局默认精简，奖励与天赋保持横向三选一；战报、构筑与贡献默认折叠，
+- 手机开局默认精简，奖励改为纵向三选一；战报、构筑与贡献默认折叠，
   玩家界面和战报采用中文，完整效果可按需展开。
 - 确定性种子、逐步自动存档、通关构筑归档与 JSON 导出。
 
-内容参数已经过首轮可玩性校准，仍是设计输入，不代表完成全面平衡。
-目前后期首领与终战偏短，正式难度还需扩大构筑与路线样本后调整。
+V2 已接通真实流程与功能验证，尚未完成跨核心平衡和真人试玩验收。
+V1 的累计过幕目标与校准结论不能直接继承到 V2。
 15 回合是基线观察窗口，不是超时判负规则。
 
 ## 内容与代码
@@ -48,6 +52,7 @@ npm run dev
 | --- | --- |
 | `src/shanhai/combat.ts` | 战斗、状态、怒气、效果与回放 |
 | `src/shanhai/run.ts` | 节点、事件、经济、旅途与境界 |
+| `src/shanhai/equipment.ts` | 核心/辅器角色、生效装备、自动填装与槽位校验 |
 | `src/shanhai/route-map.ts` | 冻结的分支地图、可达边与已选路径校验 |
 | `src/shanhai/persistence.ts` | 存档校验、确定性回放重建与通关记录 |
 | `src/shanhai/app.ts`、`style.css`、`cartoon.css` | 浏览器界面与正式手绘主题 |
@@ -59,7 +64,8 @@ npm run dev
 | `tools/content-kit/` | 内容校验与文档生成 |
 | `tools/docs-site/` | 独立文档站，不由游戏构建发布 |
 
-存档键为 `suishi-shanhai-run-v1`，通关构筑键为 `suishi-shanhai-build-v1`。
+存档键为 `suishi-shanhai-run-v2`，通关构筑键为 `suishi-shanhai-build-v2`；
+回放键为 `suishi-shanhai-replay-v2`。V1 的记录保持不动，不隐式迁移。
 战斗存档保存确定性输入，读取时重新生成回放，避免长战报占满浏览器存储。
 
 已批准美术源位于 `tools/ui-preview/public/`，构建校验清单及 PNG 哈希后只发布实际使用的
@@ -76,32 +82,26 @@ npm run test:content
 npm run simulate
 npm run test:browser
 npm run test:journey
-npm run test:motion
-npm run test:art
-node tests/shanhai-enemy-art-browser.mjs
-node tests/shanhai-compact-browser.mjs
+npm run test:v2
+npm run test:v2:ui
 npm run calibrate
 ```
 
 - `npm test` 构建新版，执行战斗、流程和跨模块回归，包括 810 组完整天赋组合的冒烟测试。
 - `simulate` 使用真实战斗、当前 YAML 参数和固定启发式策略，默认五门开局功法各五个种子；
-  可用 `SIM_SEEDS=20 npm run simulate` 扩大样本。输出 `verification/shanhai/simulation.json`。
+  可用 `SIM_SEEDS=20 npm run simulate` 扩大样本。输出 `verification/shanhai/v2/simulation.json`。
   每次决策后保存并重载，比较状态与战斗回放。自动策略结果不是真人胜率，也不能单独证明数值平衡。
 - 浏览器检查需先启动游戏服务，并安装 Playwright 与 Chromium；
   可通过 `PLAYWRIGHT_MODULE`、`PLAYWRIGHT_EXECUTABLE_PATH`、`BROWSER_URL` 指定环境。
-  输出 `verification/shanhai/browser/`。界面 fixture 的成功不等于真实单局通关。
+  输出 `verification/shanhai/v2/browser/`。界面 fixture 的成功不等于真实单局通关。
 - `test:journey` 从角色创建开始，仅点击浏览器可见控件：桌面走完 45 节点并检查通关归档，
   手机完成第一幕；同时检查战斗操作、刷新恢复、页面错误和整体横向溢出。
-  输出 `verification/shanhai/browser-journey/`。
-- `test:motion` 检查战斗节点原位更新、血条插值、动作位移、暂停与倍速、完整战报及
-  减少动态效果模式；使用真实战斗生成的表现层 fixture，不作为通关或平衡结论。
-  默认报告写入临时目录，可通过 `BROWSER_REPORT_DIR` 指定位置。
-- `test:art` 检查五种功法的归一身高、双人画布像素、双方怒技光效、动态偏好及
-  Canvas 2D / 静态图片降级，不把表现层 fixture 当作通关或平衡结论。
-- `shanhai-compact-browser.mjs` 检查 390、360 像素宽的手机首屏、横向三选一、
-  自由节点点击、默认折叠和展开战报的中文；报告目录可通过 `BROWSER_REPORT_DIR` 指定。
+  输出 `verification/shanhai/v2/journey/`。
+- `test:v2:ui` 检查 390、430、1440 像素装备与候选页、替换、核心规则文案、
+  V1/V2 存储隔离和来源展示。旧版额外美术、固定天赋树与紧凑布局浏览器脚本
+  尚未全部迁移至 V2，不能将它们的 V1 报告当成本轮验收。
 - `calibrate` 记录固定敌人参考盘与真实节点对局，保留输入哈希、胜负、轮数、净损血、
-  最低血线和单轮损耗。输出 `verification/shanhai/calibration-*.json`，不回写内容的实测字段。
+  最低血线和单轮损耗。输出 `verification/shanhai/v2/calibration-*.json`，不回写内容的实测字段。
 - 游戏构建只产生 `dist/`，不会触发文档站发布，也不会提交或推送 Git。
 
 具体实现边界见 [运行时说明](docs/SHANHAI_RUNTIME.md)，参数调整与测量边界见

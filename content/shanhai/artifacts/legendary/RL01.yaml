@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RL01
 name: 琉璃法印
 status: design_target
-summary: 最大气血 +12%、防御 +8；治疗溢出转为护盾
-description: 自身治疗填满气血后，溢出的部分转为护盾；已回复的气血照常保留。
+summary: 最大气血 +12%、防御 +8；治疗溢出转为护盾；占唯一核心位，最多另带3件支援
+description: 自身治疗填满气血后，溢出的部分转为护盾；已回复的气血照常保留。装备后占用唯一核心位，可另带最多3件支援；未装备时不提供属性或效果。
 tags: [max_hp, defense, heal, shield, overflow, legendary]
 source:
   basis: original
@@ -42,5 +42,6 @@ effects:
     replaces: []
     limit: {scope: segment, count: 1}
     text: 战斗中自身治疗超出气血上限的部分100%转为护盾，护盾最多累积到最大气血；已回复的气血照常保留，这部分不会再转为伤害或中毒。
+equipment_role: core
 acquisition:
   pools: [legendary_artifact]

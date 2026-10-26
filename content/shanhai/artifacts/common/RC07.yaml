@@ -1,11 +1,11 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: artifact
 id: RC07
 name: 明目珠
 status: design_target
-summary: 暴击率 +2 个百分点
-description: 珠面清亮，帮助攻击者抓住直接攻击的破绽。
+summary: 暴击率 +2 个百分点；占一个支援位（共3席）
+description: 珠面清亮，帮助攻击者抓住直接攻击的破绽。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
 tags: [crit_rate, direct, combat]
 source:
   basis: original
@@ -21,5 +21,6 @@ attributes:
   flat: {crit_rate: 0.02}
   percent: {}
 effects: []
+equipment_role: support
 acquisition:
   pools: [common_artifact]

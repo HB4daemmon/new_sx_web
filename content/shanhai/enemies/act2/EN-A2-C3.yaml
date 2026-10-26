@@ -1,5 +1,5 @@
 schema_version: 1
-content_version: shanhai-content-0.1
+content_version: shanhai-content-0.2
 kind: enemy
 id: EN-A2-C3
 name: 断桥赤羽
@@ -37,9 +37,9 @@ stats:
   speed: 9
 pressure: [持续伤害]
 counterplay:
-  - 在燃烧层数尚未累积前用爆发或破甲结束战斗，减少轮尾的连续真实伤害。
-  - 用护盾、治疗或能承受多轮的防御路线维持气血，同时以普攻持续制造有效缺口。
-preview: 基础五维为装备前值；金乌真经普攻和怒技的燃烧输入、J1-A与J2-A的额外叠层均公开，余烬盏只在自身毒火实际掉血时按轮结算回怒，阶段列表为空。
+  - 在燃烧层数尚未累积前用爆发或破甲结束战斗，减少轮尾伤害及其带来的治疗。
+  - 用护盾挡住燃烧的实际气血伤害，减少RC15核心的治疗输入，同时以普攻持续制造缺口。
+preview: 基础五维为装备前值；金乌真经普攻和怒技的燃烧输入、J1-A与J2-A的额外叠层均公开，余烬盏只在自身毒火实际掉血时按轮结算回怒；RC15核心普攻施加1层燃烧，燃烧实际气血伤害按25%治疗，怒技基础伤害倍率为0.8，阶段列表为空。
 phases: []
 reward_profile: C
 measured: null
