@@ -4,8 +4,8 @@ kind: artifact
 id: RR10
 name: 引雷针
 status: design_target
-summary: 攻击 +8；直接攻击暴击后获得5点怒气，每次行动最多两次；占一个支援位（共3席）
-description: 基础或追加直接攻击暴击后，额外获得5点怒气。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
+summary: 攻击 +8；直接攻击暴击后获得5点怒气，每次行动最多两次；支援定位
+description: 基础或追加直接攻击暴击后，额外获得5点怒气。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [attack, crit_rate, rage_gain, direct, rare]
 source:
   basis: original

@@ -4,8 +4,8 @@ kind: artifact
 id: RC02
 name: 虎纹佩
 status: design_target
-summary: 攻击 +4%；占一个支援位（共3席）
-description: 佩面上的虎纹聚拢劲力，使攻击按比例增长。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
+summary: 攻击 +4%；支援定位
+description: 佩面上的虎纹聚拢劲力，使攻击按比例增长。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [attack, percent, combat]
 source:
   basis: original

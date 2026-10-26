@@ -4,8 +4,8 @@ kind: artifact
 id: RR04
 name: 如意钱
 status: design_target
-summary: 攻击 +6、暴击率 +2 个百分点；普攻首命中概率追加一击；占一个支援位（共3席）
-description: 普攻首段命中后有25%概率追加一段攻击。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
+summary: 攻击 +6、暴击率 +2 个百分点；普攻首命中概率追加一击；支援定位
+description: 普攻首段命中后有25%概率追加一段攻击。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [attack, crit_rate, basic, chance, rare]
 source:
   basis: original

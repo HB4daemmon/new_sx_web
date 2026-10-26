@@ -17,8 +17,8 @@ const reportDir = reportOverride
   ? path.resolve(reportOverride)
   : path.join(root, 'verification', 'shanhai', 'v2', 'journey');
 const screenshotDir = path.join(reportDir, 'screenshots');
-const saveKey = 'suishi-shanhai-run-v2';
-const buildKey = 'suishi-shanhai-build-v2';
+const saveKey = 'suishi-shanhai-run-v2-journey';
+const buildKey = 'suishi-shanhai-build-v2-journey';
 const seed = process.env.SHANHAI_JOURNEY_SEED || 'v2-functional-RKF01-0';
 const playerName = '真实浏览器行者';
 
@@ -305,10 +305,7 @@ function stateSnapshot(game) {
     coins: state.coins,
     preparation: state.preparation,
     artifacts: state.artifacts.map(item => ({ id: item.id, stacks: item.stacks })),
-    equipment: {
-      core: state.equipment.core,
-      support: [...state.equipment.support],
-    },
+    equipment: [...state.equipment.slots],
     history: state.history.length,
     routes: [...state.routes],
     routeMapPath: [...(state.routeMap?.path ?? [])],

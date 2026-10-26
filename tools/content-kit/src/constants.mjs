@@ -55,11 +55,78 @@ export const CORE_ARTIFACT_IDS = Object.freeze([
 export const ARTIFACT_EQUIPMENT_ROLES = Object.freeze(Object.fromEntries(
   ARTIFACT_IDS.map((id) => [id, CORE_ARTIFACT_IDS.includes(id) ? 'core' : 'support']),
 ))
-export const SHARED_INSIGHT_IDS = Object.freeze(
-  Array.from({ length: 4 }, (_, index) =>
-    ['A', 'B', 'C'].map((branch) => `V2-J${index + 1}-${branch}`),
+export const SHARED_INSIGHT_IDS = Object.freeze([
+  ...['A', 'B', 'C', 'D', 'E', 'F'].map((branch) => `V2-J1-${branch}`),
+  ...Array.from({ length: 3 }, (_, index) =>
+    ['A', 'B', 'C'].map((branch) => `V2-J${index + 2}-${branch}`),
   ).flat(),
-)
+])
+
+const numericRange = (min, max, integer = false) => Object.freeze({ min, max, integer })
+const buildRule = (kind, params) => Object.freeze({ kind, params: Object.freeze(params) })
+export const SHARED_INSIGHT_BUILD_RULES = Object.freeze({
+  'V2-J1-A': buildRule('wealth_damage', {
+    scale: numericRange(0, 5),
+    half_saturation: numericRange(1, 10000),
+  }),
+  'V2-J1-B': buildRule('hunter', {
+    base_attack: numericRange(0, 100),
+    base_defense: numericRange(0, 100),
+    elite_attack: numericRange(0, 100),
+    elite_defense: numericRange(0, 100),
+    boss_attack: numericRange(0, 100),
+    boss_defense: numericRange(0, 100),
+  }),
+  'V2-J1-C': buildRule('speed_damage', {
+    speed_bonus: numericRange(0, 100),
+    max_multiplier: numericRange(1, 5),
+  }),
+  'V2-J1-D': buildRule('carapace', {
+    defense_per_hit: numericRange(0, 100),
+    reflect_ratio: numericRange(0, 1),
+  }),
+  'V2-J1-E': buildRule('spending_power', {
+    base_attack: numericRange(0, 100),
+    attack_per_coin: numericRange(0, 1),
+  }),
+  'V2-J1-F': buildRule('collection_damage', {
+    base_bonus: numericRange(0, 1),
+    per_kind: numericRange(0, 1),
+  }),
+  'V2-J2-A': buildRule('bounty', {
+    attack_bonus: numericRange(0, 100),
+    normal_coins: numericRange(0, 1000, true),
+    elite_coins: numericRange(0, 1000, true),
+    boss_coins: numericRange(0, 1000, true),
+  }),
+  'V2-J2-B': buildRule('shop_discount', {
+    ratio: numericRange(0, 1),
+  }),
+  'V2-J2-C': buildRule('basic_split', {
+    extra_segments: numericRange(1, 10, true),
+    segment_ratio: numericRange(0, 1),
+  }),
+  'V2-J3-A': buildRule('hit_rage', {
+    amount: numericRange(0, 100, true),
+  }),
+  'V2-J3-B': buildRule('rage_echo', {
+    ratio: numericRange(0, 1),
+  }),
+  'V2-J3-C': buildRule('veteran_shield', {
+    base_ratio: numericRange(0, 1),
+    elite_ratio: numericRange(0, 1),
+    boss_ratio: numericRange(0, 1),
+  }),
+  'V2-J4-A': buildRule('wealth_shield', {
+    base_shield: numericRange(0, 10000),
+    shield_per_coin: numericRange(0, 100),
+  }),
+  'V2-J4-B': buildRule('trophy_damage', {
+    base_bonus: numericRange(0, 1),
+    elite_bonus: numericRange(0, 1),
+    boss_bonus: numericRange(0, 1),
+  }),
+})
 
 export const ORDINARY_EVENT_IDS = Object.freeze(
   Array.from({ length: 36 }, (_, index) => `RE${String(index + 1).padStart(3, '0')}`),

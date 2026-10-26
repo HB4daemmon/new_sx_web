@@ -743,7 +743,7 @@ function renderRules(rules, context) {
     '',
     '## 共享突破天赋',
     '',
-    '每阶三项可选，候选可供任何功法选择；每次突破仍只选一项。',
+    '首破从一阶六项共享天赋中按种子固定展示三项；后续突破将本阶一项功法天赋与两项共享天赋并列展示。候选冻结，不因查看、重读或切换功法重抽。',
     '',
     '| 阶 | 支 | 天赋 | 效果摘要 |',
     '| ---: | :---: | --- | --- |',
@@ -933,17 +933,17 @@ function renderMethod(method, context) {
 function renderArtifacts(artifacts, rarity, context) {
   const pageTitle = `${rarityLabels[rarity]}法宝`
   const intro = rarity === 'common'
-    ? '同名普通法宝按卡面上限叠层；装备后属性与能力生效，一核心位加三支援位。'
-    : '单件法宝展示装备位、属性、能力和预算；位阶不是境界，不保证每局出现。'
+    ? '同名普通法宝按卡面上限叠层；一局最多装备4件，核心/支援仅为描述定位，不限制配装。'
+    : '单件法宝展示装备定位、属性、能力和预算；位阶不是境界，不保证每局出现。'
   const lines = [
     header(pageTitle, intro, '..'),
     '',
-    '| 名称 | 装备位 | 属性 | 上限 | 预算 A/J/B |',
+    '| 名称 | 装备定位 | 属性 | 上限 | 预算 A/J/B |',
     '| --- | --- | --- | ---: | --- |',
   ]
   for (const artifact of artifacts.filter((item) => item.rarity === rarity)) {
     const target = artifact.balance?.target ?? {}
-    const role = artifact.equipment_role === 'core' ? '核心位' : '支援位'
+    const role = artifact.equipment_role === 'core' ? '核心定位' : '支援定位'
     lines.push(`| ${table(artifact.name, context)} | ${role} | ${table(attributesText(artifact.attributes), context)} | ${scalarText(artifact.max_stacks)} | ${table(`${scalarText(target.A)}/${scalarText(target.J)}/${scalarText(target.B)}`)} |`)
   }
   lines.push('')
@@ -951,7 +951,7 @@ function renderArtifacts(artifacts, rarity, context) {
     lines.push(`### ${entityTitle(artifact)}`)
     lines.push('')
     lines.push(entityDevId(artifact))
-    lines.push(`- 装备位置：${artifact.equipment_role === 'core' ? '核心位（最多1件）' : '支援位（最多3件）'}`)
+    lines.push(`- 装备定位：${artifact.equipment_role === 'core' ? '核心' : '支援'}；仅作描述，不限制装备数量`)
     lines.push(line(artifact.summary, context))
     lines.push('')
     lines.push(`- 玩家看到：${line(artifact.description, context)}`)

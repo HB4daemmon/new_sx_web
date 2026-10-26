@@ -4,8 +4,8 @@ kind: artifact
 id: RR08
 name: 血勇佩
 status: design_target
-summary: 最大气血 +30；敌方行动造成气血损失后额外获得10点怒气；占一个支援位（共3席）
-description: 敌方行动造成气血损失时，额外获得10点怒气；每次敌方行动最多触发一次。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
+summary: 最大气血 +30；敌方行动造成气血损失后额外获得10点怒气；支援定位
+description: 敌方行动造成气血损失时，额外获得10点怒气；每次敌方行动最多触发一次。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [max_hp, rage_gain, enemy_action, rare]
 source:
   basis: original

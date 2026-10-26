@@ -4,8 +4,8 @@ kind: artifact
 id: RC22
 name: 先机符
 status: design_target
-summary: 攻击 +2；开场额外回怒 15；占一个支援位（共3席）
-description: 每层在战斗开始时额外带来15点怒气。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
+summary: 攻击 +2；开场额外回怒 15；支援定位
+description: 每层在战斗开始时额外带来15点怒气。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [attack, rage_gain, battle_start, combat]
 source:
   basis: original

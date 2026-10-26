@@ -24,8 +24,17 @@ export interface Stats {
 export interface ArtifactStack { id: string; stacks: number }
 export type EquipmentRole = 'core' | 'support';
 export interface RunEquipment {
-  core: string | null;
-  support: string[];
+  slots: string[];
+}
+export interface RunProgress {
+  coinsSpent: number;
+  eliteWins: number;
+  bossWins: number;
+}
+export interface JourneyContext extends RunProgress {
+  coins: number;
+  artifactKinds: number;
+  knownMethods: number;
 }
 export interface Loadout {
   name: string;
@@ -37,6 +46,7 @@ export interface Loadout {
   hp?: number;
   preparation?: number;
   firstStrike?: number;
+  journey?: JourneyContext;
 }
 export type Side = 'player' | 'enemy';
 export interface FighterView {
@@ -120,6 +130,8 @@ export interface RunState {
   coins: number;
   artifacts: ArtifactStack[];
   equipment: RunEquipment;
+  buildVersion: 1;
+  progress: RunProgress;
   talentDraftGeneration: number;
   talentDrafts: Record<string, string[]>;
   preparation: number;
@@ -161,6 +173,7 @@ export type RunCommand =
   | { type: 'enter'; id?: string }
   | { type: 'back' }
   | { type: 'fight' }
+  | { type: 'challenge_elite' }
   | { type: 'battle_done' }
   | { type: 'continue_battle' }
   | { type: 'reward'; id: string | null }

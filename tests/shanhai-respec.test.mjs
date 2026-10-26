@@ -227,7 +227,8 @@ test('respec repicks every earned tier, saves halfway, and returns to the same s
   assert.equal(resumed.state.coins, originalCoins - 40);
   assert.equal(resumed.state.talents.RKF03.length, originalN);
   assert.deepEqual(resumed.state.talents.RKF03.map(id =>
-    method('RKF03').talents.find(talent => talent.id === id).tier).sort(), [1, 2, 3, 4]);
+    [...method('RKF03').talents, ...content.rules.insights]
+      .find(talent => talent.id === id).tier).sort(), [1, 2, 3, 4]);
   assert.deepEqual(resumed.state.talents.RKF02, originalOtherTalents);
   assert.equal(resumed.state.shop.find(item => item.id === 'talent_reset')?.sold, true);
   assert.deepEqual(resumed.state.nodeEntry, originalEntry);

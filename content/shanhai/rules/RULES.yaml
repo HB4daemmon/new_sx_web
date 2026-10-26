@@ -18,99 +18,249 @@ insights:
   - id: V2-J1-A
     tier: 1
     branch: A
-    name: 砺锋常在
-    quick: 攻击提高4
+    name: 财能通神
+    quick: 直接与派生伤害按灵石数增幅，150枚达额外0.6倍
     category: enhance
     effects:
-      - {id: V2-J1-A-ATTACK, trigger: always, operation: modify_stat, target: self, params: {stat: attack, mode: add, amount: 4}, requires: [], consumes: [], replaces: [], limit: {scope: permanent, count: 1}, text: 永久提高攻击4点。}
+      - id: V2-J1-A-BUILD
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {build: wealth_damage, scale: 1.2, half_saturation: 150}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 自身直接与派生伤害乘以1+1.2×当前灵石/(当前灵石+150)；不改变受到的伤害。
   - id: V2-J1-B
     tier: 1
     branch: B
-    name: 开局筑垒
-    quick: 开场获得6%护盾
+    name: 破军战骨
+    quick: 攻+8防+6；每胜精英再+8/+6、首领+12/+8；每幕可邀战
     category: enhance
     effects:
-      - {id: V2-J1-B-OPENING-SHIELD, trigger: battle_start, operation: shield, target: self, params: {max_hp_ratio: 0.06, cap_ratio: 1}, requires: [], consumes: [], replaces: [], limit: {scope: battle, count: 1}, text: 每场战斗开始时获得最大气血6%的护盾，受公共护盾上限约束。}
+      - id: V2-J1-B-BUILD
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {build: hunter, base_attack: 8, base_defense: 6, elite_attack: 8, elite_defense: 6, boss_attack: 12, boss_defense: 8}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 选中时提高攻击8、防御6；本局每次已结算的精英胜利再加攻击8、防御6，每次首领胜利再加攻击12、防御8，包括获得本天赋前的真实战绩。解锁主动邀战当前幕精英，每幕至多一次；将当前普通战升级为精英战及对应奖励，不增加节点。败北与重放不累计胜场。
   - id: V2-J1-C
     tier: 1
     branch: C
-    name: 周天纳气
-    quick: 存活轮末额外回怒4
-    category: cycle
+    name: 动若脱兔
+    quick: 速度+2；伤害按自速/敌速增幅，最多2.5倍
+    category: enhance
     effects:
-      - {id: V2-J1-C-ROUND-RAGE, trigger: round_end, operation: rage_gain, target: self, params: {amount: 4, timing: round_end, requires_self_alive: true, requires_battle_active: true, after_public_natural_gain: true}, requires: [], consumes: [], replaces: [], limit: {scope: round, count: 1}, text: 每个完整战斗轮结束后，若自身存活且战斗仍在继续，在公共自然回怒后额外获得4点怒气。}
+      - id: V2-J1-C-BUILD
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {build: speed_damage, speed_bonus: 2, max_multiplier: 2.5}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 永久提高速度2；自身直接与派生伤害乘以max(1,min(2.5,自身速度/敌方速度))。敌方速度为0时视为2.5倍，速度优势不降低伤害。
+  - id: V2-J1-D
+    tier: 1
+    branch: D
+    name: 猬甲护身
+    quick: 敌方有效直接命中（含盾吸收）后+6防，并按当前防御反伤24%
+    category: enhance
+    effects:
+      - id: V2-J1-D-BUILD
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {build: carapace, defense_per_hit: 6, reflect_ratio: 0.24}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 战斗内每次敌方有效主动直接命中后提高防御6，并按提升后的当前防御反射24%伤害；被护盾吸收也算有效命中。持续伤害、自伤和反射不触发，反射不可重入。
+  - id: V2-J1-E
+    tier: 1
+    branch: E
+    name: 挥金如土
+    quick: 攻击+8；本局每实付1灵石再加0.08攻击
+    category: enhance
+    effects:
+      - id: V2-J1-E-BUILD
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {build: spending_power, base_attack: 8, attack_per_coin: 0.08}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 永久提高攻击8；本局每实际支付1枚灵石，再永久提高攻击0.08。仅记录成功扣除的实付，不计奖励、报价或假设花费，也不因战斗重放重复记账。
+  - id: V2-J1-F
+    tier: 1
+    branch: F
+    name: 万宝朝宗
+    quick: 伤害+10%；每种持有法宝再加4%
+    category: enhance
+    effects:
+      - id: V2-J1-F-BUILD
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {build: collection_damage, base_bonus: 0.1, per_kind: 0.04}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 自身直接与派生伤害乘以1+0.1+0.04×库存中不同法宝种类数；同种叠层只计一种，未装备法宝仍计入收集种类。
   - id: V2-J2-A
     tier: 2
     branch: A
-    name: 固本运劲
-    quick: 防御提高4
+    name: 战利生财
+    quick: 攻击+8；战斗胜利实结4/20/30灵石（普/精/首领）
     category: enhance
     effects:
-      - {id: V2-J2-A-DEFENSE, trigger: always, operation: modify_stat, target: self, params: {stat: defense, mode: add, amount: 4}, requires: [], consumes: [], replaces: [], limit: {scope: permanent, count: 1}, text: 永久提高防御4点。}
+      - id: V2-J2-A-BUILD
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {build: bounty, attack_bonus: 8, normal_coins: 4, elite_coins: 20, boss_coins: 30}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 永久提高攻击8；普通战、精英战或首领战胜利并完成结算后，分别实际获得4、20或30枚灵石。败北、终战不发普通结算奖励，也不能通过重放领取。
   - id: V2-J2-B
     tier: 2
     branch: B
-    name: 动后回春
-    quick: 每次行动后回复2%气血
+    name: 市井仙缘
+    quick: 后续商店标价乘0.75，最低1；实付才计入花费
     category: cycle
     effects:
-      - {id: V2-J2-B-ACTION-HEAL, trigger: action_end, operation: heal, target: self, params: {max_hp_ratio: 0.02, timing: after_damage, heal_first_then_overflow: true}, requires: [], consumes: [], replaces: [], limit: {scope: action, count: 1}, text: 每次普攻或怒技结算后，尝试回复最大气血2%；溢出交给当前法宝或功法规则处理。}
+      - id: V2-J2-B-BUILD
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {build: shop_discount, ratio: 0.75}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 后续商店库存报价乘以0.75并向下取整，最低为1枚灵石；只影响之后生成的商店报价。实际扣除金额进入本局实付花费，报价预览不记账。
   - id: V2-J2-C
     tier: 2
     branch: C
-    name: 子夜蓄气
-    quick: 存活轮末额外回怒6
-    category: cycle
+    name: 剑丸成阵
+    quick: 普攻额外+2段；每段按原普攻段伤害60%
+    category: convert
     effects:
-      - {id: V2-J2-C-ROUND-RAGE, trigger: round_end, operation: rage_gain, target: self, params: {amount: 6, timing: round_end, requires_self_alive: true, requires_battle_active: true, after_public_natural_gain: true}, requires: [], consumes: [], replaces: [], limit: {scope: round, count: 1}, text: 每个完整战斗轮结束后，若自身存活且战斗仍在继续，在公共自然回怒后额外获得6点怒气。}
+      - id: V2-J2-C-BUILD
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {build: basic_split, extra_segments: 2, segment_ratio: 0.6}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 每次普攻的基础段数增加2，所有基础段（包括原有段）均按原单段伤害的60%结算；不复制整个动作，不重复消耗或动作结束收益。每段仍可触发有效命中效果。
   - id: V2-J3-A
     tier: 3
     branch: A
-    name: 迅风借势
-    quick: 速度提高1
-    category: enhance
+    name: 战意不息
+    quick: 每次有效直接/派生命中+3怒，轮末结算
+    category: cycle
     effects:
-      - {id: V2-J3-A-SPEED, trigger: always, operation: modify_stat, target: self, params: {stat: speed, mode: add, amount: 1}, requires: [], consumes: [], replaces: [], limit: {scope: permanent, count: 1}, text: 永久提高速度1点；同速先后仍按战前固定顺序处理。}
+      - id: V2-J3-A-BUILD
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {build: hit_rage, amount: 3}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 每次自身有效的直接或派生命中获得3点怒气，汇入既有轮末怒气结算；格挡无效命中、反射和持续伤害不触发。
   - id: V2-J3-B
     tier: 3
     branch: B
-    name: 收势成盾
-    quick: 每次行动后获得2.5%护盾
-    category: enhance
+    name: 身外化身
+    quick: 怒技化身以45%威力追击，可治疗、造盾与施加状态
+    category: convert
     effects:
-      - {id: V2-J3-B-ACTION-SHIELD, trigger: action_end, operation: shield, target: self, params: {max_hp_ratio: 0.025, cap_ratio: 1}, requires: [], consumes: [], replaces: [], limit: {scope: action, count: 1}, text: 每次普攻或怒技结算后获得最大气血2.5%的护盾，受公共护盾上限约束。}
+      - id: V2-J3-B-BUILD
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {build: rage_echo, ratio: 0.45}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 怒技完成后，化身以45%威力重演本体伤害、治疗与护盾，输出归属身外化身；状态层数及持续回合按45%四舍五入且至少为1，持续伤害每层威力亦为45%。不再次支付怒气、不重复主动作收入，也不复制消耗护盾、剑意或已有毒火的爆发，回响不递归。法宝产生的后续效果仍记入对应法宝。
   - id: V2-J3-C
     tier: 3
     branch: C
-    name: 循环纳气
-    quick: 存活轮末额外回怒8
-    category: cycle
+    name: 百战护体
+    quick: 开场护盾6%最大气血；每胜精英/首领再加2%/3%
+    category: enhance
     effects:
-      - {id: V2-J3-C-ROUND-RAGE, trigger: round_end, operation: rage_gain, target: self, params: {amount: 8, timing: round_end, requires_self_alive: true, requires_battle_active: true, after_public_natural_gain: true}, requires: [], consumes: [], replaces: [], limit: {scope: round, count: 1}, text: 每个完整战斗轮结束后，若自身存活且战斗仍在继续，在公共自然回怒后额外获得8点怒气。}
+      - id: V2-J3-C-BUILD
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {build: veteran_shield, base_ratio: 0.06, elite_ratio: 0.02, boss_ratio: 0.03}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 每场战斗开场获得最大气血×(6%+2%×本局既往精英胜场+3%×本局既往首领胜场)的基础护盾，包括获得本天赋前的真实战绩；普通战与败场不额外累计，仍受公共护盾加成与上限约束。
   - id: V2-J4-A
     tier: 4
     branch: A
-    name: 劲力久长
-    quick: 攻击提高8
+    name: 锦衣护道
+    quick: 开场护盾=30+当前每枚灵石0.4
     category: enhance
     effects:
-      - {id: V2-J4-A-ATTACK, trigger: always, operation: modify_stat, target: self, params: {stat: attack, mode: add, amount: 8}, requires: [], consumes: [], replaces: [], limit: {scope: permanent, count: 1}, text: 永久提高攻击8点。}
+      - id: V2-J4-A-BUILD
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {build: wealth_shield, base_shield: 30, shield_per_coin: 0.4}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 每场战斗开场获得30+0.4×本场快照中当前灵石数的护盾；战斗中后续的灵石变化不追溯改变该护盾，仍受公共护盾上限约束。
   - id: V2-J4-B
     tier: 4
     branch: B
-    name: 先机护身
-    quick: 开场获得10%护盾
+    name: 百战封侯
+    quick: 伤害+12%；每次既往精英/首领胜利再加10%/15%
     category: enhance
     effects:
-      - {id: V2-J4-B-OPENING-SHIELD, trigger: battle_start, operation: shield, target: self, params: {max_hp_ratio: 0.1, cap_ratio: 1}, requires: [], consumes: [], replaces: [], limit: {scope: battle, count: 1}, text: 每场战斗开始时获得最大气血10%的护盾，受公共护盾上限约束。}
+      - id: V2-J4-B-BUILD
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {build: trophy_damage, base_bonus: 0.12, elite_bonus: 0.1, boss_bonus: 0.15}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 自身直接与派生伤害乘以1+0.12+0.1×既往精英战胜场数+0.15×既往首领战胜场数；普通胜场不提供额外倍率。
   - id: V2-J4-C
     tier: 4
     branch: C
-    name: 行动疗伤
-    quick: 每次行动后回复3%气血
-    category: cycle
+    name: 先天神力
+    quick: 攻击+35%
+    category: enhance
     effects:
-      - {id: V2-J4-C-ACTION-HEAL, trigger: action_end, operation: heal, target: self, params: {max_hp_ratio: 0.03, timing: after_damage, heal_first_then_overflow: true}, requires: [], consumes: [], replaces: [], limit: {scope: action, count: 1}, text: 每次普攻或怒技结算后，尝试回复最大气血3%；溢出交给当前法宝或功法规则处理。}
+      - {id: V2-J4-C-ATTACK, trigger: always, operation: modify_stat, target: self, params: {stat: attack, mode: percent_add, amount: 0.35}, requires: [], consumes: [], replaces: [], limit: {scope: permanent, count: 1}, text: 永久提高攻击35%。}
 attributes: [attack, defense, max_hp, crit_rate, speed]
 rarities:
   common: {method_multiplier: 1, artifact_B: 1}

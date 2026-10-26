@@ -138,7 +138,7 @@ test('RC11 grants one attributable shield after a real direct break per battle',
   assert.equal(contribution(atCap, 'RC11').shield, shields[0].amount);
 });
 
-test('RC12 cleanse is once per battle; the incompatible second core is rejected', () => {
+test('RC12 cleanse is once per battle and coexists with a second formerly core artifact', () => {
   const authoredContent = withoutCoreRules('RC12');
   const battle = stacks => {
     const player = makeLoadout('RKF03', [
@@ -172,16 +172,21 @@ test('RC12 cleanse is once per battle; the incompatible second core is rejected'
   assert.equal(cleanses.length, 1);
   assert.ok(framesFrom(atCap, frame => frame.kind === 'heal').length > 0);
 
-  assert.throws(() => simulateBattle(
+  const combinedPlayer = makeLoadout('RKF03', [
+    { id: 'RC12', stacks: 1 },
+    { id: 'RL01', stacks: 1 },
+  ], { attack: 0, max_hp: 1_000, speed: 20 });
+  combinedPlayer.hp = calculateStats(content, combinedPlayer).max_hp - 10;
+  const combined = simulateBattle(
     content,
-    makeLoadout('RKF03', [
-      { id: 'RC12', stacks: 1 },
-      { id: 'RL01', stacks: 1 },
-    ]),
-    makeLoadout('RKF01'),
-    'awakening-rc12-and-rl01-invalid-cores',
+    combinedPlayer,
+    makeLoadout('RKF01', [], { attack: 0, max_hp: 100_000, speed: 1 }),
+    'awakening-rc12-and-rl01-generic-slots',
     { roundLimit: 1 },
-  ), /one core equipment slot/);
+  );
+  assert.ok(framesFrom(combined, frame => frame.kind === 'shield' && frame.source === 'RC12').length > 0);
+  assert.ok(framesFrom(combined, frame =>
+    frame.kind === 'shield' && frame.source === 'RL01-HEAL-OVERFLOW-TO-SHIELD').length > 0);
 });
 
 test('RC14 and RC15 amplify only newly applied DOT layers under their condition', () => {
@@ -254,7 +259,7 @@ test('an enemy carrying fully awakened RC15 applies the same conditional DOT bon
   assert.equal(enemyBurn[0].amount, enemyAttack * ((0.08 + 0.02) * 1.18 + 0.04));
 });
 
-test('legal awakened loadout preserves rage cadence and the former multi-core setup is rejected', () => {
+test('legal awakened loadout preserves rage cadence and four formerly core artifacts operate together', () => {
   const authoredContent = withoutCoreRules('RC09', 'RC11', 'RC12', 'RC14', 'RC15');
   const enemy = makeLoadout('RKF01', [], { max_hp: 1_000_000_000, attack: 0, speed: 9 });
   const plain = simulateBattle(
@@ -264,20 +269,39 @@ test('legal awakened loadout preserves rage cadence and the former multi-core se
     'awakening-rage-contract',
     { roundLimit: 3 },
   );
-  const formerMultiCoreLoadout = makeLoadout('RKF01', [
+  const zeroOpeningEntities = structuredClone(content.entities);
+  zeroOpeningEntities.find(entity => entity.id === 'RULES').rage.opening = 0;
+  const zeroOpeningContent = contentFromEntities(zeroOpeningEntities, content.version);
+  const fourCoreLoadout = makeLoadout('RKF06', [
     { id: 'RC09', stacks: 3 },
     { id: 'RC11', stacks: 3 },
     { id: 'RC12', stacks: 3 },
     { id: 'RC14', stacks: 3 },
-    { id: 'RC15', stacks: 3 },
   ], { max_hp: 100_000, attack: 0, speed: 10 });
+  const multiCoreResult = simulateBattle(
+    zeroOpeningContent,
+    fourCoreLoadout,
+    enemy,
+    'awakening-four-core-rules',
+    { roundLimit: 5 },
+  );
+  assert.ok(contribution(multiCoreResult, 'RC09').triggers > 0);
+  assert.ok(contribution(multiCoreResult, 'RC11').shield > 0);
+  assert.ok(contribution(multiCoreResult, 'RC12').triggers > 0);
+  assert.ok(contribution(multiCoreResult, 'RC14').damage > 0);
   assert.throws(() => simulateBattle(
     content,
-    formerMultiCoreLoadout,
+    makeLoadout('RKF01', [
+      { id: 'RC09', stacks: 1 },
+      { id: 'RC11', stacks: 1 },
+      { id: 'RC12', stacks: 1 },
+      { id: 'RC14', stacks: 1 },
+      { id: 'RC15', stacks: 1 },
+    ]),
     enemy,
-    'awakening-former-multi-core-loadout',
+    'awakening-over-four-artifacts',
     { roundLimit: 3 },
-  ), /one core equipment slot/);
+  ), /four artifact slots/);
   const awakened = simulateBattle(
     authoredContent,
     makeLoadout('RKF01', [

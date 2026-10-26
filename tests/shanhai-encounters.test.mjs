@@ -54,15 +54,19 @@ test('fixed reference board uses authored early/late tiers and traces its input 
   assert.match(report.inputHash, /^[a-f0-9]{64}$/);
   assert.equal(report.inputHash, report.records[0].inputHash);
   assert.deepEqual(report.input.referenceEquipment, REFERENCE_EQUIPMENT);
+  assert.equal(report.input.referenceEquipment.length, 4);
+  assert.equal(report.input.referenceEquipment.filter(id =>
+    content.byId[id].equipment_role === 'core').length, 2);
+  assert.equal(report.input.referenceEquipment.filter(id =>
+    content.byId[id].equipment_role === 'support').length, 2);
   assert.equal(report.input.matrix.length, enemies.length * START_METHODS.length);
   for (const row of report.input.matrix) {
     for (const side of [row.player, row.enemy]) {
-      const coreCount = side.artifacts.filter(stack =>
-        content.byId[stack.id].equipment_role === 'core').length;
-      const supportCount = side.artifacts.filter(stack =>
-        content.byId[stack.id].equipment_role === 'support').length;
-      assert.ok(coreCount <= 1, `${row.enemyId}/${row.method} has at most one core`);
-      assert.ok(supportCount <= 3, `${row.enemyId}/${row.method} has at most three supports`);
+      const ids = side.artifacts.map(stack => stack.id);
+      assert.ok(ids.length <= 4, `${row.enemyId}/${row.method} has at most four generic slots`);
+      assert.equal(new Set(ids).size, ids.length, `${row.enemyId}/${row.method} has unique artifact slots`);
+      assert.ok(ids.every(id => ['core', 'support'].includes(content.byId[id]?.equipment_role)),
+        `${row.enemyId}/${row.method} retains descriptive artifact roles`);
     }
   }
   for (const row of report.records) {

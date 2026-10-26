@@ -23,10 +23,7 @@ export const METHOD_BRANCHES = Object.freeze({
   RKF05: 'B',
 });
 
-export const REFERENCE_EQUIPMENT = Object.freeze({
-  core: 'RC11',
-  support: Object.freeze(['RC01', 'RC03', 'RC17']),
-});
+export const REFERENCE_EQUIPMENT = Object.freeze(['RC11', 'RC10', 'RC01', 'RC17']);
 
 const V2_REPORT_DIRECTORY = 'verification/shanhai/v2';
 
@@ -118,19 +115,27 @@ function fixedReferenceTier(enemy) {
 }
 
 function assertLegalEquipment(content, loadout, label) {
-  const core = [];
-  const support = [];
+  const ids = new Set();
+  const groups = new Set();
   for (const stack of loadout.artifacts ?? []) {
     const artifact = content.byId[stack.id];
     if (!artifact || artifact.kind !== 'artifact') {
       throw new Error(`${label} has unknown artifact ${stack.id}`);
     }
-    if (artifact.equipment_role === 'core') core.push(stack.id);
-    else if (artifact.equipment_role === 'support') support.push(stack.id);
-    else throw new Error(`${label} has invalid equipment role for ${stack.id}`);
+    if (!['core', 'support'].includes(artifact.equipment_role)) {
+      throw new Error(`${label} has invalid equipment role for ${stack.id}`);
+    }
+    if (ids.has(stack.id)) throw new Error(`${label} repeats artifact ${stack.id}`);
+    ids.add(stack.id);
+    if (artifact.unique_group) {
+      if (groups.has(artifact.unique_group)) {
+        throw new Error(`${label} repeats unique artifact group ${artifact.unique_group}`);
+      }
+      groups.add(artifact.unique_group);
+    }
   }
-  if (core.length > 1 || support.length > 3) {
-    throw new Error(`${label} exceeds the V2 limit of one core and three supports`);
+  if (ids.size > 4) {
+    throw new Error(`${label} exceeds the V2 limit of four generic artifact slots`);
   }
 }
 
@@ -145,10 +150,7 @@ function playerLoadout(content, enemy, method) {
     method,
     n,
     talents,
-    artifacts: [
-      { id: REFERENCE_EQUIPMENT.core, stacks: 1 },
-      ...REFERENCE_EQUIPMENT.support.map(id => ({ id, stacks: 1 })),
-    ],
+    artifacts: REFERENCE_EQUIPMENT.map(id => ({ id, stacks: 1 })),
     baseStats,
     preparation: 0,
     firstStrike: 0,
@@ -324,7 +326,7 @@ export function buildEncounterCalibration(content, seedCount = 5) {
 
   const input = {
     mode: 'fixed_reference_board',
-    board: 'V2 fixed reference loadout (1 core, 3 supports) against authored enemy.n; no runtime node growth, rewards, or route state',
+    board: 'V2 fixed reference loadout (4 generic slots; 2 core-role and 2 support-role artifacts) against authored enemy.n; no runtime node growth, rewards, or route state',
     contentVersion: content.version,
     referenceEquipment: clone(REFERENCE_EQUIPMENT),
     roundLimit: 256,
@@ -366,7 +368,7 @@ export function buildEncounterCalibration(content, seedCount = 5) {
   }));
 
   return {
-    policy: 'V2 fixed legal 1-core/3-support reference loadouts; direct simulateBattle; no mocked combat',
+    policy: 'V2 fixed legal 4-slot reference loadouts; artifact roles are descriptive; direct simulateBattle; no mocked combat',
     calibrationStatus: 'uncalibrated V2 sample; observations do not modify authored measured fields',
     roundLimit: 256,
     seedCount,
@@ -469,7 +471,7 @@ export function runFullCalibration(content, seedCount = 5) {
     methods: [...START_METHODS],
     seeds,
     routeSelection: 'seedIndex % 3 => avoid, steady, tracking; current reachable nodes only',
-    equipmentStrategy: 'fill empty slots and replace only a lower-scoring same-role equipped artifact using owned inventory',
+    equipmentStrategy: 'fill up to four generic slots and replace only a lower-scoring equipped artifact using owned inventory; artifact roles are descriptive',
     stepGuard: 600,
   };
   const hash = inputHash(input);

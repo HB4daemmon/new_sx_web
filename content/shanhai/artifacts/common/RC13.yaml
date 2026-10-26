@@ -4,8 +4,8 @@ kind: artifact
 id: RC13
 name: 震山环
 status: design_target
-summary: 防御 +2；已有盾返伤害 +6%；占一个支援位（共3席）
-description: 环身沉稳如山，只放大已经存在的盾返伤害。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
+summary: 防御 +2；已有盾返伤害 +6%；支援定位
+description: 环身沉稳如山，只放大已经存在的盾返伤害。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [defense, shield_reflect, combat]
 source:
   basis: original

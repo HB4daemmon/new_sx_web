@@ -179,10 +179,30 @@ test('RC12 converts every positive effective heal once and weakens direct damage
   near(contribution(result, 'RC12').healing, healing.amount);
   near(contribution(result, 'RC12').shield, shield.amount);
 
+  const sharedContent = contentPatch(entities => {
+    entities.find(item => item.id === 'RULES').insights.push({
+      id: 'TEST-SHARED-HEAL',
+      tier: 2,
+      branch: 'A',
+      name: 'Synthetic shared healing',
+      effects: [{
+        id: 'TEST-SHARED-HEAL-ACTION',
+        trigger: 'action_end',
+        operation: 'heal',
+        target: 'self',
+        params: { max_hp_ratio: 0.02 },
+        requires: [],
+        consumes: [],
+        replaces: [],
+        limit: { scope: 'action', count: 1 },
+        text: 'Synthetic shared healing outlet.',
+      }],
+    });
+  });
   const shared = simulateBattle(
-    content,
+    sharedContent,
     makeLoadout('RKF08', [{ id: 'RC12', stacks: 1 }], {
-      talents: ['V2-J2-B'],
+      talents: ['TEST-SHARED-HEAL'],
       n: 2,
       hp: 900,
     }),
@@ -190,15 +210,15 @@ test('RC12 converts every positive effective heal once and weakens direct damage
     'v2-rc12-shared-heal-conversion',
     { roundLimit: 1 },
   );
-  const sharedMaxHp = calculateStats(content, makeLoadout('RKF08', [{ id: 'RC12', stacks: 1 }])).max_hp;
+  const sharedMaxHp = calculateStats(sharedContent, makeLoadout('RKF08', [{ id: 'RC12', stacks: 1 }])).max_hp;
   const sharedHeals = shared.frames.filter(frame => frame.kind === 'heal');
   const sharedShields = shared.frames.filter(frame => frame.kind === 'shield' && frame.source === 'RC12');
-  near(sharedHeals.find(frame => frame.source === 'V2-J2-B-ACTION-HEAL').amount, sharedMaxHp * 0.02 * 1.06);
+  near(sharedHeals.find(frame => frame.source === 'TEST-SHARED-HEAL-ACTION').amount, sharedMaxHp * 0.02 * 1.06);
   near(
     sharedShields.reduce((sum, frame) => sum + frame.amount, 0),
-    sharedHeals.reduce((sum, frame) => sum + frame.amount, 0) * content.byId.RC12.core_rule.shield_ratio,
+    sharedHeals.reduce((sum, frame) => sum + frame.amount, 0) * sharedContent.byId.RC12.core_rule.shield_ratio,
   );
-  near(contribution(shared, 'V2-J2-B').healing, sharedMaxHp * 0.02 * 1.06);
+  near(contribution(shared, 'TEST-SHARED-HEAL').healing, sharedMaxHp * 0.02 * 1.06);
 
   const methodHealing = simulateBattle(
     content,
@@ -370,15 +390,14 @@ test('RC15 pays its burn window before opposing DOTs and never heals from shield
   near(contribution(fullyShielded, 'RC15').healing, 0);
 });
 
-test('shared insights work across methods and enforce one selection per tier', () => {
-  const stats = calculateStats(content, makeLoadout('RKF08', [], { talents: ['V2-J1-A'] }));
-  near(stats.attack, BASE_STATS.attack + content.rules.insights.find(talent => talent.id === 'V2-J1-A')
-    .effects[0].params.amount);
+test('shared insights use current build rules across methods and enforce one selection per tier', () => {
+  const stats = calculateStats(content, makeLoadout('RKF08', [], { talents: ['V2-J4-C'] }));
+  near(stats.attack, BASE_STATS.attack * 1.35);
   const statBattle = simulateBattle(
     content,
-    makeLoadout('RKF08', [], { talents: ['V2-J1-A'] }),
+    makeLoadout('RKF08', [], { talents: ['V2-J4-C'] }),
     enemy(),
-    'v2-insight-static-stat',
+    'v2-insight-attack-stat',
     { roundLimit: 1 },
   );
   const statHit = matchingFrame(statBattle, frame =>
@@ -387,41 +406,32 @@ test('shared insights work across methods and enforce one selection per tier', (
 
   const openingShield = simulateBattle(
     content,
-    makeLoadout('RKF08', [], { talents: ['V2-J1-B'] }),
+    makeLoadout('RKF08', [], { talents: ['V2-J3-C'] }),
     enemy(),
     'v2-insight-opening-shield',
     { roundLimit: 1 },
   );
-  assert.ok(openingShield.frames.some(frame => frame.source === 'V2-J1-B-OPENING-SHIELD' && frame.amount === 60));
-  assert.ok(contribution(openingShield, 'V2-J1-B').shield > 0);
+  assert.ok(openingShield.frames.some(frame => frame.source === 'V2-J3-C-BUILD' && frame.amount === 60));
+  assert.ok(contribution(openingShield, 'V2-J3-C').shield > 0);
 
   const roundRage = simulateBattle(
-    content,
-    makeLoadout('RKF08', [], { talents: ['V2-J1-C'] }),
+    openingRage(0),
+    makeLoadout('RKF08', [], { talents: ['V2-J3-A'] }),
     enemy(),
     'v2-insight-round-rage',
     { roundLimit: 1 },
   );
-  near(contribution(roundRage, 'V2-J1-C').rage, 4);
+  near(contribution(roundRage, 'V2-J3-A').rage, 3);
 
-  const actionHeal = simulateBattle(
+  const openingWealthShield = simulateBattle(
     content,
-    makeLoadout('RKF08', [], { talents: ['V2-J2-B'], n: 2, hp: 900 }),
+    makeLoadout('RKF08', [], { talents: ['V2-J4-A'] }),
     enemy(),
-    'v2-insight-action-heal',
+    'v2-insight-opening-wealth-shield',
     { roundLimit: 1 },
   );
-  near(contribution(actionHeal, 'V2-J2-B').healing, 20);
-  assert.ok(actionHeal.frames.some(frame => frame.source === 'V2-J2-B-ACTION-HEAL'));
-
-  const actionShield = simulateBattle(
-    content,
-    makeLoadout('RKF08', [], { talents: ['V2-J3-B'], n: 3 }),
-    enemy(),
-    'v2-insight-action-shield',
-    { roundLimit: 1 },
-  );
-  near(contribution(actionShield, 'V2-J3-B').shield, 25);
+  near(contribution(openingWealthShield, 'V2-J4-A').shield, 30);
+  assert.ok(openingWealthShield.frames.some(frame => frame.source === 'V2-J4-A-BUILD'));
 
   const localTierOne = content.byId.RKF08.talents.find(talent => talent.tier === 1);
   assert.throws(() => simulateBattle(
@@ -460,14 +470,22 @@ test('lethal core burn ends combat without granting post-battle siphon healing',
   near(contribution(result, 'RC15').healing, 0);
 });
 
-test('V2 rejects more than one core or more than three support artifacts', () => {
-  assert.throws(() => simulateBattle(
-    content,
-    makeLoadout('RKF08', [{ id: 'RC09', stacks: 1 }, { id: 'RC10', stacks: 1 }]),
-    enemy(),
-    'v2-two-cores',
+test('four generic artifact slots accept any role mix and reject a fifth unique artifact', () => {
+  const fourCores = simulateBattle(
+    openingRage(),
+    makeLoadout('RKF01', [
+      { id: 'RC09', stacks: 1 },
+      { id: 'RC10', stacks: 1 },
+      { id: 'RC11', stacks: 1 },
+      { id: 'RC12', stacks: 1 },
+    ]),
+    enemy({ speed: 1 }),
+    'v2-four-core-rules',
     { roundLimit: 1 },
-  ), /one core equipment slot/);
+  );
+  for (const id of ['RC09', 'RC10', 'RC11', 'RC12']) {
+    assert.ok(contribution(fourCores, id).triggers > 0, `expected ${id} to operate in a generic slot`);
+  }
   assert.throws(() => simulateBattle(
     content,
     makeLoadout('RKF08', [{ id: 'RC09', stacks: 1 }, { id: 'RC09', stacks: 1 }]),
@@ -477,11 +495,24 @@ test('V2 rejects more than one core or more than three support artifacts', () =>
   ), /Duplicate artifact ID RC09/);
   assert.throws(() => simulateBattle(
     content,
-    makeLoadout('RKF08', ['RC01', 'RC02', 'RC03', 'RC04'].map(id => ({ id, stacks: 1 }))),
+    makeLoadout('RKF08', ['RC01', 'RC02', 'RC03', 'RC04', 'RC05'].map(id => ({ id, stacks: 1 }))),
+    enemy(),
+    'v2-five-supports',
+    { roundLimit: 1 },
+  ), /four artifact slots/);
+
+  const fourSupportsLoadout = makeLoadout('RKF08', ['RC01', 'RC02', 'RC03', 'RC04']
+    .map(id => ({ id, stacks: 1 })));
+  const fourSupportStats = calculateStats(content, fourSupportsLoadout);
+  assert.ok(fourSupportStats.attack > BASE_STATS.attack);
+  const fourSupports = simulateBattle(
+    content,
+    fourSupportsLoadout,
     enemy(),
     'v2-four-supports',
     { roundLimit: 1 },
-  ), /three support equipment slots/);
+  );
+  assert.ok(fourSupports.frames.some(frame => frame.kind === 'action' && frame.actor === 'player'));
 
   const rolelessEntities = structuredClone(content.entities);
   for (const artifact of rolelessEntities.filter(item => item.kind === 'artifact')) {

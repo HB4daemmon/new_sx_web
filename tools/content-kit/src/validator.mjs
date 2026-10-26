@@ -23,6 +23,7 @@ import {
   ORDINARY_EVENT_IDS,
   RARITIES,
   SCHEMA_VERSION,
+  SHARED_INSIGHT_BUILD_RULES,
   SHARED_INSIGHT_IDS,
   STORYLINE_IDS,
 } from './constants.mjs'
@@ -1274,8 +1275,6 @@ function validateEnemy(entity, errors, known) {
     addIssue(errors, 'enemy-artifacts', 'enemy.artifacts must be an array', source)
   } else {
     const artifactIds = new Set()
-    let coreCount = 0
-    let supportCount = 0
     for (const [index, artifact] of entity.artifacts.entries()) {
       const location = `${source}:artifacts[${index}]`
       if (!isRecord(artifact)) {
@@ -1285,17 +1284,13 @@ function validateEnemy(entity, errors, known) {
       if (!known.artifacts.has(artifact.id)) addIssue(errors, 'enemy-artifact-reference', `unknown enemy artifact ${artifact.id}`, location)
       if (artifactIds.has(artifact.id)) addIssue(errors, 'enemy-artifact-duplicate', `enemy repeats artifact ${artifact.id}`, location)
       artifactIds.add(artifact.id)
-      const role = known.byId.get(artifact.id)?.equipment_role
-      if (role === 'core') coreCount += 1
-      if (role === 'support') supportCount += 1
       finiteNumber(errors, artifact.stacks, location, 'artifact.stacks', { integer: true, min: 1 })
       const limit = artifactStackLimit(artifact.id)
       if (limit !== null && typeof artifact.stacks === 'number' && artifact.stacks > limit) {
         addIssue(errors, 'enemy-artifact-stacks', `${artifact.id} stacks exceed authored max ${limit}`, location)
       }
     }
-    if (coreCount > 1) addIssue(errors, 'enemy-equipment-core', 'enemy may equip at most one core artifact', source)
-    if (supportCount > 3) addIssue(errors, 'enemy-equipment-support', 'enemy may equip at most three support artifacts', source)
+    if (entity.artifacts.length > 4) addIssue(errors, 'enemy-equipment-count', 'enemy may equip at most four artifacts total', source)
   }
   if (!isRecord(entity.stats)) {
     addIssue(errors, 'enemy-stats', 'enemy.stats must be a mapping', source)
@@ -1592,13 +1587,6 @@ function validateAct(entity, errors, known) {
 
 const SHARED_TALENT_FIELDS = ['id', 'tier', 'branch', 'name', 'quick', 'category', 'effects']
 const SHARED_EFFECT_FIELDS = ['id', 'trigger', 'operation', 'target', 'params', 'requires', 'consumes', 'replaces', 'limit', 'text']
-const SHARED_EFFECT_PARAMS = Object.freeze({
-  'always/modify_stat': ['stat', 'mode', 'amount'],
-  'battle_start/shield': ['max_hp_ratio', 'cap_ratio'],
-  'round_end/rage_gain': ['amount', 'timing', 'requires_self_alive', 'requires_battle_active', 'after_public_natural_gain'],
-  'action_end/heal': ['max_hp_ratio', 'timing', 'heal_first_then_overflow'],
-  'action_end/shield': ['max_hp_ratio', 'cap_ratio'],
-})
 
 function validateSharedInsightEffect(entity, talent, effect, index, effectIndex, errors, effectIds) {
   const source = `${sourceFor(entity)}:insights[${index}].effects[${effectIndex}]`
@@ -1607,14 +1595,20 @@ function validateSharedInsightEffect(entity, talent, effect, index, effectIndex,
   if (!exactKeys(effect, SHARED_EFFECT_FIELDS)) {
     addIssue(errors, 'insight-effect-fields', 'shared insight effects may only use the standard effect fields', source)
   }
-  if (typeof effect.id !== 'string' || !effect.id.startsWith(`${talent.id}-`)) {
-    addIssue(errors, 'insight-effect-source', 'shared effect ids must start with their insight id', source)
-  }
   const pair = `${effect.trigger}/${effect.operation}`
-  const expectedParams = SHARED_EFFECT_PARAMS[pair]
-  if (!expectedParams) {
+  const buildRule = SHARED_INSIGHT_BUILD_RULES[talent.id]
+  const isLegacyStat = talent.id === 'V2-J4-C'
+  const expectedPair = buildRule ? 'always/modify_effect' : isLegacyStat ? 'always/modify_stat' : undefined
+  if (!expectedPair) {
     addIssue(errors, 'insight-effect-kind', `unsupported shared insight effect ${pair}`, source)
     return
+  }
+  if (pair !== expectedPair) {
+    addIssue(errors, 'insight-effect-kind', `${talent.id} must use ${expectedPair}`, source)
+  }
+  const expectedEffectId = `${talent.id}-${buildRule ? 'BUILD' : 'ATTACK'}`
+  if (effect.id !== expectedEffectId) {
+    addIssue(errors, 'insight-effect-source', `shared effect id must be ${expectedEffectId}`, source)
   }
   if (effect.target !== 'self') addIssue(errors, 'insight-effect-target', 'shared insight effects must target self', source)
   for (const field of ['requires', 'consumes', 'replaces']) {
@@ -1622,50 +1616,37 @@ function validateSharedInsightEffect(entity, talent, effect, index, effectIndex,
       addIssue(errors, 'insight-effect-boundary', `shared effects must use an empty ${field} array`, source)
     }
   }
-  const expectedScope = {
-    'always/modify_stat': 'permanent',
-    'battle_start/shield': 'battle',
-    'round_end/rage_gain': 'round',
-    'action_end/heal': 'action',
-    'action_end/shield': 'action',
-  }[pair]
+  const expectedScope = 'permanent'
   if (!isRecord(effect.limit) || !exactKeys(effect.limit, ['scope', 'count'])) {
     addIssue(errors, 'insight-effect-limit', 'shared effect limit must use exactly scope and count', source)
   } else {
     if (effect.limit.scope !== expectedScope || effect.limit.count !== 1) {
-      addIssue(errors, 'insight-effect-limit', `${pair} limit must be ${expectedScope} once`, source)
+      addIssue(errors, 'insight-effect-limit', `shared effect limit must be ${expectedScope} once`, source)
     }
   }
   if (!isRecord(effect.params)) return
+  const expectedParams = buildRule
+    ? ['build', ...Object.keys(buildRule.params)]
+    : ['stat', 'mode', 'amount']
   if (!exactKeys(effect.params, expectedParams)) {
-    addIssue(errors, 'insight-effect-params', `${pair} params must use exactly ${expectedParams.join(', ')}`, source)
+    addIssue(errors, 'insight-effect-params', `${talent.id} params must use exactly ${expectedParams.join(', ')}`, source)
   }
   const params = effect.params
-  if (pair === 'always/modify_stat') {
-    if (!ATTRIBUTES.includes(params.stat)) addIssue(errors, 'insight-effect-stat', 'modify_stat.stat must be a shared player attribute', source)
-    if (!['add', 'percent_add'].includes(params.mode)) addIssue(errors, 'insight-effect-mode', 'modify_stat.mode must be add or percent_add', source)
+  if (buildRule) {
+    if (params.build !== buildRule.kind) {
+      addIssue(errors, 'insight-effect-build', `${talent.id} build must be ${buildRule.kind}`, source)
+    }
+    for (const [key, range] of Object.entries(buildRule.params)) {
+      finiteNumber(errors, params[key], source, `insight effect ${key}`, range)
+    }
+  } else if (isLegacyStat) {
+    if (params.stat !== 'attack') addIssue(errors, 'insight-effect-stat', 'V2-J4-C may only modify attack', source)
+    if (params.mode !== 'percent_add') addIssue(errors, 'insight-effect-mode', 'V2-J4-C must use percent_add', source)
     finiteNumber(errors, params.amount, source, 'insight effect amount', {
       min: 0,
-      max: params.mode === 'percent_add' ? 1 : 100,
+      max: 1,
     })
-  } else if (pair === 'battle_start/shield' || pair === 'action_end/shield') {
-    finiteNumber(errors, params.max_hp_ratio, source, 'insight shield max_hp_ratio', { min: 0, max: 1 })
-    finiteNumber(errors, params.cap_ratio, source, 'insight shield cap_ratio', { min: 0, max: 1 })
-  } else if (pair === 'round_end/rage_gain') {
-    finiteNumber(errors, params.amount, source, 'insight rage amount', { min: 0, max: 100 })
-    if (params.timing !== 'round_end') addIssue(errors, 'insight-effect-timing', 'round_end rage must use timing round_end', source)
-    for (const key of ['requires_self_alive', 'requires_battle_active', 'after_public_natural_gain']) {
-      if (params[key] !== true) addIssue(errors, 'insight-effect-boundary', `${key} must be true`, source)
-    }
-  } else if (pair === 'action_end/heal') {
-    finiteNumber(errors, params.max_hp_ratio, source, 'insight heal max_hp_ratio', { min: 0, max: 1 })
-    if (params.timing !== 'after_damage') addIssue(errors, 'insight-effect-timing', 'action_end heal must use timing after_damage', source)
-    if (params.heal_first_then_overflow !== true) {
-      addIssue(errors, 'insight-effect-heal', 'action_end heal must resolve healing before any overflow outlet', source)
-    }
-  }
-  for (const [key, value] of Object.entries(params)) {
-    finiteTree(errors, value, source, `insights[${index}].effect.params.${key}`, key)
+    if (params.amount !== 0.35) addIssue(errors, 'insight-effect-value', 'V2-J4-C amount must remain 0.35', source)
   }
 }
 
@@ -1699,7 +1680,10 @@ function validateInsights(entity, errors, effectIds) {
     if (seenIds.has(talent.id)) addIssue(errors, 'insight-duplicate', `duplicate shared insight ${talent.id}`, location)
     seenIds.add(talent.id)
     finiteNumber(errors, talent.tier, location, 'insight.tier', { integer: true, min: 1, max: 4 })
-    if (!['A', 'B', 'C'].includes(talent.branch)) addIssue(errors, 'insight-branch', 'insight.branch must be A, B or C', location)
+    const branches = talent.tier === 1 ? ['A', 'B', 'C', 'D', 'E', 'F'] : ['A', 'B', 'C']
+    if (!branches.includes(talent.branch)) {
+      addIssue(errors, 'insight-branch', `tier ${talent.tier} branch must be ${branches.join(', ')}`, location)
+    }
     if (typeof talent.name !== 'string' || !/^[\u3400-\u9fff]{4}$/u.test(talent.name)) {
       addIssue(errors, 'insight-name', 'insight.name must be exactly four Chinese characters', location)
     }

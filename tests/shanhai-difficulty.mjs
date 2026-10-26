@@ -440,8 +440,8 @@ export function runDifficulty({
     policySource: 'tests/shanhai-difficulty.mjs difficultyCommand; tests/shanhai-policy.mjs nextCommand',
     policyContract: 'uses the current phase, currently reachable nodes, currently visible rewards, public costs, owned artifacts and current equipment; never reads future route nodes, hinted event outcomes, future battle results, or future reward candidates',
     policyNotes: policy === 'steady'
-      ? 'Uses the fixed V2 talent plan and fills empty equipment slots, then replaces the weakest same-role slot only for a strictly higher inventory score. Prioritizes reachable rest at 18% missing HP or shop at 20% missing HP when recovery is affordable; otherwise prefers common battles. Does not use reforge or temper.'
-      : 'Uses the fixed V2 talent plan, fills empty equipment slots, and upgrades only when an owned same-role artifact scores strictly higher. Route choices consider only currently reachable nodes; hinted event rewards are excluded.',
+      ? 'Scores currently offered shared and local talents, fills up to four generic equipment slots, and replaces any equipped artifact only for a strictly higher owned-item score. Prioritizes reachable rest at 18% missing HP or shop at 20% missing HP when recovery is affordable; otherwise prefers common battles. Does not use reforge or temper.'
+      : 'Scores currently offered shared and local talents, fills up to four generic equipment slots, and upgrades only when an owned artifact scores strictly higher than an equipped slot. Route choices consider only currently reachable nodes; hinted event rewards are excluded.',
     runStepGuard: RUN_STEP_GUARD,
     battleRoundLimit: BATTLE_ROUND_LIMIT,
     enemyStatAdjustment: {
@@ -633,7 +633,7 @@ export function helpText() {
     '  --help                          Show this help',
     '',
     'Train and holdout are seed-label splits only; this uncalibrated V2 run does not fit enemy stats or carry forward V1 rates.',
-    'The policy uses only public current choices and current equipment, and upgrades gear only when its fixed score exceeds the current slot value.',
+    'The policy uses only public current choices and current equipment, fills up to four generic artifact slots, and replaces gear only when an owned artifact has a strictly higher score.',
   ].join('\n');
 }
 

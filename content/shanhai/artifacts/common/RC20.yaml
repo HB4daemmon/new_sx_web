@@ -4,8 +4,8 @@ kind: artifact
 id: RC20
 name: 引气符
 status: design_target
-summary: 攻击 +2；普攻完成后额外回怒 5；占一个支援位（共3席）
-description: 每次普攻完成后，符纸额外补回5点怒气。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
+summary: 攻击 +2；普攻完成后额外回怒 5；支援定位
+description: 每次普攻完成后，符纸额外补回5点怒气。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [attack, rage_gain, basic, combat]
 source:
   basis: original

@@ -4,8 +4,8 @@ kind: artifact
 id: RR07
 name: 回元佩
 status: design_target
-summary: 防御 +8；首个怒技完成后本战怒气上限 -15；占一个支援位（共3席）
-description: 首个怒技完成后，本场战斗的怒气上限降低15点。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
+summary: 防御 +8；首个怒技完成后本战怒气上限 -15；支援定位
+description: 首个怒技完成后，本场战斗的怒气上限降低15点。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [defense, rage_cap, rage, rare]
 source:
   basis: original

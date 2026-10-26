@@ -4,8 +4,8 @@ kind: artifact
 id: RC21
 name: 调息玉
 status: design_target
-summary: 防御 +2；每整轮存活且战斗未结束时额外回怒 5；占一个支援位（共3席）
-description: 玉面随着呼吸明暗变化，在完整存活的战斗轮末稳定补怒。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
+summary: 防御 +2；每整轮存活且战斗未结束时额外回怒 5；支援定位
+description: 玉面随着呼吸明暗变化，在完整存活的战斗轮末稳定补怒。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [defense, rage_gain, round_end, combat]
 source:
   basis: original

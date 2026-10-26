@@ -16,8 +16,7 @@ export function artifactRole(content: Content, id: string): EquipmentRole | unde
 }
 
 export function equippedArtifactStacks(state: RunState): ArtifactStack[] {
-  const ids = [state.equipment?.core, ...(state.equipment?.support ?? [])]
-    .filter((id): id is string => typeof id === 'string');
+  const ids = state.equipment?.slots ?? [];
   return ids.flatMap(id => {
     const stack = state.artifacts.find(item => item.id === id);
     return stack ? [{ id, stacks: stack.stacks }] : [];
@@ -25,36 +24,26 @@ export function equippedArtifactStacks(state: RunState): ArtifactStack[] {
 }
 
 export function autoEquipArtifact(content: Content, state: RunState, id: string): void {
-  const role = artifactRole(content, id);
-  if (!role || (state.equipment.core === id) || state.equipment.support.includes(id)) return;
-  if (role === 'core') {
-    if (state.equipment.core === null) state.equipment.core = id;
-  } else if (state.equipment.support.length < 3) {
-    state.equipment.support.push(id);
-  }
+  if (!artifactRole(content, id) || state.equipment.slots.includes(id) ||
+    state.equipment.slots.length >= 4) return;
+  state.equipment.slots.push(id);
 }
 
 export function removeMissingEquipment(state: RunState): void {
   const owned = new Set(state.artifacts.map(stack => stack.id));
-  if (state.equipment.core && !owned.has(state.equipment.core)) state.equipment.core = null;
-  state.equipment.support = state.equipment.support.filter(id => owned.has(id));
+  state.equipment.slots = state.equipment.slots.filter(id => owned.has(id));
 }
 
 export function validateEquipment(content: Content, state: RunState): void {
-  const equipment = state.equipment;
-  if (!equipment || (equipment.core !== null && typeof equipment.core !== 'string') ||
-    !Array.isArray(equipment.support) || equipment.support.length > 3 ||
-    equipment.support.some(id => typeof id !== 'string') ||
-    new Set(equipment.support).size !== equipment.support.length ||
-    (equipment.core !== null && equipment.support.includes(equipment.core))) {
+  const slots = state.equipment?.slots;
+  if (!Array.isArray(slots) || slots.length > 4 ||
+    slots.some(id => typeof id !== 'string') || new Set(slots).size !== slots.length) {
     throw new Error('Invalid equipment slots');
   }
   const owned = new Set(state.artifacts.map(stack => stack.id));
-  const validateSlot = (id: string, expected: EquipmentRole): void => {
-    if (!owned.has(id) || artifactRole(content, id) !== expected) {
+  for (const id of slots) {
+    if (!owned.has(id) || !artifactRole(content, id)) {
       throw new Error('Invalid equipped artifact');
     }
-  };
-  if (equipment.core !== null) validateSlot(equipment.core, 'core');
-  for (const id of equipment.support) validateSlot(id, 'support');
+  }
 }

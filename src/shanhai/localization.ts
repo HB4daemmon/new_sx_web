@@ -177,6 +177,7 @@ export function localizeReason(value: unknown): string {
   const reasons: Record<string, string> = {
     'conditional trigger absent': '本局未满足触发条件',
     'permanent attributes applied': '属性已生效',
+    'journey rule applied outside combat': '行旅规则，战外结算',
     'permanent attributes applied; conditional effect not triggered': '属性已生效；条件效果未触发',
     'passive modifier not used': '被动修正本局未用到',
   };

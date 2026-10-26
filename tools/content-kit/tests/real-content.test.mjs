@@ -92,22 +92,59 @@ test('real content validates and preserves the authored entity and talent counts
 
   const totalTalents = entitiesOf('method').reduce((total, method) => total + method.talents.length, 0)
   assert.equal(totalTalents, 120)
-  const insights = entitiesOf('rules')[0].insights
-  assert.equal(insights.length, 12)
+  const rules = entitiesOf('rules')[0]
+  const insights = rules.insights
+  assert.equal(insights.length, 15)
+  assert.equal(rules.source.basis, 'original')
+  assert.equal(rules.balance.measured, null)
   assert.deepEqual(insights.map((talent) => talent.id).sort(), [...SHARED_INSIGHT_IDS].sort())
   assert.deepEqual([...report.known.sharedTalents].sort(), [...SHARED_INSIGHT_IDS].sort())
-  for (const tier of [1, 2, 3, 4]) {
+  for (const [tier, expectedBranches] of [[1, ['A', 'B', 'C', 'D', 'E', 'F']], [2, ['A', 'B', 'C']], [3, ['A', 'B', 'C']], [4, ['A', 'B', 'C']]]) {
     assert.deepEqual(
       insights.filter((talent) => talent.tier === tier).map((talent) => talent.branch).sort(),
-      ['A', 'B', 'C'],
+      expectedBranches,
     )
+  }
+  const expectedBuildParams = {
+    'V2-J1-A': { build: 'wealth_damage', scale: 1.2, half_saturation: 150 },
+    'V2-J1-B': { build: 'hunter', base_attack: 8, base_defense: 6, elite_attack: 8, elite_defense: 6, boss_attack: 12, boss_defense: 8 },
+    'V2-J1-C': { build: 'speed_damage', speed_bonus: 2, max_multiplier: 2.5 },
+    'V2-J1-D': { build: 'carapace', defense_per_hit: 6, reflect_ratio: 0.24 },
+    'V2-J1-E': { build: 'spending_power', base_attack: 8, attack_per_coin: 0.08 },
+    'V2-J1-F': { build: 'collection_damage', base_bonus: 0.1, per_kind: 0.04 },
+    'V2-J2-A': { build: 'bounty', attack_bonus: 8, normal_coins: 4, elite_coins: 20, boss_coins: 30 },
+    'V2-J2-B': { build: 'shop_discount', ratio: 0.75 },
+    'V2-J2-C': { build: 'basic_split', extra_segments: 2, segment_ratio: 0.6 },
+    'V2-J3-A': { build: 'hit_rage', amount: 3 },
+    'V2-J3-B': { build: 'rage_echo', ratio: 0.45 },
+    'V2-J3-C': { build: 'veteran_shield', base_ratio: 0.06, elite_ratio: 0.02, boss_ratio: 0.03 },
+    'V2-J4-A': { build: 'wealth_shield', base_shield: 30, shield_per_coin: 0.4 },
+    'V2-J4-B': { build: 'trophy_damage', base_bonus: 0.12, elite_bonus: 0.1, boss_bonus: 0.15 },
+  }
+  for (const talent of insights) {
+    const effect = talent.effects[0]
+    assert.equal(effect.target, 'self', talent.id)
+    assert.deepEqual(effect.requires, [], talent.id)
+    assert.deepEqual(effect.consumes, [], talent.id)
+    assert.deepEqual(effect.replaces, [], talent.id)
+    assert.deepEqual(effect.limit, { scope: 'permanent', count: 1 }, talent.id)
+    if (talent.id === 'V2-J4-C') {
+      assert.equal(effect.trigger, 'always')
+      assert.equal(effect.operation, 'modify_stat')
+      assert.deepEqual(effect.params, { stat: 'attack', mode: 'percent_add', amount: 0.35 })
+    } else {
+      assert.equal(effect.id, `${talent.id}-BUILD`)
+      assert.equal(effect.trigger, 'always')
+      assert.equal(effect.operation, 'modify_effect')
+      assert.deepEqual(effect.params, expectedBuildParams[talent.id], talent.id)
+    }
   }
 
   for (const artifact of entitiesOf('artifact')) {
     assert.equal(artifact.equipment_role, ARTIFACT_EQUIPMENT_ROLES[artifact.id], `${artifact.id} equipment role`)
-    const slotLabel = artifact.equipment_role === 'core' ? '核心位' : '支援位'
-    assert.ok(artifact.summary.includes(slotLabel), `${artifact.id} summary discloses its slot`)
-    assert.ok(artifact.description.includes(slotLabel), `${artifact.id} description discloses its slot`)
+    const roleLabel = artifact.equipment_role === 'core' ? '核心定位' : '支援定位'
+    assert.ok(artifact.summary.includes(roleLabel), `${artifact.id} summary discloses its descriptive role`)
+    assert.doesNotMatch(artifact.description, /核心位仅1席|支援位（共3席）/, `${artifact.id} description has no role capacity claim`)
     if (CORE_ARTIFACT_RULES[artifact.id]) {
       assert.deepEqual(artifact.core_rule, CORE_ARTIFACT_RULES[artifact.id], `${artifact.id} core rule`)
     } else {
@@ -116,9 +153,7 @@ test('real content validates and preserves the authored entity and talent counts
   }
 
   for (const enemy of entitiesOf('enemy')) {
-    const equipped = enemy.artifacts.map((loadout) => entitiesOf('artifact').find((artifact) => artifact.id === loadout.id))
-    assert.ok(equipped.filter((artifact) => artifact?.equipment_role === 'core').length <= 1, `${enemy.id} core slots`)
-    assert.ok(equipped.filter((artifact) => artifact?.equipment_role === 'support').length <= 3, `${enemy.id} support slots`)
+    assert.ok(enemy.artifacts.length <= 4, `${enemy.id} total equipment count`)
   }
 })
 

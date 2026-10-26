@@ -9,8 +9,8 @@ import { validateRouteMap } from './route-map.js';
 import { assertEventCommitmentRecords } from './event-commitments.js';
 import { assertEventCheckResult } from './event-checks.js';
 
-export const SHANHAI_SAVE_KEY = 'suishi-shanhai-run-v2';
-export const SHANHAI_BUILD_KEY = 'suishi-shanhai-build-v2';
+export const SHANHAI_SAVE_KEY = 'suishi-shanhai-run-v2-journey';
+export const SHANHAI_BUILD_KEY = 'suishi-shanhai-build-v2-journey';
 export const SAVE_KEY = SHANHAI_SAVE_KEY;
 const SHANHAI_CONTENT_VERSION = 'shanhai-content-0.2';
 
@@ -117,6 +117,16 @@ function assertLoadoutShapeWithoutContent(loadout: unknown): void {
     }
     artifactIds.add(stack.id);
   }
+  if (loadout.journey !== undefined &&
+    (!isObject(loadout.journey) ||
+      !nonNegative(loadout.journey.coins) ||
+      !nonNegative(loadout.journey.coinsSpent) ||
+      !Number.isInteger(loadout.journey.eliteWins) || loadout.journey.eliteWins < 0 ||
+      !Number.isInteger(loadout.journey.bossWins) || loadout.journey.bossWins < 0 ||
+      !Number.isInteger(loadout.journey.artifactKinds) || loadout.journey.artifactKinds < 0 ||
+      !Number.isInteger(loadout.journey.knownMethods) || loadout.journey.knownMethods < 0)) {
+    throw new Error('Invalid saved journey context');
+  }
   if (loadout.baseStats !== undefined &&
     (!isObject(loadout.baseStats) ||
       !['attack', 'defense', 'max_hp', 'crit_rate', 'speed'].every(key => finite(loadout.baseStats[key])) ||
@@ -142,6 +152,15 @@ function assertStateShapeWithoutContent(state: RunState): void {
   if (!Number.isInteger(state.n) || state.n < 0 || state.n > 4) {
     throw new Error('Invalid Shanhai realm');
   }
+  if (state.buildVersion !== 1) {
+    throw new Error('Invalid saved build version');
+  }
+  if (!isObject(state.progress) ||
+    !nonNegative(state.progress.coinsSpent) ||
+    !Number.isInteger(state.progress.eliteWins) || state.progress.eliteWins < 0 ||
+    !Number.isInteger(state.progress.bossWins) || state.progress.bossWins < 0) {
+    throw new Error('Invalid saved run progress');
+  }
   if (typeof state.method !== 'string' || !Array.isArray(state.ownedMethods) ||
     state.ownedMethods.some(id => typeof id !== 'string') ||
     new Set(state.ownedMethods).size !== state.ownedMethods.length ||
@@ -155,12 +174,10 @@ function assertStateShapeWithoutContent(state: RunState): void {
       throw new Error('Invalid Shanhai talents');
     }
   }
-  if (!isObject(state.equipment) ||
-    (state.equipment.core !== null && typeof state.equipment.core !== 'string') ||
-    !Array.isArray(state.equipment.support) || state.equipment.support.length > 3 ||
-    state.equipment.support.some(id => typeof id !== 'string') ||
-    new Set(state.equipment.support).size !== state.equipment.support.length ||
-    (state.equipment.core !== null && state.equipment.support.includes(state.equipment.core))) {
+  if (!isObject(state.equipment) || !Array.isArray(state.equipment.slots) ||
+    state.equipment.slots.length > 4 ||
+    state.equipment.slots.some(id => typeof id !== 'string') ||
+    new Set(state.equipment.slots).size !== state.equipment.slots.length) {
     throw new Error('Invalid Shanhai equipment');
   }
   if (!Number.isInteger(state.talentDraftGeneration) || state.talentDraftGeneration < 0 ||
@@ -201,8 +218,7 @@ function assertStateShapeWithoutContent(state: RunState): void {
     }
     artifactIds.add(stack.id);
   }
-  if ((state.equipment.core !== null && !artifactIds.has(state.equipment.core)) ||
-    state.equipment.support.some(id => !artifactIds.has(id))) {
+  if (state.equipment.slots.some(id => !artifactIds.has(id))) {
     throw new Error('Invalid Shanhai equipment ownership');
   }
   if (!Array.isArray(state.history) || state.history.some(entry =>
@@ -272,6 +288,25 @@ function assertStateShapeWithoutContent(state: RunState): void {
     assertLoadoutShapeWithoutContent(state.battleInput.player);
     assertLoadoutShapeWithoutContent(state.battleInput.enemy);
     if (state.battleInput.rules !== undefined && state.battleInput.rules !== 'awakening-v1') throw new Error('Invalid saved battle rules');
+  }
+  if (state.phase === 'battle') {
+    const journey = state.battleInput?.player?.journey;
+    const expected = {
+      coins: state.coins,
+      coinsSpent: state.progress.coinsSpent,
+      eliteWins: state.progress.eliteWins,
+      bossWins: state.progress.bossWins,
+      artifactKinds: new Set(state.artifacts.map(stack => stack.id)).size,
+      knownMethods: new Set(state.ownedMethods).size,
+    };
+    if (!journey || journey.coins !== expected.coins ||
+      journey.coinsSpent !== expected.coinsSpent ||
+      journey.eliteWins !== expected.eliteWins ||
+      journey.bossWins !== expected.bossWins ||
+      journey.artifactKinds !== expected.artifactKinds ||
+      journey.knownMethods !== expected.knownMethods) {
+      throw new Error('Frozen battle journey context mismatch');
+    }
   }
   if (state.battle !== undefined) validateBattleResult(state.battle);
   if (state._talentQueue !== undefined && (!Array.isArray(state._talentQueue) ||

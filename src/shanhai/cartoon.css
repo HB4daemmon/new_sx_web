@@ -4571,10 +4571,6 @@ button:disabled {
   background: var(--panel);
 }
 
-.game-page .equipment-slot.slot-core {
-  border-color: var(--gold);
-}
-
 .game-page .equipment-slot-head {
   display: flex;
   min-width: 0;
@@ -4813,21 +4809,6 @@ button:disabled {
   line-height: 1.35;
 }
 
-.game-page .reward-equipment-role {
-  display: inline-flex;
-  min-height: 24px;
-  flex: 0 1 auto;
-  align-items: center;
-  padding: 2px 6px;
-  border: 1px solid var(--line-strong);
-  color: var(--ink);
-  background: var(--panel);
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.25;
-  white-space: nowrap;
-}
-
 .game-page .reward-awakening {
   color: var(--gold);
   font-size: 12px;
@@ -4858,11 +4839,6 @@ button:disabled {
 
   .game-page .reward-card .stack-note {
     margin-left: auto;
-  }
-
-  .game-page .reward-equipment-role {
-    min-height: 22px;
-    font-size: 12px;
   }
 
   .game-page .reward-inspect {
@@ -4911,16 +4887,6 @@ button:disabled {
   }
 }
 
-.game-page .reward-equipment-role.core {
-  border-color: var(--gold);
-  color: #704b17;
-}
-
-.game-page .reward-equipment-role.support {
-  border-color: var(--jade);
-  color: #315e52;
-}
-
 .game-page .reward-equipment-status {
   display: flex;
   min-height: 34px;
@@ -4964,6 +4930,7 @@ button:disabled {
 .game-page .talent-candidate.is-shared {
   border-color: var(--gold);
   background: #f4ecda;
+  box-shadow: inset 0 0 0 1px #96703a22;
 }
 
 .game-page .talent-candidate-head {
@@ -4982,7 +4949,92 @@ button:disabled {
 }
 
 .game-page .talent-candidate.is-shared .talent-candidate-head > span {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  border: 1px solid #96703a66;
   color: var(--gold-bright);
+  background: #eadfc8;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.game-page .talent-candidate.is-shared .talent-candidate-head > span .icon {
+  flex: 0 0 auto;
+  color: var(--gold);
+}
+
+.game-page .talent-candidate > .talent-build-current,
+.game-page .talent-dialog .talent-build-current,
+.game-page .talent-ledger .talent-build-current {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 4px 7px;
+  margin: 0;
+  padding: 5px 7px;
+  border-left: 2px solid var(--gold);
+  color: var(--ink);
+  background: #eee6d5;
+  font-size: 14px !important;
+  line-height: 1.4;
+}
+
+.game-page .talent-build-current b {
+  color: var(--gold-bright);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.game-page .talent-build-current > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.game-page .talent-candidate.is-shared .talent-build-current {
+  border-left-color: var(--gold);
+  background: #eee6d5;
+}
+
+.game-page .talent-ledger article.is-shared {
+  padding-left: 8px;
+  border-left: 2px solid var(--gold);
+}
+
+.game-page .talent-ledger .shared-talent-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 6px;
+  color: var(--gold-bright);
+  font: 14px/1.3 var(--sans);
+  vertical-align: middle;
+}
+
+.game-page .talent-ledger .shared-talent-mark .icon {
+  color: var(--gold);
+}
+
+.game-page .elite-challenge-dialog > p:not(.eyebrow) {
+  color: var(--ink);
+  font-size: 15px !important;
+  line-height: 1.6;
+}
+
+.game-page .elite-challenge-dialog .button,
+.game-page .invite-elite {
+  min-width: 132px;
+  min-height: 44px;
+  color: #8e3129;
+  border-color: #af453a;
+  font-size: 14px !important;
+}
+
+.game-page .invite-elite:hover:not(:disabled) {
+  color: #7c251f;
 }
 
 .game-page .talent-candidate-inspect {
@@ -4996,13 +5048,31 @@ button:disabled {
 .game-page .talent-candidate > p {
   margin: 0;
   color: var(--ink);
-  font-size: 15px;
+  font-size: 15px !important;
   line-height: 1.55;
   overflow-wrap: anywhere;
 }
 
+.game-page .talent-candidate :is(.talent-candidate-inspect, .talent-candidate-select) {
+  font-size: 14px !important;
+}
+
 .game-page .talent-candidate-select {
   min-height: 44px;
+}
+
+.game-page .talent-dialog > p:not(.eyebrow) {
+  font-size: 14px !important;
+  line-height: 1.5;
+}
+
+.game-page .talent-dialog .effect-list p {
+  font-size: 14px !important;
+  line-height: 1.45;
+}
+
+.game-page .talent-dialog .dialog-actions .button {
+  font-size: 14px !important;
 }
 
 .game-page .talent-tree-disclosure {
@@ -5094,10 +5164,6 @@ button:disabled {
   .game-page .equipment-slot-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .game-page .equipment-slot.slot-core {
-    grid-column: 1 / -1;
-  }
 }
 
 @media (max-width: 600px) {
@@ -5167,6 +5233,45 @@ button:disabled {
 
   .game-page .talent-candidate {
     padding: 10px;
+  }
+
+  .game-page .talent-candidate.is-shared {
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .game-page .talent-candidate.is-shared .talent-candidate-head > span {
+    min-height: 22px;
+    padding: 2px 6px;
+    font-size: 14px;
+  }
+
+  .game-page .talent-candidate > .talent-build-current,
+  .game-page .talent-dialog .talent-build-current,
+  .game-page .talent-ledger .talent-build-current {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 3px 6px;
+    padding: 4px 6px;
+    font-size: 14px !important;
+  }
+
+  .game-page .phase-preview .stage-actions.has-elite-challenge {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .game-page .phase-preview .stage-actions.has-elite-challenge > .button {
+    min-width: 0;
+    width: 100%;
+    padding: 6px;
+  }
+
+  .game-page .phase-preview .stage-actions.has-elite-challenge [data-action="fight"] {
+    grid-column: 1 / -1;
+  }
+
+  .game-page .invite-elite {
+    min-width: 0;
   }
 
   .game-page .route-segment-status {

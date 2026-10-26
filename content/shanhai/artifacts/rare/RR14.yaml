@@ -4,8 +4,8 @@ kind: artifact
 id: RR14
 name: 封元镜
 status: design_target
-summary: 防御 +8；每场战斗开始时削减敌方最多30点怒气；占一个支援位（共3席）
-description: 镜面封住对手入战时的气机，使其在战斗开始时失去怒气。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
+summary: 防御 +8；每场战斗开始时削减敌方最多30点怒气；支援定位
+description: 镜面封住对手入战时的气机，使其在战斗开始时失去怒气。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [defense, rage_drain, battle_start, rare]
 source:
   basis: original

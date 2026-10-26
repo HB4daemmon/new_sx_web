@@ -516,7 +516,7 @@ test('travel artifacts use their authored stack and max-hp parameters', () => {
     { id: 'RC18', stacks: 3 },
     { id: 'RR06', stacks: 1 },
   ];
-  game.state.equipment = { core: null, support: ['RC16', 'RC17', 'RC18'] };
+  game.state.equipment = { slots: ['RC16', 'RC17', 'RC18'] };
   const rest = routeToNode(game, node => node.type === 'R');
   assert.equal(rest.depth, routeLayoutForAct(game.actContent, game.state.seed).restDepth);
   game.state.hp = 100;
@@ -610,7 +610,7 @@ test('malformed serialized internals and outer save headers are rejected', () =>
     contributions: [],
   };
   store.setItem(SHANHAI_SAVE_KEY, JSON.stringify(badRoundLimit));
-  assert.throws(() => loadRun(content, store), /battle input|4096/);
+  assert.throws(() => loadRun(content, store), /battle input|selected encounter|4096/);
 
   assert.throws(() => serializeRun({ ...game.state, firstStrike: Number.NaN }), /first strike|run resources|Non-finite/);
 });

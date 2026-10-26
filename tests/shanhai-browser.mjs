@@ -41,7 +41,7 @@ function playwrightModule() {
 const { chromium } = playwrightModule();
 const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH ||
   '/home/ubuntu/.cache/ms-playwright/chromium-1228/chrome-linux/chrome';
-const replayKey = 'suishi-shanhai-replay-v2';
+const replayKey = 'suishi-shanhai-replay-v2-journey';
 const checks = [];
 
 async function check(name, fn) {
@@ -267,18 +267,17 @@ async function forceMaxDraw(page) {
     if (!game?.state.battle || !game.state.battleInput) throw new Error('Max-draw fixture has no battle');
     const input = game.state.battleInput;
     for (const loadout of [input.player, input.enemy]) {
-      loadout.method = 'RKF01';
       loadout.n = 0;
       loadout.talents = [];
       loadout.artifacts = [];
       loadout.baseStats = {
         attack: 0,
         defense: 100000,
-        max_hp: 100000,
+        max_hp: 1e12,
         crit_rate: 0,
         speed: 1,
       };
-      loadout.hp = 100000;
+      loadout.hp = 1e12;
     }
     input.roundLimit = 4096;
     game.state.battle = simulateBattle(content, input.player, input.enemy, input.seed, { roundLimit: input.roundLimit });
@@ -328,7 +327,7 @@ async function forceMissingArtifactEvent(page) {
     state.phase = 'event';
     state.eventOption = undefined;
     state.artifacts = [];
-    state.equipment = { core: null, support: [] };
+    state.equipment = { slots: [] };
     state.flags = {};
     state._pendingEvent = undefined;
     state._eventSettled = false;
@@ -352,13 +351,17 @@ async function forceZeroContribution(page) {
     if (!game.state.artifacts.some(stack => stack.id === 'RC07')) {
       game.state.artifacts.push({ id: 'RC07', stacks: 1 });
     }
-    if (!game.state.equipment.support.includes('RC07')) {
-      if (game.state.equipment.support.length >= 3) {
-        throw new Error('Contribution fixture has no free support slot for RC07');
+    if (!game.state.equipment.slots.includes('RC07')) {
+      if (game.state.equipment.slots.length >= 4) {
+        throw new Error('Contribution fixture has no free equipment slot for RC07');
       }
-      game.state.equipment.support.push('RC07');
+      game.state.equipment.slots.push('RC07');
     }
     const input = game.state.battleInput;
+    input.player.journey = {
+      ...input.player.journey,
+      artifactKinds: new Set(game.state.artifacts.map(stack => stack.id)).size,
+    };
     input.roundLimit = 1;
     input.player.n = 3;
     input.player.talents = ['RKF01-J3-B'];

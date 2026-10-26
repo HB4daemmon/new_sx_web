@@ -4,8 +4,8 @@ kind: artifact
 id: RL02
 name: 薪火宝炉
 status: design_target
-summary: 攻击 +12、防御 +6；燃烧造成气血损失后按比例治疗；占唯一核心位，最多另带3件支援
-description: 自身施加的燃烧造成气血损失后，按损失量回复气血；燃烧伤害照常结算。装备后占用唯一核心位，可另带最多3件支援；未装备时不提供属性或效果。
+summary: 攻击 +12、防御 +6；燃烧造成气血损失后按比例治疗；核心定位，可与最多3件其他法宝一同装备
+description: 自身施加的燃烧造成气血损失后，按损失量回复气血；燃烧伤害照常结算。装备后，核心定位仅作描述，可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [attack, defense, burn, heal, legendary]
 source:
   basis: original

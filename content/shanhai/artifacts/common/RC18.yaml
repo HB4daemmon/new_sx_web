@@ -4,8 +4,8 @@ kind: artifact
 id: RC18
 name: 聚财钱
 status: design_target
-summary: 防御 +2；完成节点后额外获得2枚灵石；占一个支援位（共3席）
-description: 钱面刻着聚拢财气的纹路，沿途积攒可实际使用的灵石。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
+summary: 防御 +2；完成节点后额外获得2枚灵石；支援定位
+description: 钱面刻着聚拢财气的纹路，沿途积攒可实际使用的灵石。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [defense, travel, coins, node]
 source:
   basis: original

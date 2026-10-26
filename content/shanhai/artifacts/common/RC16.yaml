@@ -4,8 +4,8 @@ kind: artifact
 id: RC16
 name: 采气袋
 status: design_target
-summary: 攻击 +2；完成节点后额外获得1点修为；占一个支援位（共3席）
-description: 小袋收纳沿途灵息，兼顾攻击与行旅中的修为积累。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
+summary: 攻击 +2；完成节点后额外获得1点修为；支援定位
+description: 小袋收纳沿途灵息，兼顾攻击与行旅中的修为积累。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [attack, travel, xp, node]
 source:
   basis: original

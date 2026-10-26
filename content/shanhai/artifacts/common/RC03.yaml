@@ -4,8 +4,8 @@ kind: artifact
 id: RC03
 name: 玄铁甲
 status: design_target
-summary: 防御 +5；占一个支援位（共3席）
-description: 玄铁片层叠成甲，直接提高承受攻击时的防御。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
+summary: 防御 +5；支援定位
+description: 玄铁片层叠成甲，直接提高承受攻击时的防御。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [defense, combat, durable]
 source:
   basis: original

@@ -16,6 +16,8 @@ import {
   METHOD_RARITIES,
   METHOD_P_BY_TIER,
   SCHEMA_VERSION,
+  SHARED_INSIGHT_BUILD_RULES,
+  SHARED_INSIGHT_IDS,
 } from '../src/constants.mjs'
 import { loadContent } from '../src/loader.mjs'
 import {
@@ -59,6 +61,27 @@ function effect(id) {
   }
 }
 
+function sharedInsightEffect(id) {
+  const rule = SHARED_INSIGHT_BUILD_RULES[id]
+  if (!rule) {
+    return {
+      ...effect(`${id}-ATTACK`),
+      params: { stat: 'attack', mode: 'percent_add', amount: 0.35 },
+      limit: { scope: 'permanent', count: 1 },
+    }
+  }
+  const params = Object.fromEntries(Object.entries(rule.params).map(([key, range]) => [
+    key,
+    range.integer ? range.min : range.min + (range.max - range.min) / 2,
+  ]))
+  return {
+    ...effect(`${id}-BUILD`),
+    operation: 'modify_effect',
+    params: { build: rule.kind, ...params },
+    limit: { scope: 'permanent', count: 1 },
+  }
+}
+
 function makeEntities() {
   const entities = new Map()
   const rules = common('RULES', 'rules', '规则')
@@ -77,19 +100,18 @@ function makeEntities() {
     economy: { initial_coins: 20 },
     pools: { common_artifact: { kind: 'artifact', rarity: 'common' } },
     calibration: { damage_and_status_values: 'fixture' },
-      insights: Array.from({ length: 4 }, (_, index) => ['A', 'B', 'C'].map((branch) => ({
-        id: `V2-J${index + 1}-${branch}`,
-        tier: index + 1,
-        branch,
-        name: '共享天赋',
-        quick: '测试共享效果',
-        category: 'enhance',
-        effects: [{
-          ...effect(`V2-J${index + 1}-${branch}-STAT`),
-          params: { stat: 'attack', mode: 'add', amount: 1 },
-          limit: { scope: 'permanent', count: 1 },
-        }],
-      }))).flat(),
+      insights: SHARED_INSIGHT_IDS.map((id) => {
+        const [, tier, branch] = id.match(/^V2-J([1-4])-([A-F])$/)
+        return {
+          id,
+          tier: Number(tier),
+          branch,
+          name: '共享天赋',
+          quick: '测试共享效果',
+          category: 'enhance',
+          effects: [sharedInsightEffect(id)],
+        }
+      }),
   })
   entities.set('RULES', rules)
 
@@ -512,10 +534,11 @@ test('V2 roles, core rules, and shared insight sources/effects are strict', asyn
 
   const rules = structuredClone(fixture.entities.get('RULES'))
   rules.insights[0].id = 'RKF01-J1-A'
-  rules.insights[1].tier = 1
-  rules.insights[2].effects[0].params.amount = Number.NaN
+  rules.insights[1].tier = 2
+  rules.insights[2].effects[0].params.speed_bonus = Number.NaN
   rules.insights[3].effects[0].params.hidden_bonus = 1
   rules.insights[4].effects[0].surprise = true
+  rules.insights[5].effects[0].params.build = 'unrestricted'
   await rewriteEntity(fixture, 'RULES', rules)
 
   const report = await reportFor(fixture)
@@ -525,9 +548,25 @@ test('V2 roles, core rules, and shared insight sources/effects are strict', asyn
   assert.ok(report.errors.some((error) => error.code === 'insight-source'))
   assert.ok(report.errors.some((error) => error.code === 'insight-effect-params'))
   assert.ok(report.errors.some((error) => error.code === 'insight-effect-fields'))
+  assert.ok(report.errors.some((error) => error.code === 'insight-effect-build'))
 })
 
-test('enemy equipment enforces one core and three support slots', async (t) => {
+test('shared build effects accept the restricted schema and reject out-of-range or unknown params', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  let report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map((error) => error.message).join('\n'))
+
+  const rules = structuredClone(fixture.entities.get('RULES'))
+  rules.insights[0].effects[0].params.scale = 5.1
+  rules.insights[0].effects[0].params.hidden = 1
+  await rewriteEntity(fixture, 'RULES', rules)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'number-range'))
+  assert.ok(report.errors.some((error) => error.code === 'insight-effect-params'))
+})
+
+test('enemy equipment allows any role mix up to four total artifacts', async (t) => {
   const fixture = await writeFixture()
   t.after(() => rm(fixture.root, { recursive: true, force: true }))
   const enemy = structuredClone(fixture.entities.get('EN-A1-C1'))
@@ -536,23 +575,15 @@ test('enemy equipment enforces one core and three support slots', async (t) => {
     { id: 'RC10', stacks: 1 },
     { id: 'RC01', stacks: 1 },
     { id: 'RC02', stacks: 1 },
-    { id: 'RC03', stacks: 1 },
-    { id: 'RC04', stacks: 1 },
   ]
   await rewriteEntity(fixture, enemy.id, enemy)
   let report = await reportFor(fixture)
-  assert.ok(report.errors.some((error) => error.code === 'enemy-equipment-core'))
-  assert.ok(report.errors.some((error) => error.code === 'enemy-equipment-support'))
+  assert.equal(report.ok, true, report.errors.map((error) => error.message).join('\n'))
 
-  enemy.artifacts = [
-    { id: 'RC09', stacks: 2 },
-    { id: 'RC01', stacks: 1 },
-    { id: 'RC02', stacks: 1 },
-    { id: 'RC03', stacks: 1 },
-  ]
+  enemy.artifacts.push({ id: 'RC03', stacks: 1 })
   await rewriteEntity(fixture, enemy.id, enemy)
   report = await reportFor(fixture)
-  assert.equal(report.ok, true, report.errors.map((error) => error.message).join('\n'))
+  assert.ok(report.errors.some((error) => error.code === 'enemy-equipment-count'))
 })
 
 test('missing files are errors and are not silently skipped', async (t) => {

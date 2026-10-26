@@ -137,13 +137,36 @@ category: enhance, effects: [...]}`。
 
 ### 共享突破天赋
 
-`rules.insights` 是12项跨功法共享天赋，每阶三项，ID 固定为
-`V2-J1-A` 至 `V2-J4-C`，字段与功法天赋相同：
+`rules.insights` 是15项跨功法共享天赋：首阶六项，第二至第四阶各三项，ID 固定为
+`V2-J1-A` 至 `V2-J1-F`、`V2-J2-A` 至 `V2-J4-C`，字段与功法天赋相同：
 `{id, tier, branch, name, quick, category, effects}`。候选可给任何功法使用；
-每次突破仍只选该阶的一项。共享效果必须来自下列可执行组合：
-`always/modify_stat`、`battle_start/shield`、`round_end/rage_gain`、
-`action_end/heal` 或 `action_end/shield`。使用标准效果 ID 与字段，不写任意脚本、
-未知字段或功法专属条件；效果目标为自身，不能替代功法本地效果。
+每个角色的首破从一阶六项中按种子固定展示三项；后续突破将本阶一项功法天赋与两项共享天赋并列展示。
+候选冻结，不因查看、重读或切换功法重抽。
+
+14项新共享机制必须使用唯一效果结构：`trigger: always`、`operation: modify_effect`、
+`target: self`、`limit: {scope: permanent, count: 1}`，并将`requires/consumes/replaces`
+留空数组。此limit只表示安装一条规则，不限制kind内部的命中或行动触发次数；
+参数严格为`{build: <kind>, ...}`，每种kind只能使用下表列出的字段：
+
+| ID | `build` | 参数与取值范围 |
+| --- | --- | --- |
+| V2-J1-A | `wealth_damage` | `scale: 0..5`、`half_saturation: 1..10000` |
+| V2-J1-B | `hunter` | `base_attack/base_defense/elite_attack/elite_defense/boss_attack/boss_defense: 0..100` |
+| V2-J1-C | `speed_damage` | `speed_bonus: 0..100`、`max_multiplier: 1..5` |
+| V2-J1-D | `carapace` | `defense_per_hit: 0..100`、`reflect_ratio: 0..1` |
+| V2-J1-E | `spending_power` | `base_attack: 0..100`、`attack_per_coin: 0..1` |
+| V2-J1-F | `collection_damage` | `base_bonus/per_kind: 0..1` |
+| V2-J2-A | `bounty` | `attack_bonus: 0..100`、`normal_coins/elite_coins/boss_coins: 0..1000整数` |
+| V2-J2-B | `shop_discount` | `ratio: 0..1` |
+| V2-J2-C | `basic_split` | `extra_segments: 1..10整数`、`segment_ratio: 0..1` |
+| V2-J3-A | `hit_rage` | `amount: 0..100整数` |
+| V2-J3-B | `rage_echo` | `ratio: 0..1` |
+| V2-J3-C | `veteran_shield` | `base_ratio/elite_ratio/boss_ratio: 0..1` |
+| V2-J4-A | `wealth_shield` | `base_shield: 0..10000`、`shield_per_coin: 0..100` |
+| V2-J4-B | `trophy_damage` | `base_bonus/elite_bonus/boss_bonus: 0..1` |
+
+仅V2-J4-C保留既有`always/modify_stat`：自身攻击`percent_add: 0.35`。效果ID必须为
+天赋ID加`-BUILD`（J4-C为`-ATTACK`）；不得添加参数、效果字段或功法专属条件。
 
 ### 法宝
 
@@ -151,16 +174,17 @@ category: enhance, effects: [...]}`。
 普通核心法宝另有受限枚举的 `core_rule`。
 `attributes: {flat: {attack: 6}, percent: {}}`，只允许五维
 `attack/defense/max_hp/crit_rate/speed`；暴击率放flat且按比例加。
-普通按已定3或5层，稀有/传奇1层。装备槽位固定为一个核心位和三个支援位：
-`RC09-RC12`、`RC14-RC15`、`RL01-RL05` 为 `equipment_role: core`，其余均为
-`support`。层数不额外占槽，但获得与持有层数仍受法宝 `max_stacks` 约束。
+普通按已定3或5层，稀有/传奇1层。每局最多装备四件互不重复的法宝，不按
+`equipment_role`拆分容量；`core/support`仅是描述类型：`RC09-RC12`、`RC14-RC15`、
+`RL01-RL05` 为 `core`，其余为`support`。层数不额外占装备件数，但获得与持有层数仍受法宝
+`max_stacks` 约束。
 库存仍记录在 `state.artifacts`；只有已装备的法宝层数进入属性、战斗配装和节点行旅快照，
-未装备法宝没有属性或行旅收益。兼容槽位空缺时新取得的法宝自动装备；替换或卸下不治疗、
+未装备法宝没有属性或行旅收益。装备容量未满时，新取得的法宝自动装备；替换或卸下不治疗、
 不刷新节点、不重抽遭遇。地图、奖励、商店、休整和幕间可调整，事件、斗法及战前预览中不可调整。
-法宝获取机会与装备槽互不替代；满槽可保留库存中的法宝，但不会使其生效。
-核心/支援槽有真实机会成本；可保留纯属性支援法宝，不要越槽，也不要在已定 A/J/B 预算外补免费属性。
-核心法宝的玩家摘要与说明必须讲明能力、代价与槽位，不把 `core_rule` 再复制成普通 `effects`。
-只有已装备核心的独立规则生效，参数不乘法宝叠层数。六件普通核心规则如下：
+法宝获取机会与装备容量互不替代；装备已满时可保留库存中的未装备法宝，但不会使其生效。
+法宝配装仍受总件数限制；纯属性与机制法宝自由组合，不要在已定 A/J/B 预算外补免费属性。
+核心定位法宝的玩家摘要与说明必须讲明能力、代价与定位，不把 `core_rule` 再复制成普通 `effects`。
+只有装备对应法宝时，其独立规则生效，参数不乘法宝叠层数。六件普通核心规则如下：
 
 | 法宝 | 规则 | 参数与取舍 |
 | --- | --- | --- |
@@ -289,8 +313,8 @@ RE001-C、RE002-B 的 `legacy_commitment` 与 `legacy_story_echo` 仅供旧存�
 preview/phases/reward_profile`。
 `tier: normal/elite/boss/final`，`method` 为真实RKF ID，
 `talents` 为完整ID数组，每阶最多一项且不越n；`artifacts: [{id: RC01, stacks: 1}]`。
-`stats` 是装备和功法修正前的五维基础值；敌方法宝同样必须符合槽位，
-最多1件核心与3件支援；计算预览时再加合法已装备法宝，禁止双计。
+`stats` 是装备和功法修正前的五维基础值；敌方最多装备4件互不重复的法宝，
+不按`equipment_role`拆分容量；计算预览时再加已装备法宝，禁止双计。
 `pressure` 为1-3个标签，`counterplay` 至少两条具体战前选择。
 `phases` 可为空，非空必须有现有卡面来源；不能私造隐藏倍率或流派免疫。
 `reward_profile` 为`C/L/B/F`；掉落由节点决定，不掉敌人整套装备。

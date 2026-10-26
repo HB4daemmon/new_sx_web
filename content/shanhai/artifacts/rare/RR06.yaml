@@ -4,8 +4,8 @@ kind: artifact
 id: RR06
 name: 长明灯
 status: design_target
-summary: 最大气血 +30；完成战斗节点后恢复最大气血的8%；占一个支援位（共3席）
-description: 每完成一次普通战、精英战或首领战节点，恢复最大气血的8%。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
+summary: 最大气血 +30；完成战斗节点后恢复最大气血的8%；支援定位
+description: 每完成一次普通战、精英战或首领战节点，恢复最大气血的8%。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [max_hp, travel, heal, battle_node, rare]
 source:
   basis: original

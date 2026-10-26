@@ -4,8 +4,8 @@ kind: artifact
 id: RC06
 name: 长生结
 status: design_target
-summary: 最大气血 +5%；占一个支援位（共3席）
-description: 结绳的回环象征生机延续，使最大气血按比例增加。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
+summary: 最大气血 +5%；支援定位
+description: 结绳的回环象征生机延续，使最大气血按比例增加。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [max_hp, percent, combat]
 source:
   basis: original

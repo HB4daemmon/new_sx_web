@@ -4,8 +4,8 @@ kind: artifact
 id: RR03
 name: 毒牙钉
 status: design_target
-summary: 攻击 +8；普攻首次命中后施加1层中毒；占一个支援位（共3席）
-description: 普攻首次命中后，施加1层中毒。装备后占用1个支援位（共3席）；未装备时不提供属性或效果。
+summary: 攻击 +8；普攻首次命中后施加1层中毒；支援定位
+description: 普攻首次命中后，施加1层中毒。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [attack, poison, dot, basic, rare]
 source:
   basis: original

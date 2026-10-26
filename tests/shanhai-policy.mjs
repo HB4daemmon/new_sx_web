@@ -7,7 +7,7 @@ const BRANCHES = {
   RKF09: ['B', 'C', 'C', 'C'], RKF10: ['A', 'C', 'B', 'A'],
 };
 
-const CORE_VALUE = Object.freeze({
+const ARTIFACT_VALUE = Object.freeze({
   RC09: 30,
   RC10: 18,
   RC11: 36,
@@ -24,7 +24,7 @@ const CORE_VALUE = Object.freeze({
 const EQUIPMENT_PHASES = new Set(['map', 'reward', 'shop', 'rest', 'transition']);
 
 export function artifactScore(game, id) {
-  const entity = game.content.byId[id], { method, act } = game.state;
+  const entity = artifactEntity(game, id), { method, act } = game.state;
   if (!entity) return 0;
   const flat = entity.attributes.flat, percent = entity.attributes.percent;
   const stackCount = Math.max(1, game.state.artifacts?.find(stack => stack.id === id)?.stacks ?? 1);
@@ -35,7 +35,7 @@ export function artifactScore(game, id) {
     (percent.attack ?? 0) * baseStats.attack * stackCount +
     (percent.defense ?? 0) * baseStats.defense * stackCount +
     (percent.max_hp ?? 0) * baseStats.max_hp * 0.13 * stackCount;
-  if (entity.equipment_role === 'core') score += CORE_VALUE[id] ?? 18;
+  score += ARTIFACT_VALUE[id] ?? 0;
   if (id === 'RC17') score += 32 - act * 4;
   if (id === 'RC18') score += 25 - act * 4;
   if (id === 'RC16') score += 10 - act;
@@ -61,50 +61,73 @@ export function equipmentCommand(game) {
 
   const inventory = (game.state.artifacts ?? [])
     .filter(stack => typeof stack?.id === 'string' && stack.stacks > 0);
-  const equipment = game.state.equipment ?? { core: null, support: [] };
-  const core = equipment.core ?? null;
-  const support = equipment.support ?? [];
-  const equipped = new Set([core, ...support].filter(Boolean));
-  const candidates = role => inventory
-    .map(stack => ({ id: stack.id, role: artifactEntity(game, stack.id)?.equipment_role }))
-    .filter(item => item.role === role && !equipped.has(item.id))
+  const slots = game.state.equipment?.slots ?? [];
+  const equipped = new Set(slots);
+  const candidates = inventory
+    .map(stack => stack.id)
+    .filter(id => !equipped.has(id))
     .sort((left, right) =>
-      artifactScore(game, right.id) - artifactScore(game, left.id) ||
-      left.id.localeCompare(right.id));
+      artifactScore(game, right) - artifactScore(game, left) ||
+      left.localeCompare(right));
 
-  if (!core) {
-    const best = candidates('core')[0];
-    if (best) return { type: 'equip', id: best.id };
-  }
-  if (support.length < 3) {
-    const best = candidates('support')[0];
-    if (best) return { type: 'equip', id: best.id };
+  if (slots.length < 4) {
+    const best = candidates[0];
+    return best ? { type: 'equip', id: best } : null;
   }
 
-  const upgrades = [];
-  if (core) {
-    const currentScore = artifactScore(game, core);
-    for (const candidate of candidates('core')) {
-      const gain = artifactScore(game, candidate.id) - currentScore;
-      if (gain > 0.001) upgrades.push({ id: candidate.id, replace: core, gain });
-    }
-  }
-  if (support.length >= 3) {
-    const weakest = support
-      .map(id => ({ id, score: artifactScore(game, id) }))
-      .sort((left, right) => left.score - right.score || left.id.localeCompare(right.id))[0];
-    if (weakest) {
-      for (const candidate of candidates('support')) {
-        const gain = artifactScore(game, candidate.id) - weakest.score;
-        if (gain > 0.001) upgrades.push({ id: candidate.id, replace: weakest.id, gain });
-      }
-    }
-  }
+  const upgrades = candidates.flatMap(id => slots.flatMap(replace => {
+    const gain = artifactScore(game, id) - artifactScore(game, replace);
+    return gain > 0.001 ? [{ id, replace, gain }] : [];
+  }));
 
   upgrades.sort((left, right) =>
     right.gain - left.gain || left.id.localeCompare(right.id));
   const best = upgrades[0];
   return best ? { type: 'equip', id: best.id, replace: best.replace } : null;
+}
+
+function talentBuild(talent) {
+  const effects = Array.isArray(talent.effects) ? talent.effects : [];
+  return effects.find(effect => typeof effect?.params?.build === 'string')?.params?.build;
+}
+
+function sharedTalentScore(game, build) {
+  const state = game.state;
+  const inventoryKinds = new Set((state.artifacts ?? [])
+    .filter(stack => stack?.stacks > 0)
+    .map(stack => stack.id)).size;
+  const progress = state.progress ?? {};
+  const coins = Math.max(0, state.coins ?? 0);
+
+  switch (build) {
+    case 'wealth_damage': return 14 + 6 * Math.min(1, coins / 150);
+    case 'hunter': return 19;
+    case 'speed_damage': return 16;
+    case 'carapace': return 17;
+    case 'spending_power':
+      return 13 + 5 * Math.min(1, Math.max(0, progress.coinsSpent ?? 0) / 100);
+    case 'collection_damage': return 14 + Math.min(8, inventoryKinds * 1.25);
+    case 'bounty': return 16;
+    case 'shop_discount': return 11 + (coins >= 20 ? 2 : 0);
+    case 'basic_split': return 23;
+    case 'hit_rage': return 16;
+    case 'rage_echo': return 18;
+    case 'veteran_shield':
+      return 11 + Math.min(5, (progress.eliteWins ?? 0) + (progress.bossWins ?? 0));
+    case 'wealth_shield': return 12 + 5 * Math.min(1, coins / 100);
+    case 'trophy_damage':
+      return 14 + Math.min(8, (progress.eliteWins ?? 0) * 2 + (progress.bossWins ?? 0) * 3);
+    default:
+      return 12;
+  }
+}
+
+function talentScore(game, talent) {
+  const build = talentBuild(talent);
+  if (build) return sharedTalentScore(game, build);
+  if (talent.id === 'V2-J4-C') return 24;
+  const preferredBranch = BRANCHES[game.state.method]?.[(talent.tier ?? 1) - 1];
+  return talent.branch === preferredBranch ? 16 : 12;
 }
 
 export function amount(game, reward) {
@@ -139,7 +162,11 @@ export function nextCommand(game, preference = 'balanced') {
     case 'reward': return { type: 'reward', id: [...state.rewardCandidates].sort((a, b) => artifactScore(game, b) - artifactScore(game, a))[0] ?? null };
     case 'talent': {
       const talents = game.availableTalents();
-      return { type: 'talent', id: (talents.find(item => item.branch === BRANCHES[state.method][item.tier - 1]) ?? talents[0]).id };
+      const best = talents.slice().sort((left, right) =>
+        talentScore(game, right) - talentScore(game, left) ||
+        left.id.localeCompare(right.id))[0];
+      if (!best) throw new Error('No available talents');
+      return { type: 'talent', id: best.id };
     }
     case 'event': {
       const candidates = game.content.byId[game.node.id].options.filter(item => game.optionAvailability(item).available);

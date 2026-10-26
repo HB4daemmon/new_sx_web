@@ -1,4 +1,11 @@
 import { hashSeed, seededRandom } from './content.js';
+import {
+  journeyFacts,
+  selectedBuildMechanics,
+  staticBuildStats,
+  type BuildKind,
+  type BuildMechanic,
+} from './build-mechanics.js';
 import type {
   BattleFrame,
   BattleResult,
@@ -53,7 +60,8 @@ interface Fighter {
   method: AnyMap;
   talents: AnyMap[];
   artifacts: ArtifactRuntime[];
-  coreRule?: CoreRuleRuntime;
+  coreRules: CoreRuleRuntime[];
+  buildRules: BuildMechanic[];
   stats: Stats;
   hp: number;
   shield: number;
@@ -124,6 +132,10 @@ interface ActionContext {
   stop: boolean;
   dotRageRecorded: boolean;
   healRageRecorded: boolean;
+  isEcho?: boolean;
+  echoSource?: ActiveEffect;
+  powerScale?: number;
+  chargeLuckShieldOutput?: boolean;
 }
 
 interface HitResult {
@@ -315,7 +327,9 @@ function validateSharedInsight(talent: AnyMap): void {
     const supported = (effect.trigger === 'always' && effect.operation === 'modify_stat') ||
       (effect.trigger === 'battle_start' && effect.operation === 'shield') ||
       (effect.trigger === 'round_end' && effect.operation === 'rage_gain') ||
-      (effect.trigger === 'action_end' && (effect.operation === 'heal' || effect.operation === 'shield'));
+      (effect.trigger === 'action_end' && (effect.operation === 'heal' || effect.operation === 'shield')) ||
+      (effect.trigger === 'always' && effect.operation === 'modify_effect' &&
+        typeof effect.params?.build === 'string');
     if (!supported || effect.target !== 'self') {
       throw new Error(`Unsupported shared insight effect ${effect.id} (${talent.id})`);
     }
@@ -371,25 +385,24 @@ function coreRuleShape(artifact: AnyMap): { kind: string; params: AnyMap } | und
   return { kind: rule.kind, params };
 }
 
-function coreRuleForFighter(fighter: Fighter): CoreRuleRuntime | undefined {
-  const artifact = fighter.artifacts.find(item =>
-    item.entity.core_rule && item.entity.equipment_role === 'core');
-  if (!artifact) return undefined;
-  const shape = coreRuleShape(artifact.entity);
-  if (!shape) return undefined;
-  const effect = Object.assign({
-    id: artifact.entity.id,
-    trigger: 'core_rule',
-    operation: 'core_rule',
-    params: {},
-  }, {
-    ownerId: artifact.entity.id,
-    ownerName: artifact.entity.name,
-    ownerKind: 'artifact' as SourceKind,
-    ownerSide: fighter.side,
-    stacks: 1,
-  }) as ActiveEffect;
-  return { artifact, effect, ...shape };
+function coreRulesForFighter(fighter: Fighter): CoreRuleRuntime[] {
+  return fighter.artifacts.flatMap(artifact => {
+    const shape = coreRuleShape(artifact.entity);
+    if (!shape) return [];
+    const effect = Object.assign({
+      id: artifact.entity.id,
+      trigger: 'core_rule',
+      operation: 'core_rule',
+      params: {},
+    }, {
+      ownerId: artifact.entity.id,
+      ownerName: artifact.entity.name,
+      ownerKind: 'artifact' as SourceKind,
+      ownerSide: fighter.side,
+      stacks: 1,
+    }) as ActiveEffect;
+    return [{ artifact, effect, ...shape }];
+  });
 }
 
 function artifactEffectStacks(effect: Effect, stacks: number): number | undefined {
@@ -499,8 +512,7 @@ function validateLoadout(content: Content, loadout: Loadout): { method: AnyMap; 
   const uniqueGroups = new Set<string>();
   const counts = new Map<string, number>();
   const artifactIds = new Set<string>();
-  let coreSlots = 0;
-  let supportSlots = 0;
+  if (loadout.artifacts.length > 4) throw new Error('Loadout exceeds four artifact slots');
   for (const stack of loadout.artifacts) {
     if (!stack || typeof stack.id !== 'string' || !Number.isInteger(stack.stacks) || stack.stacks <= 0) {
       throw new Error(`Invalid artifact stack ${JSON.stringify(stack)}`);
@@ -509,12 +521,8 @@ function validateLoadout(content: Content, loadout: Loadout): { method: AnyMap; 
     if (artifactIds.has(artifact.id)) throw new Error(`Duplicate artifact ID ${artifact.id}`);
     artifactIds.add(artifact.id);
     const role = equipmentRole(artifact);
-    const coreRule = coreRuleShape(artifact);
-    if (coreRule && role !== 'core') throw new Error(`core_rule requires a core artifact (${artifact.id})`);
-    if (role === 'core') coreSlots += 1;
-    else supportSlots += 1;
-    if (coreSlots > 1) throw new Error('Loadout exceeds one core equipment slot');
-    if (supportSlots > 3) throw new Error('Loadout exceeds three support equipment slots');
+    void role;
+    coreRuleShape(artifact);
     const max = int(artifact.max_stacks, 1);
     if (stack.stacks > max) throw new Error(`Artifact ${stack.id} exceeds max stacks ${max}`);
     const count = (counts.get(stack.id) ?? 0) + stack.stacks;
@@ -583,7 +591,8 @@ export function calculateStats(content: Content, loadout: Loadout): Stats {
     for (const key of STAT_KEYS) flat[key] += n(artifact.entity.attributes?.flat?.[key], 0) * artifact.stacks;
     for (const key of STAT_KEYS) percent[key] += n(artifact.entity.attributes?.percent?.[key], 0) * artifact.stacks;
   }
-  for (const key of STAT_KEYS) stats[key] += flat[key];
+  const buildStats = staticBuildStats(content, loadout);
+  for (const key of STAT_KEYS) stats[key] += flat[key] + (buildStats[key] ?? 0);
   for (const key of STAT_KEYS) stats[key] *= 1 + percent[key];
   for (const effect of activeEffects(compiled.method, compiled.talents, compiled.artifacts)) {
     if (effect.ownerKind === 'artifact') continue;
@@ -657,8 +666,14 @@ function addContribution(
   ownerSide?: 'player' | 'enemy',
 ): void {
   if (!amount || !sourceBelongsToPlayer(runtime, owner, ownerSide)) return;
-  const id = typeof owner === 'string' ? owner : owner.ownerId;
-  const name = typeof owner === 'string' ? undefined : owner.ownerName;
+  const action = runtime.currentAction;
+  const echoOutput = action?.isEcho && action.echoSource &&
+    typeof owner !== 'string' && owner.ownerKind !== 'artifact' &&
+    owner.ownerSide === action.actor.side &&
+    (field === 'damage' || field === 'healing' || field === 'shield');
+  const attributed = echoOutput ? action.echoSource! : owner;
+  const id = typeof attributed === 'string' ? attributed : attributed.ownerId;
+  const name = typeof attributed === 'string' ? undefined : attributed.ownerName;
   const contribution = ensureContribution(runtime, id, name);
   contribution[field] = n(contribution[field], 0) + amount;
 }
@@ -704,6 +719,15 @@ function assignZeroContributionReasons(runtime: BattleRuntime): void {
       continue;
     }
     const effects = authoredSourceEffects(source);
+    if (effects.some(effect =>
+      ['hunter', 'spending_power', 'bounty'].includes(effect.params?.build))) {
+      contribution.reason = 'permanent attributes applied';
+      continue;
+    }
+    if (effects.some(effect => effect.params?.build === 'shop_discount')) {
+      contribution.reason = 'journey rule applied outside combat';
+      continue;
+    }
     if (hasAuthoredAttributes(source)) {
       contribution.reason = effects.length > 0
         ? 'permanent attributes applied; conditional effect not triggered'
@@ -977,9 +1001,18 @@ function fighterRuntimeEffects(fighter: Fighter): ActiveEffect[] {
       add(effect, artifact.entity.id, artifact.entity.name, 'artifact', artifact.stacks, true);
     }
   }
-  if (fighter.coreRule) result.push(fighter.coreRule.effect);
+  result.push(...fighter.coreRules.map(core => core.effect));
   fighter.runtimeEffects = result;
   return result;
+}
+
+function buildEffect(fighter: Fighter, mechanic: BuildMechanic): ActiveEffect | undefined {
+  return activeModifiers(fighter, 'modify_effect').find(effect =>
+    effect.ownerId === mechanic.id && effect.params?.build === mechanic.kind);
+}
+
+function mechanicsOf(fighter: Fighter, kind: BuildKind): BuildMechanic[] {
+  return fighter.buildRules.filter(mechanic => mechanic.kind === kind);
 }
 
 function staticRageCap(fighter: Fighter): number {
@@ -996,6 +1029,9 @@ function staticRageCap(fighter: Fighter): number {
 
 function dynamicStats(runtime: BattleRuntime, fighter: Fighter, target: Fighter, action: ActionContext | null): Stats {
   const stats = { ...fighter.stats };
+  for (const mechanic of mechanicsOf(fighter, 'carapace')) {
+    stats.defense += n(fighter.battleLayers[`carapace:${mechanic.id}`], 0);
+  }
   const weak = statusCount(fighter, 'weakness');
   stats.attack *= Math.max(0, 1 - weak * n(rules(runtime.content).statuses?.weakness?.reduction_per_stack, 0.05));
   stats.defense *= Math.max(0, 1 - statusCount(fighter, 'armor_break') * n(rules(runtime.content).statuses?.armor_break?.reduction_per_stack, 0.05));
@@ -1151,6 +1187,8 @@ function directSpec(runtime: BattleRuntime, action: ActionContext, base: ActiveE
   ratio: number;
   bonusNoCrit: number;
   segments: number;
+  segmentRatios: number[];
+  segmentBonusNoCrits: number[];
   canCrit: boolean;
   effectId: string;
 } {
@@ -1244,14 +1282,39 @@ function directSpec(runtime: BattleRuntime, action: ActionContext, base: ActiveE
   ratio = ratio * (1 + directPercentAdd) + formulaRatio * (1 + formulaPercentAdd);
   bonusNoCrit *= 1 + directPercentAdd;
   if (action.type === 'rage_action' && action.consumedShieldDamage > 0) ratio += action.consumedShieldDamage / Math.max(action.actionStats.attack, 1);
-  if (action.type === 'rage_action' && actor.coreRule &&
-      ['basic_echo', 'burn_siphon'].includes(actor.coreRule.kind)) {
-    ratio *= n(actor.coreRule.params.rage_damage_ratio, 1);
+  if (action.type === 'rage_action') {
+    for (const core of actor.coreRules) {
+      if (!['basic_echo', 'burn_siphon'].includes(core.kind)) continue;
+      ratio *= n(core.params.rage_damage_ratio, 1);
+      mark(runtime, core.effect);
+    }
   }
   if (action.type === 'rage_action' && action.actor.method.id === 'RKF05' && action.consumedSwordIntent > 0) {
     // This is a separate derived outlet and is resolved after the base hit.
   }
-  return { ratio, bonusNoCrit, segments, canCrit, effectId };
+  const segmentRatios = Array.from({ length: segments }, () => ratio);
+  const segmentBonusNoCrits = Array.from({ length: segments }, () => bonusNoCrit);
+  if (action.type === 'basic_action') {
+    for (const mechanic of mechanicsOf(actor, 'basic_split')) {
+      const extraSegments = int(mechanic.params.extra_segments, 0);
+      if (extraSegments <= 0) continue;
+      const segmentScale = n(mechanic.params.segment_ratio, 0);
+      for (let index = 0; index < segmentRatios.length; index++) {
+        segmentRatios[index] *= segmentScale;
+        segmentBonusNoCrits[index] *= segmentScale;
+      }
+      const extraRatio = ratio * segmentScale;
+      const extraBonus = bonusNoCrit * segmentScale;
+      for (let index = 0; index < extraSegments; index++) {
+        segmentRatios.push(extraRatio);
+        segmentBonusNoCrits.push(extraBonus);
+      }
+      const effect = buildEffect(actor, mechanic);
+      if (effect) mark(runtime, effect);
+    }
+  }
+  segments = segmentRatios.length;
+  return { ratio, bonusNoCrit, segments, segmentRatios, segmentBonusNoCrits, canCrit, effectId };
 }
 
 function chanceValue(runtime: BattleRuntime, action: ActionContext, effect: ActiveEffect, target: Fighter): number {
@@ -1270,9 +1333,12 @@ function chanceValue(runtime: BattleRuntime, action: ActionContext, effect: Acti
 
 function incomingMultiplier(runtime: BattleRuntime, target: Fighter, source: Fighter, kind: string): number {
   let multiplier = 1;
-  if (kind === 'direct' && source.side !== target.side && target.coreRule?.kind === 'rage_gambit') {
-    multiplier *= n(target.coreRule.params.incoming_damage_ratio, 1);
-    mark(runtime, target.coreRule.effect);
+  if (kind === 'direct' && source.side !== target.side) {
+    for (const core of target.coreRules) {
+      if (core.kind !== 'rage_gambit') continue;
+      multiplier *= n(core.params.incoming_damage_ratio, 1);
+      mark(runtime, core.effect);
+    }
   }
   if (kind === 'direct' || kind === 'derived') {
     for (const effect of activeModifiers(target, 'modify_effect')) {
@@ -1316,6 +1382,67 @@ function registerIncomingDirectRage(runtime: BattleRuntime, target: Fighter): vo
   }
 }
 
+function outgoingBuildMultiplier(
+  runtime: BattleRuntime,
+  source: Fighter,
+  target: Fighter,
+  action: ActionContext | null,
+  kind: 'direct' | 'derived' | 'dot' | 'reflect',
+): number {
+  if (kind !== 'direct' && kind !== 'derived') return 1;
+  let multiplier = 1;
+  const journey = journeyFacts(source.loadout);
+  for (const mechanic of source.buildRules) {
+    const p = mechanic.params;
+    if (mechanic.kind === 'wealth_damage') {
+      const denominator = journey.coins + n(p.half_saturation, 0);
+      if (denominator > 0) multiplier *= 1 + n(p.scale, 0) * journey.coins / denominator;
+    } else if (mechanic.kind === 'speed_damage') {
+      const ownSpeed = action?.actor === source ? action.actionStats.speed : source.stats.speed;
+      const targetSpeed = dynamicStats(runtime, target, source, null).speed;
+      const ratio = targetSpeed > 0 ? ownSpeed / targetSpeed : Number.POSITIVE_INFINITY;
+      multiplier *= Math.max(1, Math.min(n(p.max_multiplier, 1), ratio));
+    } else if (mechanic.kind === 'collection_damage') {
+      multiplier *= 1 + n(p.base_bonus, 0) + n(p.per_kind, 0) * journey.artifactKinds;
+    } else if (mechanic.kind === 'trophy_damage') {
+      multiplier *= 1 + n(p.base_bonus, 0) +
+        n(p.elite_bonus, 0) * journey.eliteWins +
+        n(p.boss_bonus, 0) * journey.bossWins;
+    } else {
+      continue;
+    }
+    const effect = buildEffect(source, mechanic);
+    if (effect) mark(runtime, effect);
+  }
+  return isFiniteNumber(multiplier) ? multiplier : 1;
+}
+
+function applyCarapace(
+  runtime: BattleRuntime,
+  defender: Fighter,
+  attacker: Fighter,
+  action: ActionContext | null,
+): void {
+  if (defender.hp <= 0 || attacker.hp <= 0 || defender.side === attacker.side) return;
+  for (const mechanic of mechanicsOf(defender, 'carapace')) {
+    const layer = `carapace:${mechanic.id}`;
+    defender.battleLayers[layer] = n(defender.battleLayers[layer], 0) +
+      n(mechanic.params.defense_per_hit, 0);
+    const effect = buildEffect(defender, mechanic);
+    if (effect) mark(runtime, effect);
+    const reflect = targetDefense(runtime, defender, attacker, action) *
+      n(mechanic.params.reflect_ratio, 0);
+    if (reflect <= 0 || defender.hp <= 0 || attacker.hp <= 0) continue;
+    const hit = dealDamage(runtime, defender, attacker, 0, {
+      sourceEffect: effect ?? mechanic.id,
+      kind: 'reflect',
+      canCrit: false,
+      rawOverride: reflect,
+    });
+    if (action && hit.effective) action.reflectDamage += hit.hpDamage + hit.absorbed;
+  }
+}
+
 function dealDamage(
   runtime: BattleRuntime,
   source: Fighter,
@@ -1325,6 +1452,7 @@ function dealDamage(
     sourceEffect: ActiveEffect | string;
     kind: 'direct' | 'derived' | 'dot' | 'reflect';
     canCrit: boolean;
+    echoScale?: boolean;
     rawOverride?: number;
     base?: boolean;
     followup?: boolean;
@@ -1356,9 +1484,16 @@ function dealDamage(
     if (critical) raw *= n(rules(runtime.content).combat?.crit_multiplier, 1.5);
   }
   if (options.criticalBonusRatio) raw += stats.attack * options.criticalBonusRatio;
-  if (options.kind === 'direct' && source.coreRule?.kind === 'healing_guard') {
-    raw *= n(source.coreRule.params.direct_damage_ratio, 1);
-    mark(runtime, source.coreRule.effect, 1, source.side);
+  if (options.echoScale !== false && action?.isEcho && action.actor === source) {
+    raw *= n(action.powerScale, 0.45);
+  }
+  raw *= outgoingBuildMultiplier(runtime, source, target, action, options.kind);
+  if (options.kind === 'direct') {
+    for (const core of source.coreRules) {
+      if (core.kind !== 'healing_guard') continue;
+      raw *= n(core.params.direct_damage_ratio, 1);
+      mark(runtime, core.effect, 1, source.side);
+    }
   }
   const multiplier = options.kind === 'dot' ? 1 : incomingMultiplier(runtime, target, source, options.kind);
   let amount = raw * multiplier;
@@ -1389,13 +1524,25 @@ function dealDamage(
   }
   const sideText = source.side === 'player' ? '玩家' : '敌人';
   const kindText = options.kind === 'dot' ? '持续伤害' : options.kind === 'reflect' ? '盾返' : critical ? '暴击' : '伤害';
-  frame(runtime, options.kind === 'dot' ? 'dot' : 'damage', `${sideText}造成${kindText} ${Math.round(hpDamage + absorbed)}`, source.side, target.side, typeof sourceEffect === 'string' ? sourceEffect : sourceEffect.id, hpDamage + absorbed);
+  const frameSource = typeof sourceEffect === 'string'
+    ? sourceEffect
+    : action?.isEcho && action.actor === source
+      ? `${sourceEffect.id}-RAGE-ECHO`
+      : sourceEffect.id;
+  frame(runtime, options.kind === 'dot' ? 'dot' : 'damage', `${sideText}造成${kindText} ${Math.round(hpDamage + absorbed)}`, source.side, target.side, frameSource, hpDamage + absorbed);
   if (action && source === action.actor && target === action.target &&
       (options.kind === 'direct' || options.kind === 'derived') && effective) {
       action.enemyActualHpDamage += hpDamage;
       action.actualHpDamage += hpDamage;
       action.actualAbsorbed += absorbed;
       if (options.kind === 'direct') registerIncomingDirectRage(runtime, target);
+  }
+  if (effective && (options.kind === 'direct' || options.kind === 'derived')) {
+    for (const mechanic of mechanicsOf(source, 'hit_rage')) {
+      const effect = buildEffect(source, mechanic);
+      const amount = n(mechanic.params.amount, 0);
+      if (effect && amount > 0) registerRage(runtime, source, amount, effect.id, effect.ownerId);
+    }
   }
   if (action && options.base && options.kind === 'direct' && effective) {
     action.hadEffectiveBaseHit = true;
@@ -1407,13 +1554,16 @@ function dealDamage(
   }
   if (action && options.followup && effective) action.actualBonusSegments += 1;
   if (critical && action && options.kind === 'direct' && effective) {
-    triggerDirectCrit(runtime, source, target, action, options.base === true || options.followup === true);
+    if (!action.isEcho) triggerDirectCrit(runtime, source, target, action, options.base === true || options.followup === true);
   }
   if (shieldBroken && target.hp > 0) {
     if (options.kind === 'direct') triggerShieldBreak(runtime, target, source, action);
   }
   if (absorbed > 0 && target.hp > 0 && action && source.side !== target.side && options.kind === 'direct') {
     triggerShieldAbsorbed(runtime, target, source, action, absorbed);
+  }
+  if (effective && options.kind === 'direct' && source.side !== target.side && target.hp > 0) {
+    applyCarapace(runtime, target, source, action);
   }
   if (target.hp <= 0) runtime.active = false;
   return { raw, amount, absorbed, hpDamage, critical, effective, shieldBroken };
@@ -1448,9 +1598,14 @@ function addShield(
   source: ActiveEffect | string,
   text: string,
   additionalBonus = 0,
+  scaleForEcho = true,
 ): number {
   if (amount <= 0 || fighter.hp <= 0) return 0;
   let input = amount;
+  const action = runtime.currentAction;
+  if (scaleForEcho && action?.isEcho && action.actor === fighter) {
+    input *= n(action.powerScale, 0.45);
+  }
   let shieldBonus = additionalBonus;
   for (const artifact of fighter.artifacts) {
     if (artifact.entity.id !== 'RC11') continue;
@@ -1473,7 +1628,12 @@ function addShield(
     mark(runtime, source, 1, fighter.side);
     addContribution(runtime, source, 'shield', gained, fighter.side);
   } else addContribution(runtime, source, 'shield', gained, fighter.side);
-  frame(runtime, 'shield', `${fighter.side === 'player' ? '玩家' : '敌人'}${text} ${Math.round(gained)}`, fighter.side, fighter.side, typeof source === 'string' ? source : source.id, gained);
+  const frameSource = typeof source === 'string'
+    ? source
+    : action?.isEcho && action.actor === fighter
+      ? `${source.id}-RAGE-ECHO`
+      : source.id;
+  frame(runtime, 'shield', `${fighter.side === 'player' ? '玩家' : '敌人'}${text} ${Math.round(gained)}`, fighter.side, fighter.side, frameSource, gained);
   return gained;
 }
 
@@ -1511,20 +1671,34 @@ function addRegularStatus(
   source: ActiveEffect | string,
   dot?: { damage: number; attackRatio: number; ownerId: string },
   maxStacks?: number,
+  scaleForEcho = true,
 ): number {
   const cap = maxStacks ?? n(rules(runtime.content).statuses?.[status]?.max_stacks, status === 'sword_intent' ? 5 : 1);
   const layers = getStatusLayers(target, status);
-  const added = Math.min(Math.max(0, count), Math.max(0, cap - layers.length));
+  const isEchoSource = runtime.currentAction?.isEcho &&
+    sourceTargetSide(runtime, source) === runtime.currentAction.actor.side;
+  const echo = isEchoSource && scaleForEcho
+    ? n(runtime.currentAction?.powerScale, 0.45)
+    : 1;
+  const effectiveCount = count > 0 && echo < 1 ? Math.max(1, Math.round(count * echo)) : count;
+  const effectiveDuration = duration > 0 && echo < 1 ? Math.max(1, Math.round(duration * echo)) : duration;
+  const added = Math.min(Math.max(0, effectiveCount), Math.max(0, cap - layers.length));
   for (let i = 0; i < added; i++) {
     layers.push({
-      remaining: Math.max(1, duration),
+      remaining: Math.max(1, effectiveDuration),
       ...(dot ? { damage: dot.damage, attackRatio: dot.attackRatio, ownerId: dot.ownerId, kind: 'dot' as const } : { kind: 'regular' as const }),
-      sourceId: typeof source === 'string' ? source : source.id,
+      sourceId: typeof source === 'string' ? source : isEchoSource ? `${source.id}-RAGE-ECHO` : source.id,
     });
   }
   if (added > 0) {
     if (typeof source !== 'string') mark(runtime, source);
-    frame(runtime, 'status', `${target.side === 'player' ? '玩家' : '敌人'}获得${status}${added}层`, sourceTargetSide(runtime, source), target.side, typeof source === 'string' ? source : source.id, added);
+    const action = runtime.currentAction;
+    const frameSource = typeof source === 'string'
+      ? source
+      : isEchoSource
+        ? `${source.id}-RAGE-ECHO`
+        : source.id;
+    frame(runtime, 'status', `${target.side === 'player' ? '玩家' : '敌人'}获得${status}${added}层`, sourceTargetSide(runtime, source), target.side, frameSource, added);
   }
   return added;
 }
@@ -1626,6 +1800,7 @@ function applyDot(
   attackRatio: number,
   maxStacks: number,
   snapshotAttack: number,
+  scaleForEcho = true,
 ): number {
   let ratio = attackRatio;
   if (status === 'burn' && owner.method.id === 'RKF04' && selectedEffect(owner, 'RKF04-J4-B-BURN-DURATION')) {
@@ -1646,8 +1821,22 @@ function applyDot(
       if (ae) mark(runtime, Object.assign(clone(ae), { ownerId: artifact.entity.id, ownerName: artifact.entity.name, ownerKind: 'artifact' as SourceKind, ownerSide: owner.side, stacks: artifact.stacks }), artifact.stacks);
     }
   }
+  const action = runtime.currentAction;
+  const echoSource = action?.isEcho && action.actor === owner ? action.echoSource : undefined;
+  const echoScale = scaleForEcho && echoSource ? n(action?.powerScale, 0.45) : 1;
+  ratio *= echoScale;
   const damage = snapshotAttack * ratio;
-  const added = addRegularStatus(runtime, target, status, stacks, duration, effect, { damage, attackRatio: ratio, ownerId: effect.ownerId }, maxStacks);
+  const added = addRegularStatus(
+    runtime,
+    target,
+    status,
+    stacks,
+    duration,
+    effect,
+    { damage, attackRatio: ratio, ownerId: echoSource && effect.ownerKind !== 'artifact' ? echoSource.ownerId : effect.ownerId },
+    maxStacks,
+    scaleForEcho,
+  );
   if (added <= 0) return added;
   const awakeningId = status === 'poison'
     ? 'RC14-AWAKENING-POISON-ON-BURN'
@@ -1657,7 +1846,7 @@ function applyDot(
   const roundFlag = `${awakeningId}:${runtime.round}`;
   if (!awakening || !hasStatus(target, oppositeStatus) || owner.battleFlags.has(roundFlag)) return added;
   owner.battleFlags.add(roundFlag);
-  const ratioAdd = n(awakening.params?.attack_ratio_per_stack_add, 0.04);
+  const ratioAdd = n(awakening.params?.attack_ratio_per_stack_add, 0.04) * echoScale;
   const addedLayers = getStatusLayers(target, status).slice(-added);
   for (const layer of addedLayers) {
     layer.damage = n(layer.damage, 0) + snapshotAttack * ratioAdd;
@@ -1705,20 +1894,21 @@ function effectValueForStatus(
 
 function applyCoreBasicDot(runtime: BattleRuntime, action: ActionContext): void {
   const { actor, target } = action;
-  const core = actor.coreRule;
-  if (action.type !== 'basic_action' || action.baseDirectHitCount !== 1 || !core) return;
-  const status = core.kind === 'poison_detonation'
-    ? 'poison'
-    : core.kind === 'burn_siphon' ? 'burn' : undefined;
-  if (!status) return;
-  const contentStatus = rules(runtime.content).statuses?.[status] ?? {};
-  const stackField = status === 'poison' ? 'poison_stacks' : 'burn_stacks';
-  const stacks = effectValueForStatus(runtime, actor, target, action, core.effect, 'stacks', n(core.params[stackField], 0));
-  const duration = effectValueForStatus(runtime, actor, target, action, core.effect, 'duration_rounds', int(contentStatus.duration_rounds, 1));
-  const ratio = effectValueForStatus(runtime, actor, target, action, core.effect, 'attack_ratio_per_stack', n(contentStatus.attack_ratio_per_stack, 0));
-  const maxStacks = effectValueForStatus(runtime, actor, target, action, core.effect, 'max_stacks', int(contentStatus.max_stacks, stacks));
-  const added = applyDot(runtime, actor, target, core.effect, status, stacks, duration, ratio, maxStacks, action.actionStats.attack);
-  action.actualDebuffApplied ||= added > 0;
+  if (action.type !== 'basic_action' || action.baseDirectHitCount !== 1) return;
+  for (const core of actor.coreRules) {
+    const status = core.kind === 'poison_detonation'
+      ? 'poison'
+      : core.kind === 'burn_siphon' ? 'burn' : undefined;
+    if (!status) continue;
+    const contentStatus = rules(runtime.content).statuses?.[status] ?? {};
+    const stackField = status === 'poison' ? 'poison_stacks' : 'burn_stacks';
+    const stacks = effectValueForStatus(runtime, actor, target, action, core.effect, 'stacks', n(core.params[stackField], 0));
+    const duration = effectValueForStatus(runtime, actor, target, action, core.effect, 'duration_rounds', int(contentStatus.duration_rounds, 1));
+    const ratio = effectValueForStatus(runtime, actor, target, action, core.effect, 'attack_ratio_per_stack', n(contentStatus.attack_ratio_per_stack, 0));
+    const maxStacks = effectValueForStatus(runtime, actor, target, action, core.effect, 'max_stacks', int(contentStatus.max_stacks, stacks));
+    const added = applyDot(runtime, actor, target, core.effect, status, stacks, duration, ratio, maxStacks, action.actionStats.attack);
+    action.actualDebuffApplied ||= added > 0;
+  }
 }
 
 function applyActionHitStatus(
@@ -1759,6 +1949,7 @@ function applyActionHitStatus(
 
 function resolveDirectHitAdditions(runtime: BattleRuntime, action: ActionContext, hit: HitResult, baseEffect: ActiveEffect): void {
   if (!hit.effective || action.stop || !runtime.active) return;
+  if (action.isEcho) return;
   const actor = action.actor;
   const target = action.target;
   const actionType = action.type;
@@ -1888,9 +2079,11 @@ function resolveChain(runtime: BattleRuntime, action: ActionContext, effect: Act
   } else {
     const had = hasStatus(actor, 'charge_luck');
     const chance = chanceValue(runtime, action, effect, target);
-    if (had && !action.reservedChargeLuck) removeStatusLayers(actor, 'charge_luck', 1);
+    if (had && !action.reservedChargeLuck && !action.isEcho) removeStatusLayers(actor, 'charge_luck', 1);
     if (runtime.random() >= chance) {
-      if (!action.reservedChargeLuck) addRegularStatus(runtime, actor, 'charge_luck', 1, int(p.on_fail?.duration_rounds, 2), effect, undefined, 1);
+      if (!action.reservedChargeLuck && !action.isEcho) {
+        addRegularStatus(runtime, actor, 'charge_luck', 1, int(p.on_fail?.duration_rounds, 2), effect, undefined, 1);
+      }
       return;
     }
   }
@@ -1906,7 +2099,7 @@ function resolveChain(runtime: BattleRuntime, action: ActionContext, effect: Act
 function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: number, source: ActiveEffect, allowOverflow = true): { effective: number; overflow: number } {
   const fighter = action.actor;
   if (fighter.hp <= 0) return { effective: 0, overflow: 0 };
-  let total = Math.max(0, amount);
+  let total = Math.max(0, amount) * (action.isEcho ? n(action.powerScale, 0.45) : 1);
   for (const artifact of fighter.artifacts) {
     if (artifact.entity.id === 'RC12') {
       total *= 1 + 0.06 * artifact.stacks;
@@ -1932,21 +2125,25 @@ function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: numb
     }
   }
   if (effective > 0) {
-    frame(runtime, 'heal', `${fighter.side === 'player' ? '玩家' : '敌人'}恢复 ${Math.round(effective)}`, fighter.side, fighter.side, source.id, effective);
-    if (fighter.coreRule?.kind === 'healing_guard') {
+    const sourceId = action.isEcho ? `${source.id}-RAGE-ECHO` : source.id;
+    frame(runtime, 'heal', `${fighter.side === 'player' ? '玩家' : '敌人'}恢复 ${Math.round(effective)}`, fighter.side, fighter.side, sourceId, effective);
+    for (const core of fighter.coreRules) {
+      if (core.kind !== 'healing_guard') continue;
       addShield(
         runtime,
         fighter,
-        effective * n(fighter.coreRule.params.shield_ratio, 0),
-        fighter.coreRule.effect,
+        effective * n(core.params.shield_ratio, 0),
+        core.effect,
         '有效治疗转盾',
+        0,
+        false,
       );
     }
     const rr02 = fighter.artifacts.find(artifact => artifact.entity.id === 'RR02');
     if (rr02 && action.isMainAction && !fighter.battleFlags.has(`rr02-${action.round}-${fighter.actionNumber}`)) {
       fighter.battleFlags.add(`rr02-${action.round}-${fighter.actionNumber}`);
       const ae = rr02.entity.effects?.[0];
-      if (ae) addShield(runtime, fighter, effective * n(ae.params?.ratio, 0.35) * rr02.stacks, Object.assign(clone(ae), { ownerId: rr02.entity.id, ownerName: rr02.entity.name, ownerKind: 'artifact' as SourceKind, ownerSide: fighter.side, stacks: rr02.stacks }), '有效治疗转盾');
+      if (ae) addShield(runtime, fighter, effective * n(ae.params?.ratio, 0.35) * rr02.stacks, Object.assign(clone(ae), { ownerId: rr02.entity.id, ownerName: rr02.entity.name, ownerKind: 'artifact' as SourceKind, ownerSide: fighter.side, stacks: rr02.stacks }), '有效治疗转盾', 0, false);
     }
     const rr12 = fighter.artifacts.find(artifact => artifact.entity.id === 'RR12');
     if (rr12 && action.isMainAction && !fighter.battleFlags.has(actionFlag(action, 'RR12-SELF-HEAL-RAGE'))) {
@@ -1959,7 +2156,7 @@ function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: numb
       registerRage(runtime, fighter, effective * n(healRage.params?.ratio, 0.25), healRage.id, healRage.ownerId);
     }
     const healShield = selectedEffect(fighter, 'RKF03-J3-C-SHIELD');
-    if (healShield) addShield(runtime, fighter, effective * n(healShield.params?.effective_heal_ratio, 0.35), healShield, '有效治疗造盾');
+    if (healShield) addShield(runtime, fighter, effective * n(healShield.params?.effective_heal_ratio, 0.35), healShield, '有效治疗造盾', 0, false);
     const reduce = selectedEffect(fighter, 'RKF03-J3-B-REDUCE');
     if (reduce) {
       fighter.battleLayers[reduce.id] = runtime.round + Math.max(0, int(reduce.params?.duration_rounds, 1));
@@ -1971,7 +2168,7 @@ function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: numb
     const rl01 = fighter.artifacts.find(artifact => artifact.entity.id === 'RL01');
     if (rl01) {
       const ae = rl01.entity.effects?.[0];
-      if (ae) addShield(runtime, fighter, overflow * n(ae.params?.ratio, 1) * rl01.stacks, Object.assign(clone(ae), { ownerId: rl01.entity.id, ownerName: rl01.entity.name, ownerKind: 'artifact' as SourceKind, ownerSide: fighter.side, stacks: rl01.stacks }), '溢疗转盾');
+      if (ae) addShield(runtime, fighter, overflow * n(ae.params?.ratio, 1) * rl01.stacks, Object.assign(clone(ae), { ownerId: rl01.entity.id, ownerName: rl01.entity.name, ownerKind: 'artifact' as SourceKind, ownerSide: fighter.side, stacks: rl01.stacks }), '溢疗转盾', 0, false);
     } else if (fighter.method.id === 'RKF03') {
       const j4 = selectedEffect(fighter, 'RKF03-J4-C-DAMAGE');
       const j2 = selectedEffect(fighter, 'RKF03-J2-A-POISON');
@@ -1982,11 +2179,24 @@ function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: numb
           kind: 'derived',
           canCrit: false,
           rawOverride: overflow * n(j4.params?.damage_ratio, 1.1),
+          echoScale: false,
         });
       } else if (j2) {
         const stacks = Math.floor(overflow * n(j2.params?.stacks_per_overflow, 0.012));
         const target = other(runtime, fighter);
-        applyDot(runtime, fighter, target, j2, 'poison', stacks, int(j2.params?.duration_rounds, 3), 0.08, int(j2.params?.max_stacks, 10), action.actionStats.attack);
+        applyDot(
+          runtime,
+          fighter,
+          target,
+          j2,
+          'poison',
+          stacks,
+          int(j2.params?.duration_rounds, 3),
+          0.08,
+          int(j2.params?.max_stacks, 10),
+          action.actionStats.attack,
+          false,
+        );
       } else {
         const ratio = n((methodEffect(fighter.method, 'RKF03-PASSIVE-OVERFLOW')?.params ?? {}).damage_ratio, 0.7) + n(j1?.params?.damage_ratio_add, 0);
         const passive = methodEffect(fighter.method, 'RKF03-PASSIVE-OVERFLOW');
@@ -1997,6 +2207,7 @@ function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: numb
           kind: 'derived',
           canCrit: false,
           rawOverride: overflow * ratio,
+          echoScale: false,
         });
       }
     }
@@ -2005,13 +2216,16 @@ function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: numb
 }
 
 function resolveStatusConsumption(runtime: BattleRuntime, action: ActionContext): void {
+  if (action.isEcho) return;
   const actor = action.actor;
   const target = action.target;
   if (action.type === 'rage_action' && actor.method.id === 'RKF04') {
     const consume = selectedEffect(actor, 'RKF04-J3-A-CONSUME-BURN');
     const preexistingBurn = action.targetStartStatusLayers.get('burn')?.length ?? 0;
     if (consume && preexistingBurn > 0) {
-      action.consumedBurn = removeStatusLayers(target, 'burn', Math.min(preexistingBurn, int(consume.params?.max_stacks, 3)));
+      action.consumedBurn = action.isEcho
+        ? Math.min(preexistingBurn, int(consume.params?.max_stacks, 3))
+        : removeStatusLayers(target, 'burn', Math.min(preexistingBurn, int(consume.params?.max_stacks, 3)));
       if (action.consumedBurn) {
         mark(runtime, consume);
         dealDamage(runtime, actor, target, 0, {
@@ -2026,8 +2240,13 @@ function resolveStatusConsumption(runtime: BattleRuntime, action: ActionContext)
   }
   if (action.type === 'rage_action' && actor.method.id === 'RKF05') {
     const consume = selectedEffect(actor, 'RKF05-J2-B-CONSUME');
-    if (consume && hasStatus(actor, 'sword_intent')) {
-      action.consumedSwordIntent = removeStatusLayers(actor, 'sword_intent', int(consume.params?.max_stacks, 3));
+    const available = action.isEcho
+      ? action.actionStartStatuses.get('sword_intent') ?? 0
+      : statusCount(actor, 'sword_intent');
+    if (consume && available > 0) {
+      action.consumedSwordIntent = action.isEcho
+        ? Math.min(available, int(consume.params?.max_stacks, 3))
+        : removeStatusLayers(actor, 'sword_intent', int(consume.params?.max_stacks, 3));
       if (action.consumedSwordIntent) {
         mark(runtime, consume);
         dealDamage(runtime, actor, target, 0, {
@@ -2044,7 +2263,9 @@ function resolveStatusConsumption(runtime: BattleRuntime, action: ActionContext)
     const damage = selectedEffect(actor, 'RKF09-J4-B-DAMAGE');
     const preexistingBurn = action.targetStartStatusLayers.get('burn')?.length ?? 0;
     if (consume && damage && preexistingBurn > 0) {
-      action.consumedBurn = removeStatusLayers(target, 'burn', Math.min(preexistingBurn, int(consume.params?.max_stacks, 3)));
+      action.consumedBurn = action.isEcho
+        ? Math.min(preexistingBurn, int(consume.params?.max_stacks, 3))
+        : removeStatusLayers(target, 'burn', Math.min(preexistingBurn, int(consume.params?.max_stacks, 3)));
       if (action.consumedBurn) {
         mark(runtime, consume);
         dealDamage(runtime, actor, target, 0, {
@@ -2060,33 +2281,33 @@ function resolveStatusConsumption(runtime: BattleRuntime, action: ActionContext)
 
 function resolveCoreRageAction(runtime: BattleRuntime, action: ActionContext): void {
   const { actor, target } = action;
-  const core = actor.coreRule;
-  if (action.type !== 'rage_action' || core?.kind !== 'poison_detonation' ||
-      actor.hp <= 0 || target.hp <= 0) return;
-  const initialLayers = action.targetStartStatusLayers.get('poison') ?? [];
-  const eligible = initialLayers.filter(layer =>
-    fighterOwnsSource(actor, layer.ownerId ?? layer.sourceId ?? ''));
-  const selected = new Set(eligible);
-  if (!selected.size) return;
-  const consumed = removeStatusLayersByIdentity(target, 'poison', selected);
-  if (!consumed.length) return;
-  const remainingDamage = consumed.reduce((sum, layer) =>
-    sum + n(layer.damage, 0) * Math.max(0, n(layer.remaining, 0)), 0);
-  const damage = remainingDamage * n(core.params.damage_ratio, 0);
-  if (runtime.active && actor.hp > 0 && target.hp > 0) {
-    dealDamage(runtime, actor, target, 0, {
-      sourceEffect: core.effect,
-      kind: 'derived',
-      canCrit: false,
-      rawOverride: damage,
-    });
+  if (action.isEcho || action.type !== 'rage_action' || actor.hp <= 0 || target.hp <= 0) return;
+  for (const core of actor.coreRules) {
+    if (core.kind !== 'poison_detonation') continue;
+    const initialLayers = action.targetStartStatusLayers.get('poison') ?? [];
+    const eligible = initialLayers.filter(layer =>
+      fighterOwnsSource(actor, layer.ownerId ?? layer.sourceId ?? ''));
+    const selected = new Set(eligible);
+    if (!selected.size) continue;
+    const consumed = removeStatusLayersByIdentity(target, 'poison', selected);
+    if (!consumed.length) continue;
+    const remainingDamage = consumed.reduce((sum, layer) =>
+      sum + n(layer.damage, 0) * Math.max(0, n(layer.remaining, 0)), 0);
+    const damage = remainingDamage * n(core.params.damage_ratio, 0);
+    if (runtime.active && actor.hp > 0 && target.hp > 0) {
+      dealDamage(runtime, actor, target, 0, {
+        sourceEffect: core.effect,
+        kind: 'derived',
+        canCrit: false,
+        rawOverride: damage,
+      });
+    }
   }
 }
 
-function resolveCoreRageRefund(runtime: BattleRuntime, action: ActionContext): void {
+function resolveCoreRageRefund(runtime: BattleRuntime, action: ActionContext, core: CoreRuleRuntime): void {
   const { actor } = action;
-  const core = actor.coreRule;
-  if (action.type !== 'rage_action' || actor.hp <= 0 || core?.kind !== 'rage_gambit') return;
+  if (action.isEcho || action.type !== 'rage_action' || actor.hp <= 0 || core?.kind !== 'rage_gambit') return;
   const onceKey = `core-rage-refund:${action.round}:${actor.actionNumber}`;
   if (actor.battleFlags.has(onceKey)) return;
   actor.battleFlags.add(onceKey);
@@ -2096,13 +2317,14 @@ function resolveCoreRageRefund(runtime: BattleRuntime, action: ActionContext): v
 
 function resolveCoreActionEnd(runtime: BattleRuntime, action: ActionContext): void {
   const { actor, target } = action;
-  const core = actor.coreRule;
-  if (!core || !runtime.active || actor.hp <= 0 || target.hp <= 0) return;
-  if (core.kind === 'rage_gambit' && action.type === 'rage_action') {
-    resolveCoreRageRefund(runtime, action);
-  }
-  if (core.kind === 'healing_guard' && action.type === 'basic_action') {
-    resolveHeal(runtime, action, actor.stats.max_hp * n(core.params.heal_ratio, 0), core.effect);
+  if (!runtime.active || actor.hp <= 0 || target.hp <= 0) return;
+  for (const core of actor.coreRules) {
+    if (core.kind === 'rage_gambit' && action.type === 'rage_action') {
+      resolveCoreRageRefund(runtime, action, core);
+    }
+    if (core.kind === 'healing_guard' && action.type === 'basic_action') {
+      resolveHeal(runtime, action, actor.stats.max_hp * n(core.params.heal_ratio, 0), core.effect);
+    }
   }
 }
 
@@ -2130,6 +2352,7 @@ function resolveActionEnd(runtime: BattleRuntime, action: ActionContext): void {
       }
     }
     if (effect.operation === 'rage_cap' && effect.id === 'RR07-FIRST-RAGE-CAP-REDUCTION') {
+      if (action.isEcho) continue;
       if (action.type === 'rage_action' &&
           !actor.battleFlags.has(effect.id) &&
           !actor.battleFlags.has('RR07-PENDING')) {
@@ -2140,6 +2363,7 @@ function resolveActionEnd(runtime: BattleRuntime, action: ActionContext): void {
       continue;
     }
     if (effect.operation === 'modify_stat' && effect.id === 'RR05-ACTION-END-ATTACK-LAYER') {
+      if (action.isEcho) continue;
       const current = n(actor.battleLayers[effect.id], 0);
       actor.battleLayers[effect.id] = Math.min(int(p.max_stacks, 3), current + effect.stacks);
       mark(runtime, effect);
@@ -2191,8 +2415,12 @@ function resolveActionEnd(runtime: BattleRuntime, action: ActionContext): void {
       }
       if (effect.id === 'RKF07-J3-B-SHIELD' || effect.id === 'RKF07-J4-C-CHAIN') {
         if (effect.id === 'RKF07-J3-B-SHIELD' && selectedEffect(actor, 'RKF07-J4-C-CHAIN')) continue;
-        if (action.reservedChargeLuck && actor.hp > 0 && hasStatus(actor, 'charge_luck')) {
-          removeStatusLayers(actor, 'charge_luck', 1);
+        if (action.reservedChargeLuck && actor.hp > 0 &&
+            (action.isEcho ? action.chargeLuckShieldOutput : hasStatus(actor, 'charge_luck'))) {
+          if (!action.isEcho) {
+            removeStatusLayers(actor, 'charge_luck', 1);
+            action.chargeLuckShieldOutput = true;
+          }
           addShield(runtime, actor, action.actionStats.defense * n(p.defense_ratio, 0), effect, '蓄运成盾');
         }
         continue;
@@ -2244,6 +2472,7 @@ function resolveActionEnd(runtime: BattleRuntime, action: ActionContext): void {
       }
     }
     if (effect.operation === 'rage_gain') {
+      if (action.isEcho) continue;
       if (p.action && p.action !== action.type) continue;
       if (p.action_types && !p.action_types.includes(action.type)) continue;
       let amount = n(p.amount, 0);
@@ -2275,11 +2504,13 @@ function resolveActionEnd(runtime: BattleRuntime, action: ActionContext): void {
       continue;
     }
     if (effect.operation === 'rage_drain') {
+      if (action.isEcho) continue;
       const amount = n(p.amount, 0) * effect.stacks;
       if (amount > 0) requestDrain(runtime, target, amount, effect.id, effect.ownerId);
       continue;
     }
     if (effect.operation === 'replace_action' &&
+        !action.isEcho &&
         action.type === 'rage_action' &&
         p.next_action === 'basic_action') {
       actor.forcedBasic = {
@@ -2290,6 +2521,7 @@ function resolveActionEnd(runtime: BattleRuntime, action: ActionContext): void {
       continue;
     }
     if (effect.operation === 'advance_phase') {
+      if (action.isEcho) continue;
       const before = actor.phase;
       actor.phase = actor.phase === 'day' ? 'night' : 'day';
       action.phaseChanged = before !== actor.phase;
@@ -2299,18 +2531,18 @@ function resolveActionEnd(runtime: BattleRuntime, action: ActionContext): void {
       continue;
     }
   }
-  if (action.type === 'basic_action' && action.completed) {
+  if (!action.isEcho && action.type === 'basic_action' && action.completed) {
     const basicGain = n(rules(runtime.content).rage?.basic_completed, 25) + (actor.forcedBasic?.rageGainBonus ?? 0);
     registerRage(runtime, actor, basicGain, 'RULES-BASIC-COMPLETED', actor.method.id);
     actor.forcedBasic = null;
   }
-  if (action.type === 'rage_action') {
+  if (!action.isEcho && action.type === 'rage_action') {
     const refundRatio = actor.method.id === 'RKF02'
       ? 0.2 + (selectedEffect(actor, 'RKF02-J2-C-REFUND') ? 0.2 : 0) + (selectedEffect(actor, 'RKF02-J4-A-REFUND') ? 0.2 : 0)
       : 0;
     if (refundRatio > 0) registerRage(runtime, actor, action.lockedCost * refundRatio, 'RKF02-RAGE-REFUND', actor.method.id);
   }
-  if (target.hp > 0) {
+  if (!action.isEcho && target.hp > 0) {
     for (const artifact of target.artifacts) {
       if (artifact.entity.id === 'RR08' && action.enemyActualHpDamage > 0) {
         registerRage(runtime, target, 10 * artifact.stacks, 'RR08-ENEMY-ACTION-RAGE-GAIN', artifact.entity.id);
@@ -2321,6 +2553,128 @@ function resolveActionEnd(runtime: BattleRuntime, action: ActionContext): void {
     }
   }
   resolveCoreActionEnd(runtime, action);
+}
+
+function executeRageEcho(runtime: BattleRuntime, original: ActionContext): void {
+  const { actor, target } = original;
+  if (original.type !== 'rage_action' || original.isEcho ||
+      !runtime.active || actor.hp <= 0 || target.hp <= 0 || original.stop) return;
+  for (const mechanic of mechanicsOf(actor, 'rage_echo')) {
+    const effect = buildEffect(actor, mechanic);
+    if (!effect) continue;
+    const powerScale = n(mechanic.params.ratio, 0);
+    if (powerScale <= 0) continue;
+    mark(runtime, effect);
+    const echo: ActionContext = {
+      ...original,
+      isMainAction: false,
+      isEcho: true,
+      echoSource: effect,
+      powerScale,
+      actionStats: { ...original.actionStats },
+      actionStartStatuses: new Map(original.actionStartStatuses),
+      targetStartStatusLayers: new Map(
+        [...original.targetStartStatusLayers.entries()].map(([status, layers]) => [status, [...layers]]),
+      ),
+      consumedSwordIntent: 0,
+      consumedBurn: 0,
+      consumedShield: 0,
+      consumedShieldDamage: 0,
+      chargeLuckShieldOutput: original.chargeLuckShieldOutput,
+      completed: false,
+      stop: false,
+      actualBonusSegments: 0,
+      baseDirectHitCount: 0,
+      directCritCount: 0,
+      rr10CritCount: 0,
+      recoilDone: false,
+      actualHpDamage: 0,
+      actualAbsorbed: 0,
+      enemyActualHpDamage: 0,
+      reflectDamage: 0,
+    };
+    runtime.currentAction = echo;
+    if (runtime.active && target.hp > 0 && actor.hp > 0) {
+      const base = actionEffect(actor, 'rage_action', `${actor.method.id}-RAGE-DAMAGE`);
+      const spec = directSpec(runtime, echo, base);
+      for (let index = 0; index < spec.segments; index++) {
+        if (!runtime.active || actor.hp <= 0 || target.hp <= 0 || echo.stop) break;
+        const hit = dealDamage(runtime, actor, target, spec.segmentRatios[index] ?? spec.ratio, {
+          sourceEffect: base,
+          kind: 'direct',
+          canCrit: spec.canCrit,
+          base: true,
+          criticalBonusRatio: spec.segmentBonusNoCrits[index] ?? spec.bonusNoCrit,
+        });
+        if (hit.effective) echo.firstBaseHit = true;
+        applyActionHitStatus(runtime, echo, base, hit);
+        if (actor.method.id === 'RKF07') {
+          const chain = actionEffect(actor, 'rage_action', 'RKF07-RAGE-CHAIN');
+          resolveChain(runtime, echo, chain, hit);
+        }
+        if (!runtime.active || target.hp <= 0) break;
+        if (actor.method.id === 'RKF09') {
+          const burn = actionEffect(actor, 'rage_action', 'RKF09-RAGE-BURN');
+          const stacks = effectValueForStatus(runtime, actor, target, echo, burn, 'stacks_per_segment', 1);
+          const added = applyDot(runtime, actor, target, burn, 'burn', stacks,
+            int(burn.params?.duration_rounds, 3),
+            n(burn.params?.attack_ratio_per_stack, 0.08),
+            int(burn.params?.max_stacks, 10),
+            echo.actionStats.attack);
+          echo.actualDebuffApplied ||= added > 0;
+        }
+      }
+    }
+    if (!runtime.active || actor.hp <= 0 || target.hp <= 0) break;
+    if (actor.method.id === 'RKF08') {
+      const armor = actionEffect(actor, 'rage_action', 'RKF08-RAGE-ARMOR');
+      const added = addRegularStatus(runtime, target, 'armor_break',
+        int(armor.params?.stacks, 2),
+        int(armor.params?.duration_rounds, 2),
+        armor,
+        undefined,
+        int(armor.params?.max_stacks, 5));
+      echo.actualDebuffApplied ||= added > 0;
+      resolveNegativeFollowup(runtime, echo);
+    }
+    if (actor.method.id === 'RKF06') {
+      const poison = actionEffect(actor, 'rage_action', 'RKF06-RAGE-POISON');
+      const stacks = effectValueForStatus(runtime, actor, target, echo, poison, 'stacks', 2);
+      const added = applyDot(runtime, actor, target, poison, 'poison', stacks,
+        int(poison.params?.duration_rounds, 3),
+        n(poison.params?.attack_ratio_per_stack, 0.08),
+        int(poison.params?.max_stacks, 10),
+        echo.actionStats.attack);
+      echo.actualDebuffApplied ||= added > 0;
+    }
+    if (actor.method.id === 'RKF04' || actor.method.id === 'RKF05') {
+      resolveStatusConsumption(runtime, echo);
+    }
+    if (actor.method.id === 'RKF09') {
+      const chance = selectedEffect(actor, 'RKF09-J3-A-CHANCE');
+      if (chance && runtime.random() < n(chance.params?.chance, 0.5)) {
+        const hit = dealDamage(runtime, actor, target, n(chance.params?.attack_ratio, 0.46), {
+          sourceEffect: chance,
+          kind: 'direct',
+          canCrit: chance.params?.can_crit !== false,
+          followup: true,
+        });
+        if (hit.effective) {
+          const ap = chance.params?.apply_status;
+          if (ap) applyDot(runtime, actor, target, chance, 'burn',
+            int(ap.stacks, 1), int(ap.duration_rounds, 3),
+            n(ap.attack_ratio_per_stack, 0.08), 10, echo.actionStats.attack);
+        }
+      }
+      resolveStatusConsumption(runtime, echo);
+    }
+    resolveCoreRageAction(runtime, echo);
+    if (!runtime.active || actor.hp <= 0 || target.hp <= 0) break;
+    echo.completed = true;
+    resolveActionEnd(runtime, echo);
+    runtime.currentAction = original;
+    if (!runtime.active || actor.hp <= 0 || target.hp <= 0) break;
+  }
 }
 
 function executeAction(runtime: BattleRuntime, actor: Fighter, target: Fighter, type: ActionType, lockedCost: number): void {
@@ -2402,18 +2756,18 @@ function executeAction(runtime: BattleRuntime, actor: Fighter, target: Fighter, 
       }
     }
   }
-  if (type === 'rage_action' && actor.coreRule?.kind === 'shield_burst') {
-    const consumed = Math.min(
-      actor.shield,
-      actor.shield * n(actor.coreRule.params.shield_ratio, 0),
-    );
-    actor.shield = Math.max(0, actor.shield - consumed);
-    if (consumed > 0) {
+  if (type === 'rage_action') {
+    for (const core of actor.coreRules) {
+      if (core.kind !== 'shield_burst') continue;
+      const consumed = Math.min(actor.shield, actor.shield * n(core.params.shield_ratio, 0));
+      actor.shield = Math.max(0, actor.shield - consumed);
+      if (consumed <= 0) continue;
+      const raw = consumed * n(core.params.damage_ratio, 0);
       dealDamage(runtime, actor, target, 0, {
-        sourceEffect: actor.coreRule.effect,
+        sourceEffect: core.effect,
         kind: 'derived',
         canCrit: false,
-        rawOverride: consumed * n(actor.coreRule.params.damage_ratio, 0),
+        rawOverride: raw,
       });
       if (!runtime.active || target.hp <= 0) {
         runtime.currentAction = null;
@@ -2431,12 +2785,12 @@ function executeAction(runtime: BattleRuntime, actor: Fighter, target: Fighter, 
       break;
     }
     const before = target.hp;
-    const hit = dealDamage(runtime, actor, target, spec.ratio, {
+    const hit = dealDamage(runtime, actor, target, spec.segmentRatios[index] ?? spec.ratio, {
       sourceEffect: base,
       kind: 'direct',
       canCrit: spec.canCrit,
       base: true,
-      criticalBonusRatio: spec.bonusNoCrit,
+      criticalBonusRatio: spec.segmentBonusNoCrits[index] ?? spec.bonusNoCrit,
     });
     if (hit.effective) action.firstBaseHit ||= true;
     applyActionHitStatus(runtime, action, base, hit);
@@ -2456,17 +2810,20 @@ function executeAction(runtime: BattleRuntime, actor: Fighter, target: Fighter, 
     }
     void before;
   }
-  if (actor.coreRule?.kind === 'basic_echo' && type === 'basic_action' &&
-      action.hadEffectiveBaseHit && runtime.active && actor.hp > 0 && target.hp > 0 && !action.stop) {
-    dealDamage(runtime, actor, target, n(actor.coreRule.params.ratio, 0), {
-      sourceEffect: actor.coreRule.effect,
-      kind: 'derived',
-      canCrit: false,
-      followup: true,
-    });
-    if (!runtime.active || target.hp <= 0) {
-      runtime.currentAction = null;
-      return;
+  if (type === 'basic_action' && action.hadEffectiveBaseHit && runtime.active &&
+      actor.hp > 0 && target.hp > 0 && !action.stop) {
+    for (const core of actor.coreRules) {
+      if (core.kind !== 'basic_echo') continue;
+      dealDamage(runtime, actor, target, n(core.params.ratio, 0), {
+        sourceEffect: core.effect,
+        kind: 'derived',
+        canCrit: false,
+        followup: true,
+      });
+      if (!runtime.active || target.hp <= 0) {
+        runtime.currentAction = null;
+        return;
+      }
     }
   }
   if (!runtime.active || target.hp <= 0 || actor.hp <= 0) {
@@ -2507,6 +2864,9 @@ function executeAction(runtime: BattleRuntime, actor: Fighter, target: Fighter, 
   resolveCoreRageAction(runtime, action);
   action.completed = true;
   resolveActionEnd(runtime, action);
+  if (type === 'rage_action' && runtime.active && actor.hp > 0 && target.hp > 0) {
+    executeRageEcho(runtime, action);
+  }
   runtime.currentAction = null;
 }
 
@@ -2527,8 +2887,18 @@ function processRoundDots(runtime: BattleRuntime): void {
       for (const layer of layers) {
         if (!runtime.active || owner.hp <= 0 || target.hp <= 0) return;
         const sourceId = layer.sourceId ?? `${owner.method.id}-${status}`;
+        const ownerId = layer.ownerId ?? owner.method.id;
         const ownerEffect = activeModifiers(owner).find(effect => effect.id === sourceId) ??
-          Object.assign({ id: sourceId, ownerId: owner.method.id, ownerName: owner.method.name, ownerKind: 'method', ownerSide: owner.side, stacks: 1 }, {});
+          {
+            id: sourceId,
+            ownerId,
+            ownerName: sourceName(runtime, ownerId),
+            ownerKind: owner.talents.some(talent => talent.id === ownerId)
+              ? 'talent'
+              : owner.artifacts.some(artifact => artifact.entity.id === ownerId) ? 'artifact' : 'method',
+            ownerSide: owner.side,
+            stacks: 1,
+          };
         const synthetic: ActionContext = {
           actor: owner,
           target,
@@ -2579,7 +2949,7 @@ function processRoundDots(runtime: BattleRuntime): void {
         (synthetic as AnyMap).lastOwnDotHpDamage = result.hpDamage;
         const burnOwner = layer.ownerId ?? layer.sourceId;
         if (status === 'burn' && result.hpDamage > 0 && owner.hp > 0 &&
-            owner.coreRule?.kind === 'burn_siphon' &&
+            owner.coreRules.some(core => core.kind === 'burn_siphon') &&
             (!burnOwner || fighterOwnsSource(owner, burnOwner))) {
           burnSiphonDamage += result.hpDamage;
           burnSiphonAction ??= synthetic;
@@ -2622,10 +2992,12 @@ function processRoundDots(runtime: BattleRuntime): void {
       }
       if (!runtime.active) break;
     }
-    if (runtime.active && target.hp > 0 && burnSiphonDamage > 0 && burnSiphonAction && owner.hp > 0 &&
-        owner.coreRule?.kind === 'burn_siphon') {
-      const healing = burnSiphonDamage * n(owner.coreRule.params.heal_ratio, 0);
-      if (healing > 0) resolveHeal(runtime, burnSiphonAction, healing, owner.coreRule.effect);
+    if (runtime.active && target.hp > 0 && burnSiphonDamage > 0 && burnSiphonAction && owner.hp > 0) {
+      for (const core of owner.coreRules) {
+        if (core.kind !== 'burn_siphon') continue;
+        const healing = burnSiphonDamage * n(core.params.heal_ratio, 0);
+        if (healing > 0) resolveHeal(runtime, burnSiphonAction, healing, core.effect);
+      }
     }
     if (!runtime.active || owner.hp <= 0 || target.hp <= 0) return;
   }
@@ -2782,9 +3154,29 @@ function startBattle(runtime: BattleRuntime): void {
   }
   applyOpening(runtime);
   for (const fighter of [runtime.player, runtime.enemy]) {
-    if (fighter.coreRule?.kind !== 'shield_burst') continue;
-    const amount = fighter.stats.max_hp * n(fighter.coreRule.params.opening_shield_ratio, 0);
-    addShield(runtime, fighter, amount, fighter.coreRule.effect, '战斗开场护盾');
+    const journey = journeyFacts(fighter.loadout);
+    for (const mechanic of fighter.buildRules) {
+      let amount = 0;
+      if (mechanic.kind === 'veteran_shield') {
+        amount = fighter.stats.max_hp * (
+          n(mechanic.params.base_ratio, 0) +
+          journey.eliteWins * n(mechanic.params.elite_ratio, 0) +
+          journey.bossWins * n(mechanic.params.boss_ratio, 0)
+        );
+      } else if (mechanic.kind === 'wealth_shield') {
+        amount = n(mechanic.params.base_shield, 0) +
+          journey.coins * n(mechanic.params.shield_per_coin, 0);
+      } else {
+        continue;
+      }
+      const effect = buildEffect(fighter, mechanic);
+      if (effect) addShield(runtime, fighter, amount, effect, '构筑开场护盾');
+    }
+    for (const core of fighter.coreRules) {
+      if (core.kind !== 'shield_burst') continue;
+      const amount = fighter.stats.max_hp * n(core.params.opening_shield_ratio, 0);
+      addShield(runtime, fighter, amount, core.effect, '战斗开场护盾');
+    }
   }
   frame(runtime, 'start', '战斗开始');
 }
@@ -2795,7 +3187,11 @@ function chooseAction(fighter: Fighter): { type: ActionType; cost: number } {
   return { type: 'basic_action', cost: 0 };
 }
 
-function createFighter(runtime: BattleRuntime, side: 'player' | 'enemy', loadout: Loadout): Fighter {
+function createFighter(
+  runtime: BattleRuntime,
+  side: 'player' | 'enemy',
+  loadout: Loadout,
+): Fighter {
   const compiled = validateLoadout(runtime.content, loadout);
   const stats = calculateStats(runtime.content, loadout);
   const fighter: Fighter = {
@@ -2805,6 +3201,8 @@ function createFighter(runtime: BattleRuntime, side: 'player' | 'enemy', loadout
     method: compiled.method,
     talents: compiled.talents,
     artifacts: compiled.artifacts,
+    coreRules: [],
+    buildRules: selectedBuildMechanics(runtime.content, loadout),
     stats,
     hp: clamp(n(loadout.hp, stats.max_hp), 0, stats.max_hp),
     shield: 0,
@@ -2823,7 +3221,7 @@ function createFighter(runtime: BattleRuntime, side: 'player' | 'enemy', loadout
     contributionIds: new Set(),
   };
   (fighter as AnyMap).__content = runtime.content;
-  fighter.coreRule = coreRuleForFighter(fighter);
+  fighter.coreRules = coreRulesForFighter(fighter);
   fighter.rageCap = staticRageCap(fighter);
   fighter.rageCap = Math.max(60, fighter.rageCap);
   return fighter;

@@ -768,7 +768,7 @@ test('RKF01 J1-A and RC11 combine on method shields, while preparation stays out
   assert.equal(contribution(basic, 'RKF01-J1-A').triggers, 1);
   assert.equal(contribution(basic, 'RC11').triggers, 3);
 
-  assert.throws(() => simulateBattle(
+  const twoCoreRules = simulateBattle(
     content,
     makeLoadout('RKF01', { 1: 'A', 2: 'C' }, [
       { id: 'RC11', stacks: 1 },
@@ -777,7 +777,11 @@ test('RKF01 J1-A and RC11 combine on method shields, while preparation stays out
     makeLoadout('RKF01'),
     'rkf01-rc11-rl04-two-cores',
     { roundLimit: 1 },
-  ), /one core equipment slot/);
+  );
+  assert.ok(twoCoreRules.frames.some(frame => frame.kind === 'shield' && frame.source === 'RC11'));
+  assert.ok(twoCoreRules.frames.some(frame => frame.kind === 'rage' && frame.source === 'RULES-OPENING-RAGE'));
+  assert.ok(contribution(twoCoreRules, 'RC11').shield > 0);
+  assert.ok(contribution(twoCoreRules, 'RL04').rage > 0);
 
   const rage = simulateBattle(
     openingRageContent(),

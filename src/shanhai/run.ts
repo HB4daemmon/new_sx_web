@@ -153,6 +153,8 @@ interface RunStateInternals extends RunState {
   _eventSettled?: boolean;
   _eventOutcome?: 'success' | 'failure';
   _coreRewardOffered?: boolean;
+  _actEliteChallengeUsed?: boolean;
+  _challengeEliteEnemyId?: string;
 }
 
 function clone<T>(value: T): T {
@@ -254,6 +256,35 @@ function baseStats(content: Content, n: number): Stats {
     crit_rate: finite(source?.crit_rate) ? source.crit_rate : 0.05,
     speed: finite(source?.speed) ? source.speed : 10,
   };
+}
+
+function hasTalent(state: RunState, id: string): boolean {
+  return (state.talents[state.method] ?? []).includes(id);
+}
+
+function journeyContext(state: RunState): NonNullable<Loadout['journey']> {
+  return {
+    coins: state.coins,
+    coinsSpent: state.progress.coinsSpent,
+    eliteWins: state.progress.eliteWins,
+    bossWins: state.progress.bossWins,
+    artifactKinds: new Set(state.artifacts.map(stack => stack.id)).size,
+    knownMethods: new Set(state.ownedMethods).size,
+  };
+}
+
+function battleRewardType(type: RunNode['type']): 'common' | 'elite' | 'boss' | undefined {
+  if (type === 'C') return 'common';
+  if (type === 'L') return 'elite';
+  if (type === 'B') return 'boss';
+  return undefined;
+}
+
+function rewardTypeForEnemyTier(tier: unknown): 'common' | 'elite' | 'boss' | undefined {
+  if (tier === 'normal') return 'common';
+  if (tier === 'elite') return 'elite';
+  if (tier === 'boss') return 'boss';
+  return undefined;
 }
 
 function worker(): ShanhaiCombatWorker {
@@ -360,6 +391,14 @@ function methodTalents(content: Content, method: string): Entity[] {
 function sharedTalents(content: Content): Entity[] {
   const insights = rulesOf(content).insights;
   return Array.isArray(insights) ? insights.filter(isObject) as Entity[] : [];
+}
+
+function sharedBuildParams(content: Content, id: string, kind: string): AnyRecord | undefined {
+  const talent = sharedTalents(content).find(candidate => candidate.id === id);
+  const effect = Array.isArray(talent?.effects)
+    ? talent.effects.find((candidate: AnyRecord) => candidate?.params?.build === kind)
+    : undefined;
+  return isObject(effect?.params) ? effect.params : undefined;
 }
 
 function talentEntity(content: Content, method: string, id: string): Entity | undefined {
@@ -489,7 +528,9 @@ export class ShanhaiGame {
       xp: 0,
       coins: finite(rules.economy?.initial_coins) ? rules.economy.initial_coins : 20,
       artifacts: [],
-      equipment: { core: null, support: [] },
+      equipment: { slots: [] },
+      buildVersion: 1,
+      progress: { coinsSpent: 0, eliteWins: 0, bossWins: 0 },
       talentDraftGeneration: 0,
       talentDrafts: {},
       preparation: 0,
@@ -509,6 +550,7 @@ export class ShanhaiGame {
       _routeHistory: [],
       _seenEnemyIds: [],
       _corePositions: [],
+      _actEliteChallengeUsed: false,
       _nodeEnemyByKey: {},
       _bossEnemyByAct: {},
       _travelSnapshots: [],
@@ -544,6 +586,7 @@ export class ShanhaiGame {
       hp: state.hp,
       preparation: state.preparation,
       firstStrike: state.firstStrike,
+      journey: journeyContext(state),
     };
   }
 
@@ -553,6 +596,18 @@ export class ShanhaiGame {
 
   canChangeEquipment(): boolean {
     return ['map', 'reward', 'shop', 'rest', 'transition'].includes(this.state.phase);
+  }
+
+  canChallengeElite(): boolean {
+    const state = this.state as RunStateInternals;
+    const node = this.node;
+    if (this.state.phase !== 'preview' || state._previewKind !== 'node' ||
+      node?.type !== 'C' || state._actEliteChallengeUsed === true ||
+      !hasTalent(this.state, 'V2-J1-B')) return false;
+    const candidates = this.actContent.pools?.enemies?.elite_candidates;
+    return Array.isArray(candidates) && candidates.some((id: unknown) =>
+      typeof id === 'string' && contentEntity(this.content, id)?.kind === 'enemy' &&
+      contentEntity(this.content, id)?.tier === 'elite');
   }
 
   get stats(): Stats {
@@ -806,6 +861,9 @@ export class ShanhaiGame {
         case 'fight':
           this.fight();
           break;
+        case 'challenge_elite':
+          this.challengeElite();
+          break;
         case 'battle_done':
           this.battleDone();
           break;
@@ -861,30 +919,34 @@ export class ShanhaiGame {
     if (!this.state.artifacts.some(stack => stack.id === id && stack.stacks > 0)) {
       throw new Error(`Artifact is not owned: ${id}`);
     }
-    const role = artifactRole(this.content, id);
-    if (!role) throw new Error(`Unknown artifact: ${id}`);
-    if (this.state.equipment.core === id || this.state.equipment.support.includes(id)) {
+    if (!artifactRole(this.content, id)) throw new Error(`Unknown artifact: ${id}`);
+    if (this.state.equipment.slots.includes(id)) {
       throw new Error('Artifact is already equipped');
     }
 
     if (replace !== undefined) {
-      if (artifactRole(this.content, replace) !== role) throw new Error('Replacement slot has a different role');
-      if (role === 'core') {
-        if (this.state.equipment.core !== replace) throw new Error('Replacement artifact is not equipped');
-        this.state.equipment.core = id;
-      } else {
-        const index = this.state.equipment.support.indexOf(replace);
-        if (index < 0) throw new Error('Replacement artifact is not equipped');
-        this.state.equipment.support[index] = id;
-      }
-    } else if (role === 'core') {
-      if (this.state.equipment.core !== null) throw new Error('Core slot is occupied');
-      this.state.equipment.core = id;
+      const index = this.state.equipment.slots.indexOf(replace);
+      if (index < 0) throw new Error('Replacement artifact is not equipped');
+      this.state.equipment.slots[index] = id;
     } else {
-      if (this.state.equipment.support.length >= 3) throw new Error('Support slots are full');
-      this.state.equipment.support.push(id);
+      if (this.state.equipment.slots.length >= 4) throw new Error('Equipment slots are full');
+      this.state.equipment.slots.push(id);
     }
     this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
+  }
+
+  private challengeElite(): void {
+    if (!this.canChallengeElite()) throw new Error('Elite challenge is unavailable');
+    const state = this.state as RunStateInternals;
+    const key = state.routeMap?.path[this.state.step] ?? `a${this.state.act}-d${this.state.step}`;
+    const depth = state.routeMap?.nodes.find(candidate => candidate.key === key)?.depth ?? this.state.step;
+    const enemyId = this.freezeEnemy('L', depth, `${key}:hunter-challenge`);
+    state._actEliteChallengeUsed = true;
+    state._challengeEliteEnemyId = enemyId;
+    state._battleRewardType = 'elite';
+    state._seenEnemyIds ??= [];
+    state._seenEnemyIds.push(enemyId);
+    state._lastEnemyId = enemyId;
   }
 
   private freezeTalentDraft(item: CoreQueueItem): void {
@@ -895,31 +957,38 @@ export class ShanhaiGame {
       .filter(talent => talent.tier === item.tier);
     const shared = sharedTalents(this.content)
       .filter(talent => talent.tier === item.tier);
-    if (local.length < 2 || shared.length < 1) {
+    const isFirstBreakthrough = item.tier === 1;
+    if ((isFirstBreakthrough && shared.length < 3) ||
+      (!isFirstBreakthrough && (local.length < 1 || shared.length < 2))) {
       throw new Error(`Talent draft pool is incomplete for ${item.method} tier ${item.tier}`);
     }
-    const localIds = sample(
-      local,
-      2,
-      seededRandom(`${state.seed}:talent-draft:${key}:local`),
-    ).map(talent => talent.id);
-    const sharedIds = sample(
-      shared,
-      1,
-      seededRandom(`${state.seed}:talent-draft:${key}:shared`),
-    ).map(talent => talent.id);
-    state.talentDrafts[key] = [...localIds, ...sharedIds];
+    if (isFirstBreakthrough) {
+      state.talentDrafts[key] = sample(
+        shared,
+        3,
+        seededRandom(`${state.seed}:talent-draft:${key}:shared`),
+      ).map(talent => talent.id);
+    } else {
+      const localIds = sample(
+        local,
+        1,
+        seededRandom(`${state.seed}:talent-draft:${key}:local`),
+      ).map(talent => talent.id);
+      const sharedIds = sample(
+        shared,
+        2,
+        seededRandom(`${state.seed}:talent-draft:${key}:shared`),
+      ).map(talent => talent.id);
+      state.talentDrafts[key] = [...localIds, ...sharedIds];
+    }
   }
 
   private unequipArtifact(id: string): void {
     if (!this.canChangeEquipment()) throw new Error('Equipment cannot change now');
     if (typeof id !== 'string') throw new Error('Invalid artifact ID');
-    if (this.state.equipment.core === id) this.state.equipment.core = null;
-    else {
-      const index = this.state.equipment.support.indexOf(id);
-      if (index < 0) throw new Error('Artifact is not equipped');
-      this.state.equipment.support.splice(index, 1);
-    }
+    const index = this.state.equipment.slots.indexOf(id);
+    if (index < 0) throw new Error('Artifact is not equipped');
+    this.state.equipment.slots.splice(index, 1);
     this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
   }
 
@@ -1125,7 +1194,9 @@ export class ShanhaiGame {
     const node = this.node;
     if (!node) throw new Error('No node');
     const state = this.state as RunStateInternals;
-    const enemyId = state._previewKind === 'event' ? state._pendingEvent?.enemyId : node.id;
+    const enemyId = state._previewKind === 'event'
+      ? state._pendingEvent?.enemyId
+      : state._challengeEliteEnemyId ?? node.id;
     if (!enemyId) throw new Error('No frozen enemy');
     const enemy = this.buildEnemy(enemyId);
     const input: RunState['battleInput'] = {
@@ -1148,6 +1219,9 @@ export class ShanhaiGame {
     this.state.phase = 'battle';
     state._battleKind = state._previewKind === 'event' ? 'event' : 'node';
     state._battleNodeType = node.type;
+    state._battleRewardType = state._previewKind === 'event'
+      ? undefined
+      : state._challengeEliteEnemyId ? 'elite' : battleRewardType(node.type);
   }
 
   private continueBattle(): void {
@@ -1187,6 +1261,7 @@ export class ShanhaiGame {
       return;
     }
     if (node.type === 'F') {
+      this.state.progress.bossWins += 1;
       this.markNodeCompleteWithoutTravel();
       const story = actEntity(this.content, 5)?.story;
       const finalText = [
@@ -1203,12 +1278,16 @@ export class ShanhaiGame {
       this.state.resultText = finalText;
       return;
     }
+    const rewardType = state._battleRewardType ?? battleRewardType(node.type);
+    if (!rewardType) throw new Error('Missing battle reward type');
+    if (rewardType === 'elite') this.state.progress.eliteWins += 1;
+    if (rewardType === 'boss') this.state.progress.bossWins += 1;
     const story = actEntity(this.content, this.state.act)?.story;
-    this.state.resultText = node.type === 'B'
+    this.state.resultText = rewardType === 'boss'
       ? story?.boss_variants?.[node.id] ?? story?.battle_after?.boss ?? ''
-      : story?.battle_after?.[node.type === 'L' ? 'elite' : 'common'] ?? '';
+      : story?.battle_after?.[rewardType === 'elite' ? 'elite' : 'common'] ?? '';
     this.state.phase = 'reward';
-    this.settleBattleEconomy(node.type);
+    this.settleBattleEconomy(rewardType);
   }
 
   private settleEventBattle(): void {
@@ -1230,8 +1309,13 @@ export class ShanhaiGame {
     state._eventOutcome = battle.outcome === 'player' ? 'success' : 'failure';
     this.state.eventStoryEcho = battle.outcome === 'player' ? option.story_echo : option.story_failure_echo;
     if (battle.outcome === 'player') {
+      const enemy = contentEntity(this.content, pending.enemyId);
+      const rewardType = rewardTypeForEnemyTier(enemy?.tier);
+      if (rewardType === 'elite') this.state.progress.eliteWins += 1;
+      if (rewardType === 'boss') this.state.progress.bossWins += 1;
       this.applyFlags(option);
       this.applyRewards(optionRewards(option));
+      if (rewardType) this.applyBounty(rewardType);
       this.state.resultText = option.outcome ?? '';
     } else {
       // Non-lethal encounter failure only keeps the already-paid cost and
@@ -1245,13 +1329,13 @@ export class ShanhaiGame {
     this.ensureTalentQueue();
   }
 
-  private settleBattleEconomy(type: RunNode['type']): void {
+  private settleBattleEconomy(type: 'common' | 'elite' | 'boss'): void {
     const state = this.state as RunStateInternals;
     if (state._rewardSettled) throw new Error('Battle economy already settled');
     state._rewardSettled = true;
     const index = Math.max(0, this.state.act - 1);
     const economy = rulesOf(this.content).economy ?? {};
-    if (type === 'C') {
+    if (type === 'common') {
       this.state.xp += finite(economy.ordinary_xp_by_act?.[index]) ? economy.ordinary_xp_by_act[index] : 0;
       this.state.coins += finite(economy.ordinary_coins_by_act?.[index]) ? economy.ordinary_coins_by_act[index] : 0;
       const noCoreOwned = !this.state.artifacts.some(stack =>
@@ -1264,16 +1348,26 @@ export class ShanhaiGame {
       } else {
         this.state.rewardCandidates = this.rollArtifacts('common', 3, `reward:${this.state.act}:${this.state.step}:common`);
       }
-    } else if (type === 'L') {
+    } else if (type === 'elite') {
       this.state.xp += finite(economy.elite_xp_by_act?.[index]) ? economy.elite_xp_by_act[index] : 0;
       this.state.coins += finite(economy.elite_coins_by_act?.[index]) ? economy.elite_coins_by_act[index] : 0;
       this.state.rewardCandidates = this.rollArtifacts('rare', 3, `reward:${this.state.act}:${this.state.step}:elite`);
-    } else if (type === 'B') {
+    } else if (type === 'boss') {
       this.state.xp += finite(economy.boss_xp_by_act?.[index]) ? economy.boss_xp_by_act[index] : 0;
       this.state.coins += finite(economy.boss_coins_by_act?.[index]) ? economy.boss_coins_by_act[index] : 0;
       this.state.rewardCandidates = this.rollArtifacts('rare', 3, `reward:${this.state.act}:${this.state.step}:boss`);
       this.maybeReplaceBossReward();
     }
+    this.applyBounty(type);
+  }
+
+  private applyBounty(type: 'common' | 'elite' | 'boss'): void {
+    if (!this.state.battleInput?.player.talents.includes('V2-J2-A')) return;
+    const params = sharedBuildParams(this.content, 'V2-J2-A', 'bounty');
+    const amount = type === 'common' ? params?.normal_coins
+      : type === 'elite' ? params?.elite_coins
+        : params?.boss_coins;
+    if (finite(amount) && amount >= 0) this.state.coins += amount;
   }
 
   private maybeReplaceBossReward(): void {
@@ -1433,6 +1527,9 @@ export class ShanhaiGame {
     this.state.nodes = [];
     state._actCoreCount = 0;
     state._actEliteCount = 0;
+    state._actEliteChallengeUsed = false;
+    state._challengeEliteEnemyId = undefined;
+    state._battleRewardType = undefined;
     state._lastCorePosition = undefined;
     this.state.routeMap = { nodes: this.createRouteMap(), path: [] };
     this.state.rewardCandidates = [];
@@ -1471,8 +1568,9 @@ export class ShanhaiGame {
       items.push({
         id,
         kind: 'artifact',
-        price: artifact.rarity === 'rare' ? (finite(act?.economy?.shop?.rare_price) ? act.economy.shop.rare_price : 90) :
+        price: this.shopQuote(artifact.rarity === 'rare' ? (finite(act?.economy?.shop?.rare_price) ? act.economy.shop.rare_price : 90) :
           (finite(act?.economy?.shop?.common_price) ? act.economy.shop.common_price : 40),
+        ),
         sold: false,
       });
     }
@@ -1482,19 +1580,19 @@ export class ShanhaiGame {
     items.push({
       id: 'recovery',
       kind: 'recovery',
-      price: finite(recovery.price) ? recovery.price : 15,
+      price: this.shopQuote(finite(recovery.price) ? recovery.price : 15),
       sold: false,
     });
     items.push({
       id: 'preparation',
       kind: 'preparation',
-      price: finite(preparation.price) ? preparation.price : 12,
+      price: this.shopQuote(finite(preparation.price) ? preparation.price : 12),
       sold: false,
     });
     items.push({
       id: 'talent_reset',
       kind: 'talent_reset',
-      price: finite(talentReset.price) ? talentReset.price : 40,
+      price: this.shopQuote(finite(talentReset.price) ? talentReset.price : 40),
       sold: false,
     });
     this.state.shop = items;
@@ -1520,7 +1618,7 @@ export class ShanhaiGame {
         tier: index + 1,
         advance: false,
       }));
-      this.state.coins -= item.price;
+      this.chargeCoins(item.price);
       item.sold = true;
       state.talentDraftGeneration += 1;
       state.talents[state.method] = [];
@@ -1531,7 +1629,7 @@ export class ShanhaiGame {
       this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
       return;
     }
-    this.state.coins -= item.price;
+    this.chargeCoins(item.price);
     if (item.kind === 'artifact') addArtifact(this.content, this.state, item.id, 1);
     else if (item.kind === 'recovery') this.state.hp = Math.min(this.stats.max_hp, this.state.hp + 0.12 * currentReferenceHp(this.content, this.state.act));
     else this.state.preparation += 0.1 * currentReferenceHp(this.content, this.state.act);
@@ -1543,6 +1641,25 @@ export class ShanhaiGame {
     this.state.shop = clone(this.state.shop);
     this.state.phase = 'map';
     this.completeNode();
+  }
+
+  private shopQuote(price: number): number {
+    const params = hasTalent(this.state, 'V2-J2-B')
+      ? sharedBuildParams(this.content, 'V2-J2-B', 'shop_discount')
+      : undefined;
+    if (!params) return Math.max(1, price);
+    const ratio = finite(params?.ratio) ? params.ratio : 1;
+    return Math.max(1, Math.floor(price * ratio));
+  }
+
+  private chargeCoins(amount: number): void {
+    if (!finite(amount) || amount < 0 || this.state.coins + 1e-9 < amount) {
+      throw new Error('Cannot pay coins');
+    }
+    const spent = this.state.progress.coinsSpent + amount;
+    if (!finite(spent)) throw new Error('Invalid run spending total');
+    this.state.coins = Math.max(0, this.state.coins - amount);
+    this.state.progress.coinsSpent = spent;
   }
 
   reforgePrice(): number {
@@ -1572,7 +1689,7 @@ export class ShanhaiGame {
   private reforge(sourceId: string, targetId: string): void {
     const availability = this.reforgeAvailability(sourceId, targetId);
     if (!availability.available) throw new Error(availability.reason);
-    this.state.coins -= this.reforgePrice();
+    this.chargeCoins(this.reforgePrice());
     removeArtifact(this.state, sourceId, 1);
     addArtifact(this.content, this.state, targetId, 1);
     this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
@@ -1605,7 +1722,7 @@ export class ShanhaiGame {
     } else if (choice === 'temper') {
       if (typeof artifact !== 'string' || !this.warmableArtifacts().includes(artifact)) throw new Error('Artifact cannot be tempered');
       if (this.state.coins < this.warmCost()) throw new Error('Cannot afford tempering');
-      this.state.coins -= this.warmCost();
+      this.chargeCoins(this.warmCost());
       addArtifact(this.content, this.state, artifact, 1);
       this.state.resultText = `${artifactEntity(this.content, artifact).name}温养一层。`;
     } else {
@@ -1728,7 +1845,7 @@ export class ShanhaiGame {
       if (cost.resource === 'hp') {
         this.state.hp = Math.max(0, this.state.hp - cost.amount);
         this.applyEventTravelAfterHpCost(cost.amount);
-      } else if (cost.resource === 'coins') this.state.coins -= cost.amount;
+      } else if (cost.resource === 'coins') this.chargeCoins(cost.amount);
       else this.state.xp -= cost.amount;
     }
   }
@@ -2058,7 +2175,10 @@ export class ShanhaiGame {
       artifacts: clone(source.artifacts),
       phase: this.state.phase,
     });
-    const entity = contentEntity(this.content, node.id);
+    const entity = contentEntity(
+      this.content,
+      node.type === 'C' ? state._challengeEliteEnemyId ?? node.id : node.id,
+    );
     const selected = this.state.eventOption && entity?.kind === 'event'
       ? eventOption(entity, this.state.eventOption) : undefined;
     const echo = this.state.eventStoryEcho ??
@@ -2097,6 +2217,7 @@ export class ShanhaiGame {
     state._battleKind = undefined;
     state._battleNodeType = undefined;
     state._battleRewardType = undefined;
+    state._challengeEliteEnemyId = undefined;
     state._battleSettled = false;
     state._eventSettled = false;
     state._eventOutcome = undefined;
@@ -2210,6 +2331,7 @@ export class ShanhaiGame {
       baseStats: baseStats(this.content, this.state.n),
       hp: this.state.hp,
       preparation: 0,
+      journey: journeyContext(this.state),
     });
     if (!isObject(result) || !['attack', 'defense', 'max_hp', 'crit_rate', 'speed']
       .every(key => finite(result[key as keyof Stats]))) {
@@ -2478,8 +2600,6 @@ function validateLoadoutReferences(content: Content, loadout: Loadout, enemy = f
   }
   const ids = new Set<string>();
   const groups = new Set<string>();
-  let cores = 0;
-  let supports = 0;
   for (const stack of loadout.artifacts) {
     if (!isObject(stack) || typeof stack.id !== 'string' || !integer(stack.stacks) || stack.stacks <= 0 || ids.has(stack.id)) {
       throw new Error('Invalid saved loadout artifact');
@@ -2490,16 +2610,14 @@ function validateLoadoutReferences(content: Content, loadout: Loadout, enemy = f
       stack.stacks > (integer(artifact.max_stacks) ? artifact.max_stacks : 1)) throw new Error('Invalid saved loadout artifact');
     const role = artifactRole(content, stack.id);
     if (!role) throw new Error('Invalid saved loadout artifact role');
-    if (role === 'core') cores += 1;
-    else supports += 1;
     if (artifact.unique_group) {
       if (groups.has(artifact.unique_group)) throw new Error('Invalid saved unique artifact group');
       groups.add(artifact.unique_group);
     }
   }
-  if (cores > 1 || supports > 3) throw new Error(enemy
-    ? 'Invalid enemy equipment slots'
-    : 'Invalid player equipment slots');
+  if (ids.size > 4) {
+    throw new Error(enemy ? 'Invalid enemy equipment slots' : 'Invalid player equipment slots');
+  }
   if (loadout.hp !== undefined && (!finite(loadout.hp) || loadout.hp < 0)) {
     throw new Error(enemy ? 'Invalid saved enemy HP' : 'Invalid saved player loadout HP');
   }
@@ -2511,6 +2629,16 @@ function validateLoadoutReferences(content: Content, loadout: Loadout, enemy = f
   }
   if (!enemy && (!finite(loadout.hp) || loadout.hp < 0 || !finite(loadout.preparation) || loadout.preparation < 0)) {
     throw new Error('Invalid saved player loadout resources');
+  }
+  if (loadout.journey !== undefined &&
+    (!isObject(loadout.journey) ||
+      !finite(loadout.journey.coins) || loadout.journey.coins < 0 ||
+      !finite(loadout.journey.coinsSpent) || loadout.journey.coinsSpent < 0 ||
+      !integer(loadout.journey.eliteWins) || loadout.journey.eliteWins < 0 ||
+      !integer(loadout.journey.bossWins) || loadout.journey.bossWins < 0 ||
+      !integer(loadout.journey.artifactKinds) || loadout.journey.artifactKinds < 0 ||
+      !integer(loadout.journey.knownMethods) || loadout.journey.knownMethods < 0)) {
+    throw new Error('Invalid saved journey context');
   }
   if (loadout.baseStats && (!isObject(loadout.baseStats) ||
     !['attack', 'defense', 'max_hp', 'crit_rate', 'speed'].every(key => finite(loadout.baseStats?.[key as keyof Stats])) ||
@@ -2593,13 +2721,19 @@ function validateTalentDrafts(content: Content, state: RunStateInternals): void 
     const tier = Number(match[2]);
     const local = methodTalents(content, method).filter(talent => talent.tier === tier);
     const shared = sharedTalents(content).filter(talent => talent.tier === tier);
-    if (local.length < 2 || shared.length < 1) {
+    if ((tier === 1 && shared.length < 3) ||
+      (tier > 1 && (local.length < 1 || shared.length < 2))) {
       throw new Error('Talent draft pool is incomplete');
     }
-    const expected = [
-      ...sample(local, 2, seededRandom(`${state.seed}:talent-draft:${key}:local`)).map(talent => talent.id),
-      ...sample(shared, 1, seededRandom(`${state.seed}:talent-draft:${key}:shared`)).map(talent => talent.id),
-    ];
+    const expected = tier === 1
+      ? sample(shared, 3, seededRandom(`${state.seed}:talent-draft:${key}:shared`))
+        .map(talent => talent.id)
+      : [
+        ...sample(local, 1, seededRandom(`${state.seed}:talent-draft:${key}:local`))
+          .map(talent => talent.id),
+        ...sample(shared, 2, seededRandom(`${state.seed}:talent-draft:${key}:shared`))
+          .map(talent => talent.id),
+      ];
     if (JSON.stringify(ids) !== JSON.stringify(expected)) {
       throw new Error('Frozen talent draft does not match run seed');
     }
@@ -2611,6 +2745,13 @@ export function validateRunState(content: Content, raw: RunState): void {
   if (!isObject(raw)) throw new Error('Invalid run state');
   const state = raw as RunStateInternals;
   if (state.schema !== 1 || state.contentVersion !== content.version) throw new Error('Run/content version mismatch');
+  if (state.buildVersion !== 1) throw new Error('Incompatible run build version');
+  if (!isObject(state.progress) ||
+    !finite(state.progress.coinsSpent) || state.progress.coinsSpent < 0 ||
+    !integer(state.progress.eliteWins) || state.progress.eliteWins < 0 ||
+    !integer(state.progress.bossWins) || state.progress.bossWins < 0) {
+    throw new Error('Invalid run progress');
+  }
   if (typeof state.id !== 'string' || !state.id || typeof state.seed !== 'string' || typeof state.name !== 'string') throw new Error('Invalid run identity');
   if (!PHASES.includes(state.phase)) throw new Error('Invalid run phase');
   if (!integer(state.act) || state.act < 1 || state.act > 5 || !integer(state.step) || state.step < 0) throw new Error('Invalid run position');
@@ -2797,6 +2938,9 @@ export function validateRunState(content: Content, raw: RunState): void {
   ] as const) {
     if (state[key] !== undefined && typeof state[key] !== 'boolean') throw new Error(`Invalid ${key}`);
   }
+  if (typeof state._actEliteChallengeUsed !== 'boolean') {
+    throw new Error('Invalid elite challenge marker');
+  }
   if (state._pendingRestChoice !== undefined && typeof state._pendingRestChoice !== 'string') {
     throw new Error('Invalid pending rest choice');
   }
@@ -2819,6 +2963,47 @@ export function validateRunState(content: Content, raw: RunState): void {
   if (state._battleRewardType !== undefined &&
     !['common', 'elite', 'boss'].includes(state._battleRewardType)) {
     throw new Error('Invalid battle reward type');
+  }
+  if (state._battleKind === 'event' && state._battleRewardType !== undefined) {
+    throw new Error('Event battle has node reward type');
+  }
+  if (state._battleKind === 'node' && state._battleRewardType !== undefined) {
+    const node = state.nodes[state.step];
+    const expected = state._challengeEliteEnemyId ? 'elite' : node && battleRewardType(node.type);
+    if (!expected || state._battleRewardType !== expected) {
+      throw new Error('Battle reward type mismatch');
+    }
+  }
+  if (state._challengeEliteEnemyId !== undefined) {
+    const enemy = contentEntity(content, state._challengeEliteEnemyId);
+    const node = state.nodes[state.step];
+    const eligibleEnemies = actEntity(content, state.act)?.pools?.enemies?.elite_candidates;
+    if (typeof state._challengeEliteEnemyId !== 'string' ||
+      state._actEliteChallengeUsed !== true || node?.type !== 'C' ||
+      enemy?.kind !== 'enemy' || enemy.tier !== 'elite' ||
+      !Array.isArray(eligibleEnemies) || !eligibleEnemies.includes(state._challengeEliteEnemyId)) {
+      throw new Error('Invalid challenged elite encounter');
+    }
+    if (state._battleRewardType !== 'elite') {
+      throw new Error('Challenged elite reward type mismatch');
+    }
+    if (state.nodeEntry && !state.nodeEntry.talents.includes('V2-J1-B')) {
+      throw new Error('Challenged elite requires the hunter insight');
+    }
+    if (state.battleInput && state._battleKind === 'node' &&
+      (state.battleInput.enemy.name !== enemy.name ||
+        state.battleInput.enemy.method !== enemy.method)) {
+      throw new Error('Challenged elite battle input mismatch');
+    }
+  }
+  if (state._battleKind === 'node' && state.battleInput) {
+    const node = state.nodes[state.step];
+    const enemyId = state._challengeEliteEnemyId ?? node?.id;
+    const enemy = enemyId ? contentEntity(content, enemyId) : undefined;
+    if (!enemy || state.battleInput.enemy.name !== enemy.name ||
+      state.battleInput.enemy.method !== enemy.method) {
+      throw new Error('Battle input does not match the selected encounter');
+    }
   }
   if (state._talentQueue !== undefined && !Array.isArray(state._talentQueue)) {
     throw new Error('Invalid talent queue');
@@ -2997,6 +3182,14 @@ export function validateRunState(content: Content, raw: RunState): void {
     if (state.battleInput.rules !== undefined && state.battleInput.rules !== 'awakening-v1') throw new Error('Invalid battle rules');
     validateLoadoutReferences(content, state.battleInput.player);
     validateLoadoutReferences(content, state.battleInput.enemy, true);
+  }
+  if (state.phase === 'battle') {
+    const journey = state.battleInput?.player?.journey;
+    const expected = journeyContext(state);
+    if (!journey || Object.keys(expected).some(key =>
+      journey[key as keyof typeof expected] !== expected[key as keyof typeof expected])) {
+      throw new Error('Frozen battle journey context mismatch');
+    }
   }
   if (state.battle) validateBattleResult(state.battle);
   if (state.eventOption !== undefined && typeof state.eventOption !== 'string') throw new Error('Invalid event option');

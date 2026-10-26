@@ -155,6 +155,7 @@ test('stat event checks persist the selected result, exact echo, and actual hist
     const initialHp = success ? game.stats.max_hp : Math.max(1, game.stats.max_hp * 0.2);
     game.state.hp = initialHp;
     const beforeCoins = game.state.coins;
+    const beforeSpent = game.state.progress.coinsSpent;
     const price = actEventCost(game, option);
 
     game.dispatch({ type: 'event', id: option.id });
@@ -165,6 +166,7 @@ test('stat event checks persist the selected result, exact echo, and actual hist
     assert.equal(check.threshold, 0.55);
     assert.equal(game.state._eventOutcome, success ? 'success' : 'failure');
     assert.equal(game.state.coins, beforeCoins - price);
+    assert.equal(game.state.progress.coinsSpent, beforeSpent + price);
     assert.equal(game.state.artifacts.some(stack => stack.id === 'RC04'), success);
 
     const pending = reload(game);
@@ -172,8 +174,10 @@ test('stat event checks persist the selected result, exact echo, and actual hist
     assert.equal(pending.state.eventStoryEcho,
       success ? option.story_echo : option.check.failure_echo);
     assert.equal(pending.state.coins, beforeCoins - price);
+    assert.equal(pending.state.progress.coinsSpent, beforeSpent + price);
     assert.throws(() => pending.dispatch({ type: 'event', id: option.id }), /No event is pending/);
     assert.equal(pending.state.coins, beforeCoins - price, 'reload must not charge a second time');
+    assert.equal(pending.state.progress.coinsSpent, beforeSpent + price);
 
     pending.dispatch({ type: 'continue' });
     const entry = pending.state.history.at(-1);
@@ -311,9 +315,7 @@ test('reforge candidates are fixed, forged targets fail, payment and HP clamp ar
   let targetMaxHp;
   for (const source of content.entities.filter(entity => entity.kind === 'artifact' && entity.rarity === 'common')) {
     game.state.artifacts = [{ id: source.id, stacks: 1 }];
-    game.state.equipment = source.equipment_role === 'core'
-      ? { core: source.id, support: [] }
-      : { core: null, support: [source.id] };
+    game.state.equipment = { slots: [source.id] };
     const candidates = game.reforgeOptions(source.id);
     if (candidates.length !== 3) continue;
     const currentMaxHp = calculateStats(content, game.player).max_hp;
@@ -334,9 +336,7 @@ test('reforge candidates are fixed, forged targets fail, payment and HP clamp ar
   }
   assert.ok(sourceId && options && targetId, 'expected three fixed candidates including a lower max-HP target');
   game.state.artifacts = [{ id: sourceId, stacks: 1 }];
-  game.state.equipment = content.byId[sourceId].equipment_role === 'core'
-    ? { core: sourceId, support: [] }
-    : { core: null, support: [sourceId] };
+  game.state.equipment = { slots: [sourceId] };
   game.state.coins = 100;
   game.state.hp = sourceMaxHp;
   assert.deepEqual(game.reforgeOptions(sourceId), options);
@@ -362,9 +362,11 @@ test('reforge candidates are fixed, forged targets fail, payment and HP clamp ar
   assert.deepEqual(game.reforgeOptions(sourceId), options, 'back and re-entry must not reroll candidates');
 
   const beforeCoins = game.state.coins;
+  const beforeSpent = game.state.progress.coinsSpent;
   const price = game.reforgePrice();
   game.dispatch({ type: 'reforge', source: sourceId, target: targetId });
   assert.equal(game.state.coins, beforeCoins - price);
+  assert.equal(game.state.progress.coinsSpent, beforeSpent + price);
   assert.equal(game.state.artifacts.some(stack => stack.id === sourceId), false);
   assert.equal(game.state.artifacts.find(stack => stack.id === targetId)?.stacks, 1);
   assert.equal(game.state.hp, targetMaxHp, 'removing the source clamps HP to the new maximum');
@@ -402,11 +404,13 @@ test('rest tempering pays one price, adds one stack, and consumes the entire res
   const warmCost = game.warmCost();
   const beforeStep = game.state.step;
   const beforeCoins = game.state.coins;
+  const beforeSpent = game.state.progress.coinsSpent;
 
   game.dispatch({ type: 'rest', choice: 'temper', artifact: 'RC05' });
   assert.equal(game.state.phase, 'map');
   assert.equal(game.state.step, beforeStep + 1);
   assert.equal(game.state.coins, beforeCoins - warmCost);
+  assert.equal(game.state.progress.coinsSpent, beforeSpent + warmCost);
   assert.equal(game.state.artifacts.find(stack => stack.id === 'RC05').stacks, 2);
   assert.equal(game.state.nodes[rest.depth].completed, true);
   assert.throws(() => game.dispatch({ type: 'rest', choice: 'temper', artifact: 'RC05' }), /Rest is not available/);
@@ -449,11 +453,178 @@ test('temper refuses full layers, insufficient coins, and event-granted method-s
   assert.deepEqual(eventRest.state, eventBefore);
 });
 
+test('shop discount freezes reduced quotes and charges only the quoted amount', () => {
+  installStubCombat();
+  const game = make('shop-discount-ledger');
+  game.state.n = 2;
+  game.state.xp = 600;
+  game.state.talents.RKF01 = ['V2-J1-A', 'V2-J2-B'];
+  game.state.coins = 1000;
+  const shop = routeToNode(game, node => node.type === 'S');
+  const actPrices = game.actContent.economy.shop;
+
+  for (const item of game.state.shop) {
+    const undiscounted = item.kind === 'artifact'
+      ? content.byId[item.id].rarity === 'rare' ? actPrices.rare_price : actPrices.common_price
+      : content.rules.economy.non_artifact_prices[item.kind].price;
+    assert.equal(item.price, Math.max(1, Math.floor(undiscounted * 0.75)), item.id);
+  }
+
+  const service = game.state.shop.find(item => item.kind === 'recovery');
+  const beforeCoins = game.state.coins;
+  const beforeSpent = game.state.progress.coinsSpent;
+  game.dispatch({ type: 'buy', id: service.id });
+  assert.equal(game.state.coins, beforeCoins - service.price);
+  assert.equal(game.state.progress.coinsSpent, beforeSpent + service.price);
+  const frozenPrice = service.price;
+  game.dispatch({ type: 'back' });
+  game.dispatch({ type: 'enter', id: shop.key });
+  assert.equal(game.state.shop.find(item => item.id === service.id).price, frozenPrice);
+  const spentAfterPurchase = game.state.progress.coinsSpent;
+  assert.throws(() => game.dispatch({ type: 'buy', id: service.id }), /sold/);
+  assert.equal(game.state.progress.coinsSpent, spentAfterPurchase);
+});
+
+test('bounty counts settled normal, elite, and boss victories but never pays the terminal win', () => {
+  installStubCombat();
+  const game = make('bounty-settlement');
+  game.state.n = 2;
+  game.state.xp = 600;
+  game.state.talents.RKF01 = ['V2-J1-A', 'V2-J2-A'];
+
+  routeToNode(game, node => node.type === 'C');
+  game.state.coins = 0;
+  const normalCoins = content.rules.economy.ordinary_coins_by_act[0];
+  game.dispatch({ type: 'fight' });
+  assert.deepEqual(game.state.battleInput.player.journey, {
+    coins: 0,
+    coinsSpent: game.state.progress.coinsSpent,
+    eliteWins: 0,
+    bossWins: 0,
+    artifactKinds: 0,
+    knownMethods: 1,
+  });
+  game.dispatch({ type: 'battle_done' });
+  assert.equal(game.state.coins, normalCoins + 4);
+  assert.equal(game.state.progress.eliteWins, 0);
+  assert.equal(game.state.progress.bossWins, 0);
+  assert.throws(() => game.dispatch({ type: 'battle_done' }), /No battle result/);
+  const settled = reload(game);
+  assert.equal(settled.state.coins, normalCoins + 4, 'reload must not settle bounty twice');
+  settled.dispatch({ type: 'reward', id: null });
+
+  for (let act = 1; act <= 4; act++) {
+    routeToNode(settled, node => node.type === 'B');
+    settled.state.coins = 0;
+    settled.dispatch({ type: 'fight' });
+    settled.dispatch({ type: 'battle_done' });
+    assert.equal(settled.state.progress.bossWins, act);
+    assert.equal(settled.state.coins,
+      content.rules.economy.boss_coins_by_act[act - 1] + 30);
+    resolveCurrentNode(settled);
+  }
+
+  const final = routeToNode(settled, node => node.type === 'F');
+  assert.equal(final.type, 'F');
+  const terminalCoins = settled.state.coins;
+  settled.dispatch({ type: 'fight' });
+  settled.dispatch({ type: 'battle_done' });
+  assert.equal(settled.state.phase, 'won');
+  assert.equal(settled.state.progress.bossWins, 5);
+  assert.equal(settled.state.coins, terminalCoins, 'terminal win has no bounty payout');
+});
+
+test('bounty pays no coins and records no victory after a lost battle', () => {
+  installStubCombat();
+  const game = make('bounty-loss');
+  game.state.n = 2;
+  game.state.xp = 600;
+  game.state.talents.RKF01 = ['V2-J1-A', 'V2-J2-A'];
+  routeToNode(game, node => node.type === 'C');
+  const beforeCoins = game.state.coins;
+  registerCombatWorker({
+    calculateStats,
+    simulateBattle(_content, player) {
+      return {
+        outcome: 'enemy',
+        rounds: 1,
+        playerHp: 0,
+        enemyHp: 1,
+        frames: [],
+        contributions: [],
+      };
+    },
+  });
+  game.dispatch({ type: 'fight' });
+  game.dispatch({ type: 'battle_done' });
+  assert.equal(game.state.phase, 'lost');
+  assert.equal(game.state.coins, beforeCoins);
+  assert.deepEqual(game.state.progress, { coinsSpent: 0, eliteWins: 0, bossWins: 0 });
+});
+
+test('event-internal victories count their actual tier for bounty and milestones', () => {
+  const resolveEventBattle = withBounty => {
+    const game = enterAuthoredEvent({ eventId: 'RE005', seed: 'bounty-event-only' });
+    game.state.n = 2;
+    game.state.xp = 600;
+    const localTierTwo = content.byId.RKF01.talents.find(talent => talent.tier === 2).id;
+    game.state.talents.RKF01 = withBounty
+      ? ['V2-J1-A', 'V2-J2-A']
+      : ['V2-J1-A', localTierTwo];
+    game.state.coins = 1000;
+    game.dispatch({ type: 'event', id: 'RE005-A' });
+    game.dispatch({ type: 'fight' });
+    game.dispatch({ type: 'battle_done' });
+    assert.equal(game.state.phase, 'event_result');
+    assert.deepEqual(game.state.progress, { coinsSpent: 0, eliteWins: 0, bossWins: 0 });
+    return game.state.coins;
+  };
+
+  assert.equal(resolveEventBattle(true), resolveEventBattle(false) + 4);
+
+  const game = enterAuthoredEvent({ eventId: 'RE009', seed: 'bounty-event-elite' });
+  game.state.n = 2;
+  game.state.xp = 600;
+  game.state.talents.RKF01 = ['V2-J1-A', 'V2-J2-A'];
+  const beforeCoins = game.state.coins;
+  game.dispatch({ type: 'event', id: 'RE009-A' });
+  game.dispatch({ type: 'fight' });
+  game.dispatch({ type: 'battle_done' });
+  assert.equal(game.state.progress.eliteWins, 1);
+  assert.equal(game.state.progress.bossWins, 0);
+  assert.equal(game.state.coins, beforeCoins + 20);
+  const settled = reload(game);
+  assert.equal(settled.state.progress.eliteWins, 1, 'reload must not count the settled event victory twice');
+  assert.equal(settled.state.coins, beforeCoins + 20, 'reload must not pay the event bounty twice');
+  assert.throws(() => settled.dispatch({ type: 'battle_done' }), /No battle result/);
+
+  installStubCombat();
+  const bossEvent = make('bounty-event-boss');
+  const coreNode = routeToNode(bossEvent, node => node.type === 'K');
+  const currentKey = bossEvent.state.routeMap.path[bossEvent.state.step];
+  bossEvent.state.nodes[bossEvent.state.step].id = 'RK013';
+  bossEvent.state.routeMap.nodes.find(node => node.key === currentKey).id = 'RK013';
+  bossEvent.state.n = 2;
+  bossEvent.state.xp = 600;
+  bossEvent.state.talents.RKF01 = ['V2-J1-A', 'V2-J2-A'];
+  assert.equal(coreNode.type, 'K');
+  const beforeBossCoins = bossEvent.state.coins;
+  bossEvent.dispatch({ type: 'event', id: 'RK013-cross-broken-bridge' });
+  bossEvent.dispatch({ type: 'fight' });
+  bossEvent.dispatch({ type: 'battle_done' });
+  assert.equal(bossEvent.state.progress.eliteWins, 0);
+  assert.equal(bossEvent.state.progress.bossWins, 1);
+  assert.equal(bossEvent.state.coins, beforeBossCoins + 30);
+  const settledBossEvent = reload(bossEvent);
+  assert.equal(settledBossEvent.state.progress.bossWins, 1, 'reload must not count the settled boss event twice');
+  assert.equal(settledBossEvent.state.coins, beforeBossCoins + 30, 'reload must not pay the boss event bounty twice');
+});
+
 function makeReplayBattle(seed, rules) {
   registerCombatWorker({ calculateStats, simulateBattle });
   const game = make(seed);
   game.state.artifacts = [{ id: 'RC09', stacks: 3 }];
-  game.state.equipment = { core: 'RC09', support: [] };
+  game.state.equipment = { slots: ['RC09'] };
   game.dispatch({ type: 'enter', id: game.availableNodes()[0].key });
   game.dispatch({ type: 'fight' });
 
