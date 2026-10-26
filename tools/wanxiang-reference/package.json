@@ -1,0 +1,21 @@
+{
+  "name": "wanxiang-reference",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Static collector and browser for public Wanxiang Chess reference data.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "collect": "node collect.mjs",
+    "check": "node collect.mjs --check",
+    "test": "node --test tests/*.test.mjs",
+    "browse": "node browse.mjs",
+    "docs": "node browse.mjs render",
+    "docs:check": "node browse.mjs check"
+  },
+  "dependencies": {
+    "acorn": "8.15.0"
+  }
+}
