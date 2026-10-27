@@ -24,13 +24,13 @@ function playwrightModule() {
 const { chromium } = playwrightModule();
 const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH ||
   '/home/ubuntu/.cache/ms-playwright/chromium-1228/chrome-linux/chrome';
-const saveKey = 'suishi-shanhai-run-v2-resonance';
-const buildKey = 'suishi-shanhai-build-v2-resonance';
-const replayKey = 'suishi-shanhai-replay-v2-resonance';
+const saveKey = 'suishi-shanhai-run-v2-reactions';
+const buildKey = 'suishi-shanhai-build-v2-reactions';
+const replayKey = 'suishi-shanhai-replay-v2-reactions';
 const pageErrors = [];
 
 async function installFixture(page, { phase = 'map', equipment = true, sourceLabels = false, hunter = false } = {}) {
-  return await page.evaluate(async ({ phase, equipment, sourceLabels, hunter }) => {
+  return await page.evaluate(async ({ phase, equipment, sourceLabels, hunter, saveKey }) => {
     const [{ loadContent }, { ShanhaiGame, registerCombatWorker }, { calculateStats }, { saveRun }] =
       await Promise.all([
         import('/shanhai/content.js'),
@@ -152,6 +152,9 @@ async function installFixture(page, { phase = 'map', equipment = true, sourceLab
     localStorage.setItem('suishi-shanhai-run-v2-journey', 'legacy-v2-run-untouched');
     localStorage.setItem('suishi-shanhai-build-v2-journey', 'legacy-v2-build-untouched');
     localStorage.setItem('suishi-shanhai-replay-v2-journey', 'legacy-v2-replay-untouched');
+    localStorage.setItem('suishi-shanhai-run-v2-resonance', 'legacy-v2-resonance-run-untouched');
+    localStorage.setItem('suishi-shanhai-build-v2-resonance', 'legacy-v2-resonance-build-untouched');
+    localStorage.setItem('suishi-shanhai-replay-v2-resonance', 'legacy-v2-resonance-replay-untouched');
     localStorage.setItem('suishi-shanhai-replay-v1', 'v1-replay-untouched');
     localStorage.setItem('suishi-shanhai-build-v1', 'v1-build-untouched');
 
@@ -181,7 +184,7 @@ async function installFixture(page, { phase = 'map', equipment = true, sourceLab
     if (phase === 'battle' && sourceLabels && game.state.battle) {
       saved.state.battle.frames = game.state.battle.frames;
       delete saved.replay;
-      localStorage.setItem('suishi-shanhai-run-v2-resonance', JSON.stringify(saved));
+      localStorage.setItem(saveKey, JSON.stringify(saved));
     }
     const localTalent = content.byId.RKF01.talents[0];
     const sharedTalent = content.rules.insights.find(talent => talent.tier === 1);
@@ -195,7 +198,7 @@ async function installFixture(page, { phase = 'map', equipment = true, sourceLab
         ? game.availableTalents().find(talent => talent.id.startsWith('V2-J1-')).id
         : null,
     };
-  }, { phase, equipment, sourceLabels, hunter });
+  }, { phase, equipment, sourceLabels, hunter, saveKey });
 }
 
 async function loadFixture(page, options) {
@@ -571,18 +574,24 @@ async function assertV2ReplayAndTalentEffectSources(page) {
     runV2: localStorage.getItem('suishi-shanhai-run-v2-journey'),
     buildV2: localStorage.getItem('suishi-shanhai-build-v2-journey'),
     replayV2: localStorage.getItem('suishi-shanhai-replay-v2-journey'),
-    runJourney: localStorage.getItem(saveKey),
-    replayJourney: localStorage.getItem(replayKey),
-    buildJourney: localStorage.getItem(buildKey),
+    runResonance: localStorage.getItem('suishi-shanhai-run-v2-resonance'),
+    buildResonance: localStorage.getItem('suishi-shanhai-build-v2-resonance'),
+    replayResonance: localStorage.getItem('suishi-shanhai-replay-v2-resonance'),
+    runReactions: localStorage.getItem(saveKey),
+    replayReactions: localStorage.getItem(replayKey),
+    buildReactions: localStorage.getItem(buildKey),
   }), { saveKey, buildKey, replayKey });
   assert.equal(legacyValues.replay, 'v1-replay-untouched');
   assert.equal(legacyValues.build, 'v1-build-untouched');
   assert.equal(legacyValues.runV2, 'legacy-v2-run-untouched');
   assert.equal(legacyValues.buildV2, 'legacy-v2-build-untouched');
   assert.equal(legacyValues.replayV2, 'legacy-v2-replay-untouched');
-  assert.ok(legacyValues.runJourney, 'V2 Journey 自动存档没有写入隔离键');
-  assert.ok(legacyValues.replayJourney, 'V2 Journey 回放进度没有写入隔离键');
-  assert.equal(legacyValues.buildJourney, null);
+  assert.equal(legacyValues.runResonance, 'legacy-v2-resonance-run-untouched');
+  assert.equal(legacyValues.buildResonance, 'legacy-v2-resonance-build-untouched');
+  assert.equal(legacyValues.replayResonance, 'legacy-v2-resonance-replay-untouched');
+  assert.ok(legacyValues.runReactions, 'V2 reactions 自动存档没有写入隔离键');
+  assert.ok(legacyValues.replayReactions, 'V2 reactions 回放进度没有写入隔离键');
+  assert.equal(legacyValues.buildReactions, null);
 
   await page.locator('.battle-detail-actions [data-action="battle-details"][data-tab="log"]').click();
   const log = await page.locator('.battle-log').innerText();

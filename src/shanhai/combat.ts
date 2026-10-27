@@ -68,6 +68,20 @@ interface CoreRuleRuntime {
   params: AnyMap;
 }
 
+type EnemyTrial =
+  | {
+    kind: 'tidal_charge';
+    period: number;
+    charges: number;
+    attack_ratio_per_charge: number;
+  }
+  | {
+    kind: 'reviving_mist';
+    period: number;
+    charges: number;
+    heal_hp_ratio_per_charge: number;
+  };
+
 interface Fighter {
   artifactAwakenings: boolean;
   side: 'player' | 'enemy';
@@ -99,6 +113,9 @@ interface Fighter {
   battleFlags: Set<string>;
   battleLayers: Record<string, number>;
   contributionIds: Set<string>;
+  trial?: EnemyTrial;
+  trialCharges?: number;
+  trialCountdown?: number;
   runtimeEffects?: ActiveEffect[];
 }
 
@@ -158,6 +175,9 @@ interface ActionContext {
   phaseTransition: string | null;
   completed: boolean;
   stop: boolean;
+  isReaction?: boolean;
+  directShieldAbsorbed?: number;
+  directShieldBroken?: boolean;
   dotRageRecorded: boolean;
   healRageRecorded: boolean;
   isEcho?: boolean;
@@ -189,6 +209,7 @@ interface BattleRuntime {
   sourceNames: Map<string, string>;
   round: number;
   active: boolean;
+  activeCue?: BattleFrame['cue'];
   reason?: string;
   roundDrainRequested: Map<'player' | 'enemy', number>;
   openingDrainRequested: Map<'player' | 'enemy', number>;
@@ -301,11 +322,24 @@ interface ResonanceSchema {
 }
 
 const RESONANCE_SCHEMAS: Record<string, ResonanceSchema> = {
-  RKF01: { kind: 'guard_pressure', params: ['absorb_ratio', 'cap_hp_ratio', 'release_ratio'] },
+  RKF01: {
+    kind: 'guard_pressure',
+    params: ['absorb_ratio', 'cap_hp_ratio', 'counter_threshold_hp_ratio', 'release_ratio'],
+  },
   RKF02: { kind: 'returning_breath', params: ['extra_segments', 'segment_ratio', 'rage_bonus'] },
-  RKF03: { kind: 'spring_bloom', params: ['threshold_hp_ratio', 'burst_hp_ratio', 'max_per_action'] },
+  RKF03: { kind: 'spring_bloom', params: ['threshold_hp_ratio', 'burst_hp_ratio'] },
   RKF04: { kind: 'burn_accelerate', params: ['ticks'] },
-  RKF05: { kind: 'sword_array', params: ['artifact_intent_limit', 'consume_stacks', 'attack_ratio'] },
+  RKF05: {
+    kind: 'sword_array',
+    params: [
+      'artifact_intent_limit',
+      'consume_stacks',
+      'attack_ratio',
+      'opening_swords',
+      'flying_sword_cap',
+      'flying_sword_ratio',
+    ],
+  },
   RKF07: { kind: 'thunder_induction', params: ['hit_threshold', 'attack_ratio', 'max_per_action'] },
   RKF08: { kind: 'moon_hex', params: ['attack_ratio', 'drain_per_kind'] },
   RC13: { kind: 'shield_retort', params: ['defense_ratio'] },
@@ -340,10 +374,13 @@ const RESONANCE_INTEGER_PARAMETERS = new Set([
   'segments',
   'rage_bonus',
   'rage_gain',
+  'opening_swords',
+  'flying_sword_cap',
 ]);
 
 const RESONANCE_POSITIVE_PARAMETERS = new Set([
   'threshold_hp_ratio',
+  'counter_threshold_hp_ratio',
   'hit_threshold',
   'extra_segments',
   'artifact_intent_limit',
@@ -356,6 +393,9 @@ const RESONANCE_POSITIVE_PARAMETERS = new Set([
   'max_segments',
   'max_charges',
   'segments',
+  'opening_swords',
+  'flying_sword_cap',
+  'flying_sword_ratio',
 ]);
 
 const STAT_KEYS: (keyof Stats)[] = ['attack', 'defense', 'max_hp', 'crit_rate', 'speed'];
@@ -540,6 +580,9 @@ function validateResonanceEffect(
       throw new Error(`V2 resonance fraction exceeds one: ${key} (${ownerId})`);
     }
   }
+  if (schema.kind === 'sword_array' && params.opening_swords > params.flying_sword_cap) {
+    throw new Error(`Opening flying swords exceed cap (${ownerId})`);
+  }
   for (const key of ['requires', 'consumes', 'replaces']) {
     if (!Array.isArray(effect[key]) || effect[key].length !== 0) {
       throw new Error(`V2 resonance ${key} must be empty (${ownerId})`);
@@ -581,6 +624,43 @@ function validateResonanceRules(content: Content): void {
   for (const ownerId of Object.keys(RESONANCE_SCHEMAS)) {
     if (counts.get(ownerId) !== 1) {
       throw new Error(`Expected exactly one V2 resonance rule for ${ownerId}`);
+    }
+  }
+}
+
+const ENEMY_TRIAL_CONTRACTS = {
+  'EN-A1-B1': { kind: 'tidal_charge', ratio: 'attack_ratio_per_charge' },
+  'EN-A1-B2': { kind: 'reviving_mist', ratio: 'heal_hp_ratio_per_charge' },
+} as const;
+
+function validateEnemyTrials(content: Content): void {
+  for (const authored of content.entities) {
+    if (!Object.prototype.hasOwnProperty.call(authored, 'trial')) continue;
+    const schema = ENEMY_TRIAL_CONTRACTS[authored.id as keyof typeof ENEMY_TRIAL_CONTRACTS];
+    if (authored.kind !== 'enemy' || !schema) {
+      throw new Error(`Unsupported enemy trial owner ${authored.id}`);
+    }
+    const trial = authored.trial;
+    if (!trial || typeof trial !== 'object' || Array.isArray(trial)) {
+      throw new Error(`Invalid enemy trial (${authored.id})`);
+    }
+    const expectedKeys = ['kind', 'period', 'charges', schema.ratio];
+    const keys = Object.keys(trial);
+    if (keys.length !== expectedKeys.length || keys.some(key => !expectedKeys.includes(key))) {
+      throw new Error(`Unknown or missing enemy trial parameter (${authored.id})`);
+    }
+    if (trial.kind !== schema.kind) {
+      throw new Error(`Invalid enemy trial kind (${authored.id})`);
+    }
+    for (const key of ['period', 'charges']) {
+      const value = trial[key];
+      if (!Number.isInteger(value) || value < 1 || value > 10) {
+        throw new Error(`Invalid enemy trial parameter ${key} (${authored.id})`);
+      }
+    }
+    const ratio = trial[schema.ratio];
+    if (!isFiniteNumber(ratio) || ratio <= 0 || ratio > 1) {
+      throw new Error(`Invalid enemy trial parameter ${schema.ratio} (${authored.id})`);
     }
   }
 }
@@ -676,7 +756,11 @@ function validateEffects(
   }
 }
 
-function validateLoadout(content: Content, loadout: Loadout): { method: AnyMap; talents: AnyMap[]; artifacts: ArtifactRuntime[] } {
+function validateLoadout(
+  content: Content,
+  loadout: Loadout,
+  side: 'player' | 'enemy',
+): { method: AnyMap; talents: AnyMap[]; artifacts: ArtifactRuntime[]; trial?: EnemyTrial } {
   if (!loadout || typeof loadout !== 'object') throw new Error('Invalid Shanhai loadout');
   if (typeof loadout.method !== 'string') throw new Error('Loadout method is required');
   validateResonanceRules(content);
@@ -686,6 +770,18 @@ function validateLoadout(content: Content, loadout: Loadout): { method: AnyMap; 
     }
   }
   const method = entity(content, loadout.method, 'method');
+  let trial: EnemyTrial | undefined;
+  if (loadout.encounterId !== undefined) {
+    if (side !== 'enemy') throw new Error('Loadout encounterId is enemy-only');
+    if (typeof loadout.encounterId !== 'string' || loadout.encounterId.length === 0) {
+      throw new Error('Invalid enemy encounterId');
+    }
+    const encounter = entity(content, loadout.encounterId, 'enemy');
+    if (encounter.method !== method.id) {
+      throw new Error(`Enemy encounter ${encounter.id} does not match method ${method.id}`);
+    }
+    if (encounter.trial !== undefined) trial = clone(encounter.trial) as EnemyTrial;
+  }
   if (!Number.isInteger(loadout.n) || loadout.n < 0 || loadout.n > 4) {
     throw new Error(`Invalid cultivation tier n=${loadout.n}`);
   }
@@ -737,7 +833,7 @@ function validateLoadout(content: Content, loadout: Loadout): { method: AnyMap; 
     artifacts.push({ entity: artifact, stacks: stack.stacks });
   }
   validateEffects(method, chosen, artifacts, [...sharedTalents.values()]);
-  return { method, talents: chosen, artifacts };
+  return { method, talents: chosen, artifacts, ...(trial ? { trial } : {}) };
 }
 
 function rules(content: Content): AnyMap {
@@ -784,7 +880,17 @@ function addStatEffect(stats: Stats, effect: Effect, stacks: number): void {
 }
 
 export function calculateStats(content: Content, loadout: Loadout): Stats {
-  const compiled = validateLoadout(content, loadout);
+  const side = loadout?.encounterId === undefined ? 'player' : 'enemy';
+  if (side === 'enemy') validateEnemyTrials(content);
+  return calculateStatsForSide(content, loadout, side);
+}
+
+function calculateStatsForSide(
+  content: Content,
+  loadout: Loadout,
+  side: 'player' | 'enemy',
+): Stats {
+  const compiled = validateLoadout(content, loadout, side);
   const stats = tierBaseStats(content, loadout);
   const flat: Stats = { attack: 0, defense: 0, max_hp: 0, crit_rate: 0, speed: 0 };
   const percent: Stats = { attack: 0, defense: 0, max_hp: 0, crit_rate: 0, speed: 0 };
@@ -1011,7 +1117,7 @@ function snapshotStatusLayers(fighter: Fighter): Map<StatusName, StatusLayer[]> 
   );
 }
 
-function resonanceCounters(fighter: Fighter): FighterView['counters'] {
+function resonanceCounters(fighter: Fighter): NonNullable<FighterView['counters']> {
   return resonanceRules(fighter).flatMap(rule => {
     const p = rule.params ?? {};
     let value: number | undefined;
@@ -1030,7 +1136,7 @@ function resonanceCounters(fighter: Fighter): FighterView['counters'] {
         break;
       case 'spring_bloom':
         name = '春华';
-        maximum = fighter.stats.max_hp * n(p.threshold_hp_ratio, 0);
+        maximum = fighter.stats.max_hp * n(p.threshold_hp_ratio, 0) * 2;
         value = resonanceState(fighter, rule, 'reservoir');
         break;
       case 'thunder_induction':
@@ -1072,9 +1178,40 @@ function resonanceCounters(fighter: Fighter): FighterView['counters'] {
   });
 }
 
+function trialCounters(fighter: Fighter): NonNullable<FighterView['counters']> {
+  if (!fighter.trial || fighter.trialCharges === undefined || fighter.trialCountdown === undefined) return [];
+  const chargeName = fighter.trial.kind === 'tidal_charge' ? '蓄潮' : '回雾';
+  return [
+    {
+      id: `${fighter.loadout.encounterId}-TRIAL-CHARGES`,
+      name: chargeName,
+      value: fighter.trialCharges,
+      max: fighter.trial.charges,
+    },
+    {
+      id: `${fighter.loadout.encounterId}-TRIAL-COUNTDOWN`,
+      name: '释势倒计时',
+      value: fighter.trialCountdown,
+      max: fighter.trial.period,
+    },
+  ];
+}
+
+function flyingSwordSnapshot(fighter: Fighter): FighterView['summons'] {
+  const rule = resonanceRule(fighter, 'sword_array');
+  if (!rule) return undefined;
+  return [{
+    id: rule.id,
+    kind: 'sword',
+    count: resonanceState(fighter, rule, 'flying_swords'),
+    max: int(rule.params.flying_sword_cap, 0),
+  }];
+}
+
 function fighterView(fighter: Fighter): FighterView {
   const statuses: Record<string, number> = {};
-  const counters = resonanceCounters(fighter);
+  const counters = [...(resonanceCounters(fighter) ?? []), ...trialCounters(fighter)];
+  const summons = flyingSwordSnapshot(fighter);
   for (const status of ['poison', 'burn', 'weakness', 'armor_break', 'sword_intent', 'charge_luck', 'day_night'] as StatusName[]) {
     const count = statusCount(fighter, status);
     if (count > 0) statuses[status] = count;
@@ -1089,6 +1226,7 @@ function fighterView(fighter: Fighter): FighterView {
     rageCap: fighter.rageCap,
     statuses,
     ...(counters?.length ? { counters } : {}),
+    ...(summons?.length ? { summons } : {}),
     ...(fighter.lockedAction ? { lockedAction: fighter.lockedAction } : {}),
   };
 }
@@ -1101,7 +1239,9 @@ function frame(
   target?: 'player' | 'enemy',
   source?: string,
   amount?: number,
+  cue?: BattleFrame['cue'],
 ): void {
+  const frameCue = cue ?? runtime.activeCue;
   runtime.frames.push({
     round: runtime.round,
     kind,
@@ -1110,6 +1250,7 @@ function frame(
     source,
     text,
     ...(amount === undefined ? {} : { amount }),
+    ...(frameCue ? { cue: { ...frameCue } } : {}),
     player: fighterView(runtime.player),
     enemy: fighterView(runtime.enemy),
   });
@@ -1783,7 +1924,8 @@ function triggerOutgoingResonances(
   effective: boolean,
   reactionEffectId?: string,
 ): void {
-  if (!effective || !action || (!action.isMainAction && !action.roundDotSettlement) || action.isEcho ||
+  if (!effective || !action ||
+      (!action.isMainAction && !action.roundDotSettlement && !action.isReaction) || action.isEcho ||
       !runtime.active || source.hp <= 0 || target.hp <= 0 ||
       source === target || source.side === target.side ||
       action.actor !== source || action.target !== target ||
@@ -1963,6 +2105,25 @@ function dealDamage(
       ? `${sourceEffect.id}-RAGE-ECHO`
       : sourceEffect.id;
   frame(runtime, options.kind === 'dot' ? 'dot' : 'damage', `${sideText}造成${kindText} ${Math.round(hpDamage + absorbed)}`, source.side, target.side, frameSource, hpDamage + absorbed);
+  if (target.trial?.kind === 'tidal_charge' && source.side !== target.side &&
+      (options.kind === 'direct' || options.kind === 'derived') && effective &&
+      (target.trialCharges ?? 0) > 0) {
+    target.trialCharges = Math.max(0, (target.trialCharges ?? 0) - 1);
+    frame(
+      runtime,
+      'status',
+      `${target.loadout.name}潮汐蓄势被打断`,
+      source.side,
+      target.side,
+      frameSource,
+      1,
+      {
+        kind: 'enemy_charge',
+        owner: target.side,
+        sourceId: target.loadout.encounterId ?? '',
+      },
+    );
+  }
   if (options.kind === 'reflect' && effective) {
     triggerReboundGuard(runtime, source, target, action);
   }
@@ -1972,6 +2133,11 @@ function dealDamage(
       action.actualHpDamage += hpDamage;
       action.actualAbsorbed += absorbed;
       if (options.kind === 'direct') registerIncomingDirectRage(runtime, target);
+  }
+  if (action && action.actor === source && action.target === target &&
+      action.isMainAction && !action.isEcho && options.kind === 'direct') {
+    action.directShieldAbsorbed = n(action.directShieldAbsorbed, 0) + absorbed;
+    action.directShieldBroken ||= shieldBroken;
   }
   if (effective && (options.kind === 'direct' || options.kind === 'derived')) {
     for (const mechanic of mechanicsOf(source, 'hit_rage')) {
@@ -2547,36 +2713,16 @@ function resolveSpringBloom(
   healedAmount: number,
 ): void {
   const actor = action.actor;
-  if (healedAmount <= 0 || action.isEcho ||
-      (!action.isMainAction && !action.roundDotSettlement)) return;
+  if (healedAmount <= 0 || action.isEcho) return;
   const rule = resonanceRule(actor, 'spring_bloom');
   if (!rule) return;
   const threshold = actor.stats.max_hp * n(rule.params.threshold_hp_ratio, 0);
   if (threshold <= 0) return;
-  const used = action.resonanceLimitUses.get(rule.id) ?? 0;
-  const available = Math.max(0, int(rule.params.max_per_action, 1) - used);
-  const reservoir = Math.min(
-    threshold * (available + 1),
-    resonanceState(actor, rule, 'reservoir') + healedAmount,
-  );
+  const current = resonanceState(actor, rule, 'reservoir');
+  const reservoir = Math.min(threshold * 2, current + healedAmount);
+  if (reservoir <= current) return;
   setResonanceState(actor, rule, 'reservoir', reservoir);
-  const activations = Math.min(
-    Math.floor(reservoir / threshold),
-    available,
-  );
-  if (activations <= 0) return;
-  action.resonanceLimitUses.set(rule.id, used + activations);
-  setResonanceState(actor, rule, 'reservoir', reservoir - threshold * activations);
-  for (let burst = 0; burst < activations; burst++) {
-    if (!runtime.active || actor.hp <= 0 || action.target.hp <= 0) break;
-    dealDamage(runtime, actor, action.target, 0, {
-      sourceEffect: rule,
-      kind: 'derived',
-      canCrit: false,
-      rawOverride: actor.stats.max_hp * n(rule.params.burst_hp_ratio, 0),
-      resonanceEffectId: rule.id,
-    });
-  }
+  mark(runtime, rule);
 }
 
 function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: number, source: ActiveEffect, allowOverflow = true): { effective: number; overflow: number } {
@@ -2707,6 +2853,181 @@ function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: numb
   }
   resolveSpringBloom(runtime, action, effective + overflow);
   return { effective, overflow };
+}
+
+function syntheticAction(
+  runtime: BattleRuntime,
+  actor: Fighter,
+  target: Fighter,
+): ActionContext {
+  return {
+    actor,
+    target,
+    type: 'basic_action',
+    isMainAction: false,
+    round: runtime.round,
+    lockedCost: 0,
+    actionStats: dynamicStats(runtime, actor, target, null),
+    actionStartShield: actor.shield,
+    actionStartStatuses: snapshotStatuses(actor),
+    actorStartStatusLayers: snapshotStatusLayers(actor),
+    targetStartStatusLayers: snapshotStatusLayers(target),
+    resonanceLimitUses: new Map(),
+    reservedChargeLuck: false,
+    chargeLuckAvailableAtStart: false,
+    swordIntentAtStart: statusCount(actor, 'sword_intent'),
+    consumedSwordIntent: 0,
+    consumedBurn: 0,
+    consumedShield: 0,
+    consumedShieldDamage: 0,
+    reservedPressure: 0,
+    reservedHealingBlades: 0,
+    reservedFurnaceHeat: 0,
+    returningBreathSegments: 0,
+    returningBreathScale: 1,
+    actualBonusSegments: 0,
+    actualDebuffApplied: false,
+    hadEffectiveBaseHit: false,
+    hadBaseCriticalHit: false,
+    firstBaseHit: false,
+    baseDirectHitCount: 0,
+    directCritCount: 0,
+    rr10CritCount: 0,
+    recoilDone: false,
+    actualHpDamage: 0,
+    actualAbsorbed: 0,
+    enemyActualHpDamage: 0,
+    reflectDamage: 0,
+    phaseBefore: actor.phase,
+    phaseChanged: false,
+    phaseTransition: null,
+    completed: false,
+    stop: false,
+    isReaction: true,
+    dotRageRecorded: false,
+    healRageRecorded: false,
+  };
+}
+
+function withReactionBeat(
+  runtime: BattleRuntime,
+  owner: Fighter,
+  target: Fighter,
+  kind: NonNullable<BattleFrame['cue']>['kind'],
+  sourceId: string,
+  text: string,
+  resolve?: (action: ActionContext) => void,
+): void {
+  if (owner.hp <= 0 || target.hp <= 0) return;
+  const previousAction = runtime.currentAction;
+  const previousCue = runtime.activeCue;
+  const cue = { kind, owner: owner.side, sourceId } as const;
+  const action = syntheticAction(runtime, owner, target);
+  runtime.currentAction = action;
+  runtime.activeCue = cue;
+  try {
+    frame(runtime, 'reaction', text, owner.side, target.side, sourceId, undefined, cue);
+    if (resolve && runtime.active && owner.hp > 0 && target.hp > 0) {
+      resolve(action);
+    }
+  } finally {
+    runtime.currentAction = previousAction;
+    runtime.activeCue = previousCue;
+  }
+}
+
+function trialSource(owner: Fighter): ActiveEffect {
+  const id = owner.loadout.encounterId ?? '';
+  return {
+    id,
+    trigger: 'core_rule',
+    operation: 'core_rule',
+    params: {},
+    ownerId: id,
+    ownerName: owner.loadout.name,
+    ownerKind: 'method',
+    ownerSide: owner.side,
+    stacks: 1,
+  };
+}
+
+function emitEnemyTrialCharge(runtime: BattleRuntime, owner: Fighter): void {
+  if (!owner.trial) return;
+  const label = owner.trial.kind === 'tidal_charge' ? '潮汐蓄势' : '回雾蓄势';
+  withReactionBeat(
+    runtime,
+    owner,
+    owner,
+    'enemy_charge',
+    owner.loadout.encounterId ?? '',
+    `${owner.loadout.name}${label} ${owner.trialCharges ?? 0}/${owner.trial.charges}`,
+  );
+}
+
+function prepareEnemyTrialRound(runtime: BattleRuntime): void {
+  for (const fighter of [runtime.player, runtime.enemy]) {
+    if (!fighter.trial) continue;
+    fighter.trialCountdown = fighter.trial.period -
+      ((runtime.round - 1) % fighter.trial.period);
+  }
+}
+
+function releaseEnemyTrial(runtime: BattleRuntime, owner: Fighter): void {
+  const trial = owner.trial;
+  if (!trial || runtime.round % trial.period !== 0 || owner.hp <= 0) return;
+  const target = other(runtime, owner);
+  const charges = Math.max(0, owner.trialCharges ?? 0);
+  owner.trialCharges = 0;
+  owner.trialCountdown = 0;
+  const source = trialSource(owner);
+  const brokenText = trial.kind === 'tidal_charge'
+    ? `${owner.loadout.name}潮汐准备已被打断，释放落空`
+    : `${owner.loadout.name}回雾准备已被打断，未能恢复`;
+  const releaseText = trial.kind === 'tidal_charge'
+    ? `${owner.loadout.name}释放潮汐 ${charges} 段`
+    : `${owner.loadout.name}释放回雾，按剩余蓄势恢复`;
+  withReactionBeat(
+    runtime,
+    owner,
+    target,
+    'enemy_release',
+    source.id,
+    charges > 0 ? releaseText : brokenText,
+    action => {
+      if (charges === 0) return;
+      if (trial.kind === 'tidal_charge') {
+        for (let segment = 0; segment < charges; segment++) {
+          if (!runtime.active || owner.hp <= 0 || target.hp <= 0) break;
+          dealDamage(runtime, owner, target, 0, {
+            sourceEffect: source,
+            kind: 'direct',
+            canCrit: false,
+            rawOverride: attackStats(runtime, owner, target, action).attack *
+              trial.attack_ratio_per_charge,
+          });
+        }
+        return;
+      }
+      resolveHeal(
+        runtime,
+        action,
+        owner.stats.max_hp * trial.heal_hp_ratio_per_charge * charges,
+        source,
+      );
+    },
+  );
+  if (owner.hp > 0) {
+    owner.trialCharges = trial.charges;
+    owner.trialCountdown = trial.period;
+    if (runtime.active && target.hp > 0) emitEnemyTrialCharge(runtime, owner);
+  }
+}
+
+function resolveEnemyTrialReleases(runtime: BattleRuntime): void {
+  for (const fighter of [runtime.player, runtime.enemy]) {
+    if (!runtime.active) return;
+    if (fighter.trial) releaseEnemyTrial(runtime, fighter);
+  }
 }
 
 function resolveSwordArray(runtime: BattleRuntime, action: ActionContext): void {
@@ -3395,6 +3716,109 @@ function resolveReservedResonanceAttacks(runtime: BattleRuntime, action: ActionC
   }
 }
 
+function addFlyingSwordAfterBasic(runtime: BattleRuntime, action: ActionContext): void {
+  if (!action.isMainAction || action.isEcho || action.type !== 'basic_action' ||
+      !action.completed || !runtime.active || action.actor.hp <= 0 || action.target.hp <= 0) return;
+  const rule = resonanceRule(action.actor, 'sword_array');
+  if (!rule) return;
+  const current = resonanceState(action.actor, rule, 'flying_swords');
+  const maximum = int(rule.params.flying_sword_cap, 0);
+  const next = Math.min(maximum, current + 1);
+  if (next <= current) return;
+  setResonanceState(action.actor, rule, 'flying_swords', next);
+  mark(runtime, rule);
+}
+
+function resolveHostileActionResponses(runtime: BattleRuntime, completed: ActionContext): void {
+  if (!runtime.active || !completed.isMainAction || completed.isEcho ||
+      !completed.completed || completed.actor.hp <= 0 || completed.target.hp <= 0 ||
+      completed.actor.side === completed.target.side) return;
+  const responder = completed.target;
+  const hostile = completed.actor;
+
+  const swords = resonanceRule(responder, 'sword_array');
+  const swordCount = swords ? Math.floor(resonanceState(responder, swords, 'flying_swords')) : 0;
+  if (swords && swordCount > 0) {
+    withReactionBeat(
+      runtime,
+      responder,
+      hostile,
+      'sword_volley',
+      swords.id,
+      `${responder.loadout.name}御使飞剑齐射 ${swordCount} 柄`,
+      action => {
+        for (let sword = 0; sword < swordCount; sword++) {
+          if (!runtime.active || responder.hp <= 0 || hostile.hp <= 0) break;
+          dealDamage(runtime, responder, hostile, 0, {
+            sourceEffect: swords,
+            kind: 'derived',
+            canCrit: false,
+            rawOverride: attackStats(runtime, responder, hostile, action).attack *
+              n(swords.params.flying_sword_ratio, 0),
+            resonanceEffectId: swords.id,
+          });
+        }
+      },
+    );
+  }
+  if (!runtime.active || responder.hp <= 0 || hostile.hp <= 0) return;
+
+  const pressureRule = resonanceRule(responder, 'guard_pressure');
+  if (pressureRule) {
+    const pressure = resonanceState(responder, pressureRule, 'pressure');
+    const threshold = responder.stats.max_hp *
+      n(pressureRule.params.counter_threshold_hp_ratio, 0);
+    if (n(completed.directShieldAbsorbed, 0) > 0 && pressure > 0 &&
+        (pressure >= threshold || completed.directShieldBroken)) {
+      setResonanceState(responder, pressureRule, 'pressure', 0);
+      withReactionBeat(
+        runtime,
+        responder,
+        hostile,
+        'guard_counter',
+        pressureRule.id,
+        `${responder.loadout.name}蓄劲反击`,
+        action => {
+          dealDamage(runtime, responder, hostile, 0, {
+            sourceEffect: pressureRule,
+            kind: 'derived',
+            canCrit: false,
+            rawOverride: pressure * n(pressureRule.params.release_ratio, 0),
+            resonanceEffectId: pressureRule.id,
+          });
+        },
+      );
+    }
+  }
+  if (!runtime.active || responder.hp <= 0 || hostile.hp <= 0) return;
+
+  const spring = resonanceRule(responder, 'spring_bloom');
+  if (spring) {
+    const threshold = responder.stats.max_hp * n(spring.params.threshold_hp_ratio, 0);
+    const stored = resonanceState(responder, spring, 'reservoir');
+    if (threshold > 0 && stored >= threshold) {
+      setResonanceState(responder, spring, 'reservoir', stored - threshold);
+      withReactionBeat(
+        runtime,
+        responder,
+        hostile,
+        'spring_bloom',
+        spring.id,
+        `${responder.loadout.name}春生绽放`,
+        action => {
+          dealDamage(runtime, responder, hostile, 0, {
+            sourceEffect: spring,
+            kind: 'derived',
+            canCrit: false,
+            rawOverride: responder.stats.max_hp * n(spring.params.burst_hp_ratio, 0),
+            resonanceEffectId: spring.id,
+          });
+        },
+      );
+    }
+  }
+}
+
 function executeAction(runtime: BattleRuntime, actor: Fighter, target: Fighter, type: ActionType, lockedCost: number): void {
   if (!runtime.active || actor.hp <= 0 || target.hp <= 0) return;
   actor.actionNumber += 1;
@@ -3610,7 +4034,9 @@ function executeAction(runtime: BattleRuntime, actor: Fighter, target: Fighter, 
   if (type === 'rage_action' && runtime.active && actor.hp > 0 && target.hp > 0) {
     executeRageEcho(runtime, action);
   }
+  addFlyingSwordAfterBasic(runtime, action);
   runtime.currentAction = null;
+  resolveHostileActionResponses(runtime, action);
 }
 
 function resolveBurnSiphonHeal(
@@ -3664,6 +4090,25 @@ function resolveDotTick(
       canCrit: false,
       rawOverride: n(layer.damage, 0),
     });
+    if (target.trial?.kind === 'reviving_mist' && owner.side !== target.side &&
+        (status === 'poison' || status === 'burn') && result.hpDamage > 0 &&
+        (target.trialCharges ?? 0) > 0) {
+      target.trialCharges = Math.max(0, (target.trialCharges ?? 0) - 1);
+      frame(
+        runtime,
+        'status',
+        `${target.loadout.name}回雾被${status === 'poison' ? '毒伤' : '灼伤'}削弱`,
+        owner.side,
+        target.side,
+        ownerEffect.id,
+        1,
+        {
+          kind: 'enemy_charge',
+          owner: target.side,
+          sourceId: target.loadout.encounterId ?? '',
+        },
+      );
+    }
     (action as AnyMap).lastDotDamage = result.hpDamage + result.absorbed;
     (action as AnyMap).lastOwnDotHpDamage = fighterOwnsSource(owner, ownerId)
       ? result.hpDamage
@@ -3973,7 +4418,16 @@ function startBattle(runtime: BattleRuntime): void {
       addShield(runtime, fighter, amount, core.effect, '战斗开场护盾');
     }
   }
+  for (const fighter of [runtime.player, runtime.enemy]) {
+    const swords = resonanceRule(fighter, 'sword_array');
+    if (swords) {
+      setResonanceState(fighter, swords, 'flying_swords', int(swords.params.opening_swords, 0));
+    }
+  }
   frame(runtime, 'start', '战斗开始');
+  for (const fighter of [runtime.player, runtime.enemy]) {
+    if (fighter.trial) emitEnemyTrialCharge(runtime, fighter);
+  }
 }
 
 function chooseAction(fighter: Fighter): { type: ActionType; cost: number } {
@@ -3987,8 +4441,8 @@ function createFighter(
   side: 'player' | 'enemy',
   loadout: Loadout,
 ): Fighter {
-  const compiled = validateLoadout(runtime.content, loadout);
-  const stats = calculateStats(runtime.content, loadout);
+  const compiled = validateLoadout(runtime.content, loadout, side);
+  const stats = calculateStatsForSide(runtime.content, loadout, side);
   const fighter: Fighter = {
     artifactAwakenings: runtime.artifactAwakenings,
     side,
@@ -4014,11 +4468,19 @@ function createFighter(
     battleFlags: new Set(),
     battleLayers: {},
     contributionIds: new Set(),
+    trial: compiled.trial,
+    ...(compiled.trial ? {
+      trialCharges: compiled.trial.charges,
+      trialCountdown: compiled.trial.period,
+    } : {}),
   };
   (fighter as AnyMap).__content = runtime.content;
   fighter.coreRules = coreRulesForFighter(fighter);
   fighter.rageCap = staticRageCap(fighter);
   fighter.rageCap = Math.max(60, fighter.rageCap);
+  if (loadout.encounterId) {
+    runtime.sourceNames.set(loadout.encounterId, entity(runtime.content, loadout.encounterId, 'enemy').name);
+  }
   return fighter;
 }
 
@@ -4041,6 +4503,7 @@ export function simulateBattle(
   if (typeof seed !== 'string') throw new Error('Battle seed must be a string');
   const roundLimit = options.roundLimit === undefined ? 256 : options.roundLimit;
   if (!Number.isInteger(roundLimit) || roundLimit <= 0) throw new Error('roundLimit must be a positive integer');
+  validateEnemyTrials(content);
   const runtime = {
     artifactAwakenings: options.artifactAwakenings !== false,
     content,
@@ -4070,6 +4533,7 @@ export function simulateBattle(
   let outcome = checkOutcome(runtime);
   for (let round = 1; runtime.active && !outcome && round <= roundLimit; round++) {
     runtime.round = round;
+    prepareEnemyTrialRound(runtime);
     const pChoice = chooseAction(runtime.player);
     const eChoice = chooseAction(runtime.enemy);
     runtime.player.lockedAction = pChoice.type;
@@ -4081,6 +4545,9 @@ export function simulateBattle(
         : runtime.sameSpeedFirst === 'player' ? runtime.player : runtime.enemy;
     const second = first === runtime.player ? runtime.enemy : runtime.player;
     frame(runtime, 'round', `第${round}轮`);
+    resolveEnemyTrialReleases(runtime);
+    outcome = checkOutcome(runtime);
+    if (outcome) break;
     if (round === 1) {
       // Travel preparation belongs to the player and is the battle's first
       // strike, so it precedes whichever side wins the speed ordering.

@@ -172,6 +172,7 @@ function enemyLoadout(content, entity) {
     baseStats: clone(entity.stats),
     preparation: 0,
     firstStrike: 0,
+    ...(entity.trial ? { encounterId: entity.id } : {}),
   };
   assertLegalEquipment(content, loadout, `enemy loadout for ${entity.id}`);
   return {
@@ -191,6 +192,7 @@ function loadoutSummary(content, loadout) {
     hp: loadout.hp,
     preparation: loadout.preparation ?? 0,
     firstStrike: loadout.firstStrike ?? 0,
+    ...(loadout.encounterId ? { encounterId: loadout.encounterId } : {}),
     calculatedStats: calculateStats(content, loadout),
   };
 }
@@ -465,7 +467,7 @@ export function runFullCalibration(content, seedCount = 5) {
   const seeds = runs.map(row => row.seed);
   const input = {
     mode: 'real_shanhai_game_policy',
-    experimentTrack: 'V2 experimental; uncalibrated',
+    experimentTrack: 'V2 reactions prototype; buildVersion 3; uncalibrated',
     functionalWinSeeds: clone(FUNCTIONAL_WIN_SEEDS),
     contentVersion: content.version,
     methods: [...START_METHODS],
@@ -481,7 +483,7 @@ export function runFullCalibration(content, seedCount = 5) {
   }
   return {
     policy: 'tests/shanhai-policy.mjs',
-    experimentTrack: 'V2 experimental; shanhai-content-0.2; uncalibrated',
+    experimentTrack: 'V2 reactions prototype; buildVersion 3; shanhai-content-0.2; uncalibrated',
     note: '真实 ShanhaiGame 与 simulateBattle；胜率是当前种子样本的直接观测，不沿用 V1 校准结果。装备策略在合法阶段依据当前库存和槽位价值换装，选择器不读取未来路线节点、战斗结果或隐藏事件结果。',
     seedCount,
     inputHash: hash,
@@ -503,7 +505,7 @@ export async function runCalibration({
   return {
     contentVersion: content.version,
     input: {
-      experimentTrack: 'V2 experimental; shanhai-content-0.2; uncalibrated',
+      experimentTrack: 'V2 reactions prototype; buildVersion 3; shanhai-content-0.2; uncalibrated',
       fullRunSeeds,
       encounterSeeds,
       functionalWinSeeds: clone(FUNCTIONAL_WIN_SEEDS),

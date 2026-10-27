@@ -9,8 +9,8 @@ import { validateRouteMap } from './route-map.js';
 import { assertEventCommitmentRecords } from './event-commitments.js';
 import { assertEventCheckResult } from './event-checks.js';
 
-export const SHANHAI_SAVE_KEY = 'suishi-shanhai-run-v2-resonance';
-export const SHANHAI_BUILD_KEY = 'suishi-shanhai-build-v2-resonance';
+export const SHANHAI_SAVE_KEY = 'suishi-shanhai-run-v2-reactions';
+export const SHANHAI_BUILD_KEY = 'suishi-shanhai-build-v2-reactions';
 export const SAVE_KEY = SHANHAI_SAVE_KEY;
 const SHANHAI_CONTENT_VERSION = 'shanhai-content-0.2';
 
@@ -93,12 +93,16 @@ function nonNegative(value: unknown): boolean {
   return finite(value) && value >= 0;
 }
 
-function assertLoadoutShapeWithoutContent(loadout: unknown): void {
+function assertLoadoutShapeWithoutContent(loadout: unknown, side: 'player' | 'enemy' = 'player'): void {
   if (!isObject(loadout) || typeof loadout.name !== 'string' || typeof loadout.method !== 'string' ||
     !Number.isInteger(loadout.n) || loadout.n < 0 || loadout.n > 4 ||
     !Array.isArray(loadout.talents) || loadout.talents.some(id => typeof id !== 'string') ||
     !Array.isArray(loadout.artifacts)) {
     throw new Error('Invalid saved loadout');
+  }
+  if (loadout.encounterId !== undefined &&
+    (side !== 'enemy' || typeof loadout.encounterId !== 'string' || !loadout.encounterId.trim())) {
+    throw new Error('Invalid saved enemy encounter reference');
   }
   if (loadout.hp !== undefined && !nonNegative(loadout.hp)) throw new Error('Invalid saved loadout HP');
   if (loadout.preparation !== undefined && !nonNegative(loadout.preparation)) {
@@ -152,7 +156,7 @@ function assertStateShapeWithoutContent(state: RunState): void {
   if (!Number.isInteger(state.n) || state.n < 0 || state.n > 4) {
     throw new Error('Invalid Shanhai realm');
   }
-  if (state.buildVersion !== 2) {
+  if (state.buildVersion !== 3) {
     throw new Error('Invalid saved build version');
   }
   if (!isObject(state.progress) ||
@@ -242,6 +246,29 @@ function assertStateShapeWithoutContent(state: RunState): void {
     !Array.isArray(state.rewardCandidates) || state.rewardCandidates.some(id => typeof id !== 'string')) {
     throw new Error('Invalid Shanhai event collections');
   }
+  if (!Array.isArray(state.rewardSearches)) throw new Error('Invalid reward search history');
+  const searchedActs = new Set<number>();
+  const rewardFamilies = new Set(['sword', 'guard', 'vitality', 'affliction']);
+  for (const record of state.rewardSearches) {
+    if (!isObject(record) || Object.keys(record).length !== 6 ||
+      !['act', 'step', 'family', 'cost', 'candidates', 'resolved']
+        .every(key => Object.prototype.hasOwnProperty.call(record, key)) ||
+      !Number.isInteger(record.act) || record.act < 1 || record.act > 4 ||
+      !Number.isInteger(record.step) || record.step < 0 || record.step > 10 ||
+      !rewardFamilies.has(record.family) ||
+      !Number.isInteger(record.cost) || record.cost <= 0 ||
+      !Array.isArray(record.candidates) || record.candidates.length < 1 || record.candidates.length > 3 ||
+      record.candidates.some(id => typeof id !== 'string' || !id.trim()) ||
+      new Set(record.candidates).size !== record.candidates.length ||
+      typeof record.resolved !== 'boolean' ||
+      searchedActs.has(record.act)) {
+      throw new Error('Invalid reward search record');
+    }
+    if (record.act > state.act || (record.act === state.act && record.step > state.step)) {
+      throw new Error('Invalid future reward search coordinate');
+    }
+    searchedActs.add(record.act);
+  }
   if (!Number.isInteger(state.extraElites) || state.extraElites < 0 ||
     !Number.isInteger(state.ordinaryCount) || state.ordinaryCount < 0) {
     throw new Error('Invalid Shanhai counters');
@@ -285,8 +312,8 @@ function assertStateShapeWithoutContent(state: RunState): void {
       state.battleInput.roundLimit > 4096) {
       throw new Error('Invalid Shanhai battle input');
     }
-    assertLoadoutShapeWithoutContent(state.battleInput.player);
-    assertLoadoutShapeWithoutContent(state.battleInput.enemy);
+    assertLoadoutShapeWithoutContent(state.battleInput.player, 'player');
+    assertLoadoutShapeWithoutContent(state.battleInput.enemy, 'enemy');
     if (state.battleInput.rules !== undefined && state.battleInput.rules !== 'awakening-v1') throw new Error('Invalid saved battle rules');
   }
   if (state.phase === 'battle') {

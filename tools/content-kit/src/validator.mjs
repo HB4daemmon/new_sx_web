@@ -10,6 +10,7 @@ import {
   CONTENT_VERSION,
   CORE_EVENT_IDS,
   CORE_ARTIFACT_RULES,
+  ENEMY_TRIAL_RULES,
   EFFECT_LIMIT_SCOPES,
   EFFECT_OPERATIONS,
   EFFECT_TARGETS,
@@ -24,6 +25,7 @@ import {
   NODE_TYPES,
   ORDINARY_EVENT_IDS,
   RARITIES,
+  REWARD_SEEKING_FAMILIES,
   SCHEMA_VERSION,
   SHARED_INSIGHT_BUILD_RULES,
   SHARED_INSIGHT_IDS,
@@ -1419,6 +1421,26 @@ function validateEnemy(entity, errors, known) {
   if (!(typeof entity.preview === 'string' || isRecord(entity.preview))) {
     addIssue(errors, 'enemy-preview', 'preview must be readable text or a mapping', source)
   }
+  if (Object.hasOwn(entity, 'trial')) {
+    const trialRule = ENEMY_TRIAL_RULES[entity.id]
+    const location = `${source}:trial`
+    if (!trialRule) {
+      addIssue(errors, 'enemy-trial-owner', 'only EN-A1-B1 and EN-A1-B2 may define a trial', location)
+    } else if (!isRecord(entity.trial)) {
+      addIssue(errors, 'enemy-trial-map', 'trial must be a mapping', location)
+    } else {
+      const expectedFields = ['kind', ...Object.keys(trialRule.params)]
+      if (!exactKeys(entity.trial, expectedFields)) {
+        addIssue(errors, 'enemy-trial-fields', `trial must contain exactly ${expectedFields.join(', ')}`, location)
+      }
+      if (entity.trial.kind !== trialRule.kind) {
+        addIssue(errors, 'enemy-trial-kind', `${entity.id} trial kind must be ${trialRule.kind}`, location)
+      }
+      for (const [key, range] of Object.entries(trialRule.params)) {
+        finiteNumber(errors, entity.trial[key], location, `trial.${key}`, range)
+      }
+    }
+  }
   const loadoutSources = enemyLoadoutSources(entity, known)
   if (!Array.isArray(entity.phases)) {
     addIssue(errors, 'enemy-phases', 'phases must be an array, possibly empty', source)
@@ -1812,7 +1834,53 @@ function validateInsights(entity, errors, effectIds) {
   }
 }
 
-function validateRules(entity, errors, effectIds) {
+function validateRewardSeeking(economy, errors, known, source) {
+  const seeking = economy?.reward_seeking
+  const location = `${source}:economy.reward_seeking`
+  if (!isRecord(seeking)) {
+    addIssue(errors, 'reward-seeking-map', 'economy.reward_seeking must be a mapping', location)
+    return
+  }
+  if (!exactKeys(seeking, ['price', 'max_per_act', 'families'])) {
+    addIssue(errors, 'reward-seeking-fields', 'reward_seeking must contain exactly price, max_per_act and families', location)
+  }
+  finiteNumber(errors, seeking.price, location, 'reward_seeking.price', { integer: true, min: 1 })
+  finiteNumber(errors, seeking.max_per_act, location, 'reward_seeking.max_per_act', { integer: true, min: 1, max: 1 })
+  if (!isRecord(seeking.families)) {
+    addIssue(errors, 'reward-seeking-families', 'reward_seeking.families must be a mapping', location)
+    return
+  }
+  if (!exactKeys(seeking.families, [...REWARD_SEEKING_FAMILIES])) {
+    addIssue(errors, 'reward-seeking-families', `families must contain exactly ${REWARD_SEEKING_FAMILIES.join(', ')}`, location)
+  }
+  for (const family of REWARD_SEEKING_FAMILIES) {
+    const ids = seeking.families[family]
+    const familyLocation = `${location}:families.${family}`
+    if (!Array.isArray(ids) || ids.some((id) => typeof id !== 'string' || id.trim() === '')) {
+      addIssue(errors, 'reward-seeking-family-ids', `${family} must be an array of artifact ids`, familyLocation)
+      continue
+    }
+    if (new Set(ids).size !== ids.length) {
+      addIssue(errors, 'reward-seeking-family-duplicate', `${family} cannot repeat an artifact id`, familyLocation)
+    }
+    let commonCount = 0
+    let rareCount = 0
+    for (const id of ids) {
+      if (!known.artifacts.has(id)) {
+        addIssue(errors, 'reward-seeking-reference', `unknown artifact ${id}`, familyLocation)
+        continue
+      }
+      if (ARTIFACT_RARITIES[id] === 'common') commonCount += 1
+      else if (ARTIFACT_RARITIES[id] === 'rare') rareCount += 1
+      else addIssue(errors, 'reward-seeking-rarity', `${id} must be common or rare`, familyLocation)
+    }
+    if (commonCount < 2 || rareCount < 2) {
+      addIssue(errors, 'reward-seeking-family-rarity', `${family} needs at least two common and two rare artifacts`, familyLocation)
+    }
+  }
+}
+
+function validateRules(entity, errors, effectIds, known) {
   const source = sourceFor(entity)
   for (const field of ['attributes', 'rarities', 'cultivation', 'combat', 'rage', 'statuses', 'adventure', 'economy', 'pools', 'calibration', 'insights']) {
     if (!(field in entity)) addIssue(errors, 'rules-field', `missing rules field ${field}`, source)
@@ -1821,6 +1889,7 @@ function validateRules(entity, errors, effectIds) {
     addIssue(errors, 'rules-attributes', 'rules.attributes must contain the five authored attributes', source)
   }
   validateInsights(entity, errors, effectIds)
+  validateRewardSeeking(entity.economy, errors, known, source)
   finiteTree(errors, entity, source, 'rules')
 }
 
@@ -1833,7 +1902,7 @@ function validateEntityKind(entity, errors, known, effectIds, storylineEncounter
   }
   switch (entity.kind) {
     case 'rules':
-      validateRules(entity, errors, effectIds)
+      validateRules(entity, errors, effectIds, known)
       break
     case 'method':
       validateMethod(entity, errors, effectIds)

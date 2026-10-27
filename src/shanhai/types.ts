@@ -47,6 +47,7 @@ export interface Loadout {
   preparation?: number;
   firstStrike?: number;
   journey?: JourneyContext;
+  encounterId?: string;
 }
 export type Side = 'player' | 'enemy';
 export interface FighterView {
@@ -59,6 +60,7 @@ export interface FighterView {
   rageCap: number;
   statuses: Record<string, number>;
   counters?: { id: string; name: string; value: number; max: number }[];
+  summons?: { id: string; kind: 'sword'; count: number; max: number }[];
   lockedAction?: 'basic_action' | 'rage_action';
 }
 export interface BattleFrame {
@@ -69,6 +71,11 @@ export interface BattleFrame {
   source?: string;
   text: string;
   amount?: number;
+  cue?: {
+    kind: 'sword_volley' | 'guard_counter' | 'spring_bloom' | 'enemy_charge' | 'enemy_release';
+    owner: Side;
+    sourceId: string;
+  };
   player: FighterView;
   enemy: FighterView;
 }
@@ -110,6 +117,15 @@ export interface ShopItem {
   price: number;
   sold: boolean;
 }
+export type ArtifactRewardFamily = 'sword' | 'guard' | 'vitality' | 'affliction';
+export interface RewardSearchRecord {
+  act: number;
+  step: number;
+  family: ArtifactRewardFamily;
+  cost: number;
+  candidates: string[];
+  resolved: boolean;
+}
 export interface RunState {
   schema: 1;
   contentVersion: string;
@@ -131,7 +147,8 @@ export interface RunState {
   coins: number;
   artifacts: ArtifactStack[];
   equipment: RunEquipment;
-  buildVersion: 2;
+  buildVersion: 3;
+  rewardSearches: RewardSearchRecord[];
   progress: RunProgress;
   talentDraftGeneration: number;
   talentDrafts: Record<string, string[]>;
@@ -178,6 +195,7 @@ export type RunCommand =
   | { type: 'battle_done' }
   | { type: 'continue_battle' }
   | { type: 'reward'; id: string | null }
+  | { type: 'seek_reward'; family: ArtifactRewardFamily }
   | { type: 'event'; id: string }
   | { type: 'continue' }
   | { type: 'buy'; id: string }

@@ -128,11 +128,11 @@ V2 共鸣效果只允许用于已接入的实体，且只能放在功法 `passiv
 
 | 实体 | `params.resonance` | 其它参数键 |
 | --- | --- | --- |
-| RKF01 | `guard_pressure` | `absorb_ratio`, `cap_hp_ratio`, `release_ratio` |
+| RKF01 | `guard_pressure` | `absorb_ratio`, `cap_hp_ratio`, `release_ratio`, `counter_threshold_hp_ratio` |
 | RKF02 | `returning_breath` | `extra_segments`, `segment_ratio`, `rage_bonus` |
-| RKF03 | `spring_bloom` | `threshold_hp_ratio`, `burst_hp_ratio`, `max_per_action` |
+| RKF03 | `spring_bloom` | `threshold_hp_ratio`, `burst_hp_ratio` |
 | RKF04 | `burn_accelerate` | `ticks` |
-| RKF05 | `sword_array` | `artifact_intent_limit`, `consume_stacks`, `attack_ratio` |
+| RKF05 | `sword_array` | `artifact_intent_limit`, `consume_stacks`, `attack_ratio`, `opening_swords`, `flying_sword_cap`, `flying_sword_ratio` |
 | RKF07 | `thunder_induction` | `hit_threshold`, `attack_ratio`, `max_per_action` |
 | RKF08 | `moon_hex` | `attack_ratio`, `drain_per_kind` |
 | RC13 | `shield_retort` | `defense_ratio` |
@@ -145,9 +145,27 @@ V2 共鸣效果只允许用于已接入的实体，且只能放在功法 `passiv
 | RL03 | `wheel_storm` | `hit_threshold`, `segments`, `attack_ratio`, `max_per_action` |
 
 `params` 只能使用 `resonance` 和表中该实体的参数键，不可省略或添加字段；所有参数必须
-是有限非负数，比例不超过 1，阈值必须大于 0，次数/层数/段数必须是正整数。参数范围和
+是有限非负数，比例不超过 1，阈值必须大于 0，次数/层数/段数必须是正整数。RKF01盾压
+达到最大气血12%或敌方主动作真实破盾后独立释放一次；RKF03自疗最多储存两份春生阈值，
+在存活敌方主动作结束后至多消费一份；RKF05开战携一柄、普攻后逐柄养剑，存活敌方主动作
+后每柄以0.18倍率齐射。参数范围和
 数值由内容工具校验，怒气点数也必须是整数。规则的具体时机、排除项和资源结算顺序写在
 卡面 `text`；其它实体与功法天赋均不得声明 V2 共鸣规则。
+
+### 反应试炼与悬赏寻器
+
+只有 `EN-A1-B1` 和 `EN-A1-B2` 可声明可选 `trial`，字段必须按类型精确匹配，未知、遗漏
+或其它敌人的试炼配置均会被校验拒绝。潮势试炼 `{kind: tidal_charge, period: 3,
+charges: 3, attack_ratio_per_charge: 0.45}` 每次敌方有效直接或派生命中消耗一层，
+不受持续伤害或反震影响；回生雾 `{kind: reviving_mist, period: 3, charges: 3,
+heal_hp_ratio_per_charge: 0.045}` 只被实际扣除气血的中毒/燃烧跳伤打断。两者的公开
+`preview` 与 `counterplay` 都必须说明周期、准备内容和实际打断手段。
+
+`RULES.economy.reward_seeking` 固定公开 `{price: 8, max_per_act: 1, families: ...}`；
+四个且仅四个显式族为 `sword/guard/vitality/affliction`，引用现存普通或稀有法宝 ID，
+每族至少各含两张普通与稀有法宝，允许跨族复用，不允许族内重复或用传奇卡填数。寻器只在
+首个保底核心奖励之后的第1-4幕奖励阶段开放；免费预览不重抽，付款后仅替换原候选，不加
+奖励位、不升稀有度、不用无关卡补满，实际支付进入行旅账本。
 
 ## 各类型必填内容
 

@@ -161,11 +161,11 @@ test('real content validates and preserves the authored entity and talent counts
 
 test('V2 resonance rules are authored once on their owners and render with the changed method loops', () => {
   const expectedMethodParams = {
-    RKF01: { resonance: 'guard_pressure', absorb_ratio: 0.75, cap_hp_ratio: 0.4, release_ratio: 1 },
+    RKF01: { resonance: 'guard_pressure', absorb_ratio: 0.75, cap_hp_ratio: 0.4, release_ratio: 1, counter_threshold_hp_ratio: 0.12 },
     RKF02: { resonance: 'returning_breath', extra_segments: 2, segment_ratio: 0.55, rage_bonus: 10 },
-    RKF03: { resonance: 'spring_bloom', threshold_hp_ratio: 0.2, burst_hp_ratio: 0.12, max_per_action: 1 },
+    RKF03: { resonance: 'spring_bloom', threshold_hp_ratio: 0.2, burst_hp_ratio: 0.12 },
     RKF04: { resonance: 'burn_accelerate', ticks: 1 },
-    RKF05: { resonance: 'sword_array', artifact_intent_limit: 2, consume_stacks: 3, attack_ratio: 0.22 },
+    RKF05: { resonance: 'sword_array', artifact_intent_limit: 2, consume_stacks: 3, attack_ratio: 0.22, opening_swords: 1, flying_sword_cap: 3, flying_sword_ratio: 0.18 },
     RKF07: { resonance: 'thunder_induction', hit_threshold: 3, attack_ratio: 0.45, max_per_action: 2 },
     RKF08: { resonance: 'moon_hex', attack_ratio: 0.2, drain_per_kind: 2 },
   }
@@ -211,7 +211,7 @@ test('V2 resonance rules are authored once on their owners and render with the c
     RKF01: [0.8, 1.1],
     RKF02: [1.55, 2],
     RKF03: [0.75, 1.15],
-    RKF05: [1.15, 1.7],
+    RKF05: [0.95, 1.5],
     RKF07: [0.75, 0.38],
   }
   for (const [id, [basicRatio, rageRatio]] of Object.entries(ratios)) {
@@ -228,6 +228,13 @@ test('V2 resonance rules are authored once on their owners and render with the c
   assert.equal(j2b.params.damage_per_stack_attack_ratio, 0.32)
   assert.equal(j2b.params.preexisting_only, true)
   assert.equal(Object.hasOwn(effectById(sword, 'RKF05-RAGE-DAMAGE').params, 'preserve_sword_intent'), false)
+  const swordArrayText = effectById(sword, 'RKF05-V2-RESONANCE').text
+  assert.match(swordArrayText, /最多3柄/)
+  assert.match(swordArrayText, /攻击0\.18倍/)
+  assert.match(swordArrayText, /最多新增2层/)
+  assert.match(swordArrayText, /0\.22倍/)
+  assert.match(swordArrayText, /本场战斗内保留/)
+  assert.doesNotMatch(swordArrayText, /场间保留/)
 
   assert.equal(
     model.byId.get('RR11').effects.find((effect) => effect.id === 'RR11-DOT-ROUND-RAGE').params.amount,
@@ -248,9 +255,54 @@ test('V2 resonance rules are authored once on their owners and render with the c
 
   const pages = renderDocuments(report)
   assert.match(pages.get('methods/RKF05.md'), /取代归刃剑阵/)
+  assert.match(pages.get('methods/RKF03.md'), /存活敌方主动作结束后/)
   assert.match(pages.get('methods/RKF03.md'), /最大气血20%/)
+  assert.match(pages.get('methods/RKF01.md'), /counter_threshold_hp_ratio=0\.12/)
+  assert.match(pages.get('enemies/ACT1.md'), /潮势准备/)
+  assert.match(pages.get('enemies/ACT1.md'), /回生雾准备/)
+  assert.match(pages.get('RULES.md'), /悬赏寻器/)
+  assert.match(pages.get('RULES.md'), /剑穗/)
   assert.match(pages.get('artifacts/RARE.md'), /毒火/)
   assert.match(pages.get('artifacts/LEGENDARY.md'), /四段攻击0.25倍/)
+})
+
+test('authored trials and reward-seeking families stay on the public contract', () => {
+  const tidal = model.byId.get('EN-A1-B1')
+  const mist = model.byId.get('EN-A1-B2')
+  assert.deepEqual(tidal.trial, {
+    kind: 'tidal_charge',
+    period: 3,
+    charges: 3,
+    attack_ratio_per_charge: 0.45,
+  })
+  assert.match(tidal.preview, /攻击0\.45倍/)
+  assert.match(tidal.preview, /中毒、燃烧与反震不消耗/)
+  assert.ok(tidal.counterplay.some((text) => /多段普攻或派生攻击/.test(text)))
+  assert.deepEqual(mist.trial, {
+    kind: 'reviving_mist',
+    period: 3,
+    charges: 3,
+    heal_hp_ratio_per_charge: 0.045,
+  })
+  assert.match(mist.preview, /最大气血4\.5%/)
+  assert.match(mist.preview, /直接伤害不消耗/)
+  assert.ok(mist.counterplay.some((text) => /中毒或燃烧/.test(text)))
+  assert.equal(entitiesOf('enemy').filter((enemy) => Object.hasOwn(enemy, 'trial')).length, 2)
+
+  const seeking = model.byId.get('RULES').economy.reward_seeking
+  assert.equal(seeking.price, 8)
+  assert.equal(seeking.max_per_act, 1)
+  assert.deepEqual(Object.keys(seeking.families).sort(), ['affliction', 'guard', 'sword', 'vitality'])
+  assert.deepEqual(seeking.families.sword, ['RC09', 'RC20', 'RR01', 'RR03', 'RR04', 'RR10'])
+  assert.deepEqual(seeking.families.guard, ['RC11', 'RC13', 'RR02', 'RR09'])
+  assert.deepEqual(seeking.families.vitality, ['RC05', 'RC06', 'RC12', 'RC17', 'RC24', 'RR02', 'RR06', 'RR12'])
+  assert.deepEqual(seeking.families.affliction, ['RC14', 'RC15', 'RR03', 'RR11'])
+  for (const ids of Object.values(seeking.families)) {
+    const rarities = ids.map((id) => model.byId.get(id).rarity)
+    assert.ok(rarities.filter((rarity) => rarity === 'common').length >= 2)
+    assert.ok(rarities.filter((rarity) => rarity === 'rare').length >= 2)
+    assert.ok(rarities.every((rarity) => rarity !== 'legendary'))
+  }
 })
 
 test('every method has four A/B/C talent tiers and 81 structural builds', () => {

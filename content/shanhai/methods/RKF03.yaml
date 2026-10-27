@@ -4,8 +4,8 @@ kind: method
 id: RKF03
 name: 回春功
 status: design_target
-summary: 治疗与溢疗积蓄春华，蓄满后按气血上限爆发。
-description: 回春功的攻击按攻击属性计算，治疗量按最大气血计算；战斗内正向自疗还会填充春生，攒满后造成派生伤害。溢疗仍依所学天赋转为伤害或中毒，佩戴琉璃法印时则转为护盾。
+summary: 治疗与溢疗积蓄春华，敌方主动作后按气血上限爆发。
+description: 回春功的攻击按攻击属性计算，治疗量按最大气血计算；战斗内正向自疗储存春生，存满一份后在敌方主动作结束时造成派生伤害。溢疗仍依所学天赋转为伤害或中毒，佩戴琉璃法印时则转为护盾。
 tags: [method, common, healing, max_hp, overflow]
 source:
   basis: original
@@ -142,12 +142,12 @@ passives:
     trigger: always
     operation: modify_effect
     target: self
-    params: {resonance: spring_bloom, threshold_hp_ratio: 0.2, burst_hp_ratio: 0.12, max_per_action: 1}
+    params: {resonance: spring_bloom, threshold_hp_ratio: 0.2, burst_hp_ratio: 0.12}
     requires: []
     consumes: []
     replaces: []
     limit: {scope: permanent, count: 1}
-    text: 所有战斗内正向自疗按有效治疗与溢疗总量填充春生，包括真实轮末治疗、不含怒气回响；春生达到最大气血20%时，每所属主动作或轮末持续伤害结算最多触发一次，造成最大气血12%的派生伤害。超量最多保留一份阈值待后续触发，不形成无限队列；原有溢疗出口仍互斥。
+    text: 战斗内正向自疗按实际恢复气血与实际溢疗合计储存春生，包括轮末实际治疗，不含怒气回响；春生最多储存最大气血的40%。每次存活敌方主动作结束后，若春生至少达到最大气血20%，消费一份阈值，在独立反应节拍造成最大气血12%的派生伤害；每个敌方主动作至多一次，剩余春生保留待后续触发。毒火轮末结算不单独调度爆发，没有满一份阈值时不触发；原有溢疗出口仍互斥。
 travel:
   - id: RKF03-TRAVEL-NONBATTLE-HEAL
     trigger: node_complete

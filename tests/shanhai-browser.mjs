@@ -41,7 +41,7 @@ function playwrightModule() {
 const { chromium } = playwrightModule();
 const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH ||
   '/home/ubuntu/.cache/ms-playwright/chromium-1228/chrome-linux/chrome';
-const replayKey = 'suishi-shanhai-replay-v2-resonance';
+const replayKey = 'suishi-shanhai-replay-v2-reactions';
 const checks = [];
 
 async function check(name, fn) {
@@ -89,6 +89,11 @@ async function createFixture(page, target, seed = `browser-${target}`) {
     ]);
     const content = await loadContent('/content/');
     const game = ShanhaiGame.create(content, { seed, name: '浏览器行者', method: 'RKF01' });
+    // Service-page fixtures test rendering, not early-game survival.
+    if (target === 'shop' || target === 'rest') {
+      game.state.n = 4;
+      game.state.hp = game.stats.max_hp;
+    }
 
     const finishBattle = () => {
       if (game.state.phase !== 'battle') return;

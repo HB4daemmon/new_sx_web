@@ -89,6 +89,36 @@ function damageFrom(result, source, round) {
   return framesFrom(result, 'damage', source, round);
 }
 
+function assertOneSpringResponseAfterHostileMain(result, round) {
+  const blooms = damageFrom(result, 'RKF03-V2-RESONANCE', round);
+  assert.equal(blooms.length, 1, `expected one spring response in round ${round}`);
+  const bloom = blooms[0];
+  assert.equal(bloom.actor, 'player');
+  assert.equal(bloom.cue?.kind, 'spring_bloom');
+  assert.equal(bloom.cue?.owner, 'player');
+  assert.equal(bloom.cue?.sourceId, 'RKF03-V2-RESONANCE');
+
+  const hostileMainIndex = result.frames.findIndex(frame =>
+    frame.kind === 'action' &&
+    frame.actor === 'enemy' &&
+    frame.round === round);
+  const reactionIndex = result.frames.findIndex(frame =>
+    frame.kind === 'reaction' &&
+    frame.cue?.kind === 'spring_bloom' &&
+    frame.round === round);
+  assert.ok(hostileMainIndex >= 0, `expected a hostile main action in round ${round}`);
+  assert.ok(reactionIndex > hostileMainIndex,
+    `expected spring to respond after the hostile main action in round ${round}`);
+  assert.ok(
+    result.frames[reactionIndex].player.hp > 0 &&
+      result.frames[reactionIndex].enemy.hp > 0,
+    `expected living fighters at the spring response in round ${round}`,
+  );
+  assert.ok(result.frames.indexOf(bloom) > reactionIndex,
+    `expected spring damage after its reaction cue in round ${round}`);
+  return bloom;
+}
+
 function maxCounter(result, side, id) {
   const values = result.frames.flatMap(frame =>
     (frame[side].counters ?? [])
@@ -262,7 +292,7 @@ test('returning breath readies one basic and multiplies split segments by its au
     'the rage echo does not ready a second returning-breath charge');
 });
 
-test('spring bloom includes overflow and emits no more than its action limit', () => {
+test('spring bloom spends one threshold after a hostile main action with a two-threshold cap', () => {
   const activeContent = patchContent(entities => {
     entities.find(item => item.id === 'RULES').rage.opening = 0;
     resonanceEffect(entities, 'RKF03').params.threshold_hp_ratio = 0.02;
@@ -271,14 +301,14 @@ test('spring bloom includes overflow and emits no more than its action limit', (
   const counter = lastCounterView(result, 'player', 'RKF03-V2-RESONANCE');
   const threshold = calculateStats(activeContent, makeLoadout('RKF03')).max_hp * 0.02;
 
-  assert.equal(damageFrom(result, 'RKF03-V2-RESONANCE').length, 1);
+  assertOneSpringResponseAfterHostileMain(result, 1);
   assert.ok(contribution(result, 'RKF03').damage > 0);
   assert.equal(counter.name, '春华');
   assert.equal(counter.value, 0);
-  assert.ok(Math.abs(counter.max - threshold) < 1e-8);
+  assert.ok(Math.abs(counter.max - threshold * 2) < 1e-8);
 });
 
-test('spring bloom banks at most one threshold after its action limit is spent', () => {
+test('spring stores up to two thresholds and spends one after a hostile main action', () => {
   const activeContent = patchContent(entities => {
     entities.find(item => item.id === 'RULES').rage.opening = 0;
     resonanceEffect(entities, 'RKF03').params.threshold_hp_ratio = 0.02;
@@ -288,13 +318,13 @@ test('spring bloom banks at most one threshold after its action limit is spent',
   const counter = lastCounterView(result, 'player', 'RKF03-V2-RESONANCE');
   const threshold = calculateStats(activeContent, player).max_hp * 0.02;
 
-  assert.equal(damageFrom(result, 'RKF03-V2-RESONANCE').length, 1);
+  assertOneSpringResponseAfterHostileMain(result, 1);
   assert.ok(Math.abs(counter.value - threshold) < 1e-8);
-  assert.ok(Math.abs(counter.max - threshold) < 1e-8);
+  assert.ok(Math.abs(counter.max - threshold * 2) < 1e-8);
   assert.equal(counter.name, '春华');
 });
 
-test('burn-siphon healing gets one bloom per round-dot settlement, not per live layer', () => {
+test('burn-siphon healing banks spring without blooming during round-dot settlement', () => {
   const activeContent = patchContent(entities => {
     entities.find(item => item.id === 'RULES').rage.opening = 0;
     resonanceEffect(entities, 'RKF03').params.threshold_hp_ratio = 0.0001;
@@ -306,18 +336,16 @@ test('burn-siphon healing gets one bloom per round-dot settlement, not per live 
   const result = simulate(activeContent, player, makeEnemy(), 'spring-bloom-dot-settlement', 2);
   const threshold = calculateStats(activeContent, player).max_hp * 0.0001;
 
-  assert.equal(damageFrom(result, 'RKF03-V2-RESONANCE', 1).length, 2,
-    'one main-action bloom and one burn-siphon settlement bloom');
-  assert.equal(damageFrom(result, 'RKF03-V2-RESONANCE', 2).length, 2,
-    'multiple live burn layers still share one round-dot settlement limit');
+  assertOneSpringResponseAfterHostileMain(result, 1);
+  assertOneSpringResponseAfterHostileMain(result, 2);
   assert.ok(result.frames
     .flatMap(frame => frame.player.counters ?? [])
     .filter(counter => counter.id === 'RKF03-V2-RESONANCE')
     .every(counter => counter.name === '春华' && counter.value <= counter.max &&
-      Math.abs(counter.max - threshold) < 1e-8));
+      Math.abs(counter.max - threshold * 2) < 1e-8));
 });
 
-test('round-dot spring hits feed resonance counters but the dot itself does not', () => {
+test('spring reaction hits feed resonance counters but round-dot settlement does not bloom', () => {
   const activeContent = patchContent(entities => {
     entities.find(item => item.id === 'RULES').rage.opening = 0;
     resonanceEffect(entities, 'RKF03').params.threshold_hp_ratio = 0.0001;
@@ -332,11 +360,13 @@ test('round-dot spring hits feed resonance counters but the dot itself does not'
   const blooms = damageFrom(result, 'RKF03-V2-RESONANCE', 1);
   const storms = damageFrom(result, 'RL03-V2-RESONANCE', 1);
 
-  assert.equal(blooms.length, 2, 'one bloom from the main heal and one from burn siphon');
-  assert.equal(storms.length, 4);
-  assert.ok(result.frames.indexOf(storms[0]) > result.frames.indexOf(blooms[1]),
-    'the round-dot spring hit reaches the threshold; the preceding DoT tick does not');
-  assert.equal(lastCounter(result, 'player', 'RL03-V2-RESONANCE'), 0);
+  assertOneSpringResponseAfterHostileMain(result, 1);
+  assert.equal(blooms.length, 1);
+  assert.equal(framesFrom(result, 'dot', 'RC15', 1).length, 1);
+  assert.equal(storms.length, 0,
+    'the single spring reaction leaves wheel storm below threshold; dot healing adds no bloom hit');
+  assert.equal(lastCounter(result, 'player', 'RL03-V2-RESONANCE'), 2,
+    'the spring reaction counts, while its later DoT settlement does not');
 });
 
 test('burn acceleration ticks only live own burns that existed when rage began', () => {
@@ -371,10 +401,31 @@ test('sword array consumes only preexisting intent while artifact hits still add
   const player = makeLoadout('RKF05', [{ id: 'RC09', stacks: 1 }]);
   const result = simulate(activeContent, player, makeEnemy(), 'sword-array', 4);
   const swords = damageFrom(result, 'RKF05-V2-RESONANCE', 4);
+  const rageActionIndex = result.frames.findIndex(frame =>
+    frame.kind === 'action' &&
+    frame.source === 'RKF05-RAGE-DAMAGE' &&
+    frame.actor === 'player' &&
+    frame.round === 4);
+  const enemyActionIndex = result.frames.findIndex(frame =>
+    frame.kind === 'action' &&
+    frame.actor === 'enemy' &&
+    frame.round === 4);
+  const rageIntentHits = swords.filter(frame =>
+    frame.cue === undefined &&
+    result.frames.indexOf(frame) > rageActionIndex &&
+    result.frames.indexOf(frame) < enemyActionIndex);
+  const volleyHits = swords.filter(frame => frame.cue?.kind === 'sword_volley');
 
-  assert.equal(swords.length, 3);
-  assert.equal(swords[0].player.statuses.sword_intent, 2,
+  assert.ok(rageActionIndex >= 0, 'expected a round-four rage action');
+  assert.ok(enemyActionIndex >= 0, 'expected a round-four hostile main action');
+  assert.equal(rageIntentHits.length, 3);
+  assert.equal(volleyHits.length, 3, 'the persistent sword array also volleys after the enemy main');
+  assert.ok(rageIntentHits.every(frame => frame.player.statuses.sword_intent === 2),
     'three preexisting stacks were spent while later artifact-generated intent remains');
+  assert.ok(volleyHits.every(frame =>
+    result.frames.indexOf(frame) > enemyActionIndex &&
+    frame.cue.owner === 'player' &&
+    frame.cue.sourceId === 'RKF05-V2-RESONANCE'));
   assert.ok(contribution(result, 'RKF05').damage > 0);
 });
 

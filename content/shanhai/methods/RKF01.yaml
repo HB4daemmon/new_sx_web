@@ -4,8 +4,8 @@ kind: method
 id: RKF01
 name: 金刚功
 status: design_target
-summary: 以防御造盾、承伤反击，并在怒技时释放所蓄护盾压力的护法功法。
-description: 普攻和怒技按防御造盾，持盾受击时反震并蓄劲；怒技开始时释放积蓄的劲力，不额外消耗护盾。
+summary: 以防御造盾、承伤反击，并在受击后或怒技时释放所蓄护盾压力的护法功法。
+description: 普攻和怒技按防御造盾，持盾受击时反震并蓄劲；盾压达到门槛或真实破盾后会在独立反击节拍释放，怒技也可释放未用尽的盾压。
 tags: [method, common, defense, shield, direct]
 source:
   basis: original
@@ -125,12 +125,12 @@ passives:
     trigger: always
     operation: modify_effect
     target: self
-    params: {resonance: guard_pressure, absorb_ratio: 0.75, cap_hp_ratio: 0.4, release_ratio: 1}
+    params: {resonance: guard_pressure, absorb_ratio: 0.75, cap_hp_ratio: 0.4, release_ratio: 1, counter_threshold_hp_ratio: 0.12}
     requires: []
     consumes: []
     replaces: []
     limit: {scope: permanent, count: 1}
-    text: 敌方主动作的直接攻击对护盾造成吸收时，把吸收量的75%存为压力，最多存至最大气血40%；每次主怒技开始时把压力按1:1转成一次派生伤害并清空。护盾不被消耗，此规则不取代护体反震。
+    text: 敌方主动作的直接攻击造成真实护盾吸收时，把吸收量的75%存为压力，最多存至最大气血40%。该动作结束后，若本动作造成真实护盾吸收，且压力达到最大气血12%或本动作打破真实护盾，则先清空压力，再在独立反击节拍按1:1造成派生伤害；压力为零不触发。未释放的压力只会在主怒技开始时释放一次，已消费压力不会重复释放。护盾本身不被消耗，此规则不取代护体反震。
 travel:
   - id: RKF01-TRAVEL-XP
     trigger: rest_complete

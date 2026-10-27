@@ -8,6 +8,7 @@ import {
   STORYLINE_IDS,
   ENEMY_IDS,
   ACT_IDS,
+  REWARD_SEEKING_FAMILIES,
 } from './constants.mjs'
 import { assertValidContent, validateLoadedContent } from './validator.mjs'
 
@@ -757,6 +758,13 @@ function renderRules(rules, context) {
       ':::',
       '',
     ]),
+    '## 悬赏寻器',
+    '',
+    `奖励阶段可支付 ${scalarText(rules?.economy?.reward_seeking?.price)} 枚灵石，每幕最多寻器 ${scalarText(rules?.economy?.reward_seeking?.max_per_act)} 次；先免费查看预览，确认付款后才替换原候选，不增加奖励位或提升稀有度。`,
+    ...REWARD_SEEKING_FAMILIES.map((family) => (
+      `- ${family}：${list((rules?.economy?.reward_seeking?.families?.[family] ?? []).map((id) => readableArtifact(id, context)))}`
+    )),
+    '',
     '::: details 状态与首测配置',
     ...(statusNotes.length > 0
       ? statusNotes.map(([name, value]) => `- ${statusLabels[name] ?? fieldLabel(name)}：${line(value)}`)
@@ -1157,6 +1165,16 @@ function renderEnemyLoadout(enemy, context) {
   }
 }
 
+function renderEnemyTrial(trial) {
+  if (trial?.kind === 'tidal_charge') {
+    return `潮势准备：开战装满${scalarText(trial.charges)}层；第${trial.period}、${trial.period * 2}……轮开始释放，每层造成攻击${percentageText(trial.attack_ratio_per_charge)}的一段直接伤害，之后存活则补满。每次有效直接或派生命中消耗一层；中毒、燃烧和反震不消耗，零层释放只提示准备被破，不造成伤害。`
+  }
+  if (trial?.kind === 'reviving_mist') {
+    return `回生雾准备：开战装满${scalarText(trial.charges)}层；第${trial.period}、${trial.period * 2}……轮开始按剩余层数治疗，每层恢复最大气血${percentageText(trial.heal_hp_ratio_per_charge)}，之后存活则补满。仅中毒或燃烧实际造成气血伤害时消耗一层；盾吸收的跳伤和直接攻击不消耗。`
+  }
+  return null
+}
+
 function renderEnemies(enemies, act, context) {
   const selected = enemies.filter((enemy) => enemy.id.startsWith(`EN-A${act}-`))
   const lines = [
@@ -1179,6 +1197,8 @@ function renderEnemies(enemies, act, context) {
     lines.push('')
     lines.push('::: details 敌方开发详情')
     lines.push(`- 预览：${line(enemy.preview, context)}`)
+    const trial = renderEnemyTrial(enemy.trial)
+    if (trial) lines.push(`- 公开准备：${trial}`)
     lines.push(`- 阶段：${enemy.phases?.length ? enemy.phases.map((phase) => line(phase.name ?? phase.id ?? phase.source ?? '已声明来源', context)).join('、') : '无额外阶段'}`)
     lines.push(`- 奖励档：${tierLabels[enemy.reward_profile] ?? line(enemy.reward_profile, context)}；实测仍为空。`)
     lines.push(':::')

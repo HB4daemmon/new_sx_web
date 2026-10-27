@@ -69,6 +69,27 @@ const resonanceRatio = numericRange(0, 1)
 const resonancePositiveRatio = numericRange(Number.MIN_VALUE, 1)
 const resonanceIntegerPoints = numericRange(0, undefined, true)
 const resonanceCount = numericRange(1, undefined, true)
+const trialPeriod = numericRange(1, 10, true)
+const trialCharges = numericRange(1, 10, true)
+export const REWARD_SEEKING_FAMILIES = Object.freeze(['sword', 'guard', 'vitality', 'affliction'])
+export const ENEMY_TRIAL_RULES = Object.freeze({
+  'EN-A1-B1': Object.freeze({
+    kind: 'tidal_charge',
+    params: Object.freeze({
+      period: trialPeriod,
+      charges: trialCharges,
+      attack_ratio_per_charge: resonancePositiveRatio,
+    }),
+  }),
+  'EN-A1-B2': Object.freeze({
+    kind: 'reviving_mist',
+    params: Object.freeze({
+      period: trialPeriod,
+      charges: trialCharges,
+      heal_hp_ratio_per_charge: resonancePositiveRatio,
+    }),
+  }),
+})
 export const SHARED_INSIGHT_BUILD_RULES = Object.freeze({
   'V2-J1-A': buildRule('wealth_damage', {
     scale: numericRange(0, 5),
@@ -138,6 +159,7 @@ export const METHOD_RESONANCE_RULES = Object.freeze({
     absorb_ratio: resonanceRatio,
     cap_hp_ratio: resonanceRatio,
     release_ratio: resonanceRatio,
+    counter_threshold_hp_ratio: resonancePositiveRatio,
   }),
   RKF02: resonanceRule('returning_breath', {
     extra_segments: resonanceCount,
@@ -147,7 +169,6 @@ export const METHOD_RESONANCE_RULES = Object.freeze({
   RKF03: resonanceRule('spring_bloom', {
     threshold_hp_ratio: resonancePositiveRatio,
     burst_hp_ratio: resonanceRatio,
-    max_per_action: resonanceCount,
   }),
   RKF04: resonanceRule('burn_accelerate', {
     ticks: resonanceCount,
@@ -156,6 +177,9 @@ export const METHOD_RESONANCE_RULES = Object.freeze({
     artifact_intent_limit: resonanceCount,
     consume_stacks: resonanceCount,
     attack_ratio: resonanceRatio,
+    opening_swords: resonanceCount,
+    flying_sword_cap: resonanceCount,
+    flying_sword_ratio: resonancePositiveRatio,
   }),
   RKF07: resonanceRule('thunder_induction', {
     hit_threshold: resonanceCount,

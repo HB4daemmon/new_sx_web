@@ -18,6 +18,8 @@ export interface CombatPresentationGroup {
   endIndex: number;
   round: number;
   dot: boolean;
+  interruptedCharges: number;
+  reaction?: BattleFrame['cue'];
   player: CombatSideSummary;
   enemy: CombatSideSummary;
 }
@@ -25,9 +27,31 @@ export interface CombatPresentationGroup {
 export type CombatPresentationMotion = 'idle' | 'hit' | 'block' | 'heal' | 'shield' | 'dot' | 'buff';
 
 const BOUNDARY_KINDS = new Set(['action', 'round', 'start', 'end', 'draw', 'summary']);
+const REACTION_LABELS: Record<NonNullable<BattleFrame['cue']>['kind'], string> = {
+  sword_volley: '飞剑齐射',
+  guard_counter: '架势反击',
+  spring_bloom: '春生回涌',
+  enemy_charge: '首领蓄势',
+  enemy_release: '首领释招',
+};
 
 function isBoundary(frame: BattleFrame): boolean {
   return BOUNDARY_KINDS.has(frame.kind);
+}
+
+function isReactionStart(frame: BattleFrame): boolean {
+  return frame.kind === 'reaction' && Boolean(frame.cue);
+}
+
+export function battleReactionLabel(cue?: BattleFrame['cue']): string | undefined {
+  return cue ? REACTION_LABELS[cue.kind] : undefined;
+}
+
+export function battleReactionCue(
+  frame: BattleFrame,
+  group?: CombatPresentationGroup,
+): BattleFrame['cue'] {
+  return group?.reaction ?? (frame.kind === 'reaction' ? frame.cue : undefined);
 }
 
 function emptySideSummary(): CombatSideSummary {
@@ -95,6 +119,8 @@ function emptyGroup(startIndex: number, frame: BattleFrame, dot: boolean): Comba
     endIndex: startIndex,
     round: frame.round,
     dot,
+    interruptedCharges: 0,
+    ...(isReactionStart(frame) && frame.cue ? { reaction: { ...frame.cue } } : {}),
     player: emptySideSummary(),
     enemy: emptySideSummary(),
   };
@@ -114,9 +140,13 @@ export function combatPresentationGroup(
 
   let runStart = end;
   while (runStart > 0) {
+    if (isReactionStart(frames[runStart])) break;
     const previous = frames[runStart - 1];
     if (isBoundary(previous) || previous.round !== frames[end].round) break;
     runStart -= 1;
+    if (isReactionStart(previous)) {
+      break;
+    }
   }
   let firstDot = -1;
   for (let index = runStart; index <= end; index += 1) {
@@ -125,11 +155,16 @@ export function combatPresentationGroup(
       break;
     }
   }
-  const start = firstDot >= 0 ? firstDot : runStart;
+  const start = isReactionStart(frames[runStart])
+    ? runStart
+    : firstDot >= 0 ? firstDot : runStart;
   const group = emptyGroup(start, frames[start], firstDot >= 0);
   for (let index = start; index <= end; index += 1) {
     const frame = frames[index];
     const previous = frames[index - 1];
+    if (frame.kind === 'status' && frame.cue?.kind === 'enemy_charge') {
+      group.interruptedCharges += 1;
+    }
     if (previous) {
       summarizeFrame(group.player, 'player', frame, previous);
       summarizeFrame(group.enemy, 'enemy', frame, previous);
@@ -154,7 +189,7 @@ export function combatPresentationStepEnd(
   let end = start;
   for (let index = start + 1; index < frames.length; index += 1) {
     const frame = frames[index];
-    if (isBoundary(frame) || frame.round !== round) break;
+    if (isBoundary(frame) || isReactionStart(frame) || frame.round !== round) break;
     if (frame.kind === 'dot' && !dot) break;
     if (frame.kind === 'dot') dot = true;
     end = index;

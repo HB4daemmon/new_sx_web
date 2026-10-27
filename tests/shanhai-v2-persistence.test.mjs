@@ -56,9 +56,9 @@ function storage() {
   };
 }
 
-test('V2 resonance saves leave V1 and V2 journey records isolated', () => {
-  assert.equal(SHANHAI_SAVE_KEY, 'suishi-shanhai-run-v2-resonance');
-  assert.equal(SHANHAI_BUILD_KEY, 'suishi-shanhai-build-v2-resonance');
+test('V2 reaction saves leave V1, resonance and journey records isolated', () => {
+  assert.equal(SHANHAI_SAVE_KEY, 'suishi-shanhai-run-v2-reactions');
+  assert.equal(SHANHAI_BUILD_KEY, 'suishi-shanhai-build-v2-reactions');
   const store = storage();
   const oldRecord = JSON.stringify({
     schema: 1,
@@ -75,18 +75,28 @@ test('V2 resonance saves leave V1 and V2 journey records isolated', () => {
   store.setItem('suishi-shanhai-run-v2-journey', oldJourneyText);
   store.setItem('suishi-shanhai-build-v2-journey', 'legacy-v2-build-untouched');
   store.setItem('suishi-shanhai-replay-v2-journey', 'legacy-v2-replay-untouched');
+  const oldResonanceRecord = JSON.parse(serializeRun(game));
+  oldResonanceRecord.key = 'suishi-shanhai-run-v2-resonance';
+  oldResonanceRecord.state.buildVersion = 2;
+  const oldResonanceText = JSON.stringify(oldResonanceRecord);
+  store.setItem('suishi-shanhai-run-v2-resonance', oldResonanceText);
+  store.setItem('suishi-shanhai-build-v2-resonance', 'legacy-v2-resonance-build-untouched');
+  store.setItem('suishi-shanhai-replay-v2-resonance', 'legacy-v2-resonance-replay-untouched');
   assert.equal(loadRun(content, store), null);
   assert.equal(hasSavedRun(store), false);
   assert.throws(() => parseRunSave(content, oldJourneyText), /invalid record header/);
+  assert.throws(() => parseRunSave(content, oldResonanceText), /invalid record header/);
 
   saveRun(game, store);
   assert.equal(store.getItem('suishi-shanhai-run-v1'), oldRecord);
   assert.equal(store.getItem('suishi-shanhai-run-v2-journey'), oldJourneyText);
   assert.equal(store.getItem('suishi-shanhai-build-v2-journey'), 'legacy-v2-build-untouched');
   assert.equal(store.getItem('suishi-shanhai-replay-v2-journey'), 'legacy-v2-replay-untouched');
+  assert.equal(store.getItem('suishi-shanhai-run-v2-resonance'), oldResonanceText);
+  assert.equal(store.getItem('suishi-shanhai-build-v2-resonance'), 'legacy-v2-resonance-build-untouched');
+  assert.equal(store.getItem('suishi-shanhai-replay-v2-resonance'), 'legacy-v2-resonance-replay-untouched');
   assert.equal(JSON.parse(store.getItem(SHANHAI_SAVE_KEY)).key, SHANHAI_SAVE_KEY);
   assert.throws(() => parseRunSave(content, oldRecord), /V1.*cannot be loaded/);
-
 });
 
 test('equipment and frozen candidates round-trip and malformed snapshots are rejected', () => {
@@ -127,7 +137,7 @@ test('equipment and frozen candidates round-trip and malformed snapshots are rej
   assert.throws(() => parseRunSave(content, JSON.stringify(replacement)), /seed/);
 });
 
-test('contentless saves still enforce V2 version and owned equipment IDs', () => {
+test('contentless saves still enforce reaction build version and owned equipment IDs', () => {
   const game = make('v2-contentless-save');
   const unownedEquipment = structuredClone(game.state);
   unownedEquipment.equipment.slots = ['RC09'];
@@ -142,6 +152,7 @@ test('contentless saves still enforce V2 version and owned equipment IDs', () =>
     state => { state.equipment.slots = ['RC01', 'RC01']; },
     state => { state.equipment.slots = ['RC01', 'RC02', 'RC03', 'RC04', 'RC05']; },
     state => { state.buildVersion = 1; },
+    state => { state.buildVersion = 2; },
     state => { delete state.buildVersion; },
     state => { state.progress.eliteWins = 0.5; },
     state => { state.progress.coinsSpent = -1; },
@@ -159,18 +170,19 @@ test('contentless saves still enforce V2 version and owned equipment IDs', () =>
   }
 });
 
-test('build version and real run progress are required save data', () => {
+test('build version 3 and real run progress are required save data', () => {
   const game = make('v2-progress-save');
-  assert.equal(game.state.buildVersion, 2);
+  assert.equal(game.state.buildVersion, 3);
   assert.deepEqual(game.state.progress, { coinsSpent: 0, eliteWins: 0, bossWins: 0 });
   const saved = JSON.parse(serializeRun(game));
   delete saved.state.buildVersion;
   assert.throws(() => parseRunSave(content, JSON.stringify(saved)), /build version/);
 
   const previousRules = structuredClone(game.state);
-  previousRules.buildVersion = 1;
+  previousRules.buildVersion = 2;
   assert.throws(() => parseRunSave(content, JSON.stringify(previousRules)), /build version/);
   assert.throws(() => validateRunState(content, previousRules), /build version/);
+  assert.throws(() => serializeRun(previousRules), /build version/);
 
   for (const mutate of [
     state => { state.progress.coinsSpent = -1; },
@@ -181,6 +193,84 @@ test('build version and real run progress are required save data', () => {
     mutate(corrupt.state);
     assert.throws(() => parseRunSave(content, JSON.stringify(corrupt)), /progress|non-finite/i);
   }
+});
+
+test('reward search records round-trip and contentless saves reject malformed records', () => {
+  const game = make('v2-persistence-reward-search');
+  game.state._coreRewardOffered = true;
+  game.startAct(2);
+  const node = game.availableNodes()[0];
+  assert.equal(node.type, 'C');
+  game.dispatch({ type: 'enter', id: node.key });
+  game.dispatch({ type: 'fight' });
+  game.dispatch({ type: 'battle_done' });
+  game.state.rewardCandidates = ['RC01', 'RR01', 'RL01'];
+  assert.equal(game.rewardSearchPreview('sword').available, true);
+  game.dispatch({ type: 'seek_reward', family: 'sword' });
+
+  const unresolvedSave = serializeRun(game);
+  const unresolved = parseRunSave(content, unresolvedSave);
+  assert.deepEqual(unresolved.rewardSearches, game.state.rewardSearches);
+  assert.deepEqual(unresolved.rewardCandidates, game.state.rewardCandidates);
+
+  game.dispatch({ type: 'reward', id: null });
+  const resolved = parseRunSave(content, serializeRun(game));
+  assert.deepEqual(resolved.rewardSearches, game.state.rewardSearches);
+  assert.equal(resolved.rewardSearches[0].resolved, true);
+
+  const validShape = structuredClone(game.state);
+  validShape.rewardSearches = [{
+    act: 1,
+    step: 0,
+    family: 'guard',
+    cost: 8,
+    candidates: ['RC01', 'RR01'],
+    resolved: false,
+  }];
+  assert.doesNotThrow(() => serializeRun(validShape));
+
+  const invalidRecords = [
+    state => { delete state.rewardSearches; },
+    state => { delete state.rewardSearches[0].family; },
+    state => { state.rewardSearches[0].extra = true; },
+    state => { state.rewardSearches[0].act = 0; },
+    state => { state.rewardSearches[0].act = 5; },
+    state => { state.rewardSearches[0].step = -1; },
+    state => { state.rewardSearches[0].step = 11; },
+    state => { state.rewardSearches[0].family = 'unknown'; },
+    state => { state.rewardSearches[0].cost = 0; },
+    state => { state.rewardSearches[0].cost = 1.5; },
+    state => { state.rewardSearches[0].candidates = []; },
+    state => { state.rewardSearches[0].candidates = ['RC01', 'RR01', 'RL01', 'RC02']; },
+    state => { state.rewardSearches[0].candidates = ['RC01', 'RC01']; },
+    state => { state.rewardSearches[0].candidates = ['']; },
+    state => { state.rewardSearches[0].resolved = 1; },
+    state => { state.rewardSearches.push(structuredClone(state.rewardSearches[0])); },
+  ];
+  for (const corrupt of invalidRecords) {
+    const invalid = structuredClone(validShape);
+    corrupt(invalid);
+    assert.throws(() => serializeRun(invalid), /reward search/i);
+  }
+
+  const futureRecord = structuredClone(validShape);
+  futureRecord.rewardSearches[0].act = futureRecord.act;
+  futureRecord.rewardSearches[0].step = futureRecord.step + 1;
+  assert.throws(() => serializeRun(futureRecord), /future reward search coordinate/);
+});
+
+test('enemy encounter IDs are non-empty and never appear on the player loadout', () => {
+  const game = make('v2-encounter-shape');
+  game.dispatch({ type: 'enter', id: game.availableNodes()[0].key });
+  game.dispatch({ type: 'fight' });
+
+  const playerEncounter = structuredClone(game.state);
+  playerEncounter.battleInput.player.encounterId = 'EN-A1-B1';
+  assert.throws(() => serializeRun(playerEncounter), /enemy encounter reference/);
+
+  const emptyEnemyEncounter = structuredClone(game.state);
+  emptyEnemyEncounter.battleInput.enemy.encounterId = '  ';
+  assert.throws(() => serializeRun(emptyEnemyEncounter), /enemy encounter reference/);
 });
 
 test('frozen journey context is validated in contentless and restored active battles', () => {
@@ -238,6 +328,7 @@ test('a winning build records equipped artifacts rather than the owned inventory
   game.state.phase = 'won';
   const store = storage();
   store.setItem('suishi-shanhai-build-v2-journey', 'legacy-v2-build-untouched');
+  store.setItem('suishi-shanhai-build-v2-resonance', 'legacy-v2-resonance-build-untouched');
 
   const record = saveWinningBuild(game, store);
   assert.deepEqual(record.artifacts, [
@@ -247,4 +338,5 @@ test('a winning build records equipped artifacts rather than the owned inventory
   assert.deepEqual(loadWinningBuilds(store)[0].artifacts, record.artifacts);
   assert.equal(store.getItem('suishi-shanhai-build-v1'), null);
   assert.equal(store.getItem('suishi-shanhai-build-v2-journey'), 'legacy-v2-build-untouched');
+  assert.equal(store.getItem('suishi-shanhai-build-v2-resonance'), 'legacy-v2-resonance-build-untouched');
 });

@@ -39,7 +39,7 @@ export async function simulateRuns(count = 5) {
   }
   return {
     contentVersion: content.version, policy: 'tests/shanhai-policy.mjs',
-    experimentTrack: 'V2 experimental; shanhai-content-0.2; uncalibrated',
+    experimentTrack: 'V2 reactions prototype; buildVersion 3; shanhai-content-0.2; uncalibrated',
     note: 'Real combat, unmodified authored numbers, deterministic heuristic decisions including legal equipment upgrades. Win/loss counts are the observed sample only, not a player win rate, V1 calibration result, or balance approval.',
     total: rows.length, wins: rows.filter(row => row.result === 'won').length,
     byMethod: Object.fromEntries([...new Set(rows.map(row => row.method))].map(id => [id, {

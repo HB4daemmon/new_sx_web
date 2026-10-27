@@ -3581,6 +3581,415 @@ button:disabled {
   }
 }
 
+.game-page .combatant {
+  grid-template-rows: auto auto auto auto;
+}
+
+.game-page .fighter-summons {
+  display: flex;
+  min-width: 0;
+  min-height: 24px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 5px;
+  margin-top: 2px;
+  padding: 2px 4px;
+  border-left: 2px solid var(--gold);
+  color: var(--ink);
+  background: var(--panel);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.game-page .fighter-summons[hidden] {
+  display: none;
+}
+
+.game-page .fighter-summon-name,
+.game-page .fighter-summon-array {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.game-page .fighter-summon-name {
+  color: var(--muted);
+}
+
+.game-page .fighter-summon-name .icon {
+  color: var(--gold);
+}
+
+.game-page .summon-sword {
+  display: inline-flex;
+  width: 18px;
+  height: 20px;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  opacity: .35;
+}
+
+.game-page .summon-sword[data-active="true"] {
+  color: var(--gold);
+  opacity: 1;
+}
+
+.game-page .fighter-summons > strong {
+  color: var(--ink);
+  font: 700 14px/1.2 var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.game-page .combat-arena[data-reaction-kind="sword_volley"] .round-seal {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.game-page .combat-arena[data-reaction-kind="guard_counter"] .round-seal {
+  border-color: var(--jade);
+  color: var(--jade);
+}
+
+.game-page .combat-arena[data-reaction-kind="spring_bloom"] .round-seal {
+  border-color: #567c4a;
+  color: #456d3b;
+}
+
+.game-page .combat-arena[data-reaction-kind="enemy_charge"] .round-seal {
+  border-color: var(--vermilion);
+  color: var(--vermilion);
+}
+
+.game-page .combat-arena[data-reaction-kind="enemy_release"] .round-seal {
+  border-color: #803b36;
+  color: #803b36;
+}
+
+.game-page .reaction-launch {
+  --flight-x: clamp(36px, 23vw, 210px);
+  position: absolute;
+  z-index: 7;
+  top: 54%;
+  left: 24%;
+  display: flex;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.game-page .reaction-launch.owner-enemy {
+  --flight-x: clamp(-210px, -23vw, -36px);
+  left: 76%;
+  flex-direction: row-reverse;
+}
+
+.game-page .reaction-launch-sword {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  color: var(--gold);
+  filter: drop-shadow(0 1px 1px #fffdf5);
+  animation: sword-volley-launch 320ms ease-out both;
+  animation-delay: calc(var(--launch-index) * 36ms);
+}
+
+.game-page .battle-shell[data-paused="true"] .reaction-launch-sword {
+  animation-play-state: paused;
+}
+
+@keyframes sword-volley-launch {
+  from {
+    opacity: 1;
+    transform: translateX(0) rotate(-18deg);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(var(--flight-x)) rotate(26deg);
+  }
+}
+
+.game-page .boss-trial-brief {
+  min-width: 0;
+  margin: 8px 0;
+  padding: 9px 10px;
+  border-left: 3px solid var(--vermilion);
+  color: var(--ink);
+  background: var(--panel);
+}
+
+.game-page .boss-trial-heading {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+
+.game-page .boss-trial-heading > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--vermilion);
+  font-weight: 650;
+}
+
+.game-page .boss-trial-heading > strong {
+  min-width: 0;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.game-page .boss-trial-brief p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.game-page .boss-trial-brief p b {
+  color: var(--jade);
+}
+
+.game-page .boss-trial-current {
+  display: grid;
+  gap: 4px;
+  margin-top: 7px;
+}
+
+.game-page .boss-trial-current .fighter-counter {
+  min-height: 32px;
+}
+
+.game-page .reward-search {
+  min-width: 0;
+  margin: 12px 0 4px;
+  padding: 0 10px;
+  border-left: 3px solid var(--gold);
+  color: var(--ink);
+  background: var(--panel);
+}
+
+.game-page .reward-search > summary {
+  display: flex;
+  min-height: 48px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+  font-weight: 650;
+  list-style: none;
+  cursor: pointer;
+}
+
+.game-page .reward-search > summary::-webkit-details-marker {
+  display: none;
+}
+
+.game-page .reward-search > summary .icon {
+  flex: 0 0 auto;
+  color: var(--gold);
+}
+
+.game-page .reward-search-panel {
+  display: grid;
+  min-width: 0;
+  gap: 9px;
+  padding: 2px 0 10px;
+}
+
+.game-page .reward-search-controls {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, .8fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.game-page .reward-search-controls label {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.game-page .reward-search-controls select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 5px 8px;
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.game-page .reward-search-state {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 5px 8px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.game-page .reward-search-state b {
+  min-width: 0;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.game-page .reward-search-preview {
+  min-width: 0;
+}
+
+.game-page .reward-search-preview .eyebrow {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.game-page .reward-search-preview ul {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: 5px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.game-page .reward-search-preview li {
+  display: flex;
+  min-width: 0;
+  min-height: 32px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.game-page .reward-search-preview li b {
+  min-width: 0;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.game-page .reward-search-preview li small {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.game-page .reward-search-reason {
+  margin: 5px 0 0;
+  color: var(--vermilion);
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.game-page .reward-search-reason[hidden] {
+  display: none;
+}
+
+.game-page .reward-search-confirm {
+  width: fit-content;
+  max-width: 100%;
+  min-height: 48px;
+  white-space: normal;
+}
+
+.game-page .reward-search-confirm:disabled {
+  opacity: .58;
+  cursor: not-allowed;
+}
+
+.game-page .contribution-recent {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 5px;
+  border: 1px solid var(--gold);
+  color: #76531c;
+  font: 600 14px/1.3 var(--sans);
+  vertical-align: middle;
+}
+
+@media (max-width: 600px) {
+  .game-page .fighter-summons {
+    gap: 2px 3px;
+    padding: 2px;
+  }
+
+  .game-page .fighter-summon-name {
+    gap: 2px;
+  }
+
+  .game-page .fighter-summon-array {
+    gap: 0;
+  }
+
+  .game-page .summon-sword {
+    width: 16px;
+  }
+
+  .game-page .reward-search {
+    padding-right: 6px;
+    padding-left: 8px;
+  }
+
+  .game-page .reward-search-controls {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+  }
+
+  .game-page .reward-search-state {
+    grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 4px 6px;
+  }
+
+  .game-page .reward-search-confirm {
+    width: 100%;
+  }
+
+  .game-page .reaction-launch {
+    top: 56%;
+  }
+}
+
+@media (max-width: 360px) {
+  .game-page .fighter-summons {
+    font-size: 14px;
+    gap: 1px 2px;
+  }
+
+  .game-page .fighter-summon-name .icon {
+    width: 13px;
+    height: 13px;
+  }
+
+  .game-page .summon-sword {
+    width: 14px;
+  }
+
+  .game-page .reward-search-state {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .game-page .reward-search-preview ul {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-page .reaction-launch-sword {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @media (max-width: 360px) {
   .landing-page .topbar,
   .game-page .topbar {

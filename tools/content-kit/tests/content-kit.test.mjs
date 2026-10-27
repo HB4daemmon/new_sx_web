@@ -118,7 +118,19 @@ function makeEntities() {
     rage: { base_cap: 100, opening: 50 },
     statuses: { poison: { max_stacks: 10, duration_rounds: 3 } },
     adventure: { acts: 4, nodes_per_act: 11, terminal_nodes: 1, baseline: { C: 4, E: 3, L: 1, S: 1, R: 1, B: 1 } },
-    economy: { initial_coins: 20 },
+    economy: {
+      initial_coins: 20,
+      reward_seeking: {
+        price: 8,
+        max_per_act: 1,
+        families: {
+          sword: ['RC09', 'RC20', 'RR01', 'RR04'],
+          guard: ['RC11', 'RC13', 'RR02', 'RR09'],
+          vitality: ['RC05', 'RC06', 'RR06', 'RR12'],
+          affliction: ['RC14', 'RC15', 'RR03', 'RR11'],
+        },
+      },
+    },
     pools: { common_artifact: { kind: 'artifact', rarity: 'common' } },
     calibration: { damage_and_status_values: 'fixture' },
       insights: SHARED_INSIGHT_IDS.map((id) => {
@@ -243,6 +255,12 @@ function makeEntities() {
       preview: '战前公开预览',
       phases: [],
       reward_profile: final ? 'F' : tier === 'normal' ? 'C' : tier === 'elite' ? 'L' : 'B',
+      ...(entry.id === 'EN-A1-B1'
+        ? { trial: { kind: 'tidal_charge', period: 3, charges: 3, attack_ratio_per_charge: 0.45 } }
+        : {}),
+      ...(entry.id === 'EN-A1-B2'
+        ? { trial: { kind: 'reviving_mist', period: 3, charges: 3, heal_hp_ratio_per_charge: 0.045 } }
+        : {}),
     })
     entities.set(entry.id, entity)
   }
@@ -570,6 +588,7 @@ test('V2 resonance effects enforce owner, location, exact shape, and parameter r
   const bloomRule = springBloom.passives.find((item) => item.id === 'RKF03-V2-RESONANCE')
   bloomRule.params.threshold_hp_ratio = 0
   bloomRule.params.burst_hp_ratio = Number.NaN
+  bloomRule.params.max_per_action = 1
   await rewriteEntity(fixture, 'RKF03', springBloom)
 
   const burnAccelerate = structuredClone(fixture.entities.get('RKF04'))
@@ -577,6 +596,7 @@ test('V2 resonance effects enforce owner, location, exact shape, and parameter r
   await rewriteEntity(fixture, 'RKF04', burnAccelerate)
 
   const swordArray = structuredClone(fixture.entities.get('RKF05'))
+  swordArray.passives.find((item) => item.id === 'RKF05-V2-RESONANCE').params.unknown_parameter = 2
   swordArray.talents[0].effects = [structuredClone(swordArray.passives.find((item) => item.id === 'RKF05-V2-RESONANCE'))]
   await rewriteEntity(fixture, 'RKF05', swordArray)
 
@@ -619,6 +639,56 @@ test('V2 resonance effects enforce owner, location, exact shape, and parameter r
     'invalid-integer',
     'resonance-effect-id',
     'resonance-owner',
+  ]) {
+    assert.ok(codes.has(code), `expected ${code}; received ${[...codes].join(', ')}`)
+  }
+})
+
+test('boss trials and reward-seeking families enforce owners, exact fields, references, and ranges', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  let report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map((error) => error.message).join('\n'))
+
+  const tidal = structuredClone(fixture.entities.get('EN-A1-B1'))
+  tidal.trial.extra = true
+  tidal.trial.attack_ratio_per_charge = 1.01
+  delete tidal.trial.charges
+  await rewriteEntity(fixture, tidal.id, tidal)
+
+  const mist = structuredClone(fixture.entities.get('EN-A1-B2'))
+  mist.trial.kind = 'tidal_charge'
+  mist.trial.period = 1.5
+  mist.trial.unknown = 2
+  await rewriteEntity(fixture, mist.id, mist)
+
+  const otherEnemy = structuredClone(fixture.entities.get('EN-A1-C1'))
+  otherEnemy.trial = { kind: 'tidal_charge', period: 3, charges: 3, attack_ratio_per_charge: 0.45 }
+  await rewriteEntity(fixture, otherEnemy.id, otherEnemy)
+
+  const rules = structuredClone(fixture.entities.get('RULES'))
+  rules.economy.reward_seeking.price = 0
+  rules.economy.reward_seeking.max_per_act = 2
+  rules.economy.reward_seeking.families.sword = ['RC09', 'RC09', 'RR01', 'RR04']
+  rules.economy.reward_seeking.families.guard = ['NOPE', 'RC13', 'RR02', 'RR09']
+  rules.economy.reward_seeking.families.vitality = ['RC05', 'RC06', 'RL01', 'RR12']
+  delete rules.economy.reward_seeking.families.affliction
+  rules.economy.reward_seeking.families.extra = ['RC01']
+  await rewriteEntity(fixture, 'RULES', rules)
+
+  report = await reportFor(fixture)
+  const codes = new Set(report.errors.map((error) => error.code))
+  for (const code of [
+    'enemy-trial-fields',
+    'enemy-trial-kind',
+    'enemy-trial-owner',
+    'invalid-integer',
+    'number-range',
+    'reward-seeking-families',
+    'reward-seeking-family-duplicate',
+    'reward-seeking-reference',
+    'reward-seeking-rarity',
+    'reward-seeking-family-rarity',
   ]) {
     assert.ok(codes.has(code), `expected ${code}; received ${[...codes].join(', ')}`)
   }

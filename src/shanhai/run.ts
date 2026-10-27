@@ -24,10 +24,13 @@ import {
 } from './equipment.js';
 import type {
   ArtifactStack,
+  ArtifactRewardFamily,
+  BattleFrame,
   BattleResult,
   Content,
   Entity,
   Loadout,
+  RewardSearchRecord,
   RunCommand,
   RunNode,
   RunPhase,
@@ -85,6 +88,12 @@ const PHASES: readonly RunPhase[] = [
 const SHOP_KINDS = ['artifact', 'recovery', 'preparation', 'talent_reset'] as const;
 const METHOD_IDS = /^RKF\d\d$/;
 const ARTIFACT_IDS = /^(?:RC|RR|RL)\d\d$/;
+const ARTIFACT_REWARD_FAMILIES: readonly ArtifactRewardFamily[] = [
+  'sword',
+  'guard',
+  'vitality',
+  'affliction',
+];
 
 type AnyRecord = Record<string, any>;
 type CoreQueueItem = { method: string; tier: number; advance: boolean };
@@ -213,6 +222,39 @@ function contentEntities(content: Content, kind?: string): Entity[] {
 
 function rulesOf(content: Content): AnyRecord {
   return content.rules ?? contentEntity(content, 'RULES') ?? {};
+}
+
+interface RewardSeekingConfig {
+  price: number;
+  max_per_act: 1;
+  families: Record<ArtifactRewardFamily, string[]>;
+}
+
+function rewardSeekingConfig(content: Content): RewardSeekingConfig {
+  const source = rulesOf(content).economy?.reward_seeking;
+  const keys = ['price', 'max_per_act', 'families'];
+  if (!isObject(source) || Object.keys(source).length !== keys.length ||
+    keys.some(key => !Object.prototype.hasOwnProperty.call(source, key)) ||
+    !integer(source.price) || source.price <= 0 || source.max_per_act !== 1 ||
+    !isObject(source.families)) {
+    throw new Error('Invalid reward seeking configuration');
+  }
+  const familyKeys = Object.keys(source.families).sort();
+  const expectedFamilyKeys = ARTIFACT_REWARD_FAMILIES.slice().sort();
+  if (JSON.stringify(familyKeys) !== JSON.stringify(expectedFamilyKeys)) {
+    throw new Error('Invalid reward seeking families');
+  }
+  const families = {} as Record<ArtifactRewardFamily, string[]>;
+  for (const family of ARTIFACT_REWARD_FAMILIES) {
+    const ids = source.families[family];
+    if (!Array.isArray(ids) || ids.some((id: unknown) =>
+      typeof id !== 'string' || contentEntity(content, id)?.kind !== 'artifact') ||
+      new Set(ids).size !== ids.length) {
+      throw new Error(`Invalid reward seeking family: ${family}`);
+    }
+    families[family] = ids.slice();
+  }
+  return { price: source.price, max_per_act: source.max_per_act, families };
 }
 
 function actEntity(content: Content, act: number): Entity | undefined {
@@ -529,7 +571,8 @@ export class ShanhaiGame {
       coins: finite(rules.economy?.initial_coins) ? rules.economy.initial_coins : 20,
       artifacts: [],
       equipment: { slots: [] },
-      buildVersion: 2,
+      buildVersion: 3,
+      rewardSearches: [],
       progress: { coinsSpent: 0, eliteWins: 0, bossWins: 0 },
       talentDraftGeneration: 0,
       talentDrafts: {},
@@ -661,6 +704,21 @@ export class ShanhaiGame {
     const earlyEliteLane = Math.floor(seededRandom(`${this.state.seed}:route-map:${act}:early-elite-lane`)() * 3);
     const eliteLimit = this.maxElitesPerAct();
     const actElites = (this.state as RunStateInternals)._actEliteCount ?? 0;
+    const generatedCombatEnemies = new Map<string, string>();
+    const freezeRouteEnemy = (type: RunNode['type'], depth: number, lane: number, key: string): string => {
+      const parentDepth = depth - 1;
+      const parentLanes = parentDepth === 0 || parentDepth === 3 || parentDepth === 6
+        ? [0, 1, 2]
+        : parentDepth < 0 ? [] : [lane];
+      const directParentEnemies = new Set(parentLanes.flatMap(parentLane => {
+        const parentKey = `a${act}-d${parentDepth}-l${parentLane}`;
+        const enemyId = generatedCombatEnemies.get(parentKey);
+        return enemyId ? [enemyId] : [];
+      }));
+      const enemyId = this.freezeEnemy(type, depth, key, directParentEnemies);
+      generatedCombatEnemies.set(key, enemyId);
+      return enemyId;
+    };
     const hasElite = act < 5 &&
       actElites < eliteLimit &&
       (actElites === 0 || this.state.extraElites < this.maxExtraElites());
@@ -668,10 +726,10 @@ export class ShanhaiGame {
       eliteLimit > 1 && this.state.extraElites < this.maxExtraElites();
     const nodes = createRouteMapNodes(act, (depth, lane, key) => {
       if (act === 5) {
-        return { type: 'F', id: this.freezeEnemy('F', depth, key), completed: false, label: '终战' };
+        return { type: 'F', id: freezeRouteEnemy('F', depth, lane, key), completed: false, label: '终战' };
       }
       if (depth === 10) {
-        const id = this.freezeEnemy('B', depth, key);
+        const id = freezeRouteEnemy('B', depth, lane, key);
         return { type: 'B', id, completed: false, label: '首领', description: contentEntity(this.content, id)?.name };
       }
       let type: RunNode['type'] = 'C';
@@ -699,7 +757,7 @@ export class ShanhaiGame {
       if (functionLayout?.extraEliteDepth === depth && lane === earlyEliteLane && hasEarlyElite) type = 'L';
       if (depth === 9 && hasElite && lane === eliteLane) type = 'L';
       if (type === 'C' || type === 'L') {
-        const id = this.freezeEnemy(type, depth, key);
+        const id = freezeRouteEnemy(type, depth, lane, key);
         return {
           type,
           id,
@@ -713,7 +771,7 @@ export class ShanhaiGame {
         return { type, id, completed: false, label: '事件', description: contentEntity(this.content, id)?.name };
       }
       if (type === 'F') {
-        const id = this.freezeEnemy(type, depth, key);
+        const id = freezeRouteEnemy(type, depth, lane, key);
         return { type, id, completed: false, label: '终战', description: contentEntity(this.content, id)?.name };
       }
       throw new Error(`Unsupported route map node at ${key}`);
@@ -873,6 +931,9 @@ export class ShanhaiGame {
         case 'reward':
           this.chooseReward(command.id);
           break;
+        case 'seek_reward':
+          this.seekReward(command.family);
+          break;
         case 'event':
           this.chooseEvent(command.id);
           break;
@@ -992,7 +1053,12 @@ export class ShanhaiGame {
     this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
   }
 
-  private freezeEnemy(type: RunNode['type'], index: number, key: string): string {
+  private freezeEnemy(
+    type: RunNode['type'],
+    index: number,
+    key: string,
+    directParentEnemies: ReadonlySet<string> = new Set(),
+  ): string {
     const state = this.state as RunStateInternals;
     const act = this.state.act;
     const actContent = actEntity(this.content, act);
@@ -1016,10 +1082,17 @@ export class ShanhaiGame {
     const used = new Set(state._seenEnemyIds ?? []);
     const unseen = candidates.filter(id => !used.has(id));
     const pool = unseen.length ? unseen : candidates;
+    const distinctFromParents = (source: string[]) =>
+      source.filter(id => !directParentEnemies.has(id));
+    const drawPool = distinctFromParents(pool).length
+      ? distinctFromParents(pool)
+      : distinctFromParents(candidates).length
+        ? distinctFromParents(candidates)
+        : pool;
     const random = seededRandom(`${this.state.seed}:enemy:${key}`);
-    let selected = pool[Math.floor(random() * pool.length)] ?? pool[0];
-    if (selected === state._lastEnemyId && pool.length > 1) {
-      selected = pool[(pool.indexOf(selected) + 1) % pool.length];
+    let selected = drawPool[Math.floor(random() * drawPool.length)] ?? drawPool[0];
+    if (selected === state._lastEnemyId && drawPool.length > 1) {
+      selected = drawPool[(drawPool.indexOf(selected) + 1) % drawPool.length];
     }
     return selected;
   }
@@ -1186,6 +1259,7 @@ export class ShanhaiGame {
       artifacts: Array.isArray(enemy.artifacts) ? clone(enemy.artifacts) : [],
       baseStats: clone(enemy.stats),
       preparation: 0,
+      ...(isObject(enemy.trial) ? { encounterId: enemy.id } : {}),
     };
   }
 
@@ -1387,6 +1461,89 @@ export class ShanhaiGame {
     void state;
   }
 
+  private searchedRewardCandidates(family: ArtifactRewardFamily): string[] {
+    const config = rewardSeekingConfig(this.content);
+    const offered = this.state.rewardCandidates;
+    const random = seededRandom(
+      `${this.state.seed}:reward-search:${this.state.act}:${this.state.step}:${family}`,
+    );
+    const result: Array<string | undefined> = Array(offered.length);
+
+    for (let index = 0; index < offered.length; index++) {
+      const id = offered[index]!;
+      if (contentEntity(this.content, id)?.rarity === 'legendary') result[index] = id;
+    }
+
+    const rarities = [...new Set(offered.flatMap(id => {
+      const rarity = contentEntity(this.content, id)?.rarity;
+      return typeof rarity === 'string' && rarity !== 'legendary' ? [rarity] : [];
+    }))];
+    for (const rarity of rarities) {
+      const slots = offered.flatMap((id, index) =>
+        contentEntity(this.content, id)?.rarity === rarity ? [index] : []);
+      const pool = config.families[family].filter(id =>
+        contentEntity(this.content, id)?.rarity === rarity && this.canAcquireArtifact(id, 1));
+      while (slots.length && pool.length) {
+        const slot = slots.shift()!;
+        const pick = Math.floor(random() * pool.length);
+        result[slot] = pool.splice(pick, 1)[0];
+      }
+    }
+    return result.filter((id): id is string => typeof id === 'string');
+  }
+
+  rewardSearchPreview(family: ArtifactRewardFamily): {
+    available: boolean;
+    reason: string;
+    cost: number;
+    candidates: string[];
+  } {
+    const config = rewardSeekingConfig(this.content);
+    const cost = config.price;
+    const isFamily = ARTIFACT_REWARD_FAMILIES.includes(family);
+    const state = this.state as RunStateInternals;
+    const searches = Array.isArray(this.state.rewardSearches) ? this.state.rewardSearches : [];
+    const alreadyUsed = searches.some(record => record?.act === this.state.act);
+    const initialCoreOffer = this.state.act === 1 && this.state.step === 0;
+    const eligiblePhase = this.state.phase === 'reward' &&
+      this.state.act >= 1 && this.state.act <= 4 &&
+      state._rewardSettled === true &&
+      !initialCoreOffer &&
+      state._coreRewardOffered === true &&
+      !alreadyUsed;
+    const candidates = isFamily && eligiblePhase ? this.searchedRewardCandidates(family) : [];
+    let reason = '';
+    if (!isFamily) reason = 'invalid-family';
+    else if (this.state.phase !== 'reward') reason = 'not-reward-phase';
+    else if (this.state.act < 1 || this.state.act > 4) reason = 'act-unavailable';
+    else if (state._rewardSettled !== true) reason = 'reward-not-frozen';
+    else if (initialCoreOffer) reason = 'guaranteed-core-offer';
+    else if (state._coreRewardOffered !== true) reason = 'initial-core-offer-pending';
+    else if (!Array.isArray(this.state.rewardSearches)) reason = 'invalid-search-history';
+    else if (alreadyUsed) reason = 'already-used';
+    else if (!candidates.length || JSON.stringify(candidates) === JSON.stringify(this.state.rewardCandidates)) {
+      reason = 'no-different-candidates';
+    } else if (this.state.coins + 1e-9 < cost) reason = 'cannot-pay';
+    return { available: reason === '', reason, cost, candidates: candidates.slice() };
+  }
+
+  private seekReward(family: ArtifactRewardFamily): void {
+    const preview = this.rewardSearchPreview(family);
+    if (!preview.available) throw new Error(`Reward search unavailable: ${preview.reason}`);
+    const state = this.state as RunStateInternals;
+    const record: RewardSearchRecord = {
+      act: this.state.act,
+      step: this.state.step,
+      family,
+      cost: preview.cost,
+      candidates: preview.candidates.slice(),
+      resolved: false,
+    };
+    this.chargeCoins(record.cost);
+    this.state.rewardCandidates = record.candidates.slice();
+    state.rewardSearches.push(record);
+  }
+
   private chooseReward(id: string | null): void {
     if (this.state.phase !== 'reward') throw new Error('No reward is pending');
     const state = this.state as RunStateInternals;
@@ -1400,6 +1557,9 @@ export class ShanhaiGame {
       if (!this.canAcquireArtifact(id, 1)) throw new Error('Reward artifact is no longer available');
       addArtifact(this.content, this.state, id, 1);
     }
+    const search = state.rewardSearches.find(record =>
+      !record.resolved && record.act === this.state.act && record.step === this.state.step);
+    if (search) search.resolved = true;
     this.state.rewardCandidates = [];
     this.state.phase = 'map';
     this.completeNode();
@@ -2580,12 +2740,91 @@ export function validateBattleResult(result: BattleResult): void {
   if (!integer(result.rounds) || result.rounds < 0 || !finite(result.playerHp) || !finite(result.enemyHp)) throw new Error('Invalid battle result numbers');
   if (!Array.isArray(result.frames) || result.frames.length > 20000 || !Array.isArray(result.contributions)) throw new Error('Invalid battle result frames');
   if (!allFiniteNumbers(result)) throw new Error('Non-finite battle result');
+  for (const frame of result.frames) {
+    if (!isObject(frame)) {
+      throw new Error('Invalid battle frame');
+    }
+    for (const side of ['player', 'enemy'] as const) {
+      if (frame[side] === undefined) continue;
+      if (!isObject(frame[side])) throw new Error('Invalid battle fighter view');
+      const fighter = frame[side];
+      if (fighter.summons === undefined) continue;
+      if (!Array.isArray(fighter.summons) || fighter.summons.length > 16) {
+        throw new Error('Invalid battle summons');
+      }
+      const summonIds = new Set<string>();
+      for (const summon of fighter.summons) {
+        if (!isObject(summon) || Object.keys(summon).length !== 4 ||
+          !['id', 'kind', 'count', 'max'].every(key => Object.prototype.hasOwnProperty.call(summon, key)) ||
+          summon.id !== 'RKF05-V2-RESONANCE' || summon.kind !== 'sword' ||
+          fighter.method !== 'RKF05' || summonIds.has(summon.id) ||
+          !Number.isSafeInteger(summon.count) || summon.count < 0 ||
+          !Number.isSafeInteger(summon.max) || summon.max < 1 ||
+          summon.count > summon.max) {
+          throw new Error('Invalid battle summon source or bounds');
+        }
+        summonIds.add(summon.id);
+      }
+    }
+    if (frame.kind === 'reaction' && frame.cue === undefined) {
+      throw new Error('Reaction frame is missing its cue');
+    }
+    if (frame.cue === undefined) continue;
+    const cue = frame.cue;
+    if (!isObject(cue) || Object.keys(cue).length !== 3 ||
+      !['kind', 'owner', 'sourceId'].every(key => Object.prototype.hasOwnProperty.call(cue, key)) ||
+      !['sword_volley', 'guard_counter', 'spring_bloom', 'enemy_charge', 'enemy_release'].includes(cue.kind) ||
+      !['player', 'enemy'].includes(cue.owner) ||
+      typeof cue.sourceId !== 'string' || cue.sourceId.length < 1 || cue.sourceId.length > 128) {
+      throw new Error('Invalid battle reaction cue');
+    }
+    const expectedSources: Partial<Record<NonNullable<BattleFrame['cue']>['kind'], string>> = {
+      sword_volley: 'RKF05-V2-RESONANCE',
+      guard_counter: 'RKF01-V2-RESONANCE',
+      spring_bloom: 'RKF03-V2-RESONANCE',
+    };
+    const expectedSource = expectedSources[cue.kind];
+    if (expectedSource && cue.sourceId !== expectedSource) {
+      throw new Error('Battle reaction cue has invalid source');
+    }
+    if ((cue.kind === 'enemy_charge' || cue.kind === 'enemy_release') &&
+      (!['EN-A1-B1', 'EN-A1-B2'].includes(cue.sourceId) || cue.owner !== 'enemy')) {
+      throw new Error('Enemy trial cue has invalid source or side');
+    }
+    if (frame.kind === 'reaction') {
+      const expectedTarget = cue.kind === 'enemy_charge'
+        ? cue.owner
+        : cue.owner === 'player' ? 'enemy' : 'player';
+      if (frame.actor !== cue.owner || frame.target !== expectedTarget || frame.source !== cue.sourceId) {
+        throw new Error('Battle reaction cue has invalid source or side');
+      }
+      if (cue.kind === 'enemy_charge' || cue.kind === 'enemy_release') {
+        if ((cue.kind === 'enemy_charge' && frame.target !== 'enemy') ||
+          (cue.kind === 'enemy_release' && frame.target !== 'player')) {
+          throw new Error('Enemy trial cue has invalid target side');
+        }
+      }
+    } else if (cue.kind === 'enemy_charge' && frame.kind === 'status' &&
+      (cue.sourceId !== 'EN-A1-B1' && cue.sourceId !== 'EN-A1-B2' ||
+        cue.owner !== 'enemy' || frame.actor !== 'player' || frame.target !== 'enemy' ||
+        typeof frame.source !== 'string' || frame.source.length === 0)) {
+      throw new Error('Enemy trial interruption cue has invalid source or side');
+    }
+  }
 }
 
 function validateLoadoutReferences(content: Content, loadout: Loadout, enemy = false): void {
   if (!isObject(loadout) || typeof loadout.name !== 'string' || typeof loadout.method !== 'string' ||
     !integer(loadout.n) || loadout.n < 0 || loadout.n > 4 || !Array.isArray(loadout.talents) ||
     !Array.isArray(loadout.artifacts)) throw new Error('Invalid saved loadout');
+  if (loadout.encounterId !== undefined) {
+    const encounter = typeof loadout.encounterId === 'string'
+      ? contentEntity(content, loadout.encounterId)
+      : undefined;
+    if (!enemy || !encounter || encounter.kind !== 'enemy' || !isObject(encounter.trial)) {
+      throw new Error('Invalid saved enemy encounter reference');
+    }
+  }
   const method = contentEntity(content, loadout.method);
   if (!method || method.kind !== 'method') throw new Error('Invalid saved loadout method');
   const tiers = new Set<number>();
@@ -2745,7 +2984,8 @@ export function validateRunState(content: Content, raw: RunState): void {
   if (!isObject(raw)) throw new Error('Invalid run state');
   const state = raw as RunStateInternals;
   if (state.schema !== 1 || state.contentVersion !== content.version) throw new Error('Run/content version mismatch');
-  if (state.buildVersion !== 2) throw new Error('Incompatible run build version');
+  rewardSeekingConfig(content);
+  if (state.buildVersion !== 3) throw new Error('Incompatible run build version');
   if (!isObject(state.progress) ||
     !finite(state.progress.coinsSpent) || state.progress.coinsSpent < 0 ||
     !integer(state.progress.eliteWins) || state.progress.eliteWins < 0 ||
@@ -2992,7 +3232,8 @@ export function validateRunState(content: Content, raw: RunState): void {
     }
     if (state.battleInput && state._battleKind === 'node' &&
       (state.battleInput.enemy.name !== enemy.name ||
-        state.battleInput.enemy.method !== enemy.method)) {
+        state.battleInput.enemy.method !== enemy.method ||
+        state.battleInput.enemy.encounterId !== (isObject(enemy.trial) ? enemy.id : undefined))) {
       throw new Error('Challenged elite battle input mismatch');
     }
   }
@@ -3001,8 +3242,26 @@ export function validateRunState(content: Content, raw: RunState): void {
     const enemyId = state._challengeEliteEnemyId ?? node?.id;
     const enemy = enemyId ? contentEntity(content, enemyId) : undefined;
     if (!enemy || state.battleInput.enemy.name !== enemy.name ||
-      state.battleInput.enemy.method !== enemy.method) {
+      state.battleInput.enemy.method !== enemy.method ||
+      state.battleInput.enemy.encounterId !== (isObject(enemy.trial) ? enemy.id : undefined)) {
       throw new Error('Battle input does not match the selected encounter');
+    }
+  }
+  if (state._battleKind === 'event' && state.battleInput) {
+    const eventNode = state.nodes[state.step];
+    const event = eventNode ? contentEntity(content, eventNode.id) : undefined;
+    const option = event?.kind === 'event' && typeof state.eventOption === 'string'
+      ? eventOption(event, state.eventOption)
+      : undefined;
+    const settledEnemyId = state._eventSettled === true && state._battleSettled === true
+      ? option?.encounter?.enemy_id
+      : undefined;
+    const enemyId = state._pendingEvent?.enemyId ?? settledEnemyId;
+    const enemy = typeof enemyId === 'string' ? contentEntity(content, enemyId) : undefined;
+    if (!enemy || state.battleInput.enemy.name !== enemy.name ||
+      state.battleInput.enemy.method !== enemy.method ||
+      state.battleInput.enemy.encounterId !== (isObject(enemy.trial) ? enemy.id : undefined)) {
+      throw new Error('Event battle input does not match the selected encounter');
     }
   }
   if (state._talentQueue !== undefined && !Array.isArray(state._talentQueue)) {
@@ -3149,8 +3408,74 @@ export function validateRunState(content: Content, raw: RunState): void {
     if (typeof id !== 'string' || contentEntity(content, id)?.kind !== 'event' ||
       contentEntity(content, id)?.event_type !== 'core') throw new Error('Invalid completed core reference');
   }
-  if (!Array.isArray(state.rewardCandidates) || state.rewardCandidates.some(id =>
-    typeof id !== 'string' || contentEntity(content, id)?.kind !== 'artifact')) throw new Error('Invalid reward candidates');
+  if (!Array.isArray(state.rewardCandidates) || state.rewardCandidates.length > 3 ||
+    state.rewardCandidates.some(id =>
+      typeof id !== 'string' || contentEntity(content, id)?.kind !== 'artifact') ||
+    new Set(state.rewardCandidates).size !== state.rewardCandidates.length) {
+    throw new Error('Invalid reward candidates');
+  }
+  if (!Array.isArray(state.rewardSearches) || state.rewardSearches.length > 4) {
+    throw new Error('Invalid reward search history');
+  }
+  const searchedActs = new Set<number>();
+  let unresolvedSearch: RewardSearchRecord | undefined;
+  let previousSearchAct = 0;
+  let searchedCoins = 0;
+  const seekingConfig = rewardSeekingConfig(content);
+  for (const record of state.rewardSearches) {
+    if (!isObject(record) || Object.keys(record).length !== 6 ||
+      !['act', 'step', 'family', 'cost', 'candidates', 'resolved']
+        .every(key => Object.prototype.hasOwnProperty.call(record, key)) ||
+      !integer(record.act) || record.act < 1 || record.act > 4 || record.act > state.act ||
+      !integer(record.step) || record.step < 0 || record.step > 10 ||
+      !ARTIFACT_REWARD_FAMILIES.includes(record.family) ||
+      record.cost !== seekingConfig.price || typeof record.resolved !== 'boolean' ||
+      !Array.isArray(record.candidates) || record.candidates.length < 1 || record.candidates.length > 3 ||
+      record.candidates.some(id => {
+        const artifact = typeof id === 'string' ? contentEntity(content, id) : undefined;
+        return artifact?.kind !== 'artifact' ||
+          (artifact.rarity !== 'legendary' && !seekingConfig.families[record.family].includes(id));
+      }) ||
+      new Set(record.candidates).size !== record.candidates.length ||
+      searchedActs.has(record.act) || record.act <= previousSearchAct ||
+      (record.act === 1 && record.step === 0) ||
+      (record.act === 1 && record.step > 0 &&
+        !state.history.some(entry => entry.act === 1 && entry.step === 0))) {
+      throw new Error('Invalid reward search record');
+    }
+    searchedActs.add(record.act);
+    previousSearchAct = record.act;
+    searchedCoins += record.cost;
+    if (!finite(searchedCoins)) throw new Error('Invalid reward search ledger');
+    const current = state.phase === 'reward' &&
+      state.act === record.act && state.step === record.step;
+    const hasHistory = state.history.some(entry =>
+      entry.act === record.act && entry.step === record.step);
+    if (record.act === state.act && record.step > state.step) {
+      throw new Error('Reward search record is ahead of the current position');
+    }
+    if (record.resolved) {
+      if (!hasHistory || current) {
+        throw new Error('Resolved reward search has no history');
+      }
+    } else {
+      const node = state.nodes[record.step];
+      if (!current || hasHistory || unresolvedSearch || state._rewardSettled !== true ||
+        state._battleSettled !== true || state._battleKind !== 'node' ||
+        !node || !['C', 'L', 'B'].includes(node.type) ||
+        JSON.stringify(record.candidates) !== JSON.stringify(state.rewardCandidates)) {
+        throw new Error('Unresolved reward search does not match current reward');
+      }
+      unresolvedSearch = record;
+    }
+  }
+  if (state.phase !== 'reward' && unresolvedSearch) {
+    throw new Error('Unresolved reward search outside reward phase');
+  }
+  if (state.rewardSearches.length > 0 &&
+    (state._coreRewardOffered !== true || searchedCoins > state.progress.coinsSpent + 1e-9)) {
+    throw new Error('Reward search history does not match the reward or spending ledger');
+  }
   if (!Array.isArray(state.shop)) throw new Error('Invalid shop');
   for (const item of state.shop) {
     if (!isObject(item) || typeof item.id !== 'string' || !SHOP_KINDS.includes(item.kind) ||

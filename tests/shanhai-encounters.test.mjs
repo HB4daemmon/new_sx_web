@@ -61,6 +61,10 @@ test('fixed reference board uses authored early/late tiers and traces its input 
     content.byId[id].equipment_role === 'support').length, 2);
   assert.equal(report.input.matrix.length, enemies.length * START_METHODS.length);
   for (const row of report.input.matrix) {
+    assert.equal(row.enemy.encounterId,
+      content.byId[row.enemyId].trial ? row.enemyId : undefined,
+      `${row.enemyId} retains its authored trial in the reference board`);
+    assert.equal(row.player.encounterId, undefined);
     for (const side of [row.player, row.enemy]) {
       const ids = side.artifacts.map(stack => stack.id);
       assert.ok(ids.length <= 4, `${row.enemyId}/${row.method} has at most four generic slots`);
@@ -146,7 +150,7 @@ test('five-run calibration smoke reaches terminal outcomes without errors', asyn
   const content = await calibratedContent();
   const report = runFullCalibration(content, 1);
   assert.equal(report.runs.length, 5);
-  assert.equal(report.experimentTrack, 'V2 experimental; shanhai-content-0.2; uncalibrated');
+  assert.equal(report.experimentTrack, 'V2 reactions prototype; buildVersion 3; shanhai-content-0.2; uncalibrated');
   assert.deepEqual(report.input.functionalWinSeeds, FUNCTIONAL_WIN_SEEDS);
   assert.deepEqual(report.runs.map(row => row.method), START_METHODS);
   assert.equal(report.outcomes.error, 0);

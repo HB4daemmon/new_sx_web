@@ -17,8 +17,8 @@ const reportDir = reportOverride
   ? path.resolve(reportOverride)
   : path.join(root, 'verification', 'shanhai', 'v2', 'journey');
 const screenshotDir = path.join(reportDir, 'screenshots');
-const saveKey = 'suishi-shanhai-run-v2-resonance';
-const buildKey = 'suishi-shanhai-build-v2-resonance';
+const saveKey = 'suishi-shanhai-run-v2-reactions';
+const buildKey = 'suishi-shanhai-build-v2-reactions';
 const seed = process.env.SHANHAI_JOURNEY_SEED || 'v2-functional-RKF01-0';
 const playerName = '真实浏览器行者';
 
