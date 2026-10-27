@@ -10,11 +10,13 @@ import {
   ARTIFACT_BUDGET,
   ARTIFACT_EQUIPMENT_ROLES,
   ARTIFACT_RARITIES,
+  ARTIFACT_RESONANCE_RULES,
   CORE_ARTIFACT_RULES,
   CONTENT_VERSION,
   EXPECTED_MANIFEST_ENTRIES,
   METHOD_RARITIES,
   METHOD_P_BY_TIER,
+  METHOD_RESONANCE_RULES,
   SCHEMA_VERSION,
   SHARED_INSIGHT_BUILD_RULES,
   SHARED_INSIGHT_IDS,
@@ -58,6 +60,25 @@ function effect(id) {
     replaces: [],
     limit: { scope: 'action', count: 1 },
     text: 'fixture effect',
+  }
+}
+
+function resonanceEffect(owner, rule) {
+  const params = Object.fromEntries(Object.entries(rule.params).map(([key, range]) => [
+    key,
+    range.integer ? Math.max(1, range.min) : range.max === 1 ? 0.5 : range.min,
+  ]))
+  return {
+    id: `${owner}-V2-RESONANCE`,
+    trigger: 'always',
+    operation: 'modify_effect',
+    target: 'self',
+    params: { resonance: rule.kind, ...params },
+    requires: [],
+    consumes: [],
+    replaces: [],
+    limit: { scope: 'permanent', count: 1 },
+    text: 'fixture resonance',
   }
 }
 
@@ -145,6 +166,9 @@ function makeEntities() {
         { name: '路线三', summary: '路线', talents: [`${entry.id}-J1-C`, `${entry.id}-J2-C`, `${entry.id}-J3-C`, `${entry.id}-J4-C`] },
       ],
     })
+    if (METHOD_RESONANCE_RULES[entry.id]) {
+      entity.passives.push(resonanceEffect(entry.id, METHOD_RESONANCE_RULES[entry.id]))
+    }
     entity.balance.target.P_by_tier = METHOD_P_BY_TIER.map((value) => value * ({ common: 1, rare: 1.1, legendary: 1.25 }[rarity]))
     entities.set(entry.id, entity)
   }
@@ -160,7 +184,9 @@ function makeEntities() {
       equipment_role: ARTIFACT_EQUIPMENT_ROLES[entry.id],
       ...(CORE_ARTIFACT_RULES[entry.id] ? { core_rule: structuredClone(CORE_ARTIFACT_RULES[entry.id]) } : {}),
       attributes: { flat: baseline.flat, percent: baseline.percent },
-      effects: [effect(`${entry.id}-EFFECT`)],
+      effects: ARTIFACT_RESONANCE_RULES[entry.id]
+        ? [resonanceEffect(entry.id, ARTIFACT_RESONANCE_RULES[entry.id])]
+        : [effect(`${entry.id}-EFFECT`)],
       acquisition: { pools: [`${rarity}_artifact`] },
     })
     entity.balance.target = { B: ARTIFACT_BUDGET[rarity], A: ARTIFACT_BUDGET[rarity] * 5, J: 0 }
@@ -521,6 +547,81 @@ test('artifact awakening and min_stacks are bounded to the owning artifact', asy
   report = await reportFor(fixture)
   assert.ok(report.errors.some((error) => error.code === 'effect-min-stacks-owner'))
   assert.ok(report.errors.some((error) => error.code === 'artifact-awakening-owner'))
+})
+
+test('V2 resonance effects enforce owner, location, exact shape, and parameter ranges', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  let report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map((error) => error.message).join('\n'))
+
+  const guard = structuredClone(fixture.entities.get('RKF01'))
+  const guardRule = guard.passives.find((item) => item.id === 'RKF01-V2-RESONANCE')
+  guardRule.extra = true
+  guardRule.params.unknown_ratio = 0.2
+  guardRule.params.release_ratio = 1.01
+  await rewriteEntity(fixture, 'RKF01', guard)
+
+  const returningBreath = structuredClone(fixture.entities.get('RKF02'))
+  returningBreath.passives = returningBreath.passives.filter((item) => item.id !== 'RKF02-V2-RESONANCE')
+  await rewriteEntity(fixture, 'RKF02', returningBreath)
+
+  const springBloom = structuredClone(fixture.entities.get('RKF03'))
+  const bloomRule = springBloom.passives.find((item) => item.id === 'RKF03-V2-RESONANCE')
+  bloomRule.params.threshold_hp_ratio = 0
+  bloomRule.params.burst_hp_ratio = Number.NaN
+  await rewriteEntity(fixture, 'RKF03', springBloom)
+
+  const burnAccelerate = structuredClone(fixture.entities.get('RKF04'))
+  burnAccelerate.passives.find((item) => item.id === 'RKF04-V2-RESONANCE').params.resonance = 'unknown_kind'
+  await rewriteEntity(fixture, 'RKF04', burnAccelerate)
+
+  const swordArray = structuredClone(fixture.entities.get('RKF05'))
+  swordArray.talents[0].effects = [structuredClone(swordArray.passives.find((item) => item.id === 'RKF05-V2-RESONANCE'))]
+  await rewriteEntity(fixture, 'RKF05', swordArray)
+
+  const induction = structuredClone(fixture.entities.get('RKF07'))
+  const inductionRule = induction.passives.find((item) => item.id === 'RKF07-V2-RESONANCE')
+  inductionRule.params.hit_threshold = 0
+  inductionRule.params.max_per_action = 1.5
+  await rewriteEntity(fixture, 'RKF07', induction)
+
+  const moonHex = structuredClone(fixture.entities.get('RKF08'))
+  moonHex.passives.find((item) => item.id === 'RKF08-V2-RESONANCE').id = 'RKF07-V2-RESONANCE'
+  await rewriteEntity(fixture, 'RKF08', moonHex)
+
+  const unownedRule = structuredClone(fixture.entities.get('RKF06'))
+  unownedRule.passives.push(resonanceEffect('RKF06', METHOD_RESONANCE_RULES.RKF01))
+  await rewriteEntity(fixture, 'RKF06', unownedRule)
+
+  const missingArtifactParameter = structuredClone(fixture.entities.get('RR04'))
+  delete missingArtifactParameter.effects[0].params.attack_ratio
+  await rewriteEntity(fixture, 'RR04', missingArtifactParameter)
+
+  const negativeArtifactParameter = structuredClone(fixture.entities.get('RR09'))
+  negativeArtifactParameter.effects[0].params.rage_gain = -1
+  await rewriteEntity(fixture, 'RR09', negativeArtifactParameter)
+
+  const fractionalRage = structuredClone(fixture.entities.get('RR11'))
+  fractionalRage.effects[0].params.rage_gain = 8.5
+  await rewriteEntity(fixture, 'RR11', fractionalRage)
+
+  report = await reportFor(fixture)
+  const codes = new Set(report.errors.map((error) => error.code))
+  for (const code of [
+    'resonance-effect-fields',
+    'resonance-params',
+    'number-range',
+    'invalid-number',
+    'resonance-count',
+    'resonance-kind',
+    'resonance-location',
+    'invalid-integer',
+    'resonance-effect-id',
+    'resonance-owner',
+  ]) {
+    assert.ok(codes.has(code), `expected ${code}; received ${[...codes].join(', ')}`)
+  }
 })
 
 test('V2 roles, core rules, and shared insight sources/effects are strict', async (t) => {

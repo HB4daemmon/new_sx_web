@@ -24,9 +24,9 @@ function playwrightModule() {
 const { chromium } = playwrightModule();
 const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH ||
   '/home/ubuntu/.cache/ms-playwright/chromium-1228/chrome-linux/chrome';
-const saveKey = 'suishi-shanhai-run-v2-journey';
-const buildKey = 'suishi-shanhai-build-v2-journey';
-const replayKey = 'suishi-shanhai-replay-v2-journey';
+const saveKey = 'suishi-shanhai-run-v2-resonance';
+const buildKey = 'suishi-shanhai-build-v2-resonance';
+const replayKey = 'suishi-shanhai-replay-v2-resonance';
 const pageErrors = [];
 
 async function installFixture(page, { phase = 'map', equipment = true, sourceLabels = false, hunter = false } = {}) {
@@ -149,9 +149,9 @@ async function installFixture(page, { phase = 'map', equipment = true, sourceLab
       game.state.talents[game.state.method] = ['V2-J1-B'];
     }
     const initialHp = game.state.hp;
-    localStorage.setItem('suishi-shanhai-run-v2', 'legacy-v2-run-untouched');
-    localStorage.setItem('suishi-shanhai-build-v2', 'legacy-v2-build-untouched');
-    localStorage.setItem('suishi-shanhai-replay-v2', 'legacy-v2-replay-untouched');
+    localStorage.setItem('suishi-shanhai-run-v2-journey', 'legacy-v2-run-untouched');
+    localStorage.setItem('suishi-shanhai-build-v2-journey', 'legacy-v2-build-untouched');
+    localStorage.setItem('suishi-shanhai-replay-v2-journey', 'legacy-v2-replay-untouched');
     localStorage.setItem('suishi-shanhai-replay-v1', 'v1-replay-untouched');
     localStorage.setItem('suishi-shanhai-build-v1', 'v1-build-untouched');
 
@@ -181,7 +181,7 @@ async function installFixture(page, { phase = 'map', equipment = true, sourceLab
     if (phase === 'battle' && sourceLabels && game.state.battle) {
       saved.state.battle.frames = game.state.battle.frames;
       delete saved.replay;
-      localStorage.setItem('suishi-shanhai-run-v2-journey', JSON.stringify(saved));
+      localStorage.setItem('suishi-shanhai-run-v2-resonance', JSON.stringify(saved));
     }
     const localTalent = content.byId.RKF01.talents[0];
     const sharedTalent = content.rules.insights.find(talent => talent.tier === 1);
@@ -568,9 +568,9 @@ async function assertV2ReplayAndTalentEffectSources(page) {
   const legacyValues = await page.evaluate(({ saveKey, buildKey, replayKey }) => ({
     replay: localStorage.getItem('suishi-shanhai-replay-v1'),
     build: localStorage.getItem('suishi-shanhai-build-v1'),
-    runV2: localStorage.getItem('suishi-shanhai-run-v2'),
-    buildV2: localStorage.getItem('suishi-shanhai-build-v2'),
-    replayV2: localStorage.getItem('suishi-shanhai-replay-v2'),
+    runV2: localStorage.getItem('suishi-shanhai-run-v2-journey'),
+    buildV2: localStorage.getItem('suishi-shanhai-build-v2-journey'),
+    replayV2: localStorage.getItem('suishi-shanhai-replay-v2-journey'),
     runJourney: localStorage.getItem(saveKey),
     replayJourney: localStorage.getItem(replayKey),
     buildJourney: localStorage.getItem(buildKey),

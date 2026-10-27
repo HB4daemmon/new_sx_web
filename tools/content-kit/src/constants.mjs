@@ -64,6 +64,11 @@ export const SHARED_INSIGHT_IDS = Object.freeze([
 
 const numericRange = (min, max, integer = false) => Object.freeze({ min, max, integer })
 const buildRule = (kind, params) => Object.freeze({ kind, params: Object.freeze(params) })
+const resonanceRule = (kind, params) => Object.freeze({ kind, params: Object.freeze(params) })
+const resonanceRatio = numericRange(0, 1)
+const resonancePositiveRatio = numericRange(Number.MIN_VALUE, 1)
+const resonanceIntegerPoints = numericRange(0, undefined, true)
+const resonanceCount = numericRange(1, undefined, true)
 export const SHARED_INSIGHT_BUILD_RULES = Object.freeze({
   'V2-J1-A': buildRule('wealth_damage', {
     scale: numericRange(0, 5),
@@ -125,6 +130,82 @@ export const SHARED_INSIGHT_BUILD_RULES = Object.freeze({
     base_bonus: numericRange(0, 1),
     elite_bonus: numericRange(0, 1),
     boss_bonus: numericRange(0, 1),
+  }),
+})
+
+export const METHOD_RESONANCE_RULES = Object.freeze({
+  RKF01: resonanceRule('guard_pressure', {
+    absorb_ratio: resonanceRatio,
+    cap_hp_ratio: resonanceRatio,
+    release_ratio: resonanceRatio,
+  }),
+  RKF02: resonanceRule('returning_breath', {
+    extra_segments: resonanceCount,
+    segment_ratio: resonanceRatio,
+    rage_bonus: resonanceIntegerPoints,
+  }),
+  RKF03: resonanceRule('spring_bloom', {
+    threshold_hp_ratio: resonancePositiveRatio,
+    burst_hp_ratio: resonanceRatio,
+    max_per_action: resonanceCount,
+  }),
+  RKF04: resonanceRule('burn_accelerate', {
+    ticks: resonanceCount,
+  }),
+  RKF05: resonanceRule('sword_array', {
+    artifact_intent_limit: resonanceCount,
+    consume_stacks: resonanceCount,
+    attack_ratio: resonanceRatio,
+  }),
+  RKF07: resonanceRule('thunder_induction', {
+    hit_threshold: resonanceCount,
+    attack_ratio: resonanceRatio,
+    max_per_action: resonanceCount,
+  }),
+  RKF08: resonanceRule('moon_hex', {
+    attack_ratio: resonanceRatio,
+    drain_per_kind: resonanceCount,
+  }),
+})
+
+export const ARTIFACT_RESONANCE_RULES = Object.freeze({
+  RC13: resonanceRule('shield_retort', {
+    defense_ratio: resonanceRatio,
+  }),
+  RR03: resonanceRule('venom_pin', {
+    hit_threshold: resonanceCount,
+    poison_stacks: resonanceCount,
+    duration_rounds: resonanceCount,
+    attack_ratio: resonanceRatio,
+    max_per_action: resonanceCount,
+  }),
+  RR04: resonanceRule('wealth_strikes', {
+    coins_per_segment: resonanceCount,
+    max_segments: resonanceCount,
+    attack_ratio: resonanceRatio,
+  }),
+  RR09: resonanceRule('rebound_guard', {
+    rage_gain: resonanceIntegerPoints,
+    defense_ratio: resonanceRatio,
+  }),
+  RR11: resonanceRule('toxic_furnace', {
+    remaining_damage_ratio: resonanceRatio,
+    rage_gain: resonanceIntegerPoints,
+  }),
+  RR12: resonanceRule('healing_blades', {
+    max_charges: resonanceCount,
+    attack_ratio: resonanceRatio,
+  }),
+  RL02: resonanceRule('ember_furnace', {
+    stored_ratio: resonanceRatio,
+    cap_hp_ratio: resonanceRatio,
+    segments: resonanceCount,
+  }),
+  RL03: resonanceRule('wheel_storm', {
+    hit_threshold: resonanceCount,
+    segments: resonanceCount,
+    attack_ratio: resonanceRatio,
+    max_per_action: resonanceCount,
   }),
 })
 

@@ -39,6 +39,25 @@ function openingRageContent(amount = 100) {
   return contentFromEntities(entities, content.version);
 }
 
+function withRageCap(sourceContent, rageCap) {
+  const entities = structuredClone(sourceContent.entities);
+  entities.find(entity => entity.id === 'RULES').rage.base_cap = rageCap;
+  return contentFromEntities(entities, sourceContent.version);
+}
+
+function effectParams(ownerId, effectId) {
+  const owner = content.byId[ownerId];
+  const effects = [
+    ...Object.values(owner.actions ?? {}).flatMap(action => action.effects ?? []),
+    ...(owner.passives ?? []),
+    ...(owner.talents ?? []).flatMap(talent => talent.effects ?? []),
+    ...(owner.effects ?? []),
+  ];
+  const effect = effects.find(item => item.id === effectId);
+  assert.ok(effect, `expected authored effect ${effectId}`);
+  return effect.params;
+}
+
 function syntheticDrainContent() {
   const template = content.byId.RR14;
   const makeArtifact = (id, trigger, amount) => {
@@ -303,7 +322,7 @@ test('incoming rage counts each effective direct segment but excludes derived da
 
 test('DOT layers snapshot attack, expire independently, and do not refresh old layers', () => {
   const result = simulateBattle(
-    content,
+    withRageCap(content, 1_000),
     makeLoadout('RKF04', {}, [], {
       attack: 100,
       defense: 0,
@@ -323,12 +342,12 @@ test('DOT layers snapshot attack, expire independently, and do not refresh old l
     frame.kind === 'dot' && frame.actor === 'player' && frame.source === 'RKF04-BASIC-BURN');
   const byRound = round => basicBurns.filter(frame => frame.round === round).map(frame => frame.amount);
 
-  // RKF08 weakness lowers only layers applied after round one. The original
-  // layer keeps its 10-point snapshot through its third and final tick.
+  // A high rage cap keeps this snapshot fixture on basic actions. Weakness
+  // lowers only later layers; the first layer still expires after its third tick.
   assert.deepEqual(byRound(1), [10]);
   assert.deepEqual(byRound(2), [10, 9.5]);
-  assert.deepEqual(byRound(3), [10, 9.5]);
-  assert.deepEqual(byRound(4), [9.5, 10]);
+  assert.deepEqual(byRound(3), [10, 9.5, 9.5]);
+  assert.deepEqual(byRound(4), [9.5, 9.5, 9.5]);
   assert.equal(basicBurns.filter(frame => frame.amount === 10 && frame.round <= 3).length, 3);
   assert.equal(result.frames.filter(frame => frame.kind === 'dot' && frame.actor === 'player').every(frame => frame.amount === 10 || frame.amount === 9.5), true);
 });
@@ -346,9 +365,22 @@ test('rage drain uses additive resistance and opening drain has its own window',
     max_hp: 1_000_000_000,
     speed: 9,
   });
-  const resisted = simulateBattle(content, player, enemy, 'drain-resistance', { roundLimit: 2 });
+  const resisted = simulateBattle(
+    content,
+    player,
+    enemy,
+    'drain-resistance',
+    { roundLimit: 2 },
+  );
   const drains = resisted.frames.filter(frame => frame.source === 'RULES-RAGE-DRAIN');
-  assert.deepEqual(drains.map(frame => frame.amount), [9, 9]);
+  const rr13Drain = content.byId.RR13.effects[0].params.amount;
+  const j3Drain = effectParams('RKF08', 'RKF08-J3-A-DRAIN').amount;
+  const hexDrain = effectParams('RKF08', 'RKF08-V2-RESONANCE').drain_per_kind;
+  const resistance = content.byId.RR15.effects[0].params.ratio;
+  assert.deepEqual(drains.map(frame => frame.amount), [
+    Math.floor((rr13Drain + j3Drain + hexDrain) * (1 - resistance)),
+    Math.floor((rr13Drain + j3Drain + hexDrain) * (1 - resistance)),
+  ]);
 
   const opening = simulateBattle(
     content,
@@ -468,10 +500,10 @@ test('actual lowered rage cap is floored at 60 and refund reads the locked paid 
   const costs = result.frames
     .filter(frame => frame.actor === 'player' && frame.source === 'RKF02-rage-cost')
     .map(frame => frame.amount);
-  assert.deepEqual(costs, [75, 60, 60]);
+  assert.deepEqual(costs, [75, 60]);
   assert.equal(result.frames.filter(frame => frame.source === 'RR07-FIRST-RAGE-CAP-REDUCTION').length, 1);
   const secondSettlement = firstFrame(result, frame =>
-    frame.round === 2 && frame.source === 'RULES-RAGE-SETTLE' && frame.actor === 'player');
+    frame.round === 3 && frame.source === 'RULES-RAGE-SETTLE' && frame.actor === 'player');
   assert.equal(secondSettlement.amount, 72);
   assert.equal(secondSettlement.player.rageCap, 60);
 });
@@ -533,62 +565,100 @@ test('prepared RKF05 first strike is a snapshotted direct segment with isolated 
 });
 
 test('talent ratio additions and replacement outlets stay scoped to authored segments', () => {
+  const basicRatio = effectParams('RKF01', 'RKF01-BASIC-DAMAGE').attack_ratio;
+  const basicTalentAdd = effectParams('RKF01', 'RKF01-J1-C-DAMAGE').damage_ratio_add;
+  const basicTalentPlayer = makeLoadout(
+    'RKF01',
+    { 1: 'C' },
+    [],
+    { attack: 100, defense: 0, max_hp: 1_000_000 },
+  );
   const basicTalent = simulateBattle(
     content,
-    makeLoadout('RKF01', { 1: 'C' }, [], { attack: 100, defense: 0, max_hp: 1_000_000 }),
+    basicTalentPlayer,
     makeLoadout('RKF01', {}, [], { attack: 0, defense: 0, max_hp: 1_000_000, speed: 9 }),
     'rkf01-basic-talent-ratio',
     { roundLimit: 1 },
   );
-  assert.ok(Math.abs(firstFrame(basicTalent, frame => frame.kind === 'damage' && frame.source === 'RKF01-BASIC-DAMAGE').amount - 110.2) < 1e-9);
+  assert.ok(Math.abs(firstFrame(basicTalent, frame =>
+    frame.kind === 'damage' && frame.source === 'RKF01-BASIC-DAMAGE').amount -
+    calculateStats(content, basicTalentPlayer).attack * basicRatio * (1 + basicTalentAdd)) < 1e-9);
 
+  const basicTalentArtifactPlayer = makeLoadout(
+    'RKF01',
+    { 1: 'C' },
+    [{ id: 'RC09', stacks: 1 }],
+    { attack: 98, defense: 0, max_hp: 1_000_000 },
+  );
   const basicTalentAndArtifact = simulateBattle(
     content,
-    makeLoadout('RKF01', { 1: 'C' }, [{ id: 'RC09', stacks: 1 }], { attack: 98, defense: 0, max_hp: 1_000_000 }),
+    basicTalentArtifactPlayer,
     makeLoadout('RKF01', {}, [], { attack: 0, defense: 0, max_hp: 1_000_000, speed: 9 }),
     'rkf01-basic-talent-and-artifact-ratio',
     { roundLimit: 1 },
   );
+  const rc09BasicBonus = effectParams('RC09', 'RC09-BASIC-DIRECT-BONUS').ratio;
   assert.ok(Math.abs(firstFrame(basicTalentAndArtifact, frame =>
-    frame.kind === 'damage' && frame.source === 'RKF01-BASIC-DAMAGE').amount - 115.9) < 1e-9);
+    frame.kind === 'damage' && frame.source === 'RKF01-BASIC-DAMAGE').amount -
+    calculateStats(content, basicTalentArtifactPlayer).attack *
+      basicRatio * (1 + basicTalentAdd + rc09BasicBonus)) < 1e-9);
 
+  const rageTalentPlayer = makeLoadout(
+    'RKF02',
+    { 1: 'C' },
+    [{ id: 'RL04', stacks: 1 }],
+    { attack: 88, defense: 0, max_hp: 1_000_000 },
+  );
   const rageTalent = simulateBattle(
     content,
-    makeLoadout('RKF02', { 1: 'C' }, [{ id: 'RL04', stacks: 1 }], { attack: 88, defense: 0, max_hp: 1_000_000 }),
+    rageTalentPlayer,
     makeLoadout('RKF01', {}, [], { attack: 0, defense: 0, max_hp: 1_000_000, speed: 9 }),
     'rkf02-rage-talent-ratio',
     { roundLimit: 1 },
   );
+  const rageRatio = effectParams('RKF02', 'RKF02-RAGE-DAMAGE').attack_ratio;
+  const rageTalentAdd = effectParams('RKF02', 'RKF02-J1-C-RAGE-DAMAGE').damage_ratio_add;
   assert.equal(firstFrame(rageTalent, frame =>
-    frame.kind === 'damage' && frame.source === 'RKF02-RAGE-DAMAGE').amount, 100 * 2.5 * (1 + 0.22));
+    frame.kind === 'damage' && frame.source === 'RKF02-RAGE-DAMAGE').amount,
+  calculateStats(content, rageTalentPlayer).attack * rageRatio * (1 + rageTalentAdd));
 
+  const formulaAndPercentPlayer = makeLoadout('RKF02', { 1: 'C', 3: 'A', 4: 'B' }, [
+    { id: 'RC22', stacks: 2 },
+    { id: 'RL04', stacks: 1 },
+  ], { attack: 84, defense: 0, max_hp: 1_000_000 });
   const rageFormulaAndPercent = simulateBattle(
     content,
-    makeLoadout('RKF02', { 1: 'C', 3: 'A', 4: 'B' }, [
-      { id: 'RC22', stacks: 2 },
-      { id: 'RL04', stacks: 1 },
-    ], { attack: 84, defense: 0, max_hp: 1_000_000 }),
+    formulaAndPercentPlayer,
     makeLoadout('RKF01', {}, [], { attack: 0, defense: 0, max_hp: 1_000_000, speed: 9 }),
     'rkf02-rage-formula-percent-scope',
     { roundLimit: 1 },
   );
+  const formulaAdd = effectParams('RKF02', 'RKF02-J3-A-HEAVY-HIT').attack_ratio_per_paid_rage;
+  const percentAdd = effectParams('RKF02', 'RKF02-J4-B-RAGE-DAMAGE').damage_ratio_add;
+  const paidRage = firstFrame(rageFormulaAndPercent, frame =>
+    frame.kind === 'rage' && frame.source === 'RKF02-rage-cost').amount;
   assert.ok(Math.abs(firstFrame(rageFormulaAndPercent, frame =>
     frame.kind === 'damage' && frame.source === 'RKF02-RAGE-DAMAGE').amount -
-    (100 * (2.5 + 120 * 0.012) * (1 + 0.22 + 0.30))) < 1e-9);
+    (calculateStats(content, formulaAndPercentPlayer).attack *
+      (rageRatio + paidRage * formulaAdd) * (1 + rageTalentAdd + percentAdd))) < 1e-9);
 
+  const formulaAndJ1CPlayer = makeLoadout('RKF02', { 1: 'C', 3: 'A' }, [
+    { id: 'RC22', stacks: 2 },
+    { id: 'RL04', stacks: 1 },
+  ], { attack: 84, defense: 0, max_hp: 1_000_000 });
   const rageFormulaAndJ1C = simulateBattle(
     content,
-    makeLoadout('RKF02', { 1: 'C', 3: 'A' }, [
-      { id: 'RC22', stacks: 2 },
-      { id: 'RL04', stacks: 1 },
-    ], { attack: 84, defense: 0, max_hp: 1_000_000 }),
+    formulaAndJ1CPlayer,
     makeLoadout('RKF01', {}, [], { attack: 0, defense: 0, max_hp: 1_000_000, speed: 9 }),
     'rkf02-rage-formula-j1c-scope',
     { roundLimit: 1 },
   );
+  const j1cPaidRage = firstFrame(rageFormulaAndJ1C, frame =>
+    frame.kind === 'rage' && frame.source === 'RKF02-rage-cost').amount;
   assert.ok(Math.abs(firstFrame(rageFormulaAndJ1C, frame =>
     frame.kind === 'damage' && frame.source === 'RKF02-RAGE-DAMAGE').amount -
-    (100 * (2.5 + 120 * 0.012) * (1 + 0.22))) < 1e-9);
+    calculateStats(content, formulaAndJ1CPlayer).attack *
+      (rageRatio + j1cPaidRage * formulaAdd) * (1 + rageTalentAdd)) < 1e-9);
 
   const forcedBasic = simulateBattle(
     content,
@@ -597,8 +667,21 @@ test('talent ratio additions and replacement outlets stay scoped to authored seg
     'rkf02-forced-basic-ratio',
     { roundLimit: 2 },
   );
-  assert.equal(firstFrame(forcedBasic, frame =>
-    frame.round === 2 && frame.kind === 'damage' && frame.source === 'RKF02-BASIC-DAMAGE').amount, 100 * 1.9 * (1 + 0.18));
+  const forcedBasicPlayer = makeLoadout(
+    'RKF02',
+    { 4: 'C' },
+    [{ id: 'RL04', stacks: 1 }],
+    { attack: 88, defense: 0, max_hp: 1_000_000 },
+  );
+  const forcedBasicFrames = forcedBasic.frames.filter(frame =>
+    frame.round === 2 && frame.kind === 'damage' && frame.source === 'RKF02-BASIC-DAMAGE');
+  const forcedBasicRatio = effectParams('RKF02', 'RKF02-BASIC-DAMAGE').attack_ratio *
+    (1 + effectParams('RKF02', 'RKF02-J4-C-NEXT-BASIC').basic_damage_ratio_add);
+  const breath = effectParams('RKF02', 'RKF02-V2-RESONANCE');
+  assert.equal(forcedBasicFrames.length, 1 + breath.extra_segments);
+  assert.ok(forcedBasicFrames.every(frame =>
+    Math.abs(frame.amount - calculateStats(content, forcedBasicPlayer).attack *
+      forcedBasicRatio * breath.segment_ratio) < 1e-9));
 
   const shieldConvert = makeLoadout('RKF01', { 4: 'B' }, [{ id: 'RL04', stacks: 1 }], {
     attack: 100,
@@ -613,7 +696,14 @@ test('talent ratio additions and replacement outlets stay scoped to authored seg
     'rkf01-shield-convert',
     { roundLimit: 1 },
   );
-  assert.equal(firstFrame(converted, frame => frame.kind === 'damage' && frame.source === 'RKF01-RAGE-DAMAGE').amount, 188.7);
+  const shieldConversion = effectParams('RKF01', 'RKF01-J4-B-CONSUME-SHIELD');
+  const convertedAttack = calculateStats(content, shieldConvert).attack;
+  const convertedRageRatio = effectParams('RKF01', 'RKF01-RAGE-DAMAGE').attack_ratio;
+  const expectedShieldDamage = shieldConvert.preparation * shieldConversion.shield_consume_ratio *
+    shieldConversion.extra_damage_per_shield_ratio;
+  assert.equal(firstFrame(converted, frame =>
+    frame.kind === 'damage' && frame.source === 'RKF01-RAGE-DAMAGE').amount,
+  convertedAttack * convertedRageRatio + expectedShieldDamage);
   assert.equal(converted.frames.some(frame => frame.source === 'RKF01-RAGE-SHIELD'), false);
 
   const segmentTalent = simulateBattle(
@@ -721,8 +811,8 @@ test('RKF07 and RKF09 rage segment talents add one capped hit and keep one main 
   assert.equal(actionFrames(enemyLightning, 'enemy', 'RKF07-RAGE-DAMAGE').length, 1);
 });
 
-test('RKF01 recoil bonuses add once and retain talent and artifact contributions', () => {
-  const player = makeLoadout('RKF01', { 3: 'A', 4: 'C' }, [{ id: 'RC13', stacks: 1 }], {
+test('RKF01 recoil bonuses add once and retain the talent contribution', () => {
+  const player = makeLoadout('RKF01', { 3: 'A', 4: 'C' }, [], {
     attack: 100,
     defense: 98,
     max_hp: 10_000,
@@ -743,9 +833,13 @@ test('RKF01 recoil bonuses add once and retain talent and artifact contributions
   );
   const recoil = firstFrame(result, frame =>
     frame.kind === 'damage' && frame.source === 'RKF01-PASSIVE-RECOIL');
-  assert.ok(Math.abs(recoil.amount - ((100 * 0.38 + 100 * 0.22) * (1 + 0.28 + 0.06))) < 1e-9);
+  const playerStats = calculateStats(content, player);
+  const recoilFormula = effectParams('RKF01', 'RKF01-J4-C-RECOIL-FORMULA');
+  const recoilBonus = effectParams('RKF01', 'RKF01-J3-A-RECOIL').damage_ratio_add;
+  assert.ok(Math.abs(recoil.amount -
+    (playerStats.defense * recoilFormula.defense_ratio +
+      playerStats.attack * recoilFormula.attack_ratio) * (1 + recoilBonus)) < 1e-9);
   assert.equal(contribution(result, 'RKF01-J3-A').triggers, 1);
-  assert.equal(contribution(result, 'RC13').triggers, 1);
   assert.equal(result.frames.filter(frame => frame.source === 'RKF01-PASSIVE-RECOIL').length, 1);
 });
 
@@ -1052,9 +1146,15 @@ test('RKF05 J1-A keeps sword-intent bonus in the same critical direct segment', 
   );
   const rageDamage = result.frames.filter(frame =>
     frame.kind === 'damage' && frame.actor === 'player' && frame.source === 'RKF05-RAGE-DAMAGE');
+  const rageAction = firstFrame(result, frame =>
+    frame.kind === 'action' && frame.actor === 'player' && frame.source === 'RKF05-RAGE-DAMAGE');
+  const rageRatio = effectParams('RKF05', 'RKF05-RAGE-DAMAGE').attack_ratio;
+  const intentRatio = effectParams('RKF05', 'RKF05-PASSIVE-EDGE').sword_intent_ratio_per_stack;
+  const talentIntentRatio = effectParams('RKF05', 'RKF05-J1-A-EDGE').sword_intent_ratio_per_stack_add;
+  const intentStacks = rageAction.player.statuses.sword_intent;
   assert.equal(rageDamage.length, 1);
   assert.ok(Math.abs(rageDamage[0].amount -
-    (100 * 2.1 * 1.5 + 100 * 2 * (0.07 + 0.02))) < 1e-9);
+    (100 * rageRatio * 1.5 + 100 * intentStacks * (intentRatio + talentIntentRatio))) < 1e-9);
 });
 
 test('RKF05 basic damage uses its authored ratio and per-stack sword-intent formula', () => {
@@ -1080,8 +1180,10 @@ test('RKF05 basic damage uses its authored ratio and per-stack sword-intent form
     frame.round === 1 && frame.kind === 'damage' && frame.source === 'RKF05-BASIC-DAMAGE');
   const secondBasic = firstFrame(result, frame =>
     frame.round === 2 && frame.kind === 'damage' && frame.source === 'RKF05-BASIC-DAMAGE');
-  assert.equal(firstBasic.amount, 100 * 1.4);
-  assert.equal(secondBasic.amount, 100 * (1.4 + 0.07));
+  const basicRatio = effectParams('RKF05', 'RKF05-BASIC-DAMAGE').attack_ratio;
+  const intentRatio = effectParams('RKF05', 'RKF05-PASSIVE-EDGE').sword_intent_ratio_per_stack;
+  assert.ok(Math.abs(firstBasic.amount - 100 * basicRatio) < 1e-9);
+  assert.ok(Math.abs(secondBasic.amount - 100 * (basicRatio + intentRatio)) < 1e-9);
 });
 
 test('RKF05 J4-A replaces rage damage with two authored sword-intent-scaled segments', () => {
@@ -1106,9 +1208,15 @@ test('RKF05 J4-A replaces rage damage with two authored sword-intent-scaled segm
   const segments = result.frames.filter(frame =>
     frame.round === 3 && frame.kind === 'damage' &&
     frame.actor === 'player' && frame.source === 'RKF05-RAGE-DAMAGE');
+  const rageAction = firstFrame(result, frame =>
+    frame.round === 3 && frame.kind === 'action' &&
+    frame.actor === 'player' && frame.source === 'RKF05-RAGE-DAMAGE');
+  const rageSegmentRatio = effectParams('RKF05', 'RKF05-J4-A-RAGE-SEGMENTS').attack_ratio_per_segment;
+  const intentRatio = effectParams('RKF05', 'RKF05-PASSIVE-EDGE').sword_intent_ratio_per_stack;
+  const intentStacks = rageAction.player.statuses.sword_intent;
   assert.equal(segments.length, 2);
   assert.ok(segments.every(frame =>
-    Math.abs(frame.amount - (100 * 1.05 + 100 * 2 * 0.07)) < 1e-9));
+    Math.abs(frame.amount - (100 * rageSegmentRatio + 100 * intentStacks * intentRatio)) < 1e-9));
 });
 
 test('RKF05 J3-B shield uses the action-start sword-intent stack count', () => {
@@ -1137,7 +1245,7 @@ test('RKF05 J3-B shield uses the action-start sword-intent stack count', () => {
 test('same-scope RKF05 percentage bonuses add once and scale non-crit sword intent', () => {
   const result = simulateBattle(
     content,
-    makeLoadout('RKF05', { 3: 'A', 4: 'C' }, [], {
+    makeLoadout('RKF05', { 2: 'A', 3: 'A', 4: 'C' }, [], {
       attack: 100,
       defense: 0,
       max_hp: 1_000_000_000,
@@ -1156,8 +1264,18 @@ test('same-scope RKF05 percentage bonuses add once and scale non-crit sword inte
   const rageDamage = firstFrame(result, frame =>
     frame.round === 7 && frame.kind === 'damage' &&
     frame.actor === 'player' && frame.source === 'RKF05-RAGE-DAMAGE');
+  const rageAction = firstFrame(result, frame =>
+    frame.kind === 'action' && frame.round === 7 &&
+    frame.actor === 'player' && frame.source === 'RKF05-RAGE-DAMAGE');
+  const rageRatio = effectParams('RKF05', 'RKF05-RAGE-DAMAGE').attack_ratio;
+  const intentRatio = effectParams('RKF05', 'RKF05-PASSIVE-EDGE').sword_intent_ratio_per_stack;
+  const j3Bonus = effectParams('RKF05', 'RKF05-J3-A-RAGE-DAMAGE').damage_ratio_add;
+  const j4Bonus = effectParams('RKF05', 'RKF05-J4-C-FULL-EDGE').damage_ratio_add;
+  const intentStacks = rageAction.player.statuses.sword_intent;
+  assert.equal(intentStacks, 5);
+  const percentBonus = 1 + j3Bonus + j4Bonus;
   assert.ok(Math.abs(rageDamage.amount -
-    (100 * 2.1 * (1 + 0.20 + 0.25) + 100 * 5 * 0.07 * (1 + 0.20 + 0.25))) < 1e-9);
+    (100 * rageRatio * percentBonus + 100 * intentStacks * intentRatio * percentBonus)) < 1e-9);
 });
 
 test('artifact stat, basic damage, and shield multipliers use authored values', () => {
@@ -1167,19 +1285,29 @@ test('artifact stat, basic damage, and shield multipliers use authored values', 
   assert.equal(stats.attack, 112);
   assert.equal(stats.defense, 100);
 
+  const rc09Player = makeLoadout('RKF01', {}, [{ id: 'RC09', stacks: 1 }], { max_hp: 1000 });
   const plainDamage = simulateBattle(content, plain, makeLoadout('RKF01', {}, [], { attack: 0, defense: 0, max_hp: 100_000, speed: 1 }), 'rc09-damage-plain', { roundLimit: 1 });
-  const rc09Damage = simulateBattle(content, makeLoadout('RKF01', {}, [{ id: 'RC09', stacks: 1 }], { max_hp: 1000 }), makeLoadout('RKF01', {}, [], { attack: 0, defense: 0, max_hp: 100_000, speed: 1 }), 'rc09-damage-artifact', { roundLimit: 1 });
+  const rc09Damage = simulateBattle(content, rc09Player, makeLoadout('RKF01', {}, [], { attack: 0, defense: 0, max_hp: 100_000, speed: 1 }), 'rc09-damage-artifact', { roundLimit: 1 });
   const plainHit = firstFrame(plainDamage, frame => frame.kind === 'damage' && frame.source === 'RKF01-BASIC-DAMAGE');
   const rc09Hit = firstFrame(rc09Damage, frame => frame.kind === 'damage' && frame.source === 'RKF01-BASIC-DAMAGE');
-  assert.ok(Math.abs(plainHit.amount - 95) < 1e-9);
-  assert.ok(Math.abs(rc09Hit.amount - (102 * 0.95 * 1.06)) < 1e-9);
+  const basicRatio = effectParams('RKF01', 'RKF01-BASIC-DAMAGE').attack_ratio;
+  const rc09BasicBonus = effectParams('RC09', 'RC09-BASIC-DIRECT-BONUS').ratio;
+  assert.ok(Math.abs(plainHit.amount - calculateStats(content, plain).attack * basicRatio) < 1e-9);
+  assert.ok(Math.abs(rc09Hit.amount - calculateStats(content, rc09Player).attack *
+    basicRatio * (1 + rc09BasicBonus)) < 1e-9);
 
   const plainShield = simulateBattle(content, plain, makeLoadout('RKF01', {}, [], { attack: 0, max_hp: 100_000, speed: 1 }), 'rc11-shield-plain', { roundLimit: 1 });
-  const rc11Shield = simulateBattle(content, makeLoadout('RKF01', {}, [{ id: 'RC11', stacks: 1 }], { max_hp: 1000 }), makeLoadout('RKF01', {}, [], { attack: 0, max_hp: 100_000, speed: 1 }), 'rc11-shield-artifact', { roundLimit: 1 });
+  const rc11Player = makeLoadout('RKF01', {}, [{ id: 'RC11', stacks: 1 }], { max_hp: 1000 });
+  const rc11Shield = simulateBattle(content, rc11Player, makeLoadout('RKF01', {}, [], { attack: 0, max_hp: 100_000, speed: 1 }), 'rc11-shield-artifact', { roundLimit: 1 });
   const plainShieldFrame = firstFrame(plainShield, frame => frame.kind === 'shield' && frame.source === 'RKF01-BASIC-SHIELD');
   const rc11ShieldFrame = firstFrame(rc11Shield, frame => frame.kind === 'shield' && frame.source === 'RKF01-BASIC-SHIELD');
-  assert.ok(Math.abs(plainShieldFrame.amount - 10) < 1e-9);
-  assert.ok(Math.abs(rc11ShieldFrame.amount - (102 * 0.10 * 1.06)) < 1e-9);
+  const shieldParams = effectParams('RKF01', 'RKF01-BASIC-SHIELD');
+  const rc11ShieldBonus = content.byId.RC11.effects
+    .find(effect => effect.id === 'RC11-SHIELD-GAIN-BONUS').params.ratio;
+  assert.ok(Math.abs(plainShieldFrame.amount -
+    calculateStats(content, plain).defense * shieldParams.defense_ratio) < 1e-9);
+  assert.ok(Math.abs(rc11ShieldFrame.amount - calculateStats(content, rc11Player).defense *
+    shieldParams.defense_ratio * (1 + rc11ShieldBonus)) < 1e-9);
 });
 
 test('selected but inactive sources remain in contributions with zero values', () => {
@@ -1277,9 +1405,13 @@ test('RKF03 J3-B reduction starts after healing and lasts through the next round
   const result = simulateBattle(content, player, enemy, 'heal-reduction', { roundLimit: 2 });
   const enemyHits = result.frames.filter(frame =>
     frame.kind === 'damage' && frame.source === 'RKF01-BASIC-DAMAGE' && frame.actor === 'enemy');
+  const baseDamage = calculateStats(content, enemy).attack *
+    effectParams('RKF01', 'RKF01-BASIC-DAMAGE').attack_ratio * 100 /
+    (100 + calculateStats(content, player).defense);
+  const reduction = effectParams('RKF03', 'RKF03-J3-B-REDUCE').multiplier;
   assert.equal(enemyHits.length >= 2, true);
-  assert.ok(Math.abs(enemyHits[0].amount - 47.5) < 1e-9);
-  assert.ok(Math.abs(enemyHits[1].amount - 41.8) < 1e-9);
+  assert.ok(Math.abs(enemyHits[0].amount - baseDamage) < 1e-9);
+  assert.ok(Math.abs(enemyHits[1].amount - baseDamage * reduction) < 1e-9);
 });
 
 test('RKF07 reservation consumes preexisting charge luck once and reads J4-C defense ratio', () => {

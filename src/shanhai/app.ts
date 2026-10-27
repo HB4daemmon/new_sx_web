@@ -64,7 +64,7 @@ import type {
 import type { ShanhaiBuildRecord } from './persistence.js';
 import { esc, icon, landscape, sigil } from '../art.js';
 
-const REPLAY_KEY = 'suishi-shanhai-replay-v2-journey';
+const REPLAY_KEY = 'suishi-shanhai-replay-v2-resonance';
 const CONTENT_BASE = './content/';
 const NODE_META: Record<string, { label: string; icon: string; tone: string }> = {
   C: { label: '普通战', icon: 'sword', tone: 'jade' },
@@ -768,10 +768,41 @@ class ShanhaiApp {
       <div class="effect-list" aria-label="完整效果">${effects.map((effect) => `<p>${semanticTextMarkup(effect)}</p>`).join('') || `<p>${this.textMarkup(asText(talent.quick, '暂无额外效果说明。'))}</p>`}</div>`;
   }
 
+  private resonanceEffect(entity?: Entity): any {
+    if (!entity) return undefined;
+    const id = `${entity.id}-V2-RESONANCE`;
+    return [...listOf<any>(entity.passives), ...listOf<any>(entity.effects)]
+      .find((effect) => isRecord(effect) && effect.id === id);
+  }
+
+  private resonanceBrief(entity?: Entity): string {
+    const effect = this.resonanceEffect(entity);
+    if (!effect) return '';
+    return this.displayText(asText(
+      entity?.summary,
+      effectText(effect, (value) => this.displayText(value)),
+    ));
+  }
+
+  private resonanceDetailsMarkup(entity?: Entity): string {
+    const effect = this.resonanceEffect(entity);
+    if (!effect) return '';
+    const text = this.displayText(effectText(effect, (value) => this.displayText(value)));
+    return text
+      ? `<section class="resonance-details"><b>共鸣</b><p>${this.textMarkup(text)}</p></section>`
+      : '';
+  }
+
   private sourceLabel(id: unknown): string {
     const source = asText(id);
     if (source.endsWith('-RAGE-ECHO')) {
       return `身外化身 · ${this.sourceLabel(source.slice(0, -'-RAGE-ECHO'.length))}`;
+    }
+    if (source.endsWith('-V2-RESONANCE')) {
+      const owner = this.byId(source.slice(0, -'-V2-RESONANCE'.length));
+      if (owner && (owner.kind === 'method' || owner.kind === 'artifact')) {
+        return `${asText(owner.name, owner.id)}·共鸣`;
+      }
     }
     if (FRAME_SOURCE_LABEL[source]) return FRAME_SOURCE_LABEL[source];
     const direct = this.byId(source);
@@ -1008,10 +1039,11 @@ class ShanhaiApp {
       ? this.equippedArtifacts().find((item) => item.id === id)
       : undefined;
     const rarity = entityRarity(artifact);
+    const resonance = this.resonanceBrief(artifact);
     return `<article class="equipment-slot ${id ? 'is-filled' : 'is-empty'}" data-slot="${index + 1}">
       <div class="equipment-slot-head"><b>${esc(label)}</b><span>${id ? '已装备' : '空位'}</span></div>
       ${id && artifact
-      ? `<button type="button" class="equipment-slot-item rarity-${esc(rarity)}" data-action="inspect-artifact" data-id="${esc(id)}" aria-label="${esc(`${label} · ${asText(artifact.name, id)} · 查看详录`)}"><span class="equipment-slot-icon">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : 'jade'))}</span><span><strong>${esc(asText(artifact.name, '未知法宝'))}</strong><small>效果生效 · ×${formatNumber(stack?.stacks, 0)}</small></span>${icon('eye', 15)}</button>`
+      ? `<button type="button" class="equipment-slot-item rarity-${esc(rarity)}" data-action="inspect-artifact" data-id="${esc(id)}" aria-label="${esc(`${label} · ${asText(artifact.name, id)} · 查看详录`)}"><span class="equipment-slot-icon">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : 'jade'))}</span><span><strong>${esc(asText(artifact.name, '未知法宝'))}</strong><small>效果生效 · ×${formatNumber(stack?.stacks, 0)}</small>${resonance ? `<small class="equipment-resonance-brief">${this.textMarkup(resonance)}</small>` : ''}</span>${icon('eye', 15)}</button>`
         : `<div class="equipment-slot-empty" aria-hidden="true">${icon('ring', 19)}</div>`}
     </article>`;
   }
@@ -1179,7 +1211,7 @@ class ShanhaiApp {
       return;
     }
     this.downloadJson({
-      format: 'suishi-shanhai-winning-build-v2-journey',
+      format: 'suishi-shanhai-winning-build-v2-resonance',
       exportedAt: new Date().toISOString(),
       build: record,
     }, `shanhai-build-${record.name || record.runId}.json`, '构筑归档已导出。');
@@ -2033,7 +2065,8 @@ class ShanhaiApp {
     if (!method) return '<p class="empty-note">暂无开局功法。</p>';
     const basic = method.actions?.basic;
     const rage = method.actions?.rage;
-    return `<div class="method-quick-actions"><span><b>普攻</b><small>${this.textMarkup(asText(basic?.quick, '稳步出手。'))}</small></span><span><b>怒技</b><small>${this.textMarkup(asText(rage?.quick, '蓄满怒气后释放。'))}</small></span></div>`;
+    const resonance = this.resonanceBrief(method);
+    return `<div class="method-quick-actions"><span><b>普攻</b><small>${this.textMarkup(asText(basic?.quick, '稳步出手。'))}</small></span><span><b>怒技</b><small>${this.textMarkup(asText(rage?.quick, '蓄满怒气后释放。'))}</small></span>${resonance ? `<span class="method-resonance-brief"><b>共鸣</b><small>${this.textMarkup(resonance)}</small></span>` : ''}</div>`;
   }
 
   private methodDetail(method?: Entity): string {
@@ -2043,7 +2076,8 @@ class ShanhaiApp {
     const travel = listOf<any>(method.travel);
     return `<div class="method-detail-head"><span class="rarity-chip ${entityRarity(method)}">${esc(rarityLabel(entityRarity(method)))}</span><b>${esc(asText(method.name))}</b><span>${this.textMarkup(asText(method.role, '修行方向'))}</span></div>
       <p>${this.textMarkup(asText(method.description, entitySummary(method)))}</p>
-      <div class="method-actions"><span><b>普攻</b>${esc(asText(basic?.name, '基础动作'))}<small>${this.textMarkup(asText(basic?.quick, '稳步出手'))}</small></span><span><b>怒技</b>${esc(asText(rage?.name, '怒技'))}<small>${this.textMarkup(asText(rage?.quick, '蓄满怒气后释放'))}</small></span><span><b>行旅</b><span class="method-travel-list">${travel.length ? travel.map((effect) => `<small>${this.textMarkup(asText(effect?.text, '完成节点后获得门派助益'))}</small>`).join('') : '<small>完成节点后获得门派助益</small>'}</span></span></div>`;
+      <div class="method-actions"><span><b>普攻</b>${esc(asText(basic?.name, '基础动作'))}<small>${this.textMarkup(asText(basic?.quick, '稳步出手'))}</small></span><span><b>怒技</b>${esc(asText(rage?.name, '怒技'))}<small>${this.textMarkup(asText(rage?.quick, '蓄满怒气后释放'))}</small></span><span><b>行旅</b><span class="method-travel-list">${travel.length ? travel.map((effect) => `<small>${this.textMarkup(asText(effect?.text, '完成节点后获得门派助益'))}</small>`).join('') : '<small>完成节点后获得门派助益</small>'}</span></span></div>
+      ${this.resonanceDetailsMarkup(method)}`;
   }
 
   private topbar(state: RunState): string {
@@ -2184,6 +2218,7 @@ class ShanhaiApp {
 
   private buildView(state: RunState): string {
     const method = this.methodEntity(state.method);
+    const resonance = this.resonanceBrief(method);
     const talents = listOf<string>(state.talents?.[state.method]).map((id) => this.talentEntity(state.method, id)).filter((item): item is Entity => Boolean(item));
     const owned = new Map(state.artifacts.map((item) => [item.id, item.stacks]));
     const visibleArtifacts = this.buildFilter === 'owned'
@@ -2195,6 +2230,7 @@ class ShanhaiApp {
     return `<section class="codex-page">
       ${this.stageHeading('当前命盘', asText(method?.name, state.method))}
       <section class="build-focus"><div class="build-focus-title"><strong>${esc(asText(method?.role, '修行方向'))}</strong><span class="gold">境界 · ${esc(this.realmName(state.n))}</span></div>
+        ${resonance ? `<p class="build-resonance-brief"><b>共鸣</b><span>${this.textMarkup(resonance)}</span></p>` : ''}
         <button class="text-link method-inspect" data-action="inspect-method" data-id="${esc(state.method)}">${icon('eye', 16)}功法详录</button>
       </section>
       ${this.equipmentBoardMarkup(state)}
@@ -2222,6 +2258,7 @@ class ShanhaiApp {
   private artifactCard(artifact: Entity, stacks: number): string {
     const rarity = entityRarity(artifact);
     const equipmentSlot = this.equipmentSlotLabel(artifact.id);
+    const resonance = this.resonanceBrief(artifact);
     const inventoryStatus = equipmentSlot
       ? `已装备 · ${equipmentSlot}`
       : stacks
@@ -2230,7 +2267,7 @@ class ShanhaiApp {
     return `<button type="button" class="ability-card rarity-${esc(rarity)} ${stacks ? 'owned' : ''}" data-action="inspect-artifact" data-id="${esc(artifact.id)}">
       <div class="card-top"><span class="rarity-label rarity-${esc(rarity)}">${esc(rarityLabel(rarity))} · 法宝</span><span class="card-rank">${stacks ? `×${formatNumber(stacks)}` : '未持有'}</span></div>
       <div class="card-heading">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : rarity === 'rare' ? 'shield' : 'jade'))}<h3 class="card-title rarity-${esc(rarity)}">${esc(artifact.name)}</h3></div>
-      <p class="ability-overview">${this.textMarkup(entitySummary(artifact) || '法宝效果详录可查看。')}</p>
+      <p class="ability-overview">${this.textMarkup(resonance || entitySummary(artifact) || '法宝效果详录可查看。')}</p>
       <div class="card-foot"><span class="gain">${esc(inventoryStatus)}</span><span>查看详录 ${icon('arrow', 14)}</span></div>
     </button>`;
   }
@@ -2838,6 +2875,25 @@ class ShanhaiApp {
       }).join('') || '<span class="muted">无战斗状态</span>';
   }
 
+  private fighterCounterItemsMarkup(fighter: FighterView): string {
+    return listOf<any>(fighter.counters).map((counter) => {
+      if (!isRecord(counter)) return '';
+      const id = asText(counter.id);
+      const name = asText(counter.name);
+      const value = Number(counter.value);
+      const max = Number(counter.max);
+      if (!id || !name || !Number.isFinite(value) || !Number.isFinite(max) || max < 0) return '';
+      const boundedValue = Math.min(max, Math.max(0, value));
+      const progress = `${formatNumber(boundedValue, 1)} / ${formatNumber(max, 1)}`;
+      return `<span class="fighter-counter" data-counter-id="${esc(id)}" title="${esc(`${name} ${progress}`)}"><b>${esc(name)}</b><i>${progress}</i></span>`;
+    }).filter(Boolean).join('');
+  }
+
+  private fighterCountersMarkup(fighter: FighterView): string {
+    const items = this.fighterCounterItemsMarkup(fighter);
+    return `<div class="fighter-counters" data-fighter-counters role="group" aria-label="战斗共鸣计数" ${items ? '' : 'hidden'}>${items}</div>`;
+  }
+
   private fighterLockedMarkup(fighter: FighterView): string {
     const locked = fighter.lockedAction ? [fighter.lockedAction] : [];
     return locked.length ? `<div class="locked-actions"><span>锁定</span>${locked.map(action => `<b>${esc(this.actionLabel(fighter.method, action))}</b>`).join('')}</div>` : '';
@@ -2866,6 +2922,7 @@ class ShanhaiApp {
         <div class="fighter-numbers"><span>怒气</span><span data-value="rage">${formatNumber(fighter.rage)} / ${formatNumber(fighter.rageCap)}</span></div>
         <div class="bar rage" role="progressbar" aria-label="${esc(`${fighter.name}怒气`)}" aria-valuemin="0" aria-valuemax="${fighter.rageCap}" aria-valuenow="${fighter.rage}"><span style="width:${pct(fighter.rage, fighter.rageCap)}%"></span></div>
       </div>
+      ${this.fighterCountersMarkup(fighter)}
     </article>`;
   }
 
@@ -2881,9 +2938,15 @@ class ShanhaiApp {
     const hp = element.querySelector<HTMLElement>('[data-value="hp"]');
     const shield = element.querySelector<HTMLElement>('[data-value="shield"]');
     const rage = element.querySelector<HTMLElement>('[data-value="rage"]');
+    const counters = element.querySelector<HTMLElement>('[data-fighter-counters]');
     if (hp) hp.textContent = formatNumber(fighter.hp);
     if (shield) shield.textContent = formatNumber(fighter.shield);
     if (rage) rage.textContent = `${formatNumber(fighter.rage)} / ${formatNumber(fighter.rageCap)}`;
+    if (counters) {
+      const markup = this.fighterCounterItemsMarkup(fighter);
+      counters.innerHTML = markup;
+      counters.hidden = !markup;
+    }
     const hpBar = element.querySelector<HTMLElement>('.bar.hp');
     const rageBar = element.querySelector<HTMLElement>('.bar.rage');
     if (hpBar) {
@@ -3140,6 +3203,7 @@ class ShanhaiApp {
   private rewardCard(id: string): string {
     const artifact = this.artifactEntity(id);
     const rarity = entityRarity(artifact);
+    const resonance = this.resonanceBrief(artifact);
     const owned = listOf<ArtifactStack>(this.gameState()?.artifacts).find((stack) => stack.id === id);
     const maxStacks = Math.max(1, asNumber(artifact?.max_stacks, 1));
     const stackText = owned
@@ -3149,7 +3213,12 @@ class ShanhaiApp {
     const summary = entitySummary(artifact);
     const summaryParts = summary.split(/[；;]/);
     const hasAttributes = Boolean(stats);
-    const mechanism = this.coreRewardSummary(artifact) || (hasAttributes
+    const resonanceMechanism = resonance
+      ? hasAttributes && summaryParts.length > 1
+        ? summaryParts.slice(1).join('；').trim() || resonance
+        : resonance
+      : '';
+    const mechanism = resonanceMechanism || this.coreRewardSummary(artifact) || (hasAttributes
       ? summaryParts.length > 1
         ? summaryParts.slice(1).join('；').trim()
         : this.displayText(asText(listOf<any>(artifact?.effects)[0]?.text))
@@ -4307,7 +4376,7 @@ class ShanhaiApp {
       return;
     }
     const record = {
-      format: 'suishi-shanhai-run-v2-journey',
+      format: 'suishi-shanhai-run-v2-resonance',
       exportedAt: new Date().toISOString(),
       contentVersion: this.content?.version,
       state: structuredClone(state),

@@ -4,11 +4,11 @@
   "experimentTrack": "V2 experimental; shanhai-content-0.2; uncalibrated",
   "note": "Real combat, unmodified authored numbers, deterministic heuristic decisions including legal equipment upgrades. Win/loss counts are the observed sample only, not a player win rate, V1 calibration result, or balance approval.",
   "total": 25,
-  "wins": 24,
+  "wins": 21,
   "byMethod": {
     "RKF01": {
       "runs": 5,
-      "wins": 5,
+      "wins": 4,
       "furthestAct": 5
     },
     "RKF02": {
@@ -18,7 +18,7 @@
     },
     "RKF03": {
       "runs": 5,
-      "wins": 4,
+      "wins": 3,
       "furthestAct": 5
     },
     "RKF04": {
@@ -28,7 +28,7 @@
     },
     "RKF05": {
       "runs": 5,
-      "wins": 5,
+      "wins": 4,
       "furthestAct": 5
     }
   },
@@ -61,196 +61,196 @@
           "node": "EN-A1-C2",
           "round": 3,
           "result": "player",
-          "hpAfter": 398.61999999999995
+          "hpAfter": 385.35999999999996
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
-          "round": 3,
+          "round": 4,
           "result": "player",
-          "hpAfter": 349.4396594059406
+          "hpAfter": 351.53315445544547
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 3,
           "result": "player",
-          "hpAfter": 324.0401744273998
+          "hpAfter": 309.55766947690466
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
           "round": 3,
           "result": "player",
-          "hpAfter": 405.0401744273998
+          "hpAfter": 390.55766947690466
         },
         {
           "act": 1,
           "node": "EN-A1-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 377.8472212359104
+          "hpAfter": 387.57959288115995
         },
         {
           "act": 1,
           "node": "EN-A1-L1",
           "round": 3,
           "result": "player",
-          "hpAfter": 268.14100846995296
+          "hpAfter": 277.2932950088195
         },
         {
           "act": 1,
           "node": "EN-A1-B1",
           "round": 4,
           "result": "player",
-          "hpAfter": 205.7996678841789
+          "hpAfter": 297.73729500881944
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 211.74286788417888
+          "hpAfter": 303.68049500881943
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 213.74286788417888
+          "hpAfter": 310.40809500881943
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 218.47046788417887
+          "hpAfter": 315.1356950088194
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
           "round": 1,
           "result": "player",
-          "hpAfter": 218.47046788417887
+          "hpAfter": 315.1356950088194
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
           "round": 1,
           "result": "player",
-          "hpAfter": 218.47046788417887
+          "hpAfter": 315.1356950088194
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 218.47046788417887
+          "hpAfter": 315.1356950088194
         },
         {
           "act": 2,
           "node": "EN-A2-L1",
           "round": 1,
           "result": "player",
-          "hpAfter": 218.47046788417887
+          "hpAfter": 315.1356950088194
         },
         {
           "act": 2,
           "node": "EN-A2-B2",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 224.58566788417886
+          "hpAfter": 327.36609500881946
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 224.58566788417886
+          "hpAfter": 327.36609500881946
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 302.98566788417884
+          "hpAfter": 405.76609500881943
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 381.3856678841788
+          "hpAfter": 484.1660950088194
         },
         {
           "act": 3,
           "node": "EN-A3-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 459.7856678841788
+          "hpAfter": 562.5660950088194
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 538.1856678841788
+          "hpAfter": 640.9660950088194
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 616.5856678841787
+          "hpAfter": 719.3660950088193
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 1,
           "result": "player",
-          "hpAfter": 710.9856678841787
+          "hpAfter": 813.7660950088193
         },
         {
           "act": 3,
           "node": "EN-A3-B1",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 805.3856678841787
+          "hpAfter": 908.1660950088193
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 899.7856678841787
+          "hpAfter": 1002.5660950088193
         },
         {
           "act": 4,
           "node": "EN-A4-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 876.7422994631261
+          "hpAfter": 1023.4922556736393
         },
         {
           "act": 4,
           "node": "EN-A4-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 971.142299463126
+          "hpAfter": 1117.8922556736393
         },
         {
           "act": 4,
           "node": "EN-A4-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 1065.542299463126
+          "hpAfter": 1180
         },
         {
           "act": 4,
           "node": "EN-A4-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 1159.9422994631261
+          "hpAfter": 1180
         },
         {
           "act": 4,
@@ -278,248 +278,35 @@
     {
       "seed": "acceptance-1",
       "method": "RKF01",
-      "result": "won",
-      "act": 5,
-      "step": 0,
-      "nodes": 45,
-      "n": 4,
-      "hp": 505.60838296795515,
-      "xp": 3620,
+      "result": "lost",
+      "act": 1,
+      "step": 2,
+      "nodes": 2,
+      "n": 0,
+      "hp": 0,
+      "xp": 60,
       "phases": [
         "map",
         "preview",
         "battle",
         "reward",
         "event",
-        "event_result",
-        "talent",
-        "rest",
-        "transition"
+        "event_result"
       ],
       "battles": [
         {
           "act": 1,
           "node": "EN-A1-C3",
-          "round": 3,
+          "round": 4,
           "result": "player",
-          "hpAfter": 389.24199999999996
+          "hpAfter": 314.0759999999999
         },
         {
           "act": 1,
           "node": "EN-A1-L1",
-          "round": 4,
-          "result": "player",
-          "hpAfter": 118.85274851485147
-        },
-        {
-          "act": 1,
-          "node": "EN-A1-C4",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 368.85274851485144
-        },
-        {
-          "act": 1,
-          "node": "EN-A1-C1",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 368.85274851485144
-        },
-        {
-          "act": 1,
-          "node": "EN-A1-C2",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 368.85274851485144
-        },
-        {
-          "act": 1,
-          "node": "EN-A1-C1",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 395.7767485148514
-        },
-        {
-          "act": 1,
-          "node": "EN-A1-B1",
-          "round": 6,
-          "result": "player",
-          "hpAfter": 481.9647088495794
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C2",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 535.8127088495794
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C3",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 726.4287088495794
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C3",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 795
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C3",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C4",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C1",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-L2",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-B1",
-          "round": 4,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-C3",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-C2",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-C2",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-C4",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-C1",
-          "round": 1,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-C4",
-          "round": 1,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-C2",
-          "round": 1,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-B2",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C2",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C2",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C1",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C1",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C4",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C1",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C3",
-          "round": 1,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-B2",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 754.1231489254019
-        },
-        {
-          "act": 5,
-          "node": "EN-F1",
-          "round": 4,
-          "result": "player",
-          "hpAfter": 505.60838296795515
+          "round": 5,
+          "result": "enemy",
+          "hpAfter": 0
         }
       ]
     },
@@ -531,7 +318,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 950.9188411214955,
+      "hp": 907.7412710280373,
       "xp": 3062,
       "phases": [
         "map",
@@ -551,133 +338,133 @@
           "node": "EN-A1-C1",
           "round": 3,
           "result": "player",
-          "hpAfter": 370.7515
+          "hpAfter": 396.15549999999996
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
-          "round": 3,
+          "round": 4,
           "result": "player",
-          "hpAfter": 321.57115940594065
+          "hpAfter": 362.3286544554455
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 321.57115940594065
+          "hpAfter": 362.3286544554455
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 321.57115940594065
+          "hpAfter": 362.3286544554455
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 321.57115940594065
+          "hpAfter": 362.3286544554455
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 323.57115940594065
+          "hpAfter": 364.3286544554455
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 325.57115940594065
+          "hpAfter": 366.3286544554455
         },
         {
           "act": 1,
           "node": "EN-A1-B1",
           "round": 5,
           "result": "player",
-          "hpAfter": 154.08752971161746
+          "hpAfter": 317.11576711920094
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 156.08752971161746
+          "hpAfter": 319.11576711920094
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 355.83752971161744
+          "hpAfter": 518.8657671192009
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 359.83752971161744
+          "hpAfter": 522.8657671192009
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 361.83752971161744
+          "hpAfter": 524.8657671192009
         },
         {
           "act": 2,
           "node": "EN-A2-L2",
           "round": 2,
           "result": "player",
-          "hpAfter": 365.83752971161744
+          "hpAfter": 528.8657671192009
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 367.83752971161744
+          "hpAfter": 530.8657671192009
         },
         {
           "act": 2,
           "node": "EN-A2-B2",
           "round": 3,
           "result": "player",
-          "hpAfter": 367.83752971161744
+          "hpAfter": 530.8657671192009
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 367.83752971161744
+          "hpAfter": 530.8657671192009
         },
         {
           "act": 3,
           "node": "EN-A3-C2",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 560.2375297116174
+          "hpAfter": 723.2657671192009
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 638.6375297116174
+          "hpAfter": 801.6657671192008
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 717.0375297116174
+          "hpAfter": 880.0657671192008
         },
         {
           "act": 3,
@@ -689,9 +476,9 @@
         {
           "act": 3,
           "node": "EN-A3-B1",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 978.1285874125874
+          "hpAfter": 975.820895104895
         },
         {
           "act": 4,
@@ -705,19 +492,19 @@
           "node": "EN-A4-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 997.859179331307
+          "hpAfter": 1053.7117629179331
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 1092.259179331307
+          "hpAfter": 1148.1117629179332
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
-          "round": 1,
+          "round": 2,
           "result": "player",
           "hpAfter": 1180
         },
@@ -733,14 +520,14 @@
           "node": "EN-A4-B2",
           "round": 3,
           "result": "player",
-          "hpAfter": 1180
+          "hpAfter": 1159.1307074326735
         },
         {
           "act": 5,
           "node": "EN-F1",
           "round": 3,
           "result": "player",
-          "hpAfter": 950.9188411214955
+          "hpAfter": 907.7412710280373
         }
       ]
     },
@@ -770,58 +557,58 @@
         {
           "act": 1,
           "node": "EN-A1-C4",
-          "round": 3,
+          "round": 4,
           "result": "player",
-          "hpAfter": 383.03999999999996
+          "hpAfter": 399.26875
         },
         {
           "act": 1,
           "node": "EN-A1-L2",
           "round": 5,
           "result": "player",
-          "hpAfter": 289.90315789473686
+          "hpAfter": 236.92138157894746
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 571.1531578947369
+          "hpAfter": 518.1713815789475
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 539.0629319533142
+          "hpAfter": 486.0811556375249
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 592.9097740585773
+          "hpAfter": 547.7409296961023
         },
         {
           "act": 1,
           "node": "EN-A1-L2",
-          "round": 3,
+          "round": 4,
           "result": "player",
-          "hpAfter": 598.8533355648533
+          "hpAfter": 518.2887710140473
         },
         {
           "act": 1,
           "node": "EN-A1-B1",
           "round": 5,
           "result": "player",
-          "hpAfter": 546.0609800092975
+          "hpAfter": 551.9161685449114
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 567.7992270212499
+          "hpAfter": 576.9890769114455
         },
         {
           "act": 2,
@@ -882,7 +669,7 @@
         {
           "act": 3,
           "node": "EN-A3-C1",
-          "round": 1,
+          "round": 2,
           "result": "player",
           "hpAfter": 980
         },
@@ -905,7 +692,7 @@
           "node": "EN-A3-B1",
           "round": 2,
           "result": "player",
-          "hpAfter": 974.5629090909091
+          "hpAfter": 957.472
         },
         {
           "act": 4,
@@ -966,7 +753,7 @@
         {
           "act": 5,
           "node": "EN-F2",
-          "round": 3,
+          "round": 2,
           "result": "player",
           "hpAfter": 1180
         }
@@ -980,7 +767,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 1035.5233368146214,
+      "hp": 982.8862610966058,
       "xp": 3412,
       "phases": [
         "map",
@@ -1000,175 +787,175 @@
           "node": "EN-A1-C1",
           "round": 3,
           "result": "player",
-          "hpAfter": 370.7515
+          "hpAfter": 396.15549999999996
         },
         {
           "act": 1,
           "node": "EN-A1-L2",
-          "round": 5,
+          "round": 6,
           "result": "player",
-          "hpAfter": 272.5701743220557
+          "hpAfter": 182.11103369743637
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 3,
           "result": "player",
-          "hpAfter": 267.8186429413026
+          "hpAfter": 160.78350231668318
         },
         {
           "act": 1,
           "node": "EN-A1-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 363.5686429413026
+          "hpAfter": 256.5335023166832
         },
         {
           "act": 1,
           "node": "EN-A1-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 369.1302429413026
+          "hpAfter": 252.66198097777107
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 376.9382429413026
+          "hpAfter": 260.46998097777106
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 382.99744294130255
+          "hpAfter": 266.52918097777103
         },
         {
           "act": 1,
           "node": "EN-A1-B2",
           "round": 4,
           "result": "player",
-          "hpAfter": 405.29344294130254
+          "hpAfter": 288.825180977771
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 3,
           "result": "player",
-          "hpAfter": 420.74544294130254
+          "hpAfter": 304.277180977771
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 430.05544294130254
+          "hpAfter": 313.587180977771
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 532.6826429413026
+          "hpAfter": 416.21438097777104
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 540.3770429413025
+          "hpAfter": 423.908780977771
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 548.0714429413025
+          "hpAfter": 431.603180977771
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 555.7658429413025
+          "hpAfter": 439.29758097777096
         },
         {
           "act": 2,
           "node": "EN-A2-B2",
           "round": 3,
           "result": "player",
-          "hpAfter": 571.1546429413024
+          "hpAfter": 462.38078097777094
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 580.5962429413024
+          "hpAfter": 471.82238097777093
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 590.0378429413024
+          "hpAfter": 481.2639809777709
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 837.0466429413024
+          "hpAfter": 728.2727809777708
         },
         {
           "act": 3,
           "node": "EN-A3-L1",
           "round": 2,
           "result": "player",
-          "hpAfter": 846.5554429413023
+          "hpAfter": 737.7815809777708
         },
         {
           "act": 3,
           "node": "EN-A3-L1",
           "round": 2,
           "result": "player",
-          "hpAfter": 943.5649999999999
+          "hpAfter": 861.5591809777708
         },
         {
           "act": 3,
           "node": "EN-A3-B1",
           "round": 2,
           "result": "player",
-          "hpAfter": 943.5649999999999
+          "hpAfter": 861.5591809777708
         },
         {
           "act": 4,
           "node": "EN-A4-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 1037.965
+          "hpAfter": 955.9591809777708
         },
         {
           "act": 4,
           "node": "EN-A4-C4",
           "round": 3,
           "result": "player",
-          "hpAfter": 1025.8769466666668
+          "hpAfter": 999.5457943111041
         },
         {
           "act": 4,
           "node": "EN-A4-C4",
           "round": 3,
           "result": "player",
-          "hpAfter": 1013.7888933333335
+          "hpAfter": 1043.1324076444375
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
           "round": 3,
           "result": "player",
-          "hpAfter": 1108.1888933333335
+          "hpAfter": 1137.5324076444376
         },
         {
           "act": 4,
@@ -1187,7 +974,7 @@
         {
           "act": 4,
           "node": "EN-A4-C2",
-          "round": 2,
+          "round": 3,
           "result": "player",
           "hpAfter": 1180
         },
@@ -1196,14 +983,14 @@
           "node": "EN-A4-B1",
           "round": 3,
           "result": "player",
-          "hpAfter": 1132.1826666666666
+          "hpAfter": 1145.9053333333334
         },
         {
           "act": 5,
           "node": "EN-F1",
           "round": 4,
           "result": "player",
-          "hpAfter": 1035.5233368146214
+          "hpAfter": 982.8862610966058
         }
       ]
     },
@@ -1215,7 +1002,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 1086.3886762804989,
+      "hp": 1118.2445321363548,
       "xp": 3680,
       "phases": [
         "map",
@@ -1233,184 +1020,184 @@
         {
           "act": 1,
           "node": "EN-A1-C2",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 438.79999999999995
+          "hpAfter": 365.35999999999996
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
           "round": 3,
           "result": "player",
-          "hpAfter": 408.799603960396
+          "hpAfter": 345.4586138613861
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 408.799603960396
+          "hpAfter": 345.4586138613861
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 414.799603960396
+          "hpAfter": 351.4586138613861
         },
         {
           "act": 1,
           "node": "EN-A1-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 418.799603960396
+          "hpAfter": 355.4586138613861
         },
         {
           "act": 1,
           "node": "EN-A1-L1",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 338.2031638516035
+          "hpAfter": 212.89057063024413
         },
         {
           "act": 1,
           "node": "EN-A1-B1",
-          "round": 3,
+          "round": 4,
           "result": "player",
-          "hpAfter": 277.3770755507081
+          "hpAfter": 182.95386618729222
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 282.7690755507081
+          "hpAfter": 188.34586618729222
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 286.90307555070814
+          "hpAfter": 192.4798661872922
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 291.03707555070815
+          "hpAfter": 196.61386618729222
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
           "round": 1,
           "result": "player",
-          "hpAfter": 291.03707555070815
+          "hpAfter": 196.61386618729222
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 291.03707555070815
+          "hpAfter": 196.61386618729222
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 291.03707555070815
+          "hpAfter": 196.61386618729222
         },
         {
           "act": 2,
           "node": "EN-A2-L1",
           "round": 1,
           "result": "player",
-          "hpAfter": 291.03707555070815
+          "hpAfter": 196.61386618729222
         },
         {
           "act": 2,
           "node": "EN-A2-B2",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 296.3458755507082
+          "hpAfter": 207.2314661872922
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 296.3458755507082
+          "hpAfter": 207.2314661872922
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 374.7458755507082
+          "hpAfter": 285.6314661872922
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 453.1458755507082
+          "hpAfter": 364.03146618729215
         },
         {
           "act": 3,
           "node": "EN-A3-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 531.5458755507082
+          "hpAfter": 442.43146618729213
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 609.9458755507081
+          "hpAfter": 520.8314661872921
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 704.3458755507081
+          "hpAfter": 615.2314661872921
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 1,
           "result": "player",
-          "hpAfter": 798.7458755507081
+          "hpAfter": 709.6314661872921
         },
         {
           "act": 3,
           "node": "EN-A3-B1",
           "round": 1,
           "result": "player",
-          "hpAfter": 893.1458755507081
+          "hpAfter": 804.031466187292
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 987.545875550708
+          "hpAfter": 898.431466187292
         },
         {
           "act": 4,
           "node": "EN-A4-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 1081.303445987131
+          "hpAfter": 992.831466187292
         },
         {
           "act": 4,
           "node": "EN-A4-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 1175.703445987131
+          "hpAfter": 1087.231466187292
         },
         {
           "act": 4,
@@ -1436,7 +1223,7 @@
         {
           "act": 4,
           "node": "EN-A4-B2",
-          "round": 2,
+          "round": 3,
           "result": "player",
           "hpAfter": 1173.9717702518612
         },
@@ -1445,7 +1232,7 @@
           "node": "EN-F2",
           "round": 3,
           "result": "player",
-          "hpAfter": 1086.3886762804989
+          "hpAfter": 1118.2445321363548
         }
       ]
     },
@@ -1457,7 +1244,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 523.3724321133508,
+      "hp": 245.67490352441166,
       "xp": 3830,
       "phases": [
         "map",
@@ -1476,224 +1263,224 @@
           "node": "EN-A1-C3",
           "round": 3,
           "result": "player",
-          "hpAfter": 369.24199999999996
+          "hpAfter": 352.66599999999994
         },
         {
           "act": 1,
           "node": "EN-A1-L1",
-          "round": 3,
+          "round": 4,
           "result": "player",
-          "hpAfter": 163.78536633663367
+          "hpAfter": 60.163029702970206
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 413.7853663366337
+          "hpAfter": 310.1630297029702
         },
         {
           "act": 1,
           "node": "EN-A1-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 413.7853663366337
+          "hpAfter": 310.1630297029702
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 413.7853663366337
+          "hpAfter": 310.1630297029702
         },
         {
           "act": 1,
           "node": "EN-A1-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 413.7853663366337
+          "hpAfter": 310.1630297029702
         },
         {
           "act": 1,
           "node": "EN-A1-B1",
           "round": 4,
           "result": "player",
-          "hpAfter": 327.4143189058036
+          "hpAfter": 291.88338543419553
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 327.4143189058036
+          "hpAfter": 291.88338543419553
+        },
+        {
+          "act": 2,
+          "node": "EN-A2-C3",
+          "round": 2,
+          "result": "player",
+          "hpAfter": 446.88338543419553
+        },
+        {
+          "act": 2,
+          "node": "EN-A2-C3",
+          "round": 2,
+          "result": "player",
+          "hpAfter": 446.88338543419553
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 1,
           "result": "player",
-          "hpAfter": 482.4143189058036
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C3",
-          "round": 1,
-          "result": "player",
-          "hpAfter": 482.4143189058036
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C3",
-          "round": 1,
-          "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 601.8833854341956
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 601.8833854341956
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 1,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 601.8833854341956
         },
         {
           "act": 2,
           "node": "EN-A2-L2",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 601.8833854341956
         },
         {
           "act": 2,
           "node": "EN-A2-B1",
           "round": 2,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 601.8833854341956
         },
         {
           "act": 3,
           "node": "EN-A3-C3",
           "round": 1,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 601.8833854341956
         },
         {
           "act": 3,
           "node": "EN-A3-C2",
           "round": 1,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 601.8833854341956
         },
         {
           "act": 3,
           "node": "EN-A3-C2",
           "round": 1,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 601.8833854341956
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 601.8833854341956
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 1,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 601.8833854341956
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 601.8833854341956
         },
         {
           "act": 3,
           "node": "EN-A3-C2",
           "round": 1,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 601.8833854341956
         },
         {
           "act": 3,
           "node": "EN-A3-B2",
           "round": 1,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 601.8833854341956
         },
         {
           "act": 4,
           "node": "EN-A4-C2",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 601.8833854341956
         },
         {
           "act": 4,
           "node": "EN-A4-C2",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 601.8833854341956
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 601.8833854341956
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 601.8833854341956
         },
         {
           "act": 4,
           "node": "EN-A4-C4",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 510.46861454470775
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
           "round": 1,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 510.46861454470775
         },
         {
           "act": 4,
           "node": "EN-A4-C3",
           "round": 1,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 510.46861454470775
         },
         {
           "act": 4,
           "node": "EN-A4-B2",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 637.4143189058036
+          "hpAfter": 483.30660163761917
         },
         {
           "act": 5,
           "node": "EN-F1",
           "round": 2,
           "result": "player",
-          "hpAfter": 523.3724321133508
+          "hpAfter": 245.67490352441166
         }
       ]
     },
@@ -1705,7 +1492,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 1180,
+      "hp": 888.8169719626169,
       "xp": 3296,
       "phases": [
         "map",
@@ -1723,135 +1510,135 @@
         {
           "act": 1,
           "node": "EN-A1-C1",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 410.064
+          "hpAfter": 376.15549999999996
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
           "round": 3,
           "result": "player",
-          "hpAfter": 380.06360396039605
+          "hpAfter": 356.2541138613861
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 380.06360396039605
+          "hpAfter": 356.2541138613861
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 377.78386827757663
+          "hpAfter": 351.7276821433244
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 377.78386827757663
+          "hpAfter": 351.7276821433244
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 379.78386827757663
+          "hpAfter": 353.7276821433244
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 381.78386827757663
+          "hpAfter": 355.7276821433244
         },
         {
           "act": 1,
           "node": "EN-A1-B1",
           "round": 3,
           "result": "player",
-          "hpAfter": 282.7717273084136
+          "hpAfter": 309.14892443407325
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 284.7717273084136
+          "hpAfter": 311.14892443407325
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 1,
           "result": "player",
-          "hpAfter": 478.5217273084136
+          "hpAfter": 504.89892443407325
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 1,
           "result": "player",
-          "hpAfter": 478.5217273084136
+          "hpAfter": 504.89892443407325
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 478.5217273084136
+          "hpAfter": 504.89892443407325
         },
         {
           "act": 2,
           "node": "EN-A2-L2",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 478.5217273084136
+          "hpAfter": 504.89892443407325
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 1,
           "result": "player",
-          "hpAfter": 478.5217273084136
+          "hpAfter": 504.89892443407325
         },
         {
           "act": 2,
           "node": "EN-A2-B2",
           "round": 2,
           "result": "player",
-          "hpAfter": 478.5217273084136
+          "hpAfter": 504.89892443407325
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 478.5217273084136
+          "hpAfter": 504.89892443407325
         },
         {
           "act": 3,
           "node": "EN-A3-C2",
           "round": 1,
           "result": "player",
-          "hpAfter": 670.9217273084136
+          "hpAfter": 697.2989244340732
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 749.3217273084135
+          "hpAfter": 775.6989244340732
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 827.7217273084135
+          "hpAfter": 854.0989244340732
         },
         {
           "act": 3,
@@ -1905,16 +1692,16 @@
         {
           "act": 4,
           "node": "EN-A4-B2",
-          "round": 1,
+          "round": 2,
           "result": "player",
           "hpAfter": 1180
         },
         {
           "act": 5,
           "node": "EN-F1",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 1180
+          "hpAfter": 888.8169719626169
         }
       ]
     },
@@ -1926,7 +1713,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 970.4717485647454,
+      "hp": 908.6175211594976,
       "xp": 3438,
       "phases": [
         "map",
@@ -1946,84 +1733,84 @@
           "node": "EN-A1-C4",
           "round": 3,
           "result": "player",
-          "hpAfter": 405.76
+          "hpAfter": 415.96000000000004
         },
         {
           "act": 1,
           "node": "EN-A1-L2",
           "round": 4,
           "result": "player",
-          "hpAfter": 325.47315789473686
+          "hpAfter": 272.55263157894746
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 563.1920467836258
+          "hpAfter": 514.8048538011697
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 515.646883788031
+          "hpAfter": 467.2596908055749
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 561.8517207924363
+          "hpAfter": 513.4645278099802
         },
         {
           "act": 1,
           "node": "EN-A1-L2",
           "round": 3,
           "result": "player",
-          "hpAfter": 425.5313617014519
+          "hpAfter": 347.8796529567689
         },
         {
           "act": 1,
           "node": "EN-A1-B1",
-          "round": 3,
+          "round": 4,
           "result": "player",
-          "hpAfter": 261.04905137412476
+          "hpAfter": 204.23792648738527
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 288.42236387412476
+          "hpAfter": 237.79186398738526
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 1,
           "result": "player",
-          "hpAfter": 546.5723638741248
+          "hpAfter": 495.94186398738526
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 703.9723638741248
+          "hpAfter": 653.3418639873853
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
           "round": 1,
           "result": "player",
-          "hpAfter": 768.3723638741247
+          "hpAfter": 717.7418639873853
         },
         {
           "act": 2,
           "node": "EN-A2-L1",
           "round": 1,
           "result": "player",
-          "hpAfter": 805
+          "hpAfter": 782.1418639873852
         },
         {
           "act": 2,
@@ -2091,16 +1878,16 @@
         {
           "act": 4,
           "node": "EN-A4-L2",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 1168.8000000000002
+          "hpAfter": 1048.6005989056807
         },
         {
           "act": 4,
           "node": "EN-A4-C3",
           "round": 1,
           "result": "player",
-          "hpAfter": 1180
+          "hpAfter": 1143.0005989056808
         },
         {
           "act": 4,
@@ -2112,37 +1899,37 @@
         {
           "act": 4,
           "node": "EN-A4-C4",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 1180
+          "hpAfter": 1047.0676413793103
         },
         {
           "act": 4,
           "node": "EN-A4-C4",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 1180
+          "hpAfter": 1008.5352827586207
         },
         {
           "act": 4,
           "node": "EN-A4-C3",
           "round": 1,
           "result": "player",
-          "hpAfter": 1180
+          "hpAfter": 1102.9352827586208
         },
         {
           "act": 4,
           "node": "EN-A4-B2",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 1149.1686632879141
+          "hpAfter": 1093.7658888806393
         },
         {
           "act": 5,
           "node": "EN-F2",
-          "round": 4,
+          "round": 5,
           "result": "player",
-          "hpAfter": 970.4717485647454
+          "hpAfter": 908.6175211594976
         }
       ]
     },
@@ -2154,7 +1941,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 1006.2455770234988,
+      "hp": 967.8643759791123,
       "xp": 3658,
       "phases": [
         "map",
@@ -2172,196 +1959,196 @@
         {
           "act": 1,
           "node": "EN-A1-C1",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 410.064
+          "hpAfter": 376.15549999999996
         },
         {
           "act": 1,
           "node": "EN-A1-L2",
-          "round": 4,
+          "round": 5,
           "result": "player",
-          "hpAfter": 301.32926600522404
+          "hpAfter": 167.68868122218885
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 301.32926600522404
+          "hpAfter": 167.68868122218885
         },
         {
           "act": 1,
           "node": "EN-A1-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 397.07926600522404
+          "hpAfter": 263.43868122218885
         },
         {
           "act": 1,
           "node": "EN-A1-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 402.64086600522404
+          "hpAfter": 269.00028122218885
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 410.44886600522403
+          "hpAfter": 276.80828122218884
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 416.508066005224
+          "hpAfter": 282.8674812221888
         },
         {
           "act": 1,
           "node": "EN-A1-B2",
           "round": 3,
           "result": "player",
-          "hpAfter": 421.90459380605387
+          "hpAfter": 297.0450812221888
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 1,
           "result": "player",
-          "hpAfter": 423.90459380605387
+          "hpAfter": 299.0450812221888
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 1,
           "result": "player",
-          "hpAfter": 423.90459380605387
+          "hpAfter": 299.0450812221888
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 516.9045938060539
+          "hpAfter": 392.0450812221888
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 516.9045938060539
+          "hpAfter": 392.0450812221888
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
           "round": 1,
           "result": "player",
-          "hpAfter": 516.9045938060539
+          "hpAfter": 392.0450812221888
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
           "round": 1,
           "result": "player",
-          "hpAfter": 516.9045938060539
+          "hpAfter": 392.0450812221888
         },
         {
           "act": 2,
           "node": "EN-A2-B2",
           "round": 2,
           "result": "player",
-          "hpAfter": 525.9429938060539
+          "hpAfter": 401.0834812221888
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 525.9429938060539
+          "hpAfter": 404.9494812221888
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 525.9429938060539
+          "hpAfter": 408.8154812221888
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 763.4429938060539
+          "hpAfter": 646.3154812221887
+        },
+        {
+          "act": 3,
+          "node": "EN-A3-L1",
+          "round": 2,
+          "result": "player",
+          "hpAfter": 646.3154812221887
         },
         {
           "act": 3,
           "node": "EN-A3-L1",
           "round": 1,
           "result": "player",
-          "hpAfter": 763.4429938060539
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-L1",
-          "round": 1,
-          "result": "player",
-          "hpAfter": 877.4429938060539
+          "hpAfter": 760.3154812221887
         },
         {
           "act": 3,
           "node": "EN-A3-B1",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 877.4429938060539
+          "hpAfter": 754.88270559892
         },
         {
           "act": 4,
           "node": "EN-A4-C3",
           "round": 1,
           "result": "player",
-          "hpAfter": 971.8429938060539
+          "hpAfter": 849.28270559892
         },
         {
           "act": 4,
           "node": "EN-A4-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 939.4602738060538
+          "hpAfter": 859.2279855989199
         },
         {
           "act": 4,
           "node": "EN-A4-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 907.0775538060537
+          "hpAfter": 869.1732655989198
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 1001.4775538060537
+          "hpAfter": 963.5732655989198
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 1095.8775538060538
+          "hpAfter": 1057.9732655989199
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
-          "round": 1,
+          "round": 2,
           "result": "player",
           "hpAfter": 1180
         },
         {
           "act": 4,
           "node": "EN-A4-C2",
-          "round": 1,
+          "round": 2,
           "result": "player",
           "hpAfter": 1180
         },
@@ -2370,14 +2157,14 @@
           "node": "EN-A4-B1",
           "round": 2,
           "result": "player",
-          "hpAfter": 1132.8373333333334
+          "hpAfter": 1132.3946666666666
         },
         {
           "act": 5,
           "node": "EN-F1",
           "round": 3,
           "result": "player",
-          "hpAfter": 1006.2455770234988
+          "hpAfter": 967.8643759791123
         }
       ]
     },
@@ -2409,131 +2196,131 @@
           "node": "EN-A1-C2",
           "round": 4,
           "result": "player",
-          "hpAfter": 376.69999999999993
+          "hpAfter": 368.53999999999996
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
-          "round": 5,
+          "round": 6,
           "result": "player",
-          "hpAfter": 324.6338613861385
+          "hpAfter": 289.63257425742574
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
-          "round": 3,
+          "round": 4,
           "result": "player",
-          "hpAfter": 296.4383764075977
+          "hpAfter": 204.99941545914234
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
           "round": 4,
           "result": "player",
-          "hpAfter": 453.0578232161083
+          "hpAfter": 359.8583259202709
         },
         {
           "act": 1,
           "node": "EN-A1-C1",
           "round": 3,
           "result": "player",
-          "hpAfter": 460.74487002461893
+          "hpAfter": 391.76024932452617
         },
         {
           "act": 1,
           "node": "EN-A1-L1",
-          "round": 4,
+          "round": 5,
           "result": "player",
-          "hpAfter": 307.9221040671721
+          "hpAfter": 178.69305783516435
         },
         {
           "act": 1,
           "node": "EN-A1-B1",
-          "round": 7,
+          "round": 6,
           "result": "player",
-          "hpAfter": 154.6854513475067
+          "hpAfter": 157.3619565799342
+        },
+        {
+          "act": 2,
+          "node": "EN-A2-C1",
+          "round": 3,
+          "result": "player",
+          "hpAfter": 196.59155657993418
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 173.32865134750668
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C1",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 242.22585134750668
+          "hpAfter": 280.98875657993415
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 278.1230513475067
+          "hpAfter": 326.68035657993414
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 345.0202513475067
+          "hpAfter": 409.07755657993414
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 360.5202513475067
+          "hpAfter": 424.57755657993414
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 438.0202513475067
+          "hpAfter": 502.07755657993414
         },
         {
           "act": 2,
           "node": "EN-A2-L1",
           "round": 2,
           "result": "player",
-          "hpAfter": 455.0804113475067
+          "hpAfter": 519.1377165799341
         },
         {
           "act": 2,
           "node": "EN-A2-B2",
           "round": 4,
           "result": "player",
-          "hpAfter": 543.2804113475067
+          "hpAfter": 607.3377165799342
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
-          "round": 4,
+          "round": 5,
           "result": "player",
-          "hpAfter": 612.8051660644879
+          "hpAfter": 661.6359807308777
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
-          "round": 4,
+          "round": 5,
           "result": "player",
-          "hpAfter": 831.3714302154314
+          "hpAfter": 866.3908486554061
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 3,
           "result": "player",
-          "hpAfter": 928.5949773852427
+          "hpAfter": 943.6463958252175
         },
         {
           "act": 3,
           "node": "EN-A3-C3",
-          "round": 3,
+          "round": 4,
           "result": "player",
           "hpAfter": 1020
         },
@@ -2542,7 +2329,7 @@
           "node": "EN-A3-C4",
           "round": 4,
           "result": "player",
-          "hpAfter": 967.2047046037736
+          "hpAfter": 1010.0142218867926
         },
         {
           "act": 3,
@@ -2554,16 +2341,16 @@
         {
           "act": 3,
           "node": "EN-A3-C1",
-          "round": 3,
+          "round": 4,
           "result": "player",
-          "hpAfter": 1230
+          "hpAfter": 1229.143818624768
         },
         {
           "act": 3,
           "node": "EN-A3-B1",
           "round": 4,
           "result": "player",
-          "hpAfter": 1230
+          "hpAfter": 1214.3419376770537
         },
         {
           "act": 4,
@@ -2577,14 +2364,14 @@
           "node": "EN-A4-C4",
           "round": 5,
           "result": "player",
-          "hpAfter": 1166.3174736842107
+          "hpAfter": 1088.0357335844874
         },
         {
           "act": 4,
           "node": "EN-A4-C2",
           "round": 4,
           "result": "player",
-          "hpAfter": 1194.9405540166206
+          "hpAfter": 1200
         },
         {
           "act": 4,
@@ -2605,7 +2392,7 @@
           "node": "EN-A4-C4",
           "round": 4,
           "result": "player",
-          "hpAfter": 1176.9879157894736
+          "hpAfter": 1118.0762272576178
         },
         {
           "act": 4,
@@ -2645,14 +2432,14 @@
         {
           "act": 1,
           "node": "EN-A1-C3",
-          "round": 4,
+          "round": 5,
           "result": "player",
-          "hpAfter": 319.3639999999999
+          "hpAfter": 236.19799999999987
         },
         {
           "act": 1,
           "node": "EN-A1-L1",
-          "round": 7,
+          "round": 6,
           "result": "enemy",
           "hpAfter": 0
         }
@@ -2666,7 +2453,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 1119.3136211677568,
+      "hp": 1045.051038053834,
       "xp": 2990,
       "phases": [
         "map",
@@ -2686,89 +2473,89 @@
           "node": "EN-A1-C1",
           "round": 4,
           "result": "player",
-          "hpAfter": 295.8155
+          "hpAfter": 295.78082499999994
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
-          "round": 5,
+          "round": 6,
           "result": "player",
-          "hpAfter": 243.7493613861386
+          "hpAfter": 203.40805272277225
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 3,
           "result": "player",
-          "hpAfter": 228.1702241416168
+          "hpAfter": 171.25291547825043
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 277.65382632211765
+          "hpAfter": 219.30663741601873
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 298.4696728333134
+          "hpAfter": 190.39448392721442
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 351.2696728333134
+          "hpAfter": 255.8944839272144
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 435.3136728333134
+          "hpAfter": 339.9384839272144
         },
         {
           "act": 1,
           "node": "EN-A1-B1",
-          "round": 4,
+          "round": 6,
           "result": "player",
-          "hpAfter": 474.4564558283395
+          "hpAfter": 534.7230470180541
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 3,
           "result": "player",
-          "hpAfter": 592.6854558283394
+          "hpAfter": 645
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
-          "round": 2,
+          "round": 3,
           "result": "player",
           "hpAfter": 795
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
-          "round": 2,
+          "round": 3,
           "result": "player",
           "hpAfter": 795
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
-          "round": 2,
+          "round": 3,
           "result": "player",
           "hpAfter": 795
         },
         {
           "act": 2,
           "node": "EN-A2-L2",
-          "round": 3,
+          "round": 4,
           "result": "player",
           "hpAfter": 795
         },
@@ -2782,42 +2569,42 @@
         {
           "act": 2,
           "node": "EN-A2-B2",
-          "round": 3,
+          "round": 4,
           "result": "player",
-          "hpAfter": 954.0455000000001
+          "hpAfter": 990
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 3,
           "result": "player",
-          "hpAfter": 1013.942217230671
+          "hpAfter": 968.0713587306712
         },
         {
           "act": 3,
           "node": "EN-A3-C2",
           "round": 3,
           "result": "player",
-          "hpAfter": 970.2044453536718
+          "hpAfter": 1003.0268094699305
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 3,
           "result": "player",
-          "hpAfter": 973.8127026747271
+          "hpAfter": 1007.9047026747273
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 3,
           "result": "player",
-          "hpAfter": 957.8686467306712
+          "hpAfter": 991.9606467306714
         },
         {
           "act": 3,
           "node": "EN-A3-L1",
-          "round": 3,
+          "round": 4,
           "result": "player",
           "hpAfter": 1020
         },
@@ -2826,7 +2613,7 @@
           "node": "EN-A3-B1",
           "round": 4,
           "result": "player",
-          "hpAfter": 1000.3690032375371
+          "hpAfter": 998.8536963455842
         },
         {
           "act": 4,
@@ -2840,42 +2627,42 @@
           "node": "EN-A4-C4",
           "round": 4,
           "result": "player",
-          "hpAfter": 1187.878833797202
+          "hpAfter": 1098.4440917598556
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
           "round": 5,
           "result": "player",
-          "hpAfter": 1146.9590828251428
+          "hpAfter": 1143.7091948339148
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
-          "round": 5,
+          "round": 6,
           "result": "player",
-          "hpAfter": 1140.234605588911
+          "hpAfter": 1183.300499208746
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
-          "round": 5,
+          "round": 6,
           "result": "player",
-          "hpAfter": 1192.7452202594523
+          "hpAfter": 1149.8351416761425
         },
         {
           "act": 4,
           "node": "EN-A4-B2",
-          "round": 11,
+          "round": 12,
           "result": "player",
           "hpAfter": 1220
         },
         {
           "act": 5,
           "node": "EN-F1",
-          "round": 4,
+          "round": 5,
           "result": "player",
-          "hpAfter": 1119.3136211677568
+          "hpAfter": 1045.051038053834
         }
       ]
     },
@@ -2887,7 +2674,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 1200,
+      "hp": 1146.937233491776,
       "xp": 3150,
       "phases": [
         "map",
@@ -2905,58 +2692,58 @@
         {
           "act": 1,
           "node": "EN-A1-C4",
-          "round": 5,
+          "round": 6,
           "result": "player",
-          "hpAfter": 352.91999999999996
+          "hpAfter": 325.85850000000005
         },
         {
           "act": 1,
           "node": "EN-A1-L2",
           "round": 7,
           "result": "player",
-          "hpAfter": 197.03315789473683
+          "hpAfter": 66.2558684210527
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 507.4320467836257
+          "hpAfter": 370.13830709349133
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 472.386883788031
+          "hpAfter": 317.4214702781541
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 568.5917207924363
+          "hpAfter": 395.9546334628169
         },
         {
           "act": 1,
           "node": "EN-A1-L2",
           "round": 4,
           "result": "player",
-          "hpAfter": 591.3821806509795
+          "hpAfter": 374.6599380709027
         },
         {
           "act": 1,
           "node": "EN-A1-B1",
-          "round": 4,
+          "round": 6,
           "result": "player",
-          "hpAfter": 563.0640705693318
+          "hpAfter": 500.80026513561995
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 630.768113859375
+          "hpAfter": 616.7555840900832
         },
         {
           "act": 2,
@@ -3026,7 +2813,7 @@
           "node": "EN-A3-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 985.2585254978145
+          "hpAfter": 990
         },
         {
           "act": 3,
@@ -3040,49 +2827,49 @@
           "node": "EN-A3-B1",
           "round": 3,
           "result": "player",
-          "hpAfter": 903.2150875293518
+          "hpAfter": 894.6293594154803
         },
         {
           "act": 4,
           "node": "EN-A4-C3",
-          "round": 3,
+          "round": 4,
           "result": "player",
-          "hpAfter": 996.0525497851496
+          "hpAfter": 1000
         },
         {
           "act": 4,
           "node": "EN-A4-L2",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 1152.64
+          "hpAfter": 957.1128269489041
         },
         {
           "act": 4,
           "node": "EN-A4-C3",
           "round": 2,
           "result": "player",
+          "hpAfter": 1133.7528269489042
+        },
+        {
+          "act": 4,
+          "node": "EN-A4-C4",
+          "round": 3,
+          "result": "player",
+          "hpAfter": 1012.3873839524949
+        },
+        {
+          "act": 4,
+          "node": "EN-A4-C4",
+          "round": 3,
+          "result": "player",
+          "hpAfter": 1033.0442426260736
+        },
+        {
+          "act": 4,
+          "node": "EN-A4-C4",
+          "round": 2,
+          "result": "player",
           "hpAfter": 1200
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C4",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 1108.121379310345
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C4",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 1150.7075862068966
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C4",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 1192.5075862068966
         },
         {
           "act": 4,
@@ -3101,33 +2888,29 @@
         {
           "act": 5,
           "node": "EN-F2",
-          "round": 5,
+          "round": 6,
           "result": "player",
-          "hpAfter": 1200
+          "hpAfter": 1146.937233491776
         }
       ]
     },
     {
       "seed": "acceptance-4",
       "method": "RKF03",
-      "result": "won",
-      "act": 5,
-      "step": 0,
-      "nodes": 45,
-      "n": 4,
-      "hp": 1075.8424308883718,
-      "xp": 3388,
+      "result": "lost",
+      "act": 1,
+      "step": 2,
+      "nodes": 2,
+      "n": 0,
+      "hp": 0,
+      "xp": 60,
       "phases": [
         "map",
         "preview",
         "battle",
         "reward",
         "event",
-        "event_result",
-        "talent",
-        "transition",
-        "shop",
-        "rest"
+        "event_result"
       ],
       "battles": [
         {
@@ -3135,210 +2918,14 @@
           "node": "EN-A1-C1",
           "round": 4,
           "result": "player",
-          "hpAfter": 295.8155
+          "hpAfter": 279.28921249999996
         },
         {
           "act": 1,
           "node": "EN-A1-L2",
           "round": 8,
-          "result": "player",
-          "hpAfter": 110.58761616886395
-        },
-        {
-          "act": 1,
-          "node": "EN-A1-C3",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 100.02447892434219
-        },
-        {
-          "act": 1,
-          "node": "EN-A1-C1",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 217.08434842955103
-        },
-        {
-          "act": 1,
-          "node": "EN-A1-C1",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 178.2606093510689
-        },
-        {
-          "act": 1,
-          "node": "EN-A1-C2",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 238.91020935106891
-        },
-        {
-          "act": 1,
-          "node": "EN-A1-C3",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 243.06387210654714
-        },
-        {
-          "act": 1,
-          "node": "EN-A1-B2",
-          "round": 5,
-          "result": "player",
-          "hpAfter": 292.55923320176163
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C3",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 365.45403320176166
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C1",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 465.04323320176167
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C4",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 679.4968332017617
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C4",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 718.5176332017617
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C2",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 805
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C2",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 805
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-B2",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 776.5735970991748
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-C1",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 825.1115970991749
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-C1",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 932.449597099175
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-C1",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 980
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-L1",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 935.3689990512964
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-L1",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 961.3347592681291
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-B1",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 984.9347592681291
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C3",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 1008.5347592681292
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C4",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 903.5053451981199
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C4",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 727.675931128111
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C1",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 1013.5139311281109
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C1",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 1200
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C1",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 1186.678942476779
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C2",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 1200
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-B1",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 1200
-        },
-        {
-          "act": 5,
-          "node": "EN-F1",
-          "round": 4,
-          "result": "player",
-          "hpAfter": 1075.8424308883718
+          "result": "enemy",
+          "hpAfter": 0
         }
       ]
     },
@@ -3350,7 +2937,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 1137.9090731707317,
+      "hp": 1170.8050731707317,
       "xp": 3428,
       "phases": [
         "map",
@@ -3370,189 +2957,189 @@
           "node": "EN-A1-C2",
           "round": 3,
           "result": "player",
-          "hpAfter": 378.61999999999995
+          "hpAfter": 365.35999999999996
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
-          "round": 4,
+          "round": 3,
           "result": "player",
-          "hpAfter": 317.9940594059405
+          "hpAfter": 307.66376237623757
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 3,
           "result": "player",
-          "hpAfter": 264.3985744273997
+          "hpAfter": 237.49227739769674
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
-          "round": 3,
+          "round": 2,
           "result": "player",
-          "hpAfter": 262.1405318742082
+          "hpAfter": 241.74487314237757
         },
         {
           "act": 1,
           "node": "EN-A1-C1",
           "round": 3,
           "result": "player",
-          "hpAfter": 206.3275786827188
+          "hpAfter": 210.14679654663288
         },
         {
           "act": 1,
           "node": "EN-A1-L1",
           "round": 3,
           "result": "player",
-          "hpAfter": 83.26536591676135
+          "hpAfter": 103.46449867429246
         },
         {
           "act": 1,
           "node": "EN-A1-B1",
           "round": 4,
           "result": "player",
-          "hpAfter": 5.511625330987314
+          "hpAfter": 114.89486687512932
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 17.369625330987315
+          "hpAfter": 126.75286687512933
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 29.188625330987314
+          "hpAfter": 138.57186687512933
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 41.00762533098732
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C2",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 52.82662533098732
+          "hpAfter": 150.39086687512932
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
           "round": 1,
           "result": "player",
-          "hpAfter": 52.82662533098732
+          "hpAfter": 150.39086687512932
+        },
+        {
+          "act": 2,
+          "node": "EN-A2-C2",
+          "round": 1,
+          "result": "player",
+          "hpAfter": 150.39086687512932
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 64.64562533098731
+          "hpAfter": 162.2098668751293
         },
         {
           "act": 2,
           "node": "EN-A2-L1",
-          "round": 2,
+          "round": 1,
           "result": "player",
-          "hpAfter": 73.58658533098732
+          "hpAfter": 162.2098668751293
         },
         {
           "act": 2,
           "node": "EN-A2-B2",
           "round": 2,
           "result": "player",
-          "hpAfter": 88.76258533098732
+          "hpAfter": 177.3858668751293
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 180.15058533098733
+          "hpAfter": 268.77386687512933
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 271.53858533098736
+          "hpAfter": 360.1618668751293
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 366.7535853309874
+          "hpAfter": 455.37686687512934
         },
         {
           "act": 3,
           "node": "EN-A3-C3",
-          "round": 2,
+          "round": 1,
           "result": "player",
-          "hpAfter": 461.9685853309874
+          "hpAfter": 533.7768668751294
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 557.1835853309874
+          "hpAfter": 628.9918668751293
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 635.5835853309874
+          "hpAfter": 707.3918668751293
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 1,
           "result": "player",
-          "hpAfter": 729.9835853309874
+          "hpAfter": 801.7918668751292
         },
         {
           "act": 3,
           "node": "EN-A3-B1",
           "round": 2,
           "result": "player",
-          "hpAfter": 847.1535853309873
+          "hpAfter": 908.2620821725797
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 965.1515853309872
+          "hpAfter": 1026.2600821725796
         },
         {
           "act": 4,
           "node": "EN-A4-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 936.4742169099347
+          "hpAfter": 1041.5522428373995
         },
         {
           "act": 4,
           "node": "EN-A4-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 1041.8392169099347
+          "hpAfter": 1146.9172428373995
         },
         {
           "act": 4,
           "node": "EN-A4-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 1147.2042169099348
+          "hpAfter": 1180
         },
         {
           "act": 4,
@@ -3566,7 +3153,7 @@
           "node": "EN-A4-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 1162.1246315789474
+          "hpAfter": 1180
         },
         {
           "act": 4,
@@ -3580,7 +3167,7 @@
           "node": "EN-F2",
           "round": 3,
           "result": "player",
-          "hpAfter": 1137.9090731707317
+          "hpAfter": 1170.8050731707317
         }
       ]
     },
@@ -3592,7 +3179,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 802.3720050782277,
+      "hp": 812.3048784482334,
       "xp": 3596,
       "phases": [
         "map",
@@ -3611,98 +3198,98 @@
           "node": "EN-A1-C3",
           "round": 3,
           "result": "player",
-          "hpAfter": 334.092
+          "hpAfter": 352.66599999999994
         },
         {
           "act": 1,
           "node": "EN-A1-L1",
           "round": 4,
           "result": "player",
-          "hpAfter": 22.617148514851454
+          "hpAfter": 60.163029702970206
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 264.9107517365716
+          "hpAfter": 310.1630297029702
         },
         {
           "act": 1,
           "node": "EN-A1-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 264.9107517365716
+          "hpAfter": 310.1630297029702
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 264.9107517365716
+          "hpAfter": 310.1630297029702
         },
         {
           "act": 1,
           "node": "EN-A1-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 293.10675173657165
+          "hpAfter": 338.35902970297025
         },
         {
           "act": 1,
           "node": "EN-A1-B1",
-          "round": 4,
+          "round": 5,
           "result": "player",
-          "hpAfter": 318.49866187320765
+          "hpAfter": 413.81806357250485
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
           "round": 3,
           "result": "player",
-          "hpAfter": 374.8906618732077
+          "hpAfter": 470.2100635725049
+        },
+        {
+          "act": 2,
+          "node": "EN-A2-C3",
+          "round": 3,
+          "result": "player",
+          "hpAfter": 699.1300635725049
+        },
+        {
+          "act": 2,
+          "node": "EN-A2-C3",
+          "round": 3,
+          "result": "player",
+          "hpAfter": 699.1300635725049
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 566.8506618732077
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C3",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 566.8506618732077
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C3",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 721.8506618732077
+          "hpAfter": 775
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 721.8506618732077
+          "hpAfter": 775
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 732.2916618732078
+          "hpAfter": 775
         },
         {
           "act": 2,
           "node": "EN-A2-L2",
           "round": 2,
           "result": "player",
-          "hpAfter": 740.1596618732078
+          "hpAfter": 775
         },
         {
           "act": 2,
@@ -3800,35 +3387,35 @@
           "node": "EN-A4-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 912.4478228553281
+          "hpAfter": 913.2958870934083
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 908.9476476341695
+          "hpAfter": 909.7957118722496
         },
         {
           "act": 4,
           "node": "EN-A4-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 928.3993476341694
+          "hpAfter": 929.2474118722496
         },
         {
           "act": 4,
           "node": "EN-A4-B2",
-          "round": 4,
+          "round": 3,
           "result": "player",
-          "hpAfter": 939.0692231223718
+          "hpAfter": 957.782007985452
         },
         {
           "act": 5,
           "node": "EN-F1",
           "round": 3,
           "result": "player",
-          "hpAfter": 802.3720050782277
+          "hpAfter": 812.3048784482334
         }
       ]
     },
@@ -3840,7 +3427,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 860.6096418294327,
+      "hp": 770.6632998279296,
       "xp": 2990,
       "phases": [
         "map",
@@ -3860,147 +3447,147 @@
           "node": "EN-A1-C1",
           "round": 3,
           "result": "player",
-          "hpAfter": 350.7515
+          "hpAfter": 376.15549999999996
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
-          "round": 4,
+          "round": 3,
           "result": "player",
-          "hpAfter": 290.1255594059406
+          "hpAfter": 318.4592623762376
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 282.6984221614188
+          "hpAfter": 294.4561251317158
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 282.18202434191966
+          "hpAfter": 292.50984706948407
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 282.18202434191966
+          "hpAfter": 292.50984706948407
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 284.18202434191966
+          "hpAfter": 294.50984706948407
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 286.18202434191966
+          "hpAfter": 296.50984706948407
         },
         {
           "act": 1,
           "node": "EN-A1-B1",
-          "round": 3,
+          "round": 4,
           "result": "player",
-          "hpAfter": 203.36541843752795
+          "hpAfter": 217.17190436421555
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 3,
           "result": "player",
-          "hpAfter": 205.36541843752795
+          "hpAfter": 219.17190436421555
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 405.115418437528
+          "hpAfter": 418.92190436421555
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 409.115418437528
+          "hpAfter": 422.92190436421555
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 411.115418437528
+          "hpAfter": 424.92190436421555
         },
         {
           "act": 2,
           "node": "EN-A2-L2",
           "round": 2,
           "result": "player",
-          "hpAfter": 415.115418437528
+          "hpAfter": 423.83798451688733
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 417.115418437528
+          "hpAfter": 425.83798451688733
         },
         {
           "act": 2,
           "node": "EN-A2-B2",
           "round": 2,
           "result": "player",
-          "hpAfter": 417.115418437528
+          "hpAfter": 425.83798451688733
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 417.115418437528
+          "hpAfter": 425.83798451688733
         },
         {
           "act": 3,
           "node": "EN-A3-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 609.515418437528
+          "hpAfter": 618.2379845168873
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 687.9154184375279
+          "hpAfter": 696.6379845168873
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 766.3154184375279
+          "hpAfter": 775.0379845168873
         },
         {
           "act": 3,
           "node": "EN-A3-L1",
           "round": 2,
           "result": "player",
-          "hpAfter": 974.3126759731028
+          "hpAfter": 980
         },
         {
           "act": 3,
           "node": "EN-A3-B1",
           "round": 2,
           "result": "player",
-          "hpAfter": 962.1978120811023
+          "hpAfter": 961.010571834602
         },
         {
           "act": 4,
@@ -4014,21 +3601,21 @@
           "node": "EN-A4-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 975.3573364787007
+          "hpAfter": 1030.618276459647
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 1069.7573364787008
+          "hpAfter": 1125.018276459647
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 1164.157336478701
+          "hpAfter": 1180
         },
         {
           "act": 4,
@@ -4049,7 +3636,7 @@
           "node": "EN-F1",
           "round": 3,
           "result": "player",
-          "hpAfter": 860.6096418294327
+          "hpAfter": 770.6632998279296
         }
       ]
     },
@@ -4079,65 +3666,65 @@
         {
           "act": 1,
           "node": "EN-A1-C4",
-          "round": 4,
+          "round": 3,
           "result": "player",
-          "hpAfter": 374.67999999999995
+          "hpAfter": 377.639
         },
         {
           "act": 1,
           "node": "EN-A1-L2",
           "round": 5,
           "result": "player",
-          "hpAfter": 286.7779578947368
+          "hpAfter": 227.72643157894746
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 506.9876899622473
+          "hpAfter": 456.5437585831669
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 440.91123807940204
+          "hpAfter": 390.4673067003216
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 468.6907861965567
+          "hpAfter": 418.2468548174764
         },
         {
           "act": 1,
           "node": "EN-A1-L2",
           "round": 4,
           "result": "player",
-          "hpAfter": 508.0650217996787
+          "hpAfter": 412.6635912895754
         },
         {
           "act": 1,
           "node": "EN-A1-B1",
           "round": 4,
           "result": "player",
-          "hpAfter": 496.9330502441232
+          "hpAfter": 490.5462528204397
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 513.9592972560755
+          "hpAfter": 510.9071611869737
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 773.0452972560755
+          "hpAfter": 769.9931611869738
         },
         {
           "act": 2,
@@ -4163,9 +3750,9 @@
         {
           "act": 2,
           "node": "EN-A2-B1",
-          "round": 4,
+          "round": 3,
           "result": "player",
-          "hpAfter": 791.3732394366198
+          "hpAfter": 797.3524394366196
         },
         {
           "act": 3,
@@ -4179,12 +3766,12 @@
           "node": "EN-A3-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 822.287
+          "hpAfter": 839.5740000000001
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
-          "round": 3,
+          "round": 2,
           "result": "player",
           "hpAfter": 980
         },
@@ -4207,14 +3794,14 @@
           "node": "EN-A3-L2",
           "round": 3,
           "result": "player",
-          "hpAfter": 970.8117104294479
+          "hpAfter": 980
         },
         {
           "act": 3,
           "node": "EN-A3-B1",
           "round": 3,
           "result": "player",
-          "hpAfter": 975.2876144578313
+          "hpAfter": 968.573686746988
         },
         {
           "act": 4,
@@ -4228,21 +3815,21 @@
           "node": "EN-A4-L2",
           "round": 2,
           "result": "player",
-          "hpAfter": 953.5840333333333
+          "hpAfter": 989.8960666666667
         },
         {
           "act": 4,
           "node": "EN-A4-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 1073.6484333333333
+          "hpAfter": 1109.960466666667
         },
         {
           "act": 4,
           "node": "EN-A4-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 1168.807160104987
+          "hpAfter": 1180
         },
         {
           "act": 4,
@@ -4289,7 +3876,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 1056.811641542308,
+      "hp": 847.8199788481544,
       "xp": 3388,
       "phases": [
         "map",
@@ -4309,210 +3896,210 @@
           "node": "EN-A1-C1",
           "round": 3,
           "result": "player",
-          "hpAfter": 350.7515
+          "hpAfter": 376.15549999999996
         },
         {
           "act": 1,
           "node": "EN-A1-L2",
-          "round": 5,
+          "round": 6,
           "result": "player",
-          "hpAfter": 203.69993432205573
+          "hpAfter": 101.69858221228786
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 182.20337857533133
+          "hpAfter": 48.359444967766095
         },
         {
           "act": 1,
           "node": "EN-A1-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 277.9533785753313
+          "hpAfter": 121.03255491085659
         },
         {
           "act": 1,
           "node": "EN-A1-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 288.0093785753313
+          "hpAfter": 87.64685798699432
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 300.63337857533134
+          "hpAfter": 100.27085798699432
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 290.97682282860694
+          "hpAfter": 92.55972074247254
         },
         {
           "act": 1,
           "node": "EN-A1-B2",
           "round": 3,
           "result": "player",
-          "hpAfter": 299.8848558354928
+          "hpAfter": 136.98998074247254
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 3,
           "result": "player",
-          "hpAfter": 330.55885583549275
+          "hpAfter": 167.66398074247252
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 342.18185583549274
+          "hpAfter": 179.2869807424725
+        },
+        {
+          "act": 2,
+          "node": "EN-A2-C4",
+          "round": 1,
+          "result": "player",
+          "hpAfter": 272.2869807424725
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 448.91285583549273
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C4",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 462.7818558354927
+          "hpAfter": 286.1559807424725
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
-          "round": 2,
+          "round": 1,
           "result": "player",
-          "hpAfter": 476.65085583549273
+          "hpAfter": 286.1559807424725
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
-          "round": 2,
+          "round": 1,
           "result": "player",
-          "hpAfter": 490.51985583549276
+          "hpAfter": 286.1559807424725
         },
         {
           "act": 2,
           "node": "EN-A2-B2",
           "round": 3,
           "result": "player",
-          "hpAfter": 512.0327138259912
+          "hpAfter": 327.7629807424725
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 528.6617138259912
+          "hpAfter": 344.3919807424725
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 545.2907138259912
+          "hpAfter": 361.02098074247255
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 799.5577138259913
+          "hpAfter": 615.2879807424727
         },
         {
           "act": 3,
           "node": "EN-A3-L1",
           "round": 2,
           "result": "player",
-          "hpAfter": 815.594869251149
+          "hpAfter": 632.0549807424727
         },
         {
           "act": 3,
           "node": "EN-A3-L1",
           "round": 2,
           "result": "player",
-          "hpAfter": 945.6320246763067
+          "hpAfter": 762.8219807424728
         },
         {
           "act": 3,
           "node": "EN-A3-B1",
           "round": 2,
           "result": "player",
-          "hpAfter": 965.5040246763067
+          "hpAfter": 782.6939807424727
         },
         {
           "act": 4,
           "node": "EN-A4-C3",
           "round": 1,
           "result": "player",
-          "hpAfter": 965.5040246763067
+          "hpAfter": 782.6939807424727
         },
         {
           "act": 4,
           "node": "EN-A4-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 857.7317042255809
+          "hpAfter": 707.3347109295405
         },
         {
           "act": 4,
           "node": "EN-A4-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 749.959383774855
+          "hpAfter": 631.9754411166084
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 781.8583837748552
+          "hpAfter": 652.2614411166085
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 813.7573837748553
+          "hpAfter": 672.5474411166085
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 1075.6563837748554
+          "hpAfter": 922.8334411166086
         },
         {
           "act": 4,
           "node": "EN-A4-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 1103.2421837748554
+          "hpAfter": 940.9628411166086
         },
         {
           "act": 4,
           "node": "EN-A4-B1",
           "round": 2,
           "result": "player",
-          "hpAfter": 1118.1883353837186
+          "hpAfter": 950.3196734167988
         },
         {
           "act": 5,
           "node": "EN-F1",
           "round": 3,
           "result": "player",
-          "hpAfter": 1056.811641542308
+          "hpAfter": 847.8199788481544
         }
       ]
     },
@@ -4544,189 +4131,189 @@
           "node": "EN-A1-C2",
           "round": 3,
           "result": "player",
-          "hpAfter": 378.61999999999995
+          "hpAfter": 365.35999999999996
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
           "round": 3,
           "result": "player",
-          "hpAfter": 348.619603960396
+          "hpAfter": 345.4586138613861
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 348.619603960396
+          "hpAfter": 273.0499618790072
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 429.619603960396
+          "hpAfter": 354.0499618790072
         },
         {
           "act": 1,
           "node": "EN-A1-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 428.14066946257935
+          "hpAfter": 358.0499618790072
         },
         {
           "act": 1,
           "node": "EN-A1-L1",
           "round": 3,
           "result": "player",
-          "hpAfter": 283.24607033594174
+          "hpAfter": 212.56007890957483
         },
         {
           "act": 1,
           "node": "EN-A1-B1",
           "round": 4,
           "result": "player",
-          "hpAfter": 134.26228531391533
+          "hpAfter": 163.13734763204178
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 139.61188531391534
+          "hpAfter": 168.4869476320418
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
           "round": 1,
           "result": "player",
-          "hpAfter": 141.61188531391534
+          "hpAfter": 170.4869476320418
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 1,
           "result": "player",
-          "hpAfter": 141.61188531391534
+          "hpAfter": 170.4869476320418
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
           "round": 1,
           "result": "player",
-          "hpAfter": 141.61188531391534
+          "hpAfter": 170.4869476320418
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
           "round": 1,
           "result": "player",
-          "hpAfter": 141.61188531391534
+          "hpAfter": 170.4869476320418
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 1,
           "result": "player",
-          "hpAfter": 141.61188531391534
+          "hpAfter": 170.4869476320418
         },
         {
           "act": 2,
           "node": "EN-A2-L1",
           "round": 1,
           "result": "player",
-          "hpAfter": 141.61188531391534
+          "hpAfter": 170.4869476320418
         },
         {
           "act": 2,
           "node": "EN-A2-B2",
           "round": 2,
           "result": "player",
-          "hpAfter": 146.92068531391533
+          "hpAfter": 175.79574763204178
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 1,
           "result": "player",
-          "hpAfter": 146.92068531391533
+          "hpAfter": 175.79574763204178
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 1,
           "result": "player",
-          "hpAfter": 225.32068531391533
+          "hpAfter": 254.1957476320418
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 303.72068531391534
+          "hpAfter": 332.5957476320418
         },
         {
           "act": 3,
           "node": "EN-A3-C3",
           "round": 1,
           "result": "player",
-          "hpAfter": 382.1206853139154
+          "hpAfter": 410.9957476320418
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 460.52068531391535
+          "hpAfter": 489.3957476320418
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 538.9206853139153
+          "hpAfter": 567.7957476320418
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 1,
           "result": "player",
-          "hpAfter": 633.3206853139153
+          "hpAfter": 662.1957476320417
         },
         {
           "act": 3,
           "node": "EN-A3-B1",
           "round": 1,
           "result": "player",
-          "hpAfter": 727.7206853139153
+          "hpAfter": 756.5957476320417
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
           "round": 1,
           "result": "player",
-          "hpAfter": 822.1206853139153
+          "hpAfter": 850.9957476320417
         },
         {
           "act": 4,
           "node": "EN-A4-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 916.5206853139152
+          "hpAfter": 945.3957476320417
         },
         {
           "act": 4,
           "node": "EN-A4-C2",
           "round": 1,
           "result": "player",
-          "hpAfter": 1010.9206853139152
+          "hpAfter": 1039.7957476320416
         },
         {
           "act": 4,
           "node": "EN-A4-C2",
           "round": 1,
           "result": "player",
-          "hpAfter": 1105.3206853139152
+          "hpAfter": 1134.1957476320417
         },
         {
           "act": 4,
@@ -4745,7 +4332,7 @@
         {
           "act": 4,
           "node": "EN-A4-B2",
-          "round": 1,
+          "round": 2,
           "result": "player",
           "hpAfter": 1180
         },
@@ -4761,23 +4348,20 @@
     {
       "seed": "acceptance-1",
       "method": "RKF05",
-      "result": "won",
-      "act": 5,
-      "step": 0,
-      "nodes": 45,
-      "n": 4,
-      "hp": 450.7442546934789,
-      "xp": 3596,
+      "result": "lost",
+      "act": 1,
+      "step": 2,
+      "nodes": 2,
+      "n": 0,
+      "hp": 0,
+      "xp": 60,
       "phases": [
         "map",
         "preview",
         "battle",
         "reward",
         "event",
-        "event_result",
-        "talent",
-        "rest",
-        "transition"
+        "event_result"
       ],
       "battles": [
         {
@@ -4785,224 +4369,14 @@
           "node": "EN-A1-C3",
           "round": 3,
           "result": "player",
-          "hpAfter": 369.24199999999996
+          "hpAfter": 352.66599999999994
         },
         {
           "act": 1,
           "node": "EN-A1-L1",
-          "round": 4,
-          "result": "player",
-          "hpAfter": 57.767148514851485
-        },
-        {
-          "act": 1,
-          "node": "EN-A1-C4",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 303.3328075596118
-        },
-        {
-          "act": 1,
-          "node": "EN-A1-C1",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 303.3328075596118
-        },
-        {
-          "act": 1,
-          "node": "EN-A1-C2",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 303.3328075596118
-        },
-        {
-          "act": 1,
-          "node": "EN-A1-C1",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 330.2568075596118
-        },
-        {
-          "act": 1,
-          "node": "EN-A1-B1",
-          "round": 4,
-          "result": "player",
-          "hpAfter": 351.7529817696542
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C2",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 378.67698176965416
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C3",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 569.2929817696541
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C3",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 640.5249817696541
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C3",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C4",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-C1",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-L2",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 775
-        },
-        {
-          "act": 2,
-          "node": "EN-A2-B1",
-          "round": 4,
-          "result": "player",
-          "hpAfter": 755.7827039441595
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-C3",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 755.7827039441595
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-C2",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 755.7827039441595
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-C2",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 755.7827039441595
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-C4",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 755.7827039441595
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-C1",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 755.7827039441595
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-C4",
-          "round": 1,
-          "result": "player",
-          "hpAfter": 755.7827039441595
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-C2",
-          "round": 1,
-          "result": "player",
-          "hpAfter": 755.7827039441595
-        },
-        {
-          "act": 3,
-          "node": "EN-A3-B2",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 755.7827039441595
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C2",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 755.7827039441595
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C2",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 755.7827039441595
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C1",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 755.7827039441595
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C1",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 755.7827039441595
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C4",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 754.9346397060793
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C1",
-          "round": 2,
-          "result": "player",
-          "hpAfter": 754.9346397060793
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C3",
-          "round": 1,
-          "result": "player",
-          "hpAfter": 754.9346397060793
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-B2",
-          "round": 4,
-          "result": "player",
-          "hpAfter": 625.5409858192818
-        },
-        {
-          "act": 5,
-          "node": "EN-F1",
-          "round": 3,
-          "result": "player",
-          "hpAfter": 450.7442546934789
+          "round": 5,
+          "result": "enemy",
+          "hpAfter": 0
         }
       ]
     },
@@ -5014,7 +4388,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 994.8051988557696,
+      "hp": 902.1993613294366,
       "xp": 2990,
       "phases": [
         "map",
@@ -5034,147 +4408,147 @@
           "node": "EN-A1-C1",
           "round": 3,
           "result": "player",
-          "hpAfter": 350.7515
+          "hpAfter": 376.15549999999996
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
           "round": 3,
           "result": "player",
-          "hpAfter": 320.75110396039605
+          "hpAfter": 356.2541138613861
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 320.75110396039605
+          "hpAfter": 332.2509766168643
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 320.75110396039605
+          "hpAfter": 332.2509766168643
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 320.75110396039605
+          "hpAfter": 332.2509766168643
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 322.75110396039605
+          "hpAfter": 334.2509766168643
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 324.75110396039605
+          "hpAfter": 336.2509766168643
         },
         {
           "act": 1,
           "node": "EN-A1-B1",
-          "round": 3,
+          "round": 4,
           "result": "player",
-          "hpAfter": 241.93449805600437
+          "hpAfter": 272.50007844600873
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 3,
           "result": "player",
-          "hpAfter": 243.93449805600437
+          "hpAfter": 274.50007844600873
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 443.6844980560044
+          "hpAfter": 474.25007844600873
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 447.6844980560044
+          "hpAfter": 478.25007844600873
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 449.6844980560044
+          "hpAfter": 480.25007844600873
         },
         {
           "act": 2,
           "node": "EN-A2-L2",
           "round": 2,
           "result": "player",
-          "hpAfter": 453.6844980560044
+          "hpAfter": 484.25007844600873
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 455.6844980560044
+          "hpAfter": 486.25007844600873
         },
         {
           "act": 2,
           "node": "EN-A2-B2",
           "round": 2,
           "result": "player",
-          "hpAfter": 457.6844980560044
+          "hpAfter": 488.25007844600873
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 459.6844980560044
+          "hpAfter": 490.25007844600873
         },
         {
           "act": 3,
           "node": "EN-A3-C2",
           "round": 1,
           "result": "player",
-          "hpAfter": 652.0844980560043
+          "hpAfter": 682.6500784460087
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 730.4844980560043
+          "hpAfter": 761.0500784460087
         },
         {
           "act": 3,
           "node": "EN-A3-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 808.8844980560043
+          "hpAfter": 839.4500784460087
         },
         {
           "act": 3,
           "node": "EN-A3-L1",
           "round": 2,
           "result": "player",
-          "hpAfter": 941.7347592681291
+          "hpAfter": 980
         },
         {
           "act": 3,
           "node": "EN-A3-B1",
           "round": 2,
           "result": "player",
-          "hpAfter": 970.0060312591845
+          "hpAfter": 962.2307095511236
         },
         {
           "act": 4,
@@ -5188,14 +4562,14 @@
           "node": "EN-A4-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 1016.6491297917706
+          "hpAfter": 1064.3036867939936
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 1111.0491297917706
+          "hpAfter": 1158.7036867939937
         },
         {
           "act": 4,
@@ -5216,14 +4590,14 @@
           "node": "EN-A4-B2",
           "round": 4,
           "result": "player",
-          "hpAfter": 1037.5890019815536
+          "hpAfter": 1081.5727442307937
         },
         {
           "act": 5,
           "node": "EN-F1",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 994.8051988557696
+          "hpAfter": 902.1993613294366
         }
       ]
     },
@@ -5235,7 +4609,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 908.6175211594976,
+      "hp": 870.328290390267,
       "xp": 3150,
       "phases": [
         "map",
@@ -5255,70 +4629,70 @@
           "node": "EN-A1-C4",
           "round": 3,
           "result": "player",
-          "hpAfter": 405.76
+          "hpAfter": 401.14000000000004
         },
         {
           "act": 1,
           "node": "EN-A1-L2",
           "round": 4,
           "result": "player",
-          "hpAfter": 325.47315789473686
+          "hpAfter": 267.4426315789475
         },
         {
           "act": 1,
           "node": "EN-A1-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 548.8364912280701
+          "hpAfter": 497.6059649122808
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 501.2913282324754
+          "hpAfter": 450.06080191668605
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 547.4961652368806
+          "hpAfter": 496.2656389210913
         },
         {
           "act": 1,
           "node": "EN-A1-L2",
           "round": 3,
           "result": "player",
-          "hpAfter": 496.1698008004131
+          "hpAfter": 415.43656942492504
         },
         {
           "act": 1,
           "node": "EN-A1-B1",
           "round": 4,
           "result": "player",
-          "hpAfter": 391.603041862342
+          "hpAfter": 359.25751844820996
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 403.6713130004866
+          "hpAfter": 365.2484374026732
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 649.8213130004865
+          "hpAfter": 611.3984374026732
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 805
+          "hpAfter": 768.7984374026731
         },
         {
           "act": 2,
@@ -5339,7 +4713,7 @@
           "node": "EN-A2-B1",
           "round": 4,
           "result": "player",
-          "hpAfter": 779.0303036075035
+          "hpAfter": 780.4605740259739
         },
         {
           "act": 3,
@@ -5353,7 +4727,7 @@
           "node": "EN-A3-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 798.9145254978145
+          "hpAfter": 805
         },
         {
           "act": 3,
@@ -5374,12 +4748,12 @@
           "node": "EN-A3-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 973.9145254978145
+          "hpAfter": 980
         },
         {
           "act": 3,
           "node": "EN-A3-L2",
-          "round": 3,
+          "round": 2,
           "result": "player",
           "hpAfter": 980
         },
@@ -5388,7 +4762,7 @@
           "node": "EN-A3-B1",
           "round": 2,
           "result": "player",
-          "hpAfter": 935.0302979536538
+          "hpAfter": 920.4317224249886
         },
         {
           "act": 4,
@@ -5402,56 +4776,56 @@
           "node": "EN-A4-L2",
           "round": 2,
           "result": "player",
-          "hpAfter": 908.1773930655664
+          "hpAfter": 960.2644812564246
         },
         {
           "act": 4,
           "node": "EN-A4-C3",
           "round": 1,
           "result": "player",
-          "hpAfter": 1002.5773930655664
+          "hpAfter": 1054.6644812564246
         },
         {
           "act": 4,
           "node": "EN-A4-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 1086.796979272463
+          "hpAfter": 1149.0644812564246
         },
         {
           "act": 4,
           "node": "EN-A4-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 1169.8195862068965
+          "hpAfter": 1166.8092413793104
         },
         {
           "act": 4,
           "node": "EN-A4-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 955.3517793103449
+          "hpAfter": 1132.0678620689655
         },
         {
           "act": 4,
           "node": "EN-A4-C3",
           "round": 1,
           "result": "player",
-          "hpAfter": 1049.751779310345
+          "hpAfter": 1180
         },
         {
           "act": 4,
           "node": "EN-A4-B2",
           "round": 3,
           "result": "player",
-          "hpAfter": 1108.4378676391616
+          "hpAfter": 1144.2860883288165
         },
         {
           "act": 5,
           "node": "EN-F2",
           "round": 5,
           "result": "player",
-          "hpAfter": 908.6175211594976
+          "hpAfter": 870.328290390267
         }
       ]
     },
@@ -5463,7 +4837,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 1012.0330263675435,
+      "hp": 903.2163892305774,
       "xp": 3388,
       "phases": [
         "map",
@@ -5483,194 +4857,194 @@
           "node": "EN-A1-C1",
           "round": 3,
           "result": "player",
-          "hpAfter": 350.7515
+          "hpAfter": 376.15549999999996
         },
         {
           "act": 1,
           "node": "EN-A1-L2",
-          "round": 5,
+          "round": 6,
           "result": "player",
-          "hpAfter": 184.54151848047158
+          "hpAfter": 101.69858221228787
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
-          "round": 2,
+          "round": 3,
           "result": "player",
-          "hpAfter": 184.54151848047158
+          "hpAfter": 48.359444967766095
         },
         {
           "act": 1,
           "node": "EN-A1-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 280.2915184804716
+          "hpAfter": 144.10944496776608
         },
         {
           "act": 1,
           "node": "EN-A1-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 285.5139184804716
+          "hpAfter": 149.33184496776607
         },
         {
           "act": 1,
           "node": "EN-A1-C2",
           "round": 2,
           "result": "player",
-          "hpAfter": 292.9635184804716
+          "hpAfter": 156.78144496776608
         },
         {
           "act": 1,
           "node": "EN-A1-C3",
           "round": 2,
           "result": "player",
-          "hpAfter": 298.6451184804716
+          "hpAfter": 143.54790772324432
         },
         {
           "act": 1,
           "node": "EN-A1-B2",
           "round": 3,
           "result": "player",
-          "hpAfter": 309.26953636146317
+          "hpAfter": 156.59270772324433
         },
         {
           "act": 2,
           "node": "EN-A2-C3",
           "round": 3,
           "result": "player",
-          "hpAfter": 322.7391363614631
+          "hpAfter": 170.06230772324434
         },
         {
           "act": 2,
           "node": "EN-A2-C1",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 326.7391363614631
+          "hpAfter": 178.71150772324435
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 421.7391363614631
+          "hpAfter": 273.7115077232444
         },
         {
           "act": 2,
           "node": "EN-A2-C4",
           "round": 1,
           "result": "player",
-          "hpAfter": 421.7391363614631
+          "hpAfter": 273.7115077232444
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
           "round": 1,
           "result": "player",
-          "hpAfter": 421.7391363614631
+          "hpAfter": 273.7115077232444
         },
         {
           "act": 2,
           "node": "EN-A2-C2",
           "round": 1,
           "result": "player",
-          "hpAfter": 421.7391363614631
+          "hpAfter": 273.7115077232444
         },
         {
           "act": 2,
           "node": "EN-A2-B2",
           "round": 3,
           "result": "player",
-          "hpAfter": 424.90867322520097
+          "hpAfter": 293.9723077232444
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 433.00627322520097
+          "hpAfter": 302.0699077232444
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 441.10387322520097
+          "hpAfter": 310.1675077232444
         },
         {
           "act": 3,
           "node": "EN-A3-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 686.7686732252009
+          "hpAfter": 555.8323077232444
         },
         {
           "act": 3,
           "node": "EN-A3-L1",
           "round": 2,
           "result": "player",
-          "hpAfter": 684.9981491983038
+          "hpAfter": 563.9971077232444
         },
         {
           "act": 3,
           "node": "EN-A3-L1",
           "round": 2,
           "result": "player",
-          "hpAfter": 797.2276251714068
+          "hpAfter": 686.1619077232444
         },
         {
           "act": 3,
           "node": "EN-A3-B1",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 797.2276251714068
+          "hpAfter": 686.1619077232444
         },
         {
           "act": 4,
           "node": "EN-A4-C3",
           "round": 1,
           "result": "player",
-          "hpAfter": 891.6276251714067
+          "hpAfter": 780.5619077232444
         },
         {
           "act": 4,
           "node": "EN-A4-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 696.0110843002603
+          "hpAfter": 649.2061322046065
         },
         {
           "act": 4,
           "node": "EN-A4-C4",
           "round": 2,
           "result": "player",
-          "hpAfter": 583.5221528734206
-        },
-        {
-          "act": 4,
-          "node": "EN-A4-C1",
-          "round": 1,
-          "result": "player",
-          "hpAfter": 677.9221528734206
+          "hpAfter": 592.3125530107337
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
           "round": 2,
           "result": "player",
-          "hpAfter": 772.3221528734206
+          "hpAfter": 686.7125530107337
         },
         {
           "act": 4,
           "node": "EN-A4-C1",
-          "round": 1,
+          "round": 2,
           "result": "player",
-          "hpAfter": 1096.7221528734206
+          "hpAfter": 781.1125530107337
+        },
+        {
+          "act": 4,
+          "node": "EN-A4-C1",
+          "round": 2,
+          "result": "player",
+          "hpAfter": 1105.5125530107337
         },
         {
           "act": 4,
           "node": "EN-A4-C2",
-          "round": 1,
+          "round": 2,
           "result": "player",
           "hpAfter": 1180
         },
@@ -5679,14 +5053,14 @@
           "node": "EN-A4-B1",
           "round": 2,
           "result": "player",
-          "hpAfter": 1160.71391267081
+          "hpAfter": 1163.059733201091
         },
         {
           "act": 5,
           "node": "EN-F1",
           "round": 2,
           "result": "player",
-          "hpAfter": 1012.0330263675435
+          "hpAfter": 903.2163892305774
         }
       ]
     }

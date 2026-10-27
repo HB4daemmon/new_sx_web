@@ -5,6 +5,7 @@ import {
   ARTIFACT_EQUIPMENT_ROLES,
   ARTIFACT_IDS,
   ARTIFACT_RARITIES,
+  ARTIFACT_RESONANCE_RULES,
   ATTRIBUTES,
   CONTENT_VERSION,
   CORE_EVENT_IDS,
@@ -19,6 +20,7 @@ import {
   METHOD_MULTIPLIER,
   METHOD_P_BY_TIER,
   METHOD_RARITIES,
+  METHOD_RESONANCE_RULES,
   NODE_TYPES,
   ORDINARY_EVENT_IDS,
   RARITIES,
@@ -497,6 +499,112 @@ function validateEffectArray(entity, fieldPath, effects, errors, effectIds, { de
     }
   }
   return localEffects
+}
+
+const RESONANCE_EFFECT_FIELDS = [
+  'id',
+  'trigger',
+  'operation',
+  'target',
+  'params',
+  'requires',
+  'consumes',
+  'replaces',
+  'limit',
+  'text',
+]
+
+function collectResonanceEffects(value, location = '', effects = []) {
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => collectResonanceEffects(item, `${location}[${index}]`, effects))
+  } else if (isRecord(value)) {
+    if (
+      value.params?.resonance !== undefined ||
+      (typeof value.id === 'string' && value.id.endsWith('-V2-RESONANCE'))
+    ) {
+      effects.push({ effect: value, location })
+    }
+    for (const [key, item] of Object.entries(value)) {
+      collectResonanceEffects(item, location ? `${location}.${key}` : key, effects)
+    }
+  }
+  return effects
+}
+
+function validateResonanceEntity(entity, errors) {
+  const expected =
+    entity.kind === 'method'
+      ? METHOD_RESONANCE_RULES[entity.id]
+      : entity.kind === 'artifact'
+        ? ARTIFACT_RESONANCE_RULES[entity.id]
+        : undefined
+  const candidates = collectResonanceEffects(entity)
+  const matching = []
+
+  for (const { effect, location } of candidates) {
+    const source = `${sourceFor(entity)}:${location || '<root>'}`
+    const params = isRecord(effect.params) ? effect.params : {}
+    const kind = params.resonance
+    const rule =
+      entity.kind === 'method'
+        ? METHOD_RESONANCE_RULES[entity.id]
+        : entity.kind === 'artifact'
+          ? ARTIFACT_RESONANCE_RULES[entity.id]
+          : undefined
+    const allowedLocation =
+      (entity.kind === 'method' && location.startsWith('passives[')) ||
+      (entity.kind === 'artifact' && location.startsWith('effects['))
+
+    if (!rule) {
+      addIssue(errors, 'resonance-owner', 'this entity cannot own a V2 resonance rule', source)
+    }
+    if (!allowedLocation) {
+      addIssue(errors, 'resonance-location', 'V2 resonance rules belong in method passives or artifact effects, not talents or other fields', source)
+    }
+    if (typeof kind !== 'string' || ![...Object.values(METHOD_RESONANCE_RULES), ...Object.values(ARTIFACT_RESONANCE_RULES)].some((item) => item.kind === kind)) {
+      addIssue(errors, 'resonance-kind', `unknown or missing resonance kind ${kind}`, source)
+    } else if (!rule || kind !== rule.kind) {
+      addIssue(errors, 'resonance-owner-kind', `${entity.id} cannot own resonance kind ${kind}`, source)
+    }
+    if (effect.id !== `${entity.id}-V2-RESONANCE`) {
+      addIssue(errors, 'resonance-effect-id', `resonance effect id must be ${entity.id}-V2-RESONANCE`, source)
+    }
+    if (!exactKeys(effect, RESONANCE_EFFECT_FIELDS)) {
+      addIssue(errors, 'resonance-effect-fields', 'resonance effects may only use the standard effect fields', source)
+    }
+    if (effect.trigger !== 'always') addIssue(errors, 'resonance-trigger', 'resonance effects must use trigger always', source)
+    if (effect.operation !== 'modify_effect') addIssue(errors, 'resonance-operation', 'resonance effects must use operation modify_effect', source)
+    if (effect.target !== 'self') addIssue(errors, 'resonance-target', 'resonance effects must target self', source)
+    for (const field of ['requires', 'consumes', 'replaces']) {
+      if (!Array.isArray(effect[field]) || effect[field].length !== 0) {
+        addIssue(errors, 'resonance-boundary', `resonance effects must use an empty ${field} array`, source)
+      }
+    }
+    if (!isRecord(effect.limit) || !exactKeys(effect.limit, ['scope', 'count'])) {
+      addIssue(errors, 'resonance-limit', 'resonance limit must use exactly scope and count', source)
+    } else if (effect.limit.scope !== 'permanent' || effect.limit.count !== 1) {
+      addIssue(errors, 'resonance-limit', 'resonance limit must be permanent once', source)
+    }
+
+    const parameterRule = [...Object.values(METHOD_RESONANCE_RULES), ...Object.values(ARTIFACT_RESONANCE_RULES)]
+      .find((item) => item.kind === kind)
+    const parameterRanges = parameterRule?.params ?? {}
+    const expectedParams = ['resonance', ...Object.keys(parameterRanges)]
+    if (!isRecord(effect.params) || !exactKeys(effect.params, expectedParams)) {
+      addIssue(errors, 'resonance-params', `resonance params must use exactly ${expectedParams.join(', ')}`, source)
+    }
+    for (const [key, range] of Object.entries(parameterRanges)) {
+      finiteNumber(errors, params[key], source, `resonance ${key}`, range)
+    }
+
+    if (expected && allowedLocation && effect.id === `${entity.id}-V2-RESONANCE` && kind === expected.kind) {
+      matching.push(effect)
+    }
+  }
+
+  if (expected && matching.length !== 1) {
+    addIssue(errors, 'resonance-count', `${entity.id} must define exactly one ${expected.kind} resonance passive`, sourceFor(entity))
+  }
 }
 
 function methodEffects(entity, errors, effectIds) {
@@ -1836,6 +1944,7 @@ function validateGlobal(model, errors, warnings) {
       entityIds.set(entity.id, source)
     }
     validateEntityKind(entity, errors, known, effectIds, storylineEncounterIds)
+    validateResonanceEntity(entity, errors)
   }
   known.effects = effectIds
   for (const effectId of effectIds) {

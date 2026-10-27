@@ -424,7 +424,7 @@ test('rage_echo never reuses consumed shield, sword intent, or burn resources', 
     { roundLimit: 5 },
   );
   assert.equal(swordBattle.frames.filter(frame =>
-    frame.kind === 'damage' && frame.source === 'RKF05-J2-B-CONSUME').length, 1);
+    frame.kind === 'damage' && frame.source === 'RKF05-J2-B-CONSUME').length, 3);
   assert.equal(swordBattle.frames.some(frame => frame.source === 'RKF05-J2-B-CONSUME-RAGE-ECHO'), false);
   assert.equal(swordBattle.frames.filter(frame =>
     frame.kind === 'rage' && frame.source === 'RKF05-rage-cost').length, 1);

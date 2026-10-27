@@ -4,8 +4,8 @@ kind: artifact
 id: RR11
 name: 余烬盏
 status: design_target
-summary: 最大气血 +30；中毒或燃烧造成气血损失时，每轮额外获得10点怒气；支援定位
-description: 自身施加的中毒或燃烧每轮首次造成气血损失后，额外获得10点怒气。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+summary: 最大气血 +30；毒火轮尾回怒5点，毒火齐备时可共炼爆发；支援定位
+description: 自身中毒或燃烧每轮首次造成气血损失后获得5点怒气；主动作结束时若自己仍有毒、火层，则可各耗一层炼成伤害并返怒。未装备时不生效。
 tags: [max_hp, poison, burn, rage_gain, rare]
 source:
   basis: original
@@ -26,7 +26,7 @@ effects:
     operation: rage_gain
     target: self
     params:
-      amount: 10
+      amount: 5
       timing: round_end
       source: self_applied_dot
       statuses: [poison, burn]
@@ -37,7 +37,17 @@ effects:
     consumes: []
     replaces: []
     limit: {scope: round, count: 1}
-    text: 自身施加的中毒或燃烧每轮首次对敌方气血造成伤害后，额外获得10点怒气；伤害被护盾完全吸收时不触发，每轮最多一次。
+    text: 自身施加的中毒或燃烧每轮首次对敌方气血造成伤害后，额外获得5点怒气；伤害被护盾完全吸收时不触发，每轮最多一次。
+  - id: RR11-V2-RESONANCE
+    trigger: always
+    operation: modify_effect
+    target: self
+    params: {resonance: toxic_furnace, remaining_damage_ratio: 0.8, rage_gain: 8}
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: permanent, count: 1}
+    text: 每次主动作结束时，若仍各有一层自身施加的中毒与燃烧，则各消费最早存活的一层，按它们实际剩余跳伤害合计的80%造成一次派生伤害，并登记8点怒气；每次主动作最多一次，不读取敌方施加的层或已移除层。
 equipment_role: support
 acquisition:
   pools: [rare_artifact]

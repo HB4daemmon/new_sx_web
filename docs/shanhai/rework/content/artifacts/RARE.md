@@ -55,28 +55,28 @@
 
 - 开发标识：`RR03`
 - 装备定位：支援；仅作描述，不限制装备数量
-攻击 +8；普攻首次命中后施加1层中毒；支援定位
+攻击 +8；每3次有效命中施加2层中毒；支援定位
 
-- 玩家看到：普攻首次命中后，施加1层中毒。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+- 玩家看到：直接攻击与派生追击共同积针，每3次有效命中施加2层中毒，每个主动作最多触发一次。可与其他法宝组合装备，未装备时不生效。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR03-FIRST-BASIC-HIT-POISON`；普攻首次命中后施加1层中毒；多段普攻只触发一次。；操作：施加状态；触发：直接命中；目标：敌人；参数：状态=中毒；层数=1；持续轮数=3；action_type=basic_action；hit_scope=first_effective_base_direct_hit；one_per_action=是；excludes=artifact_followup、reflect、poison、burn；前置：effective_basic_base_hit；限制：范围=action；次数=1
+- `RR03-V2-RESONANCE`；每3次有效直接或派生命中施加2层中毒，持续3轮，每层每轮伤害为攻击的0.08倍；每个主动作最多触发一次，仅保留不足3次的计数。反震、持续伤害、开场准备与怒气回响不计入。；操作：修改效果；触发：始终；目标：自身；参数：resonance=venom_pin；hit_threshold=3；poison_stacks=2；持续轮数=3；攻击倍率=0.08；max_per_action=1；限制：范围=permanent；次数=1
 :::
 
 ### 如意钱
 
 - 开发标识：`RR04`
 - 装备定位：支援；仅作描述，不限制装备数量
-攻击 +6、暴击率 +2 个百分点；普攻首命中概率追加一击；支援定位
+攻击 +6、暴击率 +2 个百分点；有效普攻按灵石数追加攻击；支援定位
 
-- 玩家看到：普攻首段命中后有25%概率追加一段攻击。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+- 玩家看到：有效完成主普攻后，依本场战斗开始时冻结的灵石数追加派生攻击，不支付灵石、没有概率检定。可与其他法宝组合装备，未装备时不生效。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR04-BASIC-HIT-CHANCE-FOLLOWUP`；普攻首段基础攻击命中后，有25%概率追加一段攻击倍率0.5的直接伤害；追加段不会再次触发本效果。；操作：概率伤害；触发：直接命中；目标：敌人；参数：概率=0.25；攻击倍率=0.5；段数=1；can_crit=否；action_type=basic_action；hit_scope=first_effective_base_direct_hit；rolls_per_action=1；append_after_base_hit=是；does_not_chain=是；first_test_value=概率=0.25；攻击倍率=0.5；前置：effective_basic_base_hit；限制：范围=action；次数=1
+- `RR04-V2-RESONANCE`；主普攻有效完成后追加1段派生攻击，本场开战时每满100灵石再加1段，最多3段，每段攻击倍率0.22；不支付灵石，不掷概率，怒气回响不重复触发。；操作：修改效果；触发：始终；目标：自身；参数：resonance=wealth_strikes；coins_per_segment=100；max_segments=3；攻击倍率=0.22；限制：范围=permanent；次数=1
 :::
 
 ### 镇心玉
@@ -139,14 +139,14 @@
 
 - 开发标识：`RR09`
 - 装备定位：支援；仅作描述，不限制装备数量
-防御 +8；盾返造成伤害后，敌方每次行动结束时你额外获得10点怒气；支援定位
+防御 +8；每次敌方主动作首个有效反击后造盾并排队返怒；支援定位
 
-- 玩家看到：护盾成功反击后，每次敌方行动额外带来10点怒气。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+- 玩家看到：每次敌方主动作中第一次造成有效反击伤害后，按当前防御获得护盾并登记额外怒气。可与功法、甲壳和震山环反击并行；未装备时不生效。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR09-REFLECT-ENEMY-ACTION-RAGE`；敌方行动中，若已有护盾反击造成伤害，该次敌方行动结束时额外获得10点怒气；此法宝不提供反击效果。；操作：获得怒气；触发：敌方动作结束；目标：自身；参数：数量=10；时机=round_end；来源=existing_shield_reflect；requires_effective_reflect=是；reflect_must_be_positive=是；one_per_enemy_action=是；does_not_grant_shield_reflect=是；前置：effective_existing_shield_reflect；限制：范围=enemy_action；次数=1
+- `RR09-V2-RESONANCE`；每次敌方主动作中的首次有效反击造成伤害后，按当前防御0.35倍获得护盾，并登记10点额外怒气；与功法、甲壳和震山环的反击并行，每个敌方主动作限一次。；操作：修改效果；触发：始终；目标：自身；参数：resonance=rebound_guard；rage_gain=10；防御倍率=0.35；限制：范围=permanent；次数=1
 :::
 
 ### 引雷针
@@ -167,28 +167,29 @@
 
 - 开发标识：`RR11`
 - 装备定位：支援；仅作描述，不限制装备数量
-最大气血 +30；中毒或燃烧造成气血损失时，每轮额外获得10点怒气；支援定位
+最大气血 +30；毒火轮尾回怒5点，毒火齐备时可共炼爆发；支援定位
 
-- 玩家看到：自身施加的中毒或燃烧每轮首次造成气血损失后，额外获得10点怒气。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+- 玩家看到：自身中毒或燃烧每轮首次造成气血损失后获得5点怒气；主动作结束时若自己仍有毒、火层，则可各耗一层炼成伤害并返怒。未装备时不生效。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR11-DOT-ROUND-RAGE`；自身施加的中毒或燃烧每轮首次对敌方气血造成伤害后，额外获得10点怒气；伤害被护盾完全吸收时不触发，每轮最多一次。；操作：获得怒气；触发：持续伤害结算；目标：自身；参数：数量=10；时机=round_end；来源=self_applied_dot；statuses=poison、burn；requires_actual_hp_damage=是；once_per_round=是；excludes=shield_only、reflect、self_damage；前置：positive_actual_hp_damage_from_own_poison_or_burn；限制：范围=round；次数=1
+- `RR11-DOT-ROUND-RAGE`；自身施加的中毒或燃烧每轮首次对敌方气血造成伤害后，额外获得5点怒气；伤害被护盾完全吸收时不触发，每轮最多一次。；操作：获得怒气；触发：持续伤害结算；目标：自身；参数：数量=5；时机=round_end；来源=self_applied_dot；statuses=poison、burn；requires_actual_hp_damage=是；once_per_round=是；excludes=shield_only、reflect、self_damage；前置：positive_actual_hp_damage_from_own_poison_or_burn；限制：范围=round；次数=1
+- `RR11-V2-RESONANCE`；每次主动作结束时，若仍各有一层自身施加的中毒与燃烧，则各消费最早存活的一层，按它们实际剩余跳伤害合计的80%造成一次派生伤害，并登记8点怒气；每次主动作最多一次，不读取敌方施加的层或已移除层。；操作：修改效果；触发：始终；目标：自身；参数：resonance=toxic_furnace；remaining_damage_ratio=0.8；rage_gain=8；限制：范围=permanent；次数=1
 :::
 
 ### 回生佩
 
 - 开发标识：`RR12`
 - 装备定位：支援；仅作描述，不限制装备数量
-最大气血 +30；普攻或怒技回复气血后额外获得10点怒气；支援定位
+最大气血 +30；有效自疗充入两枚回生刃；支援定位
 
-- 玩家看到：自身普攻或怒技回复气血时，额外获得10点怒气。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+- 玩家看到：正向有效自疗每个己方主动作或轮末持续伤害结算最多充入一枚回生刃，最多两枚；下一次主普攻后按已预约层数发射派生刃。未装备时不生效。
 - 获取池：rare_artifact
 - 唯一组：无
 
 ::: details 法宝开发效果
-- `RR12-SELF-HEAL-RAGE`；每次普攻或怒技只要实际回复了气血，就额外获得10点怒气；治疗溢出、战外治疗和战斗开场不触发。；操作：获得怒气；触发：治疗结算；目标：自身；参数：数量=10；时机=round_end；来源=self_heal；requires_effective_amount=是；owning_action=own_main_action；excludes=battle_start、travel、full_health_overflow；one_per_own_action=是；前置：effective_self_heal；限制：范围=action；次数=1
+- `RR12-V2-RESONANCE`；正向有效自疗（不含纯溢疗、怒气回响、开场或行旅）每个所属主动作或轮末持续伤害结算最多充入一枚回生刃，至多两枚。下一次主普攻开始时预约并清空已有刃，基础攻击后每枚追加一次攻击0.35倍派生伤害；本次普攻中后续治疗留给之后普攻。；操作：修改效果；触发：始终；目标：自身；参数：resonance=healing_blades；max_charges=2；攻击倍率=0.35；限制：范围=permanent；次数=1
 :::
 
 ### 截脉针

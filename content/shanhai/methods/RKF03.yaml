@@ -4,8 +4,8 @@ kind: method
 id: RKF03
 name: 回春功
 status: design_target
-summary: 以最大气血强化自疗，并将溢出的治疗转为其他效果的医修功法。
-description: 回春功的攻击按攻击属性计算，治疗量按最大气血计算；超出气血上限的治疗会依所学天赋转为伤害或中毒，佩戴琉璃法印时则转为护盾。
+summary: 治疗与溢疗积蓄春华，蓄满后按气血上限爆发。
+description: 回春功的攻击按攻击属性计算，治疗量按最大气血计算；战斗内正向自疗还会填充春生，攒满后造成派生伤害。溢疗仍依所学天赋转为伤害或中毒，佩戴琉璃法印时则转为护盾。
 tags: [method, common, healing, max_hp, overflow]
 source:
   basis: original
@@ -41,7 +41,7 @@ actions:
         operation: damage
         target: enemy
         params:
-          attack_ratio: 0.88
+          attack_ratio: 0.75
           segments: 1
           can_crit: true
           damage_kind: direct
@@ -49,7 +49,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按攻击的0.88倍对敌方造成一段可暴击直接伤害。
+        text: 按攻击的0.75倍对敌方造成一段可暴击直接伤害。
       - id: RKF03-BASIC-HEAL
         trigger: action_end
         operation: heal
@@ -80,7 +80,7 @@ actions:
         operation: damage
         target: enemy
         params:
-          attack_ratio: 1.35
+          attack_ratio: 1.15
           segments: 1
           can_crit: true
           damage_kind: direct
@@ -89,7 +89,7 @@ actions:
         consumes: [rage_locked_action_cost]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 消耗本次怒技所需的怒气后，按攻击的1.35倍对敌方造成一段可暴击直接伤害。
+        text: 消耗本次怒技所需的怒气后，按攻击的1.15倍对敌方造成一段可暴击直接伤害。
       - id: RKF03-RAGE-HEAL
         trigger: action_end
         operation: heal
@@ -137,7 +137,17 @@ passives:
     consumes: [actual_heal_overflow]
     replaces: []
     limit: {scope: action, count: 1}
-    text: 治疗超出气血上限的部分，默认有70%转为一次追加伤害；佩戴琉璃法印时，这部分改为转成护盾，不会重复转化。
+    text: 治疗超出气血上限的部分，默认有70%转为一次追加伤害；佩戴琉璃法印时，这部分改为转成护盾，不会重复转化。所有战斗内正向自疗还会填充春生。
+  - id: RKF03-V2-RESONANCE
+    trigger: always
+    operation: modify_effect
+    target: self
+    params: {resonance: spring_bloom, threshold_hp_ratio: 0.2, burst_hp_ratio: 0.12, max_per_action: 1}
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: permanent, count: 1}
+    text: 所有战斗内正向自疗按有效治疗与溢疗总量填充春生，包括真实轮末治疗、不含怒气回响；春生达到最大气血20%时，每所属主动作或轮末持续伤害结算最多触发一次，造成最大气血12%的派生伤害。超量最多保留一份阈值待后续触发，不形成无限队列；原有溢疗出口仍互斥。
 travel:
   - id: RKF03-TRAVEL-NONBATTLE-HEAL
     trigger: node_complete
@@ -452,11 +462,11 @@ talents:
         text: 治疗溢出时，每点溢疗转为1.1点追加直接伤害，并取代较低阶的溢疗天赋；佩戴琉璃法印时，溢疗改为护盾，不造成伤害或中毒。
 routes:
   - name: 溢疗转伤
-    summary: 提高最大气血和治疗量，把满血后的真实溢疗转成伤害；代价是持续掉血或治疗不足时溢疗出口覆盖下降。
+    summary: 提高最大气血和治疗量，以春生与满血后的溢疗转伤；代价是持续掉血或治疗不足时溢疗出口覆盖下降。
     talents: [RKF03-J1-C, RKF03-J2-A, RKF03-J3-C, RKF03-J4-C]
   - name: 春毒同生
-    summary: 以治疗和溢疗施毒维持长线压力，再用低血治疗扩大有效恢复；代价是短战可能来不及叠毒。
+    summary: 以自疗积蓄春生、再用溢疗施毒维持长线压力；代价是短战可能来不及攒满阈值或叠毒。
     talents: [RKF03-J1-B, RKF03-J2-A, RKF03-J3-A, RKF03-J4-B]
   - name: 低血续战
-    summary: 低血时放大治疗并在治疗后短暂减伤，以有效治疗返怒和护盾维持回合；代价是满血时循环收益和防护触发较少。
+    summary: 低血时放大治疗并在治疗后短暂减伤，以春生、有效治疗返怒和护盾维持回合；代价是满血时有效治疗与防护输入较少。
     talents: [RKF03-J1-C, RKF03-J2-C, RKF03-J3-B, RKF03-J4-A]

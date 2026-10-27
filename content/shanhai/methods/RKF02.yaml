@@ -4,8 +4,8 @@ kind: method
 id: RKF02
 name: 归元诀
 status: design_target
-summary: 以怒气循环为核心，普攻积怒、怒技按消耗量返怒的回气功法。
-description: 归元诀以普攻积攒怒气，并按怒技消耗量返还怒气；天赋强化攻击、回气或护盾。
+summary: 怒技后蓄备多段普攻，以连击回怒衔接下一轮爆发。
+description: 归元诀以普攻积攒怒气，怒技按实际消耗返还怒气；每次完成怒技都会强制蓄备下一次主普攻，使其基础段数增加、单段倍率降低并额外返怒。
 tags: [method, common, attack, rage, cycle]
 source:
   basis: original
@@ -41,7 +41,7 @@ actions:
         operation: damage
         target: enemy
         params:
-          attack_ratio: 1.90
+          attack_ratio: 1.55
           segments: 1
           can_crit: true
           damage_kind: direct
@@ -49,17 +49,17 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按攻击的1.90倍对敌方造成一段可暴击直接伤害；普攻完成后获得25点怒气。
+        text: 按攻击的1.55倍对敌方造成一段可暴击直接伤害；普攻完成后获得25点怒气。
   rage:
     name: 归元震脉
-    quick: 怒技攻击并返还实际怒耗
+    quick: 怒技返怒并强制下次普攻
     effects:
       - id: RKF02-RAGE-DAMAGE
         trigger: rage_action
         operation: damage
         target: enemy
         params:
-          attack_ratio: 2.50
+          attack_ratio: 2.00
           segments: 1
           can_crit: true
           damage_kind: direct
@@ -68,7 +68,7 @@ actions:
         consumes: [rage_locked_action_cost]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 消耗本次怒技所需的怒气后，按攻击的2.50倍造成一段可暴击直接伤害；怒技不会触发普攻回怒。
+        text: 消耗本次怒技所需的怒气后，按攻击的2.00倍造成一段可暴击直接伤害；怒技不会触发普攻回怒。
 passives:
   - id: RKF02-PASSIVE-RAGE-REFUND
     trigger: action_end
@@ -87,6 +87,16 @@ passives:
     replaces: []
     limit: {scope: action, count: 1}
     text: 每次怒技完成后，按本次消耗怒气的20%返还怒气。
+  - id: RKF02-V2-RESONANCE
+    trigger: always
+    operation: modify_effect
+    target: self
+    params: {resonance: returning_breath, extra_segments: 2, segment_ratio: 0.55, rage_bonus: 10}
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: permanent, count: 1}
+    text: 每次主怒技完成后强制蓄备下一次主普攻；该次所有基础段数（含其它效果增加的基础段）再增加2段，每段基础伤害倍率乘0.55，完成后额外获得10点怒气并清除蓄备。与基础分段天赋的每段倍率相乘；合并已有强制普攻的伤害和回怒加成，不覆盖它们。怒气回响不会蓄备此效果。
 travel:
   - id: RKF02-TRAVEL-NONBATTLE-XP
     trigger: node_complete
@@ -401,14 +411,14 @@ talents:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 怒技完成后，下一轮必须先使用强化普攻；该次普攻直接伤害提高18%，并获得40点怒气而非25点。即使怒气已满，也要先进行这次普攻。
+        text: 怒技完成后，下一轮必须先使用强化普攻；该次普攻直接伤害提高18%，并获得40点怒气而非25点。即使怒气已满，也要先进行这次普攻；与归元蓄击的分段和额外10点回怒同时生效。
 routes:
   - name: 快转回元
-    summary: 降低怒气上限并提高返流，怒技后以护盾接住压力；代价是低上限和低支付会同时降低按实际支付计算的返怒量。
+    summary: 降低怒气门槛并提高返流，以蓄备强化普攻和怒后护盾维持节奏；代价是低上限会降低按实际支付计算的返怒量。
     talents: [RKF02-J1-A, RKF02-J2-C, RKF02-J3-C, RKF02-J4-A]
   - name: 蓄怒重击
-    summary: 用轮尾回怒支撑更高上限和更重的怒技；代价是门槛、支付与等待窗口都会变长。
+    summary: 用轮尾回怒支撑高门槛怒技，再接蓄备普攻；代价是蓄怒等待窗口更长。
     talents: [RKF02-J1-C, RKF02-J2-B, RKF02-J3-A, RKF02-J4-B]
   - name: 普攻穿插
-    summary: 提高普攻和基础命中回怒，怒技后强制插入强化普攻；代价是额外回怒依赖基础直接段有效命中。
+    summary: 提高普攻和基础命中回怒，怒技后接多段归元蓄击；代价是额外回怒依赖基础直接段有效命中。
     talents: [RKF02-J1-B, RKF02-J2-A, RKF02-J3-B, RKF02-J4-C]

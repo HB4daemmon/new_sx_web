@@ -4,9 +4,9 @@ kind: artifact
 id: RR12
 name: 回生佩
 status: design_target
-summary: 最大气血 +30；普攻或怒技回复气血后额外获得10点怒气；支援定位
-description: 自身普攻或怒技回复气血时，额外获得10点怒气。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
-tags: [max_hp, heal, rage_gain, rare]
+summary: 最大气血 +30；有效自疗充入两枚回生刃；支援定位
+description: 正向有效自疗每个己方主动作或轮末持续伤害结算最多充入一枚回生刃，最多两枚；下一次主普攻后按已预约层数发射派生刃。未装备时不生效。
+tags: [max_hp, heal, charges, derived, rare]
 source:
   basis: original
   reference: null
@@ -21,23 +21,16 @@ attributes:
   flat: {max_hp: 30}
   percent: {}
 effects:
-  - id: RR12-SELF-HEAL-RAGE
-    trigger: heal_resolved
-    operation: rage_gain
+  - id: RR12-V2-RESONANCE
+    trigger: always
+    operation: modify_effect
     target: self
-    params:
-      amount: 10
-      timing: round_end
-      source: self_heal
-      requires_effective_amount: true
-      owning_action: own_main_action
-      excludes: [battle_start, travel, full_health_overflow]
-      one_per_own_action: true
-    requires: [effective_self_heal]
+    params: {resonance: healing_blades, max_charges: 2, attack_ratio: 0.35}
+    requires: []
     consumes: []
     replaces: []
-    limit: {scope: action, count: 1}
-    text: 每次普攻或怒技只要实际回复了气血，就额外获得10点怒气；治疗溢出、战外治疗和战斗开场不触发。
+    limit: {scope: permanent, count: 1}
+    text: 正向有效自疗（不含纯溢疗、怒气回响、开场或行旅）每个所属主动作或轮末持续伤害结算最多充入一枚回生刃，至多两枚。下一次主普攻开始时预约并清空已有刃，基础攻击后每枚追加一次攻击0.35倍派生伤害；本次普攻中后续治疗留给之后普攻。
 equipment_role: support
 acquisition:
   pools: [rare_artifact]

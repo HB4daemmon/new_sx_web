@@ -421,7 +421,15 @@ test('shared insights use current build rules across methods and enforce one sel
     'v2-insight-round-rage',
     { roundLimit: 1 },
   );
-  near(contribution(roundRage, 'V2-J3-A').rage, 3);
+  const hitRageAmount = content.rules.insights
+    .find(insight => insight.id === 'V2-J3-A').effects[0].params.amount;
+  const hexHits = roundRage.frames.filter(frame =>
+    frame.kind === 'damage' && frame.actor === 'player' && frame.source === 'RKF08-V2-RESONANCE');
+  const baseHits = roundRage.frames.filter(frame =>
+    frame.kind === 'damage' && frame.actor === 'player' && frame.source === 'RKF08-BASIC-DAMAGE');
+  assert.equal(baseHits.length, 1);
+  assert.equal(hexHits.length, 1);
+  near(contribution(roundRage, 'V2-J3-A').rage, hitRageAmount * (baseHits.length + hexHits.length));
 
   const openingWealthShield = simulateBattle(
     content,
@@ -459,7 +467,7 @@ test('lethal core burn ends combat without granting post-battle siphon healing',
   const result = simulateBattle(
     content,
     makeLoadout('RKF08', [{ id: 'RC15', stacks: 1 }], { hp: 500 }),
-    enemy({ max_hp: 90, hp: 90 }),
+    enemy({ max_hp: 130, hp: 130 }),
     'v2-burn-lethal',
     { roundLimit: 1 },
   );

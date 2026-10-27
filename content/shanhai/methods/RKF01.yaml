@@ -4,8 +4,8 @@ kind: method
 id: RKF01
 name: 金刚功
 status: design_target
-summary: 以防御造盾、承伤反击并把护盾转为攻势的护法功法。
-description: 金刚功以普攻和怒技攻击敌方，并按防御获得护盾；护盾能反击敌方攻击，天赋可强化护盾、怒技或反击。
+summary: 以防御造盾、承伤反击，并在怒技时释放所蓄护盾压力的护法功法。
+description: 普攻和怒技按防御造盾，持盾受击时反震并蓄劲；怒技开始时释放积蓄的劲力，不额外消耗护盾。
 tags: [method, common, defense, shield, direct]
 source:
   basis: original
@@ -41,7 +41,7 @@ actions:
         operation: damage
         target: enemy
         params:
-          attack_ratio: 0.95
+          attack_ratio: 0.80
           segments: 1
           can_crit: true
           damage_kind: direct
@@ -49,7 +49,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按攻击的0.95倍对敌方造成一段可暴击直接伤害。
+        text: 按攻击的0.80倍对敌方造成一段可暴击直接伤害。
       - id: RKF01-BASIC-SHIELD
         trigger: action_end
         operation: shield
@@ -68,14 +68,14 @@ actions:
         text: 普攻完成后获得相当于防御0.10倍的护盾。
   rage:
     name: 撼岳怒印
-    quick: 怒技攻击并按防御造盾
+    quick: 怒技造盾并释放盾压
     effects:
       - id: RKF01-RAGE-DAMAGE
         trigger: rage_action
         operation: damage
         target: enemy
         params:
-          attack_ratio: 1.35
+          attack_ratio: 1.10
           segments: 1
           can_crit: true
           damage_kind: direct
@@ -84,7 +84,7 @@ actions:
         consumes: [rage_locked_action_cost]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 消耗本次怒技所需的怒气后，按攻击的1.35倍对敌方造成一段可暴击直接伤害。
+        text: 消耗本次怒技所需的怒气后，按攻击的1.10倍对敌方造成一段可暴击直接伤害；怒技开始时另释放已存盾压。
       - id: RKF01-RAGE-SHIELD
         trigger: action_end
         operation: shield
@@ -121,6 +121,16 @@ passives:
     replaces: []
     limit: {scope: action, count: 1}
     text: 护盾吸收敌方主动直接攻击时，反击造成防御0.38倍的伤害；每次敌方行动最多触发一次，反击不会再次触发此效果。
+  - id: RKF01-V2-RESONANCE
+    trigger: always
+    operation: modify_effect
+    target: self
+    params: {resonance: guard_pressure, absorb_ratio: 0.75, cap_hp_ratio: 0.4, release_ratio: 1}
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: permanent, count: 1}
+    text: 敌方主动作的直接攻击对护盾造成吸收时，把吸收量的75%存为压力，最多存至最大气血40%；每次主怒技开始时把压力按1:1转成一次派生伤害并清空。护盾不被消耗，此规则不取代护体反震。
 travel:
   - id: RKF01-TRAVEL-XP
     trigger: rest_complete
@@ -460,11 +470,11 @@ talents:
         text: 护体反震命中敌方后施加1层破甲，持续2轮；此效果不会额外触发一次反震。
 routes:
   - name: 护法金刚
-    summary: 以防御和护盾维持承伤，持盾时减伤并靠固定盾返反击；代价是失去护盾后，部分加成会暂时失效。
+    summary: 以防御和护盾维持承伤，持盾减伤并固定盾返；敌方直接攻击被吸收时积压的盾压会在怒技释放，且不耗护盾。
     talents: [RKF01-J1-A, RKF01-J2-A, RKF01-J3-A, RKF01-J4-A]
   - name: 降魔武僧
-    summary: 强化普攻和怒技，怒后插入强化普攻，再以攻防并取的盾返施加破甲；代价是防御不足时护盾更薄。
+    summary: 强化普攻和怒技，怒后插入强化普攻，再让盾压、攻防兼取的盾返和破甲叠加输出；代价是防御不足时护盾更薄。
     talents: [RKF01-J1-C, RKF01-J2-B, RKF01-J3-C, RKF01-J4-C]
   - name: 护体法僧
-    summary: 用最大气血提高护盾量，破盾后还能补盾，再消耗部分护盾强化怒技；代价是主动消耗护盾会降低后续承伤能力。
+    summary: 用最大气血提高护盾量，破盾后补盾，并在怒技释放不耗盾的盾压后消费剩余护盾强化攻击；代价是主动耗盾会降低后续承伤能力。
     talents: [RKF01-J1-A, RKF01-J2-C, RKF01-J3-B, RKF01-J4-B]

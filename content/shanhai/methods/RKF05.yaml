@@ -4,8 +4,8 @@ kind: method
 id: RKF05
 name: 养剑诀
 status: design_target
-summary: 积累剑势强化剑击，并可消耗剑势追击的剑修功法。
-description: 养剑诀以攻击造成剑击伤害，剑势层数可进一步强化普攻和怒技；部分天赋会消耗剑势发动追击。
+summary: 普攻与法宝追击共同养势，怒技耗势释放连环剑阵。
+description: 普攻积累剑势强化剑击，法宝的直接与派生命中也能养势。怒技消耗预存剑势发动追剑，天赋可选择保势或换成更强剑阵。
 tags: [method, common, attack, crit_rate, sword_intent]
 source:
   basis: original
@@ -32,7 +32,7 @@ mechanic:
   max_stacks: 5
   duration: battle
   clear_at: battle_end
-  stack_source: basic_action
+  stack_source: [basic_action, eligible_equipped_artifact_hit]
   note: 剑势是唯一门派专属战斗状态；不占用公共怒气、护盾或治疗资源栏。
 acquisition:
   start: true
@@ -47,7 +47,7 @@ actions:
         operation: damage
         target: enemy
         params:
-          attack_ratio: 1.40
+          attack_ratio: 1.15
           segments: 1
           can_crit: true
           damage_kind: direct
@@ -55,7 +55,7 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按攻击的1.40倍造成一段可暴击剑击；伤害还会按出手时的剑势层数提高。
+        text: 按攻击的1.15倍造成一段可暴击剑击；伤害还会按出手时的剑势层数提高。
       - id: RKF05-BASIC-INTENT
         trigger: action_end
         operation: apply_status
@@ -71,27 +71,26 @@ actions:
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 普攻完成后增加1层剑势，最多5层；普攻仍获得25点基础怒气。
+        text: 普攻完成后增加1层剑势，最多5层，并获得25点基础怒气；法宝的直接与派生命中也可另行积势。
   rage:
     name: 断水养锋
-    quick: 怒技剑击并保留剑势
+    quick: 怒技剑击并按预存剑势发动剑阵
     effects:
       - id: RKF05-RAGE-DAMAGE
         trigger: rage_action
         operation: damage
         target: enemy
         params:
-          attack_ratio: 2.10
+          attack_ratio: 1.70
           segments: 1
           can_crit: true
           damage_kind: direct
-          preserve_sword_intent: true
           rage_cost: locked_action_cost
         requires: []
         consumes: [rage_locked_action_cost]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 消耗本次怒技所需的怒气后，按攻击的2.10倍造成一段可暴击剑击；怒技不会消耗剑势，伤害仍按出手时的剑势层数提高。
+        text: 消耗本次怒技所需的怒气后，按攻击的1.70倍造成一段可暴击剑击；怒技是否消耗预存剑势由剑阵规则和天赋决定，伤害仍按出手时的剑势层数提高。
 passives:
   - id: RKF05-PASSIVE-EDGE
     trigger: always
@@ -109,6 +108,16 @@ passives:
     replaces: []
     limit: {scope: permanent, count: 1}
     text: 普攻和怒技按出手时的剑势层数提高直接伤害，每层增加攻击0.07倍；此加成不影响追剑等追加效果。
+  - id: RKF05-V2-RESONANCE
+    trigger: always
+    operation: modify_effect
+    target: self
+    params: {resonance: sword_array, artifact_intent_limit: 2, consume_stacks: 3, attack_ratio: 0.22}
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: permanent, count: 1}
+    text: 已装备法宝的直接或派生攻击有效命中时增1层剑势，每个主动作最多新增2层，普攻积势不变；反震、持续伤害、开场准备与怒气回响不积势。怒技基础段后消耗最多3层出手前的预存剑势，每层追加一柄攻击0.22倍的派生剑；本次新生剑势不消耗。留势长锋保留所有剑势并关闭此追剑，剑断连环则替换追剑效果。
 travel:
   - id: RKF05-TRAVEL-NEXT-STRIKE
     trigger: node_complete
@@ -214,13 +223,14 @@ talents:
           status: sword_intent
           max_stacks_add: 2
           rage_preserves_stacks: true
+          disables_intrinsic_sword_expenditure: true
           max_stacks: 7
           duration: battle
         requires: []
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 剑势上限提高到7层；怒技仍不会消耗剑势。
+        text: 剑势上限提高到7层；怒技保留全部剑势并关闭归刃剑阵的内在耗势追剑。
   - id: RKF05-J2-B
     tier: 2
     branch: B
@@ -234,22 +244,23 @@ talents:
         target: self
         params:
           status: sword_intent
-          max_stacks: 3
-          damage_per_stack_attack_ratio: 0.28
+          max_stacks: 5
+          damage_per_stack_attack_ratio: 0.32
           damage_kind: derived
           recursive: false
           segments_per_stack: 1
           can_crit: false
           preserve_base_rage_damage: true
+          preexisting_only: true
           if_no_intent: base_rage_only
           consume_once: true
-          consume_key: sword_intent_up_to_3_stacks
+          consume_key: sword_intent_up_to_5_stacks
           outlet_group: sword_intent_to_followup
         requires: [sword_intent_available]
-        consumes: [sword_intent_up_to_3_stacks]
-        replaces: []
+        consumes: [sword_intent_up_to_5_stacks]
+        replaces: [RKF05-V2-RESONANCE]
         limit: {scope: action, count: 1}
-        text: 怒技完成时最多消耗3层剑势；每消耗1层，追加一次攻击0.28倍且不可暴击的追剑。没有剑势可消耗时，仍照常造成怒技伤害。
+        text: 怒技基础段结算后，仅从怒技开始时预存的剑势中最多消耗5层；每消耗1层追加一柄攻击0.32倍且不可暴击的派生剑。怒技中新生成的剑势不计入；此效果取代归刃剑阵，不会重复消费。没有预存剑势时仍照常造成怒技伤害。
   - id: RKF05-J2-C
     tier: 2
     branch: C
@@ -417,11 +428,11 @@ talents:
         text: 出手时剑势达到5层，普攻和怒技的直接伤害提高25%；不足5层时不触发，也不提高追剑或护盾效果。
 routes:
   - name: 留势长锋
-    summary: 提高剑势上限并保留层数，以满层直接剑击和剑心增伤取胜；代价是需要连续普攻积累状态。
+    summary: 提高剑势上限并用留势长锋关闭内在耗势，以满层直接剑击和剑心增伤取胜；代价是失去每层内在追剑。
     talents: [RKF05-J1-A, RKF05-J2-A, RKF05-J3-B, RKF05-J4-C]
   - name: 耗势连击
-    summary: 用怒技消费剑势换多次追剑，再以两段怒技放大直接爆发；代价是消费剑势后下一轮基础增伤下降。
+    summary: 用更强剑断连环取代内在剑阵，以怒技最多消费五层剑势并发动两段直接爆发；代价是消费后下一轮基础增伤下降。
     talents: [RKF05-J1-B, RKF05-J2-B, RKF05-J3-A, RKF05-J4-A]
   - name: 追剑回气
-    summary: 通过暴击追剑和两档出剑回怒维持循环，并以基础暴击率提高追剑机会；代价是必须暴击才会触发追加剑击。
+    summary: 通过法宝积势、内在剑阵、暴击追剑和两档出剑回怒维持循环；代价是剑阵受预存剑势数量限制。
     talents: [RKF05-J1-C, RKF05-J2-C, RKF05-J3-C, RKF05-J4-B]

@@ -4,9 +4,9 @@ kind: artifact
 id: RR04
 name: 如意钱
 status: design_target
-summary: 攻击 +6、暴击率 +2 个百分点；普攻首命中概率追加一击；支援定位
-description: 普攻首段命中后有25%概率追加一段攻击。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
-tags: [attack, crit_rate, basic, chance, rare]
+summary: 攻击 +6、暴击率 +2 个百分点；有效普攻按灵石数追加攻击；支援定位
+description: 有效完成主普攻后，依本场战斗开始时冻结的灵石数追加派生攻击，不支付灵石、没有概率检定。可与其他法宝组合装备，未装备时不生效。
+tags: [attack, crit_rate, basic, coins, derived, rare]
 source:
   basis: original
   reference: null
@@ -21,26 +21,16 @@ attributes:
   flat: {attack: 6, crit_rate: 0.02}
   percent: {}
 effects:
-  - id: RR04-BASIC-HIT-CHANCE-FOLLOWUP
-    trigger: direct_hit
-    operation: chance_damage
-    target: enemy
-    params:
-      chance: 0.25
-      attack_ratio: 0.5
-      segments: 1
-      can_crit: false
-      action_type: basic_action
-      hit_scope: first_effective_base_direct_hit
-      rolls_per_action: 1
-      append_after_base_hit: true
-      does_not_chain: true
-      first_test_value: {chance: 0.25, attack_ratio: 0.5}
-    requires: [effective_basic_base_hit]
+  - id: RR04-V2-RESONANCE
+    trigger: always
+    operation: modify_effect
+    target: self
+    params: {resonance: wealth_strikes, coins_per_segment: 100, max_segments: 3, attack_ratio: 0.22}
+    requires: []
     consumes: []
     replaces: []
-    limit: {scope: action, count: 1}
-    text: 普攻首段基础攻击命中后，有25%概率追加一段攻击倍率0.5的直接伤害；追加段不会再次触发本效果。
+    limit: {scope: permanent, count: 1}
+    text: 主普攻有效完成后追加1段派生攻击，本场开战时每满100灵石再加1段，最多3段，每段攻击倍率0.22；不支付灵石，不掷概率，怒气回响不重复触发。
 equipment_role: support
 acquisition:
   pools: [rare_artifact]

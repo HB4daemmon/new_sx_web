@@ -41,7 +41,7 @@ function playwrightModule() {
 const { chromium } = playwrightModule();
 const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH ||
   '/home/ubuntu/.cache/ms-playwright/chromium-1228/chrome-linux/chrome';
-const replayKey = 'suishi-shanhai-replay-v2-journey';
+const replayKey = 'suishi-shanhai-replay-v2-resonance';
 const checks = [];
 
 async function check(name, fn) {

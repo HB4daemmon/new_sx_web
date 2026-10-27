@@ -4,8 +4,8 @@ kind: method
 id: RKF07
 name: 奔雷诀
 status: design_target
-summary: 以连雷增加攻击段数，并用蓄势补偿连雷未成的雷修功法。
-description: 普攻造成一段雷击，怒技造成三段雷击；基础雷击有机会追加攻击，未能追加时会积累蓄势。
+summary: 以连雷与每三次有效出手积蓄雷引的追加雷击形成输出循环。
+description: 普攻造成一段雷击，怒技造成三段雷击；基础雷段可引发连雷，法宝追击也能积累雷引。每三次有效命中再落一雷，连雷未成时积累蓄势。
 tags: [method, rare, lightning, original]
 source:
   basis: original
@@ -44,12 +44,12 @@ actions:
         trigger: basic_action
         operation: damage
         target: enemy
-        params: {attack_ratio: 0.9, segments: 1, can_crit: true, damage_kind: direct}
+        params: {attack_ratio: 0.75, segments: 1, can_crit: true, damage_kind: direct}
         requires: []
         consumes: []
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按攻击的0.90倍造成一段可暴击直接雷击伤害。
+        text: 按攻击的0.75倍造成一段可暴击直接雷击伤害。
       - id: RKF07-BASIC-CHAIN
         trigger: basic_hit
         operation: chance_damage
@@ -62,18 +62,18 @@ actions:
         text: 普攻命中后有35%概率追加一段雷击；若已有未用于护盾的蓄势，消耗1层使本次概率提高20个百分点。追加成功时多造成一段雷击，失败时获得1层蓄势；追加雷击不会再次判定。
   rage:
     name: 九霄雷劫
-    quick: 三段雷击并逐段判定连雷
+    quick: 三段雷击判定连雷，雷引累积三次命中放电
     effects:
       - id: RKF07-RAGE-DAMAGE
         trigger: rage_action
         operation: damage
         target: enemy
-        params: {attack_ratio: 0.45, segments: 3, can_crit: true, damage_kind: direct, rage_cost: locked_action_cost}
+        params: {attack_ratio: 0.38, segments: 3, can_crit: true, damage_kind: direct, rage_cost: locked_action_cost}
         requires: []
         consumes: [rage_locked_action_cost]
         replaces: []
         limit: {scope: action, count: 1}
-        text: 按攻击的0.45倍造成三段可暴击直接雷击伤害；三段均属于这一次怒技。
+        text: 按攻击的0.38倍造成三段可暴击直接雷击伤害；三段均属于这一次怒技。
       - id: RKF07-RAGE-CHAIN
         trigger: rage_action
         operation: chance_damage
@@ -311,14 +311,24 @@ talents:
         replaces: [RKF07-J3-B-SHIELD]
         limit: {scope: action, count: 1}
         text: 普攻或怒技开始时，已有蓄势优先用于护盾；行动结束且自身存活时，获得防御0.30倍的护盾。此效果取代较弱的蓄势护盾；用于护盾的蓄势不提高连雷概率，也不需要先选择蓄运护身。
-passives: []
+passives:
+  - id: RKF07-V2-RESONANCE
+    trigger: always
+    operation: modify_effect
+    target: self
+    params: {resonance: thunder_induction, hit_threshold: 3, attack_ratio: 0.45, max_per_action: 2}
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: permanent, count: 1}
+    text: 每3次对敌方造成有效直接或派生命中，释放一段攻击0.45倍的派生雷击；雷引自身不为计数充能。每个主动作最多释放2次，剩余不足3次的计数带到之后动作；反震、持续伤害、开场准备与怒气回响不计入。
 routes:
   - name: 连雷追击
-    summary: 提高连雷概率与怒技段数，靠更多追加雷击提高输出；代价是每段基础雷击至多触发一次追加判定。
+    summary: 提高连雷概率与怒技段数，并用雷引补足基础段输出；代价是怒技内雷引最多释放两次。
     talents: [RKF07-J1-A, RKF07-J2-C, RKF07-J3-A, RKF07-J4-A]
   - name: 雷怒重击
-    summary: 强化怒技每段伤害并提高普攻回怒；代价是怒技追加雷击与其带来的回怒仍受连雷概率影响。
+    summary: 强化怒技每段伤害、提高普攻回怒，并用雷引稳定补段；代价是追加雷击仍受连雷概率影响。
     talents: [RKF07-J1-B, RKF07-J2-B, RKF07-J3-C, RKF07-J4-B]
   - name: 失败护身
-    summary: 把连雷失败留下的蓄运转成护盾，减少失手后的承伤压力；代价是消费蓄运后不再同时获得下一次连雷加成。
+    summary: 把连雷失败留下的蓄运转成护盾，并由雷引补足稳定输出；代价是消费蓄运后不再同时获得下一次连雷加成。
     talents: [RKF07-J1-C, RKF07-J2-A, RKF07-J3-B, RKF07-J4-C]

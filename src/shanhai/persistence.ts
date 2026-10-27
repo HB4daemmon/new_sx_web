@@ -9,8 +9,8 @@ import { validateRouteMap } from './route-map.js';
 import { assertEventCommitmentRecords } from './event-commitments.js';
 import { assertEventCheckResult } from './event-checks.js';
 
-export const SHANHAI_SAVE_KEY = 'suishi-shanhai-run-v2-journey';
-export const SHANHAI_BUILD_KEY = 'suishi-shanhai-build-v2-journey';
+export const SHANHAI_SAVE_KEY = 'suishi-shanhai-run-v2-resonance';
+export const SHANHAI_BUILD_KEY = 'suishi-shanhai-build-v2-resonance';
 export const SAVE_KEY = SHANHAI_SAVE_KEY;
 const SHANHAI_CONTENT_VERSION = 'shanhai-content-0.2';
 
@@ -152,7 +152,7 @@ function assertStateShapeWithoutContent(state: RunState): void {
   if (!Number.isInteger(state.n) || state.n < 0 || state.n > 4) {
     throw new Error('Invalid Shanhai realm');
   }
-  if (state.buildVersion !== 1) {
+  if (state.buildVersion !== 2) {
     throw new Error('Invalid saved build version');
   }
   if (!isObject(state.progress) ||

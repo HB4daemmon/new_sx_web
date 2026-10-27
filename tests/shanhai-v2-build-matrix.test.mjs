@@ -314,9 +314,10 @@ test('rage echoes stay single-payment and do not copy artifact or sword resource
     input.seed,
     8,
   );
-  assert.equal(swordBattle.frames.filter(frame =>
+  const swordFollowups = swordBattle.frames.filter(frame =>
     frame.kind === 'damage' && frame.actor === 'player' &&
-    frame.source === 'RKF05-J2-B-CONSUME').length, 1);
+    frame.source === 'RKF05-J2-B-CONSUME');
+  assert.equal(swordFollowups.length, 2);
   assert.equal(swordBattle.frames.some(frame =>
     frame.source === 'RKF05-J2-B-CONSUME-RAGE-ECHO'), false);
 });

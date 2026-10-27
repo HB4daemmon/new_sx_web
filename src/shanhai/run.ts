@@ -529,7 +529,7 @@ export class ShanhaiGame {
       coins: finite(rules.economy?.initial_coins) ? rules.economy.initial_coins : 20,
       artifacts: [],
       equipment: { slots: [] },
-      buildVersion: 1,
+      buildVersion: 2,
       progress: { coinsSpent: 0, eliteWins: 0, bossWins: 0 },
       talentDraftGeneration: 0,
       talentDrafts: {},
@@ -2745,7 +2745,7 @@ export function validateRunState(content: Content, raw: RunState): void {
   if (!isObject(raw)) throw new Error('Invalid run state');
   const state = raw as RunStateInternals;
   if (state.schema !== 1 || state.contentVersion !== content.version) throw new Error('Run/content version mismatch');
-  if (state.buildVersion !== 1) throw new Error('Incompatible run build version');
+  if (state.buildVersion !== 2) throw new Error('Incompatible run build version');
   if (!isObject(state.progress) ||
     !finite(state.progress.coinsSpent) || state.progress.coinsSpent < 0 ||
     !integer(state.progress.eliteWins) || state.progress.eliteWins < 0 ||

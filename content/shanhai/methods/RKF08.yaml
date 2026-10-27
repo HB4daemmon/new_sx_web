@@ -4,8 +4,8 @@ kind: method
 id: RKF08
 name: 太阴经
 status: design_target
-summary: 以虚弱、破甲和削怒压制敌方节奏的阴咒功法。
-description: 普攻施加虚弱，怒技施加破甲，天赋分别强化寒月压制、负面转伤和耗弱成盾。
+summary: 以虚弱、破甲和已有毒火引动月印，压制敌方节奏的阴咒功法。
+description: 普攻施加虚弱，怒技施加破甲；每次主动作结束时，敌方身上的中毒、燃烧、虚弱与破甲各可引动一枚月印，造成派生伤害并请求削怒。天赋另可强化压制、负面转伤或耗弱成盾。
 tags: [method, rare, curse, original]
 source:
   basis: original
@@ -86,6 +86,16 @@ passives:
     replaces: []
     limit: {scope: battle, count: 1}
     text: 每场战斗开始时防御提高8。
+  - id: RKF08-V2-RESONANCE
+    trigger: always
+    operation: modify_effect
+    target: self
+    params: {resonance: moon_hex, attack_ratio: 0.2, drain_per_kind: 2}
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: permanent, count: 1}
+    text: 每次完成主动作时，对敌方当前存活的中毒、燃烧、虚弱、破甲每种不同减益各放出一枚攻击0.2倍的派生月印，并为每种登记2点怒气削减请求；最多四种，不消费或刷新减益。削怒仍受公共抗性、向下取整和每目标每轮上限约束。
 travel:
   - id: RKF08-TRAVEL-REFUND
     trigger: event_cost_paid
@@ -314,11 +324,11 @@ talents:
         text: 敌方处于虚弱或破甲状态时，防御提高12；两种状态都消失后，加成也会消失。
 routes:
   - name: 寒月压制
-    summary: 以普攻与动作后削怒请求压低敌方后续怒技节奏；代价是削怒受公共抗性和每轮上限约束。
+    summary: 以普攻压制并让每种不同减益引动月印和削怒请求；代价是削怒受公共抗性和每轮上限约束。
     talents: [RKF08-J1-A, RKF08-J2-A, RKF08-J3-A, RKF08-J4-B]
   - name: 负面转伤
-    summary: 让虚弱和破甲的实际覆盖转成额外直接段并追击破甲目标；代价是没有实际施加减益时追加段和破甲增伤都不生效。
+    summary: 让虚弱和破甲的实际覆盖转成额外直接段，并引动不同减益对应的月印；代价是缺少实际减益时增伤与月印都会减少。
     talents: [RKF08-J1-B, RKF08-J2-B, RKF08-J3-B, RKF08-J4-A]
   - name: 耗弱成盾
-    summary: 以虚弱和破甲换取护盾和防御加成；代价是敌方失去这两种状态后，相关防护效果也会失效。
+    summary: 以虚弱和破甲换取护盾和防御加成，并让敌方不同减益引动月印；代价是状态消失后对应收益也会减少。
     talents: [RKF08-J1-C, RKF08-J2-C, RKF08-J3-C, RKF08-J4-C]

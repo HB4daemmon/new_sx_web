@@ -4,9 +4,9 @@ kind: artifact
 id: RR03
 name: 毒牙钉
 status: design_target
-summary: 攻击 +8；普攻首次命中后施加1层中毒；支援定位
-description: 普攻首次命中后，施加1层中毒。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
-tags: [attack, poison, dot, basic, rare]
+summary: 攻击 +8；每3次有效命中施加2层中毒；支援定位
+description: 直接攻击与派生追击共同积针，每3次有效命中施加2层中毒，每个主动作最多触发一次。可与其他法宝组合装备，未装备时不生效。
+tags: [attack, poison, dot, hit_counter, rare]
 source:
   basis: original
   reference: null
@@ -21,23 +21,16 @@ attributes:
   flat: {attack: 8}
   percent: {}
 effects:
-  - id: RR03-FIRST-BASIC-HIT-POISON
-    trigger: direct_hit
-    operation: apply_status
-    target: enemy
-    params:
-      status: poison
-      stacks: 1
-      duration_rounds: 3
-      action_type: basic_action
-      hit_scope: first_effective_base_direct_hit
-      one_per_action: true
-      excludes: [artifact_followup, reflect, poison, burn]
-    requires: [effective_basic_base_hit]
+  - id: RR03-V2-RESONANCE
+    trigger: always
+    operation: modify_effect
+    target: self
+    params: {resonance: venom_pin, hit_threshold: 3, poison_stacks: 2, duration_rounds: 3, attack_ratio: 0.08, max_per_action: 1}
+    requires: []
     consumes: []
     replaces: []
-    limit: {scope: action, count: 1}
-    text: 普攻首次命中后施加1层中毒；多段普攻只触发一次。
+    limit: {scope: permanent, count: 1}
+    text: 每3次有效直接或派生命中施加2层中毒，持续3轮，每层每轮伤害为攻击的0.08倍；每个主动作最多触发一次，仅保留不足3次的计数。反震、持续伤害、开场准备与怒气回响不计入。
 equipment_role: support
 acquisition:
   pools: [rare_artifact]

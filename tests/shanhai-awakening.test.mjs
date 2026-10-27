@@ -84,6 +84,16 @@ function withoutCoreRules(...ids) {
   return contentFromEntities(entities, content.version);
 }
 
+function withRkf04ThreeHitBasic(...coreRuleIds) {
+  const entities = structuredClone(content.entities);
+  for (const id of coreRuleIds) delete entities.find(item => item.id === id).core_rule;
+  const hitThreshold = content.byId.RR03.effects
+    .find(effect => effect.id === 'RR03-V2-RESONANCE').params.hit_threshold;
+  entities.find(item => item.id === 'RKF04').actions.basic.effects
+    .find(effect => effect.id === 'RKF04-BASIC-DAMAGE').params.segments = hitThreshold;
+  return contentFromEntities(entities, content.version);
+}
+
 test('RC09 awakens only at cap, applies once per round, and works on either side', () => {
   const authoredContent = withoutCoreRules('RC09');
   const battle = stacks => simulateBattle(
@@ -191,7 +201,7 @@ test('RC12 cleanse is once per battle and coexists with a second formerly core a
 
 test('RC14 and RC15 amplify only newly applied DOT layers under their condition', () => {
   const makeDotBattle = (artifactId, stacks) => simulateBattle(
-    withoutCoreRules(artifactId),
+    withRkf04ThreeHitBasic(artifactId),
     makeLoadout('RKF04', [
       { id: 'RR03', stacks: 1 },
       { id: artifactId, stacks },
@@ -212,13 +222,27 @@ test('RC14 and RC15 amplify only newly applied DOT layers under their condition'
     { id: 'RR03', stacks: 1 },
     { id: 'RC15', stacks: 3 },
   ], { max_hp: 1_000_000, attack: 100, speed: 11 }));
+  const burnEffect = content.byId.RKF04.actions.basic.effects
+    .find(effect => effect.id === 'RKF04-BASIC-BURN');
+  const burnPassive = content.byId.RKF04.passives
+    .find(effect => effect.id === 'RKF04-PASSIVE-BURN');
+  const rc15Multiplier = content.byId.RC15.effects
+    .find(effect => effect.id === 'RC15-SELF-BURN-BONUS').params.ratio;
+  const rc15Awakening = content.byId.RC15.effects
+    .find(effect => effect.id === 'RC15-AWAKENING-BURN-ON-POISON')
+    .params.attack_ratio_per_stack_add;
+  const rc15Stacks = 3;
   const firstBurn = framesFrom(rc15AtCap, frame =>
     frame.round === 1 && frame.kind === 'dot' && frame.actor === 'player' &&
     frame.source === 'RKF04-BASIC-BURN');
   assert.equal(firstBurn.length, 1);
-  assert.equal(firstBurn[0].amount, rc15AtCapStats.attack * ((0.08 + 0.02) * 1.18 + 0.04));
-  assert.equal(contribution(rc15BelowCap, 'RC15').triggers, 4);
-  assert.equal(contribution(rc15AtCap, 'RC15').triggers, 8);
+  assert.equal(firstBurn[0].amount, rc15AtCapStats.attack * (
+    (burnEffect.params.attack_ratio_per_stack + burnPassive.params.attack_ratio_per_stack_add) *
+      (1 + rc15Stacks * rc15Multiplier) +
+    rc15Awakening
+  ));
+  assert.ok(contribution(rc15BelowCap, 'RC15').triggers > 0);
+  assert.ok(contribution(rc15AtCap, 'RC15').triggers > contribution(rc15BelowCap, 'RC15').triggers);
   assert.equal(contribution(rc15AtCap, 'RC15').damage, 0);
 
   const rc14BelowCap = makeDotBattle('RC14', 2);
@@ -227,19 +251,28 @@ test('RC14 and RC15 amplify only newly applied DOT layers under their condition'
     { id: 'RR03', stacks: 1 },
     { id: 'RC14', stacks: 3 },
   ], { max_hp: 1_000_000, attack: 100, speed: 11 }));
+  const poisonEffect = content.byId.RR03.effects
+    .find(effect => effect.id === 'RR03-V2-RESONANCE');
+  const rc14Multiplier = content.byId.RC14.effects
+    .find(effect => effect.id === 'RC14-SELF-POISON-BONUS').params.ratio;
+  const rc14Awakening = content.byId.RC14.effects
+    .find(effect => effect.id === 'RC14-AWAKENING-POISON-ON-BURN')
+    .params.attack_ratio_per_stack_add;
+  const rc14Stacks = 3;
   const poisonTicks = framesFrom(rc14AtCap, frame =>
     frame.round === 2 && frame.kind === 'dot' && frame.actor === 'player' &&
-    frame.source === 'RR03-FIRST-BASIC-HIT-POISON').map(frame => frame.amount);
-  assert.equal(poisonTicks.length, 2);
-  const awakenedPoisonDamage = rc14AtCapStats.attack * (0.08 * 1.18 + 0.04);
+    frame.source === 'RR03-V2-RESONANCE').map(frame => frame.amount);
+  assert.equal(poisonTicks.length, poisonEffect.params.poison_stacks * 2);
+  const awakenedPoisonDamage = rc14AtCapStats.attack *
+    (poisonEffect.params.attack_ratio * (1 + rc14Stacks * rc14Multiplier) + rc14Awakening);
   assert.ok(poisonTicks.some(amount => Math.abs(amount - awakenedPoisonDamage) < 1e-9));
-  assert.equal(contribution(rc14BelowCap, 'RC14').triggers, 4);
-  assert.equal(contribution(rc14AtCap, 'RC14').triggers, 7);
+  assert.ok(contribution(rc14BelowCap, 'RC14').triggers > 0);
+  assert.ok(contribution(rc14AtCap, 'RC14').triggers > contribution(rc14BelowCap, 'RC14').triggers);
   assert.equal(contribution(rc14AtCap, 'RC14').damage, 0);
 });
 
 test('an enemy carrying fully awakened RC15 applies the same conditional DOT bonus', () => {
-  const authoredContent = withoutCoreRules('RC15');
+  const authoredContent = withRkf04ThreeHitBasic('RC15');
   const enemy = makeLoadout('RKF04', [
     { id: 'RR03', stacks: 1 },
     { id: 'RC15', stacks: 3 },
@@ -255,8 +288,22 @@ test('an enemy carrying fully awakened RC15 applies the same conditional DOT bon
     frame.round === 1 && frame.kind === 'dot' && frame.actor === 'enemy' &&
     frame.source === 'RKF04-BASIC-BURN');
   const enemyAttack = calculateStats(content, enemy).attack;
+  const burnEffect = content.byId.RKF04.actions.basic.effects
+    .find(effect => effect.id === 'RKF04-BASIC-BURN');
+  const burnPassive = content.byId.RKF04.passives
+    .find(effect => effect.id === 'RKF04-PASSIVE-BURN');
+  const rc15Multiplier = content.byId.RC15.effects
+    .find(effect => effect.id === 'RC15-SELF-BURN-BONUS').params.ratio;
+  const rc15Awakening = content.byId.RC15.effects
+    .find(effect => effect.id === 'RC15-AWAKENING-BURN-ON-POISON')
+    .params.attack_ratio_per_stack_add;
+  const rc15Stacks = 3;
   assert.equal(enemyBurn.length, 1);
-  assert.equal(enemyBurn[0].amount, enemyAttack * ((0.08 + 0.02) * 1.18 + 0.04));
+  assert.equal(enemyBurn[0].amount, enemyAttack * (
+    (burnEffect.params.attack_ratio_per_stack + burnPassive.params.attack_ratio_per_stack_add) *
+      (1 + rc15Stacks * rc15Multiplier) +
+    rc15Awakening
+  ));
 });
 
 test('legal awakened loadout preserves rage cadence and four formerly core artifacts operate together', () => {

@@ -4,9 +4,9 @@ kind: artifact
 id: RL03
 name: 裂空宝轮
 status: design_target
-summary: 攻击 +12、暴击率 +3 个百分点；普攻首次命中后追加两段伤害；核心定位，可与最多3件其他法宝一同装备
-description: 普攻首次命中后，宝轮会接续两段不可暴击的直接攻击。装备后，核心定位仅作描述，可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
-tags: [attack, crit_rate, basic, followup, legendary]
+summary: 攻击 +12、暴击率 +3 个百分点；每六次有效命中释放四段轮击；核心定位
+description: 直接攻击与派生追击共同积蓄轮势，每六次有效命中释放四段攻击0.25倍的派生伤害；每个主动作最多一次。可与其他法宝组合装备，未装备时不生效。
+tags: [attack, crit_rate, hit_counter, derived, legendary]
 source:
   basis: original
   reference: null
@@ -21,26 +21,16 @@ attributes:
   flat: {attack: 12, crit_rate: 0.03}
   percent: {}
 effects:
-  - id: RL03-BASIC-HIT-TWO-FOLLOWUPS
-    trigger: direct_hit
-    operation: damage
-    target: enemy
-    params:
-      attack_ratio: 0.5
-      segments: 2
-      can_crit: false
-      source: artifact_followup
-      action_type: basic_action
-      hit_scope: first_effective_base_direct_hit
-      append_after_base_hit: true
-      one_trigger_per_basic_action: true
-      does_not_chain: true
-      first_test_value: {attack_ratio_per_segment: 0.5, segments: 2}
-    requires: [effective_basic_base_hit]
+  - id: RL03-V2-RESONANCE
+    trigger: always
+    operation: modify_effect
+    target: self
+    params: {resonance: wheel_storm, hit_threshold: 6, segments: 4, attack_ratio: 0.25, max_per_action: 1}
+    requires: []
     consumes: []
     replaces: []
-    limit: {scope: action, count: 1}
-    text: 每次普攻首次命中后，追加两段各为攻击0.5倍的不可暴击直接伤害；追加段不会再次触发此效果。
+    limit: {scope: permanent, count: 1}
+    text: 每6次有效直接或派生命中释放4段轮击，每段为攻击0.25倍的不可暴击派生伤害；每个主动作最多一次，仅保留不足6次的计数。轮击不为自身充能，但可触发其它法宝和功法；反震、持续伤害、开场准备与怒气回响不计入。
 equipment_role: core
 acquisition:
   pools: [legendary_artifact]

@@ -75,7 +75,7 @@ balance:
 ```
 
 - `kind` 为 `rules/method/artifact/event/storyline/enemy/act`。
-- V2 内容版本为 `shanhai-content-0.2`；schema shape 仍是 1。它取代 V1 的法宝无限生效规则。
+- V2 内容版本为 `shanhai-content-0.2`；schema shape 仍是 1。它取代 V1 的法宝无限生效规则，并给指定功法、法宝增加显式的 resonance 被动规则。
 - `source.basis` 为 `original/myth_adaptation`；人物原典确认与游戏原创能力分开写。
   不确定来源使用 `reference:null` 并注明待核验，不编造知识库 ID、回目或校对状态。
 - 所有记录 `status:design_target`、`balance.measured:null`。可写首测系数，
@@ -117,6 +117,37 @@ prepare_next_battle/reduce_event_cost/replace_action/chance_damage/modify_chance
 `segment/action/enemy_action/round/battle/node/run/permanent`，`count` 为正整数。
 百分比用0至1比例；暴击率也用比例，不用“2”表示2个百分点。次数与层数均为整数。
 这是设计数据协议，不代表通用效果引擎已实现；复杂条件仍需实现时逐项接线测试。
+
+### V2 共鸣规则
+
+V2 共鸣效果只允许用于已接入的实体，且只能放在功法 `passives` 或法宝 `effects`。
+效果固定为 `trigger: always`、`operation: modify_effect`、`target: self`、空的
+`requires/consumes/replaces` 和 `{scope: permanent, count: 1}`；ID 必须是实体 ID 加
+`-V2-RESONANCE`。该 limit 只安装规则，不表示每战只触发一次。不能把规则放进功法天赋，
+不能复制旧触发作为第二套效果。
+
+| 实体 | `params.resonance` | 其它参数键 |
+| --- | --- | --- |
+| RKF01 | `guard_pressure` | `absorb_ratio`, `cap_hp_ratio`, `release_ratio` |
+| RKF02 | `returning_breath` | `extra_segments`, `segment_ratio`, `rage_bonus` |
+| RKF03 | `spring_bloom` | `threshold_hp_ratio`, `burst_hp_ratio`, `max_per_action` |
+| RKF04 | `burn_accelerate` | `ticks` |
+| RKF05 | `sword_array` | `artifact_intent_limit`, `consume_stacks`, `attack_ratio` |
+| RKF07 | `thunder_induction` | `hit_threshold`, `attack_ratio`, `max_per_action` |
+| RKF08 | `moon_hex` | `attack_ratio`, `drain_per_kind` |
+| RC13 | `shield_retort` | `defense_ratio` |
+| RR03 | `venom_pin` | `hit_threshold`, `poison_stacks`, `duration_rounds`, `attack_ratio`, `max_per_action` |
+| RR04 | `wealth_strikes` | `coins_per_segment`, `max_segments`, `attack_ratio` |
+| RR09 | `rebound_guard` | `rage_gain`, `defense_ratio` |
+| RR11 | `toxic_furnace` | `remaining_damage_ratio`, `rage_gain` |
+| RR12 | `healing_blades` | `max_charges`, `attack_ratio` |
+| RL02 | `ember_furnace` | `stored_ratio`, `cap_hp_ratio`, `segments` |
+| RL03 | `wheel_storm` | `hit_threshold`, `segments`, `attack_ratio`, `max_per_action` |
+
+`params` 只能使用 `resonance` 和表中该实体的参数键，不可省略或添加字段；所有参数必须
+是有限非负数，比例不超过 1，阈值必须大于 0，次数/层数/段数必须是正整数。参数范围和
+数值由内容工具校验，怒气点数也必须是整数。规则的具体时机、排除项和资源结算顺序写在
+卡面 `text`；其它实体与功法天赋均不得声明 V2 共鸣规则。
 
 ## 各类型必填内容
 
@@ -195,11 +226,13 @@ category: enhance, effects: [...]}`。
 | RC14 | `poison_detonation` | 普攻施加1层中毒；怒技消费自身施加的中毒，按剩余 tick 与倍率 `1.1` 造成伤害 |
 | RC15 | `burn_siphon` | 普攻施加1层燃烧；燃烧实际造成气血伤害的 `0.25` 转为治疗；怒技基础伤害倍率 `0.8` |
 
-传奇核心 `RL01-RL05` 保留原卡面机制，不添加第二套 `core_rule`。
+传奇核心不添加第二套 `core_rule`；`RL01/RL04/RL05` 保留原有机制，
+`RL02/RL03` 的旧效果由上文共鸣规则替换，不同时执行旧出口。
 `unique_group:null` 或真实互斥组，RL01为`overflow_outlet`。
 `acquisition.pools` 引用 `common_artifact/rare_artifact/legendary_artifact` 等公共池。
 `balance.target: {B: 1, A: 5, J: 0}`；旅途型按法宝基线分摊，不能在B外再免费加属性。
-所有44个已有ID、名称、已定效果和数值保留；补全未定参数时写清首测值。
+保留44件法宝的ID、名称、层数和基础属性；V2契约指定的交互卡按新规则替换旧触发，
+其余效果和数值沿用既定内容；补全未定参数时写清首测值。
 可选 `awakening: {at_stacks: 3, name: ..., quick: ...}` 只能在
 `at_stacks == max_stacks` 时声明完整叠层觉醒；相应法宝效果可写顶层 `min_stacks`，
 必须为不超过该法宝上限的正整数。达门槛后该效果只触发一次，不乘总层数；

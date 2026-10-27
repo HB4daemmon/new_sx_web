@@ -2,6 +2,8 @@
 
 Implementation contract, 2026-10-26. Experimental branch only; not V1 or main.
 This supersedes the old unimplemented synergy proposal, which is not part of this change.
+The later V2_RESONANCE_CONTRACT.md updates method/artifact rules and storage to
+buildVersion 2 / `-v2-resonance`; this file records the preceding journey baseline.
 
 ## Shared Interfaces
 

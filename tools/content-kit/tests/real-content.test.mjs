@@ -6,7 +6,9 @@ import { validateLoadedContent } from '../src/validator.mjs'
 import { renderDocuments } from '../src/renderer.mjs'
 import {
   ARTIFACT_EQUIPMENT_ROLES,
+  ARTIFACT_RESONANCE_RULES,
   CORE_ARTIFACT_RULES,
+  METHOD_RESONANCE_RULES,
   SHARED_INSIGHT_IDS,
 } from '../src/constants.mjs'
 
@@ -155,6 +157,100 @@ test('real content validates and preserves the authored entity and talent counts
   for (const enemy of entitiesOf('enemy')) {
     assert.ok(enemy.artifacts.length <= 4, `${enemy.id} total equipment count`)
   }
+})
+
+test('V2 resonance rules are authored once on their owners and render with the changed method loops', () => {
+  const expectedMethodParams = {
+    RKF01: { resonance: 'guard_pressure', absorb_ratio: 0.75, cap_hp_ratio: 0.4, release_ratio: 1 },
+    RKF02: { resonance: 'returning_breath', extra_segments: 2, segment_ratio: 0.55, rage_bonus: 10 },
+    RKF03: { resonance: 'spring_bloom', threshold_hp_ratio: 0.2, burst_hp_ratio: 0.12, max_per_action: 1 },
+    RKF04: { resonance: 'burn_accelerate', ticks: 1 },
+    RKF05: { resonance: 'sword_array', artifact_intent_limit: 2, consume_stacks: 3, attack_ratio: 0.22 },
+    RKF07: { resonance: 'thunder_induction', hit_threshold: 3, attack_ratio: 0.45, max_per_action: 2 },
+    RKF08: { resonance: 'moon_hex', attack_ratio: 0.2, drain_per_kind: 2 },
+  }
+  const expectedArtifactParams = {
+    RC13: { resonance: 'shield_retort', defense_ratio: 0.18 },
+    RR03: { resonance: 'venom_pin', hit_threshold: 3, poison_stacks: 2, duration_rounds: 3, attack_ratio: 0.08, max_per_action: 1 },
+    RR04: { resonance: 'wealth_strikes', coins_per_segment: 100, max_segments: 3, attack_ratio: 0.22 },
+    RR09: { resonance: 'rebound_guard', rage_gain: 10, defense_ratio: 0.35 },
+    RR11: { resonance: 'toxic_furnace', remaining_damage_ratio: 0.8, rage_gain: 8 },
+    RR12: { resonance: 'healing_blades', max_charges: 2, attack_ratio: 0.35 },
+    RL02: { resonance: 'ember_furnace', stored_ratio: 0.6, cap_hp_ratio: 0.5, segments: 3 },
+    RL03: { resonance: 'wheel_storm', hit_threshold: 6, segments: 4, attack_ratio: 0.25, max_per_action: 1 },
+  }
+  for (const [owner, expectedParams] of Object.entries(expectedMethodParams)) {
+    assert.ok(METHOD_RESONANCE_RULES[owner], `${owner} is an authorized method owner`)
+    const method = model.byId.get(owner)
+    const rule = method.passives.filter((effect) => effect.id === `${owner}-V2-RESONANCE`)
+    assert.equal(rule.length, 1, `${owner} owns one resonance passive`)
+    assert.deepEqual(rule[0].params, expectedParams, owner)
+    assert.deepEqual(rule[0].limit, { scope: 'permanent', count: 1 }, owner)
+    assert.deepEqual(rule[0].requires, [], owner)
+    assert.deepEqual(rule[0].consumes, [], owner)
+    assert.deepEqual(rule[0].replaces, [], owner)
+    assert.equal(method.talents.flatMap((talent) => talent.effects).some((effect) => effect.params?.resonance), false, `${owner} does not attach resonance to a talent`)
+  }
+  for (const [owner, expectedParams] of Object.entries(expectedArtifactParams)) {
+    assert.ok(ARTIFACT_RESONANCE_RULES[owner], `${owner} is an authorized artifact owner`)
+    const artifact = model.byId.get(owner)
+    const rule = artifact.effects.filter((effect) => effect.id === `${owner}-V2-RESONANCE`)
+    assert.equal(rule.length, 1, `${owner} owns one resonance effect`)
+    assert.deepEqual(rule[0].params, expectedParams, owner)
+    assert.deepEqual(rule[0].limit, { scope: 'permanent', count: 1 }, owner)
+    assert.deepEqual(rule[0].requires, [], owner)
+    assert.deepEqual(rule[0].consumes, [], owner)
+    assert.deepEqual(rule[0].replaces, [], owner)
+  }
+
+  for (const id of ['RKF06', 'RKF09', 'RKF10']) {
+    assert.equal(effectsOf(model.byId.get(id)).some((effect) => effect.params?.resonance), false, `${id} keeps its existing identity`)
+  }
+
+  const ratios = {
+    RKF01: [0.8, 1.1],
+    RKF02: [1.55, 2],
+    RKF03: [0.75, 1.15],
+    RKF05: [1.15, 1.7],
+    RKF07: [0.75, 0.38],
+  }
+  for (const [id, [basicRatio, rageRatio]] of Object.entries(ratios)) {
+    const method = model.byId.get(id)
+    assert.equal(effectById(method, `${id}-BASIC-DAMAGE`).params.attack_ratio, basicRatio, `${id} basic`)
+    assert.equal(effectById(method, `${id}-RAGE-DAMAGE`).params.attack_ratio, rageRatio, `${id} rage`)
+  }
+  const sword = model.byId.get('RKF05')
+  const j2a = talentById(sword).get('RKF05-J2-A').effects[0]
+  const j2b = talentById(sword).get('RKF05-J2-B').effects[0]
+  assert.equal(j2a.params.disables_intrinsic_sword_expenditure, true)
+  assert.deepEqual(j2b.replaces, ['RKF05-V2-RESONANCE'])
+  assert.equal(j2b.params.max_stacks, 5)
+  assert.equal(j2b.params.damage_per_stack_attack_ratio, 0.32)
+  assert.equal(j2b.params.preexisting_only, true)
+  assert.equal(Object.hasOwn(effectById(sword, 'RKF05-RAGE-DAMAGE').params, 'preserve_sword_intent'), false)
+
+  assert.equal(
+    model.byId.get('RR11').effects.find((effect) => effect.id === 'RR11-DOT-ROUND-RAGE').params.amount,
+    5,
+  )
+  const removedArtifactEffects = {
+    RC13: 'RC13-SHIELD-REFLECT-BONUS',
+    RR03: 'RR03-FIRST-BASIC-HIT-POISON',
+    RR04: 'RR04-BASIC-HIT-CHANCE-FOLLOWUP',
+    RR09: 'RR09-REFLECT-ENEMY-ACTION-RAGE',
+    RR12: 'RR12-SELF-HEAL-RAGE',
+    RL02: 'RL02-FIRST-BURN-HEAL',
+    RL03: 'RL03-BASIC-HIT-TWO-FOLLOWUPS',
+  }
+  for (const [owner, oldId] of Object.entries(removedArtifactEffects)) {
+    assert.equal(model.byId.get(owner).effects.some((effect) => effect.id === oldId), false, `${owner} no longer runs ${oldId}`)
+  }
+
+  const pages = renderDocuments(report)
+  assert.match(pages.get('methods/RKF05.md'), /取代归刃剑阵/)
+  assert.match(pages.get('methods/RKF03.md'), /最大气血20%/)
+  assert.match(pages.get('artifacts/RARE.md'), /毒火/)
+  assert.match(pages.get('artifacts/LEGENDARY.md'), /四段攻击0.25倍/)
 })
 
 test('every method has four A/B/C talent tiers and 81 structural builds', () => {

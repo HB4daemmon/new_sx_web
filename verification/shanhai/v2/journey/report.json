@@ -2,7 +2,7 @@
   "url": "http://localhost:4178",
   "seed": "v2-functional-RKF01-0",
   "playerName": "真实浏览器行者",
-  "generatedAt": "2026-10-26T17:10:21.338Z",
+  "generatedAt": "2026-10-27T03:22:37.217Z",
   "contentVersion": "shanhai-content-0.2",
   "policy": "tests/shanhai-policy.mjs nextCommand; fixed seed pre-set through hidden setup input; Node-side read-only ShanhaiGame decisions; all game phases use browser clicks",
   "reports": [
@@ -98,8 +98,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 3,
-            "playerHp": 383.03999999999996,
+            "rounds": 4,
+            "playerHp": 399.26875,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -114,7 +114,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 0,
-          "hp": 383.03999999999996,
+          "hp": 399.26875,
           "maxHp": 500,
           "xp": 60,
           "coins": 24,
@@ -128,8 +128,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 3,
-            "playerHp": 383.03999999999996,
+            "rounds": 4,
+            "playerHp": 399.26875,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -144,7 +144,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 0,
-          "hp": 383.03999999999996,
+          "hp": 399.26875,
           "maxHp": 500,
           "xp": 60,
           "coins": 24,
@@ -175,7 +175,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 0,
-          "hp": 383.03999999999996,
+          "hp": 399.26875,
           "maxHp": 500,
           "xp": 60,
           "coins": 24,
@@ -207,7 +207,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 0,
-          "hp": 383.03999999999996,
+          "hp": 399.26875,
           "maxHp": 500,
           "xp": 60,
           "coins": 32,
@@ -239,7 +239,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 0,
-          "hp": 383.03999999999996,
+          "hp": 399.26875,
           "maxHp": 500,
           "xp": 60,
           "coins": 32,
@@ -271,7 +271,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 0,
-          "hp": 383.03999999999996,
+          "hp": 399.26875,
           "maxHp": 500,
           "xp": 60,
           "coins": 32,
@@ -304,7 +304,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 0,
-          "hp": 383.03999999999996,
+          "hp": 399.26875,
           "maxHp": 500,
           "xp": 60,
           "coins": 32,
@@ -327,8 +327,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 3,
-            "playerHp": 333.8596594059406,
+            "rounds": 4,
+            "playerHp": 365.4419044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -343,7 +343,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 0,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 500,
           "xp": 120,
           "coins": 36,
@@ -366,8 +366,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 3,
-            "playerHp": 333.8596594059406,
+            "rounds": 4,
+            "playerHp": 365.4419044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -382,7 +382,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 0,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 500,
           "xp": 120,
           "coins": 36,
@@ -420,7 +420,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 120,
           "coins": 36,
@@ -458,7 +458,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 120,
           "coins": 36,
@@ -497,7 +497,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 120,
           "coins": 36,
@@ -526,8 +526,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 1,
-            "playerHp": 333.8596594059406,
+            "rounds": 2,
+            "playerHp": 365.4419044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -542,7 +542,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 180,
           "coins": 40,
@@ -571,8 +571,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 1,
-            "playerHp": 333.8596594059406,
+            "rounds": 2,
+            "playerHp": 365.4419044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -587,7 +587,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 180,
           "coins": 40,
@@ -631,7 +631,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 180,
           "coins": 40,
@@ -676,7 +676,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 180,
           "coins": 40,
@@ -721,7 +721,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 180,
           "coins": 40,
@@ -766,7 +766,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 180,
           "coins": 40,
@@ -812,7 +812,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 180,
           "coins": 40,
@@ -849,7 +849,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 333.8596594059406,
+            "playerHp": 365.4419044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -864,7 +864,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 240,
           "coins": 44,
@@ -901,7 +901,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 333.8596594059406,
+            "playerHp": 365.4419044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -916,7 +916,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 240,
           "coins": 44,
@@ -967,7 +967,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 240,
           "coins": 44,
@@ -1019,7 +1019,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 240,
           "coins": 44,
@@ -1062,7 +1062,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 333.8596594059406,
+            "playerHp": 365.4419044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -1077,7 +1077,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 300,
           "coins": 48,
@@ -1120,7 +1120,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 333.8596594059406,
+            "playerHp": 365.4419044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -1135,7 +1135,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 300,
           "coins": 48,
@@ -1191,7 +1191,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 300,
           "coins": 48,
@@ -1248,7 +1248,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 300,
           "coins": 48,
@@ -1305,7 +1305,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 300,
           "coins": 48,
@@ -1362,7 +1362,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 300,
           "coins": 48,
@@ -1420,7 +1420,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 300,
           "coins": 48,
@@ -1469,7 +1469,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 427.6096594059406,
+            "playerHp": 459.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -1484,7 +1484,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 360,
           "coins": 52,
@@ -1533,7 +1533,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 427.6096594059406,
+            "playerHp": 459.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -1548,7 +1548,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 360,
           "coins": 52,
@@ -1606,7 +1606,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 360,
           "coins": 52,
@@ -1665,7 +1665,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 360,
           "coins": 52,
@@ -1715,7 +1715,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 427.6096594059406,
+            "playerHp": 459.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -1730,7 +1730,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 420,
           "coins": 56,
@@ -1780,7 +1780,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 427.6096594059406,
+            "playerHp": 459.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -1795,7 +1795,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 420,
           "coins": 56,
@@ -1858,7 +1858,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 420,
           "coins": 56,
@@ -1922,7 +1922,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 420,
           "coins": 56,
@@ -1977,7 +1977,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 4,
-            "playerHp": 352.23753451142585,
+            "playerHp": 459.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -1992,7 +1992,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 352.23753451142585,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 540,
           "coins": 66,
@@ -2047,7 +2047,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 4,
-            "playerHp": 352.23753451142585,
+            "playerHp": 459.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -2062,7 +2062,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 352.23753451142585,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 540,
           "coins": 66,
@@ -2130,7 +2130,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 352.23753451142585,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 540,
           "coins": 66,
@@ -2198,7 +2198,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 352.23753451142585,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 540,
           "coins": 66,
@@ -2254,7 +2254,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 352.23753451142585,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 540,
           "coins": 66,
@@ -2312,7 +2312,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 352.23753451142585,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 540,
           "coins": 66,
@@ -2361,7 +2361,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 352.23753451142585,
+            "playerHp": 459.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -2376,7 +2376,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 352.23753451142585,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 620,
           "coins": 70,
@@ -2425,7 +2425,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 352.23753451142585,
+            "playerHp": 459.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -2440,7 +2440,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 352.23753451142585,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 620,
           "coins": 70,
@@ -2502,7 +2502,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 352.23753451142585,
+          "hp": 459.1919044554455,
           "maxHp": 775,
           "xp": 620,
           "coins": 70,
@@ -2564,7 +2564,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 352.23753451142585,
+          "hp": 459.1919044554455,
           "maxHp": 775,
           "xp": 620,
           "coins": 70,
@@ -2627,7 +2627,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 352.23753451142585,
+          "hp": 459.1919044554455,
           "maxHp": 775,
           "xp": 620,
           "coins": 70,
@@ -2690,7 +2690,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 352.23753451142585,
+          "hp": 459.1919044554455,
           "maxHp": 775,
           "xp": 620,
           "coins": 70,
@@ -2753,7 +2753,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 352.23753451142585,
+          "hp": 459.1919044554455,
           "maxHp": 775,
           "xp": 620,
           "coins": 70,
@@ -2817,7 +2817,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 352.23753451142585,
+          "hp": 459.1919044554455,
           "maxHp": 775,
           "xp": 620,
           "coins": 70,
@@ -2871,8 +2871,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 1,
-            "playerHp": 352.23753451142585,
+            "rounds": 2,
+            "playerHp": 459.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -2887,7 +2887,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 352.23753451142585,
+          "hp": 459.1919044554455,
           "maxHp": 775,
           "xp": 700,
           "coins": 74,
@@ -2941,8 +2941,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 1,
-            "playerHp": 352.23753451142585,
+            "rounds": 2,
+            "playerHp": 459.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -2957,7 +2957,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 352.23753451142585,
+          "hp": 459.1919044554455,
           "maxHp": 775,
           "xp": 700,
           "coins": 74,
@@ -3021,7 +3021,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 352.23753451142585,
+          "hp": 459.1919044554455,
           "maxHp": 775,
           "xp": 700,
           "coins": 74,
@@ -3086,7 +3086,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 700,
           "coins": 59,
@@ -3151,7 +3151,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 700,
           "coins": 19,
@@ -3220,7 +3220,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 700,
           "coins": 19,
@@ -3289,7 +3289,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 700,
           "coins": 19,
@@ -3359,7 +3359,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 700,
           "coins": 19,
@@ -3429,7 +3429,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 700,
           "coins": 19,
@@ -3499,7 +3499,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 700,
           "coins": 19,
@@ -3570,7 +3570,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 700,
           "coins": 19,
@@ -3632,7 +3632,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 445.23753451142585,
+            "playerHp": 552.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -3647,7 +3647,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 780,
           "coins": 23,
@@ -3709,7 +3709,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 445.23753451142585,
+            "playerHp": 552.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -3724,7 +3724,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 780,
           "coins": 23,
@@ -3795,7 +3795,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 780,
           "coins": 23,
@@ -3867,7 +3867,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 780,
           "coins": 23,
@@ -3930,7 +3930,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 445.23753451142585,
+            "playerHp": 552.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -3945,7 +3945,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 860,
           "coins": 27,
@@ -4008,7 +4008,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 445.23753451142585,
+            "playerHp": 552.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -4023,7 +4023,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 860,
           "coins": 27,
@@ -4095,7 +4095,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 860,
           "coins": 27,
@@ -4168,7 +4168,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 860,
           "coins": 27,
@@ -4241,7 +4241,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 860,
           "coins": 27,
@@ -4314,7 +4314,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 860,
           "coins": 27,
@@ -4388,7 +4388,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 860,
           "coins": 27,
@@ -4452,8 +4452,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 1,
-            "playerHp": 445.23753451142585,
+            "rounds": 2,
+            "playerHp": 552.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -4468,7 +4468,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 940,
           "coins": 31,
@@ -4532,8 +4532,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 1,
-            "playerHp": 445.23753451142585,
+            "rounds": 2,
+            "playerHp": 552.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -4548,7 +4548,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 940,
           "coins": 31,
@@ -4626,7 +4626,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 940,
           "coins": 31,
@@ -4705,7 +4705,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 940,
           "coins": 31,
@@ -4774,8 +4774,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 1,
-            "playerHp": 445.23753451142585,
+            "rounds": 2,
+            "playerHp": 552.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -4790,7 +4790,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 1060,
           "coins": 37,
@@ -4859,8 +4859,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 1,
-            "playerHp": 445.23753451142585,
+            "rounds": 2,
+            "playerHp": 552.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -4875,7 +4875,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 1060,
           "coins": 37,
@@ -4958,7 +4958,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 1060,
           "coins": 37,
@@ -5041,7 +5041,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 1060,
           "coins": 37,
@@ -5125,7 +5125,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 1060,
           "coins": 37,
@@ -5200,7 +5200,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 3,
-            "playerHp": 445.23753451142585,
+            "playerHp": 552.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -5215,7 +5215,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 1220,
           "coins": 47,
@@ -5290,7 +5290,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 3,
-            "playerHp": 445.23753451142585,
+            "playerHp": 552.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -5305,7 +5305,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 2,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 775,
           "xp": 1220,
           "coins": 47,
@@ -5393,7 +5393,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 950,
           "xp": 1220,
           "coins": 47,
@@ -5481,7 +5481,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 950,
           "xp": 1220,
           "coins": 47,
@@ -5557,7 +5557,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 950,
           "xp": 1220,
           "coins": 47,
@@ -5635,7 +5635,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 950,
           "xp": 1220,
           "coins": 47,
@@ -5704,7 +5704,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 445.23753451142585,
+            "playerHp": 552.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -5719,7 +5719,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 950,
           "xp": 1320,
           "coins": 51,
@@ -5788,7 +5788,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 445.23753451142585,
+            "playerHp": 552.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -5803,7 +5803,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 950,
           "xp": 1320,
           "coins": 51,
@@ -5885,7 +5885,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 950,
           "xp": 1320,
           "coins": 51,
@@ -5968,7 +5968,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 950,
           "xp": 1320,
           "coins": 51,
@@ -6051,7 +6051,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 950,
           "xp": 1320,
           "coins": 51,
@@ -6134,7 +6134,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 445.23753451142585,
+          "hp": 552.1919044554455,
           "maxHp": 950,
           "xp": 1320,
           "coins": 51,
@@ -6218,7 +6218,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1320,
           "coins": 36,
@@ -6302,7 +6302,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1320,
           "coins": 36,
@@ -6386,7 +6386,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1320,
           "coins": 36,
@@ -6471,7 +6471,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1320,
           "coins": 36,
@@ -6547,7 +6547,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 559.2375345114258,
+            "playerHp": 666.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -6562,7 +6562,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1420,
           "coins": 40,
@@ -6638,7 +6638,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 559.2375345114258,
+            "playerHp": 666.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -6653,7 +6653,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1420,
           "coins": 40,
@@ -6738,7 +6738,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1420,
           "coins": 40,
@@ -6824,7 +6824,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1420,
           "coins": 40,
@@ -6910,7 +6910,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1420,
           "coins": 40,
@@ -6996,7 +6996,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1420,
           "coins": 40,
@@ -7083,7 +7083,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1420,
           "coins": 40,
@@ -7160,8 +7160,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 1,
-            "playerHp": 559.2375345114258,
+            "rounds": 2,
+            "playerHp": 666.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -7176,7 +7176,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1520,
           "coins": 44,
@@ -7253,8 +7253,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 1,
-            "playerHp": 559.2375345114258,
+            "rounds": 2,
+            "playerHp": 666.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -7269,7 +7269,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1520,
           "coins": 44,
@@ -7356,7 +7356,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1520,
           "coins": 44,
@@ -7444,7 +7444,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1520,
           "coins": 44,
@@ -7523,7 +7523,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 1,
-            "playerHp": 559.2375345114258,
+            "playerHp": 666.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -7538,7 +7538,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1620,
           "coins": 48,
@@ -7617,7 +7617,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 1,
-            "playerHp": 559.2375345114258,
+            "playerHp": 666.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -7632,7 +7632,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1620,
           "coins": 48,
@@ -7720,7 +7720,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1620,
           "coins": 48,
@@ -7809,7 +7809,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1788,
           "coins": 48,
@@ -7898,7 +7898,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1788,
           "coins": 48,
@@ -7987,7 +7987,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 559.2375345114258,
+          "hp": 666.1919044554455,
           "maxHp": 950,
           "xp": 1788,
           "coins": 48,
@@ -8077,7 +8077,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 796.7375345114258,
+          "hp": 903.6919044554455,
           "maxHp": 950,
           "xp": 1812,
           "coins": 48,
@@ -8167,7 +8167,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 796.7375345114258,
+          "hp": 903.6919044554455,
           "maxHp": 950,
           "xp": 1812,
           "coins": 48,
@@ -8258,7 +8258,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 796.7375345114258,
+          "hp": 903.6919044554455,
           "maxHp": 950,
           "xp": 1812,
           "coins": 48,
@@ -8340,7 +8340,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 1,
-            "playerHp": 796.7375345114258,
+            "playerHp": 903.6919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -8355,7 +8355,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 796.7375345114258,
+          "hp": 903.6919044554455,
           "maxHp": 950,
           "xp": 1912,
           "coins": 52,
@@ -8437,7 +8437,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 1,
-            "playerHp": 796.7375345114258,
+            "playerHp": 903.6919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -8452,7 +8452,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 796.7375345114258,
+          "hp": 903.6919044554455,
           "maxHp": 950,
           "xp": 1912,
           "coins": 52,
@@ -8547,7 +8547,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 796.7375345114258,
+          "hp": 903.6919044554455,
           "maxHp": 950,
           "xp": 1912,
           "coins": 52,
@@ -8643,7 +8643,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 796.7375345114258,
+          "hp": 903.6919044554455,
           "maxHp": 950,
           "xp": 1912,
           "coins": 52,
@@ -8730,7 +8730,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 3,
-            "playerHp": 796.7375345114258,
+            "playerHp": 903.6919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -8745,7 +8745,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 796.7375345114258,
+          "hp": 903.6919044554455,
           "maxHp": 950,
           "xp": 2112,
           "coins": 62,
@@ -8832,7 +8832,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 3,
-            "playerHp": 796.7375345114258,
+            "playerHp": 903.6919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -8847,7 +8847,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 3,
-          "hp": 796.7375345114258,
+          "hp": 903.6919044554455,
           "maxHp": 950,
           "xp": 2112,
           "coins": 62,
@@ -8947,7 +8947,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 796.7375345114258,
+          "hp": 903.6919044554455,
           "maxHp": 1150,
           "xp": 2112,
           "coins": 62,
@@ -9047,7 +9047,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 796.7375345114258,
+          "hp": 903.6919044554455,
           "maxHp": 1180,
           "xp": 2112,
           "coins": 62,
@@ -9147,7 +9147,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 796.7375345114258,
+          "hp": 903.6919044554455,
           "maxHp": 1180,
           "xp": 2112,
           "coins": 62,
@@ -9235,7 +9235,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 796.7375345114258,
+          "hp": 903.6919044554455,
           "maxHp": 1180,
           "xp": 2112,
           "coins": 62,
@@ -9325,7 +9325,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 796.7375345114258,
+          "hp": 903.6919044554455,
           "maxHp": 1180,
           "xp": 2112,
           "coins": 62,
@@ -9406,7 +9406,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 796.7375345114258,
+            "playerHp": 903.6919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -9421,7 +9421,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 796.7375345114258,
+          "hp": 903.6919044554455,
           "maxHp": 1180,
           "xp": 2232,
           "coins": 66,
@@ -9502,7 +9502,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 796.7375345114258,
+            "playerHp": 903.6919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -9517,7 +9517,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 891.1375345114258,
+          "hp": 998.0919044554455,
           "maxHp": 1180,
           "xp": 2232,
           "coins": 66,
@@ -9607,7 +9607,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 891.1375345114258,
+          "hp": 998.0919044554455,
           "maxHp": 1180,
           "xp": 2232,
           "coins": 66,
@@ -9698,7 +9698,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 891.1375345114258,
+          "hp": 998.0919044554455,
           "maxHp": 1180,
           "xp": 2232,
           "coins": 66,
@@ -9789,7 +9789,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 891.1375345114258,
+          "hp": 998.0919044554455,
           "maxHp": 1180,
           "xp": 2232,
           "coins": 66,
@@ -9880,7 +9880,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 891.1375345114258,
+          "hp": 998.0919044554455,
           "maxHp": 1180,
           "xp": 2232,
           "coins": 66,
@@ -9972,7 +9972,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 891.1375345114258,
+          "hp": 998.0919044554455,
           "maxHp": 1180,
           "xp": 2232,
           "coins": 66,
@@ -10055,7 +10055,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 891.1375345114258,
+            "playerHp": 998.0919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -10070,7 +10070,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 891.1375345114258,
+          "hp": 998.0919044554455,
           "maxHp": 1180,
           "xp": 2352,
           "coins": 70,
@@ -10153,7 +10153,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 891.1375345114258,
+            "playerHp": 998.0919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -10168,7 +10168,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 985.5375345114257,
+          "hp": 1092.4919044554456,
           "maxHp": 1180,
           "xp": 2352,
           "coins": 70,
@@ -10260,7 +10260,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 985.5375345114257,
+          "hp": 1092.4919044554456,
           "maxHp": 1180,
           "xp": 2352,
           "coins": 70,
@@ -10353,7 +10353,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 985.5375345114257,
+          "hp": 1092.4919044554456,
           "maxHp": 1180,
           "xp": 2352,
           "coins": 70,
@@ -10437,7 +10437,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 985.5375345114257,
+            "playerHp": 1092.4919044554456,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -10452,7 +10452,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 985.5375345114257,
+          "hp": 1092.4919044554456,
           "maxHp": 1180,
           "xp": 2472,
           "coins": 74,
@@ -10536,7 +10536,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 985.5375345114257,
+            "playerHp": 1092.4919044554456,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -10551,7 +10551,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 1079.9375345114258,
+          "hp": 1180,
           "maxHp": 1180,
           "xp": 2472,
           "coins": 74,
@@ -10644,7 +10644,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 1079.9375345114258,
+          "hp": 1180,
           "maxHp": 1180,
           "xp": 2472,
           "coins": 74,
@@ -10738,7 +10738,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 1079.9375345114258,
+          "hp": 1180,
           "maxHp": 1180,
           "xp": 2472,
           "coins": 74,
@@ -10832,7 +10832,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 1079.9375345114258,
+          "hp": 1180,
           "maxHp": 1180,
           "xp": 2472,
           "coins": 74,
@@ -10926,7 +10926,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 1079.9375345114258,
+          "hp": 1180,
           "maxHp": 1180,
           "xp": 2472,
           "coins": 74,
@@ -11021,7 +11021,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 1079.9375345114258,
+          "hp": 1180,
           "maxHp": 1180,
           "xp": 2472,
           "coins": 74,
@@ -11107,7 +11107,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 1079.9375345114258,
+            "playerHp": 1180,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -11122,7 +11122,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 1079.9375345114258,
+          "hp": 1180,
           "maxHp": 1180,
           "xp": 2592,
           "coins": 78,
@@ -11208,7 +11208,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 1079.9375345114258,
+            "playerHp": 1180,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -11223,7 +11223,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 1174.337534511426,
+          "hp": 1180,
           "maxHp": 1180,
           "xp": 2592,
           "coins": 78,
@@ -11322,7 +11322,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 1174.337534511426,
+          "hp": 1180,
           "maxHp": 1180,
           "xp": 2592,
           "coins": 78,
@@ -11422,7 +11422,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 1174.337534511426,
+          "hp": 1180,
           "maxHp": 1180,
           "xp": 2592,
           "coins": 78,
@@ -11513,7 +11513,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 1174.337534511426,
+            "playerHp": 1180,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -11528,7 +11528,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 1174.337534511426,
+          "hp": 1180,
           "maxHp": 1180,
           "xp": 2712,
           "coins": 82,
@@ -11619,7 +11619,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 1174.337534511426,
+            "playerHp": 1180,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -12912,7 +12912,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 3,
-            "playerHp": 1153.351287671233,
+            "playerHp": 1170.4060821917808,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -12927,7 +12927,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 1153.351287671233,
+          "hp": 1170.4060821917808,
           "maxHp": 1180,
           "xp": 3096,
           "coins": 96,
@@ -13026,7 +13026,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 3,
-            "playerHp": 1153.351287671233,
+            "playerHp": 1170.4060821917808,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -13448,7 +13448,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 4,
-            "playerHp": 1027.2047721179629,
+            "playerHp": 1024.58089924933,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -13463,7 +13463,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 4,
-          "hp": 1027.2047721179629,
+          "hp": 1024.58089924933,
           "maxHp": 1180,
           "xp": 3096,
           "coins": 96,
@@ -13556,7 +13556,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 4,
-            "playerHp": 1027.2047721179629,
+            "playerHp": 1024.58089924933,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -13569,7 +13569,7 @@
           "nodeId": "EN-A1-C4",
           "nodeType": "C",
           "roundLimit": 256,
-          "rounds": 3,
+          "rounds": 4,
           "outcome": "player",
           "controls": [
             "speed-2",
@@ -13584,7 +13584,7 @@
           "nodeId": "EN-A1-C4",
           "nodeType": "C",
           "roundLimit": 256,
-          "rounds": 3,
+          "rounds": 4,
           "outcome": "player",
           "controls": [
             "speed-2",
@@ -13599,13 +13599,13 @@
           "nodeId": "EN-A1-C1",
           "nodeType": "C",
           "roundLimit": 256,
-          "rounds": 1,
+          "rounds": 2,
           "outcome": "player",
           "controls": [
             "speed-2",
             "pause",
             "continue",
-            "skip"
+            "naturally-finished"
           ]
         },
         {
@@ -13620,7 +13620,7 @@
             "speed-2",
             "pause",
             "continue",
-            "skip"
+            "naturally-finished"
           ]
         },
         {
@@ -13635,7 +13635,7 @@
             "speed-2",
             "pause",
             "continue",
-            "skip"
+            "naturally-finished"
           ]
         },
         {
@@ -13650,7 +13650,7 @@
             "speed-2",
             "pause",
             "continue",
-            "skip"
+            "naturally-finished"
           ]
         },
         {
@@ -13665,7 +13665,7 @@
             "speed-2",
             "pause",
             "continue",
-            "skip"
+            "naturally-finished"
           ]
         },
         {
@@ -13704,7 +13704,7 @@
           "nodeId": "EN-A2-C2",
           "nodeType": "C",
           "roundLimit": 256,
-          "rounds": 1,
+          "rounds": 2,
           "outcome": "player",
           "controls": [
             "speed-2",
@@ -13749,7 +13749,7 @@
           "nodeId": "EN-A2-C2",
           "nodeType": "C",
           "roundLimit": 256,
-          "rounds": 1,
+          "rounds": 2,
           "outcome": "player",
           "controls": [
             "speed-2",
@@ -13764,13 +13764,13 @@
           "nodeId": "EN-A2-L1",
           "nodeType": "L",
           "roundLimit": 256,
-          "rounds": 1,
+          "rounds": 2,
           "outcome": "player",
           "controls": [
             "speed-2",
             "pause",
             "continue",
-            "naturally-finished"
+            "skip"
           ]
         },
         {
@@ -13824,13 +13824,13 @@
           "nodeId": "EN-A3-C3",
           "nodeType": "C",
           "roundLimit": 256,
-          "rounds": 1,
+          "rounds": 2,
           "outcome": "player",
           "controls": [
             "speed-2",
             "pause",
             "continue",
-            "naturally-finished"
+            "skip"
           ]
         },
         {
@@ -14034,7 +14034,7 @@
         "seed": "v2-functional-RKF01-0",
         "method": "RKF01",
         "n": 4,
-        "hp": 1027.2047721179629,
+        "hp": 1024.58089924933,
         "maxHp": 1180,
         "xp": 3096,
         "coins": 96,
@@ -14127,7 +14127,7 @@
         "battle": {
           "outcome": "player",
           "rounds": 4,
-          "playerHp": 1027.2047721179629,
+          "playerHp": 1024.58089924933,
           "enemyHp": 0,
           "roundLimit": 256
         }
@@ -14224,8 +14224,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 3,
-            "playerHp": 383.03999999999996,
+            "rounds": 4,
+            "playerHp": 399.26875,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -14240,7 +14240,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 0,
-          "hp": 383.03999999999996,
+          "hp": 399.26875,
           "maxHp": 500,
           "xp": 60,
           "coins": 24,
@@ -14254,8 +14254,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 3,
-            "playerHp": 383.03999999999996,
+            "rounds": 4,
+            "playerHp": 399.26875,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -14270,7 +14270,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 0,
-          "hp": 383.03999999999996,
+          "hp": 399.26875,
           "maxHp": 500,
           "xp": 60,
           "coins": 24,
@@ -14301,7 +14301,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 0,
-          "hp": 383.03999999999996,
+          "hp": 399.26875,
           "maxHp": 500,
           "xp": 60,
           "coins": 24,
@@ -14333,7 +14333,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 0,
-          "hp": 383.03999999999996,
+          "hp": 399.26875,
           "maxHp": 500,
           "xp": 60,
           "coins": 32,
@@ -14365,7 +14365,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 0,
-          "hp": 383.03999999999996,
+          "hp": 399.26875,
           "maxHp": 500,
           "xp": 60,
           "coins": 32,
@@ -14397,7 +14397,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 0,
-          "hp": 383.03999999999996,
+          "hp": 399.26875,
           "maxHp": 500,
           "xp": 60,
           "coins": 32,
@@ -14430,7 +14430,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 0,
-          "hp": 383.03999999999996,
+          "hp": 399.26875,
           "maxHp": 500,
           "xp": 60,
           "coins": 32,
@@ -14453,8 +14453,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 3,
-            "playerHp": 333.8596594059406,
+            "rounds": 4,
+            "playerHp": 365.4419044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -14469,7 +14469,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 0,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 500,
           "xp": 120,
           "coins": 36,
@@ -14492,8 +14492,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 3,
-            "playerHp": 333.8596594059406,
+            "rounds": 4,
+            "playerHp": 365.4419044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -14508,7 +14508,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 0,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 500,
           "xp": 120,
           "coins": 36,
@@ -14546,7 +14546,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 120,
           "coins": 36,
@@ -14584,7 +14584,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 120,
           "coins": 36,
@@ -14623,7 +14623,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 120,
           "coins": 36,
@@ -14652,8 +14652,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 1,
-            "playerHp": 333.8596594059406,
+            "rounds": 2,
+            "playerHp": 365.4419044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -14668,7 +14668,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 180,
           "coins": 40,
@@ -14697,8 +14697,8 @@
           ],
           "battle": {
             "outcome": "player",
-            "rounds": 1,
-            "playerHp": 333.8596594059406,
+            "rounds": 2,
+            "playerHp": 365.4419044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -14713,7 +14713,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 180,
           "coins": 40,
@@ -14757,7 +14757,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 180,
           "coins": 40,
@@ -14802,7 +14802,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 180,
           "coins": 40,
@@ -14847,7 +14847,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 180,
           "coins": 40,
@@ -14892,7 +14892,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 180,
           "coins": 40,
@@ -14938,7 +14938,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 180,
           "coins": 40,
@@ -14975,7 +14975,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 333.8596594059406,
+            "playerHp": 365.4419044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -14990,7 +14990,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 240,
           "coins": 44,
@@ -15027,7 +15027,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 333.8596594059406,
+            "playerHp": 365.4419044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -15042,7 +15042,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 240,
           "coins": 44,
@@ -15093,7 +15093,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 240,
           "coins": 44,
@@ -15145,7 +15145,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 240,
           "coins": 44,
@@ -15188,7 +15188,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 333.8596594059406,
+            "playerHp": 365.4419044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -15203,7 +15203,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 300,
           "coins": 48,
@@ -15246,7 +15246,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 333.8596594059406,
+            "playerHp": 365.4419044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -15261,7 +15261,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 300,
           "coins": 48,
@@ -15317,7 +15317,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 333.8596594059406,
+          "hp": 365.4419044554455,
           "maxHp": 625,
           "xp": 300,
           "coins": 48,
@@ -15374,7 +15374,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 300,
           "coins": 48,
@@ -15431,7 +15431,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 300,
           "coins": 48,
@@ -15488,7 +15488,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 300,
           "coins": 48,
@@ -15546,7 +15546,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 300,
           "coins": 48,
@@ -15595,7 +15595,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 427.6096594059406,
+            "playerHp": 459.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -15610,7 +15610,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 360,
           "coins": 52,
@@ -15659,7 +15659,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 427.6096594059406,
+            "playerHp": 459.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -15674,7 +15674,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 360,
           "coins": 52,
@@ -15732,7 +15732,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 360,
           "coins": 52,
@@ -15791,7 +15791,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 360,
           "coins": 52,
@@ -15841,7 +15841,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 427.6096594059406,
+            "playerHp": 459.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -15856,7 +15856,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 420,
           "coins": 56,
@@ -15906,7 +15906,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 2,
-            "playerHp": 427.6096594059406,
+            "playerHp": 459.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -15921,7 +15921,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 420,
           "coins": 56,
@@ -15984,7 +15984,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 420,
           "coins": 56,
@@ -16048,7 +16048,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 427.6096594059406,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 420,
           "coins": 56,
@@ -16103,7 +16103,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 4,
-            "playerHp": 352.23753451142585,
+            "playerHp": 459.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -16118,7 +16118,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 352.23753451142585,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 540,
           "coins": 66,
@@ -16173,7 +16173,7 @@
           "battle": {
             "outcome": "player",
             "rounds": 4,
-            "playerHp": 352.23753451142585,
+            "playerHp": 459.1919044554455,
             "enemyHp": 0,
             "roundLimit": 256
           }
@@ -16188,7 +16188,7 @@
           "seed": "v2-functional-RKF01-0",
           "method": "RKF01",
           "n": 1,
-          "hp": 352.23753451142585,
+          "hp": 459.1919044554455,
           "maxHp": 625,
           "xp": 540,
           "coins": 66,
@@ -16254,7 +16254,7 @@
           "nodeId": "EN-A1-C4",
           "nodeType": "C",
           "roundLimit": 256,
-          "rounds": 3,
+          "rounds": 4,
           "outcome": "player",
           "controls": [
             "speed-2",
@@ -16269,7 +16269,7 @@
           "nodeId": "EN-A1-C4",
           "nodeType": "C",
           "roundLimit": 256,
-          "rounds": 3,
+          "rounds": 4,
           "outcome": "player",
           "controls": [
             "speed-2",
@@ -16284,7 +16284,7 @@
           "nodeId": "EN-A1-C1",
           "nodeType": "C",
           "roundLimit": 256,
-          "rounds": 1,
+          "rounds": 2,
           "outcome": "player",
           "controls": [
             "speed-2",

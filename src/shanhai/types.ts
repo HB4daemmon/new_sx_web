@@ -58,6 +58,7 @@ export interface FighterView {
   rage: number;
   rageCap: number;
   statuses: Record<string, number>;
+  counters?: { id: string; name: string; value: number; max: number }[];
   lockedAction?: 'basic_action' | 'rage_action';
 }
 export interface BattleFrame {
@@ -130,7 +131,7 @@ export interface RunState {
   coins: number;
   artifacts: ArtifactStack[];
   equipment: RunEquipment;
-  buildVersion: 1;
+  buildVersion: 2;
   progress: RunProgress;
   talentDraftGeneration: number;
   talentDrafts: Record<string, string[]>;

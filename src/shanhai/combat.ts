@@ -30,6 +30,22 @@ type ActiveEffect = Effect & { ownerId: string; ownerName: string; ownerKind: So
 type SourceKind = 'method' | 'talent' | 'artifact';
 type ActionType = 'basic_action' | 'rage_action';
 type StatusName = 'poison' | 'burn' | 'weakness' | 'armor_break' | 'sword_intent' | 'charge_luck' | 'day_night';
+type ResonanceKind =
+  | 'guard_pressure'
+  | 'returning_breath'
+  | 'spring_bloom'
+  | 'burn_accelerate'
+  | 'sword_array'
+  | 'thunder_induction'
+  | 'moon_hex'
+  | 'shield_retort'
+  | 'venom_pin'
+  | 'wealth_strikes'
+  | 'rebound_guard'
+  | 'toxic_furnace'
+  | 'healing_blades'
+  | 'ember_furnace'
+  | 'wheel_storm';
 
 interface StatusLayer {
   remaining: number;
@@ -71,7 +87,12 @@ interface Fighter {
   firstStrikeConsumed: boolean;
   statuses: Map<StatusName, StatusLayer[]>;
   phase: 'day' | 'night';
-  forcedBasic: { ratioAdd: number; rageGainBonus: number } | null;
+  forcedBasic: {
+    ratioAdd: number;
+    rageGainBonus: number;
+    extraSegments?: number;
+    segmentScale?: number;
+  } | null;
   pendingGains: RageEntry[];
   pendingDrains: RageDrain[];
   actionNumber: number;
@@ -104,7 +125,9 @@ interface ActionContext {
   actionStats: Stats;
   actionStartShield: number;
   actionStartStatuses: Map<StatusName, number>;
+  actorStartStatusLayers: Map<StatusName, StatusLayer[]>;
   targetStartStatusLayers: Map<StatusName, StatusLayer[]>;
+  resonanceLimitUses: Map<string, number>;
   reservedChargeLuck: boolean;
   chargeLuckAvailableAtStart: boolean;
   swordIntentAtStart: number;
@@ -112,6 +135,11 @@ interface ActionContext {
   consumedBurn: number;
   consumedShield: number;
   consumedShieldDamage: number;
+  reservedPressure: number;
+  reservedHealingBlades: number;
+  reservedFurnaceHeat: number;
+  returningBreathSegments: number;
+  returningBreathScale: number;
   actualBonusSegments: number;
   actualDebuffApplied: boolean;
   hadEffectiveBaseHit: boolean;
@@ -136,6 +164,7 @@ interface ActionContext {
   echoSource?: ActiveEffect;
   powerScale?: number;
   chargeLuckShieldOutput?: boolean;
+  roundDotSettlement?: boolean;
 }
 
 interface HitResult {
@@ -266,6 +295,69 @@ const KNOWN_REQUIREMENTS = new Set([
   'first_direct_break_alive',
 ]);
 
+interface ResonanceSchema {
+  kind: ResonanceKind;
+  params: readonly string[];
+}
+
+const RESONANCE_SCHEMAS: Record<string, ResonanceSchema> = {
+  RKF01: { kind: 'guard_pressure', params: ['absorb_ratio', 'cap_hp_ratio', 'release_ratio'] },
+  RKF02: { kind: 'returning_breath', params: ['extra_segments', 'segment_ratio', 'rage_bonus'] },
+  RKF03: { kind: 'spring_bloom', params: ['threshold_hp_ratio', 'burst_hp_ratio', 'max_per_action'] },
+  RKF04: { kind: 'burn_accelerate', params: ['ticks'] },
+  RKF05: { kind: 'sword_array', params: ['artifact_intent_limit', 'consume_stacks', 'attack_ratio'] },
+  RKF07: { kind: 'thunder_induction', params: ['hit_threshold', 'attack_ratio', 'max_per_action'] },
+  RKF08: { kind: 'moon_hex', params: ['attack_ratio', 'drain_per_kind'] },
+  RC13: { kind: 'shield_retort', params: ['defense_ratio'] },
+  RR03: {
+    kind: 'venom_pin',
+    params: ['hit_threshold', 'poison_stacks', 'duration_rounds', 'attack_ratio', 'max_per_action'],
+  },
+  RR04: { kind: 'wealth_strikes', params: ['coins_per_segment', 'max_segments', 'attack_ratio'] },
+  RR09: { kind: 'rebound_guard', params: ['rage_gain', 'defense_ratio'] },
+  RR11: { kind: 'toxic_furnace', params: ['remaining_damage_ratio', 'rage_gain'] },
+  RR12: { kind: 'healing_blades', params: ['max_charges', 'attack_ratio'] },
+  RL02: { kind: 'ember_furnace', params: ['stored_ratio', 'cap_hp_ratio', 'segments'] },
+  RL03: {
+    kind: 'wheel_storm',
+    params: ['hit_threshold', 'segments', 'attack_ratio', 'max_per_action'],
+  },
+};
+
+const RESONANCE_INTEGER_PARAMETERS = new Set([
+  'ticks',
+  'extra_segments',
+  'artifact_intent_limit',
+  'consume_stacks',
+  'hit_threshold',
+  'max_per_action',
+  'drain_per_kind',
+  'poison_stacks',
+  'duration_rounds',
+  'coins_per_segment',
+  'max_segments',
+  'max_charges',
+  'segments',
+  'rage_bonus',
+  'rage_gain',
+]);
+
+const RESONANCE_POSITIVE_PARAMETERS = new Set([
+  'threshold_hp_ratio',
+  'hit_threshold',
+  'extra_segments',
+  'artifact_intent_limit',
+  'consume_stacks',
+  'max_per_action',
+  'ticks',
+  'poison_stacks',
+  'duration_rounds',
+  'coins_per_segment',
+  'max_segments',
+  'max_charges',
+  'segments',
+]);
+
 const STAT_KEYS: (keyof Stats)[] = ['attack', 'defense', 'max_hp', 'crit_rate', 'speed'];
 
 function isFiniteNumber(value: unknown): value is number {
@@ -385,6 +477,114 @@ function coreRuleShape(artifact: AnyMap): { kind: string; params: AnyMap } | und
   return { kind: rule.kind, params };
 }
 
+function resonanceMarker(effect: AnyMap): boolean {
+  return typeof effect?.id === 'string' && effect.id.endsWith('-V2-RESONANCE') ||
+    Boolean(effect?.params && typeof effect.params === 'object' &&
+      !Array.isArray(effect.params) && 'resonance' in effect.params);
+}
+
+function validateResonanceEffect(
+  ownerId: string,
+  location: string,
+  effect: AnyMap,
+  counts: Map<string, number>,
+): void {
+  const schema = RESONANCE_SCHEMAS[ownerId];
+  if (!schema) throw new Error(`Unsupported V2 resonance owner ${ownerId}`);
+  const expectedLocation = ownerId.startsWith('RKF') ? 'method_passive' : 'artifact_effect';
+  if (location !== expectedLocation) {
+    throw new Error(`V2 resonance rule ${effect.id ?? ownerId} is not an authored ${expectedLocation}`);
+  }
+  const expectedId = `${ownerId}-V2-RESONANCE`;
+  if (effect.id !== expectedId) throw new Error(`Mismatched V2 resonance effect id for ${ownerId}`);
+  if (effect.trigger !== 'always' || effect.operation !== 'modify_effect' || effect.target !== 'self') {
+    throw new Error(`Invalid V2 resonance effect shape (${ownerId})`);
+  }
+  const requiredEffectKeys = [
+    'id', 'trigger', 'operation', 'target', 'params', 'requires',
+    'consumes', 'replaces', 'limit', 'text',
+  ];
+  if (requiredEffectKeys.some(key => !(key in effect)) ||
+      typeof effect.text !== 'string' || effect.text.trim().length === 0) {
+    throw new Error(`Incomplete V2 resonance effect shape (${ownerId})`);
+  }
+  const allowedEffectKeys = new Set([
+    'id', 'trigger', 'operation', 'target', 'params', 'requires', 'consumes', 'replaces', 'limit', 'text',
+  ]);
+  for (const key of Object.keys(effect)) {
+    if (!allowedEffectKeys.has(key)) throw new Error(`Unknown V2 resonance effect key ${key} (${ownerId})`);
+  }
+  const params = effect.params;
+  if (!params || typeof params !== 'object' || Array.isArray(params)) {
+    throw new Error(`Missing V2 resonance parameters (${ownerId})`);
+  }
+  const expectedParams = new Set(['resonance', ...schema.params]);
+  for (const key of Object.keys(params)) {
+    if (!expectedParams.has(key)) throw new Error(`Unknown V2 resonance parameter ${key} (${ownerId})`);
+  }
+  if (params.resonance !== schema.kind) {
+    throw new Error(`Mismatched V2 resonance kind for ${ownerId}: ${String(params.resonance)}`);
+  }
+  for (const key of schema.params) {
+    const value = params[key];
+    if (!isFiniteNumber(value) || value < 0) {
+      throw new Error(`Invalid V2 resonance parameter ${key} (${ownerId})`);
+    }
+    if (RESONANCE_INTEGER_PARAMETERS.has(key) && !Number.isInteger(value)) {
+      throw new Error(`Noninteger V2 resonance count ${key} (${ownerId})`);
+    }
+    if (RESONANCE_POSITIVE_PARAMETERS.has(key) && value <= 0) {
+      throw new Error(`Zero V2 resonance threshold/count ${key} (${ownerId})`);
+    }
+    if (key.endsWith('_ratio') && value > 1) {
+      throw new Error(`V2 resonance fraction exceeds one: ${key} (${ownerId})`);
+    }
+  }
+  for (const key of ['requires', 'consumes', 'replaces']) {
+    if (!Array.isArray(effect[key]) || effect[key].length !== 0) {
+      throw new Error(`V2 resonance ${key} must be empty (${ownerId})`);
+    }
+  }
+  const limit = effect.limit;
+  if (!limit || typeof limit !== 'object' || Array.isArray(limit) ||
+      Object.keys(limit).some(key => key !== 'scope' && key !== 'count') ||
+      limit.scope !== 'permanent' || limit.count !== 1) {
+    throw new Error(`Invalid V2 resonance installation limit (${ownerId})`);
+  }
+  counts.set(ownerId, (counts.get(ownerId) ?? 0) + 1);
+}
+
+function validateResonanceRules(content: Content): void {
+  const counts = new Map<string, number>();
+  const inspect = (ownerId: string, location: string, effects: unknown): void => {
+    if (!Array.isArray(effects)) return;
+    for (const effect of effects) {
+      if (!resonanceMarker(effect)) continue;
+      validateResonanceEffect(ownerId, location, effect, counts);
+    }
+  };
+  for (const authored of content.entities) {
+    const id = String(authored.id);
+    inspect(id, authored.kind === 'artifact' ? 'artifact_effect' : 'entity_effect', authored.effects);
+    inspect(id, 'method_passive', authored.passives);
+    inspect(id, 'method_travel', authored.travel);
+    for (const action of Object.values(authored.actions ?? {}) as AnyMap[]) {
+      inspect(id, 'method_action', action?.effects);
+    }
+    for (const talent of authored.talents ?? []) inspect(talent.id, 'talent', talent.effects);
+    if (authored.id === 'RULES') {
+      const insights = authored.insights;
+      const shared = Array.isArray(insights) ? insights : Object.values(insights ?? {});
+      for (const talent of shared as AnyMap[]) inspect(talent.id, 'shared_talent', talent.effects);
+    }
+  }
+  for (const ownerId of Object.keys(RESONANCE_SCHEMAS)) {
+    if (counts.get(ownerId) !== 1) {
+      throw new Error(`Expected exactly one V2 resonance rule for ${ownerId}`);
+    }
+  }
+}
+
 function coreRulesForFighter(fighter: Fighter): CoreRuleRuntime[] {
   return fighter.artifacts.flatMap(artifact => {
     const shape = coreRuleShape(artifact.entity);
@@ -479,6 +679,7 @@ function validateEffects(
 function validateLoadout(content: Content, loadout: Loadout): { method: AnyMap; talents: AnyMap[]; artifacts: ArtifactRuntime[] } {
   if (!loadout || typeof loadout !== 'object') throw new Error('Invalid Shanhai loadout');
   if (typeof loadout.method !== 'string') throw new Error('Loadout method is required');
+  validateResonanceRules(content);
   for (const [key, value] of [['preparation', loadout.preparation], ['firstStrike', loadout.firstStrike]] as const) {
     if (value !== undefined && (!isFiniteNumber(value) || value < 0)) {
       throw new Error(`Invalid ${key} preparation`);
@@ -759,6 +960,34 @@ function statusCount(fighter: Fighter, status: StatusName): number {
   return getStatusLayers(fighter, status).length;
 }
 
+function resonanceRules(fighter: Fighter): ActiveEffect[] {
+  return activeModifiers(fighter, 'modify_effect')
+    .filter(effect => typeof effect.params?.resonance === 'string');
+}
+
+function resonanceRule(fighter: Fighter, kind: ResonanceKind): ActiveEffect | undefined {
+  return resonanceRules(fighter).find(effect => effect.params.resonance === kind);
+}
+
+function resonanceStateKey(ownerId: string, field: string): string {
+  return `resonance:${ownerId}:${field}`;
+}
+
+function resonanceState(fighter: Fighter, rule: ActiveEffect, field: string): number {
+  return n(fighter.battleLayers[resonanceStateKey(rule.ownerId, field)], 0);
+}
+
+function setResonanceState(fighter: Fighter, rule: ActiveEffect, field: string, value: number): void {
+  fighter.battleLayers[resonanceStateKey(rule.ownerId, field)] = Math.max(0, value);
+}
+
+function reserveActionLimit(action: ActionContext, key: string, maximum: number): boolean {
+  const used = action.resonanceLimitUses.get(key) ?? 0;
+  if (used >= maximum) return false;
+  action.resonanceLimitUses.set(key, used + 1);
+  return true;
+}
+
 function hasStatus(fighter: Fighter, status: StatusName, minimum = 1): boolean {
   return statusCount(fighter, status) >= minimum;
 }
@@ -782,8 +1011,70 @@ function snapshotStatusLayers(fighter: Fighter): Map<StatusName, StatusLayer[]> 
   );
 }
 
+function resonanceCounters(fighter: Fighter): FighterView['counters'] {
+  return resonanceRules(fighter).flatMap(rule => {
+    const p = rule.params ?? {};
+    let value: number | undefined;
+    let maximum: number | undefined;
+    let name: string | undefined;
+    switch (p.resonance as ResonanceKind) {
+      case 'guard_pressure':
+        name = '蓄劲';
+        maximum = fighter.stats.max_hp * n(p.cap_hp_ratio, 0);
+        value = resonanceState(fighter, rule, 'pressure');
+        break;
+      case 'returning_breath':
+        name = '归元蓄击';
+        maximum = 1;
+        value = resonanceState(fighter, rule, 'ready');
+        break;
+      case 'spring_bloom':
+        name = '春华';
+        maximum = fighter.stats.max_hp * n(p.threshold_hp_ratio, 0);
+        value = resonanceState(fighter, rule, 'reservoir');
+        break;
+      case 'thunder_induction':
+        name = '雷引';
+        maximum = int(p.hit_threshold, 1);
+        value = resonanceState(fighter, rule, 'hits');
+        break;
+      case 'venom_pin':
+        name = '毒针';
+        maximum = int(p.hit_threshold, 1);
+        value = resonanceState(fighter, rule, 'hits');
+        break;
+      case 'wheel_storm':
+        name = '轮势';
+        maximum = int(p.hit_threshold, 1);
+        value = resonanceState(fighter, rule, 'hits');
+        break;
+      case 'healing_blades':
+        name = '生息刃';
+        maximum = n(p.max_charges, 0);
+        value = resonanceState(fighter, rule, 'charges');
+        break;
+      case 'ember_furnace':
+        name = '炉火';
+        maximum = fighter.stats.max_hp * n(p.cap_hp_ratio, 0);
+        value = resonanceState(fighter, rule, 'heat');
+        break;
+      default:
+        return [];
+    }
+    if (!name || !isFiniteNumber(maximum) || !isFiniteNumber(value)) return [];
+    maximum = Math.max(0, maximum);
+    return [{
+      id: rule.id,
+      name,
+      value: Math.max(0, value),
+      max: maximum,
+    }];
+  });
+}
+
 function fighterView(fighter: Fighter): FighterView {
   const statuses: Record<string, number> = {};
+  const counters = resonanceCounters(fighter);
   for (const status of ['poison', 'burn', 'weakness', 'armor_break', 'sword_intent', 'charge_luck', 'day_night'] as StatusName[]) {
     const count = statusCount(fighter, status);
     if (count > 0) statuses[status] = count;
@@ -797,6 +1088,7 @@ function fighterView(fighter: Fighter): FighterView {
     rage: Math.max(0, fighter.rage),
     rageCap: fighter.rageCap,
     statuses,
+    ...(counters?.length ? { counters } : {}),
     ...(fighter.lockedAction ? { lockedAction: fighter.lockedAction } : {}),
   };
 }
@@ -1050,7 +1342,9 @@ function dynamicStats(runtime: BattleRuntime, fighter: Fighter, target: Fighter,
       lockedCost: fighter.rageCap,
       actionStartShield: fighter.shield,
       actionStartStatuses: snapshotStatuses(fighter),
+      actorStartStatusLayers: snapshotStatusLayers(fighter),
       targetStartStatusLayers: snapshotStatusLayers(target),
+      resonanceLimitUses: new Map(),
       reservedChargeLuck: false,
       chargeLuckAvailableAtStart: false,
       swordIntentAtStart: statusCount(fighter, 'sword_intent'),
@@ -1058,6 +1352,11 @@ function dynamicStats(runtime: BattleRuntime, fighter: Fighter, target: Fighter,
       consumedBurn: 0,
       consumedShield: 0,
       consumedShieldDamage: 0,
+      reservedPressure: 0,
+      reservedHealingBlades: 0,
+      reservedFurnaceHeat: 0,
+      returningBreathSegments: 0,
+      returningBreathScale: 1,
       actualBonusSegments: 0,
       actualDebuffApplied: false,
       hadEffectiveBaseHit: false,
@@ -1295,10 +1594,12 @@ function directSpec(runtime: BattleRuntime, action: ActionContext, base: ActiveE
   const segmentRatios = Array.from({ length: segments }, () => ratio);
   const segmentBonusNoCrits = Array.from({ length: segments }, () => bonusNoCrit);
   if (action.type === 'basic_action') {
+    let splitScale = 1;
     for (const mechanic of mechanicsOf(actor, 'basic_split')) {
       const extraSegments = int(mechanic.params.extra_segments, 0);
       if (extraSegments <= 0) continue;
       const segmentScale = n(mechanic.params.segment_ratio, 0);
+      splitScale *= segmentScale;
       for (let index = 0; index < segmentRatios.length; index++) {
         segmentRatios[index] *= segmentScale;
         segmentBonusNoCrits[index] *= segmentScale;
@@ -1311,6 +1612,19 @@ function directSpec(runtime: BattleRuntime, action: ActionContext, base: ActiveE
       }
       const effect = buildEffect(actor, mechanic);
       if (effect) mark(runtime, effect);
+    }
+    if (action.returningBreathSegments > 0) {
+      const breathScale = action.returningBreathScale;
+      for (let index = 0; index < segmentRatios.length; index++) {
+        segmentRatios[index] *= breathScale;
+        segmentBonusNoCrits[index] *= breathScale;
+      }
+      const extraRatio = ratio * splitScale * breathScale;
+      const extraBonus = bonusNoCrit * splitScale * breathScale;
+      for (let index = 0; index < action.returningBreathSegments; index++) {
+        segmentRatios.push(extraRatio);
+        segmentBonusNoCrits.push(extraBonus);
+      }
     }
   }
   segments = segmentRatios.length;
@@ -1443,6 +1757,124 @@ function applyCarapace(
   }
 }
 
+function addGuardPressure(
+  runtime: BattleRuntime,
+  defender: Fighter,
+  action: ActionContext | null,
+  absorbed: number,
+): void {
+  if (!action || !action.isMainAction || action.isEcho || absorbed <= 0) return;
+  const rule = resonanceRule(defender, 'guard_pressure');
+  if (!rule) return;
+  const cap = defender.stats.max_hp * n(rule.params.cap_hp_ratio, 0);
+  const next = Math.min(cap, resonanceState(defender, rule, 'pressure') +
+    absorbed * n(rule.params.absorb_ratio, 0));
+  setResonanceState(defender, rule, 'pressure', next);
+  mark(runtime, rule);
+}
+
+function triggerOutgoingResonances(
+  runtime: BattleRuntime,
+  source: Fighter,
+  target: Fighter,
+  action: ActionContext | null,
+  sourceEffect: ActiveEffect | string,
+  kind: 'direct' | 'derived' | 'dot' | 'reflect',
+  effective: boolean,
+  reactionEffectId?: string,
+): void {
+  if (!effective || !action || (!action.isMainAction && !action.roundDotSettlement) || action.isEcho ||
+      !runtime.active || source.hp <= 0 || target.hp <= 0 ||
+      source === target || source.side === target.side ||
+      action.actor !== source || action.target !== target ||
+      (kind !== 'direct' && kind !== 'derived')) return;
+  for (const rule of resonanceRules(source)) {
+    if (rule.id === reactionEffectId) continue;
+    const p = rule.params ?? {};
+    switch (p.resonance as ResonanceKind) {
+      case 'sword_array': {
+        if (typeof sourceEffect === 'string' || sourceEffect.ownerKind !== 'artifact' ||
+            !source.artifacts.some(artifact => artifact.entity.id === sourceEffect.ownerId)) break;
+        const limit = int(p.artifact_intent_limit, 0);
+        if (!reserveActionLimit(action, rule.id, limit)) break;
+        addRegularStatus(
+          runtime,
+          source,
+          'sword_intent',
+          1,
+          99,
+          rule,
+          undefined,
+          selectedEffect(source, 'RKF05-J2-A-RETENTION')
+            ? 7
+            : int(rules(runtime.content).statuses?.sword_intent?.max_stacks, 5),
+        );
+        break;
+      }
+      case 'thunder_induction':
+      case 'venom_pin':
+      case 'wheel_storm': {
+        const threshold = int(p.hit_threshold, 1);
+        let hits = resonanceState(source, rule, 'hits') + 1;
+        if (hits < threshold) {
+          setResonanceState(source, rule, 'hits', hits);
+          break;
+        }
+        const maximum = int(p.max_per_action, 1);
+        const used = action.resonanceLimitUses.get(rule.id) ?? 0;
+        if (used >= maximum) {
+          setResonanceState(source, rule, 'hits', hits % threshold);
+          break;
+        }
+        hits -= threshold;
+        setResonanceState(source, rule, 'hits', hits);
+        action.resonanceLimitUses.set(rule.id, used + 1);
+        if (p.resonance === 'thunder_induction') {
+          dealDamage(runtime, source, target, n(p.attack_ratio, 0), {
+            sourceEffect: rule,
+            kind: 'derived',
+            canCrit: false,
+            followup: true,
+            resonanceEffectId: rule.id,
+          });
+          break;
+        }
+        if (p.resonance === 'venom_pin') {
+          const poison = rules(runtime.content).statuses?.poison ?? {};
+          const added = applyDot(
+            runtime,
+            source,
+            target,
+            rule,
+            'poison',
+            int(p.poison_stacks, 0),
+            int(p.duration_rounds, 0),
+            n(p.attack_ratio, 0),
+            int(poison.max_stacks, 10),
+            action.actionStats.attack,
+          );
+          action.actualDebuffApplied ||= added > 0;
+          if (added === 0) mark(runtime, rule);
+          break;
+        }
+        for (let segment = 0; segment < int(p.segments, 0); segment++) {
+          if (!runtime.active || source.hp <= 0 || target.hp <= 0) break;
+          dealDamage(runtime, source, target, n(p.attack_ratio, 0), {
+            sourceEffect: rule,
+            kind: 'derived',
+            canCrit: false,
+            resonanceEffectId: rule.id,
+          });
+        }
+        break;
+      }
+      default:
+        break;
+    }
+    if (!runtime.active || source.hp <= 0 || target.hp <= 0) return;
+  }
+}
+
 function dealDamage(
   runtime: BattleRuntime,
   source: Fighter,
@@ -1458,6 +1890,7 @@ function dealDamage(
     followup?: boolean;
     round?: number;
     criticalBonusRatio?: number;
+    resonanceEffectId?: string;
   },
 ): HitResult {
   if (!runtime.active || source.hp <= 0 || target.hp <= 0) {
@@ -1530,6 +1963,9 @@ function dealDamage(
       ? `${sourceEffect.id}-RAGE-ECHO`
       : sourceEffect.id;
   frame(runtime, options.kind === 'dot' ? 'dot' : 'damage', `${sideText}造成${kindText} ${Math.round(hpDamage + absorbed)}`, source.side, target.side, frameSource, hpDamage + absorbed);
+  if (options.kind === 'reflect' && effective) {
+    triggerReboundGuard(runtime, source, target, action);
+  }
   if (action && source === action.actor && target === action.target &&
       (options.kind === 'direct' || options.kind === 'derived') && effective) {
       action.enemyActualHpDamage += hpDamage;
@@ -1564,6 +2000,21 @@ function dealDamage(
   }
   if (effective && options.kind === 'direct' && source.side !== target.side && target.hp > 0) {
     applyCarapace(runtime, target, source, action);
+  }
+  if (options.kind === 'direct' && source.side !== target.side && action?.isMainAction && !action.isEcho) {
+    addGuardPressure(runtime, target, action, absorbed);
+  }
+  if (effective) {
+    triggerOutgoingResonances(
+      runtime,
+      source,
+      target,
+      action,
+      sourceEffect,
+      options.kind,
+      effective,
+      options.resonanceEffectId,
+    );
   }
   if (target.hp <= 0) runtime.active = false;
   return { raw, amount, absorbed, hpDamage, critical, effective, shieldBroken };
@@ -1727,43 +2178,53 @@ function triggerShieldBreak(runtime: BattleRuntime, target: Fighter, source: Fig
 }
 
 function triggerShieldAbsorbed(runtime: BattleRuntime, target: Fighter, source: Fighter, action: ActionContext, absorbed: number): void {
-  if (target.method.id !== 'RKF01' || action.recoilDone) return;
-  action.recoilDone = true;
-  const recoil = methodEffect(target.method, 'RKF01-PASSIVE-RECOIL');
-  if (!recoil) throw new Error('RKF01 passive recoil missing');
-  const effect = Object.assign(clone(recoil), { ownerId: target.method.id, ownerName: target.method.name, ownerKind: 'method' as SourceKind, ownerSide: target.side, stacks: 1 });
-  let raw = targetDefense(runtime, target, source, action) * n(recoil.params?.defense_ratio, 0.38);
-  const replace = selectedEffect(target, 'RKF01-J4-C-RECOIL-FORMULA');
-  if (replace) {
-    raw += attackStats(runtime, target, source, action).attack * n(replace.params?.attack_ratio, 0.22);
-    mark(runtime, replace);
+  if (!action.isMainAction || action.isEcho || target.hp <= 0 || source.side === target.side) return;
+  if (target.method.id === 'RKF01' && !action.recoilDone) {
+    action.recoilDone = true;
+    const recoil = methodEffect(target.method, 'RKF01-PASSIVE-RECOIL');
+    if (!recoil) throw new Error('RKF01 passive recoil missing');
+    const effect = Object.assign(clone(recoil), { ownerId: target.method.id, ownerName: target.method.name, ownerKind: 'method' as SourceKind, ownerSide: target.side, stacks: 1 });
+    let raw = targetDefense(runtime, target, source, action) * n(recoil.params?.defense_ratio, 0.38);
+    const replace = selectedEffect(target, 'RKF01-J4-C-RECOIL-FORMULA');
+    if (replace) {
+      raw += attackStats(runtime, target, source, action).attack * n(replace.params?.attack_ratio, 0.22);
+      mark(runtime, replace);
+    }
+    const bonus = selectedEffect(target, 'RKF01-J3-A-RECOIL');
+    if (bonus) {
+      raw *= 1 + n(bonus.params?.damage_ratio_add, 0.28);
+      mark(runtime, bonus);
+    }
+    const hit = dealDamage(runtime, target, source, 0, {
+      sourceEffect: effect,
+      kind: 'reflect',
+      canCrit: false,
+      rawOverride: raw,
+    });
+    if (hit.effective) action.reflectDamage += hit.hpDamage + hit.absorbed;
+    const armor = selectedEffect(target, 'RKF01-J4-C-ARMOR-BREAK');
+    if (armor && hit.effective && source.hp > 0) {
+      const added = addRegularStatus(runtime, source, 'armor_break', int(armor.params?.stacks, 1), int(armor.params?.duration_rounds, 2), armor, undefined, int(armor.params?.max_stacks, 5));
+      if (added > 0) mark(runtime, armor);
+    }
   }
-  let recoilBonus = 0;
-  const bonus = selectedEffect(target, 'RKF01-J3-A-RECOIL');
-  if (bonus) {
-    recoilBonus += n(bonus.params?.damage_ratio_add, 0.28);
-    mark(runtime, bonus);
-  }
-  for (const artifact of target.artifacts) {
-    if (artifact.entity.id !== 'RC13') continue;
-    recoilBonus += 0.06 * artifact.stacks;
-    const effect = artifact.entity.effects?.[0];
-    if (effect) mark(runtime, Object.assign(clone(effect), { ownerId: artifact.entity.id, ownerName: artifact.entity.name, ownerKind: 'artifact' as SourceKind, ownerSide: target.side, stacks: artifact.stacks }), artifact.stacks);
-  }
-  raw *= 1 + recoilBonus;
-  const hit = dealDamage(runtime, target, source, 0, {
-    sourceEffect: effect,
-    kind: 'reflect',
-    canCrit: false,
-    rawOverride: raw,
-  });
-  if (hit.hpDamage > 0 || hit.absorbed > 0) {
-    action.reflectDamage += hit.hpDamage + hit.absorbed;
-  }
-  const armor = selectedEffect(target, 'RKF01-J4-C-ARMOR-BREAK');
-  if (armor && hit.effective && source.hp > 0) {
-    const added = addRegularStatus(runtime, source, 'armor_break', int(armor.params?.stacks, 1), int(armor.params?.duration_rounds, 2), armor, undefined, int(armor.params?.max_stacks, 5));
-    if (added > 0) mark(runtime, armor);
+  const retort = resonanceRule(target, 'shield_retort');
+  if (retort) {
+    const onceKey = `${retort.id}:${action.round}:${action.actor.actionNumber}`;
+    if (!target.battleFlags.has(onceKey)) {
+      target.battleFlags.add(onceKey);
+      const stacks = target.artifacts.find(artifact => artifact.entity.id === retort.ownerId)?.stacks ?? 0;
+      const raw = targetDefense(runtime, target, source, null) *
+        n(retort.params.defense_ratio, 0) * stacks;
+      const hit = dealDamage(runtime, target, source, 0, {
+        sourceEffect: retort,
+        kind: 'reflect',
+        canCrit: false,
+        rawOverride: raw,
+        resonanceEffectId: retort.id,
+      });
+      if (hit.effective) action.reflectDamage += hit.hpDamage + hit.absorbed;
+    }
   }
 }
 
@@ -1787,6 +2248,25 @@ function triggerDirectCrit(runtime: BattleRuntime, source: Fighter, target: Figh
     if (target.hp <= 0) action.stop = true;
     void stats;
   }
+}
+
+function triggerReboundGuard(
+  runtime: BattleRuntime,
+  reflector: Fighter,
+  hostileTarget: Fighter,
+  action: ActionContext | null,
+): void {
+  if (!action || !action.isMainAction || action.isEcho ||
+      action.actor !== hostileTarget || action.target !== reflector ||
+      reflector.hp <= 0 || hostileTarget.side === reflector.side) return;
+  const rule = resonanceRule(reflector, 'rebound_guard');
+  if (!rule) return;
+  const onceKey = `${rule.id}:${action.round}:${action.actor.actionNumber}`;
+  if (reflector.battleFlags.has(onceKey)) return;
+  reflector.battleFlags.add(onceKey);
+  const defense = targetDefense(runtime, reflector, hostileTarget, null);
+  addShield(runtime, reflector, defense * n(rule.params.defense_ratio, 0), rule, '反震回护');
+  registerRage(runtime, reflector, n(rule.params.rage_gain, 0), rule.id, rule.ownerId);
 }
 
 function applyDot(
@@ -1967,44 +2447,9 @@ function resolveDirectHitAdditions(runtime: BattleRuntime, action: ActionContext
   }
   if (actionType === 'basic_action' && firstBase) {
     for (const artifact of actor.artifacts) {
-      if (artifact.entity.id === 'RL03') {
-        const effect = Object.assign(clone(artifact.entity.effects?.[0]), { ownerId: artifact.entity.id, ownerName: artifact.entity.name, ownerKind: 'artifact' as SourceKind, ownerSide: actor.side, stacks: artifact.stacks });
-        for (let i = 0; i < int(effect.params?.segments, 2); i++) {
-          const follow = dealDamage(runtime, actor, target, n(effect.params?.attack_ratio, 0.5), {
-            sourceEffect: effect,
-            kind: 'direct',
-            canCrit: false,
-            followup: true,
-          });
-          if (!follow.effective) continue;
-          if (target.hp <= 0) {
-            action.stop = true;
-            return;
-          }
-        }
+      if (artifact.entity.id === 'RR13') {
+        requestDrain(runtime, target, 10 * artifact.stacks, 'RR13-FIRST-BASIC-RAGE-DRAIN', artifact.entity.id);
       }
-      if (artifact.entity.id === 'RR04') {
-        const effect = Object.assign(clone(artifact.entity.effects?.[0]), { ownerId: artifact.entity.id, ownerName: artifact.entity.name, ownerKind: 'artifact' as SourceKind, ownerSide: actor.side, stacks: artifact.stacks });
-        const chance = clamp(n(effect.params?.chance, 0.25), 0, 1);
-        if (runtime.random() < chance) {
-          const follow = dealDamage(runtime, actor, target, n(effect.params?.attack_ratio, 0.5), {
-            sourceEffect: effect,
-            kind: 'direct',
-            canCrit: false,
-            followup: true,
-          });
-          if (follow.effective && (target.hp <= 0 || !runtime.active)) {
-            action.stop = true;
-            return;
-          }
-        }
-      }
-      if (artifact.entity.id === 'RR03') {
-        const effect = Object.assign(clone(artifact.entity.effects?.[0]), { ownerId: artifact.entity.id, ownerName: artifact.entity.name, ownerKind: 'artifact' as SourceKind, ownerSide: actor.side, stacks: artifact.stacks });
-        const added = applyDot(runtime, actor, target, effect, 'poison', int(effect.params?.stacks, 1), int(effect.params?.duration_rounds, 3), 0.08, 10, action.actionStats.attack);
-        action.actualDebuffApplied ||= added > 0;
-      }
-      if (artifact.entity.id === 'RR13') requestDrain(runtime, target, 10 * artifact.stacks, artifact.entity.id === 'RR13' ? 'RR13-FIRST-BASIC-RAGE-DRAIN' : artifact.entity.id, artifact.entity.id);
     }
   }
   const basicOrRage = actionType === 'basic_action' || actionType === 'rage_action';
@@ -2096,6 +2541,44 @@ function resolveChain(runtime: BattleRuntime, action: ActionContext, effect: Act
   if (target.hp <= 0) action.stop = true;
 }
 
+function resolveSpringBloom(
+  runtime: BattleRuntime,
+  action: ActionContext,
+  healedAmount: number,
+): void {
+  const actor = action.actor;
+  if (healedAmount <= 0 || action.isEcho ||
+      (!action.isMainAction && !action.roundDotSettlement)) return;
+  const rule = resonanceRule(actor, 'spring_bloom');
+  if (!rule) return;
+  const threshold = actor.stats.max_hp * n(rule.params.threshold_hp_ratio, 0);
+  if (threshold <= 0) return;
+  const used = action.resonanceLimitUses.get(rule.id) ?? 0;
+  const available = Math.max(0, int(rule.params.max_per_action, 1) - used);
+  const reservoir = Math.min(
+    threshold * (available + 1),
+    resonanceState(actor, rule, 'reservoir') + healedAmount,
+  );
+  setResonanceState(actor, rule, 'reservoir', reservoir);
+  const activations = Math.min(
+    Math.floor(reservoir / threshold),
+    available,
+  );
+  if (activations <= 0) return;
+  action.resonanceLimitUses.set(rule.id, used + activations);
+  setResonanceState(actor, rule, 'reservoir', reservoir - threshold * activations);
+  for (let burst = 0; burst < activations; burst++) {
+    if (!runtime.active || actor.hp <= 0 || action.target.hp <= 0) break;
+    dealDamage(runtime, actor, action.target, 0, {
+      sourceEffect: rule,
+      kind: 'derived',
+      canCrit: false,
+      rawOverride: actor.stats.max_hp * n(rule.params.burst_hp_ratio, 0),
+      resonanceEffectId: rule.id,
+    });
+  }
+}
+
 function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: number, source: ActiveEffect, allowOverflow = true): { effective: number; overflow: number } {
   const fighter = action.actor;
   if (fighter.hp <= 0) return { effective: 0, overflow: 0 };
@@ -2145,10 +2628,20 @@ function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: numb
       const ae = rr02.entity.effects?.[0];
       if (ae) addShield(runtime, fighter, effective * n(ae.params?.ratio, 0.35) * rr02.stacks, Object.assign(clone(ae), { ownerId: rr02.entity.id, ownerName: rr02.entity.name, ownerKind: 'artifact' as SourceKind, ownerSide: fighter.side, stacks: rr02.stacks }), '有效治疗转盾', 0, false);
     }
-    const rr12 = fighter.artifacts.find(artifact => artifact.entity.id === 'RR12');
-    if (rr12 && action.isMainAction && !fighter.battleFlags.has(actionFlag(action, 'RR12-SELF-HEAL-RAGE'))) {
-      fighter.battleFlags.add(actionFlag(action, 'RR12-SELF-HEAL-RAGE'));
-      registerRage(runtime, fighter, 10 * rr12.stacks, 'RR12-SELF-HEAL-RAGE', rr12.entity.id);
+    const bladeRule = resonanceRule(fighter, 'healing_blades');
+    if (bladeRule && !action.isEcho && (action.isMainAction || action.roundDotSettlement)) {
+      const settlement = action.roundDotSettlement
+        ? `round-dot:${action.round}`
+        : `action:${action.round}:${fighter.actionNumber}`;
+      const onceKey = `${bladeRule.id}:${settlement}`;
+      if (!fighter.battleFlags.has(onceKey)) {
+        fighter.battleFlags.add(onceKey);
+        const maximum = int(bladeRule.params.max_charges, 0);
+        const current = resonanceState(fighter, bladeRule, 'charges');
+        const next = Math.min(maximum, current + 1);
+        setResonanceState(fighter, bladeRule, 'charges', next);
+        if (next > current) mark(runtime, bladeRule);
+      }
     }
     const healRage = selectedEffect(fighter, 'RKF03-J2-C-RAGE');
     if (healRage && action.isMainAction && !fighter.battleFlags.has(actionFlag(action, healRage.id))) {
@@ -2212,7 +2705,47 @@ function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: numb
       }
     }
   }
+  resolveSpringBloom(runtime, action, effective + overflow);
   return { effective, overflow };
+}
+
+function resolveSwordArray(runtime: BattleRuntime, action: ActionContext): void {
+  if (!action.isMainAction || action.isEcho || action.type !== 'rage_action') return;
+  const actor = action.actor;
+  const rule = resonanceRule(actor, 'sword_array');
+  if (!rule) return;
+  const initial = action.actorStartStatusLayers.get('sword_intent') ?? [];
+  const live = initial.filter(layer => getStatusLayers(actor, 'sword_intent').includes(layer));
+  if (live.length === 0) return;
+  const retention = selectedEffect(actor, 'RKF05-J2-A-RETENTION');
+  if (retention) {
+    mark(runtime, retention);
+    return;
+  }
+  const replacement = selectedEffect(actor, 'RKF05-J2-B-CONSUME');
+  const limit = replacement
+    ? int(replacement.params?.max_stacks, 5)
+    : int(rule.params.consume_stacks, 0);
+  if (limit <= 0) return;
+  const consumed = removeStatusLayersByIdentity(actor, 'sword_intent', new Set(live.slice(0, limit)));
+  if (consumed.length === 0) return;
+  action.consumedSwordIntent = consumed.length;
+  const source = replacement ?? rule;
+  const ratio = replacement
+    ? n(replacement.params?.damage_per_stack_attack_ratio ??
+      replacement.params?.attack_ratio_per_stack ??
+      replacement.params?.attack_ratio, n(rule.params.attack_ratio, 0))
+    : n(rule.params.attack_ratio, 0);
+  for (let sword = 0; sword < consumed.length; sword++) {
+    if (!runtime.active || actor.hp <= 0 || action.target.hp <= 0) break;
+    dealDamage(runtime, actor, action.target, 0, {
+      sourceEffect: source,
+      kind: 'derived',
+      canCrit: false,
+      rawOverride: attackStats(runtime, actor, action.target, action).attack * ratio,
+      resonanceEffectId: rule.id,
+    });
+  }
 }
 
 function resolveStatusConsumption(runtime: BattleRuntime, action: ActionContext): void {
@@ -2221,58 +2754,45 @@ function resolveStatusConsumption(runtime: BattleRuntime, action: ActionContext)
   const target = action.target;
   if (action.type === 'rage_action' && actor.method.id === 'RKF04') {
     const consume = selectedEffect(actor, 'RKF04-J3-A-CONSUME-BURN');
-    const preexistingBurn = action.targetStartStatusLayers.get('burn')?.length ?? 0;
-    if (consume && preexistingBurn > 0) {
-      action.consumedBurn = action.isEcho
-        ? Math.min(preexistingBurn, int(consume.params?.max_stacks, 3))
-        : removeStatusLayers(target, 'burn', Math.min(preexistingBurn, int(consume.params?.max_stacks, 3)));
-      if (action.consumedBurn) {
+    const initialBurns = action.targetStartStatusLayers.get('burn') ?? [];
+    const liveBurns = initialBurns.filter(layer =>
+      getStatusLayers(target, 'burn').includes(layer) && layer.remaining > 0);
+    if (consume && liveBurns.length > 0) {
+      const selected = new Set(liveBurns.slice(0, int(consume.params?.max_stacks, 3)));
+      const consumed = removeStatusLayersByIdentity(target, 'burn', selected);
+      action.consumedBurn = consumed.length;
+      if (consumed.length > 0) {
         mark(runtime, consume);
         dealDamage(runtime, actor, target, 0, {
           sourceEffect: consume,
           kind: 'derived',
           canCrit: false,
-          rawOverride: action.consumedBurn * attackStats(runtime, actor, target, action).attack *
+          rawOverride: consumed.length * attackStats(runtime, actor, target, action).attack *
             n(consume.params?.damage_per_stack_attack_ratio, 0.18),
         });
       }
     }
   }
   if (action.type === 'rage_action' && actor.method.id === 'RKF05') {
-    const consume = selectedEffect(actor, 'RKF05-J2-B-CONSUME');
-    const available = action.isEcho
-      ? action.actionStartStatuses.get('sword_intent') ?? 0
-      : statusCount(actor, 'sword_intent');
-    if (consume && available > 0) {
-      action.consumedSwordIntent = action.isEcho
-        ? Math.min(available, int(consume.params?.max_stacks, 3))
-        : removeStatusLayers(actor, 'sword_intent', int(consume.params?.max_stacks, 3));
-      if (action.consumedSwordIntent) {
-        mark(runtime, consume);
-        dealDamage(runtime, actor, target, 0, {
-          sourceEffect: consume,
-          kind: 'derived',
-          canCrit: false,
-          rawOverride: action.consumedSwordIntent * attackStats(runtime, actor, target, action).attack * n(consume.params?.damage_per_stack_attack_ratio, 0.28),
-        });
-      }
-    }
+    resolveSwordArray(runtime, action);
   }
   if (action.type === 'rage_action' && actor.method.id === 'RKF09') {
     const consume = selectedEffect(actor, 'RKF09-J4-B-CONSUME');
     const damage = selectedEffect(actor, 'RKF09-J4-B-DAMAGE');
-    const preexistingBurn = action.targetStartStatusLayers.get('burn')?.length ?? 0;
-    if (consume && damage && preexistingBurn > 0) {
-      action.consumedBurn = action.isEcho
-        ? Math.min(preexistingBurn, int(consume.params?.max_stacks, 3))
-        : removeStatusLayers(target, 'burn', Math.min(preexistingBurn, int(consume.params?.max_stacks, 3)));
-      if (action.consumedBurn) {
+    const initialBurns = action.targetStartStatusLayers.get('burn') ?? [];
+    const liveBurns = initialBurns.filter(layer =>
+      getStatusLayers(target, 'burn').includes(layer) && layer.remaining > 0);
+    if (consume && damage && liveBurns.length > 0) {
+      const selected = new Set(liveBurns.slice(0, int(consume.params?.max_stacks, 3)));
+      const consumed = removeStatusLayersByIdentity(target, 'burn', selected);
+      action.consumedBurn = consumed.length;
+      if (consumed.length > 0) {
         mark(runtime, consume);
         dealDamage(runtime, actor, target, 0, {
           sourceEffect: damage,
           kind: 'derived',
           canCrit: false,
-          rawOverride: action.consumedBurn * attackStats(runtime, actor, target, action).attack * n(damage.params?.attack_ratio_per_stack, 0.16),
+          rawOverride: consumed.length * attackStats(runtime, actor, target, action).attack * n(damage.params?.attack_ratio_per_stack, 0.16),
         });
       }
     }
@@ -2324,6 +2844,100 @@ function resolveCoreActionEnd(runtime: BattleRuntime, action: ActionContext): vo
     }
     if (core.kind === 'healing_guard' && action.type === 'basic_action') {
       resolveHeal(runtime, action, actor.stats.max_hp * n(core.params.heal_ratio, 0), core.effect);
+    }
+  }
+}
+
+function resolveResonanceActionEnd(runtime: BattleRuntime, action: ActionContext): void {
+  const { actor, target } = action;
+  if (!runtime.active || actor.hp <= 0 || target.hp <= 0 ||
+      !action.isMainAction || action.isEcho || !action.completed) return;
+
+  const breath = resonanceRule(actor, 'returning_breath');
+  if (breath && action.type === 'rage_action') {
+    const previous = actor.forcedBasic ?? { ratioAdd: 0, rageGainBonus: 0 };
+    actor.forcedBasic = {
+      ...previous,
+      extraSegments: n(previous.extraSegments, 0) + n(breath.params.extra_segments, 0),
+      segmentScale: n(previous.segmentScale, 1) * n(breath.params.segment_ratio, 1),
+      rageGainBonus: n(previous.rageGainBonus, 0) + n(breath.params.rage_bonus, 0),
+    };
+    setResonanceState(actor, breath, 'ready', 1);
+    mark(runtime, breath);
+  }
+
+  const wealth = resonanceRule(actor, 'wealth_strikes');
+  if (wealth && action.type === 'basic_action' && action.hadEffectiveBaseHit) {
+    const coins = journeyFacts(actor.loadout).coins;
+    const perSegment = n(wealth.params.coins_per_segment, 0);
+    const maxSegments = int(wealth.params.max_segments, 0);
+    const segments = perSegment > 0
+      ? Math.min(maxSegments, 1 + Math.floor(coins / perSegment))
+      : maxSegments;
+    if (segments > 0 && reserveActionLimit(action, wealth.id, 1)) {
+      for (let segment = 0; segment < segments; segment++) {
+        if (!runtime.active || actor.hp <= 0 || target.hp <= 0) break;
+        dealDamage(runtime, actor, target, n(wealth.params.attack_ratio, 0), {
+          sourceEffect: wealth,
+          kind: 'derived',
+          canCrit: false,
+          resonanceEffectId: wealth.id,
+        });
+      }
+    }
+  }
+  if (!runtime.active || actor.hp <= 0 || target.hp <= 0) return;
+
+  const hex = resonanceRule(actor, 'moon_hex');
+  if (hex && reserveActionLimit(action, hex.id, 1)) {
+    const debuffs = (['poison', 'burn', 'weakness', 'armor_break'] as StatusName[])
+      .filter(status => hasStatus(target, status));
+    if (debuffs.length > 0) {
+      for (const _status of debuffs) {
+        requestDrain(runtime, target, n(hex.params.drain_per_kind, 0), hex.id, hex.ownerId);
+      }
+      for (let seal = 0; seal < debuffs.length; seal++) {
+        if (!runtime.active || actor.hp <= 0 || target.hp <= 0) break;
+        dealDamage(runtime, actor, target, n(hex.params.attack_ratio, 0), {
+          sourceEffect: hex,
+          kind: 'derived',
+          canCrit: false,
+          resonanceEffectId: hex.id,
+        });
+      }
+    }
+  }
+  if (!runtime.active || actor.hp <= 0 || target.hp <= 0) return;
+
+  const furnace = resonanceRule(actor, 'toxic_furnace');
+  if (furnace) {
+    const onceKey = `${furnace.id}:${action.round}:${actor.actionNumber}`;
+    if (!actor.battleFlags.has(onceKey)) {
+      const ownLayer = (status: 'poison' | 'burn') =>
+        getStatusLayers(target, status).find(layer =>
+          layer.remaining > 0 && fighterOwnsSource(actor, layer.ownerId ?? layer.sourceId ?? ''));
+      const poison = ownLayer('poison');
+      const burn = ownLayer('burn');
+      if (poison && burn) {
+        actor.battleFlags.add(onceKey);
+        const consumedPoison = removeStatusLayersByIdentity(target, 'poison', new Set([poison]));
+        const consumedBurn = removeStatusLayersByIdentity(target, 'burn', new Set([burn]));
+        if (consumedPoison.length > 0 && consumedBurn.length > 0) {
+          const remainingDamage = [...consumedPoison, ...consumedBurn].reduce((sum, layer) =>
+            sum + n(layer.damage, 0) * Math.max(0, n(layer.remaining, 0)), 0);
+          const damage = remainingDamage * n(furnace.params.remaining_damage_ratio, 0);
+          registerRage(runtime, actor, n(furnace.params.rage_gain, 0), furnace.id, furnace.ownerId);
+          if (runtime.active && actor.hp > 0 && target.hp > 0) {
+            dealDamage(runtime, actor, target, 0, {
+              sourceEffect: furnace,
+              kind: 'derived',
+              canCrit: false,
+              rawOverride: damage,
+              resonanceEffectId: furnace.id,
+            });
+          }
+        }
+      }
     }
   }
 }
@@ -2513,9 +3127,12 @@ function resolveActionEnd(runtime: BattleRuntime, action: ActionContext): void {
         !action.isEcho &&
         action.type === 'rage_action' &&
         p.next_action === 'basic_action') {
+      const previous = actor.forcedBasic ?? { ratioAdd: 0, rageGainBonus: 0 };
       actor.forcedBasic = {
-        ratioAdd: n(p.basic_damage_ratio_add, 0),
-        rageGainBonus: n(p.basic_rage_gain_bonus, 0) + (p.base_public_basic_gain ? n(p.base_public_basic_gain, 25) - 25 : 0),
+        ...previous,
+        ratioAdd: previous.ratioAdd + n(p.basic_damage_ratio_add, 0),
+        rageGainBonus: previous.rageGainBonus + n(p.basic_rage_gain_bonus, 0) +
+          (p.base_public_basic_gain ? n(p.base_public_basic_gain, 25) - 25 : 0),
       };
       mark(runtime, effect);
       continue;
@@ -2547,12 +3164,10 @@ function resolveActionEnd(runtime: BattleRuntime, action: ActionContext): void {
       if (artifact.entity.id === 'RR08' && action.enemyActualHpDamage > 0) {
         registerRage(runtime, target, 10 * artifact.stacks, 'RR08-ENEMY-ACTION-RAGE-GAIN', artifact.entity.id);
       }
-      if (artifact.entity.id === 'RR09' && action.reflectDamage > 0) {
-        registerRage(runtime, target, 10 * artifact.stacks, 'RR09-REFLECT-ENEMY-ACTION-RAGE', artifact.entity.id);
-      }
     }
   }
   resolveCoreActionEnd(runtime, action);
+  resolveResonanceActionEnd(runtime, action);
 }
 
 function executeRageEcho(runtime: BattleRuntime, original: ActionContext): void {
@@ -2677,6 +3292,109 @@ function executeRageEcho(runtime: BattleRuntime, original: ActionContext): void 
   }
 }
 
+function resolveAcceleratedOwnBurns(runtime: BattleRuntime, action: ActionContext): void {
+  const { actor, target } = action;
+  const rule = resonanceRule(actor, 'burn_accelerate');
+  if (!rule || action.type !== 'rage_action' || actor.hp <= 0 || target.hp <= 0) return;
+  let burnSiphonDamage = 0;
+  const initialBurns = action.targetStartStatusLayers.get('burn') ?? [];
+  for (const layer of initialBurns) {
+    if (!runtime.active || actor.hp <= 0 || target.hp <= 0) break;
+    const live = getStatusLayers(target, 'burn').includes(layer);
+    const ownerId = layer.ownerId ?? layer.sourceId ?? '';
+    if (!live || layer.remaining <= 0 || !fighterOwnsSource(actor, ownerId)) continue;
+    for (let tick = 0; tick < int(rule.params.ticks, 0); tick++) {
+      if (!runtime.active || actor.hp <= 0 || target.hp <= 0 ||
+          !getStatusLayers(target, 'burn').includes(layer) || layer.remaining <= 0) break;
+      const result = resolveDotTick(runtime, actor, target, 'burn', layer, action);
+      if (result.hpDamage > 0 && actor.coreRules.some(core => core.kind === 'burn_siphon')) {
+        burnSiphonDamage += result.hpDamage;
+      }
+    }
+  }
+  if (runtime.active && actor.hp > 0 && target.hp > 0 && burnSiphonDamage > 0) {
+    resolveBurnSiphonHeal(runtime, actor, action, burnSiphonDamage);
+  }
+}
+
+function reserveMainActionResources(runtime: BattleRuntime, action: ActionContext): void {
+  const { actor } = action;
+  if (action.type === 'basic_action') {
+    const blades = resonanceRule(actor, 'healing_blades');
+    if (blades) {
+      action.reservedHealingBlades = resonanceState(actor, blades, 'charges');
+      setResonanceState(actor, blades, 'charges', 0);
+    }
+    const breath = resonanceRule(actor, 'returning_breath');
+    if (breath && resonanceState(actor, breath, 'ready') > 0) {
+      action.returningBreathSegments = int(
+        actor.forcedBasic?.extraSegments,
+        int(breath.params.extra_segments, 0),
+      );
+      action.returningBreathScale = n(actor.forcedBasic?.segmentScale, n(breath.params.segment_ratio, 1));
+      setResonanceState(actor, breath, 'ready', 0);
+      mark(runtime, breath);
+    }
+  }
+  if (action.type === 'rage_action') {
+    const pressure = resonanceRule(actor, 'guard_pressure');
+    if (pressure) {
+      action.reservedPressure = resonanceState(actor, pressure, 'pressure');
+      setResonanceState(actor, pressure, 'pressure', 0);
+    }
+    const furnace = resonanceRule(actor, 'ember_furnace');
+    if (furnace) {
+      action.reservedFurnaceHeat = resonanceState(actor, furnace, 'heat');
+      setResonanceState(actor, furnace, 'heat', 0);
+    }
+  }
+}
+
+function releaseGuardPressure(runtime: BattleRuntime, action: ActionContext): void {
+  const rule = resonanceRule(action.actor, 'guard_pressure');
+  if (!rule || action.type !== 'rage_action' || action.reservedPressure <= 0) return;
+  dealDamage(runtime, action.actor, action.target, 0, {
+    sourceEffect: rule,
+    kind: 'derived',
+    canCrit: false,
+    rawOverride: action.reservedPressure * n(rule.params.release_ratio, 0),
+    resonanceEffectId: rule.id,
+  });
+}
+
+function resolveReservedResonanceAttacks(runtime: BattleRuntime, action: ActionContext): void {
+  if (action.type === 'basic_action' && action.reservedHealingBlades > 0) {
+    const rule = resonanceRule(action.actor, 'healing_blades');
+    if (rule) {
+      for (let blade = 0; blade < action.reservedHealingBlades; blade++) {
+        if (!runtime.active || action.actor.hp <= 0 || action.target.hp <= 0) break;
+        dealDamage(runtime, action.actor, action.target, n(rule.params.attack_ratio, 0), {
+          sourceEffect: rule,
+          kind: 'derived',
+          canCrit: false,
+          resonanceEffectId: rule.id,
+        });
+      }
+    }
+  }
+  if (action.type === 'rage_action' && action.reservedFurnaceHeat > 0) {
+    const rule = resonanceRule(action.actor, 'ember_furnace');
+    if (!rule) return;
+    const segments = int(rule.params.segments, 0);
+    if (segments <= 0) return;
+    for (let segment = 0; segment < segments; segment++) {
+      if (!runtime.active || action.actor.hp <= 0 || action.target.hp <= 0) break;
+      dealDamage(runtime, action.actor, action.target, 0, {
+        sourceEffect: rule,
+        kind: 'derived',
+        canCrit: false,
+        rawOverride: action.reservedFurnaceHeat / segments,
+        resonanceEffectId: rule.id,
+      });
+    }
+  }
+}
+
 function executeAction(runtime: BattleRuntime, actor: Fighter, target: Fighter, type: ActionType, lockedCost: number): void {
   if (!runtime.active || actor.hp <= 0 || target.hp <= 0) return;
   actor.actionNumber += 1;
@@ -2690,7 +3408,9 @@ function executeAction(runtime: BattleRuntime, actor: Fighter, target: Fighter, 
     actionStats: dynamicStats(runtime, actor, target, null),
     actionStartShield: actor.shield,
     actionStartStatuses: snapshotStatuses(actor),
+    actorStartStatusLayers: snapshotStatusLayers(actor),
     targetStartStatusLayers: snapshotStatusLayers(target),
+    resonanceLimitUses: new Map(),
     reservedChargeLuck: false,
     chargeLuckAvailableAtStart: hasStatus(actor, 'charge_luck'),
     swordIntentAtStart: statusCount(actor, 'sword_intent'),
@@ -2698,6 +3418,11 @@ function executeAction(runtime: BattleRuntime, actor: Fighter, target: Fighter, 
     consumedBurn: 0,
     consumedShield: 0,
     consumedShieldDamage: 0,
+    reservedPressure: 0,
+    reservedHealingBlades: 0,
+    reservedFurnaceHeat: 0,
+    returningBreathSegments: 0,
+    returningBreathScale: 1,
     actualBonusSegments: 0,
     actualDebuffApplied: false,
     hadEffectiveBaseHit: false,
@@ -2727,6 +3452,19 @@ function executeAction(runtime: BattleRuntime, actor: Fighter, target: Fighter, 
     }
     actor.rage -= lockedCost;
     frame(runtime, 'rage', `${actor.side === 'player' ? '玩家' : '敌人'}支付怒气 ${Math.round(lockedCost)}`, actor.side, actor.side, `${actor.method.id}-rage-cost`, lockedCost);
+  }
+  reserveMainActionResources(runtime, action);
+  if (type === 'rage_action') {
+    releaseGuardPressure(runtime, action);
+    if (!runtime.active || actor.hp <= 0 || target.hp <= 0) {
+      runtime.currentAction = null;
+      return;
+    }
+    resolveAcceleratedOwnBurns(runtime, action);
+    if (!runtime.active || actor.hp <= 0 || target.hp <= 0) {
+      runtime.currentAction = null;
+      return;
+    }
   }
   if (actor.method.id === 'RKF07') {
     const shieldEffect = selectedEffect(actor, 'RKF07-J4-C-CHAIN') ?? selectedEffect(actor, 'RKF07-J3-B-SHIELD');
@@ -2863,11 +3601,123 @@ function executeAction(runtime: BattleRuntime, actor: Fighter, target: Fighter, 
   }
   resolveCoreRageAction(runtime, action);
   action.completed = true;
+  resolveReservedResonanceAttacks(runtime, action);
+  if (!runtime.active || actor.hp <= 0 || target.hp <= 0) {
+    runtime.currentAction = null;
+    return;
+  }
   resolveActionEnd(runtime, action);
   if (type === 'rage_action' && runtime.active && actor.hp > 0 && target.hp > 0) {
     executeRageEcho(runtime, action);
   }
   runtime.currentAction = null;
+}
+
+function resolveBurnSiphonHeal(
+  runtime: BattleRuntime,
+  owner: Fighter,
+  action: ActionContext,
+  actualBurnHpDamage: number,
+): void {
+  if (actualBurnHpDamage <= 0 || owner.hp <= 0) return;
+  const previousAction = runtime.currentAction;
+  runtime.currentAction = action;
+  try {
+    for (const core of owner.coreRules) {
+      if (core.kind !== 'burn_siphon') continue;
+      const healing = actualBurnHpDamage * n(core.params.heal_ratio, 0);
+      if (healing > 0) resolveHeal(runtime, action, healing, core.effect);
+    }
+  } finally {
+    runtime.currentAction = previousAction;
+  }
+}
+
+function resolveDotTick(
+  runtime: BattleRuntime,
+  owner: Fighter,
+  target: Fighter,
+  status: 'poison' | 'burn',
+  layer: StatusLayer,
+  action: ActionContext,
+): HitResult {
+  const sourceId = layer.sourceId ?? `${owner.method.id}-${status}`;
+  const ownerId = layer.ownerId ?? layer.sourceId ?? '';
+  const ownerEffect = activeModifiers(owner).find(effect => effect.id === sourceId) ??
+    {
+      id: sourceId,
+      ownerId: ownerId || owner.method.id,
+      ownerName: sourceName(runtime, ownerId || owner.method.id),
+      ownerKind: owner.talents.some(talent => talent.id === ownerId)
+        ? 'talent'
+        : owner.artifacts.some(artifact => artifact.entity.id === ownerId) ? 'artifact' : 'method',
+      ownerSide: owner.side,
+      stacks: 1,
+    };
+  const previousAction = runtime.currentAction;
+  let result: HitResult;
+  runtime.currentAction = action;
+  try {
+    result = dealDamage(runtime, owner, target, 0, {
+      sourceEffect: ownerEffect as ActiveEffect,
+      kind: 'dot',
+      canCrit: false,
+      rawOverride: n(layer.damage, 0),
+    });
+    (action as AnyMap).lastDotDamage = result.hpDamage + result.absorbed;
+    (action as AnyMap).lastOwnDotHpDamage = fighterOwnsSource(owner, ownerId)
+      ? result.hpDamage
+      : 0;
+    if (status === 'burn' && result.hpDamage > 0 && fighterOwnsSource(owner, ownerId)) {
+      const furnace = resonanceRule(owner, 'ember_furnace');
+      if (furnace) {
+        const cap = owner.stats.max_hp * n(furnace.params.cap_hp_ratio, 0);
+        const heat = Math.min(cap, resonanceState(owner, furnace, 'heat') +
+          result.hpDamage * n(furnace.params.stored_ratio, 0));
+        setResonanceState(owner, furnace, 'heat', heat);
+        mark(runtime, furnace);
+      }
+    }
+    if (result.hpDamage > 0 && runtime.active && owner.hp > 0 && target.hp > 0) {
+      const ownLayer = fighterOwnsSource(owner, ownerId);
+      const dotEffects = activeModifiers(owner).filter(effect => effect.trigger === 'dot_resolved');
+      for (const effect of dotEffects) {
+        if (effect.params?.status && effect.params.status !== status &&
+            !(effect.params?.statuses ?? []).includes(status)) continue;
+        if (effect.id === 'RKF04-J2-B-RAGE' && status !== 'burn') continue;
+        if (effect.id === 'RKF09-J3-C-RAGE' && status !== 'burn') continue;
+        if (effect.id === 'RR11-DOT-ROUND-RAGE' && (!['poison', 'burn'].includes(status) || !ownLayer)) continue;
+        if (effect.id === 'RKF04-J4-C-SHIELD' && !ownLayer) continue;
+        const oncePerRound = effect.id === 'RKF04-J2-B-RAGE' ||
+          effect.id === 'RKF09-J3-C-RAGE' ||
+          effect.id === 'RR11-DOT-ROUND-RAGE' ||
+          effect.id === 'RKF04-J4-C-SHIELD';
+        const onceKey = `dot:${runtime.round}:${effect.id}`;
+        if (oncePerRound && owner.battleFlags.has(onceKey)) continue;
+        if (effect.operation === 'rage_gain') {
+          if (oncePerRound) owner.battleFlags.add(onceKey);
+          registerRage(runtime, owner, n(effect.params?.amount, 0) * effect.stacks, effect.id, effect.ownerId);
+        }
+        if (effect.operation === 'shield') {
+          if (oncePerRound) owner.battleFlags.add(onceKey);
+          addShield(runtime, owner, (result.hpDamage + result.absorbed) *
+            n(effect.params?.actual_damage_ratio, 0.3), effect, '持续伤害转盾');
+        }
+        if (effect.operation === 'heal') {
+          if (oncePerRound) owner.battleFlags.add(onceKey);
+          resolveHeal(runtime, action, result.hpDamage * n(effect.params?.ratio, 0.25), effect);
+        }
+        if (!runtime.active || owner.hp <= 0 || target.hp <= 0) break;
+      }
+    }
+  } finally {
+    runtime.currentAction = previousAction;
+  }
+  const liveLayer = getStatusLayers(target, status).find(item => item === layer);
+  if (liveLayer) liveLayer.remaining -= 1;
+  const liveLayers = getStatusLayers(target, status);
+  fighterStatusReplace(target, status, liveLayers.filter(item => item.remaining > 0));
+  return result;
 }
 
 function processRoundDots(runtime: BattleRuntime): void {
@@ -2881,124 +3731,69 @@ function processRoundDots(runtime: BattleRuntime): void {
   for (const [owner, target] of order) {
     if (!runtime.active || owner.hp <= 0 || target.hp <= 0) return;
     let burnSiphonDamage = 0;
-    let burnSiphonAction: ActionContext | undefined;
+    const synthetic: ActionContext = {
+      actor: owner,
+      target,
+      type: 'basic_action',
+      isMainAction: false,
+      round: runtime.round,
+      lockedCost: 0,
+      actionStats: dynamicStats(runtime, owner, target, null),
+      actionStartShield: owner.shield,
+      actionStartStatuses: snapshotStatuses(owner),
+      actorStartStatusLayers: snapshotStatusLayers(owner),
+      targetStartStatusLayers: snapshotStatusLayers(target),
+      resonanceLimitUses: new Map(),
+      reservedChargeLuck: false,
+      chargeLuckAvailableAtStart: false,
+      swordIntentAtStart: statusCount(owner, 'sword_intent'),
+      consumedSwordIntent: 0,
+      consumedBurn: 0,
+      consumedShield: 0,
+      consumedShieldDamage: 0,
+      reservedPressure: 0,
+      reservedHealingBlades: 0,
+      reservedFurnaceHeat: 0,
+      returningBreathSegments: 0,
+      returningBreathScale: 1,
+      actualBonusSegments: 0,
+      actualDebuffApplied: false,
+      hadEffectiveBaseHit: false,
+      hadBaseCriticalHit: false,
+      firstBaseHit: false,
+      baseDirectHitCount: 0,
+      directCritCount: 0,
+      rr10CritCount: 0,
+      recoilDone: false,
+      actualHpDamage: 0,
+      actualAbsorbed: 0,
+      enemyActualHpDamage: 0,
+      reflectDamage: 0,
+      phaseBefore: owner.phase,
+      phaseChanged: false,
+      phaseTransition: null,
+      completed: false,
+      stop: false,
+      dotRageRecorded: false,
+      healRageRecorded: false,
+      roundDotSettlement: true,
+    };
     for (const status of ['poison', 'burn'] as const) {
       const layers = [...getStatusLayers(target, status)];
       for (const layer of layers) {
         if (!runtime.active || owner.hp <= 0 || target.hp <= 0) return;
-        const sourceId = layer.sourceId ?? `${owner.method.id}-${status}`;
-        const ownerId = layer.ownerId ?? owner.method.id;
-        const ownerEffect = activeModifiers(owner).find(effect => effect.id === sourceId) ??
-          {
-            id: sourceId,
-            ownerId,
-            ownerName: sourceName(runtime, ownerId),
-            ownerKind: owner.talents.some(talent => talent.id === ownerId)
-              ? 'talent'
-              : owner.artifacts.some(artifact => artifact.entity.id === ownerId) ? 'artifact' : 'method',
-            ownerSide: owner.side,
-            stacks: 1,
-          };
-        const synthetic: ActionContext = {
-          actor: owner,
-          target,
-          type: 'basic_action',
-          isMainAction: false,
-          round: runtime.round,
-          lockedCost: 0,
-          actionStats: dynamicStats(runtime, owner, target, null),
-          actionStartShield: owner.shield,
-          actionStartStatuses: snapshotStatuses(owner),
-          targetStartStatusLayers: snapshotStatusLayers(target),
-          reservedChargeLuck: false,
-          chargeLuckAvailableAtStart: false,
-          swordIntentAtStart: statusCount(owner, 'sword_intent'),
-          consumedSwordIntent: 0,
-          consumedBurn: 0,
-          consumedShield: 0,
-          consumedShieldDamage: 0,
-          actualBonusSegments: 0,
-          actualDebuffApplied: false,
-          hadEffectiveBaseHit: false,
-          hadBaseCriticalHit: false,
-          firstBaseHit: false,
-          baseDirectHitCount: 0,
-          directCritCount: 0,
-          rr10CritCount: 0,
-          recoilDone: false,
-          actualHpDamage: 0,
-          actualAbsorbed: 0,
-          enemyActualHpDamage: 0,
-          reflectDamage: 0,
-          phaseBefore: owner.phase,
-          phaseChanged: false,
-          phaseTransition: null,
-          completed: false,
-          stop: false,
-          dotRageRecorded: false,
-          healRageRecorded: false,
-        };
-        runtime.currentAction = synthetic;
-        const result = dealDamage(runtime, owner, target, 0, {
-          sourceEffect: ownerEffect as ActiveEffect,
-          kind: 'dot',
-          canCrit: false,
-          rawOverride: n(layer.damage, 0),
-        });
-        (synthetic as AnyMap).lastDotDamage = result.hpDamage + result.absorbed;
-        (synthetic as AnyMap).lastOwnDotHpDamage = result.hpDamage;
-        const burnOwner = layer.ownerId ?? layer.sourceId;
-        if (status === 'burn' && result.hpDamage > 0 && owner.hp > 0 &&
+        const result = resolveDotTick(runtime, owner, target, status, layer, synthetic);
+        const burnOwner = layer.ownerId ?? layer.sourceId ?? '';
+        if (status === 'burn' && result.hpDamage > 0 &&
             owner.coreRules.some(core => core.kind === 'burn_siphon') &&
-            (!burnOwner || fighterOwnsSource(owner, burnOwner))) {
+            fighterOwnsSource(owner, burnOwner)) {
           burnSiphonDamage += result.hpDamage;
-          burnSiphonAction ??= synthetic;
         }
-        if (result.hpDamage > 0 && runtime.active && owner.hp > 0 && target.hp > 0) {
-          const dotEffects = activeModifiers(owner).filter(effect => effect.trigger === 'dot_resolved');
-          for (const effect of dotEffects) {
-            if (effect.params?.status && effect.params.status !== status && !(effect.params?.statuses ?? []).includes(status)) continue;
-            if (effect.id === 'RKF04-J2-B-RAGE' && status !== 'burn') continue;
-            if (effect.id === 'RKF09-J3-C-RAGE' && status !== 'burn') continue;
-            if (effect.id === 'RR11-DOT-ROUND-RAGE' && !['poison', 'burn'].includes(status)) continue;
-            if (effect.id === 'RL02-FIRST-BURN-HEAL' && status !== 'burn') continue;
-            const oncePerRound = effect.id === 'RKF04-J2-B-RAGE' ||
-              effect.id === 'RKF09-J3-C-RAGE' ||
-              effect.id === 'RR11-DOT-ROUND-RAGE' ||
-              effect.id === 'RL02-FIRST-BURN-HEAL' ||
-              effect.id === 'RKF04-J4-C-SHIELD';
-            const onceKey = `dot:${runtime.round}:${effect.id}`;
-            if (oncePerRound && owner.battleFlags.has(onceKey)) continue;
-            if (effect.operation === 'rage_gain') {
-              if (oncePerRound) owner.battleFlags.add(onceKey);
-              registerRage(runtime, owner, n(effect.params?.amount, 0) * effect.stacks, effect.id, effect.ownerId);
-            }
-            if (effect.operation === 'shield') {
-              if (oncePerRound) owner.battleFlags.add(onceKey);
-              addShield(runtime, owner, (result.hpDamage + result.absorbed) * n(effect.params?.actual_damage_ratio, 0.3), effect, '持续伤害转盾');
-            }
-            if (effect.operation === 'heal') {
-              if (oncePerRound) owner.battleFlags.add(onceKey);
-              resolveHeal(runtime, synthetic, result.hpDamage * n(effect.params?.ratio, 0.25), effect);
-            }
-          }
-        }
-        runtime.currentAction = null;
-        const liveLayer = getStatusLayers(target, status).find(item => item === layer);
-        if (liveLayer) liveLayer.remaining -= 1;
-        const liveLayers = getStatusLayers(target, status);
-        fighterStatusReplace(target, status, liveLayers.filter(item => item.remaining > 0));
-        if (!runtime.active) break;
       }
       if (!runtime.active) break;
     }
-    if (runtime.active && target.hp > 0 && burnSiphonDamage > 0 && burnSiphonAction && owner.hp > 0) {
-      for (const core of owner.coreRules) {
-        if (core.kind !== 'burn_siphon') continue;
-        const healing = burnSiphonDamage * n(core.params.heal_ratio, 0);
-        if (healing > 0) resolveHeal(runtime, burnSiphonAction, healing, core.effect);
-      }
-    }
+    if (runtime.active && target.hp > 0 && burnSiphonDamage > 0 && owner.hp > 0)
+      resolveBurnSiphonHeal(runtime, owner, synthetic, burnSiphonDamage);
     if (!runtime.active || owner.hp <= 0 || target.hp <= 0) return;
   }
 }

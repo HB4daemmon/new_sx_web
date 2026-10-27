@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadContent } from '../tools/content-kit/src/loader.mjs';
 import { calculateStats } from '../build/shanhai/combat.js';
-import { ShanhaiGame, registerCombatWorker } from '../build/shanhai/run.js';
+import { ShanhaiGame, registerCombatWorker, validateRunState } from '../build/shanhai/run.js';
 import {
   SHANHAI_BUILD_KEY,
   SHANHAI_SAVE_KEY,
+  hasSavedRun,
   loadRun,
   loadWinningBuilds,
   parseRunSave,
@@ -55,9 +56,9 @@ function storage() {
   };
 }
 
-test('V2 journey saves leave both V1 and old V2 records isolated', () => {
-  assert.equal(SHANHAI_SAVE_KEY, 'suishi-shanhai-run-v2-journey');
-  assert.equal(SHANHAI_BUILD_KEY, 'suishi-shanhai-build-v2-journey');
+test('V2 resonance saves leave V1 and V2 journey records isolated', () => {
+  assert.equal(SHANHAI_SAVE_KEY, 'suishi-shanhai-run-v2-resonance');
+  assert.equal(SHANHAI_BUILD_KEY, 'suishi-shanhai-build-v2-resonance');
   const store = storage();
   const oldRecord = JSON.stringify({
     schema: 1,
@@ -67,21 +68,25 @@ test('V2 journey saves leave both V1 and old V2 records isolated', () => {
     state: { schema: 1, contentVersion: 'shanhai-content-0.1' },
   });
   store.setItem('suishi-shanhai-run-v1', oldRecord);
-  store.setItem('suishi-shanhai-run-v2', 'legacy-v2-run-untouched');
-  store.setItem('suishi-shanhai-build-v2', 'legacy-v2-build-untouched');
-  assert.equal(loadRun(content, store), null);
-
   const game = make();
+  const oldJourneyRecord = JSON.parse(serializeRun(game));
+  oldJourneyRecord.key = 'suishi-shanhai-run-v2-journey';
+  const oldJourneyText = JSON.stringify(oldJourneyRecord);
+  store.setItem('suishi-shanhai-run-v2-journey', oldJourneyText);
+  store.setItem('suishi-shanhai-build-v2-journey', 'legacy-v2-build-untouched');
+  store.setItem('suishi-shanhai-replay-v2-journey', 'legacy-v2-replay-untouched');
+  assert.equal(loadRun(content, store), null);
+  assert.equal(hasSavedRun(store), false);
+  assert.throws(() => parseRunSave(content, oldJourneyText), /invalid record header/);
+
   saveRun(game, store);
   assert.equal(store.getItem('suishi-shanhai-run-v1'), oldRecord);
-  assert.equal(store.getItem('suishi-shanhai-run-v2'), 'legacy-v2-run-untouched');
-  assert.equal(store.getItem('suishi-shanhai-build-v2'), 'legacy-v2-build-untouched');
+  assert.equal(store.getItem('suishi-shanhai-run-v2-journey'), oldJourneyText);
+  assert.equal(store.getItem('suishi-shanhai-build-v2-journey'), 'legacy-v2-build-untouched');
+  assert.equal(store.getItem('suishi-shanhai-replay-v2-journey'), 'legacy-v2-replay-untouched');
   assert.equal(JSON.parse(store.getItem(SHANHAI_SAVE_KEY)).key, SHANHAI_SAVE_KEY);
   assert.throws(() => parseRunSave(content, oldRecord), /V1.*cannot be loaded/);
 
-  const oldV2Record = JSON.parse(serializeRun(game));
-  oldV2Record.key = 'suishi-shanhai-run-v2';
-  assert.throws(() => parseRunSave(content, JSON.stringify(oldV2Record)), /invalid record header/);
 });
 
 test('equipment and frozen candidates round-trip and malformed snapshots are rejected', () => {
@@ -136,7 +141,7 @@ test('contentless saves still enforce V2 version and owned equipment IDs', () =>
   for (const mutate of [
     state => { state.equipment.slots = ['RC01', 'RC01']; },
     state => { state.equipment.slots = ['RC01', 'RC02', 'RC03', 'RC04', 'RC05']; },
-    state => { state.buildVersion = 2; },
+    state => { state.buildVersion = 1; },
     state => { delete state.buildVersion; },
     state => { state.progress.eliteWins = 0.5; },
     state => { state.progress.coinsSpent = -1; },
@@ -156,11 +161,16 @@ test('contentless saves still enforce V2 version and owned equipment IDs', () =>
 
 test('build version and real run progress are required save data', () => {
   const game = make('v2-progress-save');
-  assert.equal(game.state.buildVersion, 1);
+  assert.equal(game.state.buildVersion, 2);
   assert.deepEqual(game.state.progress, { coinsSpent: 0, eliteWins: 0, bossWins: 0 });
   const saved = JSON.parse(serializeRun(game));
   delete saved.state.buildVersion;
   assert.throws(() => parseRunSave(content, JSON.stringify(saved)), /build version/);
+
+  const previousRules = structuredClone(game.state);
+  previousRules.buildVersion = 1;
+  assert.throws(() => parseRunSave(content, JSON.stringify(previousRules)), /build version/);
+  assert.throws(() => validateRunState(content, previousRules), /build version/);
 
   for (const mutate of [
     state => { state.progress.coinsSpent = -1; },
@@ -227,7 +237,7 @@ test('a winning build records equipped artifacts rather than the owned inventory
   game.state.equipment = { slots: ['RC09', 'RC01'] };
   game.state.phase = 'won';
   const store = storage();
-  store.setItem('suishi-shanhai-build-v2', 'legacy-v2-build-untouched');
+  store.setItem('suishi-shanhai-build-v2-journey', 'legacy-v2-build-untouched');
 
   const record = saveWinningBuild(game, store);
   assert.deepEqual(record.artifacts, [
@@ -236,5 +246,5 @@ test('a winning build records equipped artifacts rather than the owned inventory
   ]);
   assert.deepEqual(loadWinningBuilds(store)[0].artifacts, record.artifacts);
   assert.equal(store.getItem('suishi-shanhai-build-v1'), null);
-  assert.equal(store.getItem('suishi-shanhai-build-v2'), 'legacy-v2-build-untouched');
+  assert.equal(store.getItem('suishi-shanhai-build-v2-journey'), 'legacy-v2-build-untouched');
 });
