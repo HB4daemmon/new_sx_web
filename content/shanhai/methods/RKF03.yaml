@@ -31,6 +31,15 @@ mechanic: null
 acquisition:
   start: true
   pools: [method_common]
+companion:
+  name: 春脉灵医
+  quick: 主修功法的主动作造成有效治疗时，再恢复最大气血4%；与五毒经合练时于实际添毒后触发
+  trigger: heal
+  effect: {kind: heal, value: 0.04}
+  pair_bonuses:
+    - with: RKF06
+      trigger: poison
+      effect: {kind: heal, value: 0.04}
 actions:
   basic:
     name: 回春引气

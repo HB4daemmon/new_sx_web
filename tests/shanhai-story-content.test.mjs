@@ -33,7 +33,7 @@ const entities = new Map(manifest.files.map(entry => [
 ]));
 
 test('story content preserves the 45-node shell and uses factual read-only endings', () => {
-  assert.equal(entities.size, 152);
+  assert.equal(entities.size, 154);
   for (const id of ['RA01', 'RA02', 'RA03', 'RA04']) {
     const act = entities.get(id);
     assert.equal(Object.values(act.node_budget).reduce((sum, count) => sum + count, 0), 11);

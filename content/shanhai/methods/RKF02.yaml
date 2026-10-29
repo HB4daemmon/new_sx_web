@@ -31,6 +31,12 @@ mechanic: null
 acquisition:
   start: true
   pools: [method_common]
+companion:
+  name: 归元引路人
+  quick: 主修功法的主动作实际回怒时，再回复5点怒气
+  trigger: rage
+  effect: {kind: rage, value: 5}
+  pair_bonuses: []
 actions:
   basic:
     name: 归元行气

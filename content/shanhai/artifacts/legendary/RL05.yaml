@@ -4,8 +4,8 @@ kind: artifact
 id: RL05
 name: 回澜印
 status: design_target
-summary: 攻击 +12、防御 +6；怒技完成固定返怒 50；核心定位，可与最多3件其他法宝一同装备
-description: 怒技完成后固定返还50点怒气，留待下一轮使用。装备后，核心定位仅作描述，可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+summary: 攻击 +12、防御 +6；怒技完成固定返怒 50；核心定位，可与最多4件其他法宝一同装备
+description: 怒技完成后固定返还50点怒气，留待下一轮使用。装备后，核心定位仅作描述，可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [attack, defense, rage_gain, rage, legendary]
 source:
   basis: original

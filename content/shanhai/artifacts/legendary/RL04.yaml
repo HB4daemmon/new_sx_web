@@ -4,8 +4,8 @@ kind: artifact
 id: RL04
 name: 启明玉
 status: design_target
-summary: 攻击 +12、速度 +1；开场额外回怒 50；核心定位，可与最多3件其他法宝一同装备
-description: 每场战斗开始时，额外获得50点怒气。装备后，核心定位仅作描述，可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+summary: 攻击 +12、速度 +1；开场追加怒气 50；怒气上限 50、防御 ×0.65；核心定位，可与最多4件其他法宝一同装备
+description: 每场战斗开始时追加50点怒气，最终受50点怒气上限限制。装备期间怒气上限固定为50，防御降至计算值的65%；若同时装备其他带防御倍率的战术法宝，各件倍率分别相乘一次。可与最多4件其他法宝一同装备，未装备时不提供属性或效果。
 tags: [attack, speed, rage_gain, battle_start, legendary]
 source:
   basis: original
@@ -20,6 +20,7 @@ unique_group: null
 attributes:
   flat: {attack: 12, speed: 1}
   percent: {}
+gambit_rule: {kind: overdrive, rage_cap: 50, defense_multiplier: 0.65}
 effects:
   - id: RL04-OPENING-RAGE-GAIN
     trigger: battle_start

@@ -8,6 +8,7 @@ const ARTIFACTS = {
   RC01: { kind: 'artifact', equipment_role: 'support', attributes: { flat: { attack: 6 }, percent: {} } },
   RC03: { kind: 'artifact', equipment_role: 'support', attributes: { flat: { defense: 5 }, percent: {} } },
   RC04: { kind: 'artifact', equipment_role: 'support', attributes: { flat: {}, percent: {} } },
+  RC08: { kind: 'artifact', equipment_role: 'support', attributes: { flat: { attack: 10 }, percent: {} } },
   RR06: { kind: 'artifact', equipment_role: 'core', attributes: { flat: {}, percent: {} } },
 };
 
@@ -60,13 +61,14 @@ test('equipment policy fills four generic slots from multiple descriptive roles'
 
 test('equipment policy replaces the weakest generic slot for the best strict score gain', () => {
   const candidate = game({
-    slots: ['RC10', 'RC01', 'RC03', 'RC04'],
+    slots: ['RC10', 'RC01', 'RC03', 'RC04', 'RC08'],
     artifacts: [
       { id: 'RC10', stacks: 1 },
       { id: 'RC11', stacks: 1 },
       { id: 'RC01', stacks: 1 },
       { id: 'RC03', stacks: 1 },
       { id: 'RC04', stacks: 1 },
+      { id: 'RC08', stacks: 1 },
       { id: 'RR06', stacks: 1 },
     ],
   });
@@ -76,6 +78,9 @@ test('equipment policy replaces the weakest generic slot for the best strict sco
   assert.deepEqual(equipmentCommand(candidate), { type: 'equip', id: 'RC11', replace: 'RC03' });
   candidate.state.equipment.slots[2] = 'RC11';
   assert.equal(equipmentCommand(candidate), null);
+
+  candidate.state.equipment.slots.pop();
+  assert.deepEqual(equipmentCommand(candidate), { type: 'equip', id: 'RC08' });
 });
 
 test('talent policy values current wealth and inventory diversity among shared candidates', () => {

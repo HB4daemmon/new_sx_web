@@ -5,7 +5,7 @@ id: RC05
 name: 养气玉
 status: design_target
 summary: 最大气血 +25；支援定位
-description: 温润玉心缓慢养气，直接抬高最大气血。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+description: 温润玉心缓慢养气，直接抬高最大气血。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [max_hp, combat, durable]
 source:
   basis: original
@@ -22,5 +22,12 @@ attributes:
   percent: {}
 effects: []
 equipment_role: support
+awakening:
+  at_stacks: 5
+  name: 玉髓续命
+  quick: 满5层后，自身存活时每次怒技完成后回复最大气血5%。
+  trigger: rage
+  effects:
+    - {kind: heal, value: 0.05}
 acquisition:
   pools: [common_artifact]

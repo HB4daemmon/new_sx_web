@@ -416,10 +416,11 @@ economy:
     price: 8
     max_per_act: 1
     families:
-      sword: [RC09, RC20, RR01, RR03, RR04, RR10]
+      sword: [RC01, RC09, RC20, RR01, RR03, RR04, RR10]
       guard: [RC11, RC13, RR02, RR09]
       vitality: [RC05, RC06, RC12, RC17, RC24, RR02, RR06, RR12]
       affliction: [RC14, RC15, RR03, RR11]
+  reward_refining: {max_per_act: 1}
   boss_legendary_replacement:
     probability_by_act: [0.02, 0.04, 0.06, 0.08]
     max_replacements: 1

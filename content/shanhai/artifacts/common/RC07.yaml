@@ -5,7 +5,7 @@ id: RC07
 name: 明目珠
 status: design_target
 summary: 暴击率 +2 个百分点；支援定位
-description: 珠面清亮，帮助攻击者抓住直接攻击的破绽。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+description: 珠面清亮，帮助攻击者抓住直接攻击的破绽。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [crit_rate, direct, combat]
 source:
   basis: original
@@ -22,5 +22,13 @@ attributes:
   percent: {}
 effects: []
 equipment_role: support
+awakening:
+  at_stacks: 3
+  name: 明珠蓄锋
+  quick: 满3层后，自身存活时每次普攻完成后额外造成0.10倍攻击伤害（不可暴击），并获得3点怒气。
+  trigger: basic
+  effects:
+    - {kind: damage, value: 0.10}
+    - {kind: rage, value: 3}
 acquisition:
   pools: [common_artifact]

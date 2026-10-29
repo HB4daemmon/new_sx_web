@@ -126,6 +126,7 @@ export async function buildGameArt({ root, destination }) {
 
   const manifestRows = base.assets;
   const libraryRows = library.assets;
+  const artifactIds = (content.byKind.get('artifact') || []).map(artifact => artifact.id);
   const enemyIds = (content.byKind.get('enemy') || []).map(enemy => enemy.id);
   const enemyManifestIds = Object.keys(enemyFrames.characters || {});
   if (enemyIds.length !== 34 || new Set(enemyIds).size !== enemyIds.length ||
@@ -144,8 +145,12 @@ export async function buildGameArt({ root, destination }) {
   if (!Array.isArray(manifestRows) || !Array.isArray(libraryRows)) {
     throw new Error('Game-art manifests must declare explicit asset arrays');
   }
-  if (!library.artifacts || Object.keys(library.artifacts).length !== 44) {
-    throw new Error('The approved art library must map all 44 artifacts');
+  const mappedArtifactIds = Object.keys(library.artifacts || {});
+  const contentArtifactIds = new Set(artifactIds);
+  if (artifactIds.length !== 46 || mappedArtifactIds.length !== artifactIds.length ||
+      artifactIds.some(id => !Object.hasOwn(library.artifacts || {}, id)) ||
+      mappedArtifactIds.some(id => !contentArtifactIds.has(id))) {
+    throw new Error('The approved art library must map exactly all 46 content artifacts');
   }
   if (!library.map || Object.keys(library.map).length !== 6) {
     throw new Error('The approved art library must map all six map illustrations');

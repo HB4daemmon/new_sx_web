@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const url = process.env.BROWSER_URL || 'http://localhost:4173/';
-const saveKey = 'suishi-shanhai-run-v2-reactions';
+const saveKey = 'suishi-shanhai-run-v2-overhaul';
 const viewports = [
   { width: 360, height: 780 },
   { width: 390, height: 844 },

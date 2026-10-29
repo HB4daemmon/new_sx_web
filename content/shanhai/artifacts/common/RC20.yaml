@@ -5,7 +5,7 @@ id: RC20
 name: 引气符
 status: design_target
 summary: 攻击 +2；普攻完成后额外回怒 5；支援定位
-description: 每次普攻完成后，符纸额外补回5点怒气。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+description: 每次普攻完成后，符纸额外补回5点怒气。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [attack, rage_gain, basic, combat]
 source:
   basis: original
@@ -36,5 +36,12 @@ effects:
     limit: {scope: action, count: 1}
     text: 每层在普攻完成后额外获得5点怒气；普攻原有的回怒照常获得。
 equipment_role: support
+awakening:
+  at_stacks: 3
+  name: 引气灼脉
+  quick: 满3层后，自身存活时每次普攻完成后给敌人施加1层燃烧，持续2回合；每层按0.05倍攻击系数造成伤害，上限10层。
+  trigger: basic
+  effects:
+    - {kind: burn, value: 1}
 acquisition:
   pools: [common_artifact]

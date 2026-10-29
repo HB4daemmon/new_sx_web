@@ -4,8 +4,8 @@ kind: artifact
 id: RR05
 name: 镇心玉
 status: design_target
-summary: 防御 +8；普攻或怒技完成后攻击 +4，最多三层；支援定位
-description: 每次普攻或怒技完成后，攻击提高4点，最多叠加3层。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+summary: 防御 +8 后再减半；自身直接与派生伤害 ×1.6；普攻或怒技完成后攻击 +4，最多三层；支援定位
+description: 装备后先计入防御 +8，再将计算防御减半；自身直接与派生伤害提高至1.6倍，不强化中毒、燃烧、反震、治疗或护盾。与其他带防御倍率的战术法宝同时装备时，各件防御倍率分别相乘一次。每次自身普攻或怒技完成后，攻击提高4点，最多叠加3层；可与最多4件其他法宝一同装备，未装备时无效果。
 tags: [defense, attack, stacking, rare]
 source:
   basis: original
@@ -20,6 +20,7 @@ unique_group: null
 attributes:
   flat: {defense: 8}
   percent: {}
+gambit_rule: {kind: reckless, defense_multiplier: 0.5, direct_damage_multiplier: 1.6}
 effects:
   - id: RR05-ACTION-END-ATTACK-LAYER
     trigger: action_end

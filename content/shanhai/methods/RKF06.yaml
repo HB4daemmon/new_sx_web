@@ -26,6 +26,15 @@ mechanic: null
 acquisition:
   start: false
   pools: [method_rare]
+companion:
+  name: 五毒蜂使
+  quick: 主修功法的主动作实际施加中毒时，再添1层中毒；与回春功合练时于有效治疗后触发
+  trigger: poison
+  effect: {kind: poison, value: 1}
+  pair_bonuses:
+    - with: RKF03
+      trigger: heal
+      effect: {kind: poison, value: 1}
 actions:
   basic:
     name: 蚀骨引毒

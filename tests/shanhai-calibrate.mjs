@@ -4,16 +4,20 @@ import { pathToFileURL } from 'node:url';
 import { loadContent } from '../tools/content-kit/src/loader.mjs';
 import { contentFromEntities } from '../build/shanhai/content.js';
 import { calculateStats, simulateBattle } from '../build/shanhai/combat.js';
+import { MAX_EQUIPMENT_SLOTS } from '../build/shanhai/equipment.js';
 import { ShanhaiGame } from '../build/shanhai/run.js';
 import { nextCommand } from './shanhai-policy.mjs';
 
 export const START_METHODS = Object.freeze(['RKF01', 'RKF02', 'RKF03', 'RKF04', 'RKF05']);
+// Handpicked functional win fixtures only; this seed set is not a win-rate cohort.
 export const FUNCTIONAL_WIN_SEEDS = Object.freeze({
   RKF01: 'v2-functional-RKF01-0',
   RKF02: 'v2-functional-RKF02-0',
   RKF03: 'v2-functional-RKF03-0',
-  RKF04: 'v2-functional-RKF04-0',
-  RKF05: 'v2-functional-RKF05-0',
+  // -0 loses in Act 3 and -1 loses at node 44; -2 is a deterministic smoke win.
+  RKF04: 'v2-functional-RKF04-2',
+  // The -0 fixture loses to the Act 1 boss; this handpicked smoke seed is not win-rate evidence.
+  RKF05: 'v2-functional-RKF05-1',
 });
 export const METHOD_BRANCHES = Object.freeze({
   RKF01: 'A',
@@ -23,7 +27,7 @@ export const METHOD_BRANCHES = Object.freeze({
   RKF05: 'B',
 });
 
-export const REFERENCE_EQUIPMENT = Object.freeze(['RC11', 'RC10', 'RC01', 'RC17']);
+export const REFERENCE_EQUIPMENT = Object.freeze(['RC11', 'RC10', 'RC01', 'RC17', 'RC02']);
 
 const V2_REPORT_DIRECTORY = 'verification/shanhai/v2';
 
@@ -134,8 +138,8 @@ function assertLegalEquipment(content, loadout, label) {
       groups.add(artifact.unique_group);
     }
   }
-  if (ids.size > 4) {
-    throw new Error(`${label} exceeds the V2 limit of four generic artifact slots`);
+  if (ids.size > MAX_EQUIPMENT_SLOTS) {
+    throw new Error(`${label} exceeds the V2 limit of ${MAX_EQUIPMENT_SLOTS} generic artifact slots`);
   }
 }
 
@@ -328,7 +332,7 @@ export function buildEncounterCalibration(content, seedCount = 5) {
 
   const input = {
     mode: 'fixed_reference_board',
-    board: 'V2 fixed reference loadout (4 generic slots; 2 core-role and 2 support-role artifacts) against authored enemy.n; no runtime node growth, rewards, or route state',
+    board: 'V2 fixed reference loadout (5 generic slots; 3 core-role and 2 support-role artifacts) against authored enemy.n; no runtime node growth, rewards, or route state',
     contentVersion: content.version,
     referenceEquipment: clone(REFERENCE_EQUIPMENT),
     roundLimit: 256,
@@ -370,7 +374,7 @@ export function buildEncounterCalibration(content, seedCount = 5) {
   }));
 
   return {
-    policy: 'V2 fixed legal 4-slot reference loadouts; artifact roles are descriptive; direct simulateBattle; no mocked combat',
+    policy: 'V2 fixed legal 5-slot reference loadouts; artifact roles are descriptive; direct simulateBattle; no mocked combat',
     calibrationStatus: 'uncalibrated V2 sample; observations do not modify authored measured fields',
     roundLimit: 256,
     seedCount,
@@ -467,13 +471,13 @@ export function runFullCalibration(content, seedCount = 5) {
   const seeds = runs.map(row => row.seed);
   const input = {
     mode: 'real_shanhai_game_policy',
-    experimentTrack: 'V2 reactions prototype; buildVersion 3; uncalibrated',
+    experimentTrack: 'V2 second overhaul; buildVersion 5; uncalibrated',
     functionalWinSeeds: clone(FUNCTIONAL_WIN_SEEDS),
     contentVersion: content.version,
     methods: [...START_METHODS],
     seeds,
     routeSelection: 'seedIndex % 3 => avoid, steady, tracking; current reachable nodes only',
-    equipmentStrategy: 'fill up to four generic slots and replace only a lower-scoring equipped artifact using owned inventory; artifact roles are descriptive',
+    equipmentStrategy: 'fill up to five generic slots and replace only a lower-scoring equipped artifact when all five slots are occupied; artifact roles are descriptive',
     stepGuard: 600,
   };
   const hash = inputHash(input);
@@ -483,7 +487,7 @@ export function runFullCalibration(content, seedCount = 5) {
   }
   return {
     policy: 'tests/shanhai-policy.mjs',
-    experimentTrack: 'V2 reactions prototype; buildVersion 3; shanhai-content-0.2; uncalibrated',
+    experimentTrack: 'V2 second overhaul; buildVersion 5; shanhai-content-0.2; uncalibrated',
     note: '真实 ShanhaiGame 与 simulateBattle；胜率是当前种子样本的直接观测，不沿用 V1 校准结果。装备策略在合法阶段依据当前库存和槽位价值换装，选择器不读取未来路线节点、战斗结果或隐藏事件结果。',
     seedCount,
     inputHash: hash,
@@ -505,14 +509,14 @@ export async function runCalibration({
   return {
     contentVersion: content.version,
     input: {
-      experimentTrack: 'V2 reactions prototype; buildVersion 3; shanhai-content-0.2; uncalibrated',
+      experimentTrack: 'V2 second overhaul; buildVersion 5; shanhai-content-0.2; uncalibrated',
       fullRunSeeds,
       encounterSeeds,
       functionalWinSeeds: clone(FUNCTIONAL_WIN_SEEDS),
       functionalWinPolicy: 'tests/shanhai-policy.mjs nextCommand(game, steady); real battle and authored enemy stats',
       roundLimit: 256,
       measuredFieldsRemainNull: true,
-      referenceBoard: 'V2 fixed reference equipment; authored enemy.n; no runtime node growth or rewards',
+      referenceBoard: 'V2 fixed five-slot reference equipment; authored enemy.n; no runtime node growth or rewards',
       encounterInputHash: encounter.inputHash,
       fullRunInputHash: fullRuns.inputHash,
       referenceEquipment: clone(REFERENCE_EQUIPMENT),

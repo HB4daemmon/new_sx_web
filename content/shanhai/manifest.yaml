@@ -57,6 +57,8 @@ files:
   - {id: RL03, kind: artifact, path: artifacts/legendary/RL03.yaml}
   - {id: RL04, kind: artifact, path: artifacts/legendary/RL04.yaml}
   - {id: RL05, kind: artifact, path: artifacts/legendary/RL05.yaml}
+  - {id: RL06, kind: artifact, path: artifacts/legendary/RL06.yaml}
+  - {id: RL07, kind: artifact, path: artifacts/legendary/RL07.yaml}
   - {id: RE001, kind: event, path: events/ordinary/RE001.yaml}
   - {id: RE002, kind: event, path: events/ordinary/RE002.yaml}
   - {id: RE003, kind: event, path: events/ordinary/RE003.yaml}
@@ -156,7 +158,7 @@ files:
   - {id: RF01, kind: act, path: acts/RF01.yaml}
 counts:
   methods: 10
-  artifacts: 44
+  artifacts: 46
   ordinary_events: 36
   core_events: 16
   storylines: 6

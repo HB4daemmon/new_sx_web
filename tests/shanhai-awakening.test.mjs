@@ -344,11 +344,12 @@ test('legal awakened loadout preserves rage cadence and four formerly core artif
       { id: 'RC12', stacks: 1 },
       { id: 'RC14', stacks: 1 },
       { id: 'RC15', stacks: 1 },
+      { id: 'RC10', stacks: 1 },
     ]),
     enemy,
-    'awakening-over-four-artifacts',
+    'awakening-over-five-artifacts',
     { roundLimit: 3 },
-  ), /four artifact slots/);
+  ), /Loadout exceeds 5 artifact slots/);
   const awakened = simulateBattle(
     authoredContent,
     makeLoadout('RKF01', [

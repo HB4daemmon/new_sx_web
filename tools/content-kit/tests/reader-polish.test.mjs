@@ -48,6 +48,8 @@ test('INDEX exposes every fixed reader page with readable names and counts', () 
   assert.match(rules, /V2-J1-A/)
   assert.match(rules, /V2-J1-F/)
   assert.match(rules, /V2-J4-C/)
+  assert.match(rules, /## 炼宝/)
+  assert.match(rules, /每幕最多炼化 1 次/)
 })
 
 test('artifact reader pages disclose descriptive roles and equipped core tradeoffs', () => {
@@ -56,6 +58,8 @@ test('artifact reader pages disclose descriptive roles and equipped core tradeof
   assert.match(page, /一局最多装备4件，核心\/支援仅为描述定位，不限制配装/)
   assert.match(page, /装备定位：核心；仅作描述，不限制装备数量/)
   assert.match(page, /装备定位：支援；仅作描述，不限制装备数量/)
+  assert.match(page, /RC01[\s\S]*装备定位：核心；仅作描述，不限制装备数量/)
+  assert.match(page, /RC01[\s\S]*核心规则（仅装备时生效）：存活主普攻/)
   assert.match(page, /RC09[\s\S]*核心规则（仅装备时生效）：普攻后追击一段/)
   assert.match(page, /RC12[\s\S]*直接伤害倍率 0\.8/)
 

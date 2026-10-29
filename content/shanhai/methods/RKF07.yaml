@@ -35,6 +35,12 @@ mechanic:
 acquisition:
   start: false
   pools: [method_rare]
+companion:
+  name: 奔雷灵使
+  quick: 主修功法的主动作命中后，追加攻击0.25倍的不可暴击派生雷击
+  trigger: hit
+  effect: {kind: damage, value: 0.25}
+  pair_bonuses: []
 actions:
   basic:
     name: 引雷破空

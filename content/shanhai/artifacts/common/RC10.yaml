@@ -4,8 +4,8 @@ kind: artifact
 id: RC10
 name: 雷纹印
 status: design_target
-summary: 攻击 +2；每层怒技基础直接伤害 +6%；怒技完成返怒20、受到直接伤害提高12%；核心定位，可与最多3件其他法宝一同装备
-description: 印面雷纹强化怒技基础段；核心规则在怒技完成后返还20点怒气，但自身受到的直接伤害提高12%。核心定位仅作描述，可与最多3件其他法宝一同装备；未装备时无属性或效果。
+summary: 攻击 +2；每层怒技基础直接伤害 +6%；怒技完成返怒20、受到直接伤害提高12%；核心定位，可与最多4件其他法宝一同装备
+description: 印面雷纹强化怒技基础段；核心规则在怒技完成后返还20点怒气，但自身受到的直接伤害提高12%。核心定位仅作描述，可与最多4件其他法宝一同装备；未装备时无属性或效果。
 tags: [attack, rage, direct, combat]
 source:
   basis: original
@@ -36,5 +36,12 @@ effects:
     text: 每层使怒技基础直接伤害提高6%，不作用于毒火、盾返或法宝追加段。
 equipment_role: core
 core_rule: {kind: rage_gambit, rage_refund: 20, incoming_damage_ratio: 1.12}
+awakening:
+  at_stacks: 3
+  name: 雷纹落焰
+  quick: 满3层后，自身存活时每次怒技完成后给敌人施加1层燃烧，持续2回合；每层按0.05倍攻击系数造成伤害，上限10层。
+  trigger: rage
+  effects:
+    - {kind: burn, value: 1}
 acquisition:
   pools: [common_artifact]

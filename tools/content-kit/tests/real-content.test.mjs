@@ -54,12 +54,12 @@ function enumerateStructuralTalentBuilds(method) {
 
 test('real content validates and preserves the authored entity and talent counts', () => {
   assert.equal(report.ok, true, validationDetails())
-  assert.equal(model.entities.length, 152)
-  assert.equal(model.manifestEntries.length, 152)
+  assert.equal(model.entities.length, 154)
+  assert.equal(model.manifestEntries.length, 154)
 
   const expectedManifestCounts = {
     methods: 10,
-    artifacts: 44,
+    artifacts: 46,
     ordinary_events: 36,
     core_events: 16,
     storylines: 6,
@@ -73,7 +73,12 @@ test('real content validates and preserves the authored entity and talent counts
 
   assert.equal(entitiesOf('rules').length, 1)
   assert.equal(entitiesOf('method').length, 10)
-  assert.equal(entitiesOf('artifact').length, 44)
+  for (const method of entitiesOf('method')) {
+    assert.equal(typeof method.companion.name, 'string', `${method.id} companion name`)
+    assert.equal(typeof method.companion.quick, 'string', `${method.id} companion quick description`)
+    assert.ok(method.companion.effect, `${method.id} has a combat output`)
+  }
+  assert.equal(entitiesOf('artifact').length, 46)
   assert.equal(entitiesOf('event').length, 52)
   assert.equal(entitiesOf('storyline').length, 6)
   assert.equal(entitiesOf('enemy').length, 34)
@@ -152,6 +157,28 @@ test('real content validates and preserves the authored entity and talent counts
     } else {
       assert.equal(Object.hasOwn(artifact, 'core_rule'), false, `${artifact.id} has no parallel core rule`)
     }
+  }
+
+  const realRules = model.byId.get('RULES')
+  assert.deepEqual(realRules.economy.reward_refining, { max_per_act: 1 })
+  const swordPool = realRules.economy.reward_seeking.families.sword
+  assert.ok(swordPool.includes('RC01'))
+  assert.equal(new Set(swordPool).size, swordPool.length)
+
+  const convergenceCore = model.byId.get('RC01')
+  assert.equal(convergenceCore.equipment_role, 'core')
+  assert.deepEqual(convergenceCore.core_rule, { kind: 'basic_convergence', damage_ratio: 1.25 })
+  assert.equal(convergenceCore.max_stacks, 5)
+  assert.deepEqual(convergenceCore.attributes, { flat: { attack: 6 }, percent: {} })
+  assert.deepEqual(convergenceCore.acquisition.pools, ['common_artifact'])
+
+  const awakeningArtifacts = entitiesOf('artifact').filter((artifact) => artifact.awakening)
+  assert.ok(awakeningArtifacts.some((artifact) => Array.isArray(artifact.awakening.effects)))
+  for (const artifact of awakeningArtifacts) {
+    assert.equal(artifact.awakening.at_stacks, artifact.max_stacks, `${artifact.id} awakens at max stacks`)
+    assert.equal(typeof artifact.awakening.name, 'string', `${artifact.id} awakening name`)
+    assert.equal(typeof artifact.awakening.quick, 'string', `${artifact.id} awakening description`)
+    if (artifact.awakening.effects !== undefined) assert.ok(artifact.awakening.effects.length > 0)
   }
 
   for (const enemy of entitiesOf('enemy')) {
@@ -262,6 +289,14 @@ test('V2 resonance rules are authored once on their owners and render with the c
   assert.match(pages.get('enemies/ACT1.md'), /回生雾准备/)
   assert.match(pages.get('RULES.md'), /悬赏寻器/)
   assert.match(pages.get('RULES.md'), /剑穗/)
+  assert.match(pages.get('RULES.md'), /## 炼宝/)
+  assert.match(pages.get('RULES.md'), /每幕最多炼化 1 次/)
+  assert.match(pages.get('artifacts/COMMON.md'), /青锋石[\s\S]*核心规则（仅装备时生效）：存活主普攻/)
+  assert.match(pages.get('artifacts/COMMON.md'), /非暴击加成总和分别乘 1\.25/)
+  assert.match(pages.get('methods/RKF03.md'), /## 伴生协力/)
+  assert.match(pages.get('methods/RKF03.md'), /春脉灵医/)
+  assert.match(pages.get('methods/RKF03.md'), /与五毒经（`RKF06`）配对/)
+  assert.match(pages.get('methods/RKF06.md'), /与回春功（`RKF03`）配对/)
   assert.match(pages.get('artifacts/RARE.md'), /毒火/)
   assert.match(pages.get('artifacts/LEGENDARY.md'), /四段攻击0.25倍/)
 })
@@ -293,7 +328,7 @@ test('authored trials and reward-seeking families stay on the public contract', 
   assert.equal(seeking.price, 8)
   assert.equal(seeking.max_per_act, 1)
   assert.deepEqual(Object.keys(seeking.families).sort(), ['affliction', 'guard', 'sword', 'vitality'])
-  assert.deepEqual(seeking.families.sword, ['RC09', 'RC20', 'RR01', 'RR03', 'RR04', 'RR10'])
+  assert.deepEqual(seeking.families.sword, ['RC01', 'RC09', 'RC20', 'RR01', 'RR03', 'RR04', 'RR10'])
   assert.deepEqual(seeking.families.guard, ['RC11', 'RC13', 'RR02', 'RR09'])
   assert.deepEqual(seeking.families.vitality, ['RC05', 'RC06', 'RC12', 'RC17', 'RC24', 'RR02', 'RR06', 'RR12'])
   assert.deepEqual(seeking.families.affliction, ['RC14', 'RC15', 'RR03', 'RR11'])

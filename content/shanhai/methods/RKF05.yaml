@@ -37,6 +37,12 @@ mechanic:
 acquisition:
   start: true
   pools: [method_common]
+companion:
+  name: 逐锋剑灵
+  quick: 主修功法的主动作命中后，追加攻击0.22倍的不可暴击派生伤害
+  trigger: hit
+  effect: {kind: damage, value: 0.22}
+  pair_bonuses: []
 actions:
   basic:
     name: 养锋出鞘

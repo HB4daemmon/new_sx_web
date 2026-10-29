@@ -2075,6 +2075,40 @@ button:disabled {
   border-color: var(--line);
 }
 
+.game-page .end-epitaph {
+  display: grid;
+  box-sizing: border-box;
+  width: min(100%, 620px);
+  gap: 6px;
+  margin: 16px auto;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.game-page .end-epitaph .eyebrow,
+.game-page .end-epitaph h2,
+.game-page .end-epitaph-record {
+  margin: 0;
+}
+
+.game-page .end-epitaph .eyebrow {
+  color: var(--jade);
+  font-size: 14px;
+}
+
+.game-page .end-epitaph h2 {
+  color: var(--ink);
+  font: 20px/1.4 var(--serif);
+}
+
+.game-page .end-epitaph-record {
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
 .game-page .archive-item h3,
 .game-page .archive-item p,
 .game-page .archive-item small {
@@ -4966,7 +5000,7 @@ button:disabled {
 
 .game-page .equipment-slot-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -5099,6 +5133,50 @@ button:disabled {
 .game-page .equipment-detail-actions .button {
   min-width: 132px;
   min-height: 44px;
+}
+
+.game-page .equipment-detail-actions.is-equipped > .button {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.game-page .equipment-order-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.game-page .equipment-order-button {
+  display: grid;
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  min-height: 48px;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  background: var(--panel);
+}
+
+.game-page .equipment-order-button[data-direction="left"] .icon {
+  transform: rotate(180deg);
+}
+
+.game-page .equipment-order-button:hover:not(:disabled) {
+  border-color: var(--vermilion);
+  color: var(--vermilion);
+  background: var(--panel-selected);
+}
+
+.game-page .equipment-order-button:focus-visible {
+  outline: 2px solid var(--vermilion);
+  outline-offset: 2px;
+}
+
+.game-page .equipment-order-button:disabled {
+  color: var(--muted);
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .game-page .artifact-ownership {
@@ -5630,6 +5708,10 @@ button:disabled {
     width: 100%;
   }
 
+  .game-page .equipment-detail-actions.is-equipped > .button {
+    justify-self: stretch;
+  }
+
   .game-page .equipment-replace-choice {
     grid-template-columns: 72px minmax(0, 1fr) 16px;
     gap: 6px;
@@ -5837,5 +5919,602 @@ button:disabled {
   .game-page .fighter-counter {
     gap: 2px;
     padding: 2px 3px;
+  }
+}
+
+.game-page .reward-refine {
+  min-width: 0;
+  margin-top: 10px;
+}
+
+.game-page .reward-refine > summary {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.game-page .reward-refine > summary .icon {
+  flex: 0 0 auto;
+}
+
+.game-page .reward-refine-body {
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+  padding: 12px 10px;
+  border-top: 1px solid var(--line);
+}
+
+.game-page .reward-refine-usage,
+.game-page .reward-refine-no-coins,
+.game-page .reward-refine-awakening,
+.game-page .reward-refine-reason {
+  min-width: 0;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.game-page .reward-refine-usage {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.game-page .reward-refine-selects {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.game-page .reward-refine-selects label {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.game-page .reward-refine-selects select {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 6px 8px;
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  background: var(--panel);
+  font-size: 14px;
+}
+
+.game-page .reward-refine-impact {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.game-page .reward-refine-impact p {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 3px;
+  margin: 0;
+  padding: 7px 9px;
+  border-left: 3px solid var(--vermilion);
+  color: var(--muted);
+  background: var(--ink-1);
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.game-page .reward-refine-impact p + p {
+  border-left-color: var(--jade);
+}
+
+.game-page .reward-refine-impact b {
+  min-width: 0;
+  color: var(--ink);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.game-page .reward-refine-forfeit {
+  min-width: 0;
+  padding: 8px 10px;
+  border-left: 3px solid var(--vermilion);
+  color: var(--ink);
+  background: var(--panel-selected);
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.game-page .reward-refine-forfeit ul {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 5px 0 0;
+  padding-left: 20px;
+}
+
+.game-page .reward-refine-forfeit li {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.game-page .reward-refine-no-coins {
+  color: var(--muted);
+}
+
+.game-page .reward-refine-awakening {
+  padding: 7px 9px;
+  border-left: 3px solid var(--gold);
+  color: var(--ink);
+  background: #f4ecda;
+  font-weight: 700;
+}
+
+.game-page .reward-refine-reason {
+  color: var(--vermilion);
+}
+
+.game-page .reward-refine-reason[hidden] {
+  display: none;
+}
+
+.game-page .reward-refine-confirm {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .game-page .reward-refine-body {
+    gap: 10px;
+    padding: 10px 7px;
+  }
+
+  .game-page .reward-refine-selects,
+  .game-page .reward-refine-impact {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+}
+
+.game-page .build-companion-brief {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  margin: 9px 0;
+  padding: 7px 9px;
+  border-left: 3px solid var(--jade);
+  color: var(--muted);
+  background: var(--panel);
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.game-page .build-companion-brief b {
+  color: var(--ink);
+}
+
+.game-page .thunder-challenge {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  margin: 10px 0;
+  padding: 8px 10px 10px;
+  border: 1px solid var(--gold);
+  color: var(--ink);
+  background: var(--panel);
+}
+
+.game-page .thunder-challenge legend {
+  padding: 0 5px;
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.game-page .thunder-challenge-choice {
+  display: grid;
+  min-width: 0;
+  min-height: 52px;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  padding: 5px 2px;
+  cursor: pointer;
+}
+
+.game-page .thunder-challenge-choice input {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  margin: 2px;
+  accent-color: var(--jade);
+  cursor: pointer;
+}
+
+.game-page .thunder-challenge-choice input:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.game-page .thunder-challenge-copy {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}
+
+.game-page .thunder-challenge-copy b {
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.game-page .thunder-challenge-copy small {
+  color: var(--muted);
+  font-size: 14px !important;
+  line-height: 1.45;
+}
+
+.game-page.phase-preview .stage-actions .button {
+  font-size: 14px !important;
+}
+
+.game-page .thunder-reward-note {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border-left: 3px solid var(--gold);
+  color: var(--ink);
+  background: var(--panel);
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.game-page .battle-damage-ranking {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  margin: 8px 0;
+  padding: 8px 10px;
+  border-top: 1px solid var(--line);
+}
+
+.game-page .battle-damage-ranking > h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.game-page .battle-damage-source {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.game-page .battle-damage-source-copy {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 3px 10px;
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.game-page .battle-damage-source-copy b {
+  color: var(--ink);
+}
+
+.game-page .battle-damage-source-copy span {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.game-page .battle-damage-meter {
+  height: 8px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--meter-inset);
+}
+
+.game-page .battle-damage-meter > i {
+  display: block;
+  min-width: 0;
+  height: 100%;
+  background: var(--jade);
+}
+
+.game-page .combat-semantic-cue {
+  position: absolute;
+  z-index: 6;
+  top: calc(var(--player-head-y, calc(var(--hud-height, 124px) + 46px)) + 15px);
+  left: var(--player-head-x, 25%);
+  display: flex;
+  max-width: calc(50% - 10px);
+  justify-content: center;
+  pointer-events: none;
+  animation: combat-semantic-cue-rise 180ms ease-out both;
+}
+
+.game-page .combat-semantic-cue.owner-enemy {
+  top: calc(var(--enemy-head-y, calc(var(--hud-height, 124px) + 46px)) + 15px);
+  left: var(--enemy-head-x, 75%);
+}
+
+.game-page .combat-semantic-cue > span {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border: 1px solid var(--gold);
+  color: var(--ink);
+  background: var(--panel);
+  box-shadow: 0 2px 4px #18231d40;
+  font-size: 12px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.game-page .combat-semantic-cue .icon {
+  flex: 0 0 auto;
+  color: var(--gold);
+}
+
+.game-page .combat-semantic-cue strong {
+  color: var(--vermilion);
+  white-space: nowrap;
+}
+
+.game-page .combat-semantic-cue.companion-assist > span {
+  border-color: var(--jade);
+}
+
+.game-page .combat-semantic-cue.companion-assist .icon {
+  color: var(--jade);
+}
+
+.game-page .combat-semantic-cue.companion-assist strong {
+  min-width: 0;
+  color: var(--ink);
+  text-align: left;
+}
+
+.game-page .battle-shell[data-paused="true"] .combat-semantic-cue {
+  animation-play-state: paused;
+}
+
+@keyframes combat-semantic-cue-rise {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@media (max-width: 600px) {
+  .game-page .thunder-challenge {
+    padding-right: 7px;
+    padding-left: 7px;
+  }
+
+  .game-page .combat-semantic-cue {
+    max-width: calc(50% - 8px);
+  }
+
+  .game-page .combat-semantic-cue > span {
+    gap: 3px;
+    padding: 3px 5px;
+    font-size: 11px;
+  }
+
+  .game-page .combat-semantic-cue > span .icon {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-page .combat-semantic-cue {
+    animation: none;
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+}
+
+.game-page .fusion-ledger {
+  min-width: 0;
+  margin-top: 10px;
+}
+
+.game-page .fusion-ledger > summary {
+  min-height: 44px;
+  align-items: center;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+.game-page .fusion-ledger-body,
+.game-page .fusion-detail,
+.game-page .fusion-usage {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.game-page .fusion-recipe {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  padding: 10px;
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  background: var(--panel);
+}
+
+.game-page .fusion-recipe-head,
+.game-page .fusion-progress {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 10px;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.game-page .fusion-recipe-head > b,
+.game-page .fusion-recipe-head > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.game-page .fusion-recipe-head > b {
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.game-page .fusion-recipe-head > span {
+  color: var(--jade);
+  font-size: 14px;
+  text-align: right;
+}
+
+.game-page .fusion-progress {
+  justify-content: flex-start;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.game-page .fusion-progress b {
+  color: var(--vermilion);
+  font-size: 15px;
+}
+
+.game-page .fusion-inputs {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.game-page .fusion-input {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px 10px;
+  padding-top: 5px;
+  border-top: 1px solid var(--line);
+}
+
+.game-page .fusion-input > span {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+}
+
+.game-page .fusion-input .artifact-art,
+.game-page .fusion-input .sigil {
+  width: 28px;
+  max-width: 28px;
+  max-height: 30px;
+  color: var(--gold);
+}
+
+.game-page .fusion-input b,
+.game-page .fusion-input small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+
+.game-page .fusion-input b {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.game-page .fusion-input small {
+  color: var(--muted);
+  font-size: 14px;
+  text-align: right;
+}
+
+.game-page .fusion-rule-copy,
+.game-page .fusion-consumption-note {
+  min-width: 0;
+  margin: 0;
+  padding-left: 9px;
+  border-left: 3px solid var(--gold);
+  color: var(--paper-muted);
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.game-page .fusion-usage > h3 {
+  margin: 0;
+  color: var(--jade);
+  font-size: 15px;
+}
+
+.game-page .fusion-recipe.is-compact {
+  gap: 5px;
+  padding: 8px;
+}
+
+.game-page .fusion-recipe.is-compact .fusion-recipe-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+}
+
+.game-page .fusion-recipe.is-compact .fusion-recipe-head > span {
+  text-align: left;
+}
+
+.game-page .timeline-item.fusion-history,
+.game-page .history-panel article.fusion-history {
+  border-left: 3px solid var(--gold);
+}
+
+.game-page .timeline-item.fusion-history .timeline-index {
+  color: var(--gold);
+}
+
+@media (max-width: 600px) {
+  .game-page .fusion-recipe {
+    padding: 8px;
+  }
+
+  .game-page .fusion-input {
+    align-items: flex-start;
   }
 }

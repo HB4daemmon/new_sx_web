@@ -3,6 +3,7 @@ import test from 'node:test';
 import { loadContent } from '../tools/content-kit/src/loader.mjs';
 import { contentFromEntities } from '../build/shanhai/content.js';
 import { calculateStats, simulateBattle } from '../build/shanhai/combat.js';
+import { MAX_EQUIPMENT_SLOTS } from '../build/shanhai/equipment.js';
 
 const loaded = await loadContent();
 assert.deepEqual(loaded.issues, []);
@@ -478,7 +479,8 @@ test('lethal core burn ends combat without granting post-battle siphon healing',
   near(contribution(result, 'RC15').healing, 0);
 });
 
-test('four generic artifact slots accept any role mix and reject a fifth unique artifact', () => {
+test('five generic artifact slots accept any role mix and reject a sixth unique artifact', () => {
+  assert.equal(MAX_EQUIPMENT_SLOTS, 5);
   const fourCores = simulateBattle(
     openingRage(),
     makeLoadout('RKF01', [
@@ -503,11 +505,12 @@ test('four generic artifact slots accept any role mix and reject a fifth unique 
   ), /Duplicate artifact ID RC09/);
   assert.throws(() => simulateBattle(
     content,
-    makeLoadout('RKF08', ['RC01', 'RC02', 'RC03', 'RC04', 'RC05'].map(id => ({ id, stacks: 1 }))),
+    makeLoadout('RKF08', ['RC01', 'RC02', 'RC03', 'RC04', 'RC05', 'RC06']
+      .map(id => ({ id, stacks: 1 }))),
     enemy(),
-    'v2-five-supports',
+    'v2-six-supports',
     { roundLimit: 1 },
-  ), /four artifact slots/);
+  ), new RegExp(`Loadout exceeds ${MAX_EQUIPMENT_SLOTS} artifact slots`));
 
   const fourSupportsLoadout = makeLoadout('RKF08', ['RC01', 'RC02', 'RC03', 'RC04']
     .map(id => ({ id, stacks: 1 })));
@@ -521,6 +524,21 @@ test('four generic artifact slots accept any role mix and reject a fifth unique 
     { roundLimit: 1 },
   );
   assert.ok(fourSupports.frames.some(frame => frame.kind === 'action' && frame.actor === 'player'));
+
+  const fiveSupportsLoadout = makeLoadout('RKF08',
+    ['RC01', 'RC02', 'RC03', 'RC04', 'RC05'].map(id => ({ id, stacks: 1 })));
+  assert.equal(fiveSupportsLoadout.artifacts.length, MAX_EQUIPMENT_SLOTS);
+  const fiveSupportStats = calculateStats(content, fiveSupportsLoadout);
+  assert.ok(fiveSupportStats.max_hp > fourSupportStats.max_hp,
+    'the fifth support artifact must contribute its authored maximum HP');
+  const fiveSupports = simulateBattle(
+    content,
+    fiveSupportsLoadout,
+    enemy(),
+    'v2-five-supports',
+    { roundLimit: 1 },
+  );
+  assert.ok(fiveSupports.frames.some(frame => frame.kind === 'action' && frame.actor === 'player'));
 
   const rolelessEntities = structuredClone(content.entities);
   for (const artifact of rolelessEntities.filter(item => item.kind === 'artifact')) {

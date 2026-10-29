@@ -1,0 +1,30 @@
+schema_version: 1
+content_version: shanhai-content-0.2
+kind: artifact
+id: RL07
+name: 雌雄剑
+status: design_target
+summary: 核心定位；融合青锋石与剑穗，有效普攻后双剑追击
+description: 累计两场合格战斗胜利后，完成融合时消耗青锋石与剑穗各一层；战斗开始和胜利结算时都须分别持有每种材料至少一层，事件中的战斗胜利也计数。存活主普攻完成且基础段至少一次有效命中后，独立追加两次各为攻击0.4倍的不可暴击派生伤害；追加命中可触发其他合法命中法宝，但不会触发雌雄剑自身，也不复制或重做主动作。
+tags: [fusion, sword, derived_damage, legendary]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创融合器物，不声称古籍存在此效果。
+balance:
+  target: {B: 4, A: 20, J: 0, U: 4}
+  measured: null
+rarity: legendary
+max_stacks: 1
+unique_group: fusion_RC01_RC09
+attributes:
+  flat: {}
+  percent: {}
+effects: []
+equipment_role: core
+fusion_recipe:
+  inputs: [RC01, RC09]
+  fights: 2
+fusion_rule: {kind: twin_swords}
+acquisition:
+  pools: []

@@ -5,7 +5,7 @@ id: RC08
 name: 疾风履
 status: design_target
 summary: 速度 +1；支援定位
-description: 鞋底刻着短促风痕，只改变先后顺序，不直接增加伤害。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+description: 鞋底刻着短促风痕，只改变先后顺序，不直接增加伤害。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [speed, tempo, combat]
 source:
   basis: original
@@ -22,5 +22,12 @@ attributes:
   percent: {}
 effects: []
 equipment_role: support
+awakening:
+  at_stacks: 3
+  name: 风履伏毒
+  quick: 满3层后，自身存活时每次普攻完成后给敌人施加1层中毒，持续2回合；每层按0.05倍攻击系数造成伤害，上限10层。
+  trigger: basic
+  effects:
+    - {kind: poison, value: 1}
 acquisition:
   pools: [common_artifact]

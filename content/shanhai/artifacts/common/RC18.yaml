@@ -5,7 +5,7 @@ id: RC18
 name: 聚财钱
 status: design_target
 summary: 防御 +2；完成节点后额外获得2枚灵石；支援定位
-description: 钱面刻着聚拢财气的纹路，沿途积攒可实际使用的灵石。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+description: 钱面刻着聚拢财气的纹路，沿途积攒可实际使用的灵石。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [defense, travel, coins, node]
 source:
   basis: original
@@ -36,5 +36,12 @@ effects:
     limit: {scope: node, count: 1}
     text: 获得此物后，每完成一个行旅节点，每层额外获得2枚灵石。
 equipment_role: support
+awakening:
+  at_stacks: 3
+  name: 聚财生息
+  quick: 满3层后，自身存活时每次普攻或怒技完成后获得4点怒气。
+  trigger: either
+  effects:
+    - {kind: rage, value: 4}
 acquisition:
   pools: [common_artifact]

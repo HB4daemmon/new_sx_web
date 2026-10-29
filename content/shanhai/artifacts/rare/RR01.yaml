@@ -5,7 +5,7 @@ id: RR01
 name: 蓄气珠
 status: design_target
 summary: 攻击 +8；普攻或怒技首段命中后额外获得10点怒气；支援定位
-description: 普攻或怒技的首段基础攻击命中后，额外获得10点怒气。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+description: 普攻或怒技的首段基础攻击命中后，额外获得10点怒气。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [attack, rage_gain, basic, rage, rare]
 source:
   basis: original

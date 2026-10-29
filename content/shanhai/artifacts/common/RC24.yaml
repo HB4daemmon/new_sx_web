@@ -5,7 +5,7 @@ id: RC24
 name: 血气石
 status: design_target
 summary: 最大气血 +10；敌方每段主动直接攻击造成伤害或被护盾吸收时，额外获得2点怒气；支援定位
-description: 敌方直接攻击造成伤害时，石中血光随受击闪动，为每一段攻击补充怒气。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+description: 敌方直接攻击造成伤害时，石中血光随受击闪动，为每一段攻击补充怒气。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [max_hp, rage_gain, incoming_segment, combat]
 source:
   basis: original
@@ -38,5 +38,13 @@ effects:
     limit: {scope: segment, count: 1}
     text: 每层在敌方每段主动直接攻击造成气血或护盾损失时，额外获得2点怒气。
 equipment_role: support
+awakening:
+  at_stacks: 3
+  name: 血气成壁
+  quick: 满3层后，自身存活时每次普攻或怒技完成后获得3点怒气，并获得最大气血2%的护盾。
+  trigger: either
+  effects:
+    - {kind: rage, value: 3}
+    - {kind: shield, value: 0.02}
 acquisition:
   pools: [common_artifact]

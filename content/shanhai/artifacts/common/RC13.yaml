@@ -32,5 +32,12 @@ effects:
     limit: {scope: permanent, count: 1}
     text: 每次敌方主动作只要对护盾造成正向吸收，本法宝就按当前防御的18%为每层装备堆叠增加一次反击；原有反击和其它反击可并行触发。反击不会反射自身，也不要求气血损失。
 equipment_role: support
+awakening:
+  at_stacks: 3
+  name: 震岳回响
+  quick: 满3层后，自身存活时每次怒技完成后额外造成0.12倍攻击伤害，不可暴击。
+  trigger: rage
+  effects:
+    - {kind: damage, value: 0.12}
 acquisition:
   pools: [common_artifact]

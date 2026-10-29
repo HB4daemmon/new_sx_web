@@ -4,8 +4,8 @@ kind: artifact
 id: RC01
 name: 青锋石
 status: design_target
-summary: 攻击 +6；支援定位
-description: 一块磨出锋面的青石，稳定提高直接攻击的基础力量。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+summary: 攻击 +6/层；存活主普攻基础段与非暴击加成各求和后乘1.25，合为不可暴击直接命中；核心定位
+description: 每层提高攻击6。装备时，存活主普攻将修正后的基础段倍率总和与非暴击加成总和分别乘1.25，合并为一次不可暴击的直接命中；此规则每次主普攻只生效一次，不随法宝层数叠加。核心定位仅作描述，可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [attack, direct, combat]
 source:
   basis: original
@@ -21,6 +21,14 @@ attributes:
   flat: {attack: 6}
   percent: {}
 effects: []
-equipment_role: support
+equipment_role: core
+core_rule: {kind: basic_convergence, damage_ratio: 1.25}
+awakening:
+  at_stacks: 5
+  name: 青锋余芒
+  quick: 满5层后，自身存活时每次普攻完成后额外造成0.18倍攻击伤害，不可暴击。
+  trigger: basic
+  effects:
+    - {kind: damage, value: 0.18}
 acquisition:
   pools: [common_artifact]

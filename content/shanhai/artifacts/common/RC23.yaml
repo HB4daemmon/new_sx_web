@@ -5,7 +5,7 @@ id: RC23
 name: 返气环
 status: design_target
 summary: 防御 +2；怒技完成后固定返怒 5；支援定位
-description: 怒技完成后，每层固定返还5点怒气。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+description: 怒技完成后，每层固定返还5点怒气。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [defense, rage_gain, rage, combat]
 source:
   basis: original
@@ -36,5 +36,12 @@ effects:
     limit: {scope: action, count: 1}
     text: 每层在怒技完成时固定返还5点怒气，在本轮结束时结算；与怒技消耗的怒气无关，普攻不触发。
 equipment_role: support
+awakening:
+  at_stacks: 3
+  name: 返气回春
+  quick: 满3层后，自身存活时每次怒技完成后回复最大气血4%。
+  trigger: rage
+  effects:
+    - {kind: heal, value: 0.04}
 acquisition:
   pools: [common_artifact]

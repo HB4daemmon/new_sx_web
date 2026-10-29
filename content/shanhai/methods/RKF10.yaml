@@ -34,6 +34,13 @@ mechanic:
 acquisition:
   start: false
   pools: [method_legendary]
+companion:
+  name: 烛龙影侍
+  quick: 主修功法的存活主动作实际命中后，先获得最大气血2.5%的护盾；下次合格命中造成攻击0.25倍不可暴击派生伤害，之后交替
+  trigger: hit
+  effect: {kind: shield, value: 0.025}
+  alternate_effect: {kind: damage, value: 0.25}
+  pair_bonuses: []
 actions:
   basic:
     name: 昼夜交辉

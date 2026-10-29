@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
+import { MAX_EQUIPMENT_SLOTS } from '../build/shanhai/equipment.js';
 
 const url = process.env.BROWSER_URL || 'http://localhost:4178/';
 
@@ -24,9 +25,9 @@ function playwrightModule() {
 const { chromium } = playwrightModule();
 const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH ||
   '/home/ubuntu/.cache/ms-playwright/chromium-1228/chrome-linux/chrome';
-const saveKey = 'suishi-shanhai-run-v2-reactions';
-const buildKey = 'suishi-shanhai-build-v2-reactions';
-const replayKey = 'suishi-shanhai-replay-v2-reactions';
+const saveKey = 'suishi-shanhai-run-v2-overhaul';
+const buildKey = 'suishi-shanhai-build-v2-overhaul';
+const replayKey = 'suishi-shanhai-replay-v2-overhaul';
 const pageErrors = [];
 
 async function installFixture(page, { phase = 'map', equipment = true, sourceLabels = false, hunter = false } = {}) {
@@ -104,7 +105,7 @@ async function installFixture(page, { phase = 'map', equipment = true, sourceLab
         const contributions = sourceLabels ? [
           { id: 'RC09', name: '剑穗', triggers: 2, damage: 20, healing: 10, shield: 30, rage: 40, absorbed: 0 },
           { id: 'RC12', name: '回春瓶', triggers: 1, damage: 0, healing: 10, shield: 4, rage: 0, absorbed: 0 },
-          { id: 'RC01', name: '青锋石', triggers: 1, damage: 100, healing: 0, shield: 0, rage: 0, absorbed: 0 },
+          { id: 'RR04', name: '如意钱', triggers: 1, damage: 100, healing: 0, shield: 0, rage: 0, absorbed: 0 },
           { id: 'RC02', name: '静气石', triggers: 0, damage: 0, healing: 0, shield: 0, rage: 0, absorbed: 0 },
           { id: 'RC03', name: '玄铁甲', triggers: 4, damage: 0, healing: 500, shield: 500, rage: 0, absorbed: 0 },
         ] : [];
@@ -133,11 +134,12 @@ async function installFixture(page, { phase = 'map', equipment = true, sourceLab
         { id: 'RC01', stacks: 1 },
         { id: 'RC02', stacks: 1 },
         { id: 'RC03', stacks: 1 },
+        ...(sourceLabels ? [{ id: 'RR04', stacks: 1 }] : []),
       ];
       game.state.equipment = {
         slots: sourceLabels
-          ? ['RC09', 'RC12', 'RC02', 'RC01']
-          : ['RC09', 'RC01', 'RC02', 'RC03'],
+          ? ['RC09', 'RC12', 'RC02', 'RR04', 'RC14']
+          : ['RC09', 'RC01', 'RC02', 'RC03', 'RC14'],
       };
     }
     game.state.hp = Math.max(1, game.stats.max_hp - 23);
@@ -155,6 +157,9 @@ async function installFixture(page, { phase = 'map', equipment = true, sourceLab
     localStorage.setItem('suishi-shanhai-run-v2-resonance', 'legacy-v2-resonance-run-untouched');
     localStorage.setItem('suishi-shanhai-build-v2-resonance', 'legacy-v2-resonance-build-untouched');
     localStorage.setItem('suishi-shanhai-replay-v2-resonance', 'legacy-v2-resonance-replay-untouched');
+    localStorage.setItem('suishi-shanhai-run-v2-forging', 'legacy-v2-forging-run-untouched');
+    localStorage.setItem('suishi-shanhai-build-v2-forging', 'legacy-v2-forging-build-untouched');
+    localStorage.setItem('suishi-shanhai-replay-v2-forging', 'legacy-v2-forging-replay-untouched');
     localStorage.setItem('suishi-shanhai-replay-v1', 'v1-replay-untouched');
     localStorage.setItem('suishi-shanhai-build-v1', 'v1-build-untouched');
 
@@ -249,6 +254,7 @@ async function openBuild(page) {
 }
 
 async function assertBuildLayout(page, viewport) {
+  assert.equal(MAX_EQUIPMENT_SLOTS, 5);
   await openBuild(page);
   assert.equal(await page.locator('.equipment-note').count(), 0,
     '命盘页保留了常驻装备教学');
@@ -278,9 +284,10 @@ async function assertBuildLayout(page, viewport) {
   assert.ok(layout.documentWidth <= viewport.width + 1 &&
     layout.bodyWidth <= viewport.width + 1,
   `${viewport.width}: 命盘页面横向溢出 ${JSON.stringify(layout)}`);
-  assert.equal(layout.slots.length, 4, `${viewport.width}: 命盘应显示四个通用装备位`);
+  assert.equal(layout.slots.length, MAX_EQUIPMENT_SLOTS,
+    `${viewport.width}: 命盘应显示五个通用装备位`);
   assert.deepEqual(await page.locator('.equipment-slot-head b').allTextContents(),
-    ['装备位 1', '装备位 2', '装备位 3', '装备位 4'],
+    Array.from({ length: MAX_EQUIPMENT_SLOTS }, (_, index) => `装备位 ${index + 1}`),
     `${viewport.width}: 装备位仍按角色划分`);
   assert.ok(layout.board && layout.grid &&
     layout.grid.left >= layout.board.left - 1 &&
@@ -299,7 +306,7 @@ async function assertAnySlotReplacement(page, expectedHp) {
   await openBuild(page);
   await page.locator('.equipment-section .equipment-slot[data-slot="1"]').waitFor({ state: 'visible' });
   const initial = await readSave(page);
-  assert.deepEqual(initial.state.equipment.slots, ['RC09', 'RC01', 'RC02', 'RC03']);
+  assert.deepEqual(initial.state.equipment.slots, ['RC09', 'RC01', 'RC02', 'RC03', 'RC14']);
   assert.equal(initial.state.hp, expectedHp);
 
   await page.locator('.deck-grid [data-action="inspect-artifact"][data-id="RC12"]').click();
@@ -311,8 +318,8 @@ async function assertAnySlotReplacement(page, expectedHp) {
   await replace.waitFor({ state: 'visible' });
   assert.match(await replace.innerText(), /回春瓶/);
   assert.match(await replace.innerText(), /剑穗/);
-  assert.equal(await replace.locator('[data-action="equipment-confirm"]').count(), 4,
-    '替换选项没有包含全部四个已装备法宝');
+  assert.equal(await replace.locator('[data-action="equipment-confirm"]').count(), MAX_EQUIPMENT_SLOTS,
+    '替换选项没有包含全部五个已装备法宝');
   assert.match(await replace.innerText(), /装备位 3/);
   assert.match(await replace.innerText(), /离开装备位 · 收入背包/);
   assert.match(await replace.innerText(), /气血上限 \+10/);
@@ -326,7 +333,7 @@ async function assertAnySlotReplacement(page, expectedHp) {
   await replace.locator('[data-action="equipment-confirm"][data-id="RC12"][data-replace="RC02"]').click();
 
   const saved = await readSave(page);
-  assert.deepEqual(saved.state.equipment.slots, ['RC09', 'RC01', 'RC12', 'RC03'],
+  assert.deepEqual(saved.state.equipment.slots, ['RC09', 'RC01', 'RC12', 'RC03', 'RC14'],
     '确认后没有替换指定的通用装备位');
   assert.equal(saved.state.hp, initial.state.hp, '装备替换改变了当前气血');
   assert.ok(saved.state.artifacts.some(item => item.id === 'RC02'),
@@ -425,7 +432,7 @@ async function assertRewardEquipmentCopy(page) {
   await rewardCard.locator('[data-action="reward"][data-id="RC10"]').click();
   await page.locator('.inline-notice[role="status"]').filter({ hasText: /收入背包；未装备，不计入斗法/ }).waitFor();
   const saved = await readSave(page);
-  assert.deepEqual(saved.state.equipment.slots, ['RC09', 'RC01', 'RC02', 'RC03'],
+  assert.deepEqual(saved.state.equipment.slots, ['RC09', 'RC01', 'RC02', 'RC03', 'RC14'],
     '满装备位时奖励错误地替换了现有装备');
   assert.ok(saved.state.artifacts.some(item => item.id === 'RC10'),
     '满核心位时奖励没有进入背包');
@@ -577,9 +584,12 @@ async function assertV2ReplayAndTalentEffectSources(page) {
     runResonance: localStorage.getItem('suishi-shanhai-run-v2-resonance'),
     buildResonance: localStorage.getItem('suishi-shanhai-build-v2-resonance'),
     replayResonance: localStorage.getItem('suishi-shanhai-replay-v2-resonance'),
-    runReactions: localStorage.getItem(saveKey),
-    replayReactions: localStorage.getItem(replayKey),
-    buildReactions: localStorage.getItem(buildKey),
+    runForging: localStorage.getItem('suishi-shanhai-run-v2-forging'),
+    buildForging: localStorage.getItem('suishi-shanhai-build-v2-forging'),
+    replayForging: localStorage.getItem('suishi-shanhai-replay-v2-forging'),
+    runOverhaul: localStorage.getItem(saveKey),
+    replayOverhaul: localStorage.getItem(replayKey),
+    buildOverhaul: localStorage.getItem(buildKey),
   }), { saveKey, buildKey, replayKey });
   assert.equal(legacyValues.replay, 'v1-replay-untouched');
   assert.equal(legacyValues.build, 'v1-build-untouched');
@@ -589,9 +599,12 @@ async function assertV2ReplayAndTalentEffectSources(page) {
   assert.equal(legacyValues.runResonance, 'legacy-v2-resonance-run-untouched');
   assert.equal(legacyValues.buildResonance, 'legacy-v2-resonance-build-untouched');
   assert.equal(legacyValues.replayResonance, 'legacy-v2-resonance-replay-untouched');
-  assert.ok(legacyValues.runReactions, 'V2 reactions 自动存档没有写入隔离键');
-  assert.ok(legacyValues.replayReactions, 'V2 reactions 回放进度没有写入隔离键');
-  assert.equal(legacyValues.buildReactions, null);
+  assert.ok(legacyValues.runOverhaul, 'V2 overhaul 自动存档没有写入隔离键');
+  assert.equal(legacyValues.runForging, 'legacy-v2-forging-run-untouched');
+  assert.equal(legacyValues.buildForging, 'legacy-v2-forging-build-untouched');
+  assert.equal(legacyValues.replayForging, 'legacy-v2-forging-replay-untouched');
+  assert.ok(legacyValues.replayOverhaul, 'V2 overhaul 回放进度没有写入隔离键');
+  assert.equal(legacyValues.buildOverhaul, null);
 
   await page.locator('.battle-detail-actions [data-action="battle-details"][data-tab="log"]').click();
   const log = await page.locator('.battle-log').innerText();
@@ -604,8 +617,11 @@ async function assertV2ReplayAndTalentEffectSources(page) {
   const summary = page.locator('.battle-result-detail .battle-insights');
   assert.match(await summary.innerText(), /身外化身/,
     '关键伤害简报没有把回响伤害归属到身外化身');
-  assert.equal(await summary.locator('.battle-core-insight').count(), 2,
+  assert.equal(await summary.locator('.battle-core-insight').count(), 3,
     '多个已装备核心规则法宝都应独立高亮');
+  for (const name of ['剑穗', '回春瓶', '蛇纹瓶']) {
+    assert.match(await summary.innerText(), new RegExp(name), `核心简报缺少${name}`);
+  }
   assert.equal(await summary.locator('li').count(), 1,
     '斗法简报应只显示一条核心记录和一条其他效果');
   assert.match(await summary.innerText(), /造成伤害 100/,

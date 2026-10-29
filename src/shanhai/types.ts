@@ -39,6 +39,7 @@ export interface JourneyContext extends RunProgress {
 export interface Loadout {
   name: string;
   method: string;
+  companion?: string;
   n: number;
   talents: string[];
   artifacts: ArtifactStack[];
@@ -48,6 +49,7 @@ export interface Loadout {
   firstStrike?: number;
   journey?: JourneyContext;
   encounterId?: string;
+  thunderChallenge?: boolean;
 }
 export type Side = 'player' | 'enemy';
 export interface FighterView {
@@ -72,9 +74,10 @@ export interface BattleFrame {
   text: string;
   amount?: number;
   cue?: {
-    kind: 'sword_volley' | 'guard_counter' | 'spring_bloom' | 'enemy_charge' | 'enemy_release';
+    kind: 'sword_volley' | 'guard_counter' | 'spring_bloom' | 'enemy_charge' | 'enemy_release' | 'rage_chain' | 'companion_assist';
     owner: Side;
     sourceId: string;
+    count?: number;
   };
   player: FighterView;
   enemy: FighterView;
@@ -126,6 +129,50 @@ export interface RewardSearchRecord {
   candidates: string[];
   resolved: boolean;
 }
+export interface RewardRefineRecord {
+  act: number;
+  step: number;
+  source: string;
+  target: string;
+  targetStacksBefore: number;
+  forfeited: string[];
+}
+export interface FusionWinRecord {
+  act: number;
+  step: number;
+  kind: 'node' | 'event';
+  enemyId: string;
+  entryInventory: ArtifactStack[];
+  settlementInventory: ArtifactStack[];
+}
+export interface FusionProgressRecord {
+  id: string;
+  wins: FusionWinRecord[];
+}
+export interface FusionHistoryRecord {
+  id: string;
+  act: number;
+  step: number;
+  title: string;
+  text: string;
+}
+export interface FusionBattleEntry {
+  act: number;
+  step: number;
+  kind: 'node' | 'event';
+  enemyId: string;
+  inventory: ArtifactStack[];
+  eligibleRecipes: string[];
+  settlementInventory?: ArtifactStack[];
+}
+export interface FusionStatus {
+  id: string;
+  name: string;
+  inputs: [string, string];
+  wins: number;
+  requiredWins: number;
+  complete: boolean;
+}
 export interface RunState {
   schema: 1;
   contentVersion: string;
@@ -147,8 +194,11 @@ export interface RunState {
   coins: number;
   artifacts: ArtifactStack[];
   equipment: RunEquipment;
-  buildVersion: 3;
+  buildVersion: 5;
   rewardSearches: RewardSearchRecord[];
+  rewardRefinements: RewardRefineRecord[];
+  fusionProgress: FusionProgressRecord[];
+  fusionHistory: FusionHistoryRecord[];
   progress: RunProgress;
   talentDraftGeneration: number;
   talentDrafts: Record<string, string[]>;
@@ -178,6 +228,7 @@ export interface RunState {
   resultText: string;
   battle?: BattleResult;
   battleInput?: { player: Loadout; enemy: Loadout; seed: string; roundLimit: number; rules?: 'awakening-v1' };
+  _fusionBattleEntry?: FusionBattleEntry;
   eventOption?: string;
   eventCheck?: EventCheckResult;
   eventStoryEcho?: string;
@@ -192,10 +243,12 @@ export type RunCommand =
   | { type: 'back' }
   | { type: 'fight' }
   | { type: 'challenge_elite' }
+  | { type: 'thunder_challenge'; enabled: boolean }
   | { type: 'battle_done' }
   | { type: 'continue_battle' }
   | { type: 'reward'; id: string | null }
   | { type: 'seek_reward'; family: ArtifactRewardFamily }
+  | { type: 'refine_reward'; source: string; target: string }
   | { type: 'event'; id: string }
   | { type: 'continue' }
   | { type: 'buy'; id: string }
@@ -205,4 +258,5 @@ export type RunCommand =
   | { type: 'talent'; id: string }
   | { type: 'equip'; id: string; replace?: string }
   | { type: 'unequip'; id: string }
+  | { type: 'reorder_equipment'; id: string; direction: 'left' | 'right' }
   | { type: 'retire' };

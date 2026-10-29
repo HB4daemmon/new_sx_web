@@ -16,6 +16,7 @@ import {
 import { assertEventCheckResult, resolveEventCheck } from './event-checks.js';
 import { routeLayoutForAct } from './route-profiles.js';
 import {
+  MAX_EQUIPMENT_SLOTS,
   artifactRole,
   autoEquipArtifact,
   equippedArtifactStacks,
@@ -29,7 +30,12 @@ import type {
   BattleResult,
   Content,
   Entity,
+  FusionBattleEntry,
+  FusionHistoryRecord,
+  FusionStatus,
+  FusionWinRecord,
   Loadout,
+  RewardRefineRecord,
   RewardSearchRecord,
   RunCommand,
   RunNode,
@@ -116,6 +122,25 @@ interface EventEncounter {
   failureOutcome?: string;
 }
 
+interface ThunderChallengeRecord {
+  act: number;
+  step: number;
+  nodeType: 'L' | 'B';
+  enemyId: string;
+  outcome: 'win' | 'loss';
+  xpBonus: number;
+  normalCandidates: string[];
+  normalSettled: boolean;
+  normalReward: string | null;
+  extraRarity: 'rare' | 'legendary' | null;
+  extraInventory: ArtifactStack[];
+  extraCandidates: string[];
+  extraReward: string | null;
+  fallbackCoins: number;
+}
+
+const THUNDER_CHALLENGE_FALLBACK_COINS = 20;
+
 interface RunStateInternals extends RunState {
   _routeId?: string;
   _routeHistory?: string[];
@@ -164,6 +189,11 @@ interface RunStateInternals extends RunState {
   _coreRewardOffered?: boolean;
   _actEliteChallengeUsed?: boolean;
   _challengeEliteEnemyId?: string;
+  _thunderChallenge?: boolean;
+  _thunderRewardStage?: 'normal' | 'bonus';
+  _thunderRewardCandidates?: string[];
+  _thunderRewardFallback?: { type: 'coins'; amount: number };
+  thunderChallenges?: ThunderChallengeRecord[];
 }
 
 function clone<T>(value: T): T {
@@ -230,6 +260,76 @@ interface RewardSeekingConfig {
   families: Record<ArtifactRewardFamily, string[]>;
 }
 
+interface RewardRefiningConfig {
+  max_per_act: 1;
+}
+
+interface FusionRecipe {
+  id: string;
+  name: string;
+  inputs: [string, string];
+  fights: number;
+}
+
+function rewardRefiningConfig(content: Content): RewardRefiningConfig {
+  const source = rulesOf(content).economy?.reward_refining;
+  if (!isObject(source) || Object.keys(source).length !== 1 ||
+    !Object.prototype.hasOwnProperty.call(source, 'max_per_act') ||
+    !integer(source.max_per_act) || source.max_per_act !== 1) {
+    throw new Error('Invalid reward refining configuration');
+  }
+  return { max_per_act: source.max_per_act };
+}
+
+function fusionRecipes(content: Content): FusionRecipe[] {
+  const authored = contentEntities(content, 'artifact')
+    .filter(artifact => artifact.fusion_recipe !== undefined)
+    .sort((left, right) => left.id.localeCompare(right.id));
+  if (authored.length > 16) throw new Error('Invalid fusion recipe count');
+  const inputs = new Set<string>();
+  const recipes = authored.map(artifact => {
+    const source = artifact.fusion_recipe;
+    if (!isObject(source) || Object.keys(source).length !== 2 ||
+      !Object.prototype.hasOwnProperty.call(source, 'inputs') ||
+      !Object.prototype.hasOwnProperty.call(source, 'fights') ||
+      !Array.isArray(source.inputs) || source.inputs.length !== 2 ||
+      source.inputs.some((id: unknown) => typeof id !== 'string' || id === artifact.id) ||
+      source.inputs[0] === source.inputs[1] || !integer(source.fights) ||
+      source.fights < 1 || source.fights > 16 || artifact.max_stacks !== 1 ||
+      !artifactRole(content, artifact.id)) {
+      throw new Error(`Invalid fusion recipe: ${artifact.id}`);
+    }
+    const recipeInputs = source.inputs as [string, string];
+    for (const inputId of recipeInputs) {
+      const input = contentEntity(content, inputId);
+      if (!input || input.kind !== 'artifact' || !artifactRole(content, inputId) || inputs.has(inputId)) {
+        throw new Error(`Invalid fusion input: ${artifact.id}:${inputId}`);
+      }
+      inputs.add(inputId);
+    }
+    return { id: artifact.id, name: artifact.name, inputs: recipeInputs.slice() as [string, string], fights: source.fights };
+  });
+  return recipes;
+}
+
+function isFusionResult(content: Content, id: string): boolean {
+  return contentEntities(content, 'artifact').some(artifact =>
+    artifact.id === id && artifact.fusion_recipe !== undefined);
+}
+
+function inventoryHasInputs(inventory: ArtifactStack[], recipe: FusionRecipe): boolean {
+  return recipe.inputs.every(id => inventory.some(stack => stack.id === id && stack.stacks > 0));
+}
+
+function fusionCompletionText(content: Content, recipe: FusionRecipe): string {
+  const inputs = recipe.inputs.map(id => artifactEntity(content, id).name);
+  return `融合完成：消耗${inputs[0]}×1、${inputs[1]}×1，获得${recipe.name}。`;
+}
+
+function sameInventory(left: ArtifactStack[], right: ArtifactStack[]): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
 function rewardSeekingConfig(content: Content): RewardSeekingConfig {
   const source = rulesOf(content).economy?.reward_seeking;
   const keys = ['price', 'max_per_act', 'families'];
@@ -271,6 +371,15 @@ function artifactEntity(content: Content, id: string): Entity {
   const artifact = contentEntity(content, id);
   if (!artifact || artifact.kind !== 'artifact') throw new Error(`Unknown artifact: ${id}`);
   return artifact;
+}
+
+function rewardRefinementHistoryText(content: Content, record: RewardRefineRecord): string {
+  const source = artifactEntity(content, record.source);
+  const target = artifactEntity(content, record.target);
+  const forfeited = record.forfeited
+    .map(id => artifactEntity(content, id).name)
+    .join('、');
+  return `第${record.act}幕第${record.step + 1}处炼宝：舍弃${source.name}一层；${target.name}由${record.targetStacksBefore}层炼至${record.targetStacksBefore + 1}层；放弃本次奖励：${forfeited}。`;
 }
 
 function eventEntity(content: Content, id: string): Entity {
@@ -320,6 +429,237 @@ function battleRewardType(type: RunNode['type']): 'common' | 'elite' | 'boss' | 
   if (type === 'L') return 'elite';
   if (type === 'B') return 'boss';
   return undefined;
+}
+
+function thunderChallengeXpBonus(content: Content, act: number, nodeType: 'L' | 'B'): number {
+  const economy = rulesOf(content).economy ?? {};
+  const values = nodeType === 'L' ? economy.elite_xp_by_act : economy.boss_xp_by_act;
+  const base = finite(values?.[act - 1]) ? values[act - 1] : 0;
+  return base * 0.5;
+}
+
+function rollThunderChallengeCandidates(
+  content: Content,
+  seed: string,
+  act: number,
+  step: number,
+  inventory: ArtifactStack[],
+  normalReward: string | null,
+): { rarity: 'rare' | 'legendary' | null; candidates: string[] } {
+  const snapshot = { artifacts: inventory } as RunState;
+  for (const rarity of ['rare', 'legendary'] as const) {
+    const pool = contentEntities(content, 'artifact')
+      .filter(artifact => artifact.rarity === rarity && artifact.id !== normalReward &&
+        !isFusionResult(content, artifact.id) &&
+        artifactCapacity(content, snapshot, artifact.id, 1).ok)
+      .map(artifact => artifact.id);
+    const random = seededRandom(`${seed}:thunder-challenge:${act}:${step}:${rarity}`);
+    const candidates: string[] = [];
+    while (pool.length && candidates.length < 3) {
+      const index = Math.floor(random() * pool.length);
+      candidates.push(pool.splice(index, 1)[0]!);
+    }
+    if (candidates.length) return { rarity, candidates };
+  }
+  return { rarity: null, candidates: [] };
+}
+
+function sameStats(actual: unknown, expected: unknown): boolean {
+  if (!isObject(actual) || !isObject(expected)) return false;
+  const keys = ['attack', 'defense', 'max_hp', 'crit_rate', 'speed'];
+  return Object.keys(actual).length === keys.length && Object.keys(expected).length === keys.length &&
+    keys.every(key => actual[key] === expected[key]);
+}
+
+function validateThunderChallengeHistory(content: Content, state: RunStateInternals): void {
+  const records = state.thunderChallenges;
+  const activeBonusCandidates = state._thunderRewardCandidates ?? [];
+  if (!Array.isArray(records) || records.length > 44) throw new Error('Invalid thunder challenge history');
+  const expectedKeys = [
+    'act', 'step', 'nodeType', 'enemyId', 'outcome', 'xpBonus', 'normalCandidates',
+    'normalSettled', 'normalReward', 'extraRarity', 'extraInventory', 'extraCandidates',
+    'extraReward', 'fallbackCoins',
+  ];
+  const seen = new Set<string>();
+  let previousPosition = -1;
+
+  for (const record of records) {
+    if (!isObject(record) || Object.keys(record).length !== expectedKeys.length ||
+      !expectedKeys.every(key => Object.prototype.hasOwnProperty.call(record, key)) ||
+      !integer(record.act) || record.act < 1 || record.act > 4 || record.act > state.act ||
+      !integer(record.step) || record.step < 0 || record.step > 10 ||
+      !['L', 'B'].includes(record.nodeType) || typeof record.enemyId !== 'string' ||
+      !['win', 'loss'].includes(record.outcome) || !finite(record.xpBonus) || record.xpBonus < 0 ||
+      !Array.isArray(record.normalCandidates) || record.normalCandidates.length > 3 ||
+      typeof record.normalSettled !== 'boolean' ||
+      (record.normalReward !== null && typeof record.normalReward !== 'string') ||
+      ![null, 'rare', 'legendary'].includes(record.extraRarity) ||
+      !Array.isArray(record.extraInventory) || record.extraInventory.length > 128 ||
+      !Array.isArray(record.extraCandidates) || record.extraCandidates.length > 3 ||
+      (record.extraReward !== null && typeof record.extraReward !== 'string') ||
+      !integer(record.fallbackCoins) || ![0, THUNDER_CHALLENGE_FALLBACK_COINS].includes(record.fallbackCoins)) {
+      throw new Error('Invalid thunder challenge record');
+    }
+
+    const position = (record.act - 1) * 11 + record.step;
+    const coordinate = `${record.act}:${record.step}`;
+    if (position <= previousPosition || seen.has(coordinate)) throw new Error('Invalid thunder challenge order');
+    previousPosition = position;
+    seen.add(coordinate);
+
+    const enemy = contentEntity(content, record.enemyId);
+    const expectedTier = record.nodeType === 'L' ? 'elite' : 'boss';
+    if (!enemy || enemy.kind !== 'enemy' || enemy.tier !== expectedTier) {
+      throw new Error('Invalid thunder challenge enemy');
+    }
+    if (record.act === state.act) {
+      const recordedNode = state.nodes[record.step];
+      if (!recordedNode || recordedNode.type !== record.nodeType || recordedNode.id !== record.enemyId) {
+        throw new Error('Thunder challenge does not match the current route node');
+      }
+    }
+
+    const normalIds = new Set<string>();
+    for (const id of record.normalCandidates) {
+      const artifact = typeof id === 'string' ? contentEntity(content, id) : undefined;
+      if (!artifact || artifact.kind !== 'artifact' || !['rare', 'legendary'].includes(artifact.rarity) ||
+        isFusionResult(content, id) || normalIds.has(id)) throw new Error('Invalid thunder normal reward candidates');
+      normalIds.add(id);
+    }
+    if (record.normalReward !== null && !normalIds.has(record.normalReward)) {
+      throw new Error('Thunder normal reward was not offered');
+    }
+
+    const inventoryIds = new Set<string>();
+    const uniqueGroups = new Set<string>();
+    for (const stack of record.extraInventory) {
+      if (!isObject(stack) || typeof stack.id !== 'string' || !integer(stack.stacks) || stack.stacks <= 0 ||
+        inventoryIds.has(stack.id)) throw new Error('Invalid thunder reward inventory snapshot');
+      inventoryIds.add(stack.id);
+      const artifact = contentEntity(content, stack.id);
+      if (!artifact || artifact.kind !== 'artifact' ||
+        stack.stacks > (integer(artifact.max_stacks) ? artifact.max_stacks : 1) ||
+        (artifact.unique_group && uniqueGroups.has(artifact.unique_group))) {
+        throw new Error('Invalid thunder reward inventory artifact');
+      }
+      if (artifact.unique_group) uniqueGroups.add(artifact.unique_group);
+    }
+    if (record.normalReward !== null && !inventoryIds.has(record.normalReward)) {
+      throw new Error('Thunder primary reward is absent from its inventory snapshot');
+    }
+
+    const current = record.act === state.act && record.step === state.step;
+    const entries = state.history.filter(entry => entry.act === record.act && entry.step === record.step);
+    if (record.outcome === 'loss') {
+      if (record.xpBonus !== 0 || record.normalCandidates.length || record.normalSettled ||
+        record.normalReward !== null || record.extraRarity !== null || record.extraInventory.length ||
+        record.extraCandidates.length || record.extraReward !== null || record.fallbackCoins !== 0 ||
+        !current || state.phase !== 'lost' || state._thunderChallenge !== true ||
+        state.battle?.outcome !== 'enemy' || state.battleInput?.enemy.thunderChallenge !== true || entries.length) {
+        throw new Error('Invalid failed thunder challenge settlement');
+      }
+      continue;
+    }
+
+    const xpBonus = thunderChallengeXpBonus(content, record.act, record.nodeType);
+    if (record.xpBonus !== xpBonus) throw new Error('Invalid thunder challenge XP bonus');
+    if (!record.normalSettled) {
+      if (record.normalReward !== null || record.extraRarity !== null || record.extraInventory.length ||
+        record.extraCandidates.length || record.extraReward !== null || record.fallbackCoins !== 0 ||
+        !current || !state._thunderChallenge || !['reward', 'lost'].includes(state.phase) ||
+        state._thunderRewardStage !== 'normal' ||
+        JSON.stringify(record.normalCandidates) !== JSON.stringify(state.rewardCandidates) || entries.length) {
+        throw new Error('Invalid pending thunder normal reward');
+      }
+      continue;
+    }
+
+    const expectedBonus = rollThunderChallengeCandidates(
+      content, state.seed, record.act, record.step, record.extraInventory, record.normalReward,
+    );
+    if (record.extraRarity !== expectedBonus.rarity ||
+      JSON.stringify(record.extraCandidates) !== JSON.stringify(expectedBonus.candidates)) {
+      throw new Error('Frozen thunder bonus candidates do not match their seed');
+    }
+
+    if (expectedBonus.candidates.length === 0) {
+      const fallbackText = `雷劫加赏池已尽，改得${THUNDER_CHALLENGE_FALLBACK_COINS}灵石。`;
+      const xpText = `雷劫应战：额外修为 +${record.xpBonus}。`;
+      if (record.extraReward !== null || record.fallbackCoins !== THUNDER_CHALLENGE_FALLBACK_COINS ||
+        !entries.length || entries.length !== 1 || entries[0]!.title !== enemy.name ||
+        !entries[0]!.text.includes(xpText) || !entries[0]!.text.includes(fallbackText) ||
+        (current && state._thunderRewardStage !== undefined)) {
+        throw new Error('Invalid thunder challenge fallback history');
+      }
+      continue;
+    }
+
+    if (record.fallbackCoins !== 0 ||
+      (record.extraReward !== null && (!record.extraCandidates.includes(record.extraReward) ||
+        record.extraReward === record.normalReward))) {
+      throw new Error('Invalid thunder bonus settlement');
+    }
+    if (record.extraReward === null) {
+      if (!current || !state._thunderChallenge || !['reward', 'lost'].includes(state.phase) ||
+        state._thunderRewardStage !== 'bonus' || entries.length ||
+        JSON.stringify(record.extraCandidates) !== JSON.stringify(activeBonusCandidates) ||
+        JSON.stringify(record.extraCandidates) !== JSON.stringify(state.rewardCandidates)) {
+        throw new Error('Invalid pending thunder bonus choice');
+      }
+      continue;
+    }
+
+    const extraArtifact = contentEntity(content, record.extraReward);
+    const xpText = `雷劫应战：额外修为 +${record.xpBonus}。`;
+    const rewardText = `雷劫加赏：${extraArtifact?.name ?? record.extraReward}。`;
+    if (entries.length !== 1 || entries[0]!.title !== enemy.name ||
+      !entries[0]!.text.includes(xpText) || !entries[0]!.text.includes(rewardText) ||
+      (current && state._thunderRewardStage !== undefined)) {
+      throw new Error('Thunder challenge reward does not match completed history');
+    }
+  }
+
+  const currentNode = state.nodes[state.step];
+  if (state._thunderChallenge === true) {
+    if (state.act < 1 || state.act > 4 || !currentNode || currentNode.completed ||
+      !['L', 'B'].includes(currentNode.type) ||
+      !['map', 'preview', 'battle', 'reward', 'lost'].includes(state.phase) ||
+      (state.phase === 'preview' && state._previewKind !== 'node') ||
+      (state.phase === 'battle' && state._battleKind !== 'node') ||
+      (state.phase === 'reward' && state._thunderRewardStage !== 'normal' &&
+        state._thunderRewardStage !== 'bonus')) {
+      throw new Error('Invalid active thunder challenge intent');
+    }
+    if (state.battleInput && state._battleKind === 'node' &&
+      state.battleInput.enemy.thunderChallenge !== true) {
+      throw new Error('Active thunder challenge has no frozen enemy modifier');
+    }
+  } else if (state._thunderRewardStage !== undefined || activeBonusCandidates.length) {
+    throw new Error('Thunder reward stage without active challenge');
+  }
+
+  if (state._thunderRewardStage === 'normal') {
+    const record = records.find(candidate => candidate.act === state.act && candidate.step === state.step);
+    if (!record || record.outcome !== 'win' || record.normalSettled || activeBonusCandidates.length) {
+      throw new Error('Thunder normal reward stage does not match history');
+    }
+  } else if (state._thunderRewardStage === 'bonus') {
+    const record = records.find(candidate => candidate.act === state.act && candidate.step === state.step);
+    if (!record || record.outcome !== 'win' || !record.normalSettled || !record.extraCandidates.length ||
+      record.extraReward !== null ||
+      JSON.stringify(record.extraCandidates) !== JSON.stringify(activeBonusCandidates)) {
+      throw new Error('Thunder bonus reward stage does not match history');
+    }
+  } else if (activeBonusCandidates.length) {
+    throw new Error('Thunder candidates outside a reward stage');
+  }
+
+  if (state._thunderRewardFallback !== undefined &&
+    (records.at(-1)?.fallbackCoins !== THUNDER_CHALLENGE_FALLBACK_COINS ||
+      !records.at(-1) || records.at(-1)!.act > state.act ||
+      (records.at(-1)!.act === state.act && records.at(-1)!.step >= state.step))) {
+    throw new Error('Thunder fallback does not match challenge history');
+  }
 }
 
 function rewardTypeForEnemyTier(tier: unknown): 'common' | 'elite' | 'boss' | undefined {
@@ -571,8 +911,12 @@ export class ShanhaiGame {
       coins: finite(rules.economy?.initial_coins) ? rules.economy.initial_coins : 20,
       artifacts: [],
       equipment: { slots: [] },
-      buildVersion: 3,
+      buildVersion: 5,
       rewardSearches: [],
+      rewardRefinements: [],
+      fusionProgress: fusionRecipes(content).map(recipe => ({ id: recipe.id, wins: [] })),
+      fusionHistory: [],
+      thunderChallenges: [],
       progress: { coinsSpent: 0, eliteWins: 0, bossWins: 0 },
       talentDraftGeneration: 0,
       talentDrafts: {},
@@ -594,6 +938,8 @@ export class ShanhaiGame {
       _seenEnemyIds: [],
       _corePositions: [],
       _actEliteChallengeUsed: false,
+      _thunderChallenge: false,
+      _thunderRewardCandidates: [],
       _nodeEnemyByKey: {},
       _bossEnemyByAct: {},
       _travelSnapshots: [],
@@ -619,9 +965,11 @@ export class ShanhaiGame {
 
   get player(): Loadout {
     const state = this.state as RunStateInternals;
+    const companion = state.ownedMethods.find(method => method !== state.method);
     return {
       name: state.name,
       method: state.method,
+      ...(companion ? { companion } : {}),
       n: state.n,
       talents: clone(state.talents[state.method] ?? []),
       artifacts: equippedArtifactStacks(state),
@@ -635,6 +983,21 @@ export class ShanhaiGame {
 
   equippedArtifacts(): ArtifactStack[] {
     return clone(equippedArtifactStacks(this.state));
+  }
+
+  fusionStatus(): FusionStatus[] {
+    const state = this.state as RunStateInternals;
+    return fusionRecipes(this.content).map(recipe => {
+      const progress = state.fusionProgress.find(record => record.id === recipe.id);
+      return {
+        id: recipe.id,
+        name: recipe.name,
+        inputs: recipe.inputs.slice() as [string, string],
+        wins: progress?.wins.length ?? 0,
+        requiredWins: recipe.fights,
+        complete: state.fusionHistory.some(record => record.id === recipe.id),
+      };
+    });
   }
 
   canChangeEquipment(): boolean {
@@ -651,6 +1014,19 @@ export class ShanhaiGame {
     return Array.isArray(candidates) && candidates.some((id: unknown) =>
       typeof id === 'string' && contentEntity(this.content, id)?.kind === 'enemy' &&
       contentEntity(this.content, id)?.tier === 'elite');
+  }
+
+  canThunderChallenge(): boolean {
+    const state = this.state as RunStateInternals;
+    const node = this.node;
+    if (this.state.phase !== 'preview' || state._previewKind !== 'node' ||
+      state._pendingEvent !== undefined || state._challengeEliteEnemyId !== undefined ||
+      state._battleKind !== undefined || state._battleSettled === true ||
+      this.state.act < 1 || this.state.act > 4 || !node || !['L', 'B'].includes(node.type)) {
+      return false;
+    }
+    const enemy = contentEntity(this.content, node.id);
+    return enemy?.kind === 'enemy' && enemy.tier === (node.type === 'L' ? 'elite' : 'boss');
   }
 
   get stats(): Stats {
@@ -922,6 +1298,12 @@ export class ShanhaiGame {
         case 'challenge_elite':
           this.challengeElite();
           break;
+        case 'thunder_challenge':
+          if (Object.keys(command).length !== 2 || typeof command.enabled !== 'boolean') {
+            throw new Error('Invalid thunder challenge command');
+          }
+          this.setThunderChallenge(command.enabled);
+          break;
         case 'battle_done':
           this.battleDone();
           break;
@@ -933,6 +1315,9 @@ export class ShanhaiGame {
           break;
         case 'seek_reward':
           this.seekReward(command.family);
+          break;
+        case 'refine_reward':
+          this.refineReward(command.source, command.target);
           break;
         case 'event':
           this.chooseEvent(command.id);
@@ -960,6 +1345,10 @@ export class ShanhaiGame {
           break;
         case 'unequip':
           this.unequipArtifact(command.id);
+          break;
+        case 'reorder_equipment':
+          if (Object.keys(command).length !== 3) throw new Error('Invalid equipment reorder command');
+          this.reorderEquipment(command.id, command.direction);
           break;
         case 'retire':
           this.retire();
@@ -990,7 +1379,7 @@ export class ShanhaiGame {
       if (index < 0) throw new Error('Replacement artifact is not equipped');
       this.state.equipment.slots[index] = id;
     } else {
-      if (this.state.equipment.slots.length >= 4) throw new Error('Equipment slots are full');
+      if (this.state.equipment.slots.length >= MAX_EQUIPMENT_SLOTS) throw new Error('Equipment slots are full');
       this.state.equipment.slots.push(id);
     }
     this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
@@ -1008,6 +1397,12 @@ export class ShanhaiGame {
     state._seenEnemyIds ??= [];
     state._seenEnemyIds.push(enemyId);
     state._lastEnemyId = enemyId;
+  }
+
+  private setThunderChallenge(enabled: boolean): void {
+    if (typeof enabled !== 'boolean') throw new Error('Invalid thunder challenge command');
+    if (!this.canThunderChallenge()) throw new Error('Thunder challenge is unavailable');
+    (this.state as RunStateInternals)._thunderChallenge = enabled;
   }
 
   private freezeTalentDraft(item: CoreQueueItem): void {
@@ -1051,6 +1446,25 @@ export class ShanhaiGame {
     if (index < 0) throw new Error('Artifact is not equipped');
     this.state.equipment.slots.splice(index, 1);
     this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
+  }
+
+  private reorderEquipment(id: string, direction: 'left' | 'right'): void {
+    if (!this.canChangeEquipment()) throw new Error('Equipment cannot change now');
+    if (typeof id !== 'string') throw new Error('Invalid artifact ID');
+    if (direction !== 'left' && direction !== 'right') throw new Error('Invalid equipment direction');
+    if (!this.state.artifacts.some(stack => stack.id === id && stack.stacks > 0)) {
+      throw new Error(`Artifact is not owned: ${id}`);
+    }
+
+    const slots = this.state.equipment.slots;
+    const index = slots.indexOf(id);
+    if (index < 0) throw new Error('Artifact is not equipped');
+    const adjacentIndex = index + (direction === 'left' ? -1 : 1);
+    if (adjacentIndex < 0 || adjacentIndex >= slots.length) {
+      throw new Error('Equipment cannot move beyond the edge');
+    }
+    if (typeof slots[adjacentIndex] !== 'string') throw new Error('Adjacent equipment slot is empty');
+    [slots[index], slots[adjacentIndex]] = [slots[adjacentIndex]!, slots[index]!];
   }
 
   private freezeEnemy(
@@ -1191,6 +1605,10 @@ export class ShanhaiGame {
       state._nodeEntry = snapshotEntry(state);
       this.state.nodeEntry = clone(state._nodeEntry);
       this.state.rewardCandidates = [];
+      state._thunderChallenge = false;
+      state._thunderRewardStage = undefined;
+      state._thunderRewardCandidates = [];
+      state._thunderRewardFallback = undefined;
       state._battleSettled = false;
       state._eventSettled = false;
       state._previewKind = undefined;
@@ -1263,6 +1681,87 @@ export class ShanhaiGame {
     };
   }
 
+  private freezeFusionBattleEntry(kind: 'node' | 'event', enemyId: string): FusionBattleEntry {
+    const inventory = clone(this.state.artifacts);
+    return {
+      act: this.state.act,
+      step: this.state.step,
+      kind,
+      enemyId,
+      inventory,
+      eligibleRecipes: fusionRecipes(this.content)
+        .filter(recipe => inventoryHasInputs(inventory, recipe))
+        .map(recipe => recipe.id),
+    };
+  }
+
+  private settleFusionVictory(entry: FusionBattleEntry): void {
+    const state = this.state as RunStateInternals;
+    const settlementInventory = entry.settlementInventory;
+    if (!settlementInventory) throw new Error('Fusion victory is missing its settlement inventory');
+
+    const projected = clone(this.state) as RunState;
+    const accepted: Array<{ recipe: FusionRecipe; win: FusionWinRecord; completes: boolean }> = [];
+    const recipes = fusionRecipes(this.content);
+    for (const recipe of recipes) {
+      if (!entry.eligibleRecipes.includes(recipe.id) ||
+        !inventoryHasInputs(settlementInventory, recipe)) continue;
+      const progress = state.fusionProgress.find(record => record.id === recipe.id);
+      if (!progress) throw new Error(`Missing fusion progress: ${recipe.id}`);
+      if (progress.wins.length >= recipe.fights) continue;
+      if (progress.wins.some(win => win.act === entry.act && win.step === entry.step)) {
+        throw new Error(`Fusion battle already counted: ${recipe.id}`);
+      }
+
+      const completes = progress.wins.length + 1 >= recipe.fights;
+      if (completes) {
+        const candidate = clone(projected) as RunState;
+        if (recipe.inputs.some(id => artifactCount(candidate, id) < 1)) continue;
+        recipe.inputs.forEach(id => removeArtifact(candidate, id, 1));
+        if (!artifactCapacity(this.content, candidate, recipe.id, 1).ok) continue;
+        addArtifact(this.content, candidate, recipe.id, 1);
+        projected.artifacts = candidate.artifacts;
+        projected.equipment = candidate.equipment;
+      }
+
+      accepted.push({
+        recipe,
+        completes,
+        win: {
+          act: entry.act,
+          step: entry.step,
+          kind: entry.kind,
+          enemyId: entry.enemyId,
+          entryInventory: clone(entry.inventory),
+          settlementInventory: clone(settlementInventory),
+        },
+      });
+    }
+
+    if (!accepted.length) return;
+    if (accepted.some(item => item.completes)) {
+      this.state.artifacts = projected.artifacts;
+      this.state.equipment = projected.equipment;
+      // Equipment removal can lower max HP; fusion never grants healing.
+      this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
+    }
+    for (const item of accepted) {
+      const progress = state.fusionProgress.find(record => record.id === item.recipe.id)!;
+      progress.wins.push(item.win);
+      if (!item.completes) continue;
+      const text = fusionCompletionText(this.content, item.recipe);
+      const history: FusionHistoryRecord = {
+        id: item.recipe.id,
+        act: entry.act,
+        step: entry.step,
+        title: item.recipe.name,
+        text,
+      };
+      state.fusionHistory.push(history);
+      this.state.resultText = `${this.state.resultText} ${text}`.trim();
+    }
+  }
+
   private fight(): void {
     if (this.state.phase !== 'preview') throw new Error('Fight is not available now');
     const node = this.node;
@@ -1273,6 +1772,16 @@ export class ShanhaiGame {
       : state._challengeEliteEnemyId ?? node.id;
     if (!enemyId) throw new Error('No frozen enemy');
     const enemy = this.buildEnemy(enemyId);
+    if (state._thunderChallenge === true) {
+      if (!this.canThunderChallenge()) throw new Error('Thunder challenge is unavailable');
+      const challengeStats = clone(enemy.baseStats);
+      if (!isObject(challengeStats) || !finite(challengeStats.max_hp)) {
+        throw new Error('Enemy base stats are invalid for the thunder challenge');
+      }
+      challengeStats.max_hp *= 1.25;
+      enemy.baseStats = challengeStats;
+      enemy.thunderChallenge = true;
+    }
     const input: RunState['battleInput'] = {
       player: clone(this.player),
       enemy,
@@ -1288,10 +1797,12 @@ export class ShanhaiGame {
       roundLimit: input.roundLimit, artifactAwakenings: input.rules === 'awakening-v1',
     });
     validateBattleResult(result);
+    validateBattleCuesAgainstInput(result, input);
     this.state.battleInput = input;
     this.state.battle = clone(result);
     this.state.phase = 'battle';
     state._battleKind = state._previewKind === 'event' ? 'event' : 'node';
+    state._fusionBattleEntry = this.freezeFusionBattleEntry(state._battleKind, enemyId);
     state._battleNodeType = node.type;
     state._battleRewardType = state._previewKind === 'event'
       ? undefined
@@ -1310,6 +1821,7 @@ export class ShanhaiGame {
       roundLimit: input.roundLimit, artifactAwakenings: input.rules === 'awakening-v1',
     });
     validateBattleResult(result);
+    validateBattleCuesAgainstInput(result, input);
     this.state.battleInput = input;
     this.state.battle = clone(result);
   }
@@ -1319,16 +1831,43 @@ export class ShanhaiGame {
     if (this.state.battle.outcome === 'draw') throw new Error('A drawn battle must be continued');
     const state = this.state as RunStateInternals;
     if (state._battleSettled) throw new Error('Battle already settled');
+    const fusionEntry = state._fusionBattleEntry;
+    if (!fusionEntry) throw new Error('Battle has no frozen fusion eligibility');
+    fusionEntry.settlementInventory = clone(this.state.artifacts);
     state._battleSettled = true;
     if (state._battleKind === 'event') {
       this.settleEventBattle();
+      if (this.state.battle.outcome === 'player') this.settleFusionVictory(fusionEntry);
       return;
     }
     const node = this.node;
     if (!node) throw new Error('No battle node');
     const battle = this.state.battle;
+    const thunderChallenge = state._thunderChallenge === true;
+    if (thunderChallenge && (this.state.act < 1 || this.state.act > 4 ||
+      !['L', 'B'].includes(node.type) || this.state.battleInput?.enemy.thunderChallenge !== true)) {
+      throw new Error('Frozen thunder challenge input is missing');
+    }
     this.state.hp = clamp(battle.playerHp, 0, this.stats.max_hp);
     if (battle.outcome !== 'player') {
+      if (thunderChallenge) {
+        state.thunderChallenges!.push({
+          act: this.state.act,
+          step: this.state.step,
+          nodeType: node.type as 'L' | 'B',
+          enemyId: node.id,
+          outcome: 'loss',
+          xpBonus: 0,
+          normalCandidates: [],
+          normalSettled: false,
+          normalReward: null,
+          extraRarity: null,
+          extraInventory: [],
+          extraCandidates: [],
+          extraReward: null,
+          fallbackCoins: 0,
+        });
+      }
       this.state.phase = 'lost';
       const defeat = actEntity(this.content, this.state.act)?.story?.defeat;
       this.state.resultText = `你在${contentEntity(this.content, node.id)?.name ?? node.id}前倒下。${defeat ?? '此行未能走到归途。'}`;
@@ -1342,14 +1881,15 @@ export class ShanhaiGame {
         story?.boss_variants?.[node.id],
         story?.victory ?? '你凭一路修来的本领渡过天门。',
       ].filter(Boolean).join(' ');
+      this.state.resultText = finalText;
+      this.settleFusionVictory(fusionEntry);
       this.state.history.push({
         act: this.state.act,
         step: this.state.step,
         title: contentEntity(this.content, node.id)?.name ?? node.id,
-        text: finalText,
+        text: this.state.resultText,
       });
       this.state.phase = 'won';
-      this.state.resultText = finalText;
       return;
     }
     const rewardType = state._battleRewardType ?? battleRewardType(node.type);
@@ -1362,6 +1902,31 @@ export class ShanhaiGame {
       : story?.battle_after?.[rewardType === 'elite' ? 'elite' : 'common'] ?? '';
     this.state.phase = 'reward';
     this.settleBattleEconomy(rewardType);
+    if (thunderChallenge) {
+      const xpBonus = thunderChallengeXpBonus(this.content, this.state.act, node.type as 'L' | 'B');
+      this.state.xp += xpBonus;
+      state.thunderChallenges!.push({
+        act: this.state.act,
+        step: this.state.step,
+        nodeType: node.type as 'L' | 'B',
+        enemyId: node.id,
+        outcome: 'win',
+        xpBonus,
+        normalCandidates: this.state.rewardCandidates.slice(),
+        normalSettled: false,
+        normalReward: null,
+        extraRarity: null,
+        extraInventory: [],
+        extraCandidates: [],
+        extraReward: null,
+        fallbackCoins: 0,
+      });
+      state._thunderRewardStage = 'normal';
+      state._thunderRewardCandidates = [];
+      state._thunderRewardFallback = undefined;
+      this.state.resultText = `${this.state.resultText} 雷劫应战：额外修为 +${xpBonus}。`.trim();
+    }
+    this.settleFusionVictory(fusionEntry);
   }
 
   private settleEventBattle(): void {
@@ -1542,12 +2107,167 @@ export class ShanhaiGame {
     this.chargeCoins(record.cost);
     this.state.rewardCandidates = record.candidates.slice();
     state.rewardSearches.push(record);
+    const challengeRecord = this.thunderChallengeRecordAt(this.state.act, this.state.step);
+    if (state._thunderRewardStage === 'normal' && challengeRecord && !challengeRecord.normalSettled) {
+      challengeRecord.normalCandidates = record.candidates.slice();
+    }
+  }
+
+  private thunderChallengeRecordAt(act: number, step: number): ThunderChallengeRecord | undefined {
+    return (this.state as RunStateInternals).thunderChallenges?.find(record =>
+      record.act === act && record.step === step);
+  }
+
+  rewardRefinePreview(source: string, target: string): {
+    available: boolean;
+    reason: string;
+    sourceStacks: number;
+    targetStacks: number;
+    nextStacks: number;
+    awakening: boolean;
+    forfeited: string[];
+  } {
+    const config = rewardRefiningConfig(this.content);
+    const state = this.state as RunStateInternals;
+    const sourceStacks = typeof source === 'string' ? artifactCount(this.state, source) : 0;
+    const targetStacks = typeof target === 'string' ? artifactCount(this.state, target) : 0;
+    const nextStacks = targetStacks + 1;
+    const sourceArtifact = typeof source === 'string' ? contentEntity(this.content, source) : undefined;
+    const targetArtifact = typeof target === 'string' ? contentEntity(this.content, target) : undefined;
+    const targetMax = targetArtifact?.max_stacks;
+    const forfeited = Array.isArray(this.state.rewardCandidates)
+      ? this.state.rewardCandidates.slice()
+      : [];
+    let reason = '';
+
+    if (this.state.phase !== 'reward') reason = 'not-reward-phase';
+    else if (this.state.act < 1 || this.state.act > 4) reason = 'act-unavailable';
+    else if (state._rewardSettled !== true || state._battleSettled !== true ||
+      state._battleKind !== 'node' || state._battleRewardType !== 'common' ||
+      this.node?.type !== 'C') reason = 'reward-not-frozen';
+    else if (this.state.act === 1 && this.state.step === 0) reason = 'guaranteed-core-offer';
+    else if (state._coreRewardOffered !== true) reason = 'initial-core-offer-pending';
+    else if (!Array.isArray(this.state.rewardCandidates) || !forfeited.length) reason = 'empty-offer';
+    else if (forfeited.length > 3 || forfeited.some(id =>
+      contentEntity(this.content, id)?.kind !== 'artifact' ||
+      contentEntity(this.content, id)?.rarity !== 'common')) reason = 'common-only-offer-required';
+    else if (!Array.isArray(this.state.rewardRefinements)) reason = 'invalid-refine-history';
+    else if (this.state.rewardRefinements.length >= config.max_per_act * 4 ||
+      this.state.rewardRefinements.some(record => record?.act === this.state.act)) {
+      reason = 'already-used';
+    } else if (source === target) reason = 'same-artifact';
+    else if (!sourceArtifact || sourceArtifact.kind !== 'artifact' ||
+      sourceArtifact.rarity !== 'common' || !targetArtifact ||
+      targetArtifact.kind !== 'artifact' || targetArtifact.rarity !== 'common' ||
+      !integer(targetMax) || targetMax <= 0) reason = 'invalid-artifact-reference';
+    else if (!sourceStacks) reason = 'source-not-owned';
+    else if (this.state.equipment?.slots?.includes(source)) reason = 'source-equipped';
+    else if (!targetStacks) reason = 'target-not-owned';
+    else if (!this.state.equipment?.slots?.includes(target)) reason = 'target-not-equipped';
+    else if (targetStacks >= targetMax) reason = 'target-capped';
+
+    const awakening = !!targetArtifact && isObject(targetArtifact.awakening) &&
+      integer(targetArtifact.awakening.at_stacks) &&
+      targetArtifact.awakening.at_stacks === nextStacks;
+    return {
+      available: reason === '',
+      reason,
+      sourceStacks,
+      targetStacks,
+      nextStacks,
+      awakening,
+      forfeited,
+    };
+  }
+
+  private refineReward(source: string, target: string): void {
+    const preview = this.rewardRefinePreview(source, target);
+    if (!preview.available) {
+      throw new Error(`Reward refinement unavailable: ${preview.reason}`);
+    }
+    const record: RewardRefineRecord = {
+      act: this.state.act,
+      step: this.state.step,
+      source,
+      target,
+      targetStacksBefore: preview.targetStacks,
+      forfeited: preview.forfeited.slice(),
+    };
+    const state = this.state as RunStateInternals;
+    const targetStack = this.state.artifacts.find(stack => stack.id === target);
+    if (!targetStack) throw new Error(`Insufficient artifact: ${target}`);
+
+    removeArtifact(this.state, source, 1);
+    targetStack.stacks += 1;
+    state.rewardRefinements.push(record);
+    const search = state.rewardSearches.find(candidate =>
+      !candidate.resolved && candidate.act === this.state.act && candidate.step === this.state.step);
+    if (search) search.resolved = true;
+    this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
+    this.state.resultText = rewardRefinementHistoryText(this.content, record);
+    this.state.rewardCandidates = [];
+    this.state.phase = 'map';
+    this.completeNode();
   }
 
   private chooseReward(id: string | null): void {
     if (this.state.phase !== 'reward') throw new Error('No reward is pending');
     const state = this.state as RunStateInternals;
     if (state._rewardSettled !== true) throw new Error('Battle reward is not frozen');
+    if (state._thunderRewardStage === 'bonus') {
+      this.chooseThunderBonusReward(id);
+      return;
+    }
+    if (state._thunderRewardStage === 'normal') {
+      const challenge = this.thunderChallengeRecordAt(this.state.act, this.state.step);
+      if (!challenge || challenge.outcome !== 'win' || challenge.normalSettled) {
+        throw new Error('Thunder challenge reward is not frozen');
+      }
+      if (id === null) {
+        this.state.coins += finite(rulesOf(this.content).economy?.artifact_decline_coins)
+          ? rulesOf(this.content).economy.artifact_decline_coins
+          : 4;
+      } else {
+        if (typeof id !== 'string' || !this.state.rewardCandidates.includes(id)) throw new Error('Invalid reward ID');
+        if (!this.canAcquireArtifact(id, 1)) throw new Error('Reward artifact is no longer available');
+        addArtifact(this.content, this.state, id, 1);
+      }
+      const search = state.rewardSearches.find(record =>
+        !record.resolved && record.act === this.state.act && record.step === this.state.step);
+      if (search) search.resolved = true;
+      challenge.normalCandidates = this.state.rewardCandidates.slice();
+      challenge.normalSettled = true;
+      challenge.normalReward = id;
+      challenge.extraInventory = clone(this.state.artifacts);
+      this.state.rewardCandidates = [];
+
+      const bonus = rollThunderChallengeCandidates(
+        this.content,
+        this.state.seed,
+        challenge.act,
+        challenge.step,
+        challenge.extraInventory,
+        challenge.normalReward,
+      );
+      challenge.extraRarity = bonus.rarity;
+      challenge.extraCandidates = bonus.candidates.slice();
+      if (bonus.candidates.length) {
+        state._thunderRewardStage = 'bonus';
+        state._thunderRewardCandidates = bonus.candidates.slice();
+        this.state.rewardCandidates = bonus.candidates.slice();
+        return;
+      }
+
+      challenge.fallbackCoins = THUNDER_CHALLENGE_FALLBACK_COINS;
+      state._thunderRewardFallback = { type: 'coins', amount: THUNDER_CHALLENGE_FALLBACK_COINS };
+      this.state.coins += THUNDER_CHALLENGE_FALLBACK_COINS;
+      this.state.resultText = `${this.state.resultText} 雷劫加赏池已尽，改得${THUNDER_CHALLENGE_FALLBACK_COINS}灵石。`.trim();
+      state._thunderRewardStage = undefined;
+      state._thunderRewardCandidates = [];
+      this.state.phase = 'map';
+      this.completeNode();
+      return;
+    }
     if (id === null) {
       this.state.coins += finite(rulesOf(this.content).economy?.artifact_decline_coins)
         ? rulesOf(this.content).economy.artifact_decline_coins
@@ -1560,6 +2280,27 @@ export class ShanhaiGame {
     const search = state.rewardSearches.find(record =>
       !record.resolved && record.act === this.state.act && record.step === this.state.step);
     if (search) search.resolved = true;
+    this.state.rewardCandidates = [];
+    this.state.phase = 'map';
+    this.completeNode();
+  }
+
+  private chooseThunderBonusReward(id: string | null): void {
+    const state = this.state as RunStateInternals;
+    const challenge = this.thunderChallengeRecordAt(this.state.act, this.state.step);
+    if (id === null || typeof id !== 'string' || !challenge ||
+      challenge.outcome !== 'win' || !challenge.normalSettled ||
+      !challenge.extraCandidates.includes(id) ||
+      JSON.stringify(state._thunderRewardCandidates) !== JSON.stringify(challenge.extraCandidates) ||
+      JSON.stringify(this.state.rewardCandidates) !== JSON.stringify(challenge.extraCandidates)) {
+      throw new Error('Invalid thunder challenge reward ID');
+    }
+    if (!this.canAcquireArtifact(id, 1)) throw new Error('Thunder challenge artifact is no longer available');
+    addArtifact(this.content, this.state, id, 1);
+    challenge.extraReward = id;
+    this.state.resultText = `${this.state.resultText} 雷劫加赏：${artifactEntity(this.content, id).name}。`.trim();
+    state._thunderRewardStage = undefined;
+    state._thunderRewardCandidates = [];
     this.state.rewardCandidates = [];
     this.state.phase = 'map';
     this.completeNode();
@@ -1689,6 +2430,10 @@ export class ShanhaiGame {
     state._actEliteCount = 0;
     state._actEliteChallengeUsed = false;
     state._challengeEliteEnemyId = undefined;
+    state._thunderChallenge = false;
+    state._thunderRewardStage = undefined;
+    state._thunderRewardCandidates = [];
+    state._thunderRewardFallback = undefined;
     state._battleRewardType = undefined;
     state._lastCorePosition = undefined;
     this.state.routeMap = { nodes: this.createRouteMap(), path: [] };
@@ -2260,7 +3005,7 @@ export class ShanhaiGame {
 
   private canAcquireArtifact(id: string, count: number): boolean {
     try {
-      return artifactCapacity(this.content, this.state, id, count).ok;
+      return !isFusionResult(this.content, id) && artifactCapacity(this.content, this.state, id, count).ok;
     } catch {
       return false;
     }
@@ -2268,7 +3013,7 @@ export class ShanhaiGame {
 
   private artifactPool(rarity: string): string[] {
     return contentEntities(this.content, 'artifact')
-      .filter(artifact => artifact.rarity === rarity)
+      .filter(artifact => artifact.rarity === rarity && !isFusionResult(this.content, artifact.id))
       .map(artifact => artifact.id);
   }
 
@@ -2372,6 +3117,10 @@ export class ShanhaiGame {
     this.state.eventStoryEcho = undefined;
     this.state.battle = undefined;
     this.state.battleInput = undefined;
+    state._fusionBattleEntry = undefined;
+    state._thunderChallenge = false;
+    state._thunderRewardStage = undefined;
+    state._thunderRewardCandidates = [];
     state._pendingEvent = undefined;
     state._previewKind = undefined;
     state._battleKind = undefined;
@@ -2671,6 +3420,9 @@ function ensureStateInternals(content: Content, state: RunStateInternals): void 
     throw new Error('Invalid method travel counters');
   }
   if (state._travelSnapshots !== undefined && !Array.isArray(state._travelSnapshots)) throw new Error('Invalid travel snapshots');
+  if (state.rewardRefinements !== undefined && !Array.isArray(state.rewardRefinements)) {
+    throw new Error('Invalid reward refinement history');
+  }
   if (state._talentQueue !== undefined && !Array.isArray(state._talentQueue)) throw new Error('Invalid talent queue');
   if (state._pendingTravelResources !== undefined && !isObject(state._pendingTravelResources)) {
     throw new Error('Invalid pending travel resources');
@@ -2735,6 +3487,166 @@ function ensureStateInternals(content: Content, state: RunStateInternals): void 
   void content;
 }
 
+function validateFusionInventory(content: Content, inventory: unknown): asserts inventory is ArtifactStack[] {
+  if (!Array.isArray(inventory) || inventory.length > 128) throw new Error('Invalid fusion inventory snapshot');
+  const ids = new Set<string>();
+  const groups = new Set<string>();
+  for (const stack of inventory) {
+    const artifact = isObject(stack) && typeof stack.id === 'string'
+      ? contentEntity(content, stack.id) : undefined;
+    if (!isObject(stack) || !integer(stack.stacks) || stack.stacks <= 0 || ids.has(stack.id) ||
+      !artifact || artifact.kind !== 'artifact' || !artifactRole(content, stack.id) ||
+      stack.stacks > (integer(artifact.max_stacks) ? artifact.max_stacks : 1) ||
+      (artifact.unique_group && groups.has(artifact.unique_group))) {
+      throw new Error('Invalid fusion inventory snapshot');
+    }
+    ids.add(stack.id);
+    if (artifact.unique_group) groups.add(artifact.unique_group);
+  }
+}
+
+function validateFusionState(content: Content, state: RunStateInternals): void {
+  const recipes = fusionRecipes(content);
+  if (!Array.isArray(state.fusionProgress) || state.fusionProgress.length !== recipes.length ||
+    !Array.isArray(state.fusionHistory) || state.fusionHistory.length > recipes.length) {
+    throw new Error('Invalid fusion state collections');
+  }
+
+  let previousHistoryPosition = -1;
+  let previousHistoryId = '';
+  const historyIds = new Set<string>();
+  for (const record of state.fusionHistory) {
+    const recipe = recipes.find(candidate => candidate.id === record?.id);
+    const expectedText = recipe ? fusionCompletionText(content, recipe) : '';
+    const position = isObject(record) && integer(record.act) && integer(record.step)
+      ? (record.act - 1) * 11 + record.step : -1;
+    if (!isObject(record) || Object.keys(record).length !== 5 ||
+      !['id', 'act', 'step', 'title', 'text'].every(key => Object.prototype.hasOwnProperty.call(record, key)) ||
+      !recipe || historyIds.has(record.id) || !integer(record.act) || record.act < 1 || record.act > 5 ||
+      !integer(record.step) || record.step < 0 || record.step > (record.act === 5 ? 0 : 10) ||
+      record.act > state.act || (record.act === state.act && record.step > state.step) ||
+      record.title !== recipe.name || record.text !== expectedText ||
+      position < previousHistoryPosition ||
+      (position === previousHistoryPosition && record.id <= previousHistoryId)) {
+      throw new Error('Invalid fusion history entry');
+    }
+    previousHistoryPosition = position;
+    previousHistoryId = record.id;
+    historyIds.add(record.id);
+  }
+
+  const progressIds = new Set<string>();
+  for (let index = 0; index < recipes.length; index++) {
+    const recipe = recipes[index]!;
+    const progress = state.fusionProgress[index];
+    if (!isObject(progress) || Object.keys(progress).length !== 2 || progress.id !== recipe.id ||
+      !Array.isArray(progress.wins) || progress.wins.length > recipe.fights ||
+      progressIds.has(progress.id)) {
+      throw new Error('Invalid fusion progress');
+    }
+    progressIds.add(progress.id);
+    let previousPosition = -1;
+    const coordinates = new Set<string>();
+    for (const win of progress.wins) {
+      if (!isObject(win) || Object.keys(win).length !== 6 ||
+        !['act', 'step', 'kind', 'enemyId', 'entryInventory', 'settlementInventory']
+          .every(key => Object.prototype.hasOwnProperty.call(win, key)) ||
+        !integer(win.act) || win.act < 1 || win.act > 5 ||
+        !integer(win.step) || win.step < 0 || win.step > (win.act === 5 ? 0 : 10) ||
+        win.act > state.act || (win.act === state.act && win.step > state.step) ||
+        !['node', 'event'].includes(win.kind) || typeof win.enemyId !== 'string') {
+        throw new Error('Invalid fusion win evidence');
+      }
+      validateFusionInventory(content, win.entryInventory);
+      validateFusionInventory(content, win.settlementInventory);
+      if (!inventoryHasInputs(win.entryInventory, recipe) ||
+        !inventoryHasInputs(win.settlementInventory, recipe)) {
+        throw new Error('Fusion win did not hold both inputs at entry and settlement');
+      }
+      const enemy = contentEntity(content, win.enemyId);
+      if (!enemy || enemy.kind !== 'enemy') throw new Error('Invalid fusion battle enemy');
+      const position = (win.act - 1) * 11 + win.step;
+      const coordinate = `${win.act}:${win.step}`;
+      if (position <= previousPosition || coordinates.has(coordinate)) {
+        throw new Error('Invalid fusion win order');
+      }
+      previousPosition = position;
+      coordinates.add(coordinate);
+
+      const currentEntry = state._fusionBattleEntry;
+      const isCurrentSettledVictory = currentEntry?.act === win.act && currentEntry.step === win.step &&
+        currentEntry.kind === win.kind && currentEntry.enemyId === win.enemyId &&
+        state._battleSettled === true && state.battle?.outcome === 'player' &&
+        sameInventory(currentEntry.inventory, win.entryInventory) &&
+        sameInventory(currentEntry.settlementInventory ?? [], win.settlementInventory);
+      const historyEntries = state.history.filter(entry => entry.act === win.act && entry.step === win.step);
+      const hasMatchingCompletedHistory = win.kind === 'event'
+        ? historyEntries.some(entry => {
+          const event = typeof entry.eventId === 'string' ? contentEntity(content, entry.eventId) : undefined;
+          const option = event?.kind === 'event' && typeof entry.optionId === 'string'
+            ? eventOption(event, entry.optionId) : undefined;
+          return entry.eventOutcome === 'success' && option?.encounter?.enemy_id === win.enemyId;
+        })
+        : historyEntries.some(entry => entry.title === enemy.name);
+      if (!isCurrentSettledVictory && !hasMatchingCompletedHistory) {
+        throw new Error('Fusion win does not match a completed victory');
+      }
+    }
+    const completion = state.fusionHistory.find(record => record.id === recipe.id);
+    if ((progress.wins.length === recipe.fights) !== !!completion ||
+      (completion && (progress.wins.at(-1)?.act !== completion.act ||
+        progress.wins.at(-1)?.step !== completion.step))) {
+      throw new Error('Fusion completion does not match its progress');
+    }
+  }
+
+  if (state._fusionBattleEntry !== undefined) {
+    const entry = state._fusionBattleEntry;
+    const entryKeys = ['act', 'step', 'kind', 'enemyId', 'inventory', 'eligibleRecipes', 'settlementInventory'];
+    const hasSettlementInventory = isObject(entry) &&
+      Object.prototype.hasOwnProperty.call(entry, 'settlementInventory');
+    if (!isObject(entry) || !integer(entry.act) || entry.act !== state.act ||
+      !integer(entry.step) || entry.step !== state.step ||
+      !['node', 'event'].includes(entry.kind) || !Array.isArray(entry.eligibleRecipes) ||
+      !Array.isArray(entry.inventory) || typeof entry.enemyId !== 'string' ||
+      !state.battleInput || !state.battle || state._battleKind !== entry.kind ||
+      typeof state._battleSettled !== 'boolean' ||
+      Object.keys(entry).length !== (hasSettlementInventory ? 7 : 6) ||
+      Object.keys(entry).some(key => !entryKeys.includes(key))) {
+      throw new Error('Invalid frozen fusion battle entry');
+    }
+    validateFusionInventory(content, entry.inventory);
+    const expectedEligible = recipes
+      .filter(recipe => inventoryHasInputs(entry.inventory, recipe))
+      .map(recipe => recipe.id);
+    if (JSON.stringify(entry.eligibleRecipes) !== JSON.stringify(expectedEligible)) {
+      throw new Error('Frozen fusion eligibility does not match battle entry inventory');
+    }
+    const node = state.nodes[state.step];
+    const expectedEnemyId = entry.kind === 'event'
+      ? state._pendingEvent?.enemyId ?? (() => {
+        const event = node ? contentEntity(content, node.id) : undefined;
+        const option = event?.kind === 'event' && typeof state.eventOption === 'string'
+          ? eventOption(event, state.eventOption) : undefined;
+        return option?.encounter?.enemy_id;
+      })()
+      : state._challengeEliteEnemyId ?? node?.id;
+    if (expectedEnemyId !== entry.enemyId || state.battleInput.enemy.name !== contentEntity(content, entry.enemyId)?.name) {
+      throw new Error('Frozen fusion battle identity mismatch');
+    }
+    if (state._battleSettled === true) {
+      if (!hasSettlementInventory || !Array.isArray(entry.settlementInventory) || state.battle.outcome === 'draw') {
+        throw new Error('Settled battle is missing its fusion settlement snapshot');
+      }
+      validateFusionInventory(content, entry.settlementInventory);
+    } else if (hasSettlementInventory) {
+      throw new Error('Unsettled battle has a fusion settlement snapshot');
+    }
+  } else if (state.battleInput !== undefined) {
+    throw new Error('Battle input has no frozen fusion eligibility');
+  }
+}
+
 export function validateBattleResult(result: BattleResult): void {
   if (!isObject(result) || !['player', 'enemy', 'draw'].includes(result.outcome)) throw new Error('Invalid battle outcome');
   if (!integer(result.rounds) || result.rounds < 0 || !finite(result.playerHp) || !finite(result.enemyHp)) throw new Error('Invalid battle result numbers');
@@ -2771,12 +3683,19 @@ export function validateBattleResult(result: BattleResult): void {
     }
     if (frame.cue === undefined) continue;
     const cue = frame.cue;
-    if (!isObject(cue) || Object.keys(cue).length !== 3 ||
+    const countedCue = isObject(cue) && cue.kind === 'rage_chain';
+    if (!isObject(cue) || Object.keys(cue).length !== (countedCue ? 4 : 3) ||
       !['kind', 'owner', 'sourceId'].every(key => Object.prototype.hasOwnProperty.call(cue, key)) ||
-      !['sword_volley', 'guard_counter', 'spring_bloom', 'enemy_charge', 'enemy_release'].includes(cue.kind) ||
+      (countedCue && !Object.prototype.hasOwnProperty.call(cue, 'count')) ||
+      (!countedCue && Object.prototype.hasOwnProperty.call(cue, 'count')) ||
+      !['sword_volley', 'guard_counter', 'spring_bloom', 'enemy_charge', 'enemy_release',
+        'rage_chain', 'companion_assist'].includes(cue.kind) ||
       !['player', 'enemy'].includes(cue.owner) ||
       typeof cue.sourceId !== 'string' || cue.sourceId.length < 1 || cue.sourceId.length > 128) {
       throw new Error('Invalid battle reaction cue');
+    }
+    if (cue.kind === 'rage_chain' && (!integer(cue.count) || ![2, 3].includes(cue.count))) {
+      throw new Error('Invalid V2 reaction cue data');
     }
     const expectedSources: Partial<Record<NonNullable<BattleFrame['cue']>['kind'], string>> = {
       sword_volley: 'RKF05-V2-RESONANCE',
@@ -2791,6 +3710,15 @@ export function validateBattleResult(result: BattleResult): void {
       (!['EN-A1-B1', 'EN-A1-B2'].includes(cue.sourceId) || cue.owner !== 'enemy')) {
       throw new Error('Enemy trial cue has invalid source or side');
     }
+    if (cue.kind === 'rage_chain' && !/^RKF\d{2}-RAGE-CHAIN$/.test(cue.sourceId)) {
+      throw new Error('Rage-chain cue has invalid source');
+    }
+    if (cue.kind === 'companion_assist' && !/^RKF\d{2}-COMPANION$/.test(cue.sourceId)) {
+      throw new Error('Companion-assist cue has invalid source');
+    }
+    if ((cue.kind === 'rage_chain' || cue.kind === 'companion_assist') && frame.kind !== 'reaction') {
+      throw new Error('V2 reaction cue is attached to a non-reaction frame');
+    }
     if (frame.kind === 'reaction') {
       const expectedTarget = cue.kind === 'enemy_charge'
         ? cue.owner
@@ -2804,6 +3732,11 @@ export function validateBattleResult(result: BattleResult): void {
           throw new Error('Enemy trial cue has invalid target side');
         }
       }
+      if (cue.kind === 'rage_chain' || cue.kind === 'companion_assist') {
+        if (frame.actor !== cue.owner || frame.target === cue.owner) {
+          throw new Error('V2 reaction cue has invalid owner or target');
+        }
+      }
     } else if (cue.kind === 'enemy_charge' && frame.kind === 'status' &&
       (cue.sourceId !== 'EN-A1-B1' && cue.sourceId !== 'EN-A1-B2' ||
         cue.owner !== 'enemy' || frame.actor !== 'player' || frame.target !== 'enemy' ||
@@ -2813,10 +3746,53 @@ export function validateBattleResult(result: BattleResult): void {
   }
 }
 
-function validateLoadoutReferences(content: Content, loadout: Loadout, enemy = false): void {
+function validateBattleCuesAgainstInput(
+  result: BattleResult,
+  input: { player: Loadout; enemy: Loadout },
+): void {
+  for (const frame of result.frames) {
+    const cue = frame.cue;
+    if (!cue) continue;
+    if (cue.kind === 'rage_chain') {
+      const owner = cue.owner === 'player' ? input.player : input.enemy;
+      if (cue.sourceId !== `${owner.method}-RAGE-CHAIN`) {
+        throw new Error('Rage-chain source does not match its battle owner');
+      }
+    } else if (cue.kind === 'companion_assist') {
+      const owner = cue.owner === 'player' ? input.player : input.enemy;
+      if (!owner.companion || cue.sourceId !== `${owner.companion}-COMPANION`) {
+        throw new Error('Companion-assist source does not match the frozen companion');
+      }
+    }
+  }
+}
+
+function validateLoadoutReferences(
+  content: Content,
+  loadout: Loadout,
+  enemy = false,
+  ownedMethods?: string[],
+): void {
   if (!isObject(loadout) || typeof loadout.name !== 'string' || typeof loadout.method !== 'string' ||
     !integer(loadout.n) || loadout.n < 0 || loadout.n > 4 || !Array.isArray(loadout.talents) ||
     !Array.isArray(loadout.artifacts)) throw new Error('Invalid saved loadout');
+  if (loadout.companion !== undefined) {
+    const companion = typeof loadout.companion === 'string'
+      ? contentEntity(content, loadout.companion)
+      : undefined;
+    if (!companion || companion.kind !== 'method' || companion.id === loadout.method ||
+      (!enemy && (!ownedMethods?.includes(companion.id) ||
+        ownedMethods.find(id => id !== loadout.method) !== companion.id)) ||
+      !isObject(companion.companion) || typeof companion.companion.name !== 'string' ||
+      typeof companion.companion.quick !== 'string' || !companion.companion.effect) {
+      throw new Error(enemy ? 'Invalid saved enemy companion' : 'Invalid saved companion ownership');
+    }
+  }
+  if ((enemy && loadout.thunderChallenge !== undefined && loadout.thunderChallenge !== true) ||
+    (!enemy && loadout.thunderChallenge !== undefined) ||
+    (!enemy && loadout.companion !== undefined && typeof loadout.companion !== 'string')) {
+    throw new Error('Invalid saved loadout challenge or companion');
+  }
   if (loadout.encounterId !== undefined) {
     const encounter = typeof loadout.encounterId === 'string'
       ? contentEntity(content, loadout.encounterId)
@@ -2854,7 +3830,7 @@ function validateLoadoutReferences(content: Content, loadout: Loadout, enemy = f
       groups.add(artifact.unique_group);
     }
   }
-  if (ids.size > 4) {
+  if (ids.size > MAX_EQUIPMENT_SLOTS) {
     throw new Error(enemy ? 'Invalid enemy equipment slots' : 'Invalid player equipment slots');
   }
   if (loadout.hp !== undefined && (!finite(loadout.hp) || loadout.hp < 0)) {
@@ -2985,7 +3961,9 @@ export function validateRunState(content: Content, raw: RunState): void {
   const state = raw as RunStateInternals;
   if (state.schema !== 1 || state.contentVersion !== content.version) throw new Error('Run/content version mismatch');
   rewardSeekingConfig(content);
-  if (state.buildVersion !== 3) throw new Error('Incompatible run build version');
+  const refiningConfig = rewardRefiningConfig(content);
+  if (state.buildVersion !== 5) throw new Error('Incompatible run build version');
+  if (!Array.isArray(state.thunderChallenges)) throw new Error('Invalid thunder challenge history');
   if (!isObject(state.progress) ||
     !finite(state.progress.coinsSpent) || state.progress.coinsSpent < 0 ||
     !integer(state.progress.eliteWins) || state.progress.eliteWins < 0 ||
@@ -3178,6 +4156,22 @@ export function validateRunState(content: Content, raw: RunState): void {
   ] as const) {
     if (state[key] !== undefined && typeof state[key] !== 'boolean') throw new Error(`Invalid ${key}`);
   }
+  if (typeof state._thunderChallenge !== 'boolean') throw new Error('Invalid thunder challenge marker');
+  if (state._thunderRewardStage !== undefined && !['normal', 'bonus'].includes(state._thunderRewardStage)) {
+    throw new Error('Invalid thunder challenge reward stage');
+  }
+  if (!Array.isArray(state._thunderRewardCandidates) ||
+    state._thunderRewardCandidates.length > 3 ||
+    state._thunderRewardCandidates.some(id => typeof id !== 'string') ||
+    new Set(state._thunderRewardCandidates).size !== state._thunderRewardCandidates.length) {
+    throw new Error('Invalid thunder challenge reward candidates');
+  }
+  if (state._thunderRewardFallback !== undefined &&
+    (!isObject(state._thunderRewardFallback) || Object.keys(state._thunderRewardFallback).length !== 2 ||
+      state._thunderRewardFallback.type !== 'coins' ||
+      state._thunderRewardFallback.amount !== THUNDER_CHALLENGE_FALLBACK_COINS)) {
+    throw new Error('Invalid thunder challenge reward fallback');
+  }
   if (typeof state._actEliteChallengeUsed !== 'boolean') {
     throw new Error('Invalid elite challenge marker');
   }
@@ -3246,6 +4240,23 @@ export function validateRunState(content: Content, raw: RunState): void {
       state.battleInput.enemy.encounterId !== (isObject(enemy.trial) ? enemy.id : undefined)) {
       throw new Error('Battle input does not match the selected encounter');
     }
+    const challenged = state._thunderChallenge === true;
+    if ((state.battleInput.enemy.thunderChallenge === true) !== challenged) {
+      throw new Error('Frozen enemy challenge state mismatch');
+    }
+    if (challenged) {
+      const node = state.nodes[state.step];
+      if (state.act < 1 || state.act > 4 || state._challengeEliteEnemyId !== undefined ||
+        !node || !['L', 'B'].includes(node.type) || enemy.tier !== (node.type === 'L' ? 'elite' : 'boss') ||
+        !isObject(enemy.stats)) {
+        throw new Error('Thunder challenge does not match an elite or boss node');
+      }
+      const expectedStats = clone(enemy.stats) as Stats;
+      expectedStats.max_hp *= 1.25;
+      if (!sameStats(state.battleInput.enemy.baseStats, expectedStats)) {
+        throw new Error('Frozen thunder challenge enemy stats mismatch');
+      }
+    }
   }
   if (state._battleKind === 'event' && state.battleInput) {
     const eventNode = state.nodes[state.step];
@@ -3260,7 +4271,8 @@ export function validateRunState(content: Content, raw: RunState): void {
     const enemy = typeof enemyId === 'string' ? contentEntity(content, enemyId) : undefined;
     if (!enemy || state.battleInput.enemy.name !== enemy.name ||
       state.battleInput.enemy.method !== enemy.method ||
-      state.battleInput.enemy.encounterId !== (isObject(enemy.trial) ? enemy.id : undefined)) {
+      state.battleInput.enemy.encounterId !== (isObject(enemy.trial) ? enemy.id : undefined) ||
+      state.battleInput.enemy.thunderChallenge !== undefined) {
       throw new Error('Event battle input does not match the selected encounter');
     }
   }
@@ -3362,6 +4374,67 @@ export function validateRunState(content: Content, raw: RunState): void {
       });
     }
   }
+  if (!Array.isArray(state.rewardRefinements) || state.rewardRefinements.length > 4) {
+    throw new Error('Invalid reward refinement history');
+  }
+  const refinedActs = new Set<number>();
+  let previousRefinementAct = 0;
+  for (const record of state.rewardRefinements) {
+    if (!isObject(record) || Object.keys(record).length !== 6 ||
+      !['act', 'step', 'source', 'target', 'targetStacksBefore', 'forfeited']
+        .every(key => Object.prototype.hasOwnProperty.call(record, key)) ||
+      !integer(record.act) || record.act < 1 || record.act > 4 || record.act > state.act ||
+      !integer(record.step) || record.step < 0 || record.step > 10 ||
+      typeof record.source !== 'string' || typeof record.target !== 'string' ||
+      record.source === record.target ||
+      !integer(record.targetStacksBefore) || record.targetStacksBefore <= 0 ||
+      !Array.isArray(record.forfeited) || record.forfeited.length < 1 ||
+      record.forfeited.length > 3 ||
+      record.forfeited.some((id: unknown) => {
+        const artifact = typeof id === 'string' ? contentEntity(content, id) : undefined;
+        return artifact?.kind !== 'artifact' || artifact.rarity !== 'common';
+      }) ||
+      new Set(record.forfeited).size !== record.forfeited.length ||
+      refinedActs.has(record.act) || record.act <= previousRefinementAct) {
+      throw new Error('Invalid reward refinement record');
+    }
+    const source = contentEntity(content, record.source);
+    const target = contentEntity(content, record.target);
+    if (source?.kind !== 'artifact' || source.rarity !== 'common' ||
+      target?.kind !== 'artifact' || target.rarity !== 'common' ||
+      !integer(target.max_stacks) || target.max_stacks <= record.targetStacksBefore) {
+      throw new Error('Invalid reward refinement artifact reference');
+    }
+    refinedActs.add(record.act);
+    previousRefinementAct = record.act;
+
+    const entries = state.history.filter(entry =>
+      entry.act === record.act && entry.step === record.step);
+    const entry = entries[0];
+    const isCommonEnemyHistory = !!entry && contentEntities(content, 'enemy').some(enemy =>
+      enemy.tier === 'normal' && enemy.name === entry.title);
+    const expectedText = rewardRefinementHistoryText(content, record);
+    const travelSnapshot = state._travelSnapshots?.find(snapshot =>
+      snapshot.act === record.act && snapshot.step === record.step && snapshot.phase === 'map');
+    const isCurrentCompletedNode = record.act === state.act &&
+      state.nodes[record.step]?.type === 'C' &&
+      state.nodes[record.step]?.completed === true &&
+      state.step > record.step;
+    const isTerminalJustCompletedNode = record.act === state.act &&
+      ['won', 'lost'].includes(state.phase) && state.step === record.step &&
+      state.nodes[record.step]?.type === 'C' &&
+      state.nodes[record.step]?.completed === true;
+    if (entries.length !== 1 || !entry || !isCommonEnemyHistory ||
+      !entry.text.startsWith(expectedText) || !travelSnapshot ||
+      (record.act === state.act &&
+        !isCurrentCompletedNode && !isTerminalJustCompletedNode)) {
+      throw new Error('Reward refinement does not match a completed ordinary node');
+    }
+  }
+  if (state.rewardRefinements.length > refiningConfig.max_per_act * 4 ||
+    refinedActs.size !== state.rewardRefinements.length) {
+    throw new Error('Invalid reward refinement limit');
+  }
   if (state.storyline && (!contentEntity(content, state.storyline) || contentEntity(content, state.storyline)?.kind !== 'storyline')) {
     throw new Error('Invalid storyline reference');
   }
@@ -3410,12 +4483,15 @@ export function validateRunState(content: Content, raw: RunState): void {
   }
   if (!Array.isArray(state.rewardCandidates) || state.rewardCandidates.length > 3 ||
     state.rewardCandidates.some(id =>
-      typeof id !== 'string' || contentEntity(content, id)?.kind !== 'artifact') ||
+      typeof id !== 'string' || contentEntity(content, id)?.kind !== 'artifact' || isFusionResult(content, id)) ||
     new Set(state.rewardCandidates).size !== state.rewardCandidates.length) {
     throw new Error('Invalid reward candidates');
   }
   if (!Array.isArray(state.rewardSearches) || state.rewardSearches.length > 4) {
     throw new Error('Invalid reward search history');
+  }
+  if (!Array.isArray(state.rewardRefinements) || state.rewardRefinements.length > 4) {
+    throw new Error('Invalid reward refinement history');
   }
   const searchedActs = new Set<number>();
   let unresolvedSearch: RewardSearchRecord | undefined;
@@ -3434,6 +4510,7 @@ export function validateRunState(content: Content, raw: RunState): void {
       record.candidates.some(id => {
         const artifact = typeof id === 'string' ? contentEntity(content, id) : undefined;
         return artifact?.kind !== 'artifact' ||
+          isFusionResult(content, id) ||
           (artifact.rarity !== 'legendary' && !seekingConfig.families[record.family].includes(id));
       }) ||
       new Set(record.candidates).size !== record.candidates.length ||
@@ -3480,7 +4557,10 @@ export function validateRunState(content: Content, raw: RunState): void {
   for (const item of state.shop) {
     if (!isObject(item) || typeof item.id !== 'string' || !SHOP_KINDS.includes(item.kind) ||
       !finite(item.price) || item.price < 0 || typeof item.sold !== 'boolean') throw new Error('Invalid shop item');
-    if (item.kind === 'artifact' && contentEntity(content, item.id)?.kind !== 'artifact') throw new Error('Invalid shop artifact');
+    if (item.kind === 'artifact' &&
+      (contentEntity(content, item.id)?.kind !== 'artifact' || isFusionResult(content, item.id))) {
+      throw new Error('Invalid shop artifact');
+    }
     if (item.kind !== 'artifact' && item.id !== item.kind) throw new Error('Invalid shop service');
   }
   if ((state.nodeEntry === undefined) !== (state._nodeEntry === undefined)) {
@@ -3505,8 +4585,11 @@ export function validateRunState(content: Content, raw: RunState): void {
       state.battleInput.roundLimit <= 0 || state.battleInput.roundLimit > 4096 ||
       !isObject(state.battleInput.player) || !isObject(state.battleInput.enemy)) throw new Error('Invalid battle input');
     if (state.battleInput.rules !== undefined && state.battleInput.rules !== 'awakening-v1') throw new Error('Invalid battle rules');
-    validateLoadoutReferences(content, state.battleInput.player);
+    validateLoadoutReferences(content, state.battleInput.player, false, state.ownedMethods);
     validateLoadoutReferences(content, state.battleInput.enemy, true);
+    if (state.battleInput.enemy.companion !== undefined) {
+      throw new Error('Frozen enemy companion does not match the selected encounter');
+    }
   }
   if (state.phase === 'battle') {
     const journey = state.battleInput?.player?.journey;
@@ -3515,8 +4598,13 @@ export function validateRunState(content: Content, raw: RunState): void {
       journey[key as keyof typeof expected] !== expected[key as keyof typeof expected])) {
       throw new Error('Frozen battle journey context mismatch');
     }
+    const expectedCompanion = state.ownedMethods.find(id => id !== state.battleInput?.player?.method);
+    if (state.battleInput?.player?.companion !== expectedCompanion) {
+      throw new Error('Frozen battle companion does not match owned methods');
+    }
   }
   if (state.battle) validateBattleResult(state.battle);
+  if (state.battle && state.battleInput) validateBattleCuesAgainstInput(state.battle, state.battleInput);
   if (state.eventOption !== undefined && typeof state.eventOption !== 'string') throw new Error('Invalid event option');
   const currentNode = state.nodes[state.step];
   if (state.eventCheck !== undefined) {
@@ -3562,6 +4650,8 @@ export function validateRunState(content: Content, raw: RunState): void {
   }
   if (['battle', 'reward'].includes(state.phase) && !state.battle) throw new Error('Battle phase without result');
   if (state.phase === 'reward' && !state.rewardCandidates.length && !state.battle) throw new Error('Reward phase without battle');
+  validateFusionState(content, state);
+  validateThunderChallengeHistory(content, state);
   if (!allFiniteNumbers(state)) throw new Error('Non-finite run state');
 }
 
@@ -3578,5 +4668,6 @@ export function simulateBattle(
 ): BattleResult {
   const result = worker().simulateBattle(content, player, enemy, seed, options);
   validateBattleResult(result);
+  validateBattleCuesAgainstInput(result, { player, enemy });
   return result;
 }

@@ -25,18 +25,51 @@ export const METHOD_RARITIES = Object.freeze({
   RKF09: 'legendary',
   RKF10: 'legendary',
 })
+export const COMPANION_TRIGGERS = Object.freeze([
+  'hit',
+  'shield',
+  'heal',
+  'rage',
+  'poison',
+  'burn',
+  'debuff',
+  'phase',
+])
+export const COMPANION_EFFECT_KINDS = Object.freeze([
+  'damage',
+  'shield',
+  'heal',
+  'rage',
+  'poison',
+  'burn',
+])
+export const AWAKENING_TRIGGERS = Object.freeze(['basic', 'rage', 'either'])
+export const AWAKENING_EFFECT_KINDS = COMPANION_EFFECT_KINDS
 
 export const ARTIFACT_IDS = Object.freeze([
   ...Array.from({ length: 24 }, (_, index) => `RC${String(index + 1).padStart(2, '0')}`),
   ...Array.from({ length: 15 }, (_, index) => `RR${String(index + 1).padStart(2, '0')}`),
-  ...Array.from({ length: 5 }, (_, index) => `RL${String(index + 1).padStart(2, '0')}`),
+  ...Array.from({ length: 7 }, (_, index) => `RL${String(index + 1).padStart(2, '0')}`),
 ])
 export const ARTIFACT_RARITIES = Object.freeze({
   ...Object.fromEntries(Array.from({ length: 24 }, (_, index) => [`RC${String(index + 1).padStart(2, '0')}`, 'common'])),
   ...Object.fromEntries(Array.from({ length: 15 }, (_, index) => [`RR${String(index + 1).padStart(2, '0')}`, 'rare'])),
-  ...Object.fromEntries(Array.from({ length: 5 }, (_, index) => [`RL${String(index + 1).padStart(2, '0')}`, 'legendary'])),
+  ...Object.fromEntries(Array.from({ length: 7 }, (_, index) => [`RL${String(index + 1).padStart(2, '0')}`, 'legendary'])),
+})
+export const ARTIFACT_FUSION_RECIPES = Object.freeze({
+  RL06: Object.freeze({ inputs: Object.freeze(['RC14', 'RC15']), fights: 2 }),
+  RL07: Object.freeze({ inputs: Object.freeze(['RC01', 'RC09']), fights: 2 }),
+})
+export const ARTIFACT_FUSION_RULES = Object.freeze({
+  RL06: Object.freeze({ kind: 'toxic_flame' }),
+  RL07: Object.freeze({ kind: 'twin_swords' }),
+})
+export const ARTIFACT_GAMBIT_RULES = Object.freeze({
+  RL04: Object.freeze({ kind: 'overdrive', rage_cap: 50, defense_multiplier: 0.65 }),
+  RR05: Object.freeze({ kind: 'reckless', defense_multiplier: 0.5, direct_damage_multiplier: 1.6 }),
 })
 export const CORE_ARTIFACT_RULES = Object.freeze({
+  RC01: Object.freeze({ kind: 'basic_convergence', damage_ratio: 1.25 }),
   RC09: Object.freeze({ kind: 'basic_echo', ratio: 0.45, rage_damage_ratio: 0.65 }),
   RC10: Object.freeze({ kind: 'rage_gambit', rage_refund: 20, incoming_damage_ratio: 1.12 }),
   RC11: Object.freeze({ kind: 'shield_burst', opening_shield_ratio: 0.12, shield_ratio: 0.5, damage_ratio: 1.4 }),
@@ -51,6 +84,8 @@ export const CORE_ARTIFACT_IDS = Object.freeze([
   'RL03',
   'RL04',
   'RL05',
+  'RL06',
+  'RL07',
 ])
 export const ARTIFACT_EQUIPMENT_ROLES = Object.freeze(Object.fromEntries(
   ARTIFACT_IDS.map((id) => [id, CORE_ARTIFACT_IDS.includes(id) ? 'core' : 'support']),
@@ -391,6 +426,8 @@ export const ARTIFACT_BASELINE = Object.freeze({
   RL03: { name: '裂空宝轮', max_stacks: 1, flat: { attack: 12, crit_rate: 0.03 }, percent: {} },
   RL04: { name: '启明玉', max_stacks: 1, flat: { attack: 12, speed: 1 }, percent: {} },
   RL05: { name: '回澜印', max_stacks: 1, flat: { attack: 12, defense: 6 }, percent: {} },
+  RL06: { name: '九幽毒火幡', max_stacks: 1, flat: {}, percent: {} },
+  RL07: { name: '雌雄剑', max_stacks: 1, flat: {}, percent: {} },
 })
 
 export const ROUTE_LABELS = Object.freeze(['稳健', '精英', '追踪', '省钱', '硬闯', '避险'])

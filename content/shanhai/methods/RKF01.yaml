@@ -31,6 +31,15 @@ mechanic: null
 acquisition:
   start: true
   pools: [method_common]
+companion:
+  name: 护法灵将
+  quick: 主修功法的主动作实际造盾时，追加最大气血3%的护盾；与御火诀合练时改为4%护盾
+  trigger: shield
+  effect: {kind: shield, value: 0.03}
+  pair_bonuses:
+    - with: RKF04
+      trigger: burn
+      effect: {kind: shield, value: 0.04}
 actions:
   basic:
     name: 金刚镇岳

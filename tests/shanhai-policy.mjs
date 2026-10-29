@@ -1,4 +1,6 @@
 // Deterministic, legal decisions for regression only, not an estimate of player skill.
+import { MAX_EQUIPMENT_SLOTS } from '../build/shanhai/equipment.js';
+
 const BRANCHES = {
   RKF01: ['A', 'C', 'B', 'A'], RKF02: ['B', 'B', 'A', 'B'],
   RKF03: ['B', 'B', 'C', 'A'], RKF04: ['C', 'B', 'B', 'C'],
@@ -70,7 +72,7 @@ export function equipmentCommand(game) {
       artifactScore(game, right) - artifactScore(game, left) ||
       left.localeCompare(right));
 
-  if (slots.length < 4) {
+  if (slots.length < MAX_EQUIPMENT_SLOTS) {
     const best = candidates[0];
     return best ? { type: 'equip', id: best } : null;
   }

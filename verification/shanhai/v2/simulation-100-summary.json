@@ -1,0 +1,944 @@
+{
+  "experimentTrack": "V2 second overhaul; buildVersion 5; shanhai-content-0.2; uncalibrated",
+  "contentVersion": "shanhai-content-0.2",
+  "contentSha256": "c6c6bdbad4c9d5459a894b683202ffc17bcbe0912d5fb25e2e92515999fbe4e5",
+  "policy": "tests/shanhai-policy.mjs",
+  "note": "20 paired seeds per method; route preference is seed-dependent; not independent players or a calibrated win rate. Active thunder, seeking and refinement are not selected by this policy.",
+  "total": 100,
+  "wins": 72,
+  "cumulativePasses": [
+    78,
+    77,
+    75,
+    73
+  ],
+  "byMethod": {
+    "RKF01": {
+      "runs": 20,
+      "wins": 16,
+      "furthestAct": 5
+    },
+    "RKF02": {
+      "runs": 20,
+      "wins": 13,
+      "furthestAct": 5
+    },
+    "RKF03": {
+      "runs": 20,
+      "wins": 14,
+      "furthestAct": 5
+    },
+    "RKF04": {
+      "runs": 20,
+      "wins": 14,
+      "furthestAct": 5
+    },
+    "RKF05": {
+      "runs": 20,
+      "wins": 15,
+      "furthestAct": 5
+    }
+  },
+  "runs": [
+    {
+      "seed": "acceptance-0",
+      "method": "RKF01",
+      "result": "lost",
+      "act": 1,
+      "step": 9,
+      "nodes": 9,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-1",
+      "method": "RKF01",
+      "result": "lost",
+      "act": 1,
+      "step": 2,
+      "nodes": 2,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-2",
+      "method": "RKF01",
+      "result": "lost",
+      "act": 1,
+      "step": 9,
+      "nodes": 9,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-3",
+      "method": "RKF01",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-4",
+      "method": "RKF01",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 4
+    },
+    {
+      "seed": "acceptance-5",
+      "method": "RKF01",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-6",
+      "method": "RKF01",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-7",
+      "method": "RKF01",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 5
+    },
+    {
+      "seed": "acceptance-8",
+      "method": "RKF01",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-9",
+      "method": "RKF01",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-10",
+      "method": "RKF01",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-11",
+      "method": "RKF01",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 4
+    },
+    {
+      "seed": "acceptance-12",
+      "method": "RKF01",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-13",
+      "method": "RKF01",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-14",
+      "method": "RKF01",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-15",
+      "method": "RKF01",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-16",
+      "method": "RKF01",
+      "result": "lost",
+      "act": 1,
+      "step": 2,
+      "nodes": 2,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-17",
+      "method": "RKF01",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-18",
+      "method": "RKF01",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-19",
+      "method": "RKF01",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 4
+    },
+    {
+      "seed": "acceptance-0",
+      "method": "RKF02",
+      "result": "lost",
+      "act": 1,
+      "step": 9,
+      "nodes": 9,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-1",
+      "method": "RKF02",
+      "result": "lost",
+      "act": 1,
+      "step": 2,
+      "nodes": 2,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-2",
+      "method": "RKF02",
+      "result": "lost",
+      "act": 1,
+      "step": 9,
+      "nodes": 9,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-3",
+      "method": "RKF02",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-4",
+      "method": "RKF02",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-5",
+      "method": "RKF02",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-6",
+      "method": "RKF02",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-7",
+      "method": "RKF02",
+      "result": "lost",
+      "act": 5,
+      "step": 0,
+      "nodes": 44,
+      "finalBattleRounds": 4
+    },
+    {
+      "seed": "acceptance-8",
+      "method": "RKF02",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-9",
+      "method": "RKF02",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-10",
+      "method": "RKF02",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-11",
+      "method": "RKF02",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-12",
+      "method": "RKF02",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-13",
+      "method": "RKF02",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-14",
+      "method": "RKF02",
+      "result": "lost",
+      "act": 2,
+      "step": 0,
+      "nodes": 11,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-15",
+      "method": "RKF02",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-16",
+      "method": "RKF02",
+      "result": "lost",
+      "act": 1,
+      "step": 2,
+      "nodes": 2,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-17",
+      "method": "RKF02",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 1
+    },
+    {
+      "seed": "acceptance-18",
+      "method": "RKF02",
+      "result": "lost",
+      "act": 3,
+      "step": 0,
+      "nodes": 22,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-19",
+      "method": "RKF02",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-0",
+      "method": "RKF03",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 8
+    },
+    {
+      "seed": "acceptance-1",
+      "method": "RKF03",
+      "result": "lost",
+      "act": 1,
+      "step": 2,
+      "nodes": 2,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-2",
+      "method": "RKF03",
+      "result": "lost",
+      "act": 1,
+      "step": 6,
+      "nodes": 6,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-3",
+      "method": "RKF03",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 4
+    },
+    {
+      "seed": "acceptance-4",
+      "method": "RKF03",
+      "result": "lost",
+      "act": 1,
+      "step": 2,
+      "nodes": 2,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-5",
+      "method": "RKF03",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 4
+    },
+    {
+      "seed": "acceptance-6",
+      "method": "RKF03",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 6
+    },
+    {
+      "seed": "acceptance-7",
+      "method": "RKF03",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 4
+    },
+    {
+      "seed": "acceptance-8",
+      "method": "RKF03",
+      "result": "lost",
+      "act": 1,
+      "step": 2,
+      "nodes": 2,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-9",
+      "method": "RKF03",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 4
+    },
+    {
+      "seed": "acceptance-10",
+      "method": "RKF03",
+      "result": "lost",
+      "act": 1,
+      "step": 3,
+      "nodes": 3,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-11",
+      "method": "RKF03",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 6
+    },
+    {
+      "seed": "acceptance-12",
+      "method": "RKF03",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 5
+    },
+    {
+      "seed": "acceptance-13",
+      "method": "RKF03",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-14",
+      "method": "RKF03",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 5
+    },
+    {
+      "seed": "acceptance-15",
+      "method": "RKF03",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 4
+    },
+    {
+      "seed": "acceptance-16",
+      "method": "RKF03",
+      "result": "lost",
+      "act": 1,
+      "step": 2,
+      "nodes": 2,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-17",
+      "method": "RKF03",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 5
+    },
+    {
+      "seed": "acceptance-18",
+      "method": "RKF03",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 6
+    },
+    {
+      "seed": "acceptance-19",
+      "method": "RKF03",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 7
+    },
+    {
+      "seed": "acceptance-0",
+      "method": "RKF04",
+      "result": "lost",
+      "act": 1,
+      "step": 9,
+      "nodes": 9,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-1",
+      "method": "RKF04",
+      "result": "lost",
+      "act": 1,
+      "step": 2,
+      "nodes": 2,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-2",
+      "method": "RKF04",
+      "result": "lost",
+      "act": 1,
+      "step": 8,
+      "nodes": 8,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-3",
+      "method": "RKF04",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-4",
+      "method": "RKF04",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-5",
+      "method": "RKF04",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-6",
+      "method": "RKF04",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 4
+    },
+    {
+      "seed": "acceptance-7",
+      "method": "RKF04",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-8",
+      "method": "RKF04",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-9",
+      "method": "RKF04",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-10",
+      "method": "RKF04",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-11",
+      "method": "RKF04",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-12",
+      "method": "RKF04",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-13",
+      "method": "RKF04",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-14",
+      "method": "RKF04",
+      "result": "lost",
+      "act": 4,
+      "step": 0,
+      "nodes": 33,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-15",
+      "method": "RKF04",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-16",
+      "method": "RKF04",
+      "result": "lost",
+      "act": 1,
+      "step": 2,
+      "nodes": 2,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-17",
+      "method": "RKF04",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-18",
+      "method": "RKF04",
+      "result": "lost",
+      "act": 3,
+      "step": 0,
+      "nodes": 22,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-19",
+      "method": "RKF04",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-0",
+      "method": "RKF05",
+      "result": "lost",
+      "act": 1,
+      "step": 9,
+      "nodes": 9,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-1",
+      "method": "RKF05",
+      "result": "lost",
+      "act": 1,
+      "step": 2,
+      "nodes": 2,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-2",
+      "method": "RKF05",
+      "result": "lost",
+      "act": 1,
+      "step": 9,
+      "nodes": 9,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-3",
+      "method": "RKF05",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-4",
+      "method": "RKF05",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-5",
+      "method": "RKF05",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-6",
+      "method": "RKF05",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-7",
+      "method": "RKF05",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 4
+    },
+    {
+      "seed": "acceptance-8",
+      "method": "RKF05",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-9",
+      "method": "RKF05",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-10",
+      "method": "RKF05",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-11",
+      "method": "RKF05",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 4
+    },
+    {
+      "seed": "acceptance-12",
+      "method": "RKF05",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-13",
+      "method": "RKF05",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 3
+    },
+    {
+      "seed": "acceptance-14",
+      "method": "RKF05",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 1
+    },
+    {
+      "seed": "acceptance-15",
+      "method": "RKF05",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-16",
+      "method": "RKF05",
+      "result": "lost",
+      "act": 1,
+      "step": 2,
+      "nodes": 2,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-17",
+      "method": "RKF05",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    },
+    {
+      "seed": "acceptance-18",
+      "method": "RKF05",
+      "result": "lost",
+      "act": 4,
+      "step": 0,
+      "nodes": 33,
+      "finalBattleRounds": null
+    },
+    {
+      "seed": "acceptance-19",
+      "method": "RKF05",
+      "result": "won",
+      "act": 5,
+      "step": 0,
+      "nodes": 45,
+      "finalBattleRounds": 2
+    }
+  ]
+}

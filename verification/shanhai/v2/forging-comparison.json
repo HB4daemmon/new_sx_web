@@ -1,0 +1,871 @@
+{
+  "schemaVersion": 1,
+  "experiment": "V2_FORGING_CONTROLLED_COMPARE",
+  "buildVersion": 5,
+  "contentVersion": "shanhai-content-0.2",
+  "contentHash": {
+    "algorithm": "SHA-256",
+    "scope": "content/shanhai/manifest.yaml plus all manifest-listed entity YAML source bytes, path-delimited by the file digest list",
+    "value": "c6c6bdbad4c9d5459a894b683202ffc17bcbe0912d5fb25e2e92515999fbe4e5",
+    "fileCount": 155
+  },
+  "runtime": "build/shanhai/combat.js (existing build; this script does not build)",
+  "controlDefinition": "For RC01 pairs, both sides use the identical loadout, base stats, enemy, and seed. Control content is a structured clone with only RC01.core_rule removed.",
+  "caveat": "All combat inputs use explicit fixture stats to keep targets alive and isolate measured mechanics. These deterministic fixtures are not normal run intensity, player outcomes, balance, or fun evidence.",
+  "comparisons": [
+    {
+      "id": "rkf02-split-total-base-damage",
+      "question": "RKF02 plus 剑丸成阵: total basic base damage after returning-breath segments are finalized",
+      "seed": "v2-forging-compare-rkf02-split",
+      "roundLimit": 2,
+      "controlledDifference": "RC01 remains equipped with the same layer count; cloned content removes only RC01.core_rule.",
+      "fixture": {
+        "player": {
+          "method": "RKF02",
+          "talents": [
+            "V2-J2-C"
+          ],
+          "artifacts": [
+            {
+              "id": "RC01",
+              "stacks": 1
+            },
+            {
+              "id": "RL04",
+              "stacks": 1
+            }
+          ],
+          "baseStats": {
+            "attack": 100,
+            "defense": 0,
+            "max_hp": 100000,
+            "crit_rate": 0,
+            "speed": 30
+          },
+          "calculatedStatsWithConvergence": {
+            "attack": 118,
+            "defense": 0,
+            "max_hp": 100000,
+            "crit_rate": 0,
+            "speed": 31
+          },
+          "calculatedStatsWithoutConvergence": {
+            "attack": 118,
+            "defense": 0,
+            "max_hp": 100000,
+            "crit_rate": 0,
+            "speed": 31
+          }
+        },
+        "enemy": {
+          "method": "RKF01",
+          "talents": [],
+          "artifacts": [],
+          "baseStats": {
+            "attack": 0,
+            "defense": 0,
+            "max_hp": 1000000000,
+            "crit_rate": 0,
+            "speed": 1
+          },
+          "calculatedStatsWithConvergence": {
+            "attack": 0,
+            "defense": 0,
+            "max_hp": 1000000000,
+            "crit_rate": 0,
+            "speed": 1
+          },
+          "calculatedStatsWithoutConvergence": {
+            "attack": 0,
+            "defense": 0,
+            "max_hp": 1000000000,
+            "crit_rate": 0,
+            "speed": 1
+          }
+        },
+        "fixtureNote": "Explicit high-HP, low-pressure stats are a controlled combat fixture, not normal progression strength."
+      },
+      "withoutConvergence": {
+        "outcome": "draw",
+        "rounds": 2,
+        "hpLoss": {
+          "player": 0,
+          "enemy": 537.7849999666214
+        },
+        "baseHits": {
+          "count": 5,
+          "totalDamage": 301.78499999999997,
+          "criticalCount": 0,
+          "damageByHit": [
+            60.35699999999999,
+            60.35699999999999,
+            60.35699999999999,
+            60.35699999999999,
+            60.35699999999999
+          ]
+        },
+        "convergence": {
+          "convertedActions": 0,
+          "segmentsMerged": 0
+        },
+        "poison": {
+          "applicationLayers": 0,
+          "layersAtEnd": 0,
+          "dotDamage": 0,
+          "dotDamageByTick": []
+        },
+        "hitRage": 0,
+        "retaliation": {
+          "count": 0,
+          "damage": 0,
+          "damageByHit": []
+        }
+      },
+      "withConvergence": {
+        "outcome": "draw",
+        "rounds": 2,
+        "hpLoss": {
+          "player": 0,
+          "enemy": 613.2312500476837
+        },
+        "baseHits": {
+          "count": 1,
+          "totalDamage": 377.23124999999993,
+          "criticalCount": 0,
+          "damageByHit": [
+            377.23124999999993
+          ]
+        },
+        "convergence": {
+          "convertedActions": 1,
+          "segmentsMerged": 5
+        },
+        "poison": {
+          "applicationLayers": 0,
+          "layersAtEnd": 0,
+          "dotDamage": 0,
+          "dotDamageByTick": []
+        },
+        "hitRage": 0,
+        "retaliation": {
+          "count": 0,
+          "damage": 0,
+          "damageByHit": []
+        }
+      },
+      "deltaWithMinusWithout": {
+        "playerHpLoss": 0,
+        "enemyHpLoss": 75.44625008106232,
+        "baseHitCount": -4,
+        "segmentsMerged": 5,
+        "baseDamage": 75.44624999999996,
+        "poisonApplicationLayers": 0,
+        "poisonLayersAtEnd": 0,
+        "poisonDotDamage": 0,
+        "hitRage": 0,
+        "retaliationCount": 0,
+        "retaliationDamage": 0
+      }
+    },
+    {
+      "id": "full-crit-unavoidable-cost",
+      "question": "At 100% critical rate, compare split critical hits with the converged noncritical hit",
+      "seed": "v2-forging-compare-critical-tradeoff",
+      "roundLimit": 2,
+      "controlledDifference": "RC01 remains equipped with the same layer count; cloned content removes only RC01.core_rule.",
+      "fixture": {
+        "player": {
+          "method": "RKF02",
+          "talents": [
+            "V2-J2-C"
+          ],
+          "artifacts": [
+            {
+              "id": "RC01",
+              "stacks": 1
+            },
+            {
+              "id": "RL04",
+              "stacks": 1
+            }
+          ],
+          "baseStats": {
+            "attack": 100,
+            "defense": 0,
+            "max_hp": 100000,
+            "crit_rate": 1,
+            "speed": 30
+          },
+          "calculatedStatsWithConvergence": {
+            "attack": 118,
+            "defense": 0,
+            "max_hp": 100000,
+            "crit_rate": 1,
+            "speed": 31
+          },
+          "calculatedStatsWithoutConvergence": {
+            "attack": 118,
+            "defense": 0,
+            "max_hp": 100000,
+            "crit_rate": 1,
+            "speed": 31
+          }
+        },
+        "enemy": {
+          "method": "RKF01",
+          "talents": [],
+          "artifacts": [],
+          "baseStats": {
+            "attack": 0,
+            "defense": 0,
+            "max_hp": 1000000000,
+            "crit_rate": 0,
+            "speed": 1
+          },
+          "calculatedStatsWithConvergence": {
+            "attack": 0,
+            "defense": 0,
+            "max_hp": 1000000000,
+            "crit_rate": 0,
+            "speed": 1
+          },
+          "calculatedStatsWithoutConvergence": {
+            "attack": 0,
+            "defense": 0,
+            "max_hp": 1000000000,
+            "crit_rate": 0,
+            "speed": 1
+          }
+        },
+        "fixtureNote": "Explicit high-HP, low-pressure stats are a controlled combat fixture, not normal progression strength."
+      },
+      "withoutConvergence": {
+        "outcome": "draw",
+        "rounds": 2,
+        "hpLoss": {
+          "player": 0,
+          "enemy": 806.6775002479553
+        },
+        "baseHits": {
+          "count": 5,
+          "totalDamage": 452.6775,
+          "criticalCount": 5,
+          "damageByHit": [
+            90.5355,
+            90.5355,
+            90.5355,
+            90.5355,
+            90.5355
+          ]
+        },
+        "convergence": {
+          "convertedActions": 0,
+          "segmentsMerged": 0
+        },
+        "poison": {
+          "applicationLayers": 0,
+          "layersAtEnd": 0,
+          "dotDamage": 0,
+          "dotDamageByTick": []
+        },
+        "hitRage": 0,
+        "retaliation": {
+          "count": 0,
+          "damage": 0,
+          "damageByHit": []
+        }
+      },
+      "withConvergence": {
+        "outcome": "draw",
+        "rounds": 2,
+        "hpLoss": {
+          "player": 0,
+          "enemy": 731.2312500476837
+        },
+        "baseHits": {
+          "count": 1,
+          "totalDamage": 377.23124999999993,
+          "criticalCount": 0,
+          "damageByHit": [
+            377.23124999999993
+          ]
+        },
+        "convergence": {
+          "convertedActions": 1,
+          "segmentsMerged": 5
+        },
+        "poison": {
+          "applicationLayers": 0,
+          "layersAtEnd": 0,
+          "dotDamage": 0,
+          "dotDamageByTick": []
+        },
+        "hitRage": 0,
+        "retaliation": {
+          "count": 0,
+          "damage": 0,
+          "damageByHit": []
+        }
+      },
+      "deltaWithMinusWithout": {
+        "playerHpLoss": 0,
+        "enemyHpLoss": -75.4462502002716,
+        "baseHitCount": -4,
+        "segmentsMerged": 5,
+        "baseDamage": -75.44625000000008,
+        "poisonApplicationLayers": 0,
+        "poisonLayersAtEnd": 0,
+        "poisonDotDamage": 0,
+        "hitRage": 0,
+        "retaliationCount": 0,
+        "retaliationDamage": 0
+      }
+    },
+    {
+      "id": "rkf06-poison-and-hit-rage-reduction",
+      "question": "RKF06 with three-segment basics: poison applications and hit-rage rewards follow the effective hit count",
+      "seed": "v2-forging-compare-rkf06-hit-effects",
+      "roundLimit": 1,
+      "controlledDifference": "RC01 remains equipped with the same layer count; cloned content removes only RC01.core_rule.",
+      "fixture": {
+        "player": {
+          "method": "RKF06",
+          "talents": [
+            "V2-J2-C",
+            "V2-J3-A"
+          ],
+          "artifacts": [
+            {
+              "id": "RC01",
+              "stacks": 1
+            }
+          ],
+          "baseStats": {
+            "attack": 100,
+            "defense": 0,
+            "max_hp": 100000,
+            "crit_rate": 0,
+            "speed": 30
+          },
+          "calculatedStatsWithConvergence": {
+            "attack": 106,
+            "defense": 0,
+            "max_hp": 100000,
+            "crit_rate": 0,
+            "speed": 30
+          },
+          "calculatedStatsWithoutConvergence": {
+            "attack": 106,
+            "defense": 0,
+            "max_hp": 100000,
+            "crit_rate": 0,
+            "speed": 30
+          }
+        },
+        "enemy": {
+          "method": "RKF01",
+          "talents": [],
+          "artifacts": [],
+          "baseStats": {
+            "attack": 0,
+            "defense": 0,
+            "max_hp": 1000000000,
+            "crit_rate": 0,
+            "speed": 1
+          },
+          "calculatedStatsWithConvergence": {
+            "attack": 0,
+            "defense": 0,
+            "max_hp": 1000000000,
+            "crit_rate": 0,
+            "speed": 1
+          },
+          "calculatedStatsWithoutConvergence": {
+            "attack": 0,
+            "defense": 0,
+            "max_hp": 1000000000,
+            "crit_rate": 0,
+            "speed": 1
+          }
+        },
+        "fixtureNote": "Explicit high-HP, low-pressure stats are a controlled combat fixture, not normal progression strength."
+      },
+      "withoutConvergence": {
+        "outcome": "draw",
+        "rounds": 1,
+        "hpLoss": {
+          "player": 0,
+          "enemy": 197.1600000858307
+        },
+        "baseHits": {
+          "count": 3,
+          "totalDamage": 171.72,
+          "criticalCount": 0,
+          "damageByHit": [
+            57.24,
+            57.24,
+            57.24
+          ]
+        },
+        "convergence": {
+          "convertedActions": 0,
+          "segmentsMerged": 0
+        },
+        "poison": {
+          "applicationLayers": 3,
+          "layersAtEnd": 3,
+          "dotDamage": 25.44,
+          "dotDamageByTick": [
+            8.48,
+            8.48,
+            8.48
+          ]
+        },
+        "hitRage": 9,
+        "retaliation": {
+          "count": 0,
+          "damage": 0,
+          "damageByHit": []
+        }
+      },
+      "withConvergence": {
+        "outcome": "draw",
+        "rounds": 1,
+        "hpLoss": {
+          "player": 0,
+          "enemy": 223.12999999523163
+        },
+        "baseHits": {
+          "count": 1,
+          "totalDamage": 214.65000000000003,
+          "criticalCount": 0,
+          "damageByHit": [
+            214.65000000000003
+          ]
+        },
+        "convergence": {
+          "convertedActions": 1,
+          "segmentsMerged": 3
+        },
+        "poison": {
+          "applicationLayers": 1,
+          "layersAtEnd": 1,
+          "dotDamage": 8.48,
+          "dotDamageByTick": [
+            8.48
+          ]
+        },
+        "hitRage": 3,
+        "retaliation": {
+          "count": 0,
+          "damage": 0,
+          "damageByHit": []
+        }
+      },
+      "deltaWithMinusWithout": {
+        "playerHpLoss": 0,
+        "enemyHpLoss": 25.96999990940094,
+        "baseHitCount": -2,
+        "segmentsMerged": 3,
+        "baseDamage": 42.930000000000035,
+        "poisonApplicationLayers": -2,
+        "poisonLayersAtEnd": -2,
+        "poisonDotDamage": -16.96,
+        "hitRage": -6,
+        "retaliationCount": 0,
+        "retaliationDamage": 0
+      }
+    },
+    {
+      "id": "carapace-retaliations",
+      "question": "Against 猬甲护身, compare the number and total damage of retaliation hits",
+      "seed": "v2-forging-compare-carapace",
+      "roundLimit": 1,
+      "controlledDifference": "RC01 remains equipped with the same layer count; cloned content removes only RC01.core_rule.",
+      "fixture": {
+        "player": {
+          "method": "RKF02",
+          "talents": [
+            "V2-J2-C"
+          ],
+          "artifacts": [
+            {
+              "id": "RC01",
+              "stacks": 1
+            }
+          ],
+          "baseStats": {
+            "attack": 100,
+            "defense": 0,
+            "max_hp": 100000,
+            "crit_rate": 0,
+            "speed": 30
+          },
+          "calculatedStatsWithConvergence": {
+            "attack": 106,
+            "defense": 0,
+            "max_hp": 100000,
+            "crit_rate": 0,
+            "speed": 30
+          },
+          "calculatedStatsWithoutConvergence": {
+            "attack": 106,
+            "defense": 0,
+            "max_hp": 100000,
+            "crit_rate": 0,
+            "speed": 30
+          }
+        },
+        "enemy": {
+          "method": "RKF01",
+          "talents": [
+            "V2-J1-D"
+          ],
+          "artifacts": [],
+          "baseStats": {
+            "attack": 0,
+            "defense": 0,
+            "max_hp": 1000000000,
+            "crit_rate": 0,
+            "speed": 1
+          },
+          "calculatedStatsWithConvergence": {
+            "attack": 0,
+            "defense": 0,
+            "max_hp": 1000000000,
+            "crit_rate": 0,
+            "speed": 1
+          },
+          "calculatedStatsWithoutConvergence": {
+            "attack": 0,
+            "defense": 0,
+            "max_hp": 1000000000,
+            "crit_rate": 0,
+            "speed": 1
+          }
+        },
+        "fixtureNote": "Explicit high-HP, low-pressure stats are a controlled combat fixture, not normal progression strength."
+      },
+      "withoutConvergence": {
+        "outcome": "draw",
+        "rounds": 1,
+        "hpLoss": {
+          "player": 8.64000000001397,
+          "enemy": 279.5978572368622
+        },
+        "baseHits": {
+          "count": 3,
+          "totalDamage": 279.59785714285715,
+          "criticalCount": 0,
+          "damageByHit": [
+            98.58,
+            93,
+            88.01785714285714
+          ]
+        },
+        "convergence": {
+          "convertedActions": 0,
+          "segmentsMerged": 0
+        },
+        "poison": {
+          "applicationLayers": 0,
+          "layersAtEnd": 0,
+          "dotDamage": 0,
+          "dotDamageByTick": []
+        },
+        "hitRage": 0,
+        "retaliation": {
+          "count": 3,
+          "damage": 8.64,
+          "damageByHit": [
+            1.44,
+            2.88,
+            4.32
+          ]
+        }
+      },
+      "withConvergence": {
+        "outcome": "draw",
+        "rounds": 1,
+        "hpLoss": {
+          "player": 1.4400000000023283,
+          "enemy": 369.6749999523163
+        },
+        "baseHits": {
+          "count": 1,
+          "totalDamage": 369.67499999999995,
+          "criticalCount": 0,
+          "damageByHit": [
+            369.67499999999995
+          ]
+        },
+        "convergence": {
+          "convertedActions": 1,
+          "segmentsMerged": 3
+        },
+        "poison": {
+          "applicationLayers": 0,
+          "layersAtEnd": 0,
+          "dotDamage": 0,
+          "dotDamageByTick": []
+        },
+        "hitRage": 0,
+        "retaliation": {
+          "count": 1,
+          "damage": 1.44,
+          "damageByHit": [
+            1.44
+          ]
+        }
+      },
+      "deltaWithMinusWithout": {
+        "playerHpLoss": -7.2000000000116415,
+        "enemyHpLoss": 90.0771427154541,
+        "baseHitCount": -2,
+        "segmentsMerged": 3,
+        "baseDamage": 90.0771428571428,
+        "poisonApplicationLayers": 0,
+        "poisonLayersAtEnd": 0,
+        "poisonDotDamage": 0,
+        "hitRage": 0,
+        "retaliationCount": -2,
+        "retaliationDamage": -7.200000000000001
+      }
+    }
+  ],
+  "rc14Awakening": {
+    "id": "rc14-awakening-two-to-three",
+    "question": "Compare RC14 at two and three layers, and isolate the real three-layer awakening against the same loadout with awakenings disabled",
+    "fixture": {
+      "method": "RKF09",
+      "enemyMethod": "RKF01",
+      "baseStats": {
+        "attack": 100,
+        "defense": 0,
+        "max_hp": 100000,
+        "crit_rate": 0,
+        "speed": 30
+      },
+      "roundLimit": 1,
+      "seed": "v2-forging-compare-rc14-awakening",
+      "condition": "RKF09 basic applies burn before RC14 core applies poison during the same action.",
+      "fixtureNote": "Explicit high-HP stats and one-round observation are controlled fixtures, not normal progression strength."
+    },
+    "twoStacks": {
+      "enabled": {
+        "stacks": 2,
+        "artifactAwakenings": true,
+        "baseStats": {
+          "attack": 100,
+          "defense": 0,
+          "max_hp": 100000,
+          "crit_rate": 0,
+          "speed": 30
+        },
+        "calculatedStats": {
+          "attack": 104,
+          "defense": 0,
+          "max_hp": 100000,
+          "crit_rate": 0,
+          "speed": 30
+        },
+        "seed": "v2-forging-compare-rc14-awakening",
+        "outcome": "draw",
+        "rounds": 1,
+        "hpLoss": {
+          "player": 0,
+          "enemy": 121.63840007781982
+        },
+        "baseHits": {
+          "count": 1,
+          "totalDamage": 104,
+          "criticalCount": 0,
+          "damageByHit": [
+            104
+          ]
+        },
+        "burnLayersAtEnd": 1,
+        "poisonLayersAtEnd": 1,
+        "poisonDotDamage": 9.3184,
+        "poisonDotDamageByTick": [
+          9.3184
+        ],
+        "rc14Contribution": {
+          "id": "RC14",
+          "name": "蛇纹瓶",
+          "triggers": 4,
+          "damage": 9.3184,
+          "healing": 0,
+          "shield": 0,
+          "absorbed": 0,
+          "rage": 0
+        }
+      },
+      "disabled": {
+        "stacks": 2,
+        "artifactAwakenings": false,
+        "baseStats": {
+          "attack": 100,
+          "defense": 0,
+          "max_hp": 100000,
+          "crit_rate": 0,
+          "speed": 30
+        },
+        "calculatedStats": {
+          "attack": 104,
+          "defense": 0,
+          "max_hp": 100000,
+          "crit_rate": 0,
+          "speed": 30
+        },
+        "seed": "v2-forging-compare-rc14-awakening",
+        "outcome": "draw",
+        "rounds": 1,
+        "hpLoss": {
+          "player": 0,
+          "enemy": 121.63840007781982
+        },
+        "baseHits": {
+          "count": 1,
+          "totalDamage": 104,
+          "criticalCount": 0,
+          "damageByHit": [
+            104
+          ]
+        },
+        "burnLayersAtEnd": 1,
+        "poisonLayersAtEnd": 1,
+        "poisonDotDamage": 9.3184,
+        "poisonDotDamageByTick": [
+          9.3184
+        ],
+        "rc14Contribution": {
+          "id": "RC14",
+          "name": "蛇纹瓶",
+          "triggers": 4,
+          "damage": 9.3184,
+          "healing": 0,
+          "shield": 0,
+          "absorbed": 0,
+          "rage": 0
+        }
+      },
+      "awakeningTriggerDelta": 0,
+      "awakeningPoisonDamageDelta": 0
+    },
+    "threeStacks": {
+      "enabled": {
+        "stacks": 3,
+        "artifactAwakenings": true,
+        "baseStats": {
+          "attack": 100,
+          "defense": 0,
+          "max_hp": 100000,
+          "crit_rate": 0,
+          "speed": 30
+        },
+        "calculatedStats": {
+          "attack": 106,
+          "defense": 0,
+          "max_hp": 100000,
+          "crit_rate": 0,
+          "speed": 30
+        },
+        "seed": "v2-forging-compare-rc14-awakening",
+        "outcome": "draw",
+        "rounds": 1,
+        "hpLoss": {
+          "player": 0,
+          "enemy": 128.72640001773834
+        },
+        "baseHits": {
+          "count": 1,
+          "totalDamage": 106,
+          "criticalCount": 0,
+          "damageByHit": [
+            106
+          ]
+        },
+        "burnLayersAtEnd": 1,
+        "poisonLayersAtEnd": 1,
+        "poisonDotDamage": 14.2464,
+        "poisonDotDamageByTick": [
+          14.2464
+        ],
+        "rc14Contribution": {
+          "id": "RC14",
+          "name": "蛇纹瓶",
+          "triggers": 6,
+          "damage": 14.2464,
+          "healing": 0,
+          "shield": 0,
+          "absorbed": 0,
+          "rage": 0
+        }
+      },
+      "disabled": {
+        "stacks": 3,
+        "artifactAwakenings": false,
+        "baseStats": {
+          "attack": 100,
+          "defense": 0,
+          "max_hp": 100000,
+          "crit_rate": 0,
+          "speed": 30
+        },
+        "calculatedStats": {
+          "attack": 106,
+          "defense": 0,
+          "max_hp": 100000,
+          "crit_rate": 0,
+          "speed": 30
+        },
+        "seed": "v2-forging-compare-rc14-awakening",
+        "outcome": "draw",
+        "rounds": 1,
+        "hpLoss": {
+          "player": 0,
+          "enemy": 124.4864000082016
+        },
+        "baseHits": {
+          "count": 1,
+          "totalDamage": 106,
+          "criticalCount": 0,
+          "damageByHit": [
+            106
+          ]
+        },
+        "burnLayersAtEnd": 1,
+        "poisonLayersAtEnd": 1,
+        "poisonDotDamage": 10.0064,
+        "poisonDotDamageByTick": [
+          10.0064
+        ],
+        "rc14Contribution": {
+          "id": "RC14",
+          "name": "蛇纹瓶",
+          "triggers": 5,
+          "damage": 10.0064,
+          "healing": 0,
+          "shield": 0,
+          "absorbed": 0,
+          "rage": 0
+        }
+      },
+      "awakeningTriggerDelta": 1,
+      "awakeningPoisonDamageDelta": 4.24
+    },
+    "stackComparison": {
+      "poisonDotDamageAtTwoStacks": 9.3184,
+      "poisonDotDamageAtThreeStacks": 14.2464,
+      "poisonDotDamageDelta": 4.927999999999999
+    }
+  },
+  "assertions": {
+    "controlledRkf02DamageBenefit": true,
+    "fullCritNoCritDamageCost": true,
+    "rkf06HitEffectsAndHitRageReduction": true,
+    "carapaceRetaliationReduction": true,
+    "rc14AwakeningThresholdAndActualDamage": true
+  }
+}

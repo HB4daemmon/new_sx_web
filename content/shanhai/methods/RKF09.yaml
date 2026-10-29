@@ -26,6 +26,12 @@ mechanic: null
 acquisition:
   start: false
   pools: [method_legendary]
+companion:
+  name: 金乌幼灵
+  quick: 主修功法的主动作实际施加燃烧后，追加攻击0.28倍的不可暴击派生火伤
+  trigger: burn
+  effect: {kind: damage, value: 0.28}
+  pair_bonuses: []
 actions:
   basic:
     name: 金乌引焰

@@ -17,8 +17,8 @@ const reportDir = reportOverride
   ? path.resolve(reportOverride)
   : path.join(root, 'verification', 'shanhai', 'v2', 'journey');
 const screenshotDir = path.join(reportDir, 'screenshots');
-const saveKey = 'suishi-shanhai-run-v2-reactions';
-const buildKey = 'suishi-shanhai-build-v2-reactions';
+const saveKey = 'suishi-shanhai-run-v2-overhaul';
+const buildKey = 'suishi-shanhai-build-v2-overhaul';
 const seed = process.env.SHANHAI_JOURNEY_SEED || 'v2-functional-RKF01-0';
 const playerName = '真实浏览器行者';
 
@@ -109,6 +109,7 @@ async function clickMatchingAction(page, action, attributes = {}) {
       }
     }
     if (matches) {
+      if (!await candidate.isVisible()) continue;
       await candidate.scrollIntoViewIfNeeded();
       await candidate.waitFor({ state: 'visible' });
       await candidate.click();
@@ -125,6 +126,14 @@ async function openBuild(page) {
   const desktopTab = page.locator('.desktop-nav [data-action="tab"][data-id="build"]');
   await (await mobileTab.isVisible() ? mobileTab : desktopTab).click();
   await page.locator('.game-layout.view-build .equipment-section').waitFor({ state: 'visible' });
+}
+
+async function openJourney(page) {
+  const view = page.locator('.game-layout.view-build');
+  if (!await view.count() || !await view.isVisible()) return;
+  const mobileTab = page.locator('.bottom-nav [data-action="tab"][data-id="journey"]');
+  const desktopTab = page.locator('.desktop-nav [data-action="tab"][data-id="journey"]');
+  await (await mobileTab.isVisible() ? mobileTab : desktopTab).click();
 }
 
 async function clickEquipmentCommand(page, command) {
@@ -153,6 +162,7 @@ async function clickEquipmentCommand(page, command) {
 }
 
 async function clickAndWaitForDispatch(page, command, beforePhase, beforeSaveText) {
+  if (command.type !== 'equip') await openJourney(page);
   switch (command.type) {
     case 'enter':
       assert.ok(command.id, '地图命令没有 route node key');
@@ -523,7 +533,12 @@ async function runJourney(page, record, stopAfterFirstTransition) {
     const command = nextCommand(model, 'steady');
     const beforePhase = phase;
     const beforeSaveText = saved.text;
-    await clickAndWaitForDispatch(page, command, beforePhase, beforeSaveText);
+    try {
+      await clickAndWaitForDispatch(page, command, beforePhase, beforeSaveText);
+    } catch (error) {
+      await takeScreenshot(page, record, `failed-${command.type}-a${model.state.act}-s${model.state.step}`);
+      throw new Error(`${JSON.stringify(command)}: ${error.message}`, { cause: error });
+    }
     actionCount += 1;
   }
 
@@ -557,7 +572,8 @@ async function run() {
   const cases = [
     { viewport: 'desktop', size: { width: 1440, height: 1000 }, stopAfterFirstTransition: false },
     { viewport: 'mobile', size: { width: 390, height: 844 }, stopAfterFirstTransition: true },
-  ];
+  ].filter(item => !process.env.JOURNEY_VIEWPORT || item.viewport === process.env.JOURNEY_VIEWPORT);
+  assert.ok(cases.length, 'Unknown JOURNEY_VIEWPORT');
 
   try {
     for (const item of cases) {

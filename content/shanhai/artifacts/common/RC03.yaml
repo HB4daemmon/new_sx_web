@@ -5,7 +5,7 @@ id: RC03
 name: 玄铁甲
 status: design_target
 summary: 防御 +5；支援定位
-description: 玄铁片层叠成甲，直接提高承受攻击时的防御。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+description: 玄铁片层叠成甲，直接提高承受攻击时的防御。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [defense, combat, durable]
 source:
   basis: original
@@ -22,5 +22,12 @@ attributes:
   percent: {}
 effects: []
 equipment_role: support
+awakening:
+  at_stacks: 5
+  name: 玄铁护心
+  quick: 满5层后，自身存活时每次怒技完成后获得最大气血5%的护盾。
+  trigger: rage
+  effects:
+    - {kind: shield, value: 0.05}
 acquisition:
   pools: [common_artifact]

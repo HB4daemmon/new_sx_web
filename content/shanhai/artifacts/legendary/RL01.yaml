@@ -4,8 +4,8 @@ kind: artifact
 id: RL01
 name: 琉璃法印
 status: design_target
-summary: 最大气血 +12%、防御 +8；治疗溢出转为护盾；核心定位，可与最多3件其他法宝一同装备
-description: 自身治疗填满气血后，溢出的部分转为护盾；已回复的气血照常保留。装备后，核心定位仅作描述，可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+summary: 最大气血 +12%、防御 +8；治疗溢出转为护盾；核心定位，可与最多4件其他法宝一同装备
+description: 自身治疗填满气血后，溢出的部分转为护盾；已回复的气血照常保留。装备后，核心定位仅作描述，可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [max_hp, defense, heal, shield, overflow, legendary]
 source:
   basis: original

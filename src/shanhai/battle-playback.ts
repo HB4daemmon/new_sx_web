@@ -33,6 +33,8 @@ const REACTION_LABELS: Record<NonNullable<BattleFrame['cue']>['kind'], string> =
   spring_bloom: '春生回涌',
   enemy_charge: '首领蓄势',
   enemy_release: '首领释招',
+  rage_chain: '绝技连斩',
+  companion_assist: '同伴助战',
 };
 
 function isBoundary(frame: BattleFrame): boolean {

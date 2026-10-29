@@ -134,10 +134,14 @@
 ## 悬赏寻器
 
 奖励阶段可支付 8 枚灵石，每幕最多寻器 1 次；先免费查看预览，确认付款后才替换原候选，不增加奖励位或提升稀有度。
-- sword：剑穗（`RC09`）、引气符（`RC20`）、蓄气珠（`RR01`）、毒牙钉（`RR03`）、如意钱（`RR04`）、引雷针（`RR10`）
+- sword：青锋石（`RC01`）、剑穗（`RC09`）、引气符（`RC20`）、蓄气珠（`RR01`）、毒牙钉（`RR03`）、如意钱（`RR04`）、引雷针（`RR10`）
 - guard：铁壁符（`RC11`）、震山环（`RC13`）、甘露盏（`RR02`）、震岳鼓（`RR09`）
 - vitality：养气玉（`RC05`）、长生结（`RC06`）、回春瓶（`RC12`）、行医囊（`RC17`）、血气石（`RC24`）、甘露盏（`RR02`）、长明灯（`RR06`）、回生佩（`RR12`）
 - affliction：蛇纹瓶（`RC14`）、赤炎珠（`RC15`）、毒牙钉（`RR03`）、余烬盏（`RR11`）
+
+## 炼宝
+
+第1-4幕普通法宝奖励阶段，在首个保底核心奖励之后，每幕最多炼化 1 次。炼化放弃本次整组冻结的普通候选，消耗一层未装备普通法宝，为另一件已装备且未满层的普通法宝增加一层；不收付灵石、不增加法宝种类或额外领取。寻器后可炼化，但不退款或再给奖励。
 
 ::: details 状态与首测配置
 - dot_snapshot：每次施加保存来源攻击及DOT修正，持续期间不随来源攻击变化重算；消费读取实际存量。
@@ -185,7 +189,8 @@
 - non_artifact_prices：recovery=price=15；currency=coins；数量=0.12；basis=当前幕参考气血；模式=raw；stock=1；preparation=price=12；currency=coins；效果=shield；数量=0.1；basis=当前幕参考气血；范围=next_battle；stock=1；talent_reset=price=40；currency=coins；效果=reset_current_method_talents；stock=1；inventory_rule=one_each_per_shop_visit；free_refreshes=0
 - swap_method：fee=0；fee_currency=coins；occupies_rest_choice=是；heals=否；resets_talents=否
 - artifact_reward_sampling：ordinary_common=candidates=3；draw_once=是；freeze_on_display=是；free_refreshes=0；elite_rare=candidates=3；draw_once=是；freeze_on_display=是；free_refreshes=0；boss_rare=candidates=3；draw_once=是；freeze_on_display=是；exact_ids_before_battle=否；free_refreshes=0
-- reward_seeking：price=8；max_per_act=1；families=sword=RC09、RC20、RR01、RR03、RR04、RR10；guard=RC11、RC13、RR02、RR09；vitality=RC05、RC06、RC12、RC17、RC24、RR02、RR06、RR12；affliction=RC14、RC15、RR03、RR11
+- reward_seeking：price=8；max_per_act=1；families=sword=RC01、RC09、RC20、RR01、RR03、RR04、RR10；guard=RC11、RC13、RR02、RR09；vitality=RC05、RC06、RC12、RC17、RC24、RR02、RR06、RR12；affliction=RC14、RC15、RR03、RR11
+- reward_refining：max_per_act=1
 - boss_legendary_replacement：probability_by_act=0.02、0.04、0.06、0.08；max_replacements=1；replaces_candidate=是；adds_candidate=否；no_extra_reward=是；fallback_if_ineligible=rare；guaranteed=否
 - design_notes：状态=design_target；实测=未填写；note=本节是四幕商店、休整和奖励的唯一首测参照；价格、权重和传奇替换概率均为目标输入，不是实测结论。
 :::

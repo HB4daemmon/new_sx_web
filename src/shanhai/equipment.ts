@@ -1,5 +1,7 @@
 import type { ArtifactStack, Content, EquipmentRole, RunState } from './types.js';
 
+export const MAX_EQUIPMENT_SLOTS = 5;
+
 function entity(content: Content, id: string): Record<string, any> | undefined {
   const byId = content.byId as any;
   if (byId instanceof Map) return byId.get(id);
@@ -25,7 +27,7 @@ export function equippedArtifactStacks(state: RunState): ArtifactStack[] {
 
 export function autoEquipArtifact(content: Content, state: RunState, id: string): void {
   if (!artifactRole(content, id) || state.equipment.slots.includes(id) ||
-    state.equipment.slots.length >= 4) return;
+    state.equipment.slots.length >= MAX_EQUIPMENT_SLOTS) return;
   state.equipment.slots.push(id);
 }
 
@@ -36,7 +38,7 @@ export function removeMissingEquipment(state: RunState): void {
 
 export function validateEquipment(content: Content, state: RunState): void {
   const slots = state.equipment?.slots;
-  if (!Array.isArray(slots) || slots.length > 4 ||
+  if (!Array.isArray(slots) || slots.length > MAX_EQUIPMENT_SLOTS ||
     slots.some(id => typeof id !== 'string') || new Set(slots).size !== slots.length) {
     throw new Error('Invalid equipment slots');
   }

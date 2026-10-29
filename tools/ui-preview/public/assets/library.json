@@ -1230,6 +1230,22 @@
           "+6"
         ]
       ]
+    },
+    "RL06": {
+      "src": "/assets/icon-bottle.png",
+      "type": "special",
+      "name": "九幽毒火幡",
+      "rarity": "legendary",
+      "description": "融合蛇纹瓶与赤炎珠后唤起毒火；只在完成融合后取得。",
+      "stats": []
+    },
+    "RL07": {
+      "src": "/assets/icon-jade.png",
+      "type": "special",
+      "name": "雌雄剑",
+      "rarity": "legendary",
+      "description": "融合青锋石与剑穗后化为雌雄双剑；只在完成融合后取得。",
+      "stats": []
     }
   },
   "assets": [

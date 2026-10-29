@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadContent } from '../tools/content-kit/src/loader.mjs';
 import { calculateStats } from '../build/shanhai/combat.js';
-import { artifactRole } from '../build/shanhai/equipment.js';
+import { artifactRole, MAX_EQUIPMENT_SLOTS } from '../build/shanhai/equipment.js';
 import { ShanhaiGame, registerCombatWorker } from '../build/shanhai/run.js';
 import { parseRunSave, serializeRun } from '../build/shanhai/persistence.js';
 
@@ -114,7 +114,8 @@ test('hunter challenge freezes an elite encounter on the current normal node and
   assert.equal(game.canChallengeElite(), true, 'the invitation becomes available once in each act');
 });
 
-test('four equipment slots ignore roles without healing or resetting route state', () => {
+test('five equipment slots ignore roles without healing or resetting route state', () => {
+  assert.equal(MAX_EQUIPMENT_SLOTS, 5);
   const game = make('v2-equipment');
   const baseMaxHp = game.stats.max_hp;
   byId.get('RC01').attributes.flat.max_hp = 100;
@@ -141,11 +142,13 @@ test('four equipment slots ignore roles without healing or resetting route state
   game.dispatch({ type: 'equip', id: 'RC02' });
   game.dispatch({ type: 'equip', id: 'RC03' });
   game.dispatch({ type: 'equip', id: 'RC04' });
-  assert.throws(() => game.dispatch({ type: 'equip', id: 'RC05' }), /full/);
+  game.dispatch({ type: 'equip', id: 'RC05' });
+  assert.equal(game.state.equipment.slots.length, MAX_EQUIPMENT_SLOTS);
+  assert.throws(() => game.dispatch({ type: 'equip', id: 'RC09' }), /Equipment slots are full/);
   game.dispatch({ type: 'equip', id: 'RC09', replace: 'RC02' });
-  assert.deepEqual(game.state.equipment.slots, ['RC01', 'RC09', 'RC03', 'RC04']);
+  assert.deepEqual(game.state.equipment.slots, ['RC01', 'RC09', 'RC03', 'RC04', 'RC05']);
   game.dispatch({ type: 'equip', id: 'RC10', replace: 'RC01' });
-  assert.deepEqual(game.state.equipment.slots, ['RC10', 'RC09', 'RC03', 'RC04']);
+  assert.deepEqual(game.state.equipment.slots, ['RC10', 'RC09', 'RC03', 'RC04', 'RC05']);
   assert.equal(game.state.seed, seed);
   assert.deepEqual(game.state.routeMap.path, path);
 
@@ -185,8 +188,9 @@ test('artifact roles are required content data and do not fall back by artifact 
   assert.equal(artifactRole(rolelessContent, 'RC01'), undefined);
 });
 
-test('enemy loadouts allow any four artifact roles in the generic slots', () => {
+test('enemy loadouts allow five artifact roles and reject a sixth generic slot', () => {
   const game = make('v2-generic-enemy-slots');
+  assert.equal(MAX_EQUIPMENT_SLOTS, 5);
   game.dispatch({ type: 'enter', id: game.availableNodes()[0].key });
   game.dispatch({ type: 'fight' });
   game.state.battleInput.enemy.artifacts = [
@@ -194,9 +198,13 @@ test('enemy loadouts allow any four artifact roles in the generic slots', () => 
     { id: 'RC10', stacks: 1 },
     { id: 'RC01', stacks: 1 },
     { id: 'RC02', stacks: 1 },
+    { id: 'RC11', stacks: 1 },
   ];
 
   assert.doesNotThrow(() => serializeRun(game));
+  game.state.battleInput.enemy.artifacts.push({ id: 'RC03', stacks: 1 });
+  assert.throws(() => serializeRun(game), /enemy equipment slots/i);
+  game.state.battleInput.enemy.artifacts.pop();
 });
 
 test('acquisition auto-fills empty compatible slots and the first ordinary reward replaces its normal pool', () => {
@@ -207,16 +215,23 @@ test('acquisition auto-fills empty compatible slots and the first ordinary rewar
     { id: 'RC02', kind: 'artifact', price: 0, sold: false },
     { id: 'RC03', kind: 'artifact', price: 0, sold: false },
     { id: 'RC04', kind: 'artifact', price: 0, sold: false },
+    { id: 'RC05', kind: 'artifact', price: 0, sold: false },
     { id: 'RC09', kind: 'artifact', price: 0, sold: false },
   ];
   acquired.dispatch({ type: 'buy', id: 'RC01' });
   acquired.dispatch({ type: 'buy', id: 'RC02' });
   acquired.dispatch({ type: 'buy', id: 'RC03' });
   acquired.dispatch({ type: 'buy', id: 'RC04' });
+  acquired.dispatch({ type: 'buy', id: 'RC05' });
   acquired.dispatch({ type: 'buy', id: 'RC09' });
-  assert.deepEqual(acquired.state.equipment, { slots: ['RC01', 'RC02', 'RC03', 'RC04'] });
+  assert.deepEqual(acquired.state.equipment,
+    { slots: ['RC01', 'RC02', 'RC03', 'RC04', 'RC05'] });
   assert.ok(acquired.state.artifacts.some(stack => stack.id === 'RC04'));
   assert.equal(acquired.equippedArtifacts().some(stack => stack.id === 'RC04'), true);
+  assert.ok(acquired.state.artifacts.some(stack => stack.id === 'RC09'),
+    'the sixth acquired artifact must remain owned');
+  assert.equal(acquired.equippedArtifacts().some(stack => stack.id === 'RC09'), false,
+    'the sixth acquired artifact must stay unequipped when all five slots are filled');
 
   const mixed = make('v2-auto-equip-core');
   mixed.state.phase = 'shop';
@@ -224,11 +239,13 @@ test('acquisition auto-fills empty compatible slots and the first ordinary rewar
     { id: 'RC01', stacks: 1 },
     { id: 'RC02', stacks: 1 },
     { id: 'RC03', stacks: 1 },
+    { id: 'RC04', stacks: 1 },
   ];
-  mixed.state.equipment = { slots: ['RC01', 'RC02', 'RC03'] };
+  mixed.state.equipment = { slots: ['RC01', 'RC02', 'RC03', 'RC04'] };
   mixed.state.shop = [{ id: 'RC09', kind: 'artifact', price: 0, sold: false }];
   mixed.dispatch({ type: 'buy', id: 'RC09' });
-  assert.deepEqual(mixed.state.equipment.slots, ['RC01', 'RC02', 'RC03', 'RC09']);
+  assert.deepEqual(mixed.state.equipment.slots, ['RC01', 'RC02', 'RC03', 'RC04', 'RC09'],
+    'an acquisition must auto-equip into the fifth empty slot');
 
   const game = make('v2-first-core-reward');
   const node = game.availableNodes()[0];

@@ -5,7 +5,7 @@ id: RC21
 name: 调息玉
 status: design_target
 summary: 防御 +2；每整轮存活且战斗未结束时额外回怒 5；支援定位
-description: 玉面随着呼吸明暗变化，在完整存活的战斗轮末稳定补怒。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+description: 玉面随着呼吸明暗变化，在完整存活的战斗轮末稳定补怒。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [defense, rage_gain, round_end, combat]
 source:
   basis: original
@@ -37,5 +37,12 @@ effects:
     limit: {scope: round, count: 1}
     text: 每轮结束时，若自身仍存活且战斗尚未结束，每层额外获得5点怒气。
 equipment_role: support
+awakening:
+  at_stacks: 3
+  name: 调息护脉
+  quick: 满3层后，自身存活时每次普攻或怒技完成后获得最大气血3%的护盾。
+  trigger: either
+  effects:
+    - {kind: shield, value: 0.03}
 acquisition:
   pools: [common_artifact]

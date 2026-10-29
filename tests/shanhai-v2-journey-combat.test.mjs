@@ -3,6 +3,7 @@ import test from 'node:test';
 import { loadContent } from '../tools/content-kit/src/loader.mjs';
 import { contentFromEntities } from '../build/shanhai/content.js';
 import { calculateStats, simulateBattle } from '../build/shanhai/combat.js';
+import { MAX_EQUIPMENT_SLOTS } from '../build/shanhai/equipment.js';
 import { buildMechanicViews as mechanicViews } from '../build/shanhai/build-mechanics.js';
 
 const loaded = await loadContent();
@@ -209,7 +210,8 @@ test('carapace grows after each effective hostile direct segment and does not re
   assert.match(buildMechanicViews(content, defender)[0].summary, /防御 \+6/);
 });
 
-test('four generic artifact slots run every installed core rule independently', () => {
+test('four installed core rules run independently and five generic slots are accepted', () => {
+  assert.equal(MAX_EQUIPMENT_SLOTS, 5);
   const content = openingRage(baseContent);
   const player = loadout('RKF01', [], [
     { id: 'RC09', stacks: 1 },
@@ -240,13 +242,41 @@ test('four generic artifact slots run every installed core rule independently', 
   assert.ok(dotResult.frames.some(frame => frame.kind === 'damage' && frame.source === 'RC14'));
   assert.ok(dotResult.frames.some(frame => frame.kind === 'heal' && frame.source === 'RC15'));
 
-  assert.throws(() => simulateBattle(content, loadout('RKF01', [], [
+  const fourArtifacts = loadout('RKF01', [], [
     { id: 'RC09', stacks: 1 },
     { id: 'RC10', stacks: 1 },
     { id: 'RC11', stacks: 1 },
     { id: 'RC12', stacks: 1 },
-    { id: 'RC14', stacks: 1 },
-  ]), enemy(), 'journey-five-artifacts', { roundLimit: 1 }), /four artifact slots/);
+  ]);
+  const fiveArtifacts = loadout('RKF01', [], [
+    ...fourArtifacts.artifacts,
+    { id: 'RC05', stacks: 1 },
+  ]);
+  assert.equal(fiveArtifacts.artifacts.length, MAX_EQUIPMENT_SLOTS);
+  const fourArtifactStats = calculateStats(content, fourArtifacts);
+  const fiveArtifactStats = calculateStats(content, fiveArtifacts);
+  assert.equal(fiveArtifactStats.max_hp - fourArtifactStats.max_hp, baseContent.byId.RC05.attributes.flat.max_hp,
+    'the accepted fifth artifact must contribute its authored stat');
+  const fiveArtifactBattle = simulateBattle(
+    content,
+    fiveArtifacts,
+    enemy(),
+    'journey-five-artifacts',
+    { roundLimit: 1 },
+  );
+  assert.ok(fiveArtifactBattle.frames.some(frame => frame.kind === 'action' && frame.actor === 'player'));
+
+  const sixArtifacts = loadout('RKF01', [], [
+    ...fiveArtifacts.artifacts,
+    { id: 'RC06', stacks: 1 },
+  ]);
+  assert.throws(() => simulateBattle(
+    content,
+    sixArtifacts,
+    enemy(),
+    'journey-six-artifacts',
+    { roundLimit: 1 },
+  ), new RegExp(`Loadout exceeds ${MAX_EQUIPMENT_SLOTS} artifact slots`));
 });
 
 test('basic_split produces real base segments and hit_rage is settled once at round end', () => {

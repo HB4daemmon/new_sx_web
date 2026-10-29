@@ -1,92 +1,68 @@
 # V2 Experimental Verification
 
-Track: `feat/v2-build-engine`, content `shanhai-content-0.2`.
-Current experiment: independent reactions and paid reward seeking, 2026-10-27,
-buildVersion 3, storage namespace `-v2-reactions`. Previous resonance saves stay
-untouched and are not silently migrated.
-V1 remains at tag `V1` (`2f08f08`); this directory does not supersede its
-calibration evidence. Reports use real authored combat unless explicitly
-described as a UI fixture.
+Track: `feat/v2-build-engine`, 2026-10-29, content `shanhai-content-0.2`.
+The second overhaul uses `buildVersion: 5` and the `-v2-overhaul` storage
+namespace. Older saves are left untouched. V1 remains at tag `V1` (`2f08f08`);
+these reports do not replace its evidence or establish player win rates.
 
 ## Functional Checks
 
-- `npm test`: 312 passing tests, including 13 focused reaction/trial tests and
-  26 updated resonance tests,
-  equipment, save isolation, frozen talent drafts, segmented route topology,
-  seven new intrinsic method loops and eight artifact replacements.
-- `npm run test:content`: 39 passing tests.
-- `node --test tests/shanhai-v2-reactions-ui.mjs`: 5 playback/source checks.
-- Content validation: 152 entities, zero validation errors.
-- `docs:check`: all 32 generated pages match the YAML source.
-- Generated documentation remains in the experimental worktree; the experiment
-  was not published to the formal documentation site.
+- `npm test`: 393 tests passed, including five-slot ordering and replay,
+  fusion, companion assistance, rage chains, challenge settlement and saves.
+- Content-kit: 44 tests passed; 154 entities, including 46 artifacts, validate.
+- Generated content: 32 pages checked without drift.
+- Five-slot, challenge and fusion browser fixtures cover 360, 390, 430 and
+  1440 pixels. Fixture battles and injected presentation frames are explicitly
+  test scenarios, not normal progression samples.
+- The general browser suite passed 13 checks. A mobile real-click journey
+  completed the first act's 11 nodes in 43 actions, without page errors.
+- A real desktop click journey reached victory in 45 nodes and 177 actions,
+  with no page errors. It formed RL06 during the run and the ending recorded
+  that fusion. Its act-three boss, act-four boss and final enemy each lasted
+  two rounds; the handpicked functional seed is not a win-rate sample.
 
 ## Observed Samples
 
-`npm run simulate` used five seeds for each of the five starting
-methods, rotating the existing avoid/steady/tracking heuristic. It completed
-25 runs: **22 wins, 3 losses**, no unfinished run or exception. Each action
-was followed by serialization, reload and state equality checks.
+`simulation.json` contains 25 real game runs, five per starting method, with a
+deterministic route and equipment heuristic. The current sample is **10 wins,
+15 losses and no errors**. Each method won 2/5. All losses occurred in act 1
+(steps 2, 6, 8 and 9); cumulative passage of each of the four acts was 10/25.
+The sample uses paired seed names and a seed-dependent route preference: it is
+not a sample of independent players or evidence of balanced difficulty.
 
-| Starting Method | Wins / Runs |
-| --- | ---: |
-| RKF01 | 4 / 5 |
-| RKF02 | 5 / 5 |
-| RKF03 | 3 / 5 |
-| RKF04 | 5 / 5 |
-| RKF05 | 5 / 5 |
+A wider run of the same policy with 20 paired seeds per method produced
+**72 wins in 100 runs**, with cumulative act passage **78 / 77 / 75 / 73**;
+the per-run outcomes and content hash are in `simulation-100-summary.json`.
+These are correlated method/seed pairs, not 100 independent players. Among the
+72 wins, 52 final battles lasted three rounds or fewer. This reinforces the
+need to inspect late-game pressure; it does not prove the overall player rate.
 
-Cumulative passes of acts 1-4 were **22/25 at each act**. All three losses were
-at act-one step 2; mid/late-run snowballing remains too strong. These are observations of one heuristic family, not
-player win probabilities. They do **not** meet the V1 target curve
-80% / 65% / 50% / 35%; V2 difficulty is explicitly uncalibrated.
+The calibration report contains 850 fixed-reference encounters: **825 player
+wins and 25 enemy wins**. Its 25 full runs use the same seed cohort as the
+simulation and must not be counted as another 25 independent runs. The current
+reference board uses five equipment slots, so its outcomes are not a direct
+comparison with earlier four-slot reference reports.
 
-`npm run calibrate` measured 850 fixed-reference encounters:
-823 wins, 27 losses, no unresolved battle or error.
-Its 25 full runs produced 22 wins and 3 losses. The latter seeds overlap the simulation pool
-and are not additional independent samples. The reference encounter win rate
-is not the full-run win rate. Trial enemies in the fixed board now retain their
-authored encounter IDs, so their preparations are simulated too.
-The heuristic does not use the new paid-seeking command. These samples do not
-measure its value or establish the difficulty of a player actively pursuing a build.
+The policy fills five slots and responds to normal rewards and events. It does
+not actively use thunder challenges, reward seeking or reward refinement;
+companions and qualifying fusion still activate automatically when acquired.
+These results do not establish how a player pursuing those systems will fare.
 
-## Browser Evidence
+`forging-comparison.json` and its Markdown companion contain deterministic
+high-HP fixtures that compare RC01 with and without its convergence rule, and
+isolate RC14's awakening. They explain specific effects and tradeoffs; they do
+not establish general strength, player enjoyment or causal value of every item.
 
-- `browser/report.json`: standard UI fixture checks, not evidence of a real win.
-- `journey/report.json`: actual browser clicks from character creation, a
-  45-node desktop win and an 11-node first-act mobile journey.
-- `tests/shanhai-v2-ui.mjs`: 360/390/430/1440 viewport checks, equipment changes,
-  inventory versus active gear, shared talent details, V1 storage isolation,
-  core copy and compact contribution feedback.
-- `tests/shanhai-v2-resonance-ui.mjs`: source labels, authored rule details and
-  counter frame updates at 360/390/430/1440. These use explicit UI fixtures,
-  not fabricated combat evidence.
-- `tests/shanhai-v2-reactions-browser.mjs`: actual deterministic combat replays
-  using explicit test stats, not unmodified progression. Sword/guard/spring
-  responses cover 360/390/430/1440. Also checks authored boss disclosure,
-  charge release and interruption feedback; paid search preview, payment,
-  reload, reduced candidate count and single claim. Screenshots are in
-  `/tmp/shanhai-v2-reactions-browser`.
-- Actual browser journey: desktop 174 stages, mobile 43 stages; no failures or
-  page errors. Root also visually inspected a real opening battle at 390/1440.
-- Mobile rewards additionally check vertical layout, readable role badges,
-  and unclipped core mechanisms and tradeoffs.
-- The desktop journey's act-three/act-four bosses still ended in 3 rounds
-  and the final fight in 4. This is evidence of remaining late-game pressure
-  problems, not a success criterion.
+## Remaining Work
 
-Screenshots are local evidence and are ignored by Git. Browser fixtures do
-not replace human playtesting. The old optional V1 art/tree browser suites
-have not all been migrated and are not claimed as V2 acceptance results.
+Act-one losses remain clustered while later successful builds can end the
+final battle quickly. The V1 cumulative passage targets of 80% / 65% / 50% /
+35% have not been established for this V2 ruleset. Wider paired-seed and
+multi-policy tests plus human play are still needed to evaluate pressure,
+build diversity, fun and replay appeal. Damage contributions record actual
+credited output, not the counterfactual gain from equipping an item.
 
-## Remaining Gates
-
-Cross-core balance, core selection diversity, reward quality, build completion
-timing and human assessments of fun, power and replay appeal remain open.
-Contribution totals explain actual events; they are not a counterfactual
-measurement of the net benefit of equipping an item.
-The recent-item badge has not yet received a focused end-to-end acquisition
-test; source inspection and the ordinary journey are not a substitute for one.
-
-`difficulty/observed-smoke.*` is older experiment evidence, not a measurement
-of this reaction revision. Do not combine it with the current 25-run sample.
+The universal right-neighbor copying mirror, inscriptions and one-HP sacrifice
+remain proposals, not implemented features. Old reaction and resonance
+experiments are documented in `docs/shanhai/rework/V2_EXPERIMENT.md`; do not
+combine their samples with this version.

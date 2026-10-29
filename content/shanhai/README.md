@@ -1,6 +1,6 @@
 # 山海版首发内容库
 
-版本：`shanhai-content-0.2`，日期：2026-10-26。
+版本：`shanhai-content-0.2`，日期：2026-10-27。
 
 这里是新版内容的单一编辑来源，采用 YAML 1.2，每个实体一个文件；根游戏构建先校验内容，
 再为 `src/shanhai/` 运行时按目录编译独立实体文件。文档站的内容阅读页由独立工具生成，
@@ -14,7 +14,7 @@
 | `methods/` | RKF01-RKF10；每门基础动作、行旅、12 张天赋、3 条路线 |
 | `artifacts/common/` | RC01-RC24 |
 | `artifacts/rare/` | RR01-RR15 |
-| `artifacts/legendary/` | RL01-RL05 |
+| `artifacts/legendary/` | RL01-RL07 |
 | `events/ordinary/` | RE001-RE036，36 个短事件 |
 | `events/core/` | RK001-RK016，12 次人物相遇与4个独立机缘 |
 | `storylines/` | RS01-RS06，每条恰好两次相遇 |
@@ -165,16 +165,30 @@ heal_hp_ratio_per_charge: 0.045}` 只被实际扣除气血的中毒/燃烧跳伤
 四个且仅四个显式族为 `sword/guard/vitality/affliction`，引用现存普通或稀有法宝 ID，
 每族至少各含两张普通与稀有法宝，允许跨族复用，不允许族内重复或用传奇卡填数。寻器只在
 首个保底核心奖励之后的第1-4幕奖励阶段开放；免费预览不重抽，付款后仅替换原候选，不加
-奖励位、不升稀有度、不用无关卡补满，实际支付进入行旅账本。
+奖励位、不升稀有度、不用无关卡补满，实际支付进入行旅账本。RC01 青锋石保留
+`common_artifact` 获取池，并加入 sword 寻器族。
+
+`RULES.economy.reward_refining` 固定为 `{max_per_act: 1}`，校验要求仅含该字段且值必须
+为整数 `1`。第1-4幕初始保底核心奖励之后，冻结的普通法宝奖励候选可炼化，每幕最多一次：
+放弃本次整组候选，消耗一层已拥有且未装备的普通法宝，为另一件已装备且未满
+`max_stacks` 的普通法宝增加一层。来源与目标必须不同；不能炼化空候选、混合/稀有/
+传奇候选或保底核心奖励，也不能在错误阶段、奖励未结算、次数耗尽、来源未装备、目标
+不存在/已满层或引用非法时执行。炼化不收付灵石、不增加新法宝种类、稀有度或额外领取；
+来源最后一层可被消耗，持有种类数会随之减少。增加最大气血不治疗，既有节点入场行旅快照
+继续生效。先寻器再炼化允许，但不退寻器费用，也不再产生第二份奖励。
 
 ## 各类型必填内容
 
 ### 功法
 
 `rarity` 为 `common/rare/legendary`；RKF01-05普通、06-08稀有、09-10传奇。
-字段：`role/stat_focus/mechanic/acquisition/actions/passives/travel/talents/routes`。
+字段：`role/stat_focus/mechanic/acquisition/companion/actions/passives/travel/talents/routes`。
 `mechanic` 描述最多一种专属状态，没有时为 `null`。
 `acquisition: {start: true, pools: [method_common]}`，仅普通可开局选。
+`companion` 固定含 `name/quick/trigger/effect/pair_bonuses`，可选含 `alternate_effect`；`effect` 与
+可选 `alternate_effect` 均必须严格为 `{kind, value}`。有 `alternate_effect` 时，无适用配对加成的
+合格存活主动作依次使用 `effect`、`alternate_effect` 并循环；配对加成生效时只使用配对效果，不推进循环。配对由不同主修功法 ID 与
+触发事件匹配；交替状态按携带伴生者的一方独立，并在每场战斗重置。
 `actions.basic` 与 `actions.rage` 各含 `name/quick/effects`；`passives/travel` 为效果数组。
 `talents` 恰好12项：
 `{id: RKF01-J1-A, tier: 1, branch: A, name: 金刚厚壁, quick: 普攻怒技加盾,
@@ -223,20 +237,23 @@ category: enhance, effects: [...]}`。
 普通核心法宝另有受限枚举的 `core_rule`。
 `attributes: {flat: {attack: 6}, percent: {}}`，只允许五维
 `attack/defense/max_hp/crit_rate/speed`；暴击率放flat且按比例加。
-普通按已定3或5层，稀有/传奇1层。每局最多装备四件互不重复的法宝，不按
-`equipment_role`拆分容量；`core/support`仅是描述类型：`RC09-RC12`、`RC14-RC15`、
-`RL01-RL05` 为 `core`，其余为`support`。层数不额外占装备件数，但获得与持有层数仍受法宝
+普通按已定3或5层，稀有/传奇1层。每局最多装备五件互不重复的法宝，不按
+`equipment_role`拆分容量；`core/support`仅是描述类型：`RC01`、`RC09-RC12`、`RC14-RC15`、
+`RL01-RL07` 为 `core`，其余为`support`。层数不额外占装备件数，但获得与持有层数仍受法宝
 `max_stacks` 约束。
 库存仍记录在 `state.artifacts`；只有已装备的法宝层数进入属性、战斗配装和节点行旅快照，
 未装备法宝没有属性或行旅收益。装备容量未满时，新取得的法宝自动装备；替换或卸下不治疗、
 不刷新节点、不重抽遭遇。地图、奖励、商店、休整和幕间可调整，事件、斗法及战前预览中不可调整。
+已装备法宝的槽位顺序可自由调整；处于同一触发结算路径的法宝效果按槽位顺序处理。不同触发类别
+之间不设统一的全局顺序；融合规则使用独立的固定优先级。
 法宝获取机会与装备容量互不替代；装备已满时可保留库存中的未装备法宝，但不会使其生效。
 法宝配装仍受总件数限制；纯属性与机制法宝自由组合，不要在已定 A/J/B 预算外补免费属性。
 核心定位法宝的玩家摘要与说明必须讲明能力、代价与定位，不把 `core_rule` 再复制成普通 `effects`。
-只有装备对应法宝时，其独立规则生效，参数不乘法宝叠层数。六件普通核心规则如下：
+只有装备对应法宝时，其独立规则生效，参数不乘法宝叠层数。七件普通核心规则如下：
 
 | 法宝 | 规则 | 参数与取舍 |
 | --- | --- | --- |
+| RC01 | `basic_convergence` | `damage_ratio: 1.25`；只将每次存活主普攻的基础段合为一次不可暴击直接命中，每次行动一次、不随层数叠加；保留攻击+6/层，不添加觉醒 |
 | RC09 | `basic_echo` | `ratio: 0.45`；怒技基础伤害倍率 `0.65` |
 | RC10 | `rage_gambit` | 怒技完成返怒 `20`；受到直接伤害倍率 `1.12` |
 | RC11 | `shield_burst` | 开场护盾为最大气血 `0.12`；怒技消耗实际护盾，参数 `shield_ratio: 0.5`、`damage_ratio: 1.4` |
@@ -249,7 +266,15 @@ category: enhance, effects: [...]}`。
 `unique_group:null` 或真实互斥组，RL01为`overflow_outlet`。
 `acquisition.pools` 引用 `common_artifact/rare_artifact/legendary_artifact` 等公共池。
 `balance.target: {B: 1, A: 5, J: 0}`；旅途型按法宝基线分摊，不能在B外再免费加属性。
-保留44件法宝的ID、名称、层数和基础属性；V2契约指定的交互卡按新规则替换旧触发，
+保留44件既有法宝的ID、名称、层数和基础属性；新增两件融合传奇各一件且不附加基础属性。
+融合数据固定为 `fusion_recipe: {inputs: [<两张普通法宝ID>], fights: 2}` 与
+`fusion_rule: {kind: toxic_flame|twin_swords}`，并且 `acquisition.pools: []`，不进入商店或随机奖励池。
+每场计数的合格战斗可来自普通流程或事件内部战斗；战斗开始和胜利结算时都须持有每种材料至少一层，
+融合完成时各消耗一层。RL06 配方为 RC14+RC15；RL07 配方为 RC01+RC09；每个配方只对应唯一融合产物。
+`fusion_recipe` 与 `fusion_rule` 只允许出现在 RL06/RL07；二者均为一件、无基础属性，配方输入
+ID 必须存在、不得重复，且不得出现在任何随机获取池中。已有核心普通法宝 RC01 仍保留
+`common_artifact` 获取资格，供首次普通核心奖励按现有规则抽取。
+V2契约指定的交互卡按新规则替换旧触发，
 其余效果和数值沿用既定内容；补全未定参数时写清首测值。
 可选 `awakening: {at_stacks: 3, name: ..., quick: ...}` 只能在
 `at_stacks == max_stacks` 时声明完整叠层觉醒；相应法宝效果可写顶层 `min_stacks`，

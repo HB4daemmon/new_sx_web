@@ -4,8 +4,8 @@ import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 
 const url = process.env.BROWSER_URL || 'http://localhost:4178/';
-const saveKey = 'suishi-shanhai-run-v2-reactions';
-const replayKey = 'suishi-shanhai-replay-v2-reactions';
+const saveKey = 'suishi-shanhai-run-v2-overhaul';
+const replayKey = 'suishi-shanhai-replay-v2-overhaul';
 const artifactDir = process.env.BROWSER_ARTIFACTS_DIR || '/tmp/shanhai-v2-reactions-browser';
 const viewports = [
   { width: 360, height: 780, battle: 'sword', reducedMotion: true },

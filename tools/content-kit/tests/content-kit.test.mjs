@@ -9,6 +9,9 @@ import {
   ARTIFACT_BASELINE,
   ARTIFACT_BUDGET,
   ARTIFACT_EQUIPMENT_ROLES,
+  ARTIFACT_FUSION_RECIPES,
+  ARTIFACT_FUSION_RULES,
+  ARTIFACT_GAMBIT_RULES,
   ARTIFACT_RARITIES,
   ARTIFACT_RESONANCE_RULES,
   CORE_ARTIFACT_RULES,
@@ -120,6 +123,7 @@ function makeEntities() {
     adventure: { acts: 4, nodes_per_act: 11, terminal_nodes: 1, baseline: { C: 4, E: 3, L: 1, S: 1, R: 1, B: 1 } },
     economy: {
       initial_coins: 20,
+      reward_refining: { max_per_act: 1 },
       reward_seeking: {
         price: 8,
         max_per_act: 1,
@@ -157,6 +161,13 @@ function makeEntities() {
       stat_focus: 'attack',
       mechanic: null,
       acquisition: { start: rarity === 'common', pools: [rarity === 'common' ? 'method_common' : `method_${rarity}`] },
+      companion: {
+        name: '伴生测试',
+        quick: '主动作命中后追加一次测试协力。',
+        trigger: 'hit',
+        effect: { kind: 'damage', value: 0.1 },
+        pair_bonuses: [],
+      },
       actions: {
         basic: { name: '普攻', quick: '基础攻击', effects: [effect(`${entry.id}-BASIC`)] },
         rage: { name: '怒技', quick: '基础怒技', effects: [effect(`${entry.id}-RAGE`)] },
@@ -192,14 +203,25 @@ function makeEntities() {
     Object.assign(entity, {
       rarity,
       max_stacks: baseline.max_stacks,
-      unique_group: entry.id === 'RL01' ? 'overflow_outlet' : null,
+      unique_group: entry.id === 'RL01'
+        ? 'overflow_outlet'
+        : ARTIFACT_FUSION_RECIPES[entry.id]
+          ? `fusion_${ARTIFACT_FUSION_RECIPES[entry.id].inputs.join('_')}`
+          : null,
       equipment_role: ARTIFACT_EQUIPMENT_ROLES[entry.id],
       ...(CORE_ARTIFACT_RULES[entry.id] ? { core_rule: structuredClone(CORE_ARTIFACT_RULES[entry.id]) } : {}),
+      ...(ARTIFACT_GAMBIT_RULES[entry.id] ? { gambit_rule: structuredClone(ARTIFACT_GAMBIT_RULES[entry.id]) } : {}),
+      ...(ARTIFACT_FUSION_RECIPES[entry.id] ? {
+        fusion_recipe: structuredClone(ARTIFACT_FUSION_RECIPES[entry.id]),
+        fusion_rule: structuredClone(ARTIFACT_FUSION_RULES[entry.id]),
+      } : {}),
       attributes: { flat: baseline.flat, percent: baseline.percent },
-      effects: ARTIFACT_RESONANCE_RULES[entry.id]
+      effects: ARTIFACT_FUSION_RECIPES[entry.id]
+        ? []
+        : ARTIFACT_RESONANCE_RULES[entry.id]
         ? [resonanceEffect(entry.id, ARTIFACT_RESONANCE_RULES[entry.id])]
         : [effect(`${entry.id}-EFFECT`)],
-      acquisition: { pools: [`${rarity}_artifact`] },
+      acquisition: { pools: ARTIFACT_FUSION_RECIPES[entry.id] ? [] : [`${rarity}_artifact`] },
     })
     entity.balance.target = { B: ARTIFACT_BUDGET[rarity], A: ARTIFACT_BUDGET[rarity] * 5, J: 0 }
     entities.set(entry.id, entity)
@@ -298,7 +320,7 @@ async function writeFixture() {
     files: EXPECTED_MANIFEST_ENTRIES,
     counts: {
       methods: 10,
-      artifacts: 44,
+      artifacts: 46,
       ordinary_events: 36,
       core_events: 16,
       storylines: 6,
@@ -340,6 +362,57 @@ test('complete temporary fixture validates and renders the fixed 32 pages', asyn
   assert.match(pages.get('methods/RKF01.md'), /四字天赋/)
   assert.match(pages.get('enemies/FINAL.md'), /EN-F1/)
   assert.doesNotMatch(pages.get('methods/RKF01.md'), /schema_version:/)
+})
+
+test('fusion artifacts require unique known recipes and stay out of random pools', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  let report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map((error) => `${error.code}:${error.message}`).join('\n'))
+
+  const legendaryPage = renderDocuments(report).get('artifacts/LEGENDARY.md')
+  assert.match(legendaryPage, /### 九幽毒火幡/)
+  assert.match(legendaryPage, /融合配方：蛇纹瓶（`RC14`）、赤炎珠（`RC15`）；累计 2 场合格战斗胜利/)
+  assert.match(legendaryPage, /按这两层各自剩余跳数的合计伤害×1\.2造成不可暴击派生伤害；未消费层不计入、不消耗/)
+  assert.match(legendaryPage, /### 雌雄剑/)
+  assert.match(legendaryPage, /两次各为攻击0\.4倍的不可暴击派生伤害/)
+  for (const id of ['RL06', 'RL07']) {
+    const artifact = fixture.entities.get(id)
+    assert.deepEqual(artifact.acquisition.pools, [])
+    assert.deepEqual(artifact.attributes, { flat: {}, percent: {} })
+  }
+  assert.equal(fixture.entities.get('RL06').max_stacks, 1)
+  assert.equal(fixture.entities.get('RL07').max_stacks, 1)
+  assert.equal(fixture.entities.get('RC01').equipment_role, 'core')
+  assert.deepEqual(fixture.entities.get('RC01').acquisition.pools, ['common_artifact'])
+
+  const toxicFlame = structuredClone(fixture.entities.get('RL06'))
+  toxicFlame.fusion_recipe.inputs = ['RC14', 'UNKNOWN']
+  toxicFlame.fusion_recipe.fights = 1.5
+  toxicFlame.fusion_rule.kind = 'unknown'
+  toxicFlame.acquisition.pools = ['legendary_artifact']
+  await rewriteEntity(fixture, 'RL06', toxicFlame)
+  const twinSwords = structuredClone(fixture.entities.get('RL07'))
+  twinSwords.fusion_recipe.inputs = ['RC14', 'UNKNOWN']
+  await rewriteEntity(fixture, 'RL07', twinSwords)
+  report = await reportFor(fixture)
+  const fusionCodes = new Set(report.errors.map((error) => error.code))
+  for (const code of [
+    'artifact-fusion-reference',
+    'artifact-fusion-inputs',
+    'artifact-fusion-duplicate-recipe',
+    'invalid-integer',
+    'artifact-fusion-rule-kind',
+    'artifact-fusion-pool',
+  ]) {
+    assert.ok(fusionCodes.has(code), `expected ${code}; received ${[...fusionCodes].join(', ')}`)
+  }
+
+  const ordinaryLegendary = structuredClone(fixture.entities.get('RL05'))
+  ordinaryLegendary.acquisition.pools = []
+  await rewriteEntity(fixture, 'RL05', ordinaryLegendary)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'artifact-acquisition-pool'))
 })
 
 test('event commitment schema is bounded and cannot be combined with an encounter', async (t) => {
@@ -567,6 +640,82 @@ test('artifact awakening and min_stacks are bounded to the owning artifact', asy
   assert.ok(report.errors.some((error) => error.code === 'artifact-awakening-owner'))
 })
 
+test('method companion assistance and pair bonuses use the strict combat schema', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  let report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map((error) => error.message).join('\n'))
+
+  const method = structuredClone(fixture.entities.get('RKF03'))
+  method.companion.alternate_effect = { kind: 'shield', value: 0.025 }
+  method.companion.pair_bonuses = [{
+    with: 'RKF06',
+    trigger: 'poison',
+    effect: { kind: 'heal', value: 0.04 },
+  }]
+  await rewriteEntity(fixture, 'RKF03', method)
+  report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map((error) => error.message).join('\n'))
+  const page = renderDocuments(report).get('methods/RKF03.md')
+  assert.match(page, /## 伴生协力/)
+  assert.match(page, /伴生测试/)
+  assert.match(page, /无配对加成时依次交替输出/)
+  assert.match(page, /攻击的 0\.1 倍不可暴击派生伤害/)
+  assert.match(page, /获得最大气血 2\.5% 的护盾/)
+  assert.match(page, /配对加成触发时仅使用配对输出且不推进交替序列/)
+  assert.match(page, /配对：主动作实际施加中毒后/)
+
+  method.companion.trigger = 'round_end'
+  method.companion.effect.value = 1.5
+  method.companion.alternate_effect = { kind: 'shield', value: 1.5, extra: true }
+  method.companion.pair_bonuses[0].with = 'NOT-A-METHOD'
+  method.companion.pair_bonuses[0].effect.value = 1.5
+  method.companion.pair_bonuses[0].extra = true
+  await rewriteEntity(fixture, 'RKF03', method)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'method-companion-trigger'))
+  assert.ok(report.errors.some((error) => error.code === 'method-companion-alternate-effect-fields'))
+  assert.ok(report.errors.some((error) => error.code === 'method-companion-pair-reference'))
+  assert.ok(report.errors.some((error) => error.code === 'method-companion-pair-fields'))
+  assert.ok(report.errors.some((error) => error.code === 'number-range'))
+
+  delete method.companion.effect
+  await rewriteEntity(fixture, 'RKF03', method)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'method-companion-fields'))
+})
+
+test('artifact awakening accepts only known completed-action effects', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  const artifact = structuredClone(fixture.entities.get('RC01'))
+  artifact.awakening = {
+    at_stacks: artifact.max_stacks,
+    name: '满层觉醒',
+    quick: '怒技完成后施加中毒。',
+    trigger: 'rage',
+    effects: [{ kind: 'poison', value: 2 }],
+  }
+  await rewriteEntity(fixture, 'RC01', artifact)
+  let report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map((error) => error.message).join('\n'))
+  const page = renderDocuments(report).get('artifacts/COMMON.md')
+  assert.match(page, /觉醒结算：达到满层后，在怒技且存活的主动作完成后/)
+  assert.match(page, /对敌方施加 2 层中毒（持续2轮，每层按攻击0\.05结算，上限10层）/)
+
+  artifact.awakening.effects[0].value = 1.5
+  artifact.awakening.trigger = 'action_end'
+  await rewriteEntity(fixture, 'RC01', artifact)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'invalid-integer'))
+  assert.ok(report.errors.some((error) => error.code === 'artifact-awakening-trigger'))
+
+  delete artifact.awakening.effects
+  await rewriteEntity(fixture, 'RC01', artifact)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'artifact-awakening-trigger-effects'))
+})
+
 test('V2 resonance effects enforce owner, location, exact shape, and parameter ranges', async (t) => {
   const fixture = await writeFixture()
   t.after(() => rm(fixture.root, { recursive: true, force: true }))
@@ -694,6 +843,38 @@ test('boss trials and reward-seeking families enforce owners, exact fields, refe
   }
 })
 
+test('reward refining requires exactly one integer use per act', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  let report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map((error) => error.message).join('\n'))
+
+  const rules = structuredClone(fixture.entities.get('RULES'))
+  assert.deepEqual(rules.economy.reward_refining, { max_per_act: 1 })
+
+  rules.economy.reward_refining.extra = true
+  await rewriteEntity(fixture, 'RULES', rules)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'reward-refining-fields'))
+
+  delete rules.economy.reward_refining.extra
+  delete rules.economy.reward_refining.max_per_act
+  await rewriteEntity(fixture, 'RULES', rules)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'reward-refining-fields'))
+  assert.ok(report.errors.some((error) => error.code === 'invalid-number'))
+
+  rules.economy.reward_refining.max_per_act = 2
+  await rewriteEntity(fixture, 'RULES', rules)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'number-range'))
+
+  rules.economy.reward_refining.max_per_act = 1.5
+  await rewriteEntity(fixture, 'RULES', rules)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'invalid-integer'))
+})
+
 test('V2 roles, core rules, and shared insight sources/effects are strict', async (t) => {
   const fixture = await writeFixture()
   t.after(() => rm(fixture.root, { recursive: true, force: true }))
@@ -720,6 +901,39 @@ test('V2 roles, core rules, and shared insight sources/effects are strict', asyn
   assert.ok(report.errors.some((error) => error.code === 'insight-effect-params'))
   assert.ok(report.errors.some((error) => error.code === 'insight-effect-fields'))
   assert.ok(report.errors.some((error) => error.code === 'insight-effect-build'))
+})
+
+test('artifact gambits have card-bound parameters, unique kinds, and readable detail', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  let report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map((error) => error.message).join('\n'))
+
+  const pages = renderDocuments(report)
+  assert.match(pages.get('artifacts/LEGENDARY.md'), /怒气上限降至 50，防御乘以 65%/)
+  assert.match(pages.get('artifacts/RARE.md'), /计算防御乘以 50%；自身直接与派生伤害乘以 1\.6/)
+  assert.match(pages.get('artifacts/RARE.md'), /不强化中毒、燃烧、反震、治疗或护盾/)
+  assert.match(pages.get('artifacts/RARE.md'), /各件防御倍率分别相乘一次/)
+
+  const overdrive = structuredClone(fixture.entities.get('RL04'))
+  overdrive.gambit_rule.hidden_bonus = 1
+  await rewriteEntity(fixture, 'RL04', overdrive)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'artifact-gambit-fields'))
+
+  overdrive.gambit_rule = structuredClone(ARTIFACT_GAMBIT_RULES.RL04)
+  overdrive.gambit_rule.rage_cap = 60
+  await rewriteEntity(fixture, 'RL04', overdrive)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'artifact-gambit-value'))
+  assert.ok(report.errors.some((error) => error.code === 'number-range'))
+
+  const reckless = structuredClone(fixture.entities.get('RR05'))
+  reckless.gambit_rule.kind = 'overdrive'
+  await rewriteEntity(fixture, 'RR05', reckless)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'artifact-gambit-kind'))
+  assert.ok(report.errors.some((error) => error.code === 'artifact-gambit-duplicate'))
 })
 
 test('shared build effects accept the restricted schema and reject out-of-range or unknown params', async (t) => {

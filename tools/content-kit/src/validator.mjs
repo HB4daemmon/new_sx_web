@@ -3,10 +3,17 @@ import {
   ARTIFACT_BASELINE,
   ARTIFACT_BUDGET,
   ARTIFACT_EQUIPMENT_ROLES,
+  ARTIFACT_FUSION_RECIPES,
+  ARTIFACT_FUSION_RULES,
+  ARTIFACT_GAMBIT_RULES,
   ARTIFACT_IDS,
   ARTIFACT_RARITIES,
   ARTIFACT_RESONANCE_RULES,
+  AWAKENING_EFFECT_KINDS,
+  AWAKENING_TRIGGERS,
   ATTRIBUTES,
+  COMPANION_EFFECT_KINDS,
+  COMPANION_TRIGGERS,
   CONTENT_VERSION,
   CORE_EVENT_IDS,
   CORE_ARTIFACT_RULES,
@@ -644,11 +651,83 @@ function methodEffects(entity, errors, effectIds) {
   return effects
 }
 
-function validateMethod(entity, errors, effectIds) {
+function validateCombatOutput(output, errors, location, kinds, prefix) {
+  if (!isRecord(output)) {
+    addIssue(errors, `${prefix}-effect-map`, 'effect must be a mapping', location)
+    return
+  }
+  if (!exactKeys(output, ['kind', 'value'])) {
+    addIssue(errors, `${prefix}-effect-fields`, 'effect must contain exactly kind and value', location)
+  }
+  if (!kinds.includes(output.kind)) {
+    addIssue(errors, `${prefix}-effect-kind`, `unknown effect kind ${output.kind}`, location)
+  }
+  const kind = output.kind
+  const integerStacks = kind === 'poison' || kind === 'burn'
+  const max = integerStacks ? 10 : kind === 'shield' || kind === 'heal' ? 1 : kind === 'rage' ? 100 : 5
+  finiteNumber(errors, output.value, location, 'effect.value', {
+    integer: integerStacks,
+    min: integerStacks ? 1 : Number.MIN_VALUE,
+    max,
+  })
+}
+
+function validateCompanion(method, errors, known) {
+  const source = `${sourceFor(method)}:companion`
+  const companion = method.companion
+  if (!isRecord(companion)) {
+    addIssue(errors, 'method-companion', 'companion must be a mapping', source)
+    return
+  }
+  const requiredFields = ['name', 'quick', 'trigger', 'effect', 'pair_bonuses']
+  const allowedFields = new Set([...requiredFields, 'alternate_effect'])
+  if (requiredFields.some((field) => !Object.hasOwn(companion, field)) ||
+      Object.keys(companion).some((field) => !allowedFields.has(field))) {
+    addIssue(errors, 'method-companion-fields', 'companion must contain name, quick, trigger, effect, and pair_bonuses, with only alternate_effect optional', source)
+  }
+  requiredString(errors, companion, 'name', source)
+  requiredString(errors, companion, 'quick', source)
+  if (!COMPANION_TRIGGERS.includes(companion.trigger)) {
+    addIssue(errors, 'method-companion-trigger', `unknown companion trigger ${companion.trigger}`, source)
+  }
+  validateCombatOutput(companion.effect, errors, `${source}:effect`, COMPANION_EFFECT_KINDS, 'method-companion')
+  if (Object.hasOwn(companion, 'alternate_effect')) {
+    validateCombatOutput(companion.alternate_effect, errors, `${source}:alternate_effect`, COMPANION_EFFECT_KINDS, 'method-companion-alternate')
+  }
+  if (!Array.isArray(companion.pair_bonuses)) {
+    addIssue(errors, 'method-companion-pairs', 'companion.pair_bonuses must be an array', source)
+    return
+  }
+  const pairedMethods = new Set()
+  for (const [index, bonus] of companion.pair_bonuses.entries()) {
+    const location = `${source}:pair_bonuses[${index}]`
+    if (!isRecord(bonus)) {
+      addIssue(errors, 'method-companion-pair-map', 'pair bonus must be a mapping', location)
+      continue
+    }
+    if (!exactKeys(bonus, ['with', 'trigger', 'effect'])) {
+      addIssue(errors, 'method-companion-pair-fields', 'pair bonus must contain exactly with, trigger, and effect', location)
+    }
+    if (typeof bonus.with !== 'string' || !known.methods.has(bonus.with)) {
+      addIssue(errors, 'method-companion-pair-reference', `pair bonus references unknown method ${bonus.with}`, location)
+    } else {
+      if (bonus.with === method.id) addIssue(errors, 'method-companion-pair-self', 'pair bonus must name a different main method', location)
+      if (pairedMethods.has(bonus.with)) addIssue(errors, 'method-companion-pair-duplicate', `duplicate pair bonus for ${bonus.with}`, location)
+      pairedMethods.add(bonus.with)
+    }
+    if (!COMPANION_TRIGGERS.includes(bonus.trigger)) {
+      addIssue(errors, 'method-companion-pair-trigger', `unknown pair bonus trigger ${bonus.trigger}`, location)
+    }
+    validateCombatOutput(bonus.effect, errors, `${location}:effect`, COMPANION_EFFECT_KINDS, 'method-companion-pair')
+  }
+}
+
+function validateMethod(entity, errors, effectIds, known) {
   const source = sourceFor(entity)
-  for (const field of ['role', 'stat_focus', 'mechanic', 'acquisition', 'actions', 'passives', 'travel', 'talents', 'routes']) {
+  for (const field of ['role', 'stat_focus', 'mechanic', 'acquisition', 'companion', 'actions', 'passives', 'travel', 'talents', 'routes']) {
     if (!(field in entity)) addIssue(errors, 'method-field', `missing method field ${field}`, source)
   }
+  validateCompanion(entity, errors, known)
   const expectedRarity = METHOD_RARITIES[entity.id]
   if (entity.rarity !== expectedRarity) {
     addIssue(errors, 'method-rarity', `method ${entity.id} must have rarity ${expectedRarity}`, source)
@@ -763,7 +842,107 @@ function validateMethod(entity, errors, effectIds) {
   }
 }
 
-function validateArtifact(entity, errors, effectIds) {
+function validateArtifactFusion(entity, errors, known) {
+  const source = sourceFor(entity)
+  const expectedRecipe = ARTIFACT_FUSION_RECIPES[entity.id]
+  const expectedRule = ARTIFACT_FUSION_RULES[entity.id]
+  if (!expectedRecipe) {
+    if (Object.hasOwn(entity, 'fusion_recipe')) {
+      addIssue(errors, 'artifact-fusion-owner', `${entity.id} cannot define a fusion_recipe`, source)
+    }
+    if (Object.hasOwn(entity, 'fusion_rule')) {
+      addIssue(errors, 'artifact-fusion-owner', `${entity.id} cannot define a fusion_rule`, source)
+    }
+    return false
+  }
+
+  if (!isRecord(entity.fusion_recipe)) {
+    addIssue(errors, 'artifact-fusion-recipe', `${entity.id} must define a fusion_recipe mapping`, source)
+  } else {
+    if (!exactKeys(entity.fusion_recipe, ['inputs', 'fights'])) {
+      addIssue(errors, 'artifact-fusion-recipe-fields', 'fusion_recipe must contain exactly inputs and fights', source)
+    }
+    const inputs = entity.fusion_recipe.inputs
+    if (!Array.isArray(inputs) || inputs.length !== 2) {
+      addIssue(errors, 'artifact-fusion-inputs', 'fusion_recipe.inputs must contain exactly two artifact ids', source)
+    } else {
+      if (new Set(inputs).size !== inputs.length) {
+        addIssue(errors, 'artifact-fusion-inputs', 'fusion_recipe.inputs cannot repeat an artifact id', source)
+      }
+      for (const id of inputs) {
+        if (typeof id !== 'string' || !known.artifacts.has(id)) {
+          addIssue(errors, 'artifact-fusion-reference', `fusion_recipe references unknown artifact ${id}`, source)
+        }
+        if (id === entity.id) addIssue(errors, 'artifact-fusion-self', 'a fusion artifact cannot be one of its own inputs', source)
+      }
+      const expectedInputs = [...expectedRecipe.inputs].sort()
+      if (inputs.every((id) => typeof id === 'string') &&
+          JSON.stringify([...inputs].sort()) !== JSON.stringify(expectedInputs)) {
+        addIssue(errors, 'artifact-fusion-inputs', `${entity.id} must fuse ${expectedRecipe.inputs.join(' + ')}`, source)
+      }
+    }
+    finiteNumber(errors, entity.fusion_recipe.fights, source, 'fusion_recipe.fights', {
+      integer: true,
+      min: 2,
+      max: 2,
+    })
+  }
+
+  if (!isRecord(entity.fusion_rule)) {
+    addIssue(errors, 'artifact-fusion-rule', `${entity.id} must define a fusion_rule mapping`, source)
+  } else {
+    if (!exactKeys(entity.fusion_rule, ['kind'])) {
+      addIssue(errors, 'artifact-fusion-rule-fields', 'fusion_rule must contain exactly kind', source)
+    }
+    if (entity.fusion_rule.kind !== expectedRule.kind) {
+      addIssue(errors, 'artifact-fusion-rule-kind', `${entity.id}.fusion_rule.kind must be ${expectedRule.kind}`, source)
+    }
+  }
+
+  const expectedGroup = `fusion_${expectedRecipe.inputs.join('_')}`
+  if (entity.unique_group !== expectedGroup) {
+    addIssue(errors, 'artifact-fusion-unique-group', `${entity.id}.unique_group must be ${expectedGroup}`, source)
+  }
+  return true
+}
+
+function validateArtifactGambit(entity, errors) {
+  const source = sourceFor(entity)
+  const expected = ARTIFACT_GAMBIT_RULES[entity.id]
+  if (!expected) {
+    if (Object.hasOwn(entity, 'gambit_rule')) {
+      addIssue(errors, 'artifact-gambit-owner', `${entity.id} cannot define a gambit_rule`, source)
+    }
+    return
+  }
+  if (!isRecord(entity.gambit_rule)) {
+    addIssue(errors, 'artifact-gambit-rule', `${entity.id} must define its V2 gambit_rule`, source)
+    return
+  }
+  if (!exactKeys(entity.gambit_rule, Object.keys(expected))) {
+    addIssue(errors, 'artifact-gambit-fields', `${entity.id}.gambit_rule must use exactly ${Object.keys(expected).join(', ')}`, source)
+  }
+  for (const [key, expectedValue] of Object.entries(expected)) {
+    const value = entity.gambit_rule[key]
+    if (key === 'kind') {
+      if (value !== expectedValue) {
+        addIssue(errors, 'artifact-gambit-kind', `${entity.id}.gambit_rule.kind must be ${expectedValue}`, source)
+      }
+      continue
+    }
+    const range = key === 'rage_cap'
+      ? { integer: true, min: 50, max: 50 }
+      : key === 'defense_multiplier'
+        ? { min: Number.MIN_VALUE, max: 1 }
+        : { min: 1, max: 2 }
+    finiteNumber(errors, value, source, `gambit_rule.${key}`, range)
+    if (value !== expectedValue) {
+      addIssue(errors, 'artifact-gambit-value', `${entity.id}.gambit_rule.${key} must be ${expectedValue}`, source)
+    }
+  }
+}
+
+function validateArtifact(entity, errors, effectIds, known) {
   const source = sourceFor(entity)
   const expected = ARTIFACT_BASELINE[entity.id]
   if (!expected) {
@@ -773,6 +952,8 @@ function validateArtifact(entity, errors, effectIds) {
   for (const field of ['rarity', 'max_stacks', 'unique_group', 'attributes', 'effects', 'acquisition', 'equipment_role']) {
     if (!(field in entity)) addIssue(errors, 'artifact-field', `missing artifact field ${field}`, source)
   }
+  const isFusion = validateArtifactFusion(entity, errors, known)
+  validateArtifactGambit(entity, errors)
   const expectedRarity = ARTIFACT_RARITIES[entity.id]
   if (entity.rarity !== expectedRarity) addIssue(errors, 'artifact-rarity', `artifact rarity must be ${expectedRarity}`, source)
   const expectedRole = ARTIFACT_EQUIPMENT_ROLES[entity.id]
@@ -821,8 +1002,12 @@ function validateArtifact(entity, errors, effectIds) {
     if (!isRecord(awakening)) {
       addIssue(errors, 'artifact-awakening', 'awakening must be a mapping', source)
     } else {
-      if (!exactKeys(awakening, ['at_stacks', 'name', 'quick'])) {
-        addIssue(errors, 'artifact-awakening-fields', 'awakening must use exactly at_stacks, name, and quick', source)
+      const awakeningFields = ['at_stacks', 'name', 'quick',
+        ...(Object.hasOwn(awakening, 'trigger') ? ['trigger'] : []),
+        ...(Object.hasOwn(awakening, 'effects') ? ['effects'] : []),
+      ]
+      if (!exactKeys(awakening, awakeningFields)) {
+        addIssue(errors, 'artifact-awakening-fields', 'awakening may contain only at_stacks, name, quick, trigger, and effects', source)
       }
       finiteNumber(errors, awakening.at_stacks, source, 'awakening.at_stacks', {
         integer: true,
@@ -834,6 +1019,20 @@ function validateArtifact(entity, errors, effectIds) {
       }
       requiredString(errors, awakening, 'name', source)
       requiredString(errors, awakening, 'quick', source)
+      if (awakening.trigger !== undefined && !AWAKENING_TRIGGERS.includes(awakening.trigger)) {
+        addIssue(errors, 'artifact-awakening-trigger', 'awakening.trigger must be basic, rage, or either', source)
+      }
+      if (Object.hasOwn(awakening, 'trigger') && !Object.hasOwn(awakening, 'effects')) {
+        addIssue(errors, 'artifact-awakening-trigger-effects', 'awakening.trigger requires an effects array', source)
+      }
+      if (Object.hasOwn(awakening, 'effects')) {
+        if (!Array.isArray(awakening.effects) || awakening.effects.length === 0) {
+          addIssue(errors, 'artifact-awakening-effects', 'awakening.effects must be a non-empty array', source)
+        } else {
+          awakening.effects.forEach((effect, index) =>
+            validateCombatOutput(effect, errors, `${source}:awakening.effects[${index}]`, AWAKENING_EFFECT_KINDS, 'artifact-awakening'))
+        }
+      }
     }
   }
   if (!isRecord(entity.attributes)) {
@@ -848,15 +1047,23 @@ function validateArtifact(entity, errors, effectIds) {
     if (Object.hasOwn(entity.attributes.percent ?? {}, 'crit_rate')) {
       addIssue(errors, 'artifact-crit-rate', 'crit_rate must be a flat ratio, not a percent attribute', source)
     }
-    if (keys.length === 0) addIssue(errors, 'artifact-attributes', 'each artifact must provide at least one base attribute', source)
+    if (keys.length === 0 && !isFusion) addIssue(errors, 'artifact-attributes', 'each non-fusion artifact must provide at least one base attribute', source)
   }
   validateEffectArray(entity, 'effects', entity.effects, errors, effectIds)
   if (!isRecord(entity.acquisition)) {
     addIssue(errors, 'artifact-acquisition', 'acquisition must be a mapping', source)
   } else if (!Array.isArray(entity.acquisition.pools) || entity.acquisition.pools.some((pool) => typeof pool !== 'string' || !POOLS.has(pool))) {
     addIssue(errors, 'artifact-acquisition', 'acquisition.pools must contain known pools', source)
-  } else if (!entity.acquisition.pools.includes(`${expectedRarity}_artifact`)) {
-    addIssue(errors, 'artifact-acquisition', `artifact acquisition must include ${expectedRarity}_artifact`, source)
+  } else if (isFusion && entity.acquisition.pools.length !== 0) {
+    addIssue(errors, 'artifact-fusion-pool', 'fusion artifacts must not belong to random acquisition pools', source)
+  } else if (!isFusion && (
+    entity.acquisition.pools.length !== 1 ||
+    entity.acquisition.pools[0] !== `${expectedRarity}_artifact`
+  )) {
+    addIssue(errors, 'artifact-acquisition-pool', `non-fusion artifacts must use only the ${expectedRarity}_artifact pool`, source)
+  }
+  if (isRecord(entity.acquisition) && !exactKeys(entity.acquisition, ['pools'])) {
+    addIssue(errors, 'artifact-acquisition-fields', 'acquisition must contain exactly pools', source)
   }
   const target = entity.balance?.target
   if (!isRecord(target)) return
@@ -1880,6 +2087,23 @@ function validateRewardSeeking(economy, errors, known, source) {
   }
 }
 
+function validateRewardRefining(economy, errors, source) {
+  const refining = economy?.reward_refining
+  const location = `${source}:economy.reward_refining`
+  if (!isRecord(refining)) {
+    addIssue(errors, 'reward-refining-map', 'economy.reward_refining must be a mapping', location)
+    return
+  }
+  if (!exactKeys(refining, ['max_per_act'])) {
+    addIssue(errors, 'reward-refining-fields', 'reward_refining must contain exactly max_per_act', location)
+  }
+  finiteNumber(errors, refining.max_per_act, location, 'reward_refining.max_per_act', {
+    integer: true,
+    min: 1,
+    max: 1,
+  })
+}
+
 function validateRules(entity, errors, effectIds, known) {
   const source = sourceFor(entity)
   for (const field of ['attributes', 'rarities', 'cultivation', 'combat', 'rage', 'statuses', 'adventure', 'economy', 'pools', 'calibration', 'insights']) {
@@ -1890,6 +2114,7 @@ function validateRules(entity, errors, effectIds, known) {
   }
   validateInsights(entity, errors, effectIds)
   validateRewardSeeking(entity.economy, errors, known, source)
+  validateRewardRefining(entity.economy, errors, source)
   finiteTree(errors, entity, source, 'rules')
 }
 
@@ -1900,15 +2125,22 @@ function validateEntityKind(entity, errors, known, effectIds, storylineEncounter
   if (Object.hasOwn(entity, 'min_stacks')) {
     addIssue(errors, 'effect-min-stacks-location', 'min_stacks is only valid on an artifact effect', sourceFor(entity))
   }
+  if (entity.kind !== 'artifact' &&
+      (Object.hasOwn(entity, 'fusion_recipe') || Object.hasOwn(entity, 'fusion_rule'))) {
+    addIssue(errors, 'artifact-fusion-owner', 'fusion_recipe and fusion_rule are only valid on fusion artifacts', sourceFor(entity))
+  }
+  if (entity.kind !== 'artifact' && Object.hasOwn(entity, 'gambit_rule')) {
+    addIssue(errors, 'artifact-gambit-owner', 'gambit_rule is only valid on its owning artifact', sourceFor(entity))
+  }
   switch (entity.kind) {
     case 'rules':
       validateRules(entity, errors, effectIds, known)
       break
     case 'method':
-      validateMethod(entity, errors, effectIds)
+      validateMethod(entity, errors, effectIds, known)
       break
     case 'artifact':
-      validateArtifact(entity, errors, effectIds)
+      validateArtifact(entity, errors, effectIds, known)
       break
     case 'event':
       validateEvent(entity, errors, known)
@@ -1924,6 +2156,35 @@ function validateEntityKind(entity, errors, known, effectIds, storylineEncounter
       break
     default:
       break
+  }
+}
+
+function validateFusionRecipeUniqueness(entities, errors) {
+  const recipes = new Map()
+  for (const entity of entities) {
+    if (entity.kind !== 'artifact' || !Array.isArray(entity.fusion_recipe?.inputs) ||
+        entity.fusion_recipe.inputs.length !== 2 ||
+        !entity.fusion_recipe.inputs.every((id) => typeof id === 'string')) continue
+    const recipe = [...entity.fusion_recipe.inputs].sort().join('|')
+    const previous = recipes.get(recipe)
+    if (previous) {
+      addIssue(errors, 'artifact-fusion-duplicate-recipe', `${entity.id} duplicates ${previous.id}'s fusion recipe`, sourceFor(entity))
+    } else {
+      recipes.set(recipe, entity)
+    }
+  }
+}
+
+function validateArtifactGambitUniqueness(entities, errors) {
+  const owners = new Map()
+  for (const entity of entities) {
+    if (entity.kind !== 'artifact' || !isRecord(entity.gambit_rule) || typeof entity.gambit_rule.kind !== 'string') continue
+    const previous = owners.get(entity.gambit_rule.kind)
+    if (previous) {
+      addIssue(errors, 'artifact-gambit-duplicate', `${entity.id} duplicates ${previous.id}'s ${entity.gambit_rule.kind} gambit`, sourceFor(entity))
+    } else {
+      owners.set(entity.gambit_rule.kind, entity)
+    }
   }
 }
 
@@ -2015,6 +2276,8 @@ function validateGlobal(model, errors, warnings) {
     validateEntityKind(entity, errors, known, effectIds, storylineEncounterIds)
     validateResonanceEntity(entity, errors)
   }
+  validateFusionRecipeUniqueness(model.entities, errors)
+  validateArtifactGambitUniqueness(model.entities, errors)
   known.effects = effectIds
   for (const effectId of effectIds) {
     if (entityIds.has(effectId)) {

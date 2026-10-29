@@ -8,9 +8,10 @@ import {
 import { validateRouteMap } from './route-map.js';
 import { assertEventCommitmentRecords } from './event-commitments.js';
 import { assertEventCheckResult } from './event-checks.js';
+import { MAX_EQUIPMENT_SLOTS } from './equipment.js';
 
-export const SHANHAI_SAVE_KEY = 'suishi-shanhai-run-v2-reactions';
-export const SHANHAI_BUILD_KEY = 'suishi-shanhai-build-v2-reactions';
+export const SHANHAI_SAVE_KEY = 'suishi-shanhai-run-v2-overhaul';
+export const SHANHAI_BUILD_KEY = 'suishi-shanhai-build-v2-overhaul';
 export const SAVE_KEY = SHANHAI_SAVE_KEY;
 const SHANHAI_CONTENT_VERSION = 'shanhai-content-0.2';
 
@@ -93,12 +94,116 @@ function nonNegative(value: unknown): boolean {
   return finite(value) && value >= 0;
 }
 
+function assertFusionInventoryShape(value: unknown, label: string): void {
+  const validArtifactId = (id: unknown): boolean =>
+    typeof id === 'string' && /^(?:RC|RR|RL)\d\d$/.test(id);
+  if (!Array.isArray(value) || value.length > 128) throw new Error(`Invalid ${label}`);
+  const ids = new Set<string>();
+  for (const stack of value) {
+    if (!isObject(stack) || !validArtifactId(stack.id) ||
+      !Number.isInteger(stack.stacks) || stack.stacks < 1 || stack.stacks > 16 || ids.has(stack.id)) {
+      throw new Error(`Invalid ${label}`);
+    }
+    ids.add(stack.id);
+  }
+}
+
+function assertFusionEvidenceShape(value: unknown): void {
+  if (!isObject(value) || Object.keys(value).length !== 6 ||
+    !['act', 'step', 'kind', 'enemyId', 'entryInventory', 'settlementInventory']
+      .every(key => Object.prototype.hasOwnProperty.call(value, key)) ||
+    !Number.isInteger(value.act) || value.act < 1 || value.act > 5 ||
+    !Number.isInteger(value.step) || value.step < 0 || value.step > (value.act === 5 ? 0 : 10) ||
+    !['node', 'event'].includes(value.kind) || typeof value.enemyId !== 'string' || !value.enemyId.trim()) {
+    throw new Error('Invalid saved fusion win evidence');
+  }
+  assertFusionInventoryShape(value.entryInventory, 'saved fusion entry inventory');
+  assertFusionInventoryShape(value.settlementInventory, 'saved fusion settlement inventory');
+}
+
+function assertFusionStateShape(state: RunState): void {
+  const validFusionId = (id: unknown): boolean =>
+    typeof id === 'string' && /^RL\d\d$/.test(id);
+  if (!Array.isArray(state.fusionProgress) || state.fusionProgress.length > 16) {
+    throw new Error('Invalid saved fusion progress');
+  }
+  const progressIds = new Set<string>();
+  for (const progress of state.fusionProgress) {
+    if (!isObject(progress) || Object.keys(progress).length !== 2 ||
+      !['id', 'wins'].every(key => Object.prototype.hasOwnProperty.call(progress, key)) ||
+      !validFusionId(progress.id) || progressIds.has(progress.id) ||
+      !Array.isArray(progress.wins) || progress.wins.length > 16) {
+      throw new Error('Invalid saved fusion progress');
+    }
+    progressIds.add(progress.id);
+    let previousPosition = -1;
+    const coordinates = new Set<string>();
+    for (const win of progress.wins) {
+      assertFusionEvidenceShape(win);
+      const position = (win.act - 1) * 11 + win.step;
+      const coordinate = `${win.act}:${win.step}`;
+      if (position <= previousPosition || coordinates.has(coordinate)) {
+        throw new Error('Invalid saved fusion win order');
+      }
+      previousPosition = position;
+      coordinates.add(coordinate);
+    }
+  }
+  if (!Array.isArray(state.fusionHistory) || state.fusionHistory.length > 16) {
+    throw new Error('Invalid saved fusion history');
+  }
+  const historyIds = new Set<string>();
+  for (const entry of state.fusionHistory) {
+    if (!isObject(entry) || Object.keys(entry).length !== 5 ||
+      !['id', 'act', 'step', 'title', 'text'].every(key => Object.prototype.hasOwnProperty.call(entry, key)) ||
+      !validFusionId(entry.id) || historyIds.has(entry.id) ||
+      !Number.isInteger(entry.act) || entry.act < 1 || entry.act > 5 ||
+      !Number.isInteger(entry.step) || entry.step < 0 || entry.step > (entry.act === 5 ? 0 : 10) ||
+      typeof entry.title !== 'string' || !entry.title.trim() ||
+      typeof entry.text !== 'string' || !entry.text.trim() || entry.text.length > 2000) {
+      throw new Error('Invalid saved fusion history');
+    }
+    historyIds.add(entry.id);
+  }
+  if (state._fusionBattleEntry !== undefined) {
+    const entry = state._fusionBattleEntry;
+    const entryKeys = ['act', 'step', 'kind', 'enemyId', 'inventory', 'eligibleRecipes', 'settlementInventory'];
+    const hasSettlementInventory = isObject(entry) &&
+      Object.prototype.hasOwnProperty.call(entry, 'settlementInventory');
+    if (!isObject(entry) ||
+      Object.keys(entry).length !== (hasSettlementInventory ? 7 : 6) ||
+      Object.keys(entry).some(key => !entryKeys.includes(key)) ||
+      !['act', 'step', 'kind', 'enemyId', 'inventory', 'eligibleRecipes']
+        .every(key => Object.prototype.hasOwnProperty.call(entry, key)) ||
+      !Number.isInteger(entry.act) || entry.act < 1 || entry.act > 5 ||
+      !Number.isInteger(entry.step) || entry.step < 0 || entry.step > (entry.act === 5 ? 0 : 10) ||
+      !['node', 'event'].includes(entry.kind) || typeof entry.enemyId !== 'string' || !entry.enemyId.trim() ||
+      !Array.isArray(entry.eligibleRecipes) || entry.eligibleRecipes.length > 16 ||
+      entry.eligibleRecipes.some(id => !validFusionId(id)) ||
+      new Set(entry.eligibleRecipes).size !== entry.eligibleRecipes.length) {
+      throw new Error('Invalid saved fusion battle entry');
+    }
+    assertFusionInventoryShape(entry.inventory, 'saved fusion battle inventory');
+    if (entry.settlementInventory !== undefined) {
+      assertFusionInventoryShape(entry.settlementInventory, 'saved fusion settlement inventory');
+    }
+  }
+}
+
 function assertLoadoutShapeWithoutContent(loadout: unknown, side: 'player' | 'enemy' = 'player'): void {
   if (!isObject(loadout) || typeof loadout.name !== 'string' || typeof loadout.method !== 'string' ||
     !Number.isInteger(loadout.n) || loadout.n < 0 || loadout.n > 4 ||
     !Array.isArray(loadout.talents) || loadout.talents.some(id => typeof id !== 'string') ||
-    !Array.isArray(loadout.artifacts)) {
+    !Array.isArray(loadout.artifacts) || loadout.artifacts.length > MAX_EQUIPMENT_SLOTS) {
     throw new Error('Invalid saved loadout');
+  }
+  if (loadout.companion !== undefined &&
+    (typeof loadout.companion !== 'string' || !loadout.companion.trim())) {
+    throw new Error('Invalid saved companion reference');
+  }
+  if (loadout.thunderChallenge !== undefined &&
+    (side !== 'enemy' || loadout.thunderChallenge !== true)) {
+    throw new Error('Invalid saved thunder challenge marker');
   }
   if (loadout.encounterId !== undefined &&
     (side !== 'enemy' || typeof loadout.encounterId !== 'string' || !loadout.encounterId.trim())) {
@@ -156,9 +261,10 @@ function assertStateShapeWithoutContent(state: RunState): void {
   if (!Number.isInteger(state.n) || state.n < 0 || state.n > 4) {
     throw new Error('Invalid Shanhai realm');
   }
-  if (state.buildVersion !== 3) {
+  if (state.buildVersion !== 5) {
     throw new Error('Invalid saved build version');
   }
+  assertFusionStateShape(state);
   if (!isObject(state.progress) ||
     !nonNegative(state.progress.coinsSpent) ||
     !Number.isInteger(state.progress.eliteWins) || state.progress.eliteWins < 0 ||
@@ -171,6 +277,103 @@ function assertStateShapeWithoutContent(state: RunState): void {
     !state.ownedMethods.includes(state.method)) {
     throw new Error('Invalid Shanhai methods');
   }
+  if (typeof state._thunderChallenge !== 'boolean' ||
+    !['normal', 'bonus', undefined].includes(state._thunderRewardStage) ||
+    !Array.isArray(state._thunderRewardCandidates) ||
+    state._thunderRewardCandidates.length > 3 ||
+    state._thunderRewardCandidates.some(id => typeof id !== 'string') ||
+    new Set(state._thunderRewardCandidates).size !== state._thunderRewardCandidates.length ||
+    (state._thunderRewardFallback !== undefined &&
+      (!isObject(state._thunderRewardFallback) || Object.keys(state._thunderRewardFallback).length !== 2 ||
+        state._thunderRewardFallback.type !== 'coins' || state._thunderRewardFallback.amount !== 20))) {
+    throw new Error('Invalid saved thunder challenge state');
+  }
+  if (!Array.isArray(state.thunderChallenges) || state.thunderChallenges.length > 44) {
+    throw new Error('Invalid saved thunder challenge history');
+  }
+  const challengeCoordinates = new Set<string>();
+  let previousChallengePosition = -1;
+  const validArtifactId = (id: unknown): id is string =>
+    typeof id === 'string' && /^(?:RC|RR|RL)\d\d$/.test(id);
+  for (const record of state.thunderChallenges) {
+    if (!isObject(record) || Object.keys(record).length !== 14 ||
+      !['act', 'step', 'nodeType', 'enemyId', 'outcome', 'xpBonus', 'normalCandidates',
+        'normalSettled', 'normalReward', 'extraRarity', 'extraInventory', 'extraCandidates',
+        'extraReward', 'fallbackCoins'].every(key => Object.prototype.hasOwnProperty.call(record, key)) ||
+      !Number.isInteger(record.act) || record.act < 1 || record.act > 4 || record.act > state.act ||
+      !Number.isInteger(record.step) || record.step < 0 || record.step > 10 ||
+      !['L', 'B'].includes(record.nodeType) || typeof record.enemyId !== 'string' || !record.enemyId.trim() ||
+      !['win', 'loss'].includes(record.outcome) || !nonNegative(record.xpBonus) ||
+      !Array.isArray(record.normalCandidates) || record.normalCandidates.length > 3 ||
+      record.normalCandidates.some(id => !validArtifactId(id)) ||
+      new Set(record.normalCandidates).size !== record.normalCandidates.length ||
+      typeof record.normalSettled !== 'boolean' ||
+      (record.normalReward !== null && !validArtifactId(record.normalReward)) ||
+      ![null, 'rare', 'legendary'].includes(record.extraRarity) ||
+      !Array.isArray(record.extraInventory) || record.extraInventory.length > 128 ||
+      record.extraInventory.some(stack => !isObject(stack) || !validArtifactId(stack.id) ||
+        !Number.isInteger(stack.stacks) || stack.stacks < 1 || stack.stacks > 4) ||
+      new Set(record.extraInventory.map(stack => stack.id)).size !== record.extraInventory.length ||
+      !Array.isArray(record.extraCandidates) || record.extraCandidates.length > 3 ||
+      record.extraCandidates.some(id => !validArtifactId(id)) ||
+      new Set(record.extraCandidates).size !== record.extraCandidates.length ||
+      (record.extraReward !== null && !validArtifactId(record.extraReward)) ||
+      !Number.isInteger(record.fallbackCoins) || ![0, 20].includes(record.fallbackCoins)) {
+      throw new Error('Invalid saved thunder challenge record');
+    }
+    const position = (record.act - 1) * 11 + record.step;
+    const coordinate = `${record.act}:${record.step}`;
+    if (position <= previousChallengePosition || challengeCoordinates.has(coordinate)) {
+      throw new Error('Invalid saved thunder challenge order');
+    }
+    previousChallengePosition = position;
+    challengeCoordinates.add(coordinate);
+    if (record.normalReward !== null && !record.normalCandidates.includes(record.normalReward)) {
+      throw new Error('Invalid saved thunder normal reward');
+    }
+    if (record.extraCandidates.length &&
+      (!record.extraRarity || record.extraCandidates.some(id =>
+        record.extraRarity === 'rare' ? !id.startsWith('RR') : !id.startsWith('RL')))) {
+      throw new Error('Invalid saved thunder bonus rarity');
+    }
+    if (record.outcome === 'loss') {
+      if (record.xpBonus !== 0 || record.normalCandidates.length || record.normalSettled ||
+        record.normalReward !== null || record.extraRarity !== null || record.extraInventory.length ||
+        record.extraCandidates.length || record.extraReward !== null || record.fallbackCoins !== 0) {
+        throw new Error('Invalid failed thunder challenge settlement');
+      }
+    } else if (!record.normalSettled) {
+      if (record.normalReward !== null || record.extraRarity !== null || record.extraInventory.length ||
+        record.extraCandidates.length || record.extraReward !== null || record.fallbackCoins !== 0) {
+        throw new Error('Invalid pending thunder normal reward');
+      }
+    } else if (record.extraCandidates.length) {
+      if (record.extraRarity === null || record.fallbackCoins !== 0 ||
+        (record.extraReward !== null && !record.extraCandidates.includes(record.extraReward))) {
+        throw new Error('Invalid pending thunder bonus reward');
+      }
+    } else if (record.extraRarity !== null || record.extraReward !== null || record.fallbackCoins !== 20) {
+      throw new Error('Invalid thunder challenge fallback settlement');
+    }
+  }
+  if (state._thunderRewardStage === undefined && state._thunderRewardCandidates.length) {
+    throw new Error('Thunder bonus candidates without an active stage');
+  }
+  if (state._thunderRewardStage !== undefined) {
+    const challenge = state.thunderChallenges.find(record =>
+      record.act === state.act && record.step === state.step);
+    if (!state._thunderChallenge || !['reward', 'lost'].includes(state.phase) ||
+      !challenge || challenge.outcome !== 'win' ||
+      (state._thunderRewardStage === 'normal' &&
+        (challenge.normalSettled || state._thunderRewardCandidates.length ||
+          JSON.stringify(challenge.normalCandidates) !== JSON.stringify(state.rewardCandidates))) ||
+      (state._thunderRewardStage === 'bonus' &&
+        (!challenge.normalSettled || !challenge.extraCandidates.length || challenge.extraReward !== null ||
+          JSON.stringify(challenge.extraCandidates) !== JSON.stringify(state._thunderRewardCandidates) ||
+          JSON.stringify(challenge.extraCandidates) !== JSON.stringify(state.rewardCandidates)))) {
+      throw new Error('Inconsistent active thunder challenge reward stage');
+    }
+  }
   if (!isObject(state.talents)) throw new Error('Invalid Shanhai talents');
   for (const [method, talents] of Object.entries(state.talents)) {
     if (!state.ownedMethods.includes(method) || !Array.isArray(talents) ||
@@ -179,7 +382,7 @@ function assertStateShapeWithoutContent(state: RunState): void {
     }
   }
   if (!isObject(state.equipment) || !Array.isArray(state.equipment.slots) ||
-    state.equipment.slots.length > 4 ||
+    state.equipment.slots.length > MAX_EQUIPMENT_SLOTS ||
     state.equipment.slots.some(id => typeof id !== 'string') ||
     new Set(state.equipment.slots).size !== state.equipment.slots.length) {
     throw new Error('Invalid Shanhai equipment');
@@ -210,6 +413,13 @@ function assertStateShapeWithoutContent(state: RunState): void {
   }
   if (!state.routeMap) throw new Error('Invalid route map: saved route map is missing');
   validateRouteMap(state.routeMap, state.act, state.nodes, state.step, state.phase, state._routeMapLegacy === true);
+  if (state._thunderChallenge === true) {
+    const challengeNode = state.nodes[state.step];
+    if (state.act > 4 || !challengeNode || !['L', 'B'].includes(challengeNode.type) ||
+      challengeNode.completed || !['map', 'preview', 'battle', 'reward', 'lost'].includes(state.phase)) {
+      throw new Error('Invalid active thunder challenge node');
+    }
+  }
   if (!Array.isArray(state.routes) || state.routes.some(route => typeof route !== 'string')) {
     throw new Error('Invalid Shanhai routes');
   }
@@ -269,6 +479,40 @@ function assertStateShapeWithoutContent(state: RunState): void {
     }
     searchedActs.add(record.act);
   }
+  if (!Array.isArray(state.rewardRefinements) || state.rewardRefinements.length > 4) {
+    throw new Error('Invalid reward refinement history');
+  }
+  let previousRefinedAct = 0;
+  const commonId = (id: unknown): id is string =>
+    typeof id === 'string' && /^RC(0[1-9]|1\d|2[0-4])$/.test(id);
+  for (const record of state.rewardRefinements) {
+    if (!isObject(record) || Object.keys(record).length !== 6 ||
+      !['act', 'step', 'source', 'target', 'targetStacksBefore', 'forfeited']
+        .every(key => Object.prototype.hasOwnProperty.call(record, key)) ||
+      !Number.isInteger(record.act) || record.act <= previousRefinedAct ||
+      record.act > 4 || record.act > state.act ||
+      !Number.isInteger(record.step) || record.step < 0 || record.step > 10 ||
+      !commonId(record.source) || !commonId(record.target) || record.source === record.target ||
+      !Number.isInteger(record.targetStacksBefore) || record.targetStacksBefore < 1 ||
+      record.targetStacksBefore > 4 ||
+      !Array.isArray(record.forfeited) || record.forfeited.length < 1 || record.forfeited.length > 3 ||
+      record.forfeited.some(id => !commonId(id)) ||
+      new Set(record.forfeited).size !== record.forfeited.length) {
+      throw new Error('Invalid reward refinement record');
+    }
+    const entry = state.history.filter(item => item.act === record.act && item.step === record.step);
+    const completed = state.nodes[record.step];
+    const snapshot = Array.isArray(state._travelSnapshots) && state._travelSnapshots.some((item: unknown) =>
+      isObject(item) && item.act === record.act && item.step === record.step && item.phase === 'map');
+    if (entry.length !== 1 || !snapshot ||
+      (record.act === state.act &&
+        (completed?.type !== 'C' || !completed.completed ||
+          record.step > state.step ||
+          (record.step === state.step && !['won', 'lost'].includes(state.phase))))) {
+      throw new Error('Reward refinement does not match a completed ordinary node');
+    }
+    previousRefinedAct = record.act;
+  }
   if (!Number.isInteger(state.extraElites) || state.extraElites < 0 ||
     !Number.isInteger(state.ordinaryCount) || state.ordinaryCount < 0) {
     throw new Error('Invalid Shanhai counters');
@@ -307,14 +551,33 @@ function assertStateShapeWithoutContent(state: RunState): void {
     }
   }
   if (state.battleInput !== undefined) {
-    if (!isObject(state.battleInput) || typeof state.battleInput.seed !== 'string' ||
-      !Number.isInteger(state.battleInput.roundLimit) || state.battleInput.roundLimit < 1 ||
-      state.battleInput.roundLimit > 4096) {
+    const battleInput = state.battleInput;
+    if (!isObject(battleInput) || typeof battleInput.seed !== 'string' ||
+      !Number.isInteger(battleInput.roundLimit) || battleInput.roundLimit < 1 ||
+      battleInput.roundLimit > 4096) {
       throw new Error('Invalid Shanhai battle input');
     }
-    assertLoadoutShapeWithoutContent(state.battleInput.player, 'player');
-    assertLoadoutShapeWithoutContent(state.battleInput.enemy, 'enemy');
-    if (state.battleInput.rules !== undefined && state.battleInput.rules !== 'awakening-v1') throw new Error('Invalid saved battle rules');
+    assertLoadoutShapeWithoutContent(battleInput.player, 'player');
+    assertLoadoutShapeWithoutContent(battleInput.enemy, 'enemy');
+    if (battleInput.player.companion !== undefined &&
+      (!state.ownedMethods.includes(battleInput.player.companion) ||
+        battleInput.player.companion === battleInput.player.method ||
+        state.ownedMethods.find(id => id !== battleInput.player.method) !==
+          battleInput.player.companion)) {
+      throw new Error('Invalid saved battle companion owner');
+    }
+    if (battleInput.enemy.companion !== undefined) {
+      throw new Error('Invalid frozen enemy companion');
+    }
+    if (state.phase === 'battle' &&
+      battleInput.player.companion !==
+        state.ownedMethods.find(id => id !== battleInput.player.method)) {
+      throw new Error('Invalid frozen battle companion');
+    }
+    if ((battleInput.enemy.thunderChallenge === true) !== (state._thunderChallenge === true)) {
+      throw new Error('Frozen enemy challenge state mismatch');
+    }
+    if (battleInput.rules !== undefined && battleInput.rules !== 'awakening-v1') throw new Error('Invalid saved battle rules');
   }
   if (state.phase === 'battle') {
     const journey = state.battleInput?.player?.journey;
@@ -505,19 +768,21 @@ export function parseRunSave(content: Content, text: string): RunState {
   }
   let state = extractState(payload);
   validateRunState(content, state);
-  state = new ShanhaiGame(content, state).state;
+  const game = new ShanhaiGame(content, state);
+  state = game.state;
   if (isObject(payload) && payload.replay !== undefined) {
     if (payload.replay !== 'deterministic-input-v1' || !state.battleInput || !state.battle) {
       throw new Error('Corrupted Shanhai replay input');
     }
     const input = state.battleInput;
-    const replay = simulateBattle(content, input.player, input.enemy, input.seed, {
+    const replay = simulateBattle(game.content, input.player, input.enemy, input.seed, {
       roundLimit: input.roundLimit, artifactAwakenings: input.rules === 'awakening-v1',
     });
     for (const key of ['outcome', 'rounds', 'playerHp', 'enemyHp'] as const) {
       if (replay[key] !== state.battle[key]) throw new Error('Stored battle no longer matches its deterministic input');
     }
     state.battle = replay;
+    validateRunState(game.content, state);
   }
   return state;
 }
@@ -571,6 +836,7 @@ function readBuildRecords(storage?: StorageLike): ShanhaiBuildRecord[] {
       typeof record.runId !== 'string' || typeof record.contentVersion !== 'string' ||
       typeof record.name !== 'string' || typeof record.method !== 'string' ||
       !Number.isInteger(record.n) || !Array.isArray(record.talents) || !Array.isArray(record.artifacts) ||
+      record.artifacts.length > MAX_EQUIPMENT_SLOTS ||
       !isObject(record.stats) || !finite(record.stats.attack) || !finite(record.stats.defense) ||
       !finite(record.stats.max_hp) || !finite(record.stats.crit_rate) || !finite(record.stats.speed)) {
       throw new Error('Corrupted Shanhai build records');

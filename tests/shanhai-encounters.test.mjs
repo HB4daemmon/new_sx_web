@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadContent } from '../tools/content-kit/src/loader.mjs';
 import { contentFromEntities } from '../build/shanhai/content.js';
+import { MAX_EQUIPMENT_SLOTS } from '../build/shanhai/equipment.js';
 import {
   FUNCTIONAL_WIN_SEEDS,
   START_METHODS,
@@ -10,9 +11,9 @@ import {
   runFullCalibration,
 } from './shanhai-calibrate.mjs';
 import { ShanhaiGame } from '../build/shanhai/run.js';
-import { nextCommand } from './shanhai-policy.mjs';
+import { equipmentCommand, nextCommand } from './shanhai-policy.mjs';
 
-// Selected functional fixtures only; this seed set is not a win-rate sample.
+// Handpicked functional winning fixtures only; this seed set is not a win-rate cohort.
 async function calibratedContent() {
   const model = await loadContent();
   return contentFromEntities(model.entities, model.manifest.content_version);
@@ -54,11 +55,13 @@ test('fixed reference board uses authored early/late tiers and traces its input 
   assert.match(report.inputHash, /^[a-f0-9]{64}$/);
   assert.equal(report.inputHash, report.records[0].inputHash);
   assert.deepEqual(report.input.referenceEquipment, REFERENCE_EQUIPMENT);
-  assert.equal(report.input.referenceEquipment.length, 4);
+  assert.equal(MAX_EQUIPMENT_SLOTS, 5);
+  assert.equal(report.input.referenceEquipment.length, MAX_EQUIPMENT_SLOTS);
   assert.equal(report.input.referenceEquipment.filter(id =>
-    content.byId[id].equipment_role === 'core').length, 2);
+    content.byId[id].equipment_role === 'core').length, 3);
   assert.equal(report.input.referenceEquipment.filter(id =>
     content.byId[id].equipment_role === 'support').length, 2);
+  assert.match(report.policy, /5-slot reference loadouts/);
   assert.equal(report.input.matrix.length, enemies.length * START_METHODS.length);
   for (const row of report.input.matrix) {
     assert.equal(row.enemy.encounterId,
@@ -67,11 +70,14 @@ test('fixed reference board uses authored early/late tiers and traces its input 
     assert.equal(row.player.encounterId, undefined);
     for (const side of [row.player, row.enemy]) {
       const ids = side.artifacts.map(stack => stack.id);
-      assert.ok(ids.length <= 4, `${row.enemyId}/${row.method} has at most four generic slots`);
+      assert.ok(ids.length <= MAX_EQUIPMENT_SLOTS,
+        `${row.enemyId}/${row.method} has at most ${MAX_EQUIPMENT_SLOTS} generic slots`);
       assert.equal(new Set(ids).size, ids.length, `${row.enemyId}/${row.method} has unique artifact slots`);
       assert.ok(ids.every(id => ['core', 'support'].includes(content.byId[id]?.equipment_role)),
         `${row.enemyId}/${row.method} retains descriptive artifact roles`);
     }
+    assert.equal(row.player.artifacts.length, MAX_EQUIPMENT_SLOTS,
+      `${row.enemyId}/${row.method} reference player loadout fills all five slots`);
   }
   for (const row of report.records) {
     const enemy = content.byId[row.enemyId];
@@ -100,6 +106,30 @@ test('fixed reference board uses authored early/late tiers and traces its input 
       assert.ok(Number.isFinite(row[key]), `${row.enemyId}.${key}`);
     }
   }
+});
+
+test('simulation equipment policy fills an empty fifth slot before considering replacement', async () => {
+  const content = await calibratedContent();
+  const game = ShanhaiGame.create(content, {
+    seed: 'policy-fifth-slot-priority',
+    name: '第五槽策略夹具',
+    method: 'RKF01',
+  });
+  const ids = ['RC01', 'RC02', 'RC03', 'RC04', 'RC05', 'RC06'];
+  game.state.phase = 'map';
+  game.state.artifacts = ids.map(id => ({ id, stacks: 1 }));
+  game.state.equipment = { slots: ids.slice(0, MAX_EQUIPMENT_SLOTS - 1) };
+  content.byId.RC06.attributes.flat.attack = 1000;
+
+  const fillCommand = equipmentCommand(game);
+  assert.deepEqual(fillCommand, { type: 'equip', id: 'RC06' },
+    'a high-scoring owned item should fill the empty fifth slot without replacing an equipped item');
+
+  game.state.equipment.slots = ids.slice(0, MAX_EQUIPMENT_SLOTS);
+  const replaceCommand = equipmentCommand(game);
+  assert.equal(replaceCommand.id, 'RC06');
+  assert.ok(game.state.equipment.slots.includes(replaceCommand.replace),
+    'once all five slots are occupied, an upgrade must target an equipped item');
 });
 
 test('recovery and shield-wall authored fixtures have no fixed 256-round draw', async () => {
@@ -150,7 +180,7 @@ test('five-run calibration smoke reaches terminal outcomes without errors', asyn
   const content = await calibratedContent();
   const report = runFullCalibration(content, 1);
   assert.equal(report.runs.length, 5);
-  assert.equal(report.experimentTrack, 'V2 reactions prototype; buildVersion 3; shanhai-content-0.2; uncalibrated');
+  assert.equal(report.experimentTrack, 'V2 second overhaul; buildVersion 5; shanhai-content-0.2; uncalibrated');
   assert.deepEqual(report.input.functionalWinSeeds, FUNCTIONAL_WIN_SEEDS);
   assert.deepEqual(report.runs.map(row => row.method), START_METHODS);
   assert.equal(report.outcomes.error, 0);

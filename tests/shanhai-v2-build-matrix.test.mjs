@@ -3,6 +3,7 @@ import test from 'node:test';
 import { loadContent } from '../tools/content-kit/src/loader.mjs';
 import { contentFromEntities } from '../build/shanhai/content.js';
 import { calculateStats, simulateBattle } from '../build/shanhai/combat.js';
+import { MAX_EQUIPMENT_SLOTS } from '../build/shanhai/equipment.js';
 import { buildMechanicViews } from '../build/shanhai/build-mechanics.js';
 import { ShanhaiGame, registerCombatWorker } from '../build/shanhai/run.js';
 
@@ -36,7 +37,7 @@ const MATRIX_ARTIFACTS = [
   { owned: [], equipped: [] },
   { owned: ['RC09'], equipped: ['RC09'] },
   { owned: ['RC09', 'RC10', 'RC12'], equipped: ['RC10'] },
-  { owned: ['RC09', 'RC10', 'RC11', 'RC12'], equipped: ['RC09', 'RC10', 'RC11', 'RC12'] },
+  { owned: ['RC09', 'RC10', 'RC11', 'RC12', 'RC14'], equipped: ['RC09', 'RC10', 'RC11', 'RC12', 'RC14'] },
   { owned: ['RC14', 'RC15', 'RC18'], equipped: ['RC14', 'RC15'] },
   { owned: ['RC09', 'RC10', 'RC11', 'RC12'], equipped: ['RC09', 'RC12'] },
   { owned: ['RC10', 'RC11'], equipped: ['RC10', 'RC11'] },
@@ -161,6 +162,7 @@ function assertDeterministicBattle(player, enemy, seed, roundLimit) {
 }
 
 test('authored insights form legal four-tier builds across all methods with frozen journey inputs', () => {
+  assert.equal(MAX_EQUIPMENT_SLOTS, 5);
   const covered = new Set();
 
   for (const [index, method] of METHODS.entries()) {
@@ -169,7 +171,7 @@ test('authored insights form legal four-tier builds across all methods with froz
     for (const id of talents) covered.add(id);
 
     assert.deepEqual(talents.map(id => INSIGHTS.get(id)?.tier), [1, 2, 3, 4], `${method} tier selection`);
-    assert.ok(artifacts.equipped.length <= 4);
+    assert.ok(artifacts.equipped.length <= MAX_EQUIPMENT_SLOTS);
     const { game, input } = freezeRunBattle({
       method,
       talents,
@@ -183,6 +185,10 @@ test('authored insights form legal four-tier builds across all methods with froz
 
     assert.deepEqual(input.player.talents, talents);
     assert.deepEqual(input.player.artifacts, artifacts.equipped.map(id => ({ id, stacks: 1 })));
+    if (artifacts.equipped.length === MAX_EQUIPMENT_SLOTS) {
+      assert.equal(input.player.artifacts[MAX_EQUIPMENT_SLOTS - 1].id, 'RC14',
+        `${method} must retain its fifth equipped artifact in the frozen battle input`);
+    }
     assert.deepEqual(input.player.journey, {
       coins: 240 + index * 10,
       coinsSpent: 80 + index * 5,

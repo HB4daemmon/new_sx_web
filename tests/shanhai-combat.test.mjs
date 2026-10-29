@@ -191,14 +191,25 @@ test('varied artifact categories survive ten-round smoke battles', () => {
 });
 
 test('rage is settled after both locked actions and opening rage locks both rage actions', () => {
+  const cappedOpeningContent = openingRageContent(0);
   const player = makeLoadout('RKF01', {}, [{ id: 'RC22', stacks: 1 }, { id: 'RL04', stacks: 1 }], { max_hp: 1_000_000, speed: 10 });
   const enemy = makeLoadout('RKF01', {}, [{ id: 'RL04', stacks: 1 }], { max_hp: 1_000_000, speed: 9 });
-  const rageRound = simulateBattle(content, player, enemy, 'locked-rage', { roundLimit: 1 });
+  const rageRound = simulateBattle(cappedOpeningContent, player, enemy, 'locked-rage', { roundLimit: 1 });
   const rageActions = rageRound.frames.filter(frame => frame.kind === 'action' && frame.round === 1);
   assert.equal(rageActions.length, 2);
   assert.deepEqual(rageActions.map(frame => frame.source), ['RKF01-RAGE-DAMAGE', 'RKF01-RAGE-DAMAGE']);
-  assert.equal(rageRound.contributions.find(item => item.id === 'RC22')?.rage, 15);
-  assert.equal(rageRound.contributions.find(item => item.id === 'RL04')?.rage, 50);
+  const start = firstFrame(rageRound, frame => frame.kind === 'start');
+  assert.equal(start.player.rage, 50);
+  assert.equal(start.player.rageCap, 50);
+  assert.equal(start.enemy.rage, 50);
+  assert.equal(start.enemy.rageCap, 50);
+  assert.equal(contribution(rageRound, 'RC22').rage, 15);
+  assert.equal(contribution(rageRound, 'RL04').rage, 35);
+  assert.deepEqual(
+    rageRound.frames.filter(frame => frame.kind === 'rage' && frame.source === 'RKF01-rage-cost')
+      .map(frame => [frame.actor, frame.amount]),
+    [['player', 50], ['enemy', 50]],
+  );
 
   const basicRound = simulateBattle(
     content,
@@ -863,7 +874,7 @@ test('RKF01 J1-A and RC11 combine on method shields, while preparation stays out
   assert.equal(contribution(basic, 'RC11').triggers, 3);
 
   const twoCoreRules = simulateBattle(
-    content,
+    openingRageContent(0),
     makeLoadout('RKF01', { 1: 'A', 2: 'C' }, [
       { id: 'RC11', stacks: 1 },
       { id: 'RL04', stacks: 1 },
@@ -875,7 +886,7 @@ test('RKF01 J1-A and RC11 combine on method shields, while preparation stays out
   assert.ok(twoCoreRules.frames.some(frame => frame.kind === 'shield' && frame.source === 'RC11'));
   assert.ok(twoCoreRules.frames.some(frame => frame.kind === 'rage' && frame.source === 'RULES-OPENING-RAGE'));
   assert.ok(contribution(twoCoreRules, 'RC11').shield > 0);
-  assert.ok(contribution(twoCoreRules, 'RL04').rage > 0);
+  assert.equal(contribution(twoCoreRules, 'RL04').rage, 50);
 
   const rage = simulateBattle(
     openingRageContent(),
@@ -1517,15 +1528,16 @@ test('RKF10 day shield talents add per shield while night actions do not create 
 });
 
 test('RKF10 enemy day rage applies stacked shield talent additions', () => {
+  // Keep this 100-cost fixture independent of RL04's 50-cap and defense penalty.
   const result = simulateBattle(
-    content,
+    openingRageContent(100),
     makeLoadout('RKF01', {}, [], {
       attack: 0,
       defense: 0,
       max_hp: 1_000_000,
       speed: 1,
     }),
-    makeLoadout('RKF10', { 2: 'C', 4: 'A' }, [{ id: 'RL04', stacks: 1 }], {
+    makeLoadout('RKF10', { 2: 'C', 4: 'A' }, [], {
       attack: 88,
       defense: 100,
       max_hp: 1_000_000,
@@ -1536,6 +1548,9 @@ test('RKF10 enemy day rage applies stacked shield talent additions', () => {
   );
   const shield = firstFrame(result, frame =>
     frame.kind === 'shield' && frame.actor === 'enemy' && frame.source === 'RKF10-RAGE-SHIELD-DAY');
+  assert.equal(firstFrame(result, frame => frame.kind === 'start').enemy.rageCap, 100);
+  assert.equal(firstFrame(result, frame =>
+    frame.kind === 'rage' && frame.actor === 'enemy' && frame.source === 'RKF10-rage-cost').amount, 100);
   assert.ok(Math.abs(shield.amount - 70) < 1e-9);
   assert.equal(actionFrames(result, 'enemy', 'RKF10-RAGE-DAMAGE').length, 1);
 });

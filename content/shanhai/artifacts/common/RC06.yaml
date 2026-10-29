@@ -5,7 +5,7 @@ id: RC06
 name: 长生结
 status: design_target
 summary: 最大气血 +5%；支援定位
-description: 结绳的回环象征生机延续，使最大气血按比例增加。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+description: 结绳的回环象征生机延续，使最大气血按比例增加。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [max_hp, percent, combat]
 source:
   basis: original
@@ -22,5 +22,13 @@ attributes:
   percent: {max_hp: 0.05}
 effects: []
 equipment_role: support
+awakening:
+  at_stacks: 3
+  name: 长生回春
+  quick: 满3层后，自身存活时每次普攻或怒技完成后获得最大气血2%的护盾，并回复最大气血2%。
+  trigger: either
+  effects:
+    - {kind: shield, value: 0.02}
+    - {kind: heal, value: 0.02}
 acquisition:
   pools: [common_artifact]

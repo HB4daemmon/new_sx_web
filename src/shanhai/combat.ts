@@ -1,4 +1,5 @@
 import { hashSeed, seededRandom } from './content.js';
+import { MAX_EQUIPMENT_SLOTS } from './equipment.js';
 import {
   journeyFacts,
   selectedBuildMechanics,
@@ -30,6 +31,7 @@ type ActiveEffect = Effect & { ownerId: string; ownerName: string; ownerKind: So
 type SourceKind = 'method' | 'talent' | 'artifact';
 type ActionType = 'basic_action' | 'rage_action';
 type StatusName = 'poison' | 'burn' | 'weakness' | 'armor_break' | 'sword_intent' | 'charge_luck' | 'day_night';
+type FusionKind = 'toxic_flame' | 'twin_swords';
 type ResonanceKind =
   | 'guard_pressure'
   | 'returning_breath'
@@ -52,6 +54,7 @@ interface StatusLayer {
   damage?: number;
   sourceId?: string;
   ownerId?: string;
+  ownerSide?: 'player' | 'enemy';
   attackRatio?: number;
   kind?: 'dot' | 'regular';
 }
@@ -88,6 +91,9 @@ interface Fighter {
   lockedAction?: ActionType;
   loadout: Loadout;
   method: AnyMap;
+  companion?: AnyMap;
+  companionSourceId?: string;
+  companionUsesAlternateEffect: boolean;
   talents: AnyMap[];
   artifacts: ArtifactRuntime[];
   coreRules: CoreRuleRuntime[];
@@ -123,6 +129,7 @@ interface RageEntry {
   amount: number;
   sourceId: string;
   sourceOwner: string;
+  isEcho?: boolean;
 }
 
 interface RageDrain {
@@ -185,7 +192,10 @@ interface ActionContext {
   powerScale?: number;
   chargeLuckShieldOutput?: boolean;
   roundDotSettlement?: boolean;
+  combatEvents?: Set<CompanionTrigger>;
 }
+
+type CompanionTrigger = 'hit' | 'shield' | 'heal' | 'rage' | 'poison' | 'burn' | 'debuff' | 'phase';
 
 interface HitResult {
   raw: number;
@@ -358,6 +368,11 @@ const RESONANCE_SCHEMAS: Record<string, ResonanceSchema> = {
   },
 };
 
+const FUSION_RULE_SCHEMAS: Record<string, FusionKind> = {
+  RL06: 'toxic_flame',
+  RL07: 'twin_swords',
+};
+
 const RESONANCE_INTEGER_PARAMETERS = new Set([
   'ticks',
   'extra_segments',
@@ -482,12 +497,18 @@ function equipmentRole(artifact: AnyMap): 'core' | 'support' {
 }
 
 const CORE_RULE_PARAMETERS: Record<string, string[]> = {
+  basic_convergence: ['damage_ratio'],
   basic_echo: ['ratio', 'rage_damage_ratio'],
   rage_gambit: ['rage_refund', 'incoming_damage_ratio'],
   shield_burst: ['opening_shield_ratio', 'shield_ratio', 'damage_ratio'],
   healing_guard: ['heal_ratio', 'shield_ratio', 'direct_damage_ratio'],
   poison_detonation: ['poison_stacks', 'damage_ratio'],
   burn_siphon: ['burn_stacks', 'heal_ratio', 'rage_damage_ratio'],
+};
+
+const GAMBIT_RULE_SCHEMAS: Record<string, { kind: string; params: Record<string, number> }> = {
+  RL04: { kind: 'overdrive', params: { rage_cap: 50, defense_multiplier: 0.65 } },
+  RR05: { kind: 'reckless', params: { defense_multiplier: 0.5, direct_damage_multiplier: 1.6 } },
 };
 
 function coreRuleShape(artifact: AnyMap): { kind: string; params: AnyMap } | undefined {
@@ -501,6 +522,14 @@ function coreRuleShape(artifact: AnyMap): { kind: string; params: AnyMap } | und
     : rule;
   const required = CORE_RULE_PARAMETERS[rule.kind];
   if (!required) throw new Error(`Unsupported core_rule ${rule.kind} (${artifact.id})`);
+  if (rule.kind === 'basic_convergence') {
+    const ruleKeys = rule.params ? ['kind', 'params'] : ['kind', ...required];
+    const parameterKeys = params === rule ? ['kind', ...required] : required;
+    if (Object.keys(rule).some(key => !ruleKeys.includes(key)) ||
+        Object.keys(params).some(key => !parameterKeys.includes(key))) {
+      throw new Error(`Unknown core_rule parameter (${artifact.id})`);
+    }
+  }
   for (const key of required) {
     if (!isFiniteNumber(params[key]) || params[key] < 0) {
       throw new Error(`Invalid core_rule parameter ${key} (${artifact.id})`);
@@ -515,6 +544,103 @@ function coreRuleShape(artifact: AnyMap): { kind: string; params: AnyMap } | und
     }
   }
   return { kind: rule.kind, params };
+}
+
+function gambitRuleShape(artifact: AnyMap): { kind: string; params: AnyMap } | undefined {
+  const expected = GAMBIT_RULE_SCHEMAS[artifact.id];
+  const hasRule = Object.prototype.hasOwnProperty.call(artifact, 'gambit_rule');
+  if (!expected) {
+    if (hasRule) throw new Error(`Unsupported gambit_rule owner (${artifact.id})`);
+    return undefined;
+  }
+  const rule = artifact.gambit_rule;
+  if (!rule || typeof rule !== 'object' || Array.isArray(rule)) {
+    throw new Error(`Missing or invalid gambit_rule (${artifact.id})`);
+  }
+  const expectedKeys = ['kind', ...Object.keys(expected.params)];
+  const keys = Object.keys(rule);
+  if (keys.length !== expectedKeys.length || keys.some(key => !expectedKeys.includes(key))) {
+    throw new Error(`Unknown or missing gambit_rule parameter (${artifact.id})`);
+  }
+  if (rule.kind !== expected.kind) throw new Error(`Unsupported gambit_rule kind ${String(rule.kind)} (${artifact.id})`);
+  for (const [key, expectedValue] of Object.entries(expected.params)) {
+    if (!isFiniteNumber(rule[key]) || rule[key] !== expectedValue) {
+      throw new Error(`Invalid gambit_rule parameter ${key} (${artifact.id})`);
+    }
+  }
+  return { kind: rule.kind, params: rule };
+}
+
+function validateGambitRules(content: Content): void {
+  const kinds = new Map<string, string>();
+  for (const authored of content.entities) {
+    if (authored.kind !== 'artifact') {
+      if (Object.prototype.hasOwnProperty.call(authored, 'gambit_rule')) {
+        throw new Error(`gambit_rule is only valid on artifacts (${authored.id})`);
+      }
+      continue;
+    }
+    const shape = gambitRuleShape(authored);
+    if (!shape) continue;
+    const previous = kinds.get(shape.kind);
+    if (previous) throw new Error(`Duplicate gambit_rule kind ${shape.kind} (${previous}, ${authored.id})`);
+    kinds.set(shape.kind, authored.id);
+  }
+}
+
+function fusionRuleKind(artifact: AnyMap): FusionKind | undefined {
+  if (!Object.prototype.hasOwnProperty.call(artifact, 'fusion_rule')) return undefined;
+  const expected = FUSION_RULE_SCHEMAS[artifact.id];
+  if (artifact.kind !== 'artifact' || !expected) {
+    throw new Error(`Unsupported fusion_rule owner (${artifact.id})`);
+  }
+  const rule = artifact.fusion_rule;
+  if (!rule || typeof rule !== 'object' || Array.isArray(rule) ||
+      Object.keys(rule).length !== 1 || Object.keys(rule)[0] !== 'kind' ||
+      typeof rule.kind !== 'string' || rule.kind !== expected) {
+    throw new Error(`Invalid fusion_rule (${artifact.id})`);
+  }
+  return expected;
+}
+
+function validateFusionRules(content: Content): void {
+  for (const artifact of content.entities) {
+    if (Object.prototype.hasOwnProperty.call(artifact, 'fusion_rule')) {
+      fusionRuleKind(artifact);
+    }
+  }
+  for (const artifactId of Object.keys(FUSION_RULE_SCHEMAS)) {
+    const artifact = content.byId[artifactId];
+    if (!artifact || artifact.kind !== 'artifact' || fusionRuleKind(artifact) === undefined) {
+      throw new Error(`Missing fusion_rule (${artifactId})`);
+    }
+  }
+}
+
+interface FusionRuleRuntime {
+  artifact: ArtifactRuntime;
+  effect: ActiveEffect;
+  kind: FusionKind;
+}
+
+function fusionRules(fighter: Fighter): FusionRuleRuntime[] {
+  return fighter.artifacts.flatMap(artifact => {
+    const kind = fusionRuleKind(artifact.entity);
+    if (!kind) return [];
+    const effect = Object.assign({
+      id: artifact.entity.id,
+      trigger: 'action_end',
+      operation: 'fusion_rule',
+      params: { kind },
+    }, {
+      ownerId: artifact.entity.id,
+      ownerName: artifact.entity.name,
+      ownerKind: 'artifact' as SourceKind,
+      ownerSide: fighter.side,
+      stacks: 1,
+    }) as ActiveEffect;
+    return [{ artifact, effect, kind }];
+  });
 }
 
 function resonanceMarker(effect: AnyMap): boolean {
@@ -760,16 +886,28 @@ function validateLoadout(
   content: Content,
   loadout: Loadout,
   side: 'player' | 'enemy',
-): { method: AnyMap; talents: AnyMap[]; artifacts: ArtifactRuntime[]; trial?: EnemyTrial } {
+): { method: AnyMap; companion?: AnyMap; talents: AnyMap[]; artifacts: ArtifactRuntime[]; trial?: EnemyTrial } {
   if (!loadout || typeof loadout !== 'object') throw new Error('Invalid Shanhai loadout');
   if (typeof loadout.method !== 'string') throw new Error('Loadout method is required');
   validateResonanceRules(content);
+  validateFusionRules(content);
+  validateGambitRules(content);
   for (const [key, value] of [['preparation', loadout.preparation], ['firstStrike', loadout.firstStrike]] as const) {
     if (value !== undefined && (!isFiniteNumber(value) || value < 0)) {
       throw new Error(`Invalid ${key} preparation`);
     }
   }
   const method = entity(content, loadout.method, 'method');
+  let companion: AnyMap | undefined;
+  if (loadout.companion !== undefined) {
+    if (typeof loadout.companion !== 'string') throw new Error('Loadout companion must be a method ID');
+    companion = entity(content, loadout.companion, 'method');
+    if (companion.id === method.id) throw new Error('Loadout companion must differ from the main method');
+    if (!companion.companion || typeof companion.companion.name !== 'string' ||
+        typeof companion.companion.quick !== 'string' || !companion.companion.effect) {
+      throw new Error(`Method ${companion.id} has no valid companion assistance configuration`);
+    }
+  }
   let trial: EnemyTrial | undefined;
   if (loadout.encounterId !== undefined) {
     if (side !== 'enemy') throw new Error('Loadout encounterId is enemy-only');
@@ -809,7 +947,9 @@ function validateLoadout(
   const uniqueGroups = new Set<string>();
   const counts = new Map<string, number>();
   const artifactIds = new Set<string>();
-  if (loadout.artifacts.length > 4) throw new Error('Loadout exceeds four artifact slots');
+  if (loadout.artifacts.length > MAX_EQUIPMENT_SLOTS) {
+    throw new Error(`Loadout exceeds ${MAX_EQUIPMENT_SLOTS} artifact slots`);
+  }
   for (const stack of loadout.artifacts) {
     if (!stack || typeof stack.id !== 'string' || !Number.isInteger(stack.stacks) || stack.stacks <= 0) {
       throw new Error(`Invalid artifact stack ${JSON.stringify(stack)}`);
@@ -833,7 +973,7 @@ function validateLoadout(
     artifacts.push({ entity: artifact, stacks: stack.stacks });
   }
   validateEffects(method, chosen, artifacts, [...sharedTalents.values()]);
-  return { method, talents: chosen, artifacts, ...(trial ? { trial } : {}) };
+  return { method, ...(companion ? { companion } : {}), talents: chosen, artifacts, ...(trial ? { trial } : {}) };
 }
 
 function rules(content: Content): AnyMap {
@@ -856,6 +996,11 @@ function tierBaseStats(content: Content, loadout: Loadout): Stats {
     stats[key] = row[key];
   }
   return stats as Stats;
+}
+
+function gambitDefenseMultiplier(artifacts: ArtifactRuntime[]): number {
+  return artifacts.reduce((multiplier, artifact) =>
+    multiplier * n(artifact.entity.gambit_rule?.defense_multiplier, 1), 1);
 }
 
 function unconditionalStatEffect(effect: Effect): boolean {
@@ -905,6 +1050,7 @@ function calculateStatsForSide(
     if (effect.ownerKind === 'artifact') continue;
     addStatEffect(stats, effect, effect.stacks);
   }
+  stats.defense *= gambitDefenseMultiplier(compiled.artifacts);
   for (const key of STAT_KEYS) if (!isFiniteNumber(stats[key]) || stats[key] < 0) throw new Error(`Invalid calculated stat ${key}`);
   return stats;
 }
@@ -951,10 +1097,32 @@ function sourceBelongsToPlayer(
     runtime.player.artifacts.some(artifact => artifact.entity.id === id);
 }
 
-function fighterOwnsSource(fighter: Fighter, sourceId: string): boolean {
+function fighterOwnsSource(fighter: Fighter, sourceId: string, sourceSide?: 'player' | 'enemy'): boolean {
+  if (sourceSide !== undefined && sourceSide !== fighter.side) return false;
   return sourceId === fighter.method.id ||
     fighter.talents.some(talent => talent.id === sourceId) ||
-    fighter.artifacts.some(artifact => artifact.entity.id === sourceId);
+    fighter.artifacts.some(artifact => artifact.entity.id === sourceId) ||
+    sourceId === fighter.companionSourceId;
+}
+
+function fighterOwnsDotLayer(fighter: Fighter, layer: StatusLayer): boolean {
+  return fighterOwnsSource(fighter, layer.ownerId ?? layer.sourceId ?? '', layer.ownerSide);
+}
+
+function companionSource(fighter: Fighter): ActiveEffect | undefined {
+  if (!fighter.companion || !fighter.companionSourceId) return undefined;
+  const config = fighter.companion.companion;
+  return {
+    id: `${fighter.companion.id}-COMPANION-ASSIST`,
+    trigger: 'companion_assist',
+    operation: 'companion_assist',
+    params: {},
+    ownerId: fighter.companionSourceId,
+    ownerName: config.name,
+    ownerKind: 'method',
+    ownerSide: fighter.side,
+    stacks: 1,
+  };
 }
 
 function mark(runtime: BattleRuntime, effect: ActiveEffect | string, triggers = 1, ownerSide?: 'player' | 'enemy'): void {
@@ -995,6 +1163,11 @@ function buildSourceRegistry(runtime: BattleRuntime, fighter: Fighter): void {
   for (const artifact of fighter.artifacts) {
     runtime.sourceNames.set(artifact.entity.id, artifact.entity.name);
     if (fighter.side === 'player') ensureContribution(runtime, artifact.entity.id, artifact.entity.name);
+  }
+  if (fighter.companion && fighter.companionSourceId) {
+    const name = fighter.companion.companion.name;
+    runtime.sourceNames.set(fighter.companionSourceId, name);
+    if (fighter.side === 'player') ensureContribution(runtime, fighter.companionSourceId, name);
   }
 }
 
@@ -1448,6 +1621,16 @@ function mechanicsOf(fighter: Fighter, kind: BuildKind): BuildMechanic[] {
   return fighter.buildRules.filter(mechanic => mechanic.kind === kind);
 }
 
+function overdriveRule(fighter: Fighter): AnyMap | undefined {
+  return fighter.artifacts.find(artifact => artifact.entity.gambit_rule?.kind === 'overdrive')?.entity.gambit_rule;
+}
+
+function normalizeRageCap(fighter: Fighter, cap: number): number {
+  const overdrive = overdriveRule(fighter);
+  if (overdrive) return n(overdrive.rage_cap, 50);
+  return Math.max(60, n(rules((fighter as AnyMap).__content).rage?.min_cap, 60), cap);
+}
+
 function staticRageCap(fighter: Fighter): number {
   let cap = n(rules((fighter as AnyMap).__content).rage?.base_cap, 100);
   for (const effect of activeModifiers(fighter, 'rage_cap')) {
@@ -1457,13 +1640,14 @@ function staticRageCap(fighter: Fighter): number {
     if (p.mode === 'subtract') cap -= amount;
     else cap += amount;
   }
-  return Math.max(n(rules((fighter as AnyMap).__content).rage?.min_cap, 60), cap);
+  return normalizeRageCap(fighter, cap);
 }
 
 function dynamicStats(runtime: BattleRuntime, fighter: Fighter, target: Fighter, action: ActionContext | null): Stats {
   const stats = { ...fighter.stats };
+  const gambitDefense = gambitDefenseMultiplier(fighter.artifacts);
   for (const mechanic of mechanicsOf(fighter, 'carapace')) {
-    stats.defense += n(fighter.battleLayers[`carapace:${mechanic.id}`], 0);
+    stats.defense += n(fighter.battleLayers[`carapace:${mechanic.id}`], 0) * gambitDefense;
   }
   const weak = statusCount(fighter, 'weakness');
   stats.attack *= Math.max(0, 1 - weak * n(rules(runtime.content).statuses?.weakness?.reduction_per_stack, 0.05));
@@ -1526,7 +1710,7 @@ function dynamicStats(runtime: BattleRuntime, fighter: Fighter, target: Fighter,
     const stat = p.stat as keyof Stats;
     if (!STAT_KEYS.includes(stat)) throw new Error(`Unknown stat ${String(p.stat)} in ${effect.id}`);
     if (p.mode === 'percent_add') stats[stat] *= 1 + amount;
-    else stats[stat] += amount;
+    else stats[stat] += stat === 'defense' ? amount * gambitDefense : amount;
     if (amount === 0) continue;
     mark(runtime, effect, effect.stacks);
   }
@@ -1872,6 +2056,19 @@ function outgoingBuildMultiplier(
   return isFiniteNumber(multiplier) ? multiplier : 1;
 }
 
+function gambitDamageMultiplier(
+  source: Fighter,
+  kind: 'direct' | 'derived' | 'dot' | 'reflect',
+): number {
+  if (kind !== 'direct' && kind !== 'derived') return 1;
+  return source.artifacts.reduce((multiplier, artifact) => {
+    const rule = artifact.entity.gambit_rule;
+    return rule?.kind === 'reckless'
+      ? multiplier * n(rule.direct_damage_multiplier, 1)
+      : multiplier;
+  }, 1);
+}
+
 function applyCarapace(
   runtime: BattleRuntime,
   defender: Fighter,
@@ -2062,7 +2259,8 @@ function dealDamage(
   if (options.echoScale !== false && action?.isEcho && action.actor === source) {
     raw *= n(action.powerScale, 0.45);
   }
-  raw *= outgoingBuildMultiplier(runtime, source, target, action, options.kind);
+  raw *= outgoingBuildMultiplier(runtime, source, target, action, options.kind) *
+    gambitDamageMultiplier(source, options.kind);
   if (options.kind === 'direct') {
     for (const core of source.coreRules) {
       if (core.kind !== 'healing_guard') continue;
@@ -2134,6 +2332,10 @@ function dealDamage(
       action.actualAbsorbed += absorbed;
       if (options.kind === 'direct') registerIncomingDirectRage(runtime, target);
   }
+  if (effective && action?.actor === source && action.target === target &&
+      (options.kind === 'direct' || options.kind === 'derived')) {
+    recordCombatEvent(runtime, 'hit', source);
+  }
   if (action && action.actor === source && action.target === target &&
       action.isMainAction && !action.isEcho && options.kind === 'direct') {
     action.directShieldAbsorbed = n(action.directShieldAbsorbed, 0) + absorbed;
@@ -2188,10 +2390,18 @@ function dealDamage(
 
 function registerRage(runtime: BattleRuntime, fighter: Fighter, amount: number, sourceId: string, sourceOwner: string): void {
   if (amount <= 0 || fighter.hp <= 0) return;
-  fighter.pendingGains.push({ amount, sourceId, sourceOwner });
+  fighter.pendingGains.push({ amount, sourceId, sourceOwner, isEcho: runtime.currentAction?.isEcho === true });
   addContribution(runtime, sourceOwner, 'rage', amount, fighter.side);
+  recordCombatEvent(runtime, 'rage', fighter);
   const source = selectedEffect(fighter, sourceId) ?? selectedEffect(fighter, sourceOwner);
   if (source) mark(runtime, source, 1, fighter.side);
+}
+
+function recordCombatEvent(runtime: BattleRuntime, event: CompanionTrigger, owner?: Fighter): void {
+  const action = runtime.currentAction;
+  if (!action?.isMainAction || action.isEcho || action.isReaction || !action.combatEvents ||
+      (owner && action.actor !== owner)) return;
+  action.combatEvents.add(event);
 }
 
 function requestDrain(runtime: BattleRuntime, target: Fighter, amount: number, sourceId: string, sourceOwner: string, opening = false): void {
@@ -2241,6 +2451,7 @@ function addShield(
   input *= 1 + shieldBonus;
   const gained = Math.max(0, Math.min(input, fighter.stats.max_hp - fighter.shield));
   fighter.shield += gained;
+  if (gained > 0 && action?.actor === fighter) recordCombatEvent(runtime, 'shield', fighter);
   if (typeof source !== 'string') {
     mark(runtime, source, 1, fighter.side);
     addContribution(runtime, source, 'shield', gained, fighter.side);
@@ -2303,7 +2514,13 @@ function addRegularStatus(
   for (let i = 0; i < added; i++) {
     layers.push({
       remaining: Math.max(1, effectiveDuration),
-      ...(dot ? { damage: dot.damage, attackRatio: dot.attackRatio, ownerId: dot.ownerId, kind: 'dot' as const } : { kind: 'regular' as const }),
+      ...(dot ? {
+        damage: dot.damage,
+        attackRatio: dot.attackRatio,
+        ownerId: dot.ownerId,
+        ownerSide: sourceTargetSide(runtime, source),
+        kind: 'dot' as const,
+      } : { kind: 'regular' as const }),
       sourceId: typeof source === 'string' ? source : isEchoSource ? `${source.id}-RAGE-ECHO` : source.id,
     });
   }
@@ -2316,6 +2533,8 @@ function addRegularStatus(
         ? `${source.id}-RAGE-ECHO`
         : source.id;
     frame(runtime, 'status', `${target.side === 'player' ? '玩家' : '敌人'}获得${status}${added}层`, sourceTargetSide(runtime, source), target.side, frameSource, added);
+    if ((status === 'weakness' || status === 'armor_break') && action?.target === target &&
+        sourceTargetSide(runtime, source) === action.actor.side) recordCombatEvent(runtime, 'debuff', action.actor);
   }
   return added;
 }
@@ -2484,6 +2703,7 @@ function applyDot(
     scaleForEcho,
   );
   if (added <= 0) return added;
+  recordCombatEvent(runtime, status, owner);
   const awakeningId = status === 'poison'
     ? 'RC14-AWAKENING-POISON-ON-BURN'
     : 'RC15-AWAKENING-BURN-ON-POISON';
@@ -2739,6 +2959,7 @@ function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: numb
   const effective = Math.min(total, Math.max(0, fighter.stats.max_hp - fighter.hp));
   const overflow = Math.max(0, total - effective);
   fighter.hp += effective;
+  if (effective > 0 && action.actor === fighter) recordCombatEvent(runtime, 'heal', fighter);
   (action as AnyMap).lastEffectiveHeal = effective;
   mark(runtime, source, 1, fighter.side);
   addContribution(runtime, source, 'healing', effective, fighter.side);
@@ -2917,11 +3138,17 @@ function withReactionBeat(
   sourceId: string,
   text: string,
   resolve?: (action: ActionContext) => void,
+  count?: number,
 ): void {
   if (owner.hp <= 0 || target.hp <= 0) return;
   const previousAction = runtime.currentAction;
   const previousCue = runtime.activeCue;
-  const cue = { kind, owner: owner.side, sourceId } as const;
+  const cue: NonNullable<BattleFrame['cue']> = {
+    kind,
+    owner: owner.side,
+    sourceId,
+    ...(count === undefined ? {} : { count }),
+  };
   const action = syntheticAction(runtime, owner, target);
   runtime.currentAction = action;
   runtime.activeCue = cue;
@@ -2933,6 +3160,130 @@ function withReactionBeat(
   } finally {
     runtime.currentAction = previousAction;
     runtime.activeCue = previousCue;
+  }
+}
+
+function withAuxiliaryAction(
+  runtime: BattleRuntime,
+  owner: Fighter,
+  target: Fighter,
+  resolve: (action: ActionContext) => void,
+): void {
+  if (owner.hp <= 0 || target.hp <= 0) return;
+  const previousAction = runtime.currentAction;
+  const action = syntheticAction(runtime, owner, target);
+  runtime.currentAction = action;
+  try {
+    if (runtime.active && owner.hp > 0 && target.hp > 0) resolve(action);
+  } finally {
+    runtime.currentAction = previousAction;
+  }
+}
+
+function resolveCombatOutput(
+  runtime: BattleRuntime,
+  action: ActionContext,
+  source: ActiveEffect,
+  output: AnyMap,
+  text: string,
+): void {
+  const { actor, target } = action;
+  const value = n(output.value, 0);
+  if (!runtime.active || actor.hp <= 0 || target.hp <= 0 || value <= 0) return;
+  switch (output.kind) {
+    case 'damage':
+      dealDamage(runtime, actor, target, 0, {
+        sourceEffect: source,
+        kind: 'derived',
+        canCrit: false,
+        rawOverride: action.actionStats.attack * value,
+      });
+      break;
+    case 'shield':
+      addShield(runtime, actor, actor.stats.max_hp * value, source, text, 0, false);
+      break;
+    case 'heal':
+      resolveHeal(runtime, action, actor.stats.max_hp * value, source);
+      break;
+    case 'rage':
+      mark(runtime, source, 1, actor.side);
+      registerRage(runtime, actor, value, source.id, source.ownerId);
+      frame(runtime, 'rage', `${actor.side === 'player' ? '玩家' : '敌人'}${source.trigger === 'awakening' ? '觉醒' : '协力'}回怒 ${Math.round(value)}`, actor.side, actor.side, source.id, value);
+      break;
+    case 'poison':
+    case 'burn':
+      applyDot(runtime, actor, target, source, output.kind, Math.floor(value), 2, 0.05, 10, action.actionStats.attack);
+      break;
+    default:
+      throw new Error(`Unsupported combat output ${String(output.kind)} (${source.id})`);
+  }
+}
+
+function resolveCompanionAssist(runtime: BattleRuntime, action: ActionContext): void {
+  const { actor, target } = action;
+  const companion = actor.companion;
+  const config = companion?.companion;
+  const source = companionSource(actor);
+  const events = action.combatEvents;
+  if (!action.isMainAction || action.isEcho || !action.completed || !events?.size ||
+      !runtime.active || actor.hp <= 0 || target.hp <= 0 || !companion || !config || !source) return;
+
+  const pair = (config.pair_bonuses ?? []).find((bonus: AnyMap) =>
+    bonus.with === actor.method.id && events.has(bonus.trigger));
+  const usesAlternateEffect = !pair && actor.companionUsesAlternateEffect && Boolean(config.alternate_effect);
+  const output = pair?.effect ?? (events.has(config.trigger)
+    ? (usesAlternateEffect ? config.alternate_effect : config.effect)
+    : undefined);
+  if (!output) return;
+  const trigger = pair?.trigger ?? config.trigger;
+  const display = pair
+    ? `${config.name}与${actor.method.name}合练`
+    : config.name;
+  withReactionBeat(
+    runtime,
+    actor,
+    target,
+    'companion_assist',
+    source.ownerId,
+    `${actor.side === 'player' ? '玩家' : '敌人'}伴生协力：${display}（${trigger}）`,
+    reaction => resolveCombatOutput(runtime, reaction, source, output, '伴生护盾'),
+  );
+  if (!pair && config.alternate_effect) {
+    actor.companionUsesAlternateEffect = !actor.companionUsesAlternateEffect;
+  }
+}
+
+function resolveArtifactAwakenings(runtime: BattleRuntime, action: ActionContext): void {
+  const { actor, target } = action;
+  if (!runtime.artifactAwakenings || !action.isMainAction || action.isEcho || !action.completed ||
+      !runtime.active || actor.hp <= 0 || target.hp <= 0) return;
+  // validateLoadout keeps this array in Loadout.artifacts order, which is also
+  // the resolution order for awakenings sharing this completed main action.
+  for (const artifact of actor.artifacts) {
+    const awakening = artifact.entity.awakening;
+    if (!Array.isArray(awakening?.effects) || awakening.effects.length === 0 ||
+        artifact.stacks < int(awakening.at_stacks, artifact.entity.max_stacks) ||
+        artifact.stacks < int(artifact.entity.max_stacks, 1)) continue;
+    const trigger = awakening.trigger ?? 'either';
+    if (trigger !== 'either' && trigger !== (action.type === 'basic_action' ? 'basic' : 'rage')) continue;
+    for (const [index, output] of awakening.effects.entries()) {
+      if (!runtime.active || actor.hp <= 0 || target.hp <= 0) break;
+      const source: ActiveEffect = {
+        id: `${artifact.entity.id}-AWAKENING-${index + 1}`,
+        trigger: 'awakening',
+        operation: 'combat_output',
+        params: output,
+        ownerId: artifact.entity.id,
+        ownerName: artifact.entity.name,
+        ownerKind: 'artifact',
+        ownerSide: actor.side,
+        stacks: 1,
+      };
+      withAuxiliaryAction(runtime, actor, target, reaction => {
+        frame(runtime, 'status', `${actor.side === 'player' ? '玩家' : '敌人'}法宝觉醒：${awakening.name}`, actor.side, actor.side, source.id);
+        resolveCombatOutput(runtime, reaction, source, output, '觉醒护盾');
+      });
+    }
   }
 }
 
@@ -3127,7 +3478,7 @@ function resolveCoreRageAction(runtime: BattleRuntime, action: ActionContext): v
     if (core.kind !== 'poison_detonation') continue;
     const initialLayers = action.targetStartStatusLayers.get('poison') ?? [];
     const eligible = initialLayers.filter(layer =>
-      fighterOwnsSource(actor, layer.ownerId ?? layer.sourceId ?? ''));
+      fighterOwnsDotLayer(actor, layer));
     const selected = new Set(eligible);
     if (!selected.size) continue;
     const consumed = removeStatusLayersByIdentity(target, 'poison', selected);
@@ -3169,10 +3520,114 @@ function resolveCoreActionEnd(runtime: BattleRuntime, action: ActionContext): vo
   }
 }
 
+function earliestOwnDotLayer(
+  actor: Fighter,
+  target: Fighter,
+  status: 'poison' | 'burn',
+): StatusLayer | undefined {
+  return getStatusLayers(target, status).find(layer =>
+    layer.remaining > 0 && fighterOwnsDotLayer(actor, layer));
+}
+
+function addFusionDotLayer(
+  runtime: BattleRuntime,
+  action: ActionContext,
+  effect: ActiveEffect,
+  status: 'poison' | 'burn',
+): boolean {
+  const { actor, target } = action;
+  if (!runtime.active || actor.hp <= 0 || target.hp <= 0) return false;
+  const layers = getStatusLayers(target, status);
+  const authoredCap = int(rules(runtime.content).statuses?.[status]?.max_stacks, 10);
+  const cap = Math.min(10, Math.max(0, authoredCap));
+  if (layers.length >= cap) return false;
+  layers.push({
+    remaining: 2,
+    damage: action.actionStats.attack * 0.05,
+    sourceId: effect.id,
+    ownerId: effect.ownerId,
+    ownerSide: actor.side,
+    attackRatio: 0.05,
+    kind: 'dot',
+  });
+  mark(runtime, effect, 1, actor.side);
+  recordCombatEvent(runtime, status, actor);
+  frame(
+    runtime,
+    'status',
+    `${effect.ownerName}补入1层${status === 'poison' ? '中毒' : '燃烧'}`,
+    actor.side,
+    target.side,
+    effect.id,
+    1,
+  );
+  return true;
+}
+
+function resolveFusionActionEnd(runtime: BattleRuntime, action: ActionContext): void {
+  const { actor, target } = action;
+  if (!runtime.active || actor.hp <= 0 || target.hp <= 0 ||
+      !action.isMainAction || action.isEcho || action.isReaction || !action.completed) return;
+
+  // Stable order: Twin Swords hits first so their legal on-hit outputs are
+  // visible to Toxic Flame. Toxic Flame then resolves before RR11's furnace.
+  const priority: Record<FusionKind, number> = { twin_swords: 0, toxic_flame: 1 };
+  const rulesInOrder = fusionRules(actor).sort((left, right) =>
+    priority[left.kind] - priority[right.kind]);
+  for (const fusion of rulesInOrder) {
+    if (!runtime.active || actor.hp <= 0 || target.hp <= 0) return;
+    const onceKey = `fusion:${fusion.artifact.entity.id}`;
+
+    if (fusion.kind === 'twin_swords') {
+      if (action.type !== 'basic_action' || !action.hadEffectiveBaseHit ||
+          !reserveActionLimit(action, onceKey, 1)) continue;
+      frame(runtime, 'status', '雌雄剑双剑追击', actor.side, target.side, fusion.effect.id, 2);
+      for (let hit = 0; hit < 2; hit++) {
+        if (!runtime.active || actor.hp <= 0 || target.hp <= 0) break;
+        dealDamage(runtime, actor, target, 0.4, {
+          sourceEffect: fusion.effect,
+          kind: 'derived',
+          canCrit: false,
+        });
+      }
+      continue;
+    }
+
+    const poison = earliestOwnDotLayer(actor, target, 'poison');
+    const burn = earliestOwnDotLayer(actor, target, 'burn');
+    if (!poison && !burn) continue;
+    if (!reserveActionLimit(action, onceKey, 1)) continue;
+
+    if (poison && burn) {
+      const consumed = [
+        ...removeStatusLayersByIdentity(target, 'poison', new Set([poison])),
+        ...removeStatusLayersByIdentity(target, 'burn', new Set([burn])),
+      ];
+      if (consumed.length !== 2) continue;
+      const remainingDamage = consumed.reduce((sum, layer) =>
+        sum + n(layer.damage, 0) * Math.max(0, n(layer.remaining, 0)), 0);
+      frame(runtime, 'status', '九幽毒火幡引爆最早一层毒火', actor.side, target.side, fusion.effect.id, 2);
+      dealDamage(runtime, actor, target, 0, {
+        sourceEffect: fusion.effect,
+        kind: 'derived',
+        canCrit: false,
+        rawOverride: remainingDamage * 1.2,
+      });
+      continue;
+    }
+
+    const missingStatus = poison ? 'burn' : 'poison';
+    addFusionDotLayer(runtime, action, fusion.effect, missingStatus);
+  }
+}
+
 function resolveResonanceActionEnd(runtime: BattleRuntime, action: ActionContext): void {
   const { actor, target } = action;
   if (!runtime.active || actor.hp <= 0 || target.hp <= 0 ||
       !action.isMainAction || action.isEcho || !action.completed) return;
+
+  resolveFusionActionEnd(runtime, action);
+  if (!runtime.active || actor.hp <= 0 || target.hp <= 0) return;
 
   const breath = resonanceRule(actor, 'returning_breath');
   if (breath && action.type === 'rage_action') {
@@ -3236,7 +3691,7 @@ function resolveResonanceActionEnd(runtime: BattleRuntime, action: ActionContext
     if (!actor.battleFlags.has(onceKey)) {
       const ownLayer = (status: 'poison' | 'burn') =>
         getStatusLayers(target, status).find(layer =>
-          layer.remaining > 0 && fighterOwnsSource(actor, layer.ownerId ?? layer.sourceId ?? ''));
+          layer.remaining > 0 && fighterOwnsDotLayer(actor, layer));
       const poison = ownLayer('poison');
       const burn = ownLayer('burn');
       if (poison && burn) {
@@ -3464,6 +3919,7 @@ function resolveActionEnd(runtime: BattleRuntime, action: ActionContext): void {
       actor.phase = actor.phase === 'day' ? 'night' : 'day';
       action.phaseChanged = before !== actor.phase;
       action.phaseTransition = `${before}_to_${actor.phase}`;
+      if (action.phaseChanged) recordCombatEvent(runtime, 'phase', actor);
       mark(runtime, effect);
       frame(runtime, 'phase', `${actor.side === 'player' ? '玩家' : '敌人'}相位转为${actor.phase === 'day' ? '白昼' : '长夜'}`, actor.side, actor.side, effect.id);
       continue;
@@ -3622,8 +4078,7 @@ function resolveAcceleratedOwnBurns(runtime: BattleRuntime, action: ActionContex
   for (const layer of initialBurns) {
     if (!runtime.active || actor.hp <= 0 || target.hp <= 0) break;
     const live = getStatusLayers(target, 'burn').includes(layer);
-    const ownerId = layer.ownerId ?? layer.sourceId ?? '';
-    if (!live || layer.remaining <= 0 || !fighterOwnsSource(actor, ownerId)) continue;
+    if (!live || layer.remaining <= 0 || !fighterOwnsDotLayer(actor, layer)) continue;
     for (let tick = 0; tick < int(rule.params.ticks, 0); tick++) {
       if (!runtime.active || actor.hp <= 0 || target.hp <= 0 ||
           !getStatusLayers(target, 'burn').includes(layer) || layer.remaining <= 0) break;
@@ -3819,7 +4274,7 @@ function resolveHostileActionResponses(runtime: BattleRuntime, completed: Action
   }
 }
 
-function executeAction(runtime: BattleRuntime, actor: Fighter, target: Fighter, type: ActionType, lockedCost: number): void {
+function executeActionOnce(runtime: BattleRuntime, actor: Fighter, target: Fighter, type: ActionType, lockedCost: number): ActionContext | undefined {
   if (!runtime.active || actor.hp <= 0 || target.hp <= 0) return;
   actor.actionNumber += 1;
   const action: ActionContext = {
@@ -3867,6 +4322,7 @@ function executeAction(runtime: BattleRuntime, actor: Fighter, target: Fighter, 
     stop: false,
     dotRageRecorded: false,
     healRageRecorded: false,
+    combatEvents: new Set(),
   };
   runtime.currentAction = action;
   if (type === 'rage_action') {
@@ -3941,6 +4397,32 @@ function executeAction(runtime: BattleRuntime, actor: Fighter, target: Fighter, 
   const base = actionEffect(actor, type, baseId);
   const spec = directSpec(runtime, action, base);
   frame(runtime, 'action', `${actor.side === 'player' ? '玩家' : '敌人'}${type === 'basic_action' ? '普攻' : '怒技'}`, actor.side, target.side, base.id);
+  const convergence = action.isMainAction && type === 'basic_action'
+    ? actor.coreRules.find(core => core.kind === 'basic_convergence')
+    : undefined;
+  if (convergence) {
+    const segmentCount = spec.segments;
+    frame(
+      runtime,
+      'status',
+      `凝锋：${segmentCount}段合一，不可暴击`,
+      actor.side,
+      target.side,
+      `${convergence.artifact.entity.id}-CORE`,
+      segmentCount,
+    );
+    mark(runtime, convergence.effect, 1, actor.side);
+    const ratio = spec.segmentRatios.reduce((sum, segmentRatio) => sum + segmentRatio, 0) *
+      n(convergence.params.damage_ratio, 0);
+    const bonus = spec.segmentBonusNoCrits.reduce((sum, segmentBonus) => sum + segmentBonus, 0) *
+      n(convergence.params.damage_ratio, 0);
+    spec.ratio = ratio;
+    spec.bonusNoCrit = bonus;
+    spec.segmentRatios = segmentCount > 0 ? [ratio] : [];
+    spec.segmentBonusNoCrits = segmentCount > 0 ? [bonus] : [];
+    spec.segments = spec.segmentRatios.length;
+    spec.canCrit = false;
+  }
   for (let index = 0; index < spec.segments; index++) {
     if (!runtime.active || actor.hp <= 0 || target.hp <= 0) {
       action.stop = true;
@@ -4031,12 +4513,50 @@ function executeAction(runtime: BattleRuntime, actor: Fighter, target: Fighter, 
     return;
   }
   resolveActionEnd(runtime, action);
+  resolveArtifactAwakenings(runtime, action);
+  resolveCompanionAssist(runtime, action);
   if (type === 'rage_action' && runtime.active && actor.hp > 0 && target.hp > 0) {
     executeRageEcho(runtime, action);
   }
   addFlyingSwordAfterBasic(runtime, action);
   runtime.currentAction = null;
   resolveHostileActionResponses(runtime, action);
+  return action;
+}
+
+function executeAction(runtime: BattleRuntime, actor: Fighter, target: Fighter, type: ActionType, lockedCost: number): void {
+  let actionPendingStart = actor.pendingGains.length;
+  let action = executeActionOnce(runtime, actor, target, type, lockedCost);
+  if (type !== 'rage_action' || !action?.completed) return;
+
+  let rageActions = 1;
+  while (rageActions < 3 && runtime.active && actor.hp > 0 && target.hp > 0 && !actor.forcedBasic) {
+    const actionGains = actor.pendingGains.slice(actionPendingStart).filter(entry => !entry.isEcho);
+    const gained = actionGains.reduce((sum, entry) => sum + entry.amount, 0);
+    if (actionGains.length === 0 || actor.rage + gained < actor.rageCap) break;
+
+    // Only remove entries appended during the just-finished rage action. Any
+    // rage waiting from an earlier event remains for the ordinary round-end
+    // settlement.
+    for (let index = actor.pendingGains.length - 1; index >= actionPendingStart; index--) {
+      if (!actor.pendingGains[index].isEcho) actor.pendingGains.splice(index, 1);
+    }
+    actor.rage = Math.min(actor.rageCap, actor.rage + gained);
+    const sourceId = `${actor.method.id}-RAGE-CHAIN`;
+    const nextAction = rageActions + 1;
+    frame(runtime, 'rage', `${actor.side === 'player' ? '玩家' : '敌人'}怒气连斩结算 ${Math.round(gained)} 点本次回怒`, actor.side, actor.side, sourceId, gained);
+    frame(runtime, 'reaction', `${actor.side === 'player' ? '玩家' : '敌人'}怒技连斩·第${nextAction}式`, actor.side, target.side, sourceId, undefined, {
+      kind: 'rage_chain',
+      owner: actor.side,
+      sourceId,
+      count: nextAction,
+    });
+
+    actionPendingStart = actor.pendingGains.length;
+    action = executeActionOnce(runtime, actor, target, 'rage_action', actor.rageCap);
+    if (!action?.completed) break;
+    rageActions += 1;
+  }
 }
 
 function resolveBurnSiphonHeal(
@@ -4077,7 +4597,7 @@ function resolveDotTick(
       ownerKind: owner.talents.some(talent => talent.id === ownerId)
         ? 'talent'
         : owner.artifacts.some(artifact => artifact.entity.id === ownerId) ? 'artifact' : 'method',
-      ownerSide: owner.side,
+      ownerSide: layer.ownerSide ?? owner.side,
       stacks: 1,
     };
   const previousAction = runtime.currentAction;
@@ -4110,10 +4630,10 @@ function resolveDotTick(
       );
     }
     (action as AnyMap).lastDotDamage = result.hpDamage + result.absorbed;
-    (action as AnyMap).lastOwnDotHpDamage = fighterOwnsSource(owner, ownerId)
+    (action as AnyMap).lastOwnDotHpDamage = fighterOwnsDotLayer(owner, layer)
       ? result.hpDamage
       : 0;
-    if (status === 'burn' && result.hpDamage > 0 && fighterOwnsSource(owner, ownerId)) {
+    if (status === 'burn' && result.hpDamage > 0 && fighterOwnsDotLayer(owner, layer)) {
       const furnace = resonanceRule(owner, 'ember_furnace');
       if (furnace) {
         const cap = owner.stats.max_hp * n(furnace.params.cap_hp_ratio, 0);
@@ -4124,7 +4644,7 @@ function resolveDotTick(
       }
     }
     if (result.hpDamage > 0 && runtime.active && owner.hp > 0 && target.hp > 0) {
-      const ownLayer = fighterOwnsSource(owner, ownerId);
+      const ownLayer = fighterOwnsDotLayer(owner, layer);
       const dotEffects = activeModifiers(owner).filter(effect => effect.trigger === 'dot_resolved');
       for (const effect of dotEffects) {
         if (effect.params?.status && effect.params.status !== status &&
@@ -4228,10 +4748,9 @@ function processRoundDots(runtime: BattleRuntime): void {
       for (const layer of layers) {
         if (!runtime.active || owner.hp <= 0 || target.hp <= 0) return;
         const result = resolveDotTick(runtime, owner, target, status, layer, synthetic);
-        const burnOwner = layer.ownerId ?? layer.sourceId ?? '';
         if (status === 'burn' && result.hpDamage > 0 &&
             owner.coreRules.some(core => core.kind === 'burn_siphon') &&
-            fighterOwnsSource(owner, burnOwner)) {
+            fighterOwnsDotLayer(owner, layer)) {
           burnSiphonDamage += result.hpDamage;
         }
       }
@@ -4298,30 +4817,37 @@ function settleRage(runtime: BattleRuntime): void {
 function applyOpening(runtime: BattleRuntime): void {
   const base = n(rules(runtime.content).rage?.opening, 50);
   for (const fighter of [runtime.player, runtime.enemy]) {
-    const bonus = fighter.artifacts.reduce((sum, artifact) => {
-      if (artifact.entity.id === 'RC22') return sum + 15 * artifact.stacks;
-      if (artifact.entity.id === 'RL04') return sum + 50 * artifact.stacks;
-      return sum;
-    }, 0);
-    fighter.rage = Math.min(fighter.rageCap, base + bonus);
-    if (bonus > 0) {
-      frame(runtime, 'rage', `${fighter.side === 'player' ? '玩家' : '敌人'}开场回怒`, fighter.side, fighter.side, 'RULES-OPENING-RAGE', base + bonus);
-      for (const artifact of fighter.artifacts) {
-        let amount = 0;
-        if (artifact.entity.id === 'RC22') amount = 15 * artifact.stacks;
-        if (artifact.entity.id === 'RL04') amount = 50 * artifact.stacks;
-        if (amount <= 0) continue;
-        addContribution(runtime, artifact.entity.id, 'rage', amount, fighter.side);
-        const effect = artifact.entity.effects?.find((item: Effect) => item.operation === 'rage_gain' && item.trigger === 'battle_start');
-        if (effect) {
-          mark(runtime, Object.assign(clone(effect), {
-            ownerId: artifact.entity.id,
-            ownerName: artifact.entity.name,
-            ownerKind: 'artifact' as SourceKind,
-            stacks: artifact.stacks,
-          }), artifact.stacks, fighter.side);
-        }
+    const thunderBonus = fighter.side === 'enemy' && fighter.loadout.thunderChallenge === true ? 20 : 0;
+    fighter.rage = Math.min(fighter.rageCap, Math.max(0, base));
+    let actualBonus = 0;
+    for (const artifact of fighter.artifacts) {
+      let requested = 0;
+      if (artifact.entity.id === 'RC22') requested = 15 * artifact.stacks;
+      if (artifact.entity.id === 'RL04') requested = 50 * artifact.stacks;
+      if (requested <= 0) continue;
+      const gained = Math.min(requested, Math.max(0, fighter.rageCap - fighter.rage));
+      fighter.rage += gained;
+      actualBonus += gained;
+      if (gained <= 0) continue;
+      addContribution(runtime, artifact.entity.id, 'rage', gained, fighter.side);
+      const effect = artifact.entity.effects?.find((item: Effect) => item.operation === 'rage_gain' && item.trigger === 'battle_start');
+      if (effect) {
+        mark(runtime, Object.assign(clone(effect), {
+          ownerId: artifact.entity.id,
+          ownerName: artifact.entity.name,
+          ownerKind: 'artifact' as SourceKind,
+          stacks: artifact.stacks,
+        }), artifact.stacks, fighter.side);
       }
+    }
+    if (thunderBonus > 0) {
+      const gained = Math.min(thunderBonus, Math.max(0, fighter.rageCap - fighter.rage));
+      fighter.rage += gained;
+      actualBonus += gained;
+      addContribution(runtime, 'THUNDER-CHALLENGE', 'rage', gained, fighter.side);
+    }
+    if (actualBonus > 0) {
+      frame(runtime, 'rage', `${fighter.side === 'player' ? '玩家' : '敌人'}开场回怒`, fighter.side, fighter.side, 'RULES-OPENING-RAGE', fighter.rage);
     }
     const drain = runtime.openingDrainRequested.get(fighter.side) ?? 0;
     const resistance = rageDrainResistance(runtime, fighter, drain);
@@ -4362,7 +4888,9 @@ function startBattle(runtime: BattleRuntime): void {
         if (!STAT_KEYS.includes(stat)) throw new Error(`Unknown battle-start stat ${String(stat)}`);
         const amount = n(p.amount ?? p.flat, 0) * effect.stacks;
         if (p.mode === 'percent_add') fighter.stats[stat] *= 1 + amount;
-        else fighter.stats[stat] += amount;
+        else fighter.stats[stat] += stat === 'defense'
+          ? amount * gambitDefenseMultiplier(fighter.artifacts)
+          : amount;
         mark(runtime, effect, effect.stacks);
       }
       if (effect.operation === 'apply_status' && effect.id === 'RKF10-PASSIVE-INITIAL-PHASE') {
@@ -4417,6 +4945,9 @@ function startBattle(runtime: BattleRuntime): void {
       const amount = fighter.stats.max_hp * n(core.params.opening_shield_ratio, 0);
       addShield(runtime, fighter, amount, core.effect, '战斗开场护盾');
     }
+    if (fighter.side === 'enemy' && fighter.loadout.thunderChallenge === true) {
+      addShield(runtime, fighter, fighter.stats.max_hp * 0.15, 'THUNDER-CHALLENGE', '雷霆挑战开场护盾', 0, false);
+    }
   }
   for (const fighter of [runtime.player, runtime.enemy]) {
     const swords = resonanceRule(fighter, 'sword_array');
@@ -4448,6 +4979,11 @@ function createFighter(
     side,
     loadout,
     method: compiled.method,
+    ...(compiled.companion ? {
+      companion: compiled.companion,
+      companionSourceId: `${compiled.companion.id}-COMPANION`,
+    } : {}),
+    companionUsesAlternateEffect: false,
     talents: compiled.talents,
     artifacts: compiled.artifacts,
     coreRules: [],
@@ -4477,7 +5013,6 @@ function createFighter(
   (fighter as AnyMap).__content = runtime.content;
   fighter.coreRules = coreRulesForFighter(fighter);
   fighter.rageCap = staticRageCap(fighter);
-  fighter.rageCap = Math.max(60, fighter.rageCap);
   if (loadout.encounterId) {
     runtime.sourceNames.set(loadout.encounterId, entity(runtime.content, loadout.encounterId, 'enemy').name);
   }
@@ -4594,10 +5129,13 @@ export function simulateBattle(
     for (const fighter of [runtime.player, runtime.enemy]) {
       const cap = selectedEffect(fighter, 'RR07-FIRST-RAGE-CAP-REDUCTION');
       if (cap && fighter.battleFlags.has('RR07-PENDING')) {
-        fighter.rageCap = Math.max(60, fighter.rageCap + n(cap.params?.delta, -15));
+        const previousCap = fighter.rageCap;
+        fighter.rageCap = normalizeRageCap(fighter, fighter.rageCap + n(cap.params?.delta, -15));
         fighter.rage = Math.min(fighter.rage, fighter.rageCap);
         fighter.battleFlags.delete('RR07-PENDING');
-        frame(runtime, 'rage', `${fighter.side === 'player' ? '玩家' : '敌人'}怒气上限调整`, fighter.side, fighter.side, cap.id, fighter.rageCap);
+        if (fighter.rageCap !== previousCap) {
+          frame(runtime, 'rage', `${fighter.side === 'player' ? '玩家' : '敌人'}怒气上限调整`, fighter.side, fighter.side, cap.id, fighter.rageCap);
+        }
       }
     }
     decayStatuses(runtime.player);
@@ -4616,7 +5154,8 @@ export function simulateBattle(
     runtime.player.side === 'player' && (
       contribution.id === runtime.player.method.id ||
       runtime.player.talents.some(talent => talent.id === contribution.id) ||
-      runtime.player.artifacts.some(artifact => artifact.entity.id === contribution.id)
+      runtime.player.artifacts.some(artifact => artifact.entity.id === contribution.id) ||
+      runtime.player.companionSourceId === contribution.id
     ),
   );
   const frames = runtime.frames.length > 12000

@@ -5,7 +5,7 @@ id: RR15
 name: 定心佩
 status: design_target
 summary: 最大气血 +30；受到的外来削怒量减半；支援定位
-description: 来自其他来源的削怒效果减半。装备后可与最多3件其他法宝一同装备；未装备时不提供属性或效果。
+description: 来自其他来源的削怒效果减半。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [max_hp, rage_drain_resist, combat, rare]
 source:
   basis: original

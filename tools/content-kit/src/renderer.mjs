@@ -353,6 +353,36 @@ function scalarText(value) {
   return String(value)
 }
 
+function combatOutputText(output) {
+  const value = scalarText(output?.value)
+  switch (output?.kind) {
+    case 'damage': return `攻击的 ${value} 倍不可暴击派生伤害`
+    case 'shield': return `获得最大气血 ${percentageText(output.value)} 的护盾`
+    case 'heal': return `恢复最大气血 ${percentageText(output.value)}`
+    case 'rage': return `回复 ${value} 点怒气`
+    case 'poison': return `对敌方施加 ${value} 层中毒（持续2轮，每层按攻击0.05结算，上限10层）`
+    case 'burn': return `对敌方施加 ${value} 层燃烧（持续2轮，每层按攻击0.05结算，上限10层）`
+    default: return `未识别效果 ${line(output?.kind)}`
+  }
+}
+
+function companionTriggerText(trigger) {
+  return ({
+    hit: '主动作造成实际命中',
+    shield: '主动作实际获得护盾',
+    heal: '主动作实际恢复气血',
+    rage: '主动作实际获得怒气',
+    poison: '主动作实际施加中毒',
+    burn: '主动作实际施加燃烧',
+    debuff: '主动作实际施加虚弱或破甲',
+    phase: '主动作完成昼夜转换',
+  })[trigger] ?? `未识别触发 ${line(trigger)}`
+}
+
+function awakeningTriggerText(trigger) {
+  return ({ basic: '普攻', rage: '怒技', either: '普攻或怒技' })[trigger] ?? `未识别触发 ${line(trigger)}`
+}
+
 function createContext(entities = []) {
   const byId = new Map()
   const talents = new Map()
@@ -765,6 +795,10 @@ function renderRules(rules, context) {
       `- ${family}：${list((rules?.economy?.reward_seeking?.families?.[family] ?? []).map((id) => readableArtifact(id, context)))}`
     )),
     '',
+    '## 炼宝',
+    '',
+    `第1-4幕普通法宝奖励阶段，在首个保底核心奖励之后，每幕最多炼化 ${scalarText(rules?.economy?.reward_refining?.max_per_act)} 次。炼化放弃本次整组冻结的普通候选，消耗一层未装备普通法宝，为另一件已装备且未满层的普通法宝增加一层；不收付灵石、不增加法宝种类或额外领取。寻器后可炼化，但不退款或再给奖励。`,
+    '',
     '::: details 状态与首测配置',
     ...(statusNotes.length > 0
       ? statusNotes.map(([name, value]) => `- ${statusLabels[name] ?? fieldLabel(name)}：${line(value)}`)
@@ -892,6 +926,15 @@ function renderMethod(method, context) {
     `- 专属机制：${method.mechanic === null ? '无' : structuredText(method.mechanic, 'mechanic', context)}`,
     `- 十五回合目标：${targetText(method.balance?.target?.P_by_tier, context)}`,
     '',
+    '## 伴生协力',
+    '',
+    `- **${line(method.companion?.name, context)}**：${line(method.companion?.quick, context)}`,
+    `- 基础触发：${companionTriggerText(method.companion?.trigger)}；存活主动作内最多触发一次；${method.companion?.alternate_effect
+      ? `无配对加成时依次交替输出：先${combatOutputText(method.companion.effect)}，再${combatOutputText(method.companion.alternate_effect)}，之后重复；配对加成触发时仅使用配对输出且不推进交替序列。`
+      : `输出为${combatOutputText(method.companion?.effect)}。`}`,
+    ...(method.companion?.pair_bonuses ?? []).map((bonus) =>
+      `- 与${readableMethod(bonus.with, context)}配对：${companionTriggerText(bonus.trigger)}后，伴生者${combatOutputText(bonus.effect)}。`),
+    '',
     '## 基础动作',
     '',
     `- **${line(method.actions?.basic?.name, context)}**：${line(method.actions?.basic?.quick, context)}`,
@@ -968,6 +1011,7 @@ function renderArtifacts(artifacts, rarity, context) {
     if (artifact.core_rule) {
       const rule = artifact.core_rule
       const text = {
+        basic_convergence: `存活主普攻将修正后的基础段倍率总和与非暴击加成总和分别乘 ${scalarText(rule.damage_ratio)}，合为一次不可暴击的直接命中；每次行动只生效一次，不随法宝层数叠加。`,
         basic_echo: `普攻后追击一段，倍率 ${scalarText(rule.ratio)}；怒技基础伤害倍率 ${scalarText(rule.rage_damage_ratio)}，追击不递归。`,
         rage_gambit: `怒技完成返还 ${scalarText(rule.rage_refund)} 点怒气；受到的直接伤害倍率 ${scalarText(rule.incoming_damage_ratio)}。`,
         shield_burst: `开场获得最大气血 ${percentageText(rule.opening_shield_ratio)} 的护盾；怒技消耗实际护盾发动伤害。参数：护盾 ${scalarText(rule.shield_ratio)}、伤害 ${scalarText(rule.damage_ratio)}。`,
@@ -977,15 +1021,38 @@ function renderArtifacts(artifacts, rarity, context) {
       }[rule.kind]
       lines.push(`- 核心规则（仅装备时生效）：${text}`)
     }
+    if (artifact.gambit_rule) {
+      const rule = artifact.gambit_rule
+      const text = {
+        overdrive: `装备期间怒气上限降至 ${scalarText(rule.rage_cap)}，防御乘以 ${percentageText(rule.defense_multiplier)}；开场额外回怒与基础开场回怒合并后仍受该上限截断。`,
+        reckless: `装备期间计算防御乘以 ${percentageText(rule.defense_multiplier)}；自身直接与派生伤害乘以 ${scalarText(rule.direct_damage_multiplier)}，不强化中毒、燃烧、反震、治疗或护盾。`,
+      }[rule.kind]
+      lines.push(`- 战术规则（仅装备时生效）：${text ?? `未识别战术规则 ${line(rule.kind, context)}`}`)
+      lines.push('- 同时装备多件带防御倍率的战术法宝时，各件防御倍率分别相乘一次。')
+    }
+    if (artifact.fusion_recipe) {
+      lines.push(`- 融合配方：${list(artifact.fusion_recipe.inputs, context)}；累计 ${scalarText(artifact.fusion_recipe.fights)} 场合格战斗胜利后结算，事件中的战斗胜利也计数；战斗开始与胜利结算时都须持有每种材料至少一层，完成时各消耗一层。融合传奇不进入普通获取池。`)
+      const fusionText = {
+        toxic_flame: '存活主动作完成后至多触发一次：敌方有自身施加的中毒与燃烧时，分别消耗最早一层，按这两层各自剩余跳数的合计伤害×1.2造成不可暴击派生伤害；未消费层不计入、不消耗。只有中毒或燃烧时，分别补另一种状态一层。新状态持续2轮，每层每轮按攻击0.05造成伤害，最多10层；本效果不递归。',
+        twin_swords: '存活主普攻完成且基础段至少一次有效命中后，独立追加两次各为攻击0.4倍的不可暴击派生伤害；追加命中可触发其他合法命中效果，但不触发雌雄剑自身，也不会复制或重做主动作。',
+      }[artifact.fusion_rule?.kind]
+      lines.push(`- 融合规则：${fusionText ?? `未识别融合规则 ${line(artifact.fusion_rule?.kind)}`}`)
+    }
     if (artifact.awakening) {
       lines.push(`- 觉醒条件：集齐 ${scalarText(artifact.awakening.at_stacks)} 层；${line(artifact.awakening.name, context)}：${line(artifact.awakening.quick, context)}`)
+      if (artifact.awakening.effects?.length) {
+        lines.push(`- 觉醒结算：达到满层后，在${awakeningTriggerText(artifact.awakening.trigger ?? 'either')}且存活的主动作完成后，各效果按卡面顺序结算一次。`)
+        for (const [index, effect] of artifact.awakening.effects.entries()) {
+          lines.push(`  - 效果${index + 1}：${combatOutputText(effect)}`)
+        }
+      }
     }
     lines.push(effectSection(artifact.effects, '法宝开发效果', context))
     lines.push('')
   }
   lines.push('::: details 开发边界')
   lines.push('- `A` 是战斗综合增益目标，`J` 是旅途换算尺，`B = A/5 + J` 只用于设计分摊。')
-  lines.push('- 基础属性、层数上限和卡面主值沿用 44 张既有定义；实测仍为空。')
+  lines.push('- 44 张既有法宝保留原基础属性与层数；两张融合传奇各为一件、无额外基础属性；实测仍为空。')
   lines.push(':::')
   lines.push('')
   return lines.join('\n')
