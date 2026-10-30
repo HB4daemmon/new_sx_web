@@ -7,6 +7,7 @@ export type BuildKind =
   | 'carapace'
   | 'spending_power'
   | 'collection_damage'
+  | 'blood_vow'
   | 'bounty'
   | 'shop_discount'
   | 'basic_split'
@@ -30,6 +31,7 @@ const BUILD_FIELDS: Record<BuildKind, string[]> = {
   carapace: ['defense_per_hit', 'reflect_ratio'],
   spending_power: ['base_attack', 'attack_per_coin'],
   collection_damage: ['base_bonus', 'per_kind'],
+  blood_vow: ['healing_multiplier', 'damage_multiplier'],
   bounty: ['attack_bonus', 'normal_coins', 'elite_coins', 'boss_coins'],
   shop_discount: ['ratio'],
   basic_split: ['extra_segments', 'segment_ratio'],
@@ -47,6 +49,7 @@ const BUILD_NAMES: Record<BuildKind, string> = {
   carapace: '猬甲护身',
   spending_power: '挥金如土',
   collection_damage: '万宝朝宗',
+  blood_vow: '断生入魔',
   bounty: '战利生财',
   shop_discount: '市井仙缘',
   basic_split: '剑丸成阵',
@@ -139,6 +142,10 @@ export function selectedBuildMechanics(content: Content, loadout: Loadout): Buil
       if (kind === 'wealth_damage' && params.scale > 0 && params.half_saturation === 0) {
         throw new Error(`Invalid build mechanic parameter half_saturation (${id})`);
       }
+      if (kind === 'blood_vow' &&
+          (params.healing_multiplier !== 1.5 || params.damage_multiplier !== 1.35)) {
+        throw new Error(`Invalid build mechanic parameters for blood_vow (${id})`);
+      }
       if (kind === 'veteran_shield' &&
           params.base_ratio + params.elite_ratio + params.boss_ratio > 1) {
         throw new Error(`Invalid build mechanic shield ratios (${id})`);
@@ -224,6 +231,9 @@ export function buildMechanicViews(
         break;
       case 'collection_damage':
         summary = `持有 ${facts.artifactKinds} 类法宝，直伤/衍生倍率 ${multiplierText(1 + (p.base_bonus as number) + facts.artifactKinds * (p.per_kind as number))}`;
+        break;
+      case 'blood_vow':
+        summary = `战外不可恢复气血；战斗内治疗 ${multiplierText(p.healing_multiplier as number)}、直伤/衍生伤害 ${multiplierText(p.damage_multiplier as number)}，不增强持续伤害与反伤`;
         break;
       case 'bounty':
         summary = `精英胜 ${facts.eliteWins}、首领胜 ${facts.bossWins}；攻击 +${p.attack_bonus}，胜利实结 ${p.normal_coins}/${p.elite_coins}/${p.boss_coins} 灵石（普/精/首领）`;

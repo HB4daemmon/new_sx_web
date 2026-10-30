@@ -791,6 +791,31 @@ function validateEnemyTrials(content: Content): void {
   }
 }
 
+function validateMirrorRules(content: Content): void {
+  const mirrorOwners = content.entities.filter(authored => authored.id === 'RL08');
+  if (mirrorOwners.length > 1) throw new Error('Duplicate mirror rule owner RL08');
+  for (const authored of content.entities) {
+    const hasMirrorRule = Object.prototype.hasOwnProperty.call(authored, 'mirror_rule');
+    if (authored.id !== 'RL08') {
+      if (hasMirrorRule) throw new Error(`Unsupported mirror rule owner ${authored.id}`);
+      continue;
+    }
+    if (authored.kind !== 'artifact') throw new Error('Mirror rule owner RL08 must be an artifact');
+    if (!hasMirrorRule) throw new Error('Missing mirror rule (RL08)');
+    const mirrorRule = authored.mirror_rule;
+    if (!mirrorRule || typeof mirrorRule !== 'object' || Array.isArray(mirrorRule)) {
+      throw new Error('Invalid mirror rule (RL08)');
+    }
+    const keys = Object.keys(mirrorRule);
+    if (keys.length !== 1 || keys[0] !== 'kind') {
+      throw new Error('Unknown or missing mirror rule parameter (RL08)');
+    }
+    if (mirrorRule.kind !== 'neighbor_awakening') {
+      throw new Error(`Unsupported mirror rule kind ${String(mirrorRule.kind)} (RL08)`);
+    }
+  }
+}
+
 function coreRulesForFighter(fighter: Fighter): CoreRuleRuntime[] {
   return fighter.artifacts.flatMap(artifact => {
     const shape = coreRuleShape(artifact.entity);
@@ -889,6 +914,7 @@ function validateLoadout(
 ): { method: AnyMap; companion?: AnyMap; talents: AnyMap[]; artifacts: ArtifactRuntime[]; trial?: EnemyTrial } {
   if (!loadout || typeof loadout !== 'object') throw new Error('Invalid Shanhai loadout');
   if (typeof loadout.method !== 'string') throw new Error('Loadout method is required');
+  validateMirrorRules(content);
   validateResonanceRules(content);
   validateFusionRules(content);
   validateGambitRules(content);
@@ -2047,6 +2073,8 @@ function outgoingBuildMultiplier(
       multiplier *= 1 + n(p.base_bonus, 0) +
         n(p.elite_bonus, 0) * journey.eliteWins +
         n(p.boss_bonus, 0) * journey.bossWins;
+    } else if (mechanic.kind === 'blood_vow') {
+      multiplier *= n(p.damage_multiplier, 1);
     } else {
       continue;
     }
@@ -2956,6 +2984,11 @@ function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: numb
       if (ae) mark(runtime, Object.assign(clone(ae), { ownerId: artifact.entity.id, ownerName: artifact.entity.name, ownerKind: 'artifact' as SourceKind, ownerSide: fighter.side, stacks: artifact.stacks }), artifact.stacks);
     }
   }
+  for (const mechanic of mechanicsOf(fighter, 'blood_vow')) {
+    total *= n(mechanic.params.healing_multiplier, 1);
+    const effect = buildEffect(fighter, mechanic);
+    if (effect) mark(runtime, effect);
+  }
   const effective = Math.min(total, Math.max(0, fighter.stats.max_hp - fighter.hp));
   const overflow = Math.max(0, total - effective);
   fighter.hp += effective;
@@ -3253,37 +3286,69 @@ function resolveCompanionAssist(runtime: BattleRuntime, action: ActionContext): 
   }
 }
 
+function artifactAwakeningMatchesAction(artifact: ArtifactRuntime, action: ActionContext): boolean {
+  const awakening = artifact.entity.awakening;
+  if (!Array.isArray(awakening?.effects) || awakening.effects.length === 0 ||
+      artifact.stacks < int(awakening.at_stacks, artifact.entity.max_stacks) ||
+      artifact.stacks < int(artifact.entity.max_stacks, 1)) return false;
+  const trigger = awakening.trigger ?? 'either';
+  return trigger === 'either' || trigger === (action.type === 'basic_action' ? 'basic' : 'rage');
+}
+
+function resolveArtifactAwakeningOutputs(
+  runtime: BattleRuntime,
+  action: ActionContext,
+  awakening: AnyMap,
+  sourceArtifact: ArtifactRuntime,
+  mirrored: boolean,
+): void {
+  const { actor, target } = action;
+  for (const [index, output] of awakening.effects.entries()) {
+    if (!runtime.active || actor.hp <= 0 || target.hp <= 0) break;
+    const source: ActiveEffect = {
+      id: mirrored
+        ? `${sourceArtifact.entity.id}-MIRROR-AWAKENING-${index + 1}`
+        : `${sourceArtifact.entity.id}-AWAKENING-${index + 1}`,
+      trigger: 'awakening',
+      operation: 'combat_output',
+      params: output,
+      ownerId: sourceArtifact.entity.id,
+      ownerName: sourceArtifact.entity.name,
+      ownerKind: 'artifact',
+      ownerSide: actor.side,
+      stacks: 1,
+    };
+    withAuxiliaryAction(runtime, actor, target, reaction => {
+      const sideName = actor.side === 'player' ? '玩家' : '敌人';
+      const text = mirrored
+        ? `${sideName}法宝镜映（${sourceArtifact.entity.name}）：${awakening.name}`
+        : `${sideName}法宝觉醒：${awakening.name}`;
+      frame(runtime, 'status', text, actor.side, actor.side, source.id);
+      resolveCombatOutput(runtime, reaction, source, output, '觉醒护盾');
+    });
+  }
+}
+
 function resolveArtifactAwakenings(runtime: BattleRuntime, action: ActionContext): void {
   const { actor, target } = action;
   if (!runtime.artifactAwakenings || !action.isMainAction || action.isEcho || !action.completed ||
       !runtime.active || actor.hp <= 0 || target.hp <= 0) return;
   // validateLoadout keeps this array in Loadout.artifacts order, which is also
   // the resolution order for awakenings sharing this completed main action.
-  for (const artifact of actor.artifacts) {
-    const awakening = artifact.entity.awakening;
-    if (!Array.isArray(awakening?.effects) || awakening.effects.length === 0 ||
-        artifact.stacks < int(awakening.at_stacks, artifact.entity.max_stacks) ||
-        artifact.stacks < int(artifact.entity.max_stacks, 1)) continue;
-    const trigger = awakening.trigger ?? 'either';
-    if (trigger !== 'either' && trigger !== (action.type === 'basic_action' ? 'basic' : 'rage')) continue;
-    for (const [index, output] of awakening.effects.entries()) {
-      if (!runtime.active || actor.hp <= 0 || target.hp <= 0) break;
-      const source: ActiveEffect = {
-        id: `${artifact.entity.id}-AWAKENING-${index + 1}`,
-        trigger: 'awakening',
-        operation: 'combat_output',
-        params: output,
-        ownerId: artifact.entity.id,
-        ownerName: artifact.entity.name,
-        ownerKind: 'artifact',
-        ownerSide: actor.side,
-        stacks: 1,
-      };
-      withAuxiliaryAction(runtime, actor, target, reaction => {
-        frame(runtime, 'status', `${actor.side === 'player' ? '玩家' : '敌人'}法宝觉醒：${awakening.name}`, actor.side, actor.side, source.id);
-        resolveCombatOutput(runtime, reaction, source, output, '觉醒护盾');
-      });
+  for (let index = 0; index < actor.artifacts.length; index++) {
+    if (!runtime.active || actor.hp <= 0 || target.hp <= 0) break;
+    const artifact = actor.artifacts[index];
+    if (artifactAwakeningMatchesAction(artifact, action)) {
+      resolveArtifactAwakeningOutputs(runtime, action, artifact.entity.awakening, artifact, false);
     }
+    if (!runtime.active || actor.hp <= 0 || target.hp <= 0 ||
+        artifact.entity.mirror_rule?.kind !== 'neighbor_awakening') continue;
+    const neighbor = actor.artifacts[index + 1];
+    if (!neighbor || !artifactAwakeningMatchesAction(neighbor, action)) continue;
+    // A mirror uses the right neighbor's authored outputs as-is, but attributes
+    // their single extra execution to the mirror. The neighbor still resolves
+    // normally when iteration reaches its own position.
+    resolveArtifactAwakeningOutputs(runtime, action, neighbor.entity.awakening, artifact, true);
   }
 }
 

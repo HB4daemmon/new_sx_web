@@ -6,6 +6,8 @@ export interface CombatSideSummary {
   shieldAbsorbed: number;
   shieldGenerated: number;
   shieldConsumed: number;
+  rageGained: number;
+  rageSpent: number;
   hits: number;
   dotDamage: number;
   dotHits: number;
@@ -63,6 +65,8 @@ function emptySideSummary(): CombatSideSummary {
     shieldAbsorbed: 0,
     shieldGenerated: 0,
     shieldConsumed: 0,
+    rageGained: 0,
+    rageSpent: 0,
     hits: 0,
     dotDamage: 0,
     dotHits: 0,
@@ -85,6 +89,7 @@ function summarizeFrame(
   const after = frame[side];
   const hpDelta = after.hp - before.hp;
   const shieldDelta = after.shield - before.shield;
+  const rageDelta = after.rage - before.rage;
   const damageFrame = frame.kind === 'damage' || frame.kind === 'dot';
   const target = frame.target === side || (!frame.target && hpDelta < 0);
 
@@ -95,6 +100,8 @@ function summarizeFrame(
     if (damageFrame && frame.target === side) summary.shieldAbsorbed += -shieldDelta;
     else summary.shieldConsumed += -shieldDelta;
   }
+  if (rageDelta > 0) summary.rageGained += rageDelta;
+  if (rageDelta < 0) summary.rageSpent += -rageDelta;
 
   const hit = damageFrame && target && (hpDelta < 0 || (frame.target === side && shieldDelta < 0));
   if (hit) {

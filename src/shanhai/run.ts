@@ -912,6 +912,7 @@ export class ShanhaiGame {
       artifacts: [],
       equipment: { slots: [] },
       buildVersion: 5,
+      bloodVow: false,
       rewardSearches: [],
       rewardRefinements: [],
       fusionProgress: fusionRecipes(content).map(recipe => ({ id: recipe.id, wins: [] })),
@@ -1277,6 +1278,59 @@ export class ShanhaiGame {
     } catch (error) {
       return { available: false, reason: error instanceof Error ? error.message : String(error) };
     }
+  }
+
+  shopPurchaseAvailability(id: string): { available: boolean; reason: string } {
+    if (this.state.phase !== 'shop') return { available: false, reason: 'not-shop' };
+    const item = this.state.shop.find(candidate => candidate.id === id);
+    if (!item || item.sold) return { available: false, reason: 'unknown-or-sold-item' };
+    if (this.state.bloodVow && item.kind === 'recovery') {
+      return { available: false, reason: 'blood-vow-blocks-healing' };
+    }
+    if (!finite(item.price) || this.state.coins < item.price) return { available: false, reason: 'cannot-afford' };
+    if (item.kind === 'artifact' && !this.canAcquireArtifact(item.id, 1)) {
+      return { available: false, reason: 'artifact-capacity-exhausted' };
+    }
+    if (item.kind === 'talent_reset') {
+      const state = this.state as RunStateInternals;
+      const chosen = state.talents[state.method] ?? [];
+      const tiers = chosen.map(talentId => talentTier(this.content, state.method, talentId));
+      if (state.n < 1 || !chosen.length) return { available: false, reason: 'no-earned-talents-to-reset' };
+      if (state._talentQueue?.length || state._returnPhase !== undefined || tiers.some(tier =>
+        !integer(tier) || tier < 1 || tier > state.n)) {
+        return { available: false, reason: 'talent-reset-unavailable' };
+      }
+    }
+    return { available: true, reason: '' };
+  }
+
+  restChoiceAvailability(
+    choice: 'heal' | 'preparation' | 'swap_method' | 'temper',
+    method?: string,
+    artifact?: string,
+  ): { available: boolean; reason: string } {
+    if (this.state.phase !== 'rest') return { available: false, reason: 'not-rest' };
+    const state = this.state as RunStateInternals;
+    if (!['heal', 'preparation', 'swap_method', 'temper'].includes(choice)) {
+      return { available: false, reason: 'unknown-rest-choice' };
+    }
+    if (state._restFromEvent && choice !== 'swap_method') {
+      return { available: false, reason: 'event-rest-only-allows-method-swap' };
+    }
+    if (choice === 'heal' && this.state.bloodVow) {
+      return { available: false, reason: 'blood-vow-blocks-healing' };
+    }
+    if (choice === 'swap_method' &&
+      (typeof method !== 'string' || !state.ownedMethods.includes(method) || method === state.method)) {
+      return { available: false, reason: 'method-not-swappable' };
+    }
+    if (choice === 'temper') {
+      if (typeof artifact !== 'string' || !this.warmableArtifacts().includes(artifact)) {
+        return { available: false, reason: 'artifact-cannot-be-tempered' };
+      }
+      if (this.state.coins < this.warmCost()) return { available: false, reason: 'cannot-afford-tempering' };
+    }
+    return { available: true, reason: '' };
   }
 
   dispatch(command: RunCommand): void {
@@ -1947,20 +2001,28 @@ export class ShanhaiGame {
     this.state.phase = 'event_result';
     state._eventOutcome = battle.outcome === 'player' ? 'success' : 'failure';
     this.state.eventStoryEcho = battle.outcome === 'player' ? option.story_echo : option.story_failure_echo;
+    let blockedHealing = false;
     if (battle.outcome === 'player') {
       const enemy = contentEntity(this.content, pending.enemyId);
       const rewardType = rewardTypeForEnemyTier(enemy?.tier);
       if (rewardType === 'elite') this.state.progress.eliteWins += 1;
       if (rewardType === 'boss') this.state.progress.bossWins += 1;
       this.applyFlags(option);
-      this.applyRewards(optionRewards(option));
+      const rewards = optionRewards(option);
+      blockedHealing = this.bloodVowBlocksHealing(rewards);
+      this.applyRewards(rewards);
       if (rewardType) this.applyBounty(rewardType);
       this.state.resultText = option.outcome ?? '';
     } else {
       // Non-lethal encounter failure only keeps the already-paid cost and
       // floor HP; authored failure rewards, if any, are the only exception.
+      blockedHealing = this.bloodVowBlocksHealing(pending.failureRewards);
       if (pending.failureRewards.length) this.applyRewards(pending.failureRewards);
       this.state.resultText = pending.failureOutcome ?? option.encounter?.failure_outcome ?? '';
+    }
+    if (blockedHealing) {
+      this.state.resultText = '斗法已结束，断生之誓令气血无法恢复；其他所得已结算。';
+      this.state.eventStoryEcho = undefined;
     }
     this.state.eventOption = pending.optionId;
     state._pendingEvent = undefined;
@@ -2386,10 +2448,14 @@ export class ShanhaiGame {
     if (success) this.applyFlags(option);
     (this.state as RunStateInternals)._eventOutcome = success ? 'success' : 'failure';
     this.state.phase = 'event_result';
-    this.applyRewards(success ? optionRewards(option) : option.check.failure_rewards);
+    const rewards = success ? optionRewards(option) : option.check.failure_rewards;
+    const blockedHealing = this.bloodVowBlocksHealing(rewards);
+    this.applyRewards(rewards);
     if (commitment) (this.state.eventCommitments ??= []).push(commitment);
-    this.state.resultText = (success ? option.outcome : option.check.failure_outcome) ?? '';
-    this.state.eventStoryEcho = success ? option.story_echo : option.check.failure_echo;
+    this.state.resultText = blockedHealing
+      ? '断生之誓令气血无法恢复，其他所得已结算。'
+      : (success ? option.outcome : option.check.failure_outcome) ?? '';
+    this.state.eventStoryEcho = blockedHealing ? undefined : success ? option.story_echo : option.check.failure_echo;
     (this.state as RunStateInternals)._eventSettled = true;
     this.ensureTalentQueue();
   }
@@ -2504,11 +2570,20 @@ export class ShanhaiGame {
   }
 
   private buy(id: string): void {
-    if (this.state.phase !== 'shop') throw new Error('Shop is not open');
+    const availability = this.shopPurchaseAvailability(id);
+    if (!availability.available) {
+      const messages: Record<string, string> = {
+        'not-shop': 'Shop is not open',
+        'unknown-or-sold-item': 'Unknown or sold shop item',
+        'cannot-afford': 'Cannot afford shop item',
+        'artifact-capacity-exhausted': 'Artifact capacity exhausted',
+        'no-earned-talents-to-reset': 'No earned talents to reset',
+        'talent-reset-unavailable': 'Talent reset is unavailable',
+      };
+      throw new Error(messages[availability.reason] ?? availability.reason);
+    }
     const item = this.state.shop.find(candidate => candidate.id === id);
-    if (!item || item.sold) throw new Error('Unknown or sold shop item');
-    if (!finite(item.price) || this.state.coins < item.price) throw new Error('Cannot afford shop item');
-    if (item.kind === 'artifact' && !this.canAcquireArtifact(item.id, 1)) throw new Error('Artifact capacity exhausted');
+    if (!item) throw new Error('Unknown or sold shop item');
     if (item.kind === 'talent_reset') {
       const state = this.state as RunStateInternals;
       const chosen = state.talents[state.method] ?? [];
@@ -2614,10 +2689,19 @@ export class ShanhaiGame {
   }
 
   private rest(choice: 'heal' | 'preparation' | 'swap_method' | 'temper', method?: string, artifact?: string): void {
-    if (this.state.phase !== 'rest') throw new Error('Rest is not available');
+    const availability = this.restChoiceAvailability(choice, method, artifact);
+    if (!availability.available) {
+      const messages: Record<string, string> = {
+        'not-rest': 'Rest is not available',
+        'unknown-rest-choice': 'Unknown rest choice',
+        'event-rest-only-allows-method-swap': 'This event only grants a method swap',
+        'method-not-swappable': method === this.state.method ? 'Method is already active' : 'Method is not owned',
+        'artifact-cannot-be-tempered': 'Artifact cannot be tempered',
+        'cannot-afford-tempering': 'Cannot afford tempering',
+      };
+      throw new Error(messages[availability.reason] ?? availability.reason);
+    }
     const state = this.state as RunStateInternals;
-    if (!['heal', 'preparation', 'swap_method', 'temper'].includes(choice)) throw new Error('Unknown rest choice');
-    if (state._restFromEvent && choice !== 'swap_method') throw new Error('This event only grants a method swap');
     if (choice === 'heal') {
       this.state.hp = Math.min(this.stats.max_hp, this.state.hp + (rulesOf(this.content).economy?.rest_heal_ratio ?? 0.25) * currentReferenceHp(this.content, this.state.act));
       this.state.resultText = '休整后恢复气血。';
@@ -2661,6 +2745,7 @@ export class ShanhaiGame {
     state.talents[item.method] ??= [];
     if (state.talents[item.method].includes(id)) throw new Error('Talent already selected');
     state.talents[item.method].push(id);
+    if (id === 'V2-J1-G') this.state.bloodVow = true;
     if (item.advance && item.tier === this.state.n + 1) this.state.n += 1;
     this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
     state._talentQueue!.shift();
@@ -2785,7 +2870,7 @@ export class ShanhaiGame {
 
   private applyEventTravelAfterHpCost(actualPaid: number): void {
     const state = this.state as RunStateInternals;
-    if (state._eventCostTravelApplied || actualPaid <= 0 || this.state.hp < 1) return;
+    if (this.state.bloodVow || state._eventCostTravelApplied || actualPaid <= 0 || this.state.hp < 1) return;
     const effect = this.eventCostEffects().find(candidate =>
       candidate.operation === 'grant_resource' && candidate.params?.resource === 'hp');
     if (!effect) return;
@@ -2909,6 +2994,11 @@ export class ShanhaiGame {
     }
   }
 
+  private bloodVowBlocksHealing(rewards: AnyRecord[]): boolean {
+    return this.state.bloodVow && rewards.some(reward => reward.type === 'resource' &&
+      reward.resource === 'hp' && resourceAmount(this.content, this.state, reward) > 0);
+  }
+
   private applyRewards(rewards: AnyRecord[]): void {
     const issues = rewards.map(reward => this.rewardAvailability(reward)).filter((issue): issue is string => !!issue);
     if (issues.length) throw new Error(issues[0]);
@@ -2952,7 +3042,11 @@ export class ShanhaiGame {
 
   private applyResource(resource: 'hp' | 'coins' | 'xp', amount: number): void {
     if (!finite(amount)) throw new Error('Invalid resource result');
-    if (resource === 'hp') this.state.hp = Math.min(this.stats.max_hp, Math.max(0, this.state.hp + amount));
+    if (resource === 'hp') {
+      if (!this.state.bloodVow || amount <= 0) {
+        this.state.hp = Math.min(this.stats.max_hp, Math.max(0, this.state.hp + amount));
+      }
+    }
     else if (resource === 'coins') this.state.coins += amount;
     else this.state.xp += amount;
   }
@@ -2969,9 +3063,15 @@ export class ShanhaiGame {
     this.state.eventCommitments = result.eventCommitments;
     for (const record of result.fulfilled) {
       let fallbackCoins = 0;
+      let bloodVowBlockedHp = false;
       const delivered: string[] = [];
       for (const reward of record.snapshot.rewards) {
         if (reward.type !== 'artifact') {
+          if (this.state.bloodVow && reward.type === 'resource' && reward.resource === 'hp' &&
+            resourceAmount(this.content, this.state, reward) > 0) {
+            bloodVowBlockedHp = true;
+            continue;
+          }
           this.applyRewards([reward]);
           delivered.push(`${reward.amount}${({ hp: '气血', coins: '灵石', xp: '修为' })[reward.resource]}`);
           continue;
@@ -2988,10 +3088,11 @@ export class ShanhaiGame {
       this.state.coins += fallbackCoins;
       const text = fallbackCoins
         ? `${record.snapshot.name}已兑现：${delivered.length ? `${delivered.join('，')}；` : ''}满层或冲突部分折为${fallbackCoins}灵石。`
-        : record.snapshot.success_outcome;
-      record.resultText = text;
+        : bloodVowBlockedHp ? `${record.snapshot.name}已兑现${delivered.length ? `：${delivered.join('，')}` : ''}。` : record.snapshot.success_outcome;
+      const resultText = bloodVowBlockedHp ? `${text}断生之誓令气血未恢复。` : text;
+      record.resultText = resultText;
       const entry = this.state.history.at(-1);
-      if (entry) entry.text = `${entry.text} ${text}`.trim();
+      if (entry) entry.text = `${entry.text} ${resultText}`.trim();
     }
     for (const record of [...result.broken, ...result.expired]) {
       record.resultText = record.status === 'expired'
@@ -3278,6 +3379,7 @@ export class ShanhaiGame {
     switch (effect.operation) {
       case 'grant_resource': {
         if (!['hp', 'coins', 'xp'].includes(params.resource)) throw new Error(`Unknown travel resource: ${params.resource}`);
+        if (params.resource === 'hp' && this.state.bloodVow && amount > 0) return true;
         if (params.defer_until === 'next_nonbattle_node') {
           state._pendingTravelResources ??= {};
           state._pendingTravelResourceKinds ??= {};
@@ -3294,7 +3396,7 @@ export class ShanhaiGame {
         return true;
       }
       case 'heal':
-        this.state.hp = Math.min(this.stats.max_hp, this.state.hp + amount);
+        this.applyResource('hp', amount);
         return true;
       case 'prepare_next_battle':
         if (params.preparation === 'first_strike') {
@@ -3406,6 +3508,7 @@ function ensureStateInternals(content: Content, state: RunStateInternals): void 
     !Array.isArray(state.ownedMethods) || !isObject(state.talents)) {
     throw new Error('Invalid run state collections');
   }
+  if (state.bloodVow === undefined) state.bloodVow = false;
   if (state.firstStrike === undefined) state.firstStrike = 0;
   if (state.eventCommitments === undefined) state.eventCommitments = [];
   if (state.firstStrike !== undefined && (!finite(state.firstStrike) || state.firstStrike < 0)) {
@@ -3716,7 +3819,9 @@ export function validateBattleResult(result: BattleResult): void {
     if (cue.kind === 'companion_assist' && !/^RKF\d{2}-COMPANION$/.test(cue.sourceId)) {
       throw new Error('Companion-assist cue has invalid source');
     }
-    if ((cue.kind === 'rage_chain' || cue.kind === 'companion_assist') && frame.kind !== 'reaction') {
+    // Companion output frames carry their reaction cue so playback can group
+    // the actual damage, healing or status with the assist that caused it.
+    if (cue.kind === 'rage_chain' && frame.kind !== 'reaction') {
       throw new Error('V2 reaction cue is attached to a non-reaction frame');
     }
     if (frame.kind === 'reaction') {
@@ -3949,7 +4054,12 @@ function validateTalentDrafts(content: Content, state: RunStateInternals): void 
         ...sample(shared, 2, seededRandom(`${state.seed}:talent-draft:${key}:shared`))
           .map(talent => talent.id),
       ];
-    if (JSON.stringify(ids) !== JSON.stringify(expected)) {
+    const legacyFirstTier = tier === 1
+      ? sample(shared.filter(talent => talent.id !== 'V2-J1-G'), 3,
+        seededRandom(`${state.seed}:talent-draft:${key}:shared`)).map(talent => talent.id)
+      : undefined;
+    if (JSON.stringify(ids) !== JSON.stringify(expected) &&
+      JSON.stringify(ids) !== JSON.stringify(legacyFirstTier)) {
       throw new Error('Frozen talent draft does not match run seed');
     }
   }
@@ -3959,6 +4069,8 @@ export function validateRunState(content: Content, raw: RunState): void {
   content = normalizeContent(content);
   if (!isObject(raw)) throw new Error('Invalid run state');
   const state = raw as RunStateInternals;
+  if (state.bloodVow === undefined) state.bloodVow = false;
+  if (typeof state.bloodVow !== 'boolean') throw new Error('Invalid blood vow marker');
   if (state.schema !== 1 || state.contentVersion !== content.version) throw new Error('Run/content version mismatch');
   rewardSeekingConfig(content);
   const refiningConfig = rewardRefiningConfig(content);
@@ -3988,6 +4100,9 @@ export function validateRunState(content: Content, raw: RunState): void {
       if (!tier || tier < 1 || tier > 4 || tiers.has(tier)) throw new Error('Invalid selected talent');
       tiers.add(tier);
     }
+  }
+  if (!state.bloodVow && Object.values(state.talents).some(talents => talents.includes('V2-J1-G'))) {
+    throw new Error('Selected blood vow is missing its permanent run marker');
   }
   validateTalentDrafts(content, state);
   if (!integer(state.n) || state.n < 0 || state.n > 4 || !finite(state.hp) || state.hp < 0 ||

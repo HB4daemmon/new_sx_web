@@ -1,0 +1,27 @@
+schema_version: 1
+content_version: shanhai-content-0.2
+kind: artifact
+id: RL08
+name: 昆仑镜
+status: design_target
+summary: 支援定位；镜映右侧满层法宝的普攻或怒技结束觉醒输出
+description: 镜器只镜映紧邻右侧已装备、层数已达其上限的法宝。该法宝的觉醒须明确配置为普攻、怒技或二者结束触发，并带有觉醒输出；满足时，镜器在同次触发复制其本次全部觉醒输出一次，右侧法宝照常结算。镜器不复制属性、行旅、核心规则、融合或自己；没有这种明确结束触发的旧式被动、破盾与治疗事件觉醒不复制。右侧为空、未满层或无合格觉醒时，镜器无效。
+tags: [mirror, awakening, legendary]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 4, A: 20, J: 0, U: 4}
+  measured: null
+rarity: legendary
+max_stacks: 1
+unique_group: awakening_mirror
+attributes:
+  flat: {defense: 8}
+  percent: {}
+effects: []
+equipment_role: support
+mirror_rule: {kind: neighbor_awakening}
+acquisition:
+  pools: [legendary_artifact]

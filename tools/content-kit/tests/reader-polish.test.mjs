@@ -31,7 +31,7 @@ test('INDEX exposes every fixed reader page with readable names and counts', () 
     assert.match(index, new RegExp(`\\]\\(\\./${escapeRegExp(relativePath)}\\)`), relativePath)
   }
 
-  assert.match(index, /10 门 \/ 120 专属天赋 \+ 15 共享突破天赋/)
+  assert.match(index, /10 门 \/ 120 专属天赋 \+ 16 共享突破天赋/)
   assert.match(index, /36 普通 \/ 16 核心/)
   assert.match(index, /6 条人物线 \+ 4 项独立核心/)
   assert.match(index, /32 套幕敌人 \+ 2 套终战/)
@@ -43,7 +43,7 @@ test('INDEX exposes every fixed reader page with readable names and counts', () 
 
   const rules = pages.get('RULES.md')
   assert.match(rules, /## 共享突破天赋/)
-  assert.match(rules, /首破从一阶六项共享天赋中按种子固定展示三项/)
+  assert.match(rules, /首破从一阶7项共享天赋中按种子固定展示三项/)
   assert.match(rules, /后续突破将本阶一项功法天赋与两项共享天赋并列展示/)
   assert.match(rules, /V2-J1-A/)
   assert.match(rules, /V2-J1-F/)
@@ -55,7 +55,7 @@ test('INDEX exposes every fixed reader page with readable names and counts', () 
 test('artifact reader pages disclose descriptive roles and equipped core tradeoffs', () => {
   const page = pages.get('artifacts/COMMON.md')
   assert.match(page, /\| 名称 \| 装备定位 \| 属性 \| 上限 \| 预算 A\/J\/B \|/)
-  assert.match(page, /一局最多装备4件，核心\/支援仅为描述定位，不限制配装/)
+  assert.match(page, /一局最多装备5件，核心\/支援仅为描述定位，不限制配装/)
   assert.match(page, /装备定位：核心；仅作描述，不限制装备数量/)
   assert.match(page, /装备定位：支援；仅作描述，不限制装备数量/)
   assert.match(page, /RC01[\s\S]*装备定位：核心；仅作描述，不限制装备数量/)
@@ -65,6 +65,7 @@ test('artifact reader pages disclose descriptive roles and equipped core tradeof
 
   const legendary = pages.get('artifacts/LEGENDARY.md')
   assert.match(legendary, /RL01[\s\S]*装备定位：核心；仅作描述，不限制装备数量/)
+  assert.match(legendary, /RL08[\s\S]*镜映规则：只复制紧邻右侧/)
   assert.doesNotMatch(legendary, /核心规则（仅装备时生效）/)
 })
 

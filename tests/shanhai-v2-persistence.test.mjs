@@ -391,7 +391,7 @@ test('a selected shared talent remains valid after the active method and draft g
   game.state.phase = 'talent';
   game.state._talentQueue = [{ method: 'RKF01', tier: 1, advance: true }];
   game.availableTalents();
-  const selectedShared = game.state.talentDrafts['RKF01:1:0'].find(id => id.startsWith('V2-J1-'));
+  const selectedShared = game.state.talentDrafts['RKF01:1:0'].find(id => id.startsWith('V2-J1-') && id !== 'V2-J1-G');
   assert.ok(selectedShared);
 
   game.state.talents.RKF01 = [selectedShared];

@@ -195,6 +195,7 @@ export interface RunState {
   artifacts: ArtifactStack[];
   equipment: RunEquipment;
   buildVersion: 5;
+  bloodVow: boolean;
   rewardSearches: RewardSearchRecord[];
   rewardRefinements: RewardRefineRecord[];
   fusionProgress: FusionProgressRecord[];

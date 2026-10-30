@@ -74,7 +74,7 @@ function resolveCurrentNode(game) {
         } else game.dispatch({ type: 'rest', choice: 'heal' });
         break;
       case 'talent':
-        game.dispatch({ type: 'talent', id: game.availableTalents()[0].id });
+        game.dispatch({ type: 'talent', id: game.availableTalents().find(talent => talent.id !== 'V2-J1-G').id });
         break;
       case 'transition':
         game.dispatch({ type: 'continue' });

@@ -2054,7 +2054,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 897.3683707571802,
+      "hp": 938.2616044919238,
       "xp": 3412,
       "battles": [
         {
@@ -2165,7 +2165,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 192.45437484143568,
+              "hp": 188.00276897766707,
               "maxHp": 655
             },
             "enemy": {
@@ -2177,16 +2177,16 @@
           "playerEntryMaxHp": 655,
           "enemyEntryHp": 340,
           "enemyEntryMaxHp": 340,
-          "playerHp": 192.45437484143568,
+          "playerHp": 188.00276897766707,
           "enemyHp": 0,
-          "playerNetHpLoss": 21.327531380753186,
-          "playerNetHpLossPct": 3.2561116611836924,
+          "playerNetHpLoss": 25.77913724452179,
+          "playerNetHpLossPct": 3.9357461442018002,
           "enemyNetHpLoss": 340,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 192.45437484143568,
+          "playerMinimumHp": 188.00276897766707,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 21.327531380753186,
-          "maxSingleRoundNetLossPct": 3.2561116611836924,
+          "maxSingleRoundNetLoss": 25.77913724452179,
+          "maxSingleRoundNetLossPct": 3.9357461442018002,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -2199,7 +2199,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 288.20437484143565,
+              "hp": 283.7527689776671,
               "maxHp": 665
             },
             "enemy": {
@@ -2209,7 +2209,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 286.0788894857871,
+              "hp": 275.02673795159455,
               "maxHp": 665
             },
             "enemy": {
@@ -2217,20 +2217,20 @@
               "maxHp": 280
             }
           },
-          "playerEntryHp": 288.20437484143565,
+          "playerEntryHp": 283.7527689776671,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 280,
           "enemyEntryMaxHp": 280,
-          "playerHp": 286.0788894857871,
+          "playerHp": 275.02673795159455,
           "enemyHp": 0,
-          "playerNetHpLoss": 2.12548535564855,
-          "playerNetHpLossPct": 0.31962185799226317,
+          "playerNetHpLoss": 8.72603102607252,
+          "playerNetHpLossPct": 1.3121851167026344,
           "enemyNetHpLoss": 280,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 286.0788894857871,
+          "playerMinimumHp": 275.02673795159455,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 2.12548535564855,
-          "maxSingleRoundNetLossPct": 0.31962185799226317,
+          "maxSingleRoundNetLoss": 8.72603102607252,
+          "maxSingleRoundNetLossPct": 1.3121851167026344,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -2243,7 +2243,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 288.0788894857871,
+              "hp": 277.02673795159455,
               "maxHp": 665
             },
             "enemy": {
@@ -2253,7 +2253,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 291.6404894857871,
+              "hp": 280.24913795159455,
               "maxHp": 665
             },
             "enemy": {
@@ -2261,17 +2261,17 @@
               "maxHp": 295
             }
           },
-          "playerEntryHp": 288.0788894857871,
+          "playerEntryHp": 277.02673795159455,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 295,
           "enemyEntryMaxHp": 295,
-          "playerHp": 291.6404894857871,
+          "playerHp": 280.24913795159455,
           "enemyHp": 0,
-          "playerNetHpLoss": -3.5615999999999985,
-          "playerNetHpLossPct": -0.5355789473684208,
+          "playerNetHpLoss": -3.2223999999999933,
+          "playerNetHpLossPct": -0.48457142857142754,
           "enemyNetHpLoss": 295,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 288.0788894857871,
+          "playerMinimumHp": 277.02673795159455,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -2287,7 +2287,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 295.6404894857871,
+              "hp": 284.24913795159455,
               "maxHp": 665
             },
             "enemy": {
@@ -2297,7 +2297,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 299.4484894857871,
+              "hp": 287.6987379515945,
               "maxHp": 665
             },
             "enemy": {
@@ -2305,17 +2305,17 @@
               "maxHp": 295
             }
           },
-          "playerEntryHp": 295.6404894857871,
+          "playerEntryHp": 284.24913795159455,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 295,
           "enemyEntryMaxHp": 295,
-          "playerHp": 299.4484894857871,
+          "playerHp": 287.6987379515945,
           "enemyHp": 0,
-          "playerNetHpLoss": -3.8079999999999927,
-          "playerNetHpLossPct": -0.5726315789473673,
+          "playerNetHpLoss": -3.4495999999999754,
+          "playerNetHpLossPct": -0.5187368421052594,
           "enemyNetHpLoss": 295,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 295.6404894857871,
+          "playerMinimumHp": 284.24913795159455,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -2326,12 +2326,12 @@
           "step": 9,
           "enemyId": "EN-A1-C4",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 3,
+          "rounds": 2,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 301.4484894857871,
+              "hp": 289.6987379515945,
               "maxHp": 665
             },
             "enemy": {
@@ -2341,7 +2341,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 311.55908948578707,
+              "hp": 292.3468379515945,
               "maxHp": 665
             },
             "enemy": {
@@ -2349,17 +2349,17 @@
               "maxHp": 330
             }
           },
-          "playerEntryHp": 301.4484894857871,
+          "playerEntryHp": 289.6987379515945,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 330,
           "enemyEntryMaxHp": 330,
-          "playerHp": 311.55908948578707,
+          "playerHp": 292.3468379515945,
           "enemyHp": 0,
-          "playerNetHpLoss": -10.110599999999977,
-          "playerNetHpLossPct": -1.5203909774436055,
+          "playerNetHpLoss": -2.6480999999999995,
+          "playerNetHpLossPct": -0.39821052631578935,
           "enemyNetHpLoss": 330,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 301.4484894857871,
+          "playerMinimumHp": 289.6987379515945,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -2370,12 +2370,12 @@
           "step": 10,
           "enemyId": "EN-A1-B2",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 4,
+          "rounds": 3,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 313.55908948578707,
+              "hp": 294.3468379515945,
               "maxHp": 665
             },
             "enemy": {
@@ -2385,7 +2385,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 333.85508948578706,
+              "hp": 305.39163795159453,
               "maxHp": 665
             },
             "enemy": {
@@ -2393,17 +2393,17 @@
               "maxHp": 427.35
             }
           },
-          "playerEntryHp": 313.55908948578707,
+          "playerEntryHp": 294.3468379515945,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 427.35,
           "enemyEntryMaxHp": 427.35,
-          "playerHp": 333.85508948578706,
+          "playerHp": 305.39163795159453,
           "enemyHp": 0,
-          "playerNetHpLoss": -20.295999999999992,
-          "playerNetHpLossPct": -3.0520300751879685,
+          "playerNetHpLoss": -11.04480000000001,
+          "playerNetHpLossPct": -1.660872180451129,
           "enemyNetHpLoss": 427.35,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 313.55908948578707,
+          "playerMinimumHp": 294.3468379515945,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -2419,7 +2419,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 335.85508948578706,
+              "hp": 307.39163795159453,
               "maxHp": 665
             },
             "enemy": {
@@ -2429,7 +2429,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 349.30708948578706,
+              "hp": 318.8612379515945,
               "maxHp": 665
             },
             "enemy": {
@@ -2437,17 +2437,17 @@
               "maxHp": 445
             }
           },
-          "playerEntryHp": 335.85508948578706,
+          "playerEntryHp": 307.39163795159453,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 445,
           "enemyEntryMaxHp": 445,
-          "playerHp": 349.30708948578706,
+          "playerHp": 318.8612379515945,
           "enemyHp": 0,
-          "playerNetHpLoss": -13.451999999999998,
-          "playerNetHpLossPct": -2.0228571428571427,
+          "playerNetHpLoss": -11.469599999999957,
+          "playerNetHpLossPct": -1.7247518796992416,
           "enemyNetHpLoss": 445,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 335.85508948578706,
+          "playerMinimumHp": 307.39163795159453,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -2463,7 +2463,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 353.30708948578706,
+              "hp": 322.8612379515945,
               "maxHp": 785
             },
             "enemy": {
@@ -2473,7 +2473,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 358.61708948578706,
+              "hp": 327.5104379515945,
               "maxHp": 785
             },
             "enemy": {
@@ -2481,17 +2481,17 @@
               "maxHp": 395
             }
           },
-          "playerEntryHp": 353.30708948578706,
+          "playerEntryHp": 322.8612379515945,
           "playerEntryMaxHp": 785,
           "enemyEntryHp": 395,
           "enemyEntryMaxHp": 395,
-          "playerHp": 358.61708948578706,
+          "playerHp": 327.5104379515945,
           "enemyHp": 0,
-          "playerNetHpLoss": -5.310000000000002,
-          "playerNetHpLossPct": -0.6764331210191086,
+          "playerNetHpLoss": -4.6492000000000075,
+          "playerNetHpLossPct": -0.5922547770700647,
           "enemyNetHpLoss": 395,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 353.30708948578706,
+          "playerMinimumHp": 322.8612379515945,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -2507,7 +2507,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 457.61708948578706,
+              "hp": 426.5104379515945,
               "maxHp": 785
             },
             "enemy": {
@@ -2517,7 +2517,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 465.2442894857871,
+              "hp": 433.1968379515945,
               "maxHp": 785
             },
             "enemy": {
@@ -2525,17 +2525,17 @@
               "maxHp": 400
             }
           },
-          "playerEntryHp": 457.61708948578706,
+          "playerEntryHp": 426.5104379515945,
           "playerEntryMaxHp": 785,
           "enemyEntryHp": 400,
           "enemyEntryMaxHp": 400,
-          "playerHp": 465.2442894857871,
+          "playerHp": 433.1968379515945,
           "enemyHp": 0,
-          "playerNetHpLoss": -7.627200000000016,
-          "playerNetHpLossPct": -0.9716178343949066,
+          "playerNetHpLoss": -6.686399999999992,
+          "playerNetHpLossPct": -0.8517707006369416,
           "enemyNetHpLoss": 400,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 457.61708948578706,
+          "playerMinimumHp": 426.5104379515945,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -2551,7 +2551,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 467.2442894857871,
+              "hp": 435.1968379515945,
               "maxHp": 785
             },
             "enemy": {
@@ -2561,7 +2561,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 474.93868948578705,
+              "hp": 441.9504379515945,
               "maxHp": 785
             },
             "enemy": {
@@ -2569,17 +2569,17 @@
               "maxHp": 445
             }
           },
-          "playerEntryHp": 467.2442894857871,
+          "playerEntryHp": 435.1968379515945,
           "playerEntryMaxHp": 785,
           "enemyEntryHp": 445,
           "enemyEntryMaxHp": 445,
-          "playerHp": 474.93868948578705,
+          "playerHp": 441.9504379515945,
           "enemyHp": 0,
-          "playerNetHpLoss": -7.694399999999973,
-          "playerNetHpLossPct": -0.9801783439490412,
+          "playerNetHpLoss": -6.753600000000006,
+          "playerNetHpLossPct": -0.8603312101910836,
           "enemyNetHpLoss": 445,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 467.2442894857871,
+          "playerMinimumHp": 435.1968379515945,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -2595,7 +2595,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 480.93868948578705,
+              "hp": 447.9504379515945,
               "maxHp": 795
             },
             "enemy": {
@@ -2605,7 +2605,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 485.9786894857871,
+              "hp": 452.3632379515945,
               "maxHp": 795
             },
             "enemy": {
@@ -2613,17 +2613,17 @@
               "maxHp": 375
             }
           },
-          "playerEntryHp": 480.93868948578705,
+          "playerEntryHp": 447.9504379515945,
           "playerEntryMaxHp": 795,
           "enemyEntryHp": 375,
           "enemyEntryMaxHp": 375,
-          "playerHp": 485.9786894857871,
+          "playerHp": 452.3632379515945,
           "enemyHp": 0,
-          "playerNetHpLoss": -5.0400000000000205,
-          "playerNetHpLossPct": -0.6339622641509459,
+          "playerNetHpLoss": -4.412800000000004,
+          "playerNetHpLossPct": -0.5550691823899376,
           "enemyNetHpLoss": 375,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 480.93868948578705,
+          "playerMinimumHp": 447.9504379515945,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -2639,7 +2639,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 489.9786894857871,
+              "hp": 456.3632379515945,
               "maxHp": 795
             },
             "enemy": {
@@ -2649,7 +2649,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 495.0186894857871,
+              "hp": 460.7760379515945,
               "maxHp": 795
             },
             "enemy": {
@@ -2657,17 +2657,17 @@
               "maxHp": 395
             }
           },
-          "playerEntryHp": 489.9786894857871,
+          "playerEntryHp": 456.3632379515945,
           "playerEntryMaxHp": 795,
           "enemyEntryHp": 395,
           "enemyEntryMaxHp": 395,
-          "playerHp": 495.0186894857871,
+          "playerHp": 460.7760379515945,
           "enemyHp": 0,
-          "playerNetHpLoss": -5.0400000000000205,
-          "playerNetHpLossPct": -0.6339622641509459,
+          "playerNetHpLoss": -4.412800000000004,
+          "playerNetHpLossPct": -0.5550691823899376,
           "enemyNetHpLoss": 395,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 489.9786894857871,
+          "playerMinimumHp": 456.3632379515945,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -2683,7 +2683,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 499.0186894857871,
+              "hp": 464.7760379515945,
               "maxHp": 795
             },
             "enemy": {
@@ -2693,7 +2693,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 484.7362257176713,
+              "hp": 439.2895597247425,
               "maxHp": 795
             },
             "enemy": {
@@ -2701,20 +2701,20 @@
               "maxHp": 740
             }
           },
-          "playerEntryHp": 499.0186894857871,
+          "playerEntryHp": 464.7760379515945,
           "playerEntryMaxHp": 795,
           "enemyEntryHp": 740,
           "enemyEntryMaxHp": 740,
-          "playerHp": 484.7362257176713,
+          "playerHp": 439.2895597247425,
           "enemyHp": 0,
-          "playerNetHpLoss": 14.282463768115804,
-          "playerNetHpLossPct": 1.7965363230334344,
+          "playerNetHpLoss": 25.486478226852,
+          "playerNetHpLossPct": 3.2058463178430188,
           "enemyNetHpLoss": 740,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 484.7362257176713,
+          "playerMinimumHp": 439.2895597247425,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 29.402463768115865,
-          "maxSingleRoundNetLossPct": 3.6984231154862726,
+          "maxSingleRoundNetLoss": 38.72487822685201,
+          "maxSingleRoundNetLossPct": 4.871053865012832,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -2727,7 +2727,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 488.7362257176713,
+              "hp": 443.2895597247425,
               "maxHp": 950
             },
             "enemy": {
@@ -2737,7 +2737,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 494.94102571767127,
+              "hp": 448.5983597247425,
               "maxHp": 950
             },
             "enemy": {
@@ -2745,17 +2745,17 @@
               "maxHp": 449
             }
           },
-          "playerEntryHp": 488.7362257176713,
+          "playerEntryHp": 443.2895597247425,
           "playerEntryMaxHp": 950,
           "enemyEntryHp": 449,
           "enemyEntryMaxHp": 449,
-          "playerHp": 494.94102571767127,
+          "playerHp": 448.5983597247425,
           "enemyHp": 0,
-          "playerNetHpLoss": -6.2047999999999774,
-          "playerNetHpLossPct": -0.6531368421052608,
+          "playerNetHpLoss": -5.308800000000019,
+          "playerNetHpLossPct": -0.558821052631581,
           "enemyNetHpLoss": 449,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 488.7362257176713,
+          "playerMinimumHp": 443.2895597247425,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -2771,7 +2771,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 494.94102571767127,
+              "hp": 448.5983597247425,
               "maxHp": 950
             },
             "enemy": {
@@ -2781,7 +2781,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 501.14582571767124,
+              "hp": 453.90715972474254,
               "maxHp": 950
             },
             "enemy": {
@@ -2789,17 +2789,17 @@
               "maxHp": 449
             }
           },
-          "playerEntryHp": 494.94102571767127,
+          "playerEntryHp": 448.5983597247425,
           "playerEntryMaxHp": 950,
           "enemyEntryHp": 449,
           "enemyEntryMaxHp": 449,
-          "playerHp": 501.14582571767124,
+          "playerHp": 453.90715972474254,
           "enemyHp": 0,
-          "playerNetHpLoss": -6.2047999999999774,
-          "playerNetHpLossPct": -0.6531368421052608,
+          "playerNetHpLoss": -5.308800000000019,
+          "playerNetHpLossPct": -0.558821052631581,
           "enemyNetHpLoss": 449,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 494.94102571767127,
+          "playerMinimumHp": 448.5983597247425,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -2815,7 +2815,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 738.6458257176712,
+              "hp": 691.4071597247425,
               "maxHp": 950
             },
             "enemy": {
@@ -2825,7 +2825,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 748.0202257176712,
+              "hp": 699.4375597247425,
               "maxHp": 950
             },
             "enemy": {
@@ -2833,17 +2833,17 @@
               "maxHp": 449
             }
           },
-          "playerEntryHp": 738.6458257176712,
+          "playerEntryHp": 691.4071597247425,
           "playerEntryMaxHp": 950,
           "enemyEntryHp": 449,
           "enemyEntryMaxHp": 449,
-          "playerHp": 748.0202257176712,
+          "playerHp": 699.4375597247425,
           "enemyHp": 0,
-          "playerNetHpLoss": -9.374400000000037,
-          "playerNetHpLossPct": -0.986778947368425,
+          "playerNetHpLoss": -8.030399999999986,
+          "playerNetHpLossPct": -0.8453052631578932,
           "enemyNetHpLoss": 449,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 738.6458257176712,
+          "playerMinimumHp": 691.4071597247425,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -2859,7 +2859,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 748.0202257176712,
+              "hp": 699.4375597247425,
               "maxHp": 950
             },
             "enemy": {
@@ -2869,7 +2869,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 716.978857564805,
+              "hp": 647.4318408244646,
               "maxHp": 950
             },
             "enemy": {
@@ -2877,20 +2877,20 @@
               "maxHp": 592
             }
           },
-          "playerEntryHp": 748.0202257176712,
+          "playerEntryHp": 699.4375597247425,
           "playerEntryMaxHp": 950,
           "enemyEntryHp": 592,
           "enemyEntryMaxHp": 592,
-          "playerHp": 716.978857564805,
+          "playerHp": 647.4318408244646,
           "enemyHp": 0,
-          "playerNetHpLoss": 31.041368152866198,
-          "playerNetHpLossPct": 3.26751243714381,
+          "playerNetHpLoss": 52.005718900277884,
+          "playerNetHpLossPct": 5.474286200029251,
           "enemyNetHpLoss": 592,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 716.978857564805,
+          "playerMinimumHp": 647.4318408244646,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 40.48296815286619,
-          "maxSingleRoundNetLossPct": 4.261365068722757,
+          "maxSingleRoundNetLoss": 60.10331890027783,
+          "maxSingleRoundNetLossPct": 6.326665147397666,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -2903,7 +2903,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 830.978857564805,
+              "hp": 761.4318408244646,
               "maxHp": 950
             },
             "enemy": {
@@ -2913,7 +2913,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 804.879257564805,
+              "hp": 709.4261219241869,
               "maxHp": 950
             },
             "enemy": {
@@ -2921,20 +2921,20 @@
               "maxHp": 592
             }
           },
-          "playerEntryHp": 830.978857564805,
+          "playerEntryHp": 761.4318408244646,
           "playerEntryMaxHp": 950,
           "enemyEntryHp": 592,
           "enemyEntryMaxHp": 592,
-          "playerHp": 804.879257564805,
+          "playerHp": 709.4261219241869,
           "enemyHp": 0,
-          "playerNetHpLoss": 26.09960000000001,
-          "playerNetHpLossPct": 2.7473263157894747,
+          "playerNetHpLoss": 52.00571890027777,
+          "playerNetHpLossPct": 5.474286200029239,
           "enemyNetHpLoss": 592,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 804.879257564805,
+          "playerMinimumHp": 709.4261219241869,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 35.81000000000006,
-          "maxSingleRoundNetLossPct": 3.7694736842105323,
+          "maxSingleRoundNetLoss": 60.10331890027783,
+          "maxSingleRoundNetLossPct": 6.326665147397666,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -2947,7 +2947,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 804.879257564805,
+              "hp": 709.4261219241869,
               "maxHp": 1180
             },
             "enemy": {
@@ -2957,7 +2957,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 815.711657564805,
+              "hp": 718.4743619241868,
               "maxHp": 1180
             },
             "enemy": {
@@ -2965,17 +2965,17 @@
               "maxHp": 767
             }
           },
-          "playerEntryHp": 804.879257564805,
+          "playerEntryHp": 709.4261219241869,
           "playerEntryMaxHp": 1180,
           "enemyEntryHp": 767,
           "enemyEntryMaxHp": 767,
-          "playerHp": 815.711657564805,
+          "playerHp": 718.4743619241868,
           "enemyHp": 0,
-          "playerNetHpLoss": -10.832400000000007,
-          "playerNetHpLossPct": -0.9180000000000006,
+          "playerNetHpLoss": -9.048239999999964,
+          "playerNetHpLossPct": -0.766799999999997,
           "enemyNetHpLoss": 767,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 804.879257564805,
+          "playerMinimumHp": 709.4261219241869,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -2991,7 +2991,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 910.111657564805,
+              "hp": 812.8743619241868,
               "maxHp": 1180
             },
             "enemy": {
@@ -3001,7 +3001,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 918.157477564805,
+              "hp": 818.7537019241868,
               "maxHp": 1180
             },
             "enemy": {
@@ -3009,17 +3009,17 @@
               "maxHp": 525
             }
           },
-          "playerEntryHp": 910.111657564805,
+          "playerEntryHp": 812.8743619241868,
           "playerEntryMaxHp": 1180,
           "enemyEntryHp": 525,
           "enemyEntryMaxHp": 525,
-          "playerHp": 918.157477564805,
+          "playerHp": 818.7537019241868,
           "enemyHp": 0,
-          "playerNetHpLoss": -8.045820000000049,
-          "playerNetHpLossPct": -0.681849152542377,
+          "playerNetHpLoss": -5.8793399999999565,
+          "playerNetHpLossPct": -0.4982491525423692,
           "enemyNetHpLoss": 525,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 910.111657564805,
+          "playerMinimumHp": 812.8743619241868,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -3035,7 +3035,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 1012.557477564805,
+              "hp": 913.1537019241867,
               "maxHp": 1180
             },
             "enemy": {
@@ -3045,7 +3045,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 1024.090797564805,
+              "hp": 916.075444037309,
               "maxHp": 1180
             },
             "enemy": {
@@ -3053,20 +3053,20 @@
               "maxHp": 890
             }
           },
-          "playerEntryHp": 1012.557477564805,
+          "playerEntryHp": 913.1537019241867,
           "playerEntryMaxHp": 1180,
           "enemyEntryHp": 890,
           "enemyEntryMaxHp": 890,
-          "playerHp": 1024.090797564805,
+          "playerHp": 916.075444037309,
           "enemyHp": 0,
-          "playerNetHpLoss": -11.53331999999989,
-          "playerNetHpLossPct": -0.9773999999999906,
+          "playerNetHpLoss": -2.9217421131222636,
+          "playerNetHpLossPct": -0.24760526382392065,
           "enemyNetHpLoss": 890,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 1012.557477564805,
+          "playerMinimumHp": 913.1537019241867,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 0,
-          "maxSingleRoundNetLossPct": 0,
+          "maxSingleRoundNetLoss": 6.445097886877761,
+          "maxSingleRoundNetLossPct": 0.5461947361760815,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -3079,7 +3079,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 1118.490797564805,
+              "hp": 1010.475444037309,
               "maxHp": 1180
             },
             "enemy": {
@@ -3089,7 +3089,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 1126.536617564805,
+              "hp": 1016.354784037309,
               "maxHp": 1180
             },
             "enemy": {
@@ -3097,17 +3097,17 @@
               "maxHp": 525
             }
           },
-          "playerEntryHp": 1118.490797564805,
+          "playerEntryHp": 1010.475444037309,
           "playerEntryMaxHp": 1180,
           "enemyEntryHp": 525,
           "enemyEntryMaxHp": 525,
-          "playerHp": 1126.536617564805,
+          "playerHp": 1016.354784037309,
           "enemyHp": 0,
-          "playerNetHpLoss": -8.045820000000049,
-          "playerNetHpLossPct": -0.681849152542377,
+          "playerNetHpLoss": -5.8793399999999565,
+          "playerNetHpLossPct": -0.4982491525423692,
           "enemyNetHpLoss": 525,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 1118.490797564805,
+          "playerMinimumHp": 1010.475444037309,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -3118,12 +3118,12 @@
           "step": 5,
           "enemyId": "EN-A4-C1",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 3,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 1180,
+              "hp": 1110.754784037309,
               "maxHp": 1180
             },
             "enemy": {
@@ -3133,7 +3133,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 1180,
+              "hp": 1138.855304037309,
               "maxHp": 1180
             },
             "enemy": {
@@ -3141,17 +3141,17 @@
               "maxHp": 755
             }
           },
-          "playerEntryHp": 1180,
+          "playerEntryHp": 1110.754784037309,
           "playerEntryMaxHp": 1180,
           "enemyEntryHp": 755,
           "enemyEntryMaxHp": 755,
-          "playerHp": 1180,
+          "playerHp": 1138.855304037309,
           "enemyHp": 0,
-          "playerNetHpLoss": 0,
-          "playerNetHpLossPct": 0,
+          "playerNetHpLoss": -28.10051999999996,
+          "playerNetHpLossPct": -2.3813999999999966,
           "enemyNetHpLoss": 755,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 1180,
+          "playerMinimumHp": 1110.754784037309,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -3206,7 +3206,7 @@
           "step": 8,
           "enemyId": "EN-A4-C1",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 3,
           "outcome": "player",
           "result": "won",
           "entry": {
@@ -3309,7 +3309,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 1168.924,
+              "hp": 1126.766466852986,
               "maxHp": 1180
             },
             "enemy": {
@@ -3321,16 +3321,16 @@
           "playerEntryMaxHp": 1180,
           "enemyEntryHp": 1185,
           "enemyEntryMaxHp": 1185,
-          "playerHp": 1168.924,
+          "playerHp": 1126.766466852986,
           "enemyHp": 0,
-          "playerNetHpLoss": 11.076000000000022,
-          "playerNetHpLossPct": 0.938644067796612,
+          "playerNetHpLoss": 53.233533147013986,
+          "playerNetHpLossPct": 4.511316368391015,
           "enemyNetHpLoss": 1185,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 1168.924,
+          "playerMinimumHp": 1126.766466852986,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 11.076000000000022,
-          "maxSingleRoundNetLossPct": 0.938644067796612,
+          "maxSingleRoundNetLoss": 53.233533147013986,
+          "maxSingleRoundNetLossPct": 4.511316368391015,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -3338,7 +3338,7 @@
           "step": 0,
           "enemyId": "EN-F1",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 4,
+          "rounds": 3,
           "outcome": "player",
           "result": "won",
           "entry": {
@@ -3353,7 +3353,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 897.3683707571802,
+              "hp": 938.2616044919238,
               "maxHp": 1180
             },
             "enemy": {
@@ -3365,16 +3365,16 @@
           "playerEntryMaxHp": 1180,
           "enemyEntryHp": 1782,
           "enemyEntryMaxHp": 1782,
-          "playerHp": 897.3683707571802,
+          "playerHp": 938.2616044919238,
           "enemyHp": 0,
-          "playerNetHpLoss": 282.6316292428198,
-          "playerNetHpLossPct": 23.951832986679648,
+          "playerNetHpLoss": 241.73839550807622,
+          "playerNetHpLossPct": 20.486304704074257,
           "enemyNetHpLoss": 1782,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 897.3683707571802,
+          "playerMinimumHp": 938.2616044919238,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 271.7472793733681,
-          "maxSingleRoundNetLossPct": 23.029430455370175,
+          "maxSingleRoundNetLoss": 237.6586128024186,
+          "maxSingleRoundNetLossPct": 20.140560406984626,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         }
       ],
@@ -4090,7 +4090,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 1089.9672078778601,
+      "hp": 1172.9619059561128,
       "xp": 3438,
       "battles": [
         {
@@ -4245,7 +4245,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 394.6915676238685,
+              "hp": 379.71307225931946,
               "maxHp": 625
             },
             "enemy": {
@@ -4257,16 +4257,16 @@
           "playerEntryMaxHp": 625,
           "enemyEntryHp": 295,
           "enemyEntryMaxHp": 295,
-          "playerHp": 394.6915676238685,
+          "playerHp": 379.71307225931946,
           "enemyHp": 0,
-          "playerNetHpLoss": 54.42245617730123,
-          "playerNetHpLossPct": 8.707592988368198,
+          "playerNetHpLoss": 69.40095154185025,
+          "playerNetHpLossPct": 11.104152246696039,
           "enemyNetHpLoss": 295,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 394.6915676238685,
+          "playerMinimumHp": 379.71307225931946,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 33.08354404341003,
-          "maxSingleRoundNetLossPct": 5.293367046945605,
+          "maxSingleRoundNetLoss": 35.947136563876654,
+          "maxSingleRoundNetLossPct": 5.751541850220264,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -4279,7 +4279,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 488.4415676238685,
+              "hp": 473.46307225931946,
               "maxHp": 625
             },
             "enemy": {
@@ -4289,7 +4289,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 444.3308046282737,
+              "hp": 429.3523092637247,
               "maxHp": 625
             },
             "enemy": {
@@ -4297,17 +4297,17 @@
               "maxHp": 340
             }
           },
-          "playerEntryHp": 488.4415676238685,
+          "playerEntryHp": 473.46307225931946,
           "playerEntryMaxHp": 625,
           "enemyEntryHp": 340,
           "enemyEntryMaxHp": 340,
-          "playerHp": 444.3308046282737,
+          "playerHp": 429.3523092637247,
           "enemyHp": 0,
           "playerNetHpLoss": 44.11076299559477,
           "playerNetHpLossPct": 7.057722079295163,
           "enemyNetHpLoss": 340,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 444.3308046282737,
+          "playerMinimumHp": 429.3523092637247,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 44.11076299559477,
           "maxSingleRoundNetLossPct": 7.057722079295163,
@@ -4323,7 +4323,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 444.3308046282737,
+              "hp": 429.3523092637247,
               "maxHp": 625
             },
             "enemy": {
@@ -4333,7 +4333,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 316.93103276924444,
+              "hp": 297.45205494058064,
               "maxHp": 625
             },
             "enemy": {
@@ -4341,20 +4341,20 @@
               "maxHp": 460
             }
           },
-          "playerEntryHp": 444.3308046282737,
+          "playerEntryHp": 429.3523092637247,
           "playerEntryMaxHp": 625,
           "enemyEntryHp": 460,
           "enemyEntryMaxHp": 460,
-          "playerHp": 316.93103276924444,
+          "playerHp": 297.45205494058064,
           "enemyHp": 0,
-          "playerNetHpLoss": 127.39977185902927,
-          "playerNetHpLossPct": 20.383963497444686,
+          "playerNetHpLoss": 131.90025432314405,
+          "playerNetHpLossPct": 21.104040691703048,
           "enemyNetHpLoss": 460,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 316.93103276924444,
+          "playerMinimumHp": 297.45205494058064,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 55.137836611957596,
-          "maxSingleRoundNetLossPct": 8.822053857913216,
+          "maxSingleRoundNetLoss": 58.20960698689953,
+          "maxSingleRoundNetLossPct": 9.313537117903925,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -4367,7 +4367,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 316.93103276924444,
+              "hp": 297.45205494058064,
               "maxHp": 655
             },
             "enemy": {
@@ -4377,7 +4377,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 159.9528798018134,
+              "hp": 132.38655275717454,
               "maxHp": 655
             },
             "enemy": {
@@ -4385,20 +4385,20 @@
               "maxHp": 650
             }
           },
-          "playerEntryHp": 316.93103276924444,
+          "playerEntryHp": 297.45205494058064,
           "playerEntryMaxHp": 655,
           "enemyEntryHp": 650,
           "enemyEntryMaxHp": 650,
-          "playerHp": 159.9528798018134,
+          "playerHp": 132.38655275717454,
           "enemyHp": 0,
-          "playerNetHpLoss": 156.97815296743104,
-          "playerNetHpLossPct": 23.966130224035272,
+          "playerNetHpLoss": 165.0655021834061,
+          "playerNetHpLossPct": 25.200840028000933,
           "enemyNetHpLoss": 650,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 159.9528798018134,
+          "playerMinimumHp": 132.38655275717454,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 42.885375494071155,
-          "maxSingleRoundNetLossPct": 6.547385571613917,
+          "maxSingleRoundNetLoss": 47.37991266375545,
+          "maxSingleRoundNetLossPct": 7.233574452481747,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -4411,7 +4411,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 212.3528798018134,
+              "hp": 184.78655275717455,
               "maxHp": 805
             },
             "enemy": {
@@ -4421,7 +4421,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 193.80263752440578,
+              "hp": 166.17434803276512,
               "maxHp": 805
             },
             "enemy": {
@@ -4429,20 +4429,20 @@
               "maxHp": 400
             }
           },
-          "playerEntryHp": 212.3528798018134,
+          "playerEntryHp": 184.78655275717455,
           "playerEntryMaxHp": 805,
           "enemyEntryHp": 400,
           "enemyEntryMaxHp": 400,
-          "playerHp": 193.80263752440578,
+          "playerHp": 166.17434803276512,
           "enemyHp": 0,
-          "playerNetHpLoss": 18.55024227740762,
-          "playerNetHpLossPct": 2.3043779226593317,
+          "playerNetHpLoss": 18.612204724409423,
+          "playerNetHpLossPct": 2.312075121044649,
           "enemyNetHpLoss": 400,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 193.80263752440578,
+          "playerMinimumHp": 166.17434803276512,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 18.55024227740762,
-          "maxSingleRoundNetLossPct": 2.3043779226593317,
+          "maxSingleRoundNetLoss": 18.612204724409423,
+          "maxSingleRoundNetLossPct": 2.312075121044649,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -4450,12 +4450,12 @@
           "step": 3,
           "enemyId": "EN-A2-C3",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 1,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 451.95263752440576,
+              "hp": 424.3243480327651,
               "maxHp": 805
             },
             "enemy": {
@@ -4465,7 +4465,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 451.95263752440576,
+              "hp": 424.3243480327651,
               "maxHp": 805
             },
             "enemy": {
@@ -4473,17 +4473,17 @@
               "maxHp": 445
             }
           },
-          "playerEntryHp": 451.95263752440576,
+          "playerEntryHp": 424.3243480327651,
           "playerEntryMaxHp": 805,
           "enemyEntryHp": 445,
           "enemyEntryMaxHp": 445,
-          "playerHp": 451.95263752440576,
+          "playerHp": 424.3243480327651,
           "enemyHp": 0,
           "playerNetHpLoss": 0,
           "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 445,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 451.95263752440576,
+          "playerMinimumHp": 424.3243480327651,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -4499,7 +4499,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 609.3526375244057,
+              "hp": 581.7243480327651,
               "maxHp": 805
             },
             "enemy": {
@@ -4509,7 +4509,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 609.3526375244057,
+              "hp": 581.7243480327651,
               "maxHp": 805
             },
             "enemy": {
@@ -4517,17 +4517,17 @@
               "maxHp": 400
             }
           },
-          "playerEntryHp": 609.3526375244057,
+          "playerEntryHp": 581.7243480327651,
           "playerEntryMaxHp": 805,
           "enemyEntryHp": 400,
           "enemyEntryMaxHp": 400,
-          "playerHp": 609.3526375244057,
+          "playerHp": 581.7243480327651,
           "enemyHp": 0,
           "playerNetHpLoss": 0,
           "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 400,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 609.3526375244057,
+          "playerMinimumHp": 581.7243480327651,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -4543,7 +4543,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 673.7526375244057,
+              "hp": 646.124348032765,
               "maxHp": 805
             },
             "enemy": {
@@ -4553,7 +4553,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 673.7526375244057,
+              "hp": 646.124348032765,
               "maxHp": 805
             },
             "enemy": {
@@ -4561,17 +4561,17 @@
               "maxHp": 375
             }
           },
-          "playerEntryHp": 673.7526375244057,
+          "playerEntryHp": 646.124348032765,
           "playerEntryMaxHp": 805,
           "enemyEntryHp": 375,
           "enemyEntryMaxHp": 375,
-          "playerHp": 673.7526375244057,
+          "playerHp": 646.124348032765,
           "enemyHp": 0,
           "playerNetHpLoss": 0,
           "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 375,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 673.7526375244057,
+          "playerMinimumHp": 646.124348032765,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -4587,7 +4587,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 738.1526375244057,
+              "hp": 710.524348032765,
               "maxHp": 805
             },
             "enemy": {
@@ -4597,7 +4597,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 738.1526375244057,
+              "hp": 710.524348032765,
               "maxHp": 805
             },
             "enemy": {
@@ -4605,17 +4605,17 @@
               "maxHp": 363.00000000000006
             }
           },
-          "playerEntryHp": 738.1526375244057,
+          "playerEntryHp": 710.524348032765,
           "playerEntryMaxHp": 805,
           "enemyEntryHp": 363.00000000000006,
           "enemyEntryMaxHp": 363.00000000000006,
-          "playerHp": 738.1526375244057,
+          "playerHp": 710.524348032765,
           "enemyHp": 0,
           "playerNetHpLoss": 0,
           "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 363.00000000000006,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 738.1526375244057,
+          "playerMinimumHp": 710.524348032765,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -4626,12 +4626,12 @@
           "step": 10,
           "enemyId": "EN-A2-B1",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 3,
+          "rounds": 2,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 802.5526375244057,
+              "hp": 774.924348032765,
               "maxHp": 835
             },
             "enemy": {
@@ -4641,7 +4641,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 814.0091175244057,
+              "hp": 778.811368032765,
               "maxHp": 835
             },
             "enemy": {
@@ -4649,17 +4649,17 @@
               "maxHp": 777
             }
           },
-          "playerEntryHp": 802.5526375244057,
+          "playerEntryHp": 774.924348032765,
           "playerEntryMaxHp": 835,
           "enemyEntryHp": 777,
           "enemyEntryMaxHp": 777,
-          "playerHp": 814.0091175244057,
+          "playerHp": 778.811368032765,
           "enemyHp": 0,
-          "playerNetHpLoss": -11.456480000000056,
-          "playerNetHpLossPct": -1.3720335329341384,
+          "playerNetHpLoss": -3.887020000000007,
+          "playerNetHpLossPct": -0.4655113772455098,
           "enemyNetHpLoss": 777,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 802.5526375244057,
+          "playerMinimumHp": 774.924348032765,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -4758,7 +4758,7 @@
           "step": 5,
           "enemyId": "EN-A3-C1",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 1,
           "outcome": "player",
           "result": "won",
           "entry": {
@@ -4890,7 +4890,7 @@
           "step": 9,
           "enemyId": "EN-A3-L2",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 1,
           "outcome": "player",
           "result": "won",
           "entry": {
@@ -5286,7 +5286,7 @@
           "step": 10,
           "enemyId": "EN-A4-B2",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 3,
+          "rounds": 1,
           "outcome": "player",
           "result": "won",
           "entry": {
@@ -5301,7 +5301,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 1093.7658888806393,
+              "hp": 1180,
               "maxHp": 1180
             },
             "enemy": {
@@ -5313,16 +5313,16 @@
           "playerEntryMaxHp": 1180,
           "enemyEntryHp": 1275,
           "enemyEntryMaxHp": 1275,
-          "playerHp": 1093.7658888806393,
+          "playerHp": 1180,
           "enemyHp": 0,
-          "playerNetHpLoss": 86.2341111193607,
-          "playerNetHpLossPct": 7.30797551858989,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 1275,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 1093.7658888806393,
+          "playerMinimumHp": 1180,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 86.2341111193607,
-          "maxSingleRoundNetLossPct": 7.30797551858989,
+          "maxSingleRoundNetLoss": 0,
+          "maxSingleRoundNetLossPct": 0,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -5330,7 +5330,7 @@
           "step": 0,
           "enemyId": "EN-F2",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 3,
+          "rounds": 2,
           "outcome": "player",
           "result": "won",
           "entry": {
@@ -5345,7 +5345,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 1089.9672078778601,
+              "hp": 1172.9619059561128,
               "maxHp": 1180
             },
             "enemy": {
@@ -5357,16 +5357,16 @@
           "playerEntryMaxHp": 1180,
           "enemyEntryHp": 1926,
           "enemyEntryMaxHp": 1926,
-          "playerHp": 1089.9672078778601,
+          "playerHp": 1172.9619059561128,
           "enemyHp": 0,
-          "playerNetHpLoss": 90.03279212213988,
-          "playerNetHpLossPct": 7.629897637469482,
+          "playerNetHpLoss": 7.038094043887213,
+          "playerNetHpLossPct": 0.596448647787052,
           "enemyNetHpLoss": 1926,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 1089.9672078778601,
+          "playerMinimumHp": 1172.9619059561128,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 84.43504531722056,
-          "maxSingleRoundNetLossPct": 7.155512315018692,
+          "maxSingleRoundNetLoss": 7.038094043887213,
+          "maxSingleRoundNetLossPct": 0.596448647787052,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         }
       ],
@@ -8191,11 +8191,11 @@
       "method": "RKF03",
       "result": "lost",
       "act": 1,
-      "step": 6,
-      "nodes": 6,
+      "step": 5,
+      "nodes": 5,
       "n": 1,
       "hp": 0,
-      "xp": 240,
+      "xp": 180,
       "battles": [
         {
           "act": 1,
@@ -8305,7 +8305,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 61.608193082611784,
+              "hp": 60.54891458333329,
               "maxHp": 625
             },
             "enemy": {
@@ -8317,16 +8317,16 @@
           "playerEntryMaxHp": 625,
           "enemyEntryHp": 340,
           "enemyEntryMaxHp": 340,
-          "playerHp": 61.608193082611784,
+          "playerHp": 60.54891458333329,
           "enemyHp": 0,
-          "playerNetHpLoss": 112.27138816738821,
-          "playerNetHpLossPct": 17.963422106782115,
+          "playerNetHpLoss": 113.3306666666667,
+          "playerNetHpLossPct": 18.132906666666674,
           "enemyNetHpLoss": 340,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 61.608193082611784,
+          "playerMinimumHp": 60.54891458333329,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 76.95094372294375,
-          "maxSingleRoundNetLossPct": 12.312150995670999,
+          "maxSingleRoundNetLoss": 78.01022222222224,
+          "maxSingleRoundNetLossPct": 12.481635555555558,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -8334,12 +8334,12 @@
           "step": 5,
           "enemyId": "EN-A1-C2",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
-          "outcome": "player",
-          "result": "won",
+          "rounds": 3,
+          "outcome": "enemy",
+          "result": "lost",
           "entry": {
             "player": {
-              "hp": 99.10819308261179,
+              "hp": 98.0489145833333,
               "maxHp": 625
             },
             "enemy": {
@@ -8349,72 +8349,28 @@
           },
           "postBattle": {
             "player": {
-              "hp": 29.45989880773523,
+              "hp": 0,
               "maxHp": 625
             },
             "enemy": {
-              "hp": 0,
+              "hp": 36.880071641791076,
               "maxHp": 295
             }
           },
-          "playerEntryHp": 99.10819308261179,
+          "playerEntryHp": 98.0489145833333,
           "playerEntryMaxHp": 625,
           "enemyEntryHp": 295,
           "enemyEntryMaxHp": 295,
-          "playerHp": 29.45989880773523,
-          "enemyHp": 0,
-          "playerNetHpLoss": 69.64829427487656,
-          "playerNetHpLossPct": 11.14372708398025,
-          "enemyNetHpLoss": 295,
-          "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 29.45989880773523,
-          "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 59.48162760820989,
-          "maxSingleRoundNetLossPct": 9.517060417313584,
-          "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
-        },
-        {
-          "act": 1,
-          "step": 6,
-          "enemyId": "EN-A1-C3",
-          "inputMode": "real_shanhai_game_node",
-          "rounds": 1,
-          "outcome": "enemy",
-          "result": "lost",
-          "entry": {
-            "player": {
-              "hp": 29.45989880773523,
-              "maxHp": 625
-            },
-            "enemy": {
-              "hp": 340,
-              "maxHp": 340
-            }
-          },
-          "postBattle": {
-            "player": {
-              "hp": 0,
-              "maxHp": 625
-            },
-            "enemy": {
-              "hp": 209.92973812949643,
-              "maxHp": 340
-            }
-          },
-          "playerEntryHp": 29.45989880773523,
-          "playerEntryMaxHp": 625,
-          "enemyEntryHp": 340,
-          "enemyEntryMaxHp": 340,
           "playerHp": 0,
-          "enemyHp": 209.92973812949643,
-          "playerNetHpLoss": 29.45989880773523,
-          "playerNetHpLossPct": 4.713583809237636,
-          "enemyNetHpLoss": 130.07026187050357,
-          "enemyNetHpLossPct": 38.25595937367752,
+          "enemyHp": 36.880071641791076,
+          "playerNetHpLoss": 98.0489145833333,
+          "playerNetHpLossPct": 15.687826333333327,
+          "enemyNetHpLoss": 258.11992835820894,
+          "enemyNetHpLossPct": 87.49828079939286,
           "playerMinimumHp": 0,
-          "enemyMinimumHp": 209.92973812949643,
-          "maxSingleRoundNetLoss": 29.45989880773523,
-          "maxSingleRoundNetLossPct": 4.713583809237636,
+          "enemyMinimumHp": 36.880071641791076,
+          "maxSingleRoundNetLoss": 57.02558124999996,
+          "maxSingleRoundNetLossPct": 9.124092999999993,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         }
       ],
@@ -8428,7 +8384,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 1206.6673808694911,
+      "hp": 1142.6024739310344,
       "xp": 3150,
       "battles": [
         {
@@ -8539,7 +8495,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 365.7230618303335,
+              "hp": 365.09506760233927,
               "maxHp": 625
             },
             "enemy": {
@@ -8551,13 +8507,13 @@
           "playerEntryMaxHp": 625,
           "enemyEntryHp": 330,
           "enemyEntryMaxHp": 330,
-          "playerHp": 365.7230618303335,
+          "playerHp": 365.09506760233927,
           "enemyHp": 0,
-          "playerNetHpLoss": 43.430561327561406,
-          "playerNetHpLossPct": 6.948889812409825,
+          "playerNetHpLoss": 44.05855555555564,
+          "playerNetHpLossPct": 7.049368888888903,
           "enemyNetHpLoss": 330,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 359.9725618303335,
+          "playerMinimumHp": 359.3445676023393,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 38.131277777777825,
           "maxSingleRoundNetLossPct": 6.1010044444444524,
@@ -8568,12 +8524,12 @@
           "step": 6,
           "enemyId": "EN-A1-C2",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 3,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 365.7230618303335,
+              "hp": 365.09506760233927,
               "maxHp": 625
             },
             "enemy": {
@@ -8583,7 +8539,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 311.31080973466493,
+              "hp": 276.33391341731715,
               "maxHp": 625
             },
             "enemy": {
@@ -8591,20 +8547,20 @@
               "maxHp": 295
             }
           },
-          "playerEntryHp": 365.7230618303335,
+          "playerEntryHp": 365.09506760233927,
           "playerEntryMaxHp": 625,
           "enemyEntryHp": 295,
           "enemyEntryMaxHp": 295,
-          "playerHp": 311.31080973466493,
+          "playerHp": 276.33391341731715,
           "enemyHp": 0,
-          "playerNetHpLoss": 54.41225209566858,
-          "playerNetHpLossPct": 8.705960335306973,
+          "playerNetHpLoss": 88.76115418502212,
+          "playerNetHpLossPct": 14.20178466960354,
           "enemyNetHpLoss": 295,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 311.31080973466493,
+          "playerMinimumHp": 276.33391341731715,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 33.82870805225855,
-          "maxSingleRoundNetLossPct": 5.412593288361368,
+          "maxSingleRoundNetLoss": 66.50220264317187,
+          "maxSingleRoundNetLossPct": 10.6403524229075,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -8617,7 +8573,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 442.56080973466493,
+              "hp": 407.58391341731715,
               "maxHp": 625
             },
             "enemy": {
@@ -8627,7 +8583,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 366.9951729193277,
+              "hp": 331.22078742612763,
               "maxHp": 625
             },
             "enemy": {
@@ -8635,20 +8591,20 @@
               "maxHp": 340
             }
           },
-          "playerEntryHp": 442.56080973466493,
+          "playerEntryHp": 407.58391341731715,
           "playerEntryMaxHp": 625,
           "enemyEntryHp": 340,
           "enemyEntryMaxHp": 340,
-          "playerHp": 366.9951729193277,
+          "playerHp": 331.22078742612763,
           "enemyHp": 0,
-          "playerNetHpLoss": 75.56563681533726,
-          "playerNetHpLossPct": 12.090501890453961,
+          "playerNetHpLoss": 76.36312599118952,
+          "playerNetHpLossPct": 12.218100158590323,
           "enemyNetHpLoss": 340,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 366.9951729193277,
+          "playerMinimumHp": 331.22078742612763,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 43.95487381974249,
-          "maxSingleRoundNetLossPct": 7.0327798111587985,
+          "maxSingleRoundNetLoss": 44.75236299559475,
+          "maxSingleRoundNetLossPct": 7.16037807929516,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -8661,7 +8617,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 366.9951729193277,
+              "hp": 331.22078742612763,
               "maxHp": 635
             },
             "enemy": {
@@ -8671,7 +8627,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 414.6174913738701,
+              "hp": 411.4212802740569,
               "maxHp": 635
             },
             "enemy": {
@@ -8679,20 +8635,20 @@
               "maxHp": 460
             }
           },
-          "playerEntryHp": 366.9951729193277,
+          "playerEntryHp": 331.22078742612763,
           "playerEntryMaxHp": 635,
           "enemyEntryHp": 460,
           "enemyEntryMaxHp": 460,
-          "playerHp": 414.6174913738701,
+          "playerHp": 411.4212802740569,
           "enemyHp": 0,
-          "playerNetHpLoss": -47.62231845454244,
-          "playerNetHpLossPct": -7.499577709376762,
+          "playerNetHpLoss": -80.2004928479293,
+          "playerNetHpLossPct": -12.629998873689651,
           "enemyNetHpLoss": 460,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 325.5162823708411,
+          "playerMinimumHp": 289.5467786155549,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 8.752130376128093,
-          "maxSingleRoundNetLossPct": 1.3782882482091485,
+          "maxSingleRoundNetLoss": -1.9884087894272398,
+          "maxSingleRoundNetLossPct": -0.3131352424294866,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -8700,12 +8656,12 @@
           "step": 10,
           "enemyId": "EN-A1-B1",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 8,
+          "rounds": 9,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 414.6174913738701,
+              "hp": 411.4212802740569,
               "maxHp": 665
             },
             "enemy": {
@@ -8715,7 +8671,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 574.5660704304493,
+              "hp": 579.9193102300043,
               "maxHp": 665
             },
             "enemy": {
@@ -8723,20 +8679,20 @@
               "maxHp": 650
             }
           },
-          "playerEntryHp": 414.6174913738701,
+          "playerEntryHp": 411.4212802740569,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 650,
           "enemyEntryMaxHp": 650,
-          "playerHp": 574.5660704304493,
+          "playerHp": 579.9193102300043,
           "enemyHp": 0,
-          "playerNetHpLoss": -159.94857905657915,
-          "playerNetHpLossPct": -24.052417903244987,
+          "playerNetHpLoss": -168.49802995594735,
+          "playerNetHpLossPct": -25.338049617435694,
           "enemyNetHpLoss": 650,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 372.06242529457495,
+          "playerMinimumHp": 368.86621419476177,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 2.6236000000000104,
-          "maxSingleRoundNetLossPct": 0.3945263157894752,
+          "maxSingleRoundNetLoss": 2.9936440528634876,
+          "maxSingleRoundNetLossPct": 0.4501720380245846,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -8749,7 +8705,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 627.7660704304493,
+              "hp": 633.1193102300043,
               "maxHp": 665
             },
             "enemy": {
@@ -8759,7 +8715,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 649.1862263528792,
+              "hp": 644.6186848752134,
               "maxHp": 665
             },
             "enemy": {
@@ -8767,20 +8723,20 @@
               "maxHp": 400
             }
           },
-          "playerEntryHp": 627.7660704304493,
+          "playerEntryHp": 633.1193102300043,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 400,
           "enemyEntryMaxHp": 400,
-          "playerHp": 649.1862263528792,
+          "playerHp": 644.6186848752134,
           "enemyHp": 0,
-          "playerNetHpLoss": -21.4201559224299,
-          "playerNetHpLossPct": -3.2210760785608867,
+          "playerNetHpLoss": -11.499374645209059,
+          "playerNetHpLossPct": -1.7292292699562495,
           "enemyNetHpLoss": 400,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 607.0174459007561,
+          "playerMinimumHp": 612.293319040577,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 15.813773647120797,
-          "maxSingleRoundNetLossPct": 2.378011074755007,
+          "maxSingleRoundNetLoss": 20.381315124786624,
+          "maxSingleRoundNetLossPct": 3.0648594172611463,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -8964,7 +8920,7 @@
           "step": 10,
           "enemyId": "EN-A2-B1",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 6,
+          "rounds": 5,
           "outcome": "player",
           "result": "won",
           "entry": {
@@ -8979,7 +8935,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 809.0516450728226,
+              "hp": 814.9322868583015,
               "maxHp": 845
             },
             "enemy": {
@@ -8991,16 +8947,16 @@
           "playerEntryMaxHp": 845,
           "enemyEntryHp": 777,
           "enemyEntryMaxHp": 777,
-          "playerHp": 809.0516450728226,
+          "playerHp": 814.9322868583015,
           "enemyHp": 0,
-          "playerNetHpLoss": 5.948354927177434,
-          "playerNetHpLossPct": 0.7039473286600514,
+          "playerNetHpLoss": 0.06771314169850484,
+          "playerNetHpLossPct": 0.008013389550118917,
           "enemyNetHpLoss": 777,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 809.0516450728226,
+          "playerMinimumHp": 814.9322868583015,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 19.822695035461038,
-          "maxSingleRoundNetLossPct": 2.34588106928533,
+          "maxSingleRoundNetLoss": 15.35714285714289,
+          "maxSingleRoundNetLossPct": 1.8174133558748984,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -9008,7 +8964,7 @@
           "step": 0,
           "enemyId": "EN-A3-C3",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 4,
+          "rounds": 3,
           "outcome": "player",
           "result": "won",
           "entry": {
@@ -9052,7 +9008,7 @@
           "step": 2,
           "enemyId": "EN-A3-C2",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 3,
+          "rounds": 2,
           "outcome": "player",
           "result": "won",
           "entry": {
@@ -9067,7 +9023,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 935.4903267239399,
+              "hp": 999.8541926760563,
               "maxHp": 1050
             },
             "enemy": {
@@ -9079,16 +9035,16 @@
           "playerEntryMaxHp": 1050,
           "enemyEntryHp": 416,
           "enemyEntryMaxHp": 416,
-          "playerHp": 935.4903267239399,
+          "playerHp": 999.8541926760563,
           "enemyHp": 0,
-          "playerNetHpLoss": 2.5096732760600844,
-          "playerNetHpLossPct": 0.2390165024819128,
+          "playerNetHpLoss": -61.8541926760563,
+          "playerNetHpLossPct": -5.890875492957743,
           "enemyNetHpLoss": 416,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 935.4903267239399,
+          "playerMinimumHp": 938,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 114.50967327606008,
-          "maxSingleRoundNetLossPct": 10.90568316914858,
+          "maxSingleRoundNetLoss": 4.925807323943673,
+          "maxSingleRoundNetLossPct": 0.46912450704225456,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -9096,7 +9052,7 @@
           "step": 5,
           "enemyId": "EN-A3-C1",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 4,
+          "rounds": 3,
           "outcome": "player",
           "result": "won",
           "entry": {
@@ -9129,7 +9085,7 @@
           "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 449,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 1018.8824624771323,
+          "playerMinimumHp": 1020.1167605633802,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -9155,7 +9111,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 909.8830461389024,
+              "hp": 906.7358873239436,
               "maxHp": 1020
             },
             "enemy": {
@@ -9167,16 +9123,16 @@
           "playerEntryMaxHp": 1020,
           "enemyEntryHp": 416,
           "enemyEntryMaxHp": 416,
-          "playerHp": 909.8830461389024,
+          "playerHp": 906.7358873239436,
           "enemyHp": 0,
-          "playerNetHpLoss": 110.11695386109761,
-          "playerNetHpLossPct": 10.795779790303687,
+          "playerNetHpLoss": 113.26411267605636,
+          "playerNetHpLossPct": 11.10432477216239,
           "enemyNetHpLoss": 416,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 909.8830461389024,
+          "playerMinimumHp": 906.7358873239436,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 110.11695386109761,
-          "maxSingleRoundNetLossPct": 10.795779790303687,
+          "maxSingleRoundNetLoss": 113.26411267605636,
+          "maxSingleRoundNetLossPct": 11.10432477216239,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -9199,7 +9155,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 959.5382185526955,
+              "hp": 957.4401126760563,
               "maxHp": 1020
             },
             "enemy": {
@@ -9211,16 +9167,16 @@
           "playerEntryMaxHp": 1020,
           "enemyEntryHp": 416,
           "enemyEntryMaxHp": 416,
-          "playerHp": 959.5382185526955,
+          "playerHp": 957.4401126760563,
           "enemyHp": 0,
-          "playerNetHpLoss": 60.461781447304475,
-          "playerNetHpLossPct": 5.927625632088674,
+          "playerNetHpLoss": 62.55988732394371,
+          "playerNetHpLossPct": 6.133322286661149,
           "enemyNetHpLoss": 416,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 959.5382185526955,
+          "playerMinimumHp": 957.4401126760563,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 60.461781447304475,
-          "maxSingleRoundNetLossPct": 5.927625632088674,
+          "maxSingleRoundNetLoss": 62.55988732394371,
+          "maxSingleRoundNetLossPct": 6.133322286661149,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -9228,7 +9184,7 @@
           "step": 9,
           "enemyId": "EN-A3-L2",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 4,
+          "rounds": 3,
           "outcome": "player",
           "result": "won",
           "entry": {
@@ -9243,7 +9199,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 996.9844677368967,
+              "hp": 1030,
               "maxHp": 1030
             },
             "enemy": {
@@ -9255,16 +9211,16 @@
           "playerEntryMaxHp": 1030,
           "enemyEntryHp": 708,
           "enemyEntryMaxHp": 708,
-          "playerHp": 996.9844677368967,
+          "playerHp": 1030,
           "enemyHp": 0,
-          "playerNetHpLoss": 33.015532263103296,
-          "playerNetHpLossPct": 3.2053914818546887,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 708,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 996.9844677368967,
+          "playerMinimumHp": 1030,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 33.015532263103296,
-          "maxSingleRoundNetLossPct": 3.2053914818546887,
+          "maxSingleRoundNetLoss": 0,
+          "maxSingleRoundNetLossPct": 0,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -9287,7 +9243,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 928.6613594154803,
+              "hp": 911.7418591549296,
               "maxHp": 1030
             },
             "enemy": {
@@ -9299,16 +9255,16 @@
           "playerEntryMaxHp": 1030,
           "enemyEntryHp": 767,
           "enemyEntryMaxHp": 767,
-          "playerHp": 928.6613594154803,
+          "playerHp": 911.7418591549296,
           "enemyHp": 0,
-          "playerNetHpLoss": 101.33864058451968,
-          "playerNetHpLossPct": 9.838702969370843,
+          "playerNetHpLoss": 118.25814084507044,
+          "playerNetHpLossPct": 11.481372897579654,
           "enemyNetHpLoss": 767,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 928.6613594154803,
+          "playerMinimumHp": 911.7418591549296,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 101.33864058451968,
-          "maxSingleRoundNetLossPct": 9.838702969370843,
+          "maxSingleRoundNetLoss": 118.25814084507044,
+          "maxSingleRoundNetLossPct": 11.481372897579654,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -9316,12 +9272,12 @@
           "step": 0,
           "enemyId": "EN-A4-C3",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 3,
+          "rounds": 2,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 1011.0613594154803,
+              "hp": 994.1418591549295,
               "maxHp": 1030
             },
             "enemy": {
@@ -9339,20 +9295,20 @@
               "maxHp": 525
             }
           },
-          "playerEntryHp": 1011.0613594154803,
+          "playerEntryHp": 994.1418591549295,
           "playerEntryMaxHp": 1030,
           "enemyEntryHp": 525,
           "enemyEntryMaxHp": 525,
           "playerHp": 1030,
           "enemyHp": 0,
-          "playerNetHpLoss": -18.938640584519703,
-          "playerNetHpLossPct": -1.838702969370845,
+          "playerNetHpLoss": -35.858140845070466,
+          "playerNetHpLossPct": -3.481372897579657,
           "enemyNetHpLoss": 525,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 915.8281392728776,
+          "playerMinimumHp": 994.1418591549295,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 25.070860727122408,
-          "maxSingleRoundNetLossPct": 2.4340641482643117,
+          "maxSingleRoundNetLoss": 0,
+          "maxSingleRoundNetLossPct": 0,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -9360,7 +9316,7 @@
           "step": 2,
           "enemyId": "EN-A4-L2",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 3,
+          "rounds": 2,
           "outcome": "player",
           "result": "won",
           "entry": {
@@ -9375,7 +9331,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 1007.7158314394172,
+              "hp": 1186.456,
               "maxHp": 1230
             },
             "enemy": {
@@ -9387,16 +9343,16 @@
           "playerEntryMaxHp": 1230,
           "enemyEntryHp": 990,
           "enemyEntryMaxHp": 990,
-          "playerHp": 1007.7158314394172,
+          "playerHp": 1186.456,
           "enemyHp": 0,
-          "playerNetHpLoss": 96.08416856058273,
-          "playerNetHpLossPct": 7.811721021185587,
+          "playerNetHpLoss": -82.65599999999995,
+          "playerNetHpLossPct": -6.719999999999995,
           "enemyNetHpLoss": 990,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 1007.7158314394172,
+          "playerMinimumHp": 1103.8,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 187.8379454041791,
-          "maxSingleRoundNetLossPct": 15.27137767513651,
+          "maxSingleRoundNetLoss": 0,
+          "maxSingleRoundNetLossPct": 0,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -9404,12 +9360,12 @@
           "step": 3,
           "enemyId": "EN-A4-C3",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 1,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 1106.1158314394172,
+              "hp": 1230,
               "maxHp": 1230
             },
             "enemy": {
@@ -9419,7 +9375,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 1188.7718314394172,
+              "hp": 1230,
               "maxHp": 1230
             },
             "enemy": {
@@ -9427,17 +9383,17 @@
               "maxHp": 525
             }
           },
-          "playerEntryHp": 1106.1158314394172,
+          "playerEntryHp": 1230,
           "playerEntryMaxHp": 1230,
           "enemyEntryHp": 525,
           "enemyEntryMaxHp": 525,
-          "playerHp": 1188.7718314394172,
+          "playerHp": 1230,
           "enemyHp": 0,
-          "playerNetHpLoss": -82.65599999999995,
-          "playerNetHpLossPct": -6.719999999999995,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 525,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 1106.1158314394172,
+          "playerMinimumHp": 1230,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -9448,7 +9404,7 @@
           "step": 5,
           "enemyId": "EN-A4-C4",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 1,
           "outcome": "player",
           "result": "won",
           "entry": {
@@ -9463,7 +9419,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 1067.2921291034484,
+              "hp": 1230,
               "maxHp": 1230
             },
             "enemy": {
@@ -9475,16 +9431,16 @@
           "playerEntryMaxHp": 1230,
           "enemyEntryHp": 890,
           "enemyEntryMaxHp": 890,
-          "playerHp": 1067.2921291034484,
+          "playerHp": 1230,
           "enemyHp": 0,
-          "playerNetHpLoss": 162.70787089655164,
-          "playerNetHpLossPct": 13.228282186711516,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 890,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 1067.2921291034484,
+          "playerMinimumHp": 1228.5533793103448,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 162.70787089655164,
-          "maxSingleRoundNetLossPct": 13.228282186711516,
+          "maxSingleRoundNetLoss": 0,
+          "maxSingleRoundNetLossPct": 0,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -9492,12 +9448,12 @@
           "step": 6,
           "enemyId": "EN-A4-C3",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 1,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 1165.6921291034485,
+              "hp": 1230,
               "maxHp": 1230
             },
             "enemy": {
@@ -9515,17 +9471,17 @@
               "maxHp": 525
             }
           },
-          "playerEntryHp": 1165.6921291034485,
+          "playerEntryHp": 1230,
           "playerEntryMaxHp": 1230,
           "enemyEntryHp": 525,
           "enemyEntryMaxHp": 525,
           "playerHp": 1230,
           "enemyHp": 0,
-          "playerNetHpLoss": -64.30787089655155,
-          "playerNetHpLossPct": -5.228282186711509,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 525,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 1165.6921291034485,
+          "playerMinimumHp": 1230,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -9536,7 +9492,7 @@
           "step": 8,
           "enemyId": "EN-A4-C4",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 1,
           "outcome": "player",
           "result": "won",
           "entry": {
@@ -9551,7 +9507,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 1175.0195862068965,
+              "hp": 1230,
               "maxHp": 1230
             },
             "enemy": {
@@ -9563,16 +9519,16 @@
           "playerEntryMaxHp": 1230,
           "enemyEntryHp": 890,
           "enemyEntryMaxHp": 890,
-          "playerHp": 1175.0195862068965,
+          "playerHp": 1230,
           "enemyHp": 0,
-          "playerNetHpLoss": 54.98041379310348,
-          "playerNetHpLossPct": 4.469952340902722,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 890,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 1175.0195862068965,
+          "playerMinimumHp": 1230,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 54.98041379310348,
-          "maxSingleRoundNetLossPct": 4.469952340902722,
+          "maxSingleRoundNetLoss": 0,
+          "maxSingleRoundNetLossPct": 0,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -9624,7 +9580,7 @@
           "step": 10,
           "enemyId": "EN-A4-B2",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 4,
+          "rounds": 2,
           "outcome": "player",
           "result": "won",
           "entry": {
@@ -9639,7 +9595,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 1119.4933190965376,
+              "hp": 1230,
               "maxHp": 1230
             },
             "enemy": {
@@ -9651,16 +9607,16 @@
           "playerEntryMaxHp": 1230,
           "enemyEntryHp": 1275,
           "enemyEntryMaxHp": 1275,
-          "playerHp": 1119.4933190965376,
+          "playerHp": 1230,
           "enemyHp": 0,
-          "playerNetHpLoss": 110.50668090346244,
-          "playerNetHpLossPct": 8.984283000281499,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 1275,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 1119.4933190965376,
+          "playerMinimumHp": 1230,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 81.51276923227897,
-          "maxSingleRoundNetLossPct": 6.627054409128371,
+          "maxSingleRoundNetLoss": 0,
+          "maxSingleRoundNetLossPct": 0,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -9668,12 +9624,12 @@
           "step": 0,
           "enemyId": "EN-F2",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 4,
+          "rounds": 3,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 1217.8933190965377,
+              "hp": 1230,
               "maxHp": 1230
             },
             "enemy": {
@@ -9683,7 +9639,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 1206.6673808694911,
+              "hp": 1142.6024739310344,
               "maxHp": 1230
             },
             "enemy": {
@@ -9691,20 +9647,20 @@
               "maxHp": 1926
             }
           },
-          "playerEntryHp": 1217.8933190965377,
+          "playerEntryHp": 1230,
           "playerEntryMaxHp": 1230,
           "enemyEntryHp": 1926,
           "enemyEntryMaxHp": 1926,
-          "playerHp": 1206.6673808694911,
+          "playerHp": 1142.6024739310344,
           "enemyHp": 0,
-          "playerNetHpLoss": 11.225938227046527,
-          "playerNetHpLossPct": 0.9126779046379291,
+          "playerNetHpLoss": 87.39752606896559,
+          "playerNetHpLossPct": 7.105489924306145,
           "enemyNetHpLoss": 1926,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 1154.822897444987,
+          "playerMinimumHp": 1142.6024739310344,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 23.332619130508874,
-          "maxSingleRoundNetLossPct": 1.8969609049194207,
+          "maxSingleRoundNetLoss": 87.39752606896559,
+          "maxSingleRoundNetLossPct": 7.105489924306145,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         }
       ],
@@ -9931,7 +9887,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 218.17364935064933,
+              "hp": 216.9563333333333,
               "maxHp": 635
             },
             "enemy": {
@@ -9943,16 +9899,16 @@
           "playerEntryMaxHp": 635,
           "enemyEntryHp": 340,
           "enemyEntryMaxHp": 340,
-          "playerHp": 218.17364935064933,
+          "playerHp": 216.9563333333333,
           "enemyHp": 0,
-          "playerNetHpLoss": 62.22535064935067,
-          "playerNetHpLossPct": 9.799267818795382,
+          "playerNetHpLoss": 63.442666666666696,
+          "playerNetHpLossPct": 9.99097112860893,
           "enemyNetHpLoss": 340,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 218.17364935064933,
+          "playerMinimumHp": 216.9563333333333,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 62.22535064935067,
-          "maxSingleRoundNetLossPct": 9.799267818795382,
+          "maxSingleRoundNetLoss": 63.442666666666696,
+          "maxSingleRoundNetLossPct": 9.99097112860893,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -9960,12 +9916,12 @@
           "step": 6,
           "enemyId": "EN-A1-C4",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 3,
+          "rounds": 2,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 224.17364935064933,
+              "hp": 222.9563333333333,
               "maxHp": 635
             },
             "enemy": {
@@ -9975,7 +9931,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 149.14678239785962,
+              "hp": 170.30285315712186,
               "maxHp": 635
             },
             "enemy": {
@@ -9983,20 +9939,20 @@
               "maxHp": 330
             }
           },
-          "playerEntryHp": 224.17364935064933,
+          "playerEntryHp": 222.9563333333333,
           "playerEntryMaxHp": 635,
           "enemyEntryHp": 330,
           "enemyEntryMaxHp": 330,
-          "playerHp": 149.14678239785962,
+          "playerHp": 170.30285315712186,
           "enemyHp": 0,
-          "playerNetHpLoss": 75.0268669527897,
-          "playerNetHpLossPct": 11.815254638234599,
+          "playerNetHpLoss": 52.653480176211445,
+          "playerNetHpLossPct": 8.291886641923062,
           "enemyNetHpLoss": 330,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 149.14678239785962,
+          "playerMinimumHp": 170.30285315712186,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 51.67922746781116,
-          "maxSingleRoundNetLossPct": 8.138461018552938,
+          "maxSingleRoundNetLoss": 52.653480176211445,
+          "maxSingleRoundNetLossPct": 8.291886641923062,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -10009,7 +9965,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 153.14678239785962,
+              "hp": 174.30285315712186,
               "maxHp": 635
             },
             "enemy": {
@@ -10019,7 +9975,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 66.9817180201772,
+              "hp": 85.86029809104254,
               "maxHp": 635
             },
             "enemy": {
@@ -10027,20 +9983,20 @@
               "maxHp": 280
             }
           },
-          "playerEntryHp": 153.14678239785962,
+          "playerEntryHp": 174.30285315712186,
           "playerEntryMaxHp": 635,
           "enemyEntryHp": 280,
           "enemyEntryMaxHp": 280,
-          "playerHp": 66.9817180201772,
+          "playerHp": 85.86029809104254,
           "enemyHp": 0,
-          "playerNetHpLoss": 86.16506437768243,
-          "playerNetHpLossPct": 13.569301476800383,
+          "playerNetHpLoss": 88.44255506607932,
+          "playerNetHpLossPct": 13.927961427729027,
           "enemyNetHpLoss": 280,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 66.9817180201772,
+          "playerMinimumHp": 85.86029809104254,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 86.16506437768243,
-          "maxSingleRoundNetLossPct": 13.569301476800383,
+          "maxSingleRoundNetLoss": 88.44255506607932,
+          "maxSingleRoundNetLossPct": 13.927961427729027,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -10053,7 +10009,7 @@
           "result": "lost",
           "entry": {
             "player": {
-              "hp": 68.9817180201772,
+              "hp": 87.86029809104254,
               "maxHp": 635
             },
             "enemy": {
@@ -10071,20 +10027,20 @@
               "maxHp": 450
             }
           },
-          "playerEntryHp": 68.9817180201772,
+          "playerEntryHp": 87.86029809104254,
           "playerEntryMaxHp": 635,
           "enemyEntryHp": 450,
           "enemyEntryMaxHp": 450,
           "playerHp": 0,
           "enemyHp": 450,
-          "playerNetHpLoss": 68.9817180201772,
-          "playerNetHpLossPct": 10.863262680342865,
+          "playerNetHpLoss": 87.86029809104254,
+          "playerNetHpLossPct": 13.836267415912209,
           "enemyNetHpLoss": 0,
           "enemyNetHpLossPct": 0,
           "playerMinimumHp": 0,
           "enemyMinimumHp": 450,
-          "maxSingleRoundNetLoss": 68.9817180201772,
-          "maxSingleRoundNetLossPct": 10.863262680342865,
+          "maxSingleRoundNetLoss": 87.86029809104254,
+          "maxSingleRoundNetLossPct": 13.836267415912209,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         }
       ],
@@ -11768,7 +11724,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 863.4249030681547,
+      "hp": 849.5350273240232,
       "xp": 3388,
       "battles": [
         {
@@ -11879,7 +11835,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 33.3670699677661,
+              "hp": 32.32613672770634,
               "maxHp": 655
             },
             "enemy": {
@@ -11891,16 +11847,16 @@
           "playerEntryMaxHp": 655,
           "enemyEntryHp": 340,
           "enemyEntryMaxHp": 340,
-          "playerHp": 33.3670699677661,
+          "playerHp": 32.32613672770634,
           "enemyHp": 0,
-          "playerNetHpLoss": 53.33913724452178,
-          "playerNetHpLossPct": 8.143379731988059,
+          "playerNetHpLoss": 54.38007048458154,
+          "playerNetHpLossPct": 8.302300837340692,
           "enemyNetHpLoss": 340,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 33.3670699677661,
+          "playerMinimumHp": 32.32613672770634,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 53.33913724452178,
-          "maxSingleRoundNetLossPct": 8.143379731988059,
+          "maxSingleRoundNetLoss": 54.38007048458154,
+          "maxSingleRoundNetLossPct": 8.302300837340692,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -11913,7 +11869,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 129.1170699677661,
+              "hp": 128.07613672770634,
               "maxHp": 665
             },
             "enemy": {
@@ -11923,7 +11879,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 92.8310389416936,
+              "hp": 128.07613672770634,
               "maxHp": 665
             },
             "enemy": {
@@ -11931,20 +11887,20 @@
               "maxHp": 280
             }
           },
-          "playerEntryHp": 129.1170699677661,
+          "playerEntryHp": 128.07613672770634,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 280,
           "enemyEntryMaxHp": 280,
-          "playerHp": 92.8310389416936,
+          "playerHp": 128.07613672770634,
           "enemyHp": 0,
-          "playerNetHpLoss": 36.28603102607249,
-          "playerNetHpLossPct": 5.456546018958269,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 280,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 92.8310389416936,
+          "playerMinimumHp": 128.07613672770634,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 36.28603102607249,
-          "maxSingleRoundNetLossPct": 5.456546018958269,
+          "maxSingleRoundNetLoss": 0,
+          "maxSingleRoundNetLossPct": 0,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -11957,7 +11913,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 94.8310389416936,
+              "hp": 130.07613672770634,
               "maxHp": 665
             },
             "enemy": {
@@ -11967,7 +11923,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 102.8870389416936,
+              "hp": 146.18813672770636,
               "maxHp": 665
             },
             "enemy": {
@@ -11975,20 +11931,20 @@
               "maxHp": 295
             }
           },
-          "playerEntryHp": 94.8310389416936,
+          "playerEntryHp": 130.07613672770634,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 295,
           "enemyEntryMaxHp": 295,
-          "playerHp": 102.8870389416936,
+          "playerHp": 146.18813672770636,
           "enemyHp": 0,
-          "playerNetHpLoss": -8.055999999999997,
-          "playerNetHpLossPct": -1.211428571428571,
+          "playerNetHpLoss": -16.112000000000023,
+          "playerNetHpLossPct": -2.4228571428571466,
           "enemyNetHpLoss": 295,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 94.8310389416936,
+          "playerMinimumHp": 130.07613672770634,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 0,
-          "maxSingleRoundNetLossPct": 0,
+          "maxSingleRoundNetLoss": -8.056000000000012,
+          "maxSingleRoundNetLossPct": -1.2114285714285733,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -12001,7 +11957,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 106.8870389416936,
+              "hp": 150.18813672770636,
               "maxHp": 665
             },
             "enemy": {
@@ -12011,7 +11967,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 115.5110389416936,
+              "hp": 158.81213672770636,
               "maxHp": 665
             },
             "enemy": {
@@ -12019,17 +11975,17 @@
               "maxHp": 295
             }
           },
-          "playerEntryHp": 106.8870389416936,
+          "playerEntryHp": 150.18813672770636,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 295,
           "enemyEntryMaxHp": 295,
-          "playerHp": 115.5110389416936,
+          "playerHp": 158.81213672770636,
           "enemyHp": 0,
           "playerNetHpLoss": -8.623999999999995,
           "playerNetHpLossPct": -1.2968421052631571,
           "enemyNetHpLoss": 295,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 106.8870389416936,
+          "playerMinimumHp": 150.18813672770636,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -12045,7 +12001,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 117.5110389416936,
+              "hp": 160.81213672770636,
               "maxHp": 665
             },
             "enemy": {
@@ -12055,7 +12011,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 125.6815389416936,
+              "hp": 168.98263672770636,
               "maxHp": 665
             },
             "enemy": {
@@ -12063,17 +12019,17 @@
               "maxHp": 330
             }
           },
-          "playerEntryHp": 117.5110389416936,
+          "playerEntryHp": 160.81213672770636,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 330,
           "enemyEntryMaxHp": 330,
-          "playerHp": 125.6815389416936,
+          "playerHp": 168.98263672770636,
           "enemyHp": 0,
           "playerNetHpLoss": -8.170500000000004,
           "playerNetHpLossPct": -1.2286466165413539,
           "enemyNetHpLoss": 330,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 117.5110389416936,
+          "playerMinimumHp": 160.81213672770636,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -12089,7 +12045,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 127.6815389416936,
+              "hp": 170.98263672770636,
               "maxHp": 665
             },
             "enemy": {
@@ -12099,7 +12055,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 170.1117989416936,
+              "hp": 208.38726072770635,
               "maxHp": 665
             },
             "enemy": {
@@ -12107,20 +12063,20 @@
               "maxHp": 427.35
             }
           },
-          "playerEntryHp": 127.6815389416936,
+          "playerEntryHp": 170.98263672770636,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 427.35,
           "enemyEntryMaxHp": 427.35,
-          "playerHp": 170.1117989416936,
+          "playerHp": 208.38726072770635,
           "enemyHp": 0,
-          "playerNetHpLoss": -42.43025999999999,
-          "playerNetHpLossPct": -6.380490225563908,
+          "playerNetHpLoss": -37.404623999999984,
+          "playerNetHpLossPct": -5.624755488721802,
           "enemyNetHpLoss": 427.35,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 127.6815389416936,
+          "playerMinimumHp": 170.98263672770636,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": -9.203999999999994,
-          "maxSingleRoundNetLossPct": -1.3840601503759389,
+          "maxSingleRoundNetLoss": -4.896311999999995,
+          "maxSingleRoundNetLossPct": -0.7362875187969917,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -12133,7 +12089,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 172.1117989416936,
+              "hp": 210.38726072770635,
               "maxHp": 665
             },
             "enemy": {
@@ -12143,7 +12099,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 200.7857989416936,
+              "hp": 239.06126072770633,
               "maxHp": 665
             },
             "enemy": {
@@ -12151,17 +12107,17 @@
               "maxHp": 445
             }
           },
-          "playerEntryHp": 172.1117989416936,
+          "playerEntryHp": 210.38726072770635,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 445,
           "enemyEntryMaxHp": 445,
-          "playerHp": 200.7857989416936,
+          "playerHp": 239.06126072770633,
           "enemyHp": 0,
-          "playerNetHpLoss": -28.674000000000007,
-          "playerNetHpLossPct": -4.311879699248122,
+          "playerNetHpLoss": -28.673999999999978,
+          "playerNetHpLossPct": -4.3118796992481165,
           "enemyNetHpLoss": 445,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 172.1117989416936,
+          "playerMinimumHp": 210.38726072770635,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -12177,7 +12133,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 204.7857989416936,
+              "hp": 243.06126072770633,
               "maxHp": 815
             },
             "enemy": {
@@ -12187,7 +12143,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 216.4087989416936,
+              "hp": 254.68426072770632,
               "maxHp": 815
             },
             "enemy": {
@@ -12195,17 +12151,17 @@
               "maxHp": 395
             }
           },
-          "playerEntryHp": 204.7857989416936,
+          "playerEntryHp": 243.06126072770633,
           "playerEntryMaxHp": 815,
           "enemyEntryHp": 395,
           "enemyEntryMaxHp": 395,
-          "playerHp": 216.4087989416936,
+          "playerHp": 254.68426072770632,
           "enemyHp": 0,
           "playerNetHpLoss": -11.62299999999999,
           "playerNetHpLossPct": -1.4261349693251522,
           "enemyNetHpLoss": 395,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 204.7857989416936,
+          "playerMinimumHp": 243.06126072770633,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -12216,12 +12172,12 @@
           "step": 5,
           "enemyId": "EN-A2-C4",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 1,
+          "rounds": 2,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 311.4087989416936,
+              "hp": 349.6842607277063,
               "maxHp": 805
             },
             "enemy": {
@@ -12231,7 +12187,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 311.4087989416936,
+              "hp": 361.4252607277063,
               "maxHp": 805
             },
             "enemy": {
@@ -12239,20 +12195,20 @@
               "maxHp": 400
             }
           },
-          "playerEntryHp": 311.4087989416936,
+          "playerEntryHp": 349.6842607277063,
           "playerEntryMaxHp": 805,
           "enemyEntryHp": 400,
           "enemyEntryMaxHp": 400,
-          "playerHp": 311.4087989416936,
+          "playerHp": 361.4252607277063,
           "enemyHp": 0,
-          "playerNetHpLoss": 0,
-          "playerNetHpLossPct": 0,
+          "playerNetHpLoss": -11.740999999999985,
+          "playerNetHpLossPct": -1.4585093167701846,
           "enemyNetHpLoss": 400,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 311.4087989416936,
+          "playerMinimumHp": 349.6842607277063,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 0,
-          "maxSingleRoundNetLossPct": 0,
+          "maxSingleRoundNetLoss": -5.870499999999993,
+          "maxSingleRoundNetLossPct": -0.7292546583850923,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -12260,12 +12216,12 @@
           "step": 6,
           "enemyId": "EN-A2-C3",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 1,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 311.4087989416936,
+              "hp": 361.4252607277063,
               "maxHp": 805
             },
             "enemy": {
@@ -12275,7 +12231,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 323.2677989416936,
+              "hp": 361.4252607277063,
               "maxHp": 805
             },
             "enemy": {
@@ -12283,20 +12239,20 @@
               "maxHp": 445
             }
           },
-          "playerEntryHp": 311.4087989416936,
+          "playerEntryHp": 361.4252607277063,
           "playerEntryMaxHp": 805,
           "enemyEntryHp": 445,
           "enemyEntryMaxHp": 445,
-          "playerHp": 323.2677989416936,
+          "playerHp": 361.4252607277063,
           "enemyHp": 0,
-          "playerNetHpLoss": -11.859000000000037,
-          "playerNetHpLossPct": -1.4731677018633587,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 445,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 311.4087989416936,
+          "playerMinimumHp": 361.4252607277063,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": -5.929500000000019,
-          "maxSingleRoundNetLossPct": -0.7365838509316793,
+          "maxSingleRoundNetLoss": 0,
+          "maxSingleRoundNetLossPct": 0,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -12304,12 +12260,12 @@
           "step": 8,
           "enemyId": "EN-A2-C2",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 1,
+          "rounds": 2,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 323.2677989416936,
+              "hp": 361.4252607277063,
               "maxHp": 805
             },
             "enemy": {
@@ -12319,7 +12275,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 323.2677989416936,
+              "hp": 366.9412607277063,
               "maxHp": 805
             },
             "enemy": {
@@ -12327,17 +12283,17 @@
               "maxHp": 375
             }
           },
-          "playerEntryHp": 323.2677989416936,
+          "playerEntryHp": 361.4252607277063,
           "playerEntryMaxHp": 805,
           "enemyEntryHp": 375,
           "enemyEntryMaxHp": 375,
-          "playerHp": 323.2677989416936,
+          "playerHp": 366.9412607277063,
           "enemyHp": 0,
-          "playerNetHpLoss": 0,
-          "playerNetHpLossPct": 0,
+          "playerNetHpLoss": -5.5160000000000196,
+          "playerNetHpLossPct": -0.6852173913043502,
           "enemyNetHpLoss": 375,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 323.2677989416936,
+          "playerMinimumHp": 361.4252607277063,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -12348,12 +12304,12 @@
           "step": 9,
           "enemyId": "EN-A2-C1",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 1,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 323.2677989416936,
+              "hp": 366.9412607277063,
               "maxHp": 805
             },
             "enemy": {
@@ -12363,7 +12319,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 334.29979894169367,
+              "hp": 366.9412607277063,
               "maxHp": 805
             },
             "enemy": {
@@ -12371,20 +12327,20 @@
               "maxHp": 395
             }
           },
-          "playerEntryHp": 323.2677989416936,
+          "playerEntryHp": 366.9412607277063,
           "playerEntryMaxHp": 805,
           "enemyEntryHp": 395,
           "enemyEntryMaxHp": 395,
-          "playerHp": 334.29979894169367,
+          "playerHp": 366.9412607277063,
           "enemyHp": 0,
-          "playerNetHpLoss": -11.032000000000039,
-          "playerNetHpLossPct": -1.3704347826087004,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 395,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 323.2677989416936,
+          "playerMinimumHp": 366.9412607277063,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": -5.5160000000000196,
-          "maxSingleRoundNetLossPct": -0.6852173913043502,
+          "maxSingleRoundNetLoss": 0,
+          "maxSingleRoundNetLossPct": 0,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -12397,7 +12353,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 334.29979894169367,
+              "hp": 366.9412607277063,
               "maxHp": 805
             },
             "enemy": {
@@ -12407,7 +12363,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 311.3203339194766,
+              "hp": 382.9027607277063,
               "maxHp": 805
             },
             "enemy": {
@@ -12415,20 +12371,20 @@
               "maxHp": 740
             }
           },
-          "playerEntryHp": 334.29979894169367,
+          "playerEntryHp": 366.9412607277063,
           "playerEntryMaxHp": 805,
           "enemyEntryHp": 740,
           "enemyEntryMaxHp": 740,
-          "playerHp": 311.3203339194766,
+          "playerHp": 382.9027607277063,
           "enemyHp": 0,
-          "playerNetHpLoss": 22.979465022217084,
-          "playerNetHpLossPct": 2.854591928225725,
+          "playerNetHpLoss": -15.961500000000001,
+          "playerNetHpLossPct": -1.9827950310559006,
           "enemyNetHpLoss": 740,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 311.3203339194766,
+          "playerMinimumHp": 366.3547607277063,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 28.632835820895536,
-          "maxSingleRoundNetLossPct": 3.5568740150180793,
+          "maxSingleRoundNetLoss": 0,
+          "maxSingleRoundNetLossPct": 0,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -12441,7 +12397,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 311.3203339194766,
+              "hp": 382.9027607277063,
               "maxHp": 980
             },
             "enemy": {
@@ -12451,7 +12407,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 321.7323339194766,
+              "hp": 393.31476072770636,
               "maxHp": 980
             },
             "enemy": {
@@ -12459,17 +12415,17 @@
               "maxHp": 449
             }
           },
-          "playerEntryHp": 311.3203339194766,
+          "playerEntryHp": 382.9027607277063,
           "playerEntryMaxHp": 980,
           "enemyEntryHp": 449,
           "enemyEntryMaxHp": 449,
-          "playerHp": 321.7323339194766,
+          "playerHp": 393.31476072770636,
           "enemyHp": 0,
           "playerNetHpLoss": -10.412000000000035,
           "playerNetHpLossPct": -1.0624489795918404,
           "enemyNetHpLoss": 449,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 311.3203339194766,
+          "playerMinimumHp": 382.9027607277063,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": -3.7760000000000105,
           "maxSingleRoundNetLossPct": -0.38530612244898066,
@@ -12485,7 +12441,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 321.7323339194766,
+              "hp": 393.31476072770636,
               "maxHp": 980
             },
             "enemy": {
@@ -12495,7 +12451,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 332.14433391947665,
+              "hp": 403.7267607277064,
               "maxHp": 980
             },
             "enemy": {
@@ -12503,17 +12459,17 @@
               "maxHp": 449
             }
           },
-          "playerEntryHp": 321.7323339194766,
+          "playerEntryHp": 393.31476072770636,
           "playerEntryMaxHp": 980,
           "enemyEntryHp": 449,
           "enemyEntryMaxHp": 449,
-          "playerHp": 332.14433391947665,
+          "playerHp": 403.7267607277064,
           "enemyHp": 0,
           "playerNetHpLoss": -10.412000000000035,
           "playerNetHpLossPct": -1.0624489795918404,
           "enemyNetHpLoss": 449,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 321.7323339194766,
+          "playerMinimumHp": 393.31476072770636,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": -3.7760000000000105,
           "maxSingleRoundNetLossPct": -0.38530612244898066,
@@ -12529,7 +12485,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 569.6443339194766,
+              "hp": 641.2267607277064,
               "maxHp": 980
             },
             "enemy": {
@@ -12539,7 +12495,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 580.8853339194766,
+              "hp": 652.4677607277065,
               "maxHp": 980
             },
             "enemy": {
@@ -12547,17 +12503,17 @@
               "maxHp": 449
             }
           },
-          "playerEntryHp": 569.6443339194766,
+          "playerEntryHp": 641.2267607277064,
           "playerEntryMaxHp": 980,
           "enemyEntryHp": 449,
           "enemyEntryMaxHp": 449,
-          "playerHp": 580.8853339194766,
+          "playerHp": 652.4677607277065,
           "enemyHp": 0,
-          "playerNetHpLoss": -11.240999999999985,
-          "playerNetHpLossPct": -1.147040816326529,
+          "playerNetHpLoss": -11.2410000000001,
+          "playerNetHpLossPct": -1.1470408163265409,
           "enemyNetHpLoss": 449,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 569.6443339194766,
+          "playerMinimumHp": 641.2267607277064,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": -4.190500000000043,
           "maxSingleRoundNetLossPct": -0.4276020408163309,
@@ -12573,7 +12529,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 580.8853339194766,
+              "hp": 652.4677607277065,
               "maxHp": 950
             },
             "enemy": {
@@ -12583,7 +12539,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 580.8853339194766,
+              "hp": 652.4677607277065,
               "maxHp": 950
             },
             "enemy": {
@@ -12591,17 +12547,17 @@
               "maxHp": 592
             }
           },
-          "playerEntryHp": 580.8853339194766,
+          "playerEntryHp": 652.4677607277065,
           "playerEntryMaxHp": 950,
           "enemyEntryHp": 592,
           "enemyEntryMaxHp": 592,
-          "playerHp": 580.8853339194766,
+          "playerHp": 652.4677607277065,
           "enemyHp": 0,
           "playerNetHpLoss": 0,
           "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 592,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 580.8853339194766,
+          "playerMinimumHp": 652.4677607277065,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -12617,7 +12573,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 694.8853339194766,
+              "hp": 766.4677607277065,
               "maxHp": 950
             },
             "enemy": {
@@ -12627,7 +12583,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 694.0820013205687,
+              "hp": 763.5915859025316,
               "maxHp": 950
             },
             "enemy": {
@@ -12635,20 +12591,20 @@
               "maxHp": 592
             }
           },
-          "playerEntryHp": 694.8853339194766,
+          "playerEntryHp": 766.4677607277065,
           "playerEntryMaxHp": 950,
           "enemyEntryHp": 592,
           "enemyEntryMaxHp": 592,
-          "playerHp": 694.0820013205687,
+          "playerHp": 763.5915859025316,
           "enemyHp": 0,
-          "playerNetHpLoss": 0.8033325989079003,
-          "playerNetHpLossPct": 0.08456132620083161,
+          "playerNetHpLoss": 2.8761748251748713,
+          "playerNetHpLossPct": 0.3027552447552496,
           "enemyNetHpLoss": 592,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 694.0820013205687,
+          "playerMinimumHp": 763.5915859025316,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 17.43233259890792,
-          "maxSingleRoundNetLossPct": 1.8349823788324127,
+          "maxSingleRoundNetLoss": 19.50517482517489,
+          "maxSingleRoundNetLossPct": 2.0531762973868304,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -12661,7 +12617,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 694.0820013205687,
+              "hp": 763.5915859025316,
               "maxHp": 1150
             },
             "enemy": {
@@ -12671,7 +12627,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 694.0820013205687,
+              "hp": 763.5915859025316,
               "maxHp": 1150
             },
             "enemy": {
@@ -12679,17 +12635,17 @@
               "maxHp": 767
             }
           },
-          "playerEntryHp": 694.0820013205687,
+          "playerEntryHp": 763.5915859025316,
           "playerEntryMaxHp": 1150,
           "enemyEntryHp": 767,
           "enemyEntryMaxHp": 767,
-          "playerHp": 694.0820013205687,
+          "playerHp": 763.5915859025316,
           "enemyHp": 0,
           "playerNetHpLoss": 0,
           "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 767,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 694.0820013205687,
+          "playerMinimumHp": 763.5915859025316,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -12705,7 +12661,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 694.0820013205687,
+              "hp": 763.5915859025316,
               "maxHp": 1150
             },
             "enemy": {
@@ -12715,7 +12671,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 694.0820013205687,
+              "hp": 763.5915859025316,
               "maxHp": 1150
             },
             "enemy": {
@@ -12723,17 +12679,17 @@
               "maxHp": 525
             }
           },
-          "playerEntryHp": 694.0820013205687,
+          "playerEntryHp": 763.5915859025316,
           "playerEntryMaxHp": 1150,
           "enemyEntryHp": 525,
           "enemyEntryMaxHp": 525,
-          "playerHp": 694.0820013205687,
+          "playerHp": 763.5915859025316,
           "enemyHp": 0,
           "playerNetHpLoss": 0,
           "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 525,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 694.0820013205687,
+          "playerMinimumHp": 763.5915859025316,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -12749,7 +12705,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 694.0820013205687,
+              "hp": 763.5915859025316,
               "maxHp": 1150
             },
             "enemy": {
@@ -12759,7 +12715,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 693.8691277573503,
+              "hp": 763.3787123393132,
               "maxHp": 1150
             },
             "enemy": {
@@ -12767,17 +12723,17 @@
               "maxHp": 890
             }
           },
-          "playerEntryHp": 694.0820013205687,
+          "playerEntryHp": 763.5915859025316,
           "playerEntryMaxHp": 1150,
           "enemyEntryHp": 890,
           "enemyEntryMaxHp": 890,
-          "playerHp": 693.8691277573503,
+          "playerHp": 763.3787123393132,
           "enemyHp": 0,
           "playerNetHpLoss": 0.2128735632184089,
           "playerNetHpLossPct": 0.01851074462768773,
           "enemyNetHpLoss": 890,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 693.8691277573503,
+          "playerMinimumHp": 763.3787123393132,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0.2128735632184089,
           "maxSingleRoundNetLossPct": 0.01851074462768773,
@@ -12793,7 +12749,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 693.8691277573503,
+              "hp": 763.3787123393132,
               "maxHp": 1150
             },
             "enemy": {
@@ -12803,7 +12759,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 693.8691277573503,
+              "hp": 763.3787123393132,
               "maxHp": 1150
             },
             "enemy": {
@@ -12811,17 +12767,17 @@
               "maxHp": 525
             }
           },
-          "playerEntryHp": 693.8691277573503,
+          "playerEntryHp": 763.3787123393132,
           "playerEntryMaxHp": 1150,
           "enemyEntryHp": 525,
           "enemyEntryMaxHp": 525,
-          "playerHp": 693.8691277573503,
+          "playerHp": 763.3787123393132,
           "enemyHp": 0,
           "playerNetHpLoss": 0,
           "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 525,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 693.8691277573503,
+          "playerMinimumHp": 763.3787123393132,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -12837,7 +12793,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 693.8691277573503,
+              "hp": 763.3787123393132,
               "maxHp": 1150
             },
             "enemy": {
@@ -12847,7 +12803,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 693.8691277573503,
+              "hp": 763.3787123393132,
               "maxHp": 1150
             },
             "enemy": {
@@ -12855,17 +12811,17 @@
               "maxHp": 755
             }
           },
-          "playerEntryHp": 693.8691277573503,
+          "playerEntryHp": 763.3787123393132,
           "playerEntryMaxHp": 1150,
           "enemyEntryHp": 755,
           "enemyEntryMaxHp": 755,
-          "playerHp": 693.8691277573503,
+          "playerHp": 763.3787123393132,
           "enemyHp": 0,
           "playerNetHpLoss": 0,
           "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 755,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 693.8691277573503,
+          "playerMinimumHp": 763.3787123393132,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -12881,7 +12837,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 693.8691277573503,
+              "hp": 763.3787123393132,
               "maxHp": 1150
             },
             "enemy": {
@@ -12891,7 +12847,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 712.5541277573502,
+              "hp": 782.0637123393133,
               "maxHp": 1150
             },
             "enemy": {
@@ -12899,17 +12855,17 @@
               "maxHp": 870
             }
           },
-          "playerEntryHp": 693.8691277573503,
+          "playerEntryHp": 763.3787123393132,
           "playerEntryMaxHp": 1150,
           "enemyEntryHp": 870,
           "enemyEntryMaxHp": 870,
-          "playerHp": 712.5541277573502,
+          "playerHp": 782.0637123393133,
           "enemyHp": 0,
-          "playerNetHpLoss": -18.684999999999945,
-          "playerNetHpLossPct": -1.6247826086956474,
+          "playerNetHpLoss": -18.68500000000006,
+          "playerNetHpLossPct": -1.6247826086956574,
           "enemyNetHpLoss": 870,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 693.8691277573503,
+          "playerMinimumHp": 763.3787123393132,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -12925,7 +12881,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 942.5541277573502,
+              "hp": 1012.0637123393133,
               "maxHp": 1150
             },
             "enemy": {
@@ -12935,7 +12891,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 963.2541277573503,
+              "hp": 1032.7637123393133,
               "maxHp": 1150
             },
             "enemy": {
@@ -12943,17 +12899,17 @@
               "maxHp": 755
             }
           },
-          "playerEntryHp": 942.5541277573502,
+          "playerEntryHp": 1012.0637123393133,
           "playerEntryMaxHp": 1150,
           "enemyEntryHp": 755,
           "enemyEntryMaxHp": 755,
-          "playerHp": 963.2541277573503,
+          "playerHp": 1032.7637123393133,
           "enemyHp": 0,
           "playerNetHpLoss": -20.700000000000045,
           "playerNetHpLossPct": -1.800000000000004,
           "enemyNetHpLoss": 755,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 942.5541277573502,
+          "playerMinimumHp": 1012.0637123393133,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -12964,12 +12920,12 @@
           "step": 9,
           "enemyId": "EN-A4-C2",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 1,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 963.2541277573503,
+              "hp": 1032.7637123393133,
               "maxHp": 1150
             },
             "enemy": {
@@ -12979,7 +12935,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 981.9391277573502,
+              "hp": 1032.7637123393133,
               "maxHp": 1150
             },
             "enemy": {
@@ -12987,17 +12943,17 @@
               "maxHp": 870
             }
           },
-          "playerEntryHp": 963.2541277573503,
+          "playerEntryHp": 1032.7637123393133,
           "playerEntryMaxHp": 1150,
           "enemyEntryHp": 870,
           "enemyEntryMaxHp": 870,
-          "playerHp": 981.9391277573502,
+          "playerHp": 1032.7637123393133,
           "enemyHp": 0,
-          "playerNetHpLoss": -18.684999999999945,
-          "playerNetHpLossPct": -1.6247826086956474,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 870,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 963.2541277573503,
+          "playerMinimumHp": 1032.7637123393133,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -13013,7 +12969,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 981.9391277573502,
+              "hp": 1032.7637123393133,
               "maxHp": 1150
             },
             "enemy": {
@@ -13023,7 +12979,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 980.9376361740239,
+              "hp": 1029.7034676909952,
               "maxHp": 1150
             },
             "enemy": {
@@ -13031,20 +12987,20 @@
               "maxHp": 1185
             }
           },
-          "playerEntryHp": 981.9391277573502,
+          "playerEntryHp": 1032.7637123393133,
           "playerEntryMaxHp": 1150,
           "enemyEntryHp": 1185,
           "enemyEntryMaxHp": 1185,
-          "playerHp": 980.9376361740239,
+          "playerHp": 1029.7034676909952,
           "enemyHp": 0,
-          "playerNetHpLoss": 1.0014915833263558,
-          "playerNetHpLossPct": 0.08708622463707441,
+          "playerNetHpLoss": 3.0602446483180756,
+          "playerNetHpLossPct": 0.2661082302885283,
           "enemyNetHpLoss": 1185,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 980.9376361740239,
+          "playerMinimumHp": 1029.7034676909952,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 21.7014915833264,
-          "maxSingleRoundNetLossPct": 1.8870862246370783,
+          "maxSingleRoundNetLoss": 23.76024464831812,
+          "maxSingleRoundNetLossPct": 2.066108230288532,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -13052,12 +13008,12 @@
           "step": 0,
           "enemyId": "EN-F1",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 3,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 980.9376361740239,
+              "hp": 1029.7034676909952,
               "maxHp": 1150
             },
             "enemy": {
@@ -13067,7 +13023,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 863.4249030681547,
+              "hp": 849.5350273240232,
               "maxHp": 1150
             },
             "enemy": {
@@ -13075,20 +13031,20 @@
               "maxHp": 1782
             }
           },
-          "playerEntryHp": 980.9376361740239,
+          "playerEntryHp": 1029.7034676909952,
           "playerEntryMaxHp": 1150,
           "enemyEntryHp": 1782,
           "enemyEntryMaxHp": 1782,
-          "playerHp": 863.4249030681547,
+          "playerHp": 849.5350273240232,
           "enemyHp": 0,
-          "playerNetHpLoss": 117.51273310586919,
-          "playerNetHpLossPct": 10.218498530945148,
+          "playerNetHpLoss": 180.16844036697205,
+          "playerNetHpLossPct": 15.66682090147583,
           "enemyNetHpLoss": 1782,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 863.4249030681547,
+          "playerMinimumHp": 808.1350273240232,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 138.21273310586923,
-          "maxSingleRoundNetLossPct": 12.018498530945152,
+          "maxSingleRoundNetLoss": 130.65376146788958,
+          "maxSingleRoundNetLossPct": 11.361196649381702,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         }
       ],
@@ -13099,11 +13055,11 @@
       "method": "RKF05",
       "result": "lost",
       "act": 1,
-      "step": 9,
-      "nodes": 9,
+      "step": 10,
+      "nodes": 10,
       "n": 1,
       "hp": 0,
-      "xp": 300,
+      "xp": 400,
       "battles": [
         {
           "act": 1,
@@ -13257,7 +13213,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 260.70123049049744,
+              "hp": 262.7244929378083,
               "maxHp": 635
             },
             "enemy": {
@@ -13269,16 +13225,16 @@
           "playerEntryMaxHp": 635,
           "enemyEntryHp": 330,
           "enemyEntryMaxHp": 330,
-          "playerHp": 260.70123049049744,
+          "playerHp": 262.7244929378083,
           "enemyHp": 0,
-          "playerNetHpLoss": 43.83783665578551,
-          "playerNetHpLossPct": 6.903596323745749,
+          "playerNetHpLoss": 41.81457420847465,
+          "playerNetHpLossPct": 6.584972316295221,
           "enemyNetHpLoss": 330,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 260.70123049049744,
+          "playerMinimumHp": 262.7244929378083,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 43.83783665578551,
-          "maxSingleRoundNetLossPct": 6.903596323745749,
+          "maxSingleRoundNetLoss": 41.81457420847465,
+          "maxSingleRoundNetLossPct": 6.584972316295221,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -13291,7 +13247,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 264.70123049049744,
+              "hp": 266.7244929378083,
               "maxHp": 635
             },
             "enemy": {
@@ -13301,7 +13257,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 176.2586754244181,
+              "hp": 178.28193787172896,
               "maxHp": 635
             },
             "enemy": {
@@ -13309,17 +13265,17 @@
               "maxHp": 280
             }
           },
-          "playerEntryHp": 264.70123049049744,
+          "playerEntryHp": 266.7244929378083,
           "playerEntryMaxHp": 635,
           "enemyEntryHp": 280,
           "enemyEntryMaxHp": 280,
-          "playerHp": 176.2586754244181,
+          "playerHp": 178.28193787172896,
           "enemyHp": 0,
           "playerNetHpLoss": 88.44255506607934,
           "playerNetHpLossPct": 13.92796142772903,
           "enemyNetHpLoss": 280,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 176.2586754244181,
+          "playerMinimumHp": 178.28193787172896,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 88.44255506607934,
           "maxSingleRoundNetLossPct": 13.92796142772903,
@@ -13331,11 +13287,11 @@
           "enemyId": "EN-A1-L1",
           "inputMode": "real_shanhai_game_node",
           "rounds": 2,
-          "outcome": "enemy",
-          "result": "lost",
+          "outcome": "player",
+          "result": "won",
           "entry": {
             "player": {
-              "hp": 178.2586754244181,
+              "hp": 180.28193787172896,
               "maxHp": 635
             },
             "enemy": {
@@ -13345,28 +13301,72 @@
           },
           "postBattle": {
             "player": {
+              "hp": 68.56957840036331,
+              "maxHp": 635
+            },
+            "enemy": {
+              "hp": 0,
+              "maxHp": 450
+            }
+          },
+          "playerEntryHp": 180.28193787172896,
+          "playerEntryMaxHp": 635,
+          "enemyEntryHp": 450,
+          "enemyEntryMaxHp": 450,
+          "playerHp": 68.56957840036331,
+          "enemyHp": 0,
+          "playerNetHpLoss": 111.71235947136564,
+          "playerNetHpLossPct": 17.592497554545773,
+          "enemyNetHpLoss": 450,
+          "enemyNetHpLossPct": 100,
+          "playerMinimumHp": 65.26237840036332,
+          "enemyMinimumHp": 0,
+          "maxSingleRoundNetLoss": 111.71235947136564,
+          "maxSingleRoundNetLossPct": 17.592497554545773,
+          "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
+        },
+        {
+          "act": 1,
+          "step": 10,
+          "enemyId": "EN-A1-B1",
+          "inputMode": "real_shanhai_game_node",
+          "rounds": 2,
+          "outcome": "enemy",
+          "result": "lost",
+          "entry": {
+            "player": {
+              "hp": 70.56957840036331,
+              "maxHp": 635
+            },
+            "enemy": {
+              "hp": 650,
+              "maxHp": 650
+            }
+          },
+          "postBattle": {
+            "player": {
               "hp": 0,
               "maxHp": 635
             },
             "enemy": {
-              "hp": 184.31218859315592,
-              "maxHp": 450
+              "hp": 488.8340262008735,
+              "maxHp": 650
             }
           },
-          "playerEntryHp": 178.2586754244181,
+          "playerEntryHp": 70.56957840036331,
           "playerEntryMaxHp": 635,
-          "enemyEntryHp": 450,
-          "enemyEntryMaxHp": 450,
+          "enemyEntryHp": 650,
+          "enemyEntryMaxHp": 650,
           "playerHp": 0,
-          "enemyHp": 184.31218859315592,
-          "playerNetHpLoss": 178.2586754244181,
-          "playerNetHpLossPct": 28.072232350302063,
-          "enemyNetHpLoss": 265.68781140684405,
-          "enemyNetHpLossPct": 59.04173586818756,
+          "enemyHp": 488.8340262008735,
+          "playerNetHpLoss": 70.56957840036331,
+          "playerNetHpLossPct": 11.113319433128082,
+          "enemyNetHpLoss": 161.1659737991265,
+          "enemyNetHpLossPct": 24.794765199865616,
           "playerMinimumHp": 0,
-          "enemyMinimumHp": 184.31218859315592,
-          "maxSingleRoundNetLoss": 121.86213920704847,
-          "maxSingleRoundNetLossPct": 19.190888064102122,
+          "enemyMinimumHp": 488.8340262008735,
+          "maxSingleRoundNetLoss": 39.16306607929515,
+          "maxSingleRoundNetLossPct": 6.167411980991362,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         }
       ],
@@ -13593,7 +13593,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 178.66547064556144,
+              "hp": 234.9644143685052,
               "maxHp": 625
             },
             "enemy": {
@@ -13605,16 +13605,16 @@
           "playerEntryMaxHp": 625,
           "enemyEntryHp": 340,
           "enemyEntryMaxHp": 340,
-          "playerHp": 178.66547064556144,
+          "playerHp": 234.9644143685052,
           "enemyHp": 0,
-          "playerNetHpLoss": 104.11938816738822,
-          "playerNetHpLossPct": 16.659102106782115,
+          "playerNetHpLoss": 47.82044444444446,
+          "playerNetHpLossPct": 7.6512711111111145,
           "enemyNetHpLoss": 340,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 178.66547064556144,
+          "playerMinimumHp": 234.9644143685052,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 56.29894372294376,
-          "maxSingleRoundNetLossPct": 9.007830995671002,
+          "maxSingleRoundNetLoss": 47.82044444444446,
+          "maxSingleRoundNetLossPct": 7.6512711111111145,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -13627,7 +13627,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 178.66547064556144,
+              "hp": 234.9644143685052,
               "maxHp": 625
             },
             "enemy": {
@@ -13637,7 +13637,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 120.14873000223854,
+              "hp": 161.52441436850523,
               "maxHp": 625
             },
             "enemy": {
@@ -13645,20 +13645,20 @@
               "maxHp": 295
             }
           },
-          "playerEntryHp": 178.66547064556144,
+          "playerEntryHp": 234.9644143685052,
           "playerEntryMaxHp": 625,
           "enemyEntryHp": 295,
           "enemyEntryMaxHp": 295,
-          "playerHp": 120.14873000223854,
+          "playerHp": 161.52441436850523,
           "enemyHp": 0,
-          "playerNetHpLoss": 58.516740643322905,
-          "playerNetHpLossPct": 9.362678502931665,
+          "playerNetHpLoss": 73.43999999999997,
+          "playerNetHpLossPct": 11.750399999999996,
           "enemyNetHpLoss": 295,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 120.14873000223854,
+          "playerMinimumHp": 161.52441436850523,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 35.85007397665625,
-          "maxSingleRoundNetLossPct": 5.736011836265,
+          "maxSingleRoundNetLoss": 50.77333333333331,
+          "maxSingleRoundNetLossPct": 8.12373333333333,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -13671,7 +13671,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 120.14873000223854,
+              "hp": 161.52441436850523,
               "maxHp": 625
             },
             "enemy": {
@@ -13681,7 +13681,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 72.60356700664383,
+              "hp": 113.97925137291051,
               "maxHp": 625
             },
             "enemy": {
@@ -13689,20 +13689,20 @@
               "maxHp": 340
             }
           },
-          "playerEntryHp": 120.14873000223854,
+          "playerEntryHp": 161.52441436850523,
           "playerEntryMaxHp": 625,
           "enemyEntryHp": 340,
           "enemyEntryMaxHp": 340,
-          "playerHp": 72.60356700664383,
+          "playerHp": 113.97925137291051,
           "enemyHp": 0,
-          "playerNetHpLoss": 47.54516299559471,
-          "playerNetHpLossPct": 7.6072260792951525,
+          "playerNetHpLoss": 47.54516299559472,
+          "playerNetHpLossPct": 7.607226079295155,
           "enemyNetHpLoss": 340,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 72.60356700664383,
+          "playerMinimumHp": 113.97925137291051,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 47.54516299559471,
-          "maxSingleRoundNetLossPct": 7.6072260792951525,
+          "maxSingleRoundNetLoss": 47.54516299559472,
+          "maxSingleRoundNetLossPct": 7.607226079295155,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -13715,7 +13715,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 74.60356700664383,
+              "hp": 115.97925137291051,
               "maxHp": 635
             },
             "enemy": {
@@ -13725,7 +13725,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 30.248194637053537,
+              "hp": 71.04533066806468,
               "maxHp": 635
             },
             "enemy": {
@@ -13733,20 +13733,20 @@
               "maxHp": 295
             }
           },
-          "playerEntryHp": 74.60356700664383,
+          "playerEntryHp": 115.97925137291051,
           "playerEntryMaxHp": 635,
           "enemyEntryHp": 295,
           "enemyEntryMaxHp": 295,
-          "playerHp": 30.248194637053537,
+          "playerHp": 71.04533066806468,
           "enemyHp": 0,
-          "playerNetHpLoss": 44.35537236959029,
-          "playerNetHpLossPct": 6.985098010959101,
+          "playerNetHpLoss": 44.93392070484583,
+          "playerNetHpLossPct": 7.076207985015091,
           "enemyNetHpLoss": 295,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 30.248194637053537,
+          "playerMinimumHp": 71.04533066806468,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 22.46696035242291,
-          "maxSingleRoundNetLossPct": 3.538103992507545,
+          "maxSingleRoundNetLoss": 22.466960352422916,
+          "maxSingleRoundNetLossPct": 3.5381039925075455,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -13759,7 +13759,7 @@
           "result": "lost",
           "entry": {
             "player": {
-              "hp": 32.24819463705354,
+              "hp": 73.04533066806468,
               "maxHp": 635
             },
             "enemy": {
@@ -13773,24 +13773,24 @@
               "maxHp": 635
             },
             "enemy": {
-              "hp": 166.83823529411765,
+              "hp": 129.11764705882354,
               "maxHp": 280
             }
           },
-          "playerEntryHp": 32.24819463705354,
+          "playerEntryHp": 73.04533066806468,
           "playerEntryMaxHp": 635,
           "enemyEntryHp": 280,
           "enemyEntryMaxHp": 280,
           "playerHp": 0,
-          "enemyHp": 166.83823529411765,
-          "playerNetHpLoss": 32.24819463705354,
-          "playerNetHpLossPct": 5.078455848354888,
-          "enemyNetHpLoss": 113.16176470588235,
-          "enemyNetHpLossPct": 40.41491596638656,
+          "enemyHp": 129.11764705882354,
+          "playerNetHpLoss": 73.04533066806468,
+          "playerNetHpLossPct": 11.503201680010186,
+          "enemyNetHpLoss": 150.88235294117646,
+          "enemyNetHpLossPct": 53.88655462184874,
           "playerMinimumHp": 0,
-          "enemyMinimumHp": 166.83823529411765,
-          "maxSingleRoundNetLoss": 32.24819463705354,
-          "maxSingleRoundNetLossPct": 5.078455848354888,
+          "enemyMinimumHp": 129.11764705882354,
+          "maxSingleRoundNetLoss": 73.04533066806468,
+          "maxSingleRoundNetLossPct": 11.503201680010186,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         }
       ],
@@ -15094,7 +15094,7 @@
       "step": 0,
       "nodes": 45,
       "n": 4,
-      "hp": 943.9433667341724,
+      "hp": 907.0127339449543,
       "xp": 3388,
       "battles": [
         {
@@ -15205,7 +15205,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 113.35075313608294,
+              "hp": 112.3098198960232,
               "maxHp": 655
             },
             "enemy": {
@@ -15217,16 +15217,16 @@
           "playerEntryMaxHp": 655,
           "enemyEntryHp": 340,
           "enemyEntryMaxHp": 340,
-          "playerHp": 113.35075313608294,
+          "playerHp": 112.3098198960232,
           "enemyHp": 0,
-          "playerNetHpLoss": 20.18713724452178,
-          "playerNetHpLossPct": 3.082005686186531,
+          "playerNetHpLoss": 21.228070484581522,
+          "playerNetHpLossPct": 3.2409267915391635,
           "enemyNetHpLoss": 340,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 113.35075313608294,
+          "playerMinimumHp": 112.3098198960232,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 20.18713724452178,
-          "maxSingleRoundNetLossPct": 3.082005686186531,
+          "maxSingleRoundNetLoss": 21.228070484581522,
+          "maxSingleRoundNetLossPct": 3.2409267915391635,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -15239,7 +15239,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 209.10075313608294,
+              "hp": 208.0598198960232,
               "maxHp": 665
             },
             "enemy": {
@@ -15249,7 +15249,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 209.10075313608294,
+              "hp": 208.0598198960232,
               "maxHp": 665
             },
             "enemy": {
@@ -15257,17 +15257,17 @@
               "maxHp": 280
             }
           },
-          "playerEntryHp": 209.10075313608294,
+          "playerEntryHp": 208.0598198960232,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 280,
           "enemyEntryMaxHp": 280,
-          "playerHp": 209.10075313608294,
+          "playerHp": 208.0598198960232,
           "enemyHp": 0,
           "playerNetHpLoss": 0,
           "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 280,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 209.10075313608294,
+          "playerMinimumHp": 208.0598198960232,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -15283,7 +15283,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 211.10075313608294,
+              "hp": 210.0598198960232,
               "maxHp": 665
             },
             "enemy": {
@@ -15293,7 +15293,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 214.32315313608294,
+              "hp": 213.2822198960232,
               "maxHp": 665
             },
             "enemy": {
@@ -15301,17 +15301,17 @@
               "maxHp": 295
             }
           },
-          "playerEntryHp": 211.10075313608294,
+          "playerEntryHp": 210.0598198960232,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 295,
           "enemyEntryMaxHp": 295,
-          "playerHp": 214.32315313608294,
+          "playerHp": 213.2822198960232,
           "enemyHp": 0,
           "playerNetHpLoss": -3.2223999999999933,
           "playerNetHpLossPct": -0.48457142857142754,
           "enemyNetHpLoss": 295,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 211.10075313608294,
+          "playerMinimumHp": 210.0598198960232,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -15327,7 +15327,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 218.32315313608294,
+              "hp": 217.2822198960232,
               "maxHp": 665
             },
             "enemy": {
@@ -15337,7 +15337,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 221.77275313608294,
+              "hp": 220.7318198960232,
               "maxHp": 665
             },
             "enemy": {
@@ -15345,17 +15345,17 @@
               "maxHp": 295
             }
           },
-          "playerEntryHp": 218.32315313608294,
+          "playerEntryHp": 217.2822198960232,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 295,
           "enemyEntryMaxHp": 295,
-          "playerHp": 221.77275313608294,
+          "playerHp": 220.7318198960232,
           "enemyHp": 0,
           "playerNetHpLoss": -3.4496000000000038,
           "playerNetHpLossPct": -0.5187368421052637,
           "enemyNetHpLoss": 295,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 218.32315313608294,
+          "playerMinimumHp": 217.2822198960232,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -15371,7 +15371,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 223.77275313608294,
+              "hp": 222.7318198960232,
               "maxHp": 665
             },
             "enemy": {
@@ -15381,7 +15381,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 227.45435313608294,
+              "hp": 226.4134198960232,
               "maxHp": 665
             },
             "enemy": {
@@ -15389,17 +15389,17 @@
               "maxHp": 330
             }
           },
-          "playerEntryHp": 223.77275313608294,
+          "playerEntryHp": 222.7318198960232,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 330,
           "enemyEntryMaxHp": 330,
-          "playerHp": 227.45435313608294,
+          "playerHp": 226.4134198960232,
           "enemyHp": 0,
           "playerNetHpLoss": -3.681600000000003,
           "playerNetHpLossPct": -0.5536240601503764,
           "enemyNetHpLoss": 330,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 223.77275313608294,
+          "playerMinimumHp": 222.7318198960232,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -15415,7 +15415,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 229.45435313608294,
+              "hp": 228.4134198960232,
               "maxHp": 665
             },
             "enemy": {
@@ -15425,7 +15425,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 240.49915313608295,
+              "hp": 239.45821989602322,
               "maxHp": 665
             },
             "enemy": {
@@ -15433,17 +15433,17 @@
               "maxHp": 427.35
             }
           },
-          "playerEntryHp": 229.45435313608294,
+          "playerEntryHp": 228.4134198960232,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 427.35,
           "enemyEntryMaxHp": 427.35,
-          "playerHp": 240.49915313608295,
+          "playerHp": 239.45821989602322,
           "enemyHp": 0,
           "playerNetHpLoss": -11.04480000000001,
           "playerNetHpLossPct": -1.660872180451129,
           "enemyNetHpLoss": 427.35,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 229.45435313608294,
+          "playerMinimumHp": 228.4134198960232,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -15459,7 +15459,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 242.49915313608295,
+              "hp": 241.45821989602322,
               "maxHp": 665
             },
             "enemy": {
@@ -15469,7 +15469,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 246.32235313608294,
+              "hp": 245.28141989602324,
               "maxHp": 665
             },
             "enemy": {
@@ -15477,17 +15477,17 @@
               "maxHp": 445
             }
           },
-          "playerEntryHp": 242.49915313608295,
+          "playerEntryHp": 241.45821989602322,
           "playerEntryMaxHp": 665,
           "enemyEntryHp": 445,
           "enemyEntryMaxHp": 445,
-          "playerHp": 246.32235313608294,
+          "playerHp": 245.28141989602324,
           "enemyHp": 0,
-          "playerNetHpLoss": -3.8231999999999857,
-          "playerNetHpLossPct": -0.5749172932330806,
+          "playerNetHpLoss": -3.823200000000014,
+          "playerNetHpLossPct": -0.5749172932330848,
           "enemyNetHpLoss": 445,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 242.49915313608295,
+          "playerMinimumHp": 241.45821989602322,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -15498,12 +15498,12 @@
           "step": 2,
           "enemyId": "EN-A2-C1",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 1,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 250.32235313608294,
+              "hp": 249.28141989602324,
               "maxHp": 815
             },
             "enemy": {
@@ -15513,7 +15513,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 254.97155313608295,
+              "hp": 249.28141989602324,
               "maxHp": 815
             },
             "enemy": {
@@ -15521,17 +15521,17 @@
               "maxHp": 395
             }
           },
-          "playerEntryHp": 250.32235313608294,
+          "playerEntryHp": 249.28141989602324,
           "playerEntryMaxHp": 815,
           "enemyEntryHp": 395,
           "enemyEntryMaxHp": 395,
-          "playerHp": 254.97155313608295,
+          "playerHp": 249.28141989602324,
           "enemyHp": 0,
-          "playerNetHpLoss": -4.6492000000000075,
-          "playerNetHpLossPct": -0.5704539877300623,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 395,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 250.32235313608294,
+          "playerMinimumHp": 249.28141989602324,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -15542,12 +15542,12 @@
           "step": 5,
           "enemyId": "EN-A2-C4",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 1,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 353.97155313608295,
+              "hp": 348.28141989602324,
               "maxHp": 785
             },
             "enemy": {
@@ -15557,7 +15557,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 360.65795313608294,
+              "hp": 348.28141989602324,
               "maxHp": 785
             },
             "enemy": {
@@ -15565,17 +15565,17 @@
               "maxHp": 400
             }
           },
-          "playerEntryHp": 353.97155313608295,
+          "playerEntryHp": 348.28141989602324,
           "playerEntryMaxHp": 785,
           "enemyEntryHp": 400,
           "enemyEntryMaxHp": 400,
-          "playerHp": 360.65795313608294,
+          "playerHp": 348.28141989602324,
           "enemyHp": 0,
-          "playerNetHpLoss": -6.686399999999992,
-          "playerNetHpLossPct": -0.8517707006369416,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 400,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 353.97155313608295,
+          "playerMinimumHp": 348.28141989602324,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -15586,12 +15586,12 @@
           "step": 6,
           "enemyId": "EN-A2-C3",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 1,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 362.65795313608294,
+              "hp": 350.28141989602324,
               "maxHp": 785
             },
             "enemy": {
@@ -15601,7 +15601,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 369.41155313608294,
+              "hp": 350.28141989602324,
               "maxHp": 785
             },
             "enemy": {
@@ -15609,17 +15609,17 @@
               "maxHp": 445
             }
           },
-          "playerEntryHp": 362.65795313608294,
+          "playerEntryHp": 350.28141989602324,
           "playerEntryMaxHp": 785,
           "enemyEntryHp": 445,
           "enemyEntryMaxHp": 445,
-          "playerHp": 369.41155313608294,
+          "playerHp": 350.28141989602324,
           "enemyHp": 0,
-          "playerNetHpLoss": -6.753600000000006,
-          "playerNetHpLossPct": -0.8603312101910836,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 445,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 362.65795313608294,
+          "playerMinimumHp": 350.28141989602324,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -15635,7 +15635,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 375.41155313608294,
+              "hp": 356.28141989602324,
               "maxHp": 795
             },
             "enemy": {
@@ -15645,7 +15645,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 375.41155313608294,
+              "hp": 356.28141989602324,
               "maxHp": 795
             },
             "enemy": {
@@ -15653,17 +15653,17 @@
               "maxHp": 375
             }
           },
-          "playerEntryHp": 375.41155313608294,
+          "playerEntryHp": 356.28141989602324,
           "playerEntryMaxHp": 795,
           "enemyEntryHp": 375,
           "enemyEntryMaxHp": 375,
-          "playerHp": 375.41155313608294,
+          "playerHp": 356.28141989602324,
           "enemyHp": 0,
           "playerNetHpLoss": 0,
           "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 375,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 375.41155313608294,
+          "playerMinimumHp": 356.28141989602324,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -15679,7 +15679,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 379.41155313608294,
+              "hp": 360.28141989602324,
               "maxHp": 795
             },
             "enemy": {
@@ -15689,7 +15689,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 379.41155313608294,
+              "hp": 360.28141989602324,
               "maxHp": 795
             },
             "enemy": {
@@ -15697,17 +15697,17 @@
               "maxHp": 395
             }
           },
-          "playerEntryHp": 379.41155313608294,
+          "playerEntryHp": 360.28141989602324,
           "playerEntryMaxHp": 795,
           "enemyEntryHp": 395,
           "enemyEntryMaxHp": 395,
-          "playerHp": 379.41155313608294,
+          "playerHp": 360.28141989602324,
           "enemyHp": 0,
           "playerNetHpLoss": 0,
           "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 395,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 379.41155313608294,
+          "playerMinimumHp": 360.28141989602324,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -15723,7 +15723,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 383.41155313608294,
+              "hp": 364.28141989602324,
               "maxHp": 795
             },
             "enemy": {
@@ -15733,7 +15733,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 387.82435313608295,
+              "hp": 368.69421989602324,
               "maxHp": 795
             },
             "enemy": {
@@ -15741,17 +15741,17 @@
               "maxHp": 740
             }
           },
-          "playerEntryHp": 383.41155313608294,
+          "playerEntryHp": 364.28141989602324,
           "playerEntryMaxHp": 795,
           "enemyEntryHp": 740,
           "enemyEntryMaxHp": 740,
-          "playerHp": 387.82435313608295,
+          "playerHp": 368.69421989602324,
           "enemyHp": 0,
           "playerNetHpLoss": -4.412800000000004,
           "playerNetHpLossPct": -0.5550691823899376,
           "enemyNetHpLoss": 740,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 383.41155313608294,
+          "playerMinimumHp": 364.28141989602324,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -15767,7 +15767,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 391.82435313608295,
+              "hp": 372.69421989602324,
               "maxHp": 970
             },
             "enemy": {
@@ -15777,7 +15777,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 397.13315313608297,
+              "hp": 378.00301989602326,
               "maxHp": 970
             },
             "enemy": {
@@ -15785,17 +15785,17 @@
               "maxHp": 449
             }
           },
-          "playerEntryHp": 391.82435313608295,
+          "playerEntryHp": 372.69421989602324,
           "playerEntryMaxHp": 970,
           "enemyEntryHp": 449,
           "enemyEntryMaxHp": 449,
-          "playerHp": 397.13315313608297,
+          "playerHp": 378.00301989602326,
           "enemyHp": 0,
           "playerNetHpLoss": -5.308800000000019,
           "playerNetHpLossPct": -0.5472989690721669,
           "enemyNetHpLoss": 449,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 391.82435313608295,
+          "playerMinimumHp": 372.69421989602324,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -15811,7 +15811,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 405.13315313608297,
+              "hp": 386.00301989602326,
               "maxHp": 970
             },
             "enemy": {
@@ -15821,7 +15821,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 410.441953136083,
+              "hp": 391.3118198960233,
               "maxHp": 970
             },
             "enemy": {
@@ -15829,17 +15829,17 @@
               "maxHp": 449
             }
           },
-          "playerEntryHp": 405.13315313608297,
+          "playerEntryHp": 386.00301989602326,
           "playerEntryMaxHp": 970,
           "enemyEntryHp": 449,
           "enemyEntryMaxHp": 449,
-          "playerHp": 410.441953136083,
+          "playerHp": 391.3118198960233,
           "enemyHp": 0,
           "playerNetHpLoss": -5.308800000000019,
           "playerNetHpLossPct": -0.5472989690721669,
           "enemyNetHpLoss": 449,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 405.13315313608297,
+          "playerMinimumHp": 386.00301989602326,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -15855,7 +15855,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 659.9419531360829,
+              "hp": 640.8118198960233,
               "maxHp": 970
             },
             "enemy": {
@@ -15865,7 +15865,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 667.9723531360829,
+              "hp": 648.8422198960233,
               "maxHp": 970
             },
             "enemy": {
@@ -15873,17 +15873,17 @@
               "maxHp": 449
             }
           },
-          "playerEntryHp": 659.9419531360829,
+          "playerEntryHp": 640.8118198960233,
           "playerEntryMaxHp": 970,
           "enemyEntryHp": 449,
           "enemyEntryMaxHp": 449,
-          "playerHp": 667.9723531360829,
+          "playerHp": 648.8422198960233,
           "enemyHp": 0,
           "playerNetHpLoss": -8.030399999999986,
           "playerNetHpLossPct": -0.8278762886597923,
           "enemyNetHpLoss": 449,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 659.9419531360829,
+          "playerMinimumHp": 640.8118198960233,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -15899,7 +15899,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 671.9723531360829,
+              "hp": 652.8422198960233,
               "maxHp": 950
             },
             "enemy": {
@@ -15909,7 +15909,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 671.9723531360829,
+              "hp": 652.8422198960233,
               "maxHp": 950
             },
             "enemy": {
@@ -15917,17 +15917,17 @@
               "maxHp": 592
             }
           },
-          "playerEntryHp": 671.9723531360829,
+          "playerEntryHp": 652.8422198960233,
           "playerEntryMaxHp": 950,
           "enemyEntryHp": 592,
           "enemyEntryMaxHp": 592,
-          "playerHp": 671.9723531360829,
+          "playerHp": 652.8422198960233,
           "enemyHp": 0,
           "playerNetHpLoss": 0,
           "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 592,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 671.9723531360829,
+          "playerMinimumHp": 652.8422198960233,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -15938,12 +15938,12 @@
           "step": 9,
           "enemyId": "EN-A3-L1",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 1,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 785.9723531360829,
+              "hp": 766.8422198960233,
               "maxHp": 950
             },
             "enemy": {
@@ -15953,7 +15953,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 765.8540588933392,
+              "hp": 766.8422198960233,
               "maxHp": 950
             },
             "enemy": {
@@ -15961,20 +15961,20 @@
               "maxHp": 592
             }
           },
-          "playerEntryHp": 785.9723531360829,
+          "playerEntryHp": 766.8422198960233,
           "playerEntryMaxHp": 950,
           "enemyEntryHp": 592,
           "enemyEntryMaxHp": 592,
-          "playerHp": 765.8540588933392,
+          "playerHp": 766.8422198960233,
           "enemyHp": 0,
-          "playerNetHpLoss": 20.118294242743673,
-          "playerNetHpLossPct": 2.1177151834467023,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 592,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 765.8540588933392,
+          "playerMinimumHp": 766.8422198960233,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 28.215894242743616,
-          "maxSingleRoundNetLossPct": 2.9700941308151174,
+          "maxSingleRoundNetLoss": 0,
+          "maxSingleRoundNetLossPct": 0,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -15987,7 +15987,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 765.8540588933392,
+              "hp": 766.8422198960233,
               "maxHp": 1180
             },
             "enemy": {
@@ -15997,7 +15997,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 765.8540588933392,
+              "hp": 766.8422198960233,
               "maxHp": 1180
             },
             "enemy": {
@@ -16005,17 +16005,17 @@
               "maxHp": 767
             }
           },
-          "playerEntryHp": 765.8540588933392,
+          "playerEntryHp": 766.8422198960233,
           "playerEntryMaxHp": 1180,
           "enemyEntryHp": 767,
           "enemyEntryMaxHp": 767,
-          "playerHp": 765.8540588933392,
+          "playerHp": 766.8422198960233,
           "enemyHp": 0,
           "playerNetHpLoss": 0,
           "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 767,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 765.8540588933392,
+          "playerMinimumHp": 766.8422198960233,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -16031,7 +16031,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 860.2540588933392,
+              "hp": 861.2422198960232,
               "maxHp": 1180
             },
             "enemy": {
@@ -16041,7 +16041,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 860.2540588933392,
+              "hp": 861.2422198960232,
               "maxHp": 1180
             },
             "enemy": {
@@ -16049,17 +16049,17 @@
               "maxHp": 525
             }
           },
-          "playerEntryHp": 860.2540588933392,
+          "playerEntryHp": 861.2422198960232,
           "playerEntryMaxHp": 1180,
           "enemyEntryHp": 525,
           "enemyEntryMaxHp": 525,
-          "playerHp": 860.2540588933392,
+          "playerHp": 861.2422198960232,
           "enemyHp": 0,
           "playerNetHpLoss": 0,
           "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 525,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 860.2540588933392,
+          "playerMinimumHp": 861.2422198960232,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -16075,7 +16075,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 954.6540588933392,
+              "hp": 955.6422198960232,
               "maxHp": 1180
             },
             "enemy": {
@@ -16085,7 +16085,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 954.6540588933392,
+              "hp": 955.6422198960232,
               "maxHp": 1180
             },
             "enemy": {
@@ -16093,17 +16093,17 @@
               "maxHp": 890
             }
           },
-          "playerEntryHp": 954.6540588933392,
+          "playerEntryHp": 955.6422198960232,
           "playerEntryMaxHp": 1180,
           "enemyEntryHp": 890,
           "enemyEntryMaxHp": 890,
-          "playerHp": 954.6540588933392,
+          "playerHp": 955.6422198960232,
           "enemyHp": 0,
           "playerNetHpLoss": 0,
           "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 890,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 954.6540588933392,
+          "playerMinimumHp": 955.6422198960232,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -16119,7 +16119,7 @@
           "result": "won",
           "entry": {
             "player": {
-              "hp": 1049.0540588933393,
+              "hp": 1050.0422198960232,
               "maxHp": 1180
             },
             "enemy": {
@@ -16129,7 +16129,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 1049.0540588933393,
+              "hp": 1050.0422198960232,
               "maxHp": 1180
             },
             "enemy": {
@@ -16137,17 +16137,17 @@
               "maxHp": 525
             }
           },
-          "playerEntryHp": 1049.0540588933393,
+          "playerEntryHp": 1050.0422198960232,
           "playerEntryMaxHp": 1180,
           "enemyEntryHp": 525,
           "enemyEntryMaxHp": 525,
-          "playerHp": 1049.0540588933393,
+          "playerHp": 1050.0422198960232,
           "enemyHp": 0,
           "playerNetHpLoss": 0,
           "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 525,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 1049.0540588933393,
+          "playerMinimumHp": 1050.0422198960232,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -16158,12 +16158,12 @@
           "step": 5,
           "enemyId": "EN-A4-C1",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 1,
           "outcome": "player",
           "result": "won",
           "entry": {
             "player": {
-              "hp": 1143.4540588933394,
+              "hp": 1144.4422198960233,
               "maxHp": 1180
             },
             "enemy": {
@@ -16173,7 +16173,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 1150.3924588933394,
+              "hp": 1144.4422198960233,
               "maxHp": 1180
             },
             "enemy": {
@@ -16181,17 +16181,17 @@
               "maxHp": 755
             }
           },
-          "playerEntryHp": 1143.4540588933394,
+          "playerEntryHp": 1144.4422198960233,
           "playerEntryMaxHp": 1180,
           "enemyEntryHp": 755,
           "enemyEntryMaxHp": 755,
-          "playerHp": 1150.3924588933394,
+          "playerHp": 1144.4422198960233,
           "enemyHp": 0,
-          "playerNetHpLoss": -6.9384000000000015,
-          "playerNetHpLossPct": -0.5880000000000002,
+          "playerNetHpLoss": 0,
+          "playerNetHpLossPct": 0,
           "enemyNetHpLoss": 755,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 1143.4540588933394,
+          "playerMinimumHp": 1144.4422198960233,
           "enemyMinimumHp": 0,
           "maxSingleRoundNetLoss": 0,
           "maxSingleRoundNetLossPct": 0,
@@ -16202,7 +16202,7 @@
           "step": 6,
           "enemyId": "EN-A4-C2",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 1,
           "outcome": "player",
           "result": "won",
           "entry": {
@@ -16246,7 +16246,7 @@
           "step": 8,
           "enemyId": "EN-A4-C1",
           "inputMode": "real_shanhai_game_node",
-          "rounds": 2,
+          "rounds": 1,
           "outcome": "player",
           "result": "won",
           "entry": {
@@ -16349,7 +16349,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 1151.8686705788357,
+              "hp": 1149.613993883792,
               "maxHp": 1180
             },
             "enemy": {
@@ -16361,16 +16361,16 @@
           "playerEntryMaxHp": 1180,
           "enemyEntryHp": 1185,
           "enemyEntryMaxHp": 1185,
-          "playerHp": 1151.8686705788357,
+          "playerHp": 1149.613993883792,
           "enemyHp": 0,
-          "playerNetHpLoss": 28.13132942116431,
-          "playerNetHpLossPct": 2.3840109678952803,
+          "playerNetHpLoss": 30.38600611620791,
+          "playerNetHpLossPct": 2.575085264085416,
           "enemyNetHpLoss": 1185,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 1151.8686705788357,
+          "playerMinimumHp": 1149.613993883792,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 28.13132942116431,
-          "maxSingleRoundNetLossPct": 2.3840109678952803,
+          "maxSingleRoundNetLoss": 30.38600611620791,
+          "maxSingleRoundNetLossPct": 2.575085264085416,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         },
         {
@@ -16393,7 +16393,7 @@
           },
           "postBattle": {
             "player": {
-              "hp": 943.9433667341724,
+              "hp": 907.0127339449543,
               "maxHp": 1180
             },
             "enemy": {
@@ -16405,16 +16405,16 @@
           "playerEntryMaxHp": 1180,
           "enemyEntryHp": 1782,
           "enemyEntryMaxHp": 1782,
-          "playerHp": 943.9433667341724,
+          "playerHp": 907.0127339449543,
           "enemyHp": 0,
-          "playerNetHpLoss": 236.0566332658276,
-          "playerNetHpLossPct": 20.004799429307425,
+          "playerNetHpLoss": 272.98726605504567,
+          "playerNetHpLossPct": 23.1345140724615,
           "enemyNetHpLoss": 1782,
           "enemyNetHpLossPct": 100,
-          "playerMinimumHp": 943.9433667341724,
+          "playerMinimumHp": 907.0127339449543,
           "enemyMinimumHp": 0,
-          "maxSingleRoundNetLoss": 236.0566332658276,
-          "maxSingleRoundNetLossPct": 20.004799429307425,
+          "maxSingleRoundNetLoss": 272.98726605504567,
+          "maxSingleRoundNetLossPct": 23.1345140724615,
           "inputHash": "932c008238b94df4f7b85074076da48543958e87983964f972dd6845f2af684d"
         }
       ],
@@ -16443,11 +16443,11 @@
         0,
         0,
         1141.6332121212122,
-        897.3683707571802
+        938.2616044919238
       ],
       "finalBattleRounds": [
         2,
-        4
+        3
       ]
     },
     "RKF02": {
@@ -16464,11 +16464,11 @@
         0,
         0,
         0,
-        1089.9672078778601,
+        1172.9619059561128,
         935.898318537859
       ],
       "finalBattleRounds": [
-        3,
+        2,
         3
       ]
     },
@@ -16486,12 +16486,12 @@
         1215.0707262115936,
         0,
         0,
-        1206.6673808694911,
+        1142.6024739310344,
         0
       ],
       "finalBattleRounds": [
         8,
-        4
+        3
       ]
     },
     "RKF04": {
@@ -16509,11 +16509,11 @@
         0,
         0,
         1118.8153798449612,
-        863.4249030681547
+        849.5350273240232
       ],
       "finalBattleRounds": [
         3,
-        2
+        3
       ]
     },
     "RKF05": {
@@ -16531,7 +16531,7 @@
         0,
         0,
         907.9280982778882,
-        943.9433667341724
+        907.0127339449543
       ],
       "finalBattleRounds": [
         3,

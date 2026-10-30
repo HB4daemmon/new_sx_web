@@ -1,19 +1,22 @@
 # V2 Experimental Verification
 
-Track: `feat/v2-build-engine`, 2026-10-29, content `shanhai-content-0.2`.
+Track: `feat/v2-build-engine`, 2026-10-30, content `shanhai-content-0.2`.
 The second overhaul uses `buildVersion: 5` and the `-v2-overhaul` storage
 namespace. Older saves are left untouched. V1 remains at tag `V1` (`2f08f08`);
 these reports do not replace its evidence or establish player win rates.
 
 ## Functional Checks
 
-- `npm test`: 393 tests passed, including five-slot ordering and replay,
+- `npm test`: 413 tests passed, including five-slot ordering and replay,
   fusion, companion assistance, rage chains, challenge settlement and saves.
-- Content-kit: 44 tests passed; 154 entities, including 46 artifacts, validate.
+- Content-kit: 45 tests passed; 155 entities, including 47 artifacts, validate.
 - Generated content: 32 pages checked without drift.
 - Five-slot, challenge and fusion browser fixtures cover 360, 390, 430 and
   1440 pixels. Fixture battles and injected presentation frames are explicitly
   test scenarios, not normal progression samples.
+- Mixed-frame feedback covers damage, shield, status and rage at the same
+  widths, including reduced motion. Damage and generated shield have separate
+  top-three rankings; the shield ranking is collapsed by default.
 - The general browser suite passed 13 checks. A mobile real-click journey
   completed the first act's 11 nodes in 43 actions, without page errors.
 - A real desktop click journey reached victory in 45 nodes and 177 actions,
@@ -30,10 +33,18 @@ deterministic route and equipment heuristic. The current sample is **10 wins,
 The sample uses paired seed names and a seed-dependent route preference: it is
 not a sample of independent players or evidence of balanced difficulty.
 
-A wider run of the same policy with 20 paired seeds per method produced
+The current build was also measured with 20 paired seeds per starting method:
+**74 wins in 100 runs**, cumulative act passage **78 / 77 / 77 / 74**, and 57
+winning final battles of three rounds or fewer. Details and the content hash
+are in `simulation-100-current.json`. The 25-run sample is a subset and must
+not be added to the 100; neither represents a player win rate.
+
+A wider run of the previous build, before the vow and mirror were added,
+with 20 paired seeds per method produced
 **72 wins in 100 runs**, with cumulative act passage **78 / 77 / 75 / 73**;
 the per-run outcomes and content hash are in `simulation-100-summary.json`.
-These are correlated method/seed pairs, not 100 independent players. Among the
+These are correlated method/seed pairs from the previous content hash, not a
+measurement of this build or 100 independent players. Among the
 72 wins, 52 final battles lasted three rounds or fewer. This reinforces the
 need to inspect late-game pressure; it does not prove the overall player rate.
 
@@ -42,6 +53,11 @@ wins and 25 enemy wins**. Its 25 full runs use the same seed cohort as the
 simulation and must not be counted as another 25 independent runs. The current
 reference board uses five equipment slots, so its outcomes are not a direct
 comparison with earlier four-slot reference reports.
+
+`vow-comparison.json` compares 15 seed pairs under the current build. The vow
+was offered and selected in all pairs: the baseline won 12/15 and the forced
+vow won 9/15. These are small, paired policy samples, not player win rates.
+Reproduce with `node tests/shanhai-v2-vow-comparison.mjs`.
 
 The policy fills five slots and responds to normal rewards and events. It does
 not actively use thunder challenges, reward seeking or reward refinement;
@@ -62,7 +78,9 @@ multi-policy tests plus human play are still needed to evaluate pressure,
 build diversity, fun and replay appeal. Damage contributions record actual
 credited output, not the counterfactual gain from equipping an item.
 
-The universal right-neighbor copying mirror, inscriptions and one-HP sacrifice
-remain proposals, not implemented features. Old reaction and resonance
+The mirror currently copies only eligible action-end awakenings of the full-stack
+right neighbor; universal trigger copying, inscriptions and one-HP sacrifice remain
+proposals. Old experimental saves are not guaranteed to load after the content
+pool changed; use a new run. Old reaction and resonance
 experiments are documented in `docs/shanhai/rework/V2_EXPERIMENT.md`; do not
 combine their samples with this version.

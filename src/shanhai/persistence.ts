@@ -251,6 +251,8 @@ function assertStateShapeWithoutContent(state: RunState): void {
     !RUN_PHASES.has(state.phase)) {
     throw new Error('Invalid Shanhai run state');
   }
+  if (state.bloodVow === undefined) state.bloodVow = false;
+  if (typeof state.bloodVow !== 'boolean') throw new Error('Invalid saved blood vow marker');
   if (state.contentVersion !== SHANHAI_CONTENT_VERSION) {
     throw new Error('V2 save requires shanhai-content-0.2');
   }
@@ -380,6 +382,9 @@ function assertStateShapeWithoutContent(state: RunState): void {
       talents.some(id => typeof id !== 'string') || new Set(talents).size !== talents.length) {
       throw new Error('Invalid Shanhai talents');
     }
+  }
+  if (!state.bloodVow && Object.values(state.talents).some(talents => talents.includes('V2-J1-G'))) {
+    throw new Error('Selected blood vow is missing its permanent run marker');
   }
   if (!isObject(state.equipment) || !Array.isArray(state.equipment.slots) ||
     state.equipment.slots.length > MAX_EQUIPMENT_SLOTS ||

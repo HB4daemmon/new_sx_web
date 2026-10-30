@@ -177,7 +177,7 @@ export function nextCommand(game, preference = 'balanced') {
         for (const cost of option.costs) value -= amount(game, cost) * (cost.resource === 'hp' ? 2 : cost.resource === 'xp' ? 0.15 : 1);
         for (const reward of option.rewards) {
           if (reward.type === 'artifact') value += artifactScore(game, reward.id) * (reward.count ?? 1);
-          if (reward.type === 'resource') value += reward.resource === 'hp' ? Math.min(amount(game, reward), game.stats.max_hp - state.hp) * 2 : amount(game, reward) * (reward.resource === 'xp' ? 0.15 : 1);
+          if (reward.type === 'resource') value += reward.resource === 'hp' ? (state.bloodVow ? 0 : Math.min(amount(game, reward), game.stats.max_hp - state.hp) * 2) : amount(game, reward) * (reward.resource === 'xp' ? 0.15 : 1);
           if (reward.type === 'preparation') value += amount(game, reward) * 0.5;
           if (reward.type === 'method') value += 15;
         }
@@ -190,9 +190,10 @@ export function nextCommand(game, preference = 'balanced') {
     case 'transition': return { type: 'continue' };
     case 'rest': return state._restFromEvent ?
       { type: 'rest', choice: 'swap_method', method: state.ownedMethods.find(id => id !== state.method) } :
-      { type: 'rest', choice: 'heal' };
+      { type: 'rest', choice: state.bloodVow ? 'preparation' : 'heal' };
     case 'shop': {
-      const recovery = state.shop.find(item => item.kind === 'recovery' && !item.sold && item.price <= state.coins);
+      const recovery = state.shop.find(item => item.kind === 'recovery' && !item.sold && item.price <= state.coins &&
+        !state.bloodVow && (typeof game.shopPurchaseAvailability !== 'function' || game.shopPurchaseAvailability(item.id).available));
       if (recovery && state.hp < game.stats.max_hp - 30) return { type: 'buy', id: recovery.id };
       const candidates = state.shop.filter(item => item.kind === 'artifact' && !item.sold && item.price <= state.coins &&
         (state.artifacts.find(stack => stack.id === item.id)?.stacks ?? 0) < game.content.byId[item.id].max_stacks);

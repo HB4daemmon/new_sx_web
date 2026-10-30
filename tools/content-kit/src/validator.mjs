@@ -7,6 +7,8 @@ import {
   ARTIFACT_FUSION_RULES,
   ARTIFACT_GAMBIT_RULES,
   ARTIFACT_IDS,
+  ARTIFACT_MIRROR_RULES,
+  ARTIFACT_MIRROR_UNIQUE_GROUP,
   ARTIFACT_RARITIES,
   ARTIFACT_RESONANCE_RULES,
   AWAKENING_EFFECT_KINDS,
@@ -942,6 +944,30 @@ function validateArtifactGambit(entity, errors) {
   }
 }
 
+function validateArtifactMirror(entity, errors) {
+  const source = sourceFor(entity)
+  const expected = ARTIFACT_MIRROR_RULES[entity.id]
+  if (!expected) {
+    if (Object.hasOwn(entity, 'mirror_rule')) {
+      addIssue(errors, 'artifact-mirror-owner', `${entity.id} cannot define a mirror_rule`, source)
+    }
+    return
+  }
+  if (!isRecord(entity.mirror_rule)) {
+    addIssue(errors, 'artifact-mirror-rule', `${entity.id} must define its mirror_rule mapping`, source)
+  } else {
+    if (!exactKeys(entity.mirror_rule, ['kind'])) {
+      addIssue(errors, 'artifact-mirror-fields', `${entity.id}.mirror_rule must contain exactly kind`, source)
+    }
+    if (entity.mirror_rule.kind !== expected.kind) {
+      addIssue(errors, 'artifact-mirror-kind', `${entity.id}.mirror_rule.kind must be ${expected.kind}`, source)
+    }
+  }
+  if (entity.unique_group !== ARTIFACT_MIRROR_UNIQUE_GROUP) {
+    addIssue(errors, 'artifact-mirror-unique-group', `${entity.id}.unique_group must be ${ARTIFACT_MIRROR_UNIQUE_GROUP}`, source)
+  }
+}
+
 function validateArtifact(entity, errors, effectIds, known) {
   const source = sourceFor(entity)
   const expected = ARTIFACT_BASELINE[entity.id]
@@ -954,6 +980,7 @@ function validateArtifact(entity, errors, effectIds, known) {
   }
   const isFusion = validateArtifactFusion(entity, errors, known)
   validateArtifactGambit(entity, errors)
+  validateArtifactMirror(entity, errors)
   const expectedRarity = ARTIFACT_RARITIES[entity.id]
   if (entity.rarity !== expectedRarity) addIssue(errors, 'artifact-rarity', `artifact rarity must be ${expectedRarity}`, source)
   const expectedRole = ARTIFACT_EQUIPMENT_ROLES[entity.id]
@@ -2017,7 +2044,7 @@ function validateInsights(entity, errors, effectIds) {
     if (seenIds.has(talent.id)) addIssue(errors, 'insight-duplicate', `duplicate shared insight ${talent.id}`, location)
     seenIds.add(talent.id)
     finiteNumber(errors, talent.tier, location, 'insight.tier', { integer: true, min: 1, max: 4 })
-    const branches = talent.tier === 1 ? ['A', 'B', 'C', 'D', 'E', 'F'] : ['A', 'B', 'C']
+    const branches = talent.tier === 1 ? ['A', 'B', 'C', 'D', 'E', 'F', 'G'] : ['A', 'B', 'C']
     if (!branches.includes(talent.branch)) {
       addIssue(errors, 'insight-branch', `tier ${talent.tier} branch must be ${branches.join(', ')}`, location)
     }
@@ -2131,6 +2158,9 @@ function validateEntityKind(entity, errors, known, effectIds, storylineEncounter
   }
   if (entity.kind !== 'artifact' && Object.hasOwn(entity, 'gambit_rule')) {
     addIssue(errors, 'artifact-gambit-owner', 'gambit_rule is only valid on its owning artifact', sourceFor(entity))
+  }
+  if (entity.kind !== 'artifact' && Object.hasOwn(entity, 'mirror_rule')) {
+    addIssue(errors, 'artifact-mirror-owner', 'mirror_rule is only valid on its owning artifact', sourceFor(entity))
   }
   switch (entity.kind) {
     case 'rules':

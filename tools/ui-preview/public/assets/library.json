@@ -1246,6 +1246,19 @@
       "rarity": "legendary",
       "description": "融合青锋石与剑穗后化为雌雄双剑；只在完成融合后取得。",
       "stats": []
+    },
+    "RL08": {
+      "src": "/assets/icon-jade.png",
+      "type": "special",
+      "name": "昆仑镜",
+      "rarity": "legendary",
+      "description": "仅复制紧邻右侧已装备且满层法宝的普攻或怒技结束觉醒输出一次；镜右为空、未满层或无合格觉醒时无效，不复制属性、行旅、核心规则、融合或镜子，也不复制旧式被动、破盾或治疗事件觉醒。",
+      "stats": [
+        [
+          "防御",
+          "+8"
+        ]
+      ]
     }
   },
   "assets": [

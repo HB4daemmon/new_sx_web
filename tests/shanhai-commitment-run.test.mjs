@@ -43,7 +43,7 @@ function finish(game) {
           game.optionAvailability(option).available).id });
         break;
       case 'event_result': game.dispatch({ type: 'continue' }); break;
-      case 'talent': game.dispatch({ type: 'talent', id: game.availableTalents()[0].id }); break;
+      case 'talent': game.dispatch({ type: 'talent', id: game.availableTalents().find(talent => talent.id !== 'V2-J1-G').id }); break;
       case 'shop': game.dispatch({ type: 'leave_shop' }); break;
       case 'rest': game.dispatch({ type: 'rest', choice: 'preparation' }); break;
       default: throw new Error(game.state.phase);

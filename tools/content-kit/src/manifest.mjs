@@ -87,7 +87,7 @@ export async function readManifest({ manifestPath = MANIFEST_PATH } = {}) {
 
   const expectedCounts = {
     methods: 10,
-    artifacts: 46,
+    artifacts: 47,
     ordinary_events: 36,
     core_events: 16,
     storylines: 6,

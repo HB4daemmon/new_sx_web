@@ -774,7 +774,7 @@ function renderRules(rules, context) {
     '',
     '## 共享突破天赋',
     '',
-    '首破从一阶六项共享天赋中按种子固定展示三项；后续突破将本阶一项功法天赋与两项共享天赋并列展示。候选冻结，不因查看、重读或切换功法重抽。',
+    `首破从一阶${insights.filter((talent) => talent.tier === 1).length}项共享天赋中按种子固定展示三项；后续突破将本阶一项功法天赋与两项共享天赋并列展示。候选冻结，不因查看、重读或切换功法重抽。`,
     '',
     '| 阶 | 支 | 天赋 | 效果摘要 |',
     '| ---: | :---: | --- | --- |',
@@ -984,7 +984,7 @@ function renderMethod(method, context) {
 function renderArtifacts(artifacts, rarity, context) {
   const pageTitle = `${rarityLabels[rarity]}法宝`
   const intro = rarity === 'common'
-    ? '同名普通法宝按卡面上限叠层；一局最多装备4件，核心/支援仅为描述定位，不限制配装。'
+    ? '同名普通法宝按卡面上限叠层；一局最多装备5件，核心/支援仅为描述定位，不限制配装。'
     : '单件法宝展示装备定位、属性、能力和预算；位阶不是境界，不保证每局出现。'
   const lines = [
     header(pageTitle, intro, '..'),
@@ -1038,6 +1038,9 @@ function renderArtifacts(artifacts, rarity, context) {
       }[artifact.fusion_rule?.kind]
       lines.push(`- 融合规则：${fusionText ?? `未识别融合规则 ${line(artifact.fusion_rule?.kind)}`}`)
     }
+    if (artifact.mirror_rule?.kind === 'neighbor_awakening') {
+      lines.push('- 镜映规则：只复制紧邻右侧已装备且满层法宝的普攻/怒技结束型觉醒输出一次，右侧法宝照常触发；不复制属性、行旅、核心、融合或旧式事件型觉醒。')
+    }
     if (artifact.awakening) {
       lines.push(`- 觉醒条件：集齐 ${scalarText(artifact.awakening.at_stacks)} 层；${line(artifact.awakening.name, context)}：${line(artifact.awakening.quick, context)}`)
       if (artifact.awakening.effects?.length) {
@@ -1052,7 +1055,7 @@ function renderArtifacts(artifacts, rarity, context) {
   }
   lines.push('::: details 开发边界')
   lines.push('- `A` 是战斗综合增益目标，`J` 是旅途换算尺，`B = A/5 + J` 只用于设计分摊。')
-  lines.push('- 44 张既有法宝保留原基础属性与层数；两张融合传奇各为一件、无额外基础属性；实测仍为空。')
+  lines.push('- 44 张既有法宝保留原基础属性与层数；两张融合传奇各为一件、无额外基础属性；昆仑镜为额外传奇；实测仍为空。')
   lines.push(':::')
   lines.push('')
   return lines.join('\n')

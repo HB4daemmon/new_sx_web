@@ -364,7 +364,7 @@ test('first breakthrough freezes three shared choices, later tiers offer one loc
   const initial = game.availableTalents();
   const key = 'RKF01:1:0';
   const offeredIds = game.state.talentDrafts[key];
-  assert.equal(content.rules.insights.filter(talent => talent.tier === 1).length, 6);
+  assert.equal(content.rules.insights.filter(talent => talent.tier === 1).length, 7);
   assert.equal(offeredIds.length, 3);
   assert.ok(initial.every(talent => talent.id.startsWith('V2-J1-')));
   assert.equal(new Set(offeredIds).size, 3);

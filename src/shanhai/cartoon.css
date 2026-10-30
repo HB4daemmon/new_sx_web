@@ -2481,7 +2481,7 @@ button:disabled {
   min-width: 0;
   min-height: 0;
   grid-column: 1 / -1;
-  grid-row: 2 / 3;
+  grid-row: 1 / -1;
   overflow: visible;
   pointer-events: none;
 }
@@ -2566,6 +2566,21 @@ button:disabled {
 .game-page .combat-feedback-group > .combat-float + .combat-float {
   font-size: 12px;
   line-height: 1.25;
+}
+
+.game-page .combat-feedback-group > .combat-float.detail,
+.game-page .combat-feedback-group > .combat-float.status-change {
+  font-size: 14px;
+  line-height: 1.3;
+  white-space: normal;
+}
+
+.game-page .combat-feedback-group > .combat-float.status-change {
+  color: var(--gold);
+}
+
+.game-page .battle-shell .combat-feedback-group > .combat-float.status-change {
+  display: inline-flex;
 }
 
 .game-page .combat-feedback-group > .combat-float b {
@@ -6186,7 +6201,8 @@ button:disabled {
   overflow-wrap: anywhere;
 }
 
-.game-page .battle-damage-ranking {
+.game-page .battle-damage-ranking,
+.game-page .battle-shield-ranking-content {
   display: grid;
   min-width: 0;
   gap: 8px;

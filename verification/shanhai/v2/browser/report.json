@@ -1,6 +1,6 @@
 {
-  "url": "http://localhost:4178",
-  "generatedAt": "2026-10-29T14:56:19.608Z",
+  "url": "http://localhost:4178/",
+  "generatedAt": "2026-10-30T06:33:53.830Z",
   "checks": [
     {
       "name": "desktop setup has five methods and no overflow",

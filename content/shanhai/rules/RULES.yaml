@@ -117,6 +117,23 @@ insights:
         replaces: []
         limit: {scope: permanent, count: 1}
         text: 自身直接与派生伤害乘以1+0.1+0.04×库存中不同法宝种类数；同种叠层只计一种，未装备法宝仍计入收集种类。
+  - id: V2-J1-G
+    tier: 1
+    branch: G
+    name: 断生入魔
+    quick: 本局永久战外禁疗，换法洗点不解除；当前主修战斗治疗×1.5、直伤与派生伤害×1.35
+    category: enhance
+    effects:
+      - id: V2-J1-G-BUILD
+        trigger: always
+        operation: modify_effect
+        target: self
+        params: {build: blood_vow, healing_multiplier: 1.5, damage_multiplier: 1.35}
+        requires: []
+        consumes: []
+        replaces: []
+        limit: {scope: permanent, count: 1}
+        text: 选中后本局永久不能通过事件、行旅、坊市或休整等战斗外来源恢复气血；换修功法或洗点也不会解除代价。当前主修仍选中此天赋时，战斗内所有治疗（包括溢疗）乘以1.5，直接与派生伤害乘以1.35；中毒、燃烧持续伤害与反伤不受加成。战斗结算仍继承实际剩余气血；非致死事件战斗失败仍保留其气血下限。
   - id: V2-J2-A
     tier: 2
     branch: A

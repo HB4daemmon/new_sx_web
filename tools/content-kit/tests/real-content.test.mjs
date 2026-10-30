@@ -6,6 +6,8 @@ import { validateLoadedContent } from '../src/validator.mjs'
 import { renderDocuments } from '../src/renderer.mjs'
 import {
   ARTIFACT_EQUIPMENT_ROLES,
+  ARTIFACT_MIRROR_RULES,
+  ARTIFACT_MIRROR_UNIQUE_GROUP,
   ARTIFACT_RESONANCE_RULES,
   CORE_ARTIFACT_RULES,
   METHOD_RESONANCE_RULES,
@@ -54,12 +56,12 @@ function enumerateStructuralTalentBuilds(method) {
 
 test('real content validates and preserves the authored entity and talent counts', () => {
   assert.equal(report.ok, true, validationDetails())
-  assert.equal(model.entities.length, 154)
-  assert.equal(model.manifestEntries.length, 154)
+  assert.equal(model.entities.length, 155)
+  assert.equal(model.manifestEntries.length, 155)
 
   const expectedManifestCounts = {
     methods: 10,
-    artifacts: 46,
+    artifacts: 47,
     ordinary_events: 36,
     core_events: 16,
     storylines: 6,
@@ -78,7 +80,7 @@ test('real content validates and preserves the authored entity and talent counts
     assert.equal(typeof method.companion.quick, 'string', `${method.id} companion quick description`)
     assert.ok(method.companion.effect, `${method.id} has a combat output`)
   }
-  assert.equal(entitiesOf('artifact').length, 46)
+  assert.equal(entitiesOf('artifact').length, 47)
   assert.equal(entitiesOf('event').length, 52)
   assert.equal(entitiesOf('storyline').length, 6)
   assert.equal(entitiesOf('enemy').length, 34)
@@ -101,12 +103,12 @@ test('real content validates and preserves the authored entity and talent counts
   assert.equal(totalTalents, 120)
   const rules = entitiesOf('rules')[0]
   const insights = rules.insights
-  assert.equal(insights.length, 15)
+  assert.equal(insights.length, 16)
   assert.equal(rules.source.basis, 'original')
   assert.equal(rules.balance.measured, null)
   assert.deepEqual(insights.map((talent) => talent.id).sort(), [...SHARED_INSIGHT_IDS].sort())
   assert.deepEqual([...report.known.sharedTalents].sort(), [...SHARED_INSIGHT_IDS].sort())
-  for (const [tier, expectedBranches] of [[1, ['A', 'B', 'C', 'D', 'E', 'F']], [2, ['A', 'B', 'C']], [3, ['A', 'B', 'C']], [4, ['A', 'B', 'C']]]) {
+  for (const [tier, expectedBranches] of [[1, ['A', 'B', 'C', 'D', 'E', 'F', 'G']], [2, ['A', 'B', 'C']], [3, ['A', 'B', 'C']], [4, ['A', 'B', 'C']]]) {
     assert.deepEqual(
       insights.filter((talent) => talent.tier === tier).map((talent) => talent.branch).sort(),
       expectedBranches,
@@ -119,6 +121,7 @@ test('real content validates and preserves the authored entity and talent counts
     'V2-J1-D': { build: 'carapace', defense_per_hit: 6, reflect_ratio: 0.24 },
     'V2-J1-E': { build: 'spending_power', base_attack: 8, attack_per_coin: 0.08 },
     'V2-J1-F': { build: 'collection_damage', base_bonus: 0.1, per_kind: 0.04 },
+    'V2-J1-G': { build: 'blood_vow', healing_multiplier: 1.5, damage_multiplier: 1.35 },
     'V2-J2-A': { build: 'bounty', attack_bonus: 8, normal_coins: 4, elite_coins: 20, boss_coins: 30 },
     'V2-J2-B': { build: 'shop_discount', ratio: 0.75 },
     'V2-J2-C': { build: 'basic_split', extra_segments: 2, segment_ratio: 0.6 },
@@ -171,6 +174,19 @@ test('real content validates and preserves the authored entity and talent counts
   assert.equal(convergenceCore.max_stacks, 5)
   assert.deepEqual(convergenceCore.attributes, { flat: { attack: 6 }, percent: {} })
   assert.deepEqual(convergenceCore.acquisition.pools, ['common_artifact'])
+
+  const mirror = model.byId.get('RL08')
+  assert.deepEqual(mirror.mirror_rule, ARTIFACT_MIRROR_RULES.RL08)
+  assert.equal(mirror.unique_group, ARTIFACT_MIRROR_UNIQUE_GROUP)
+  assert.equal(mirror.max_stacks, 1)
+  assert.equal(mirror.rarity, 'legendary')
+  assert.deepEqual(mirror.acquisition.pools, ['legendary_artifact'])
+  assert.deepEqual(mirror.attributes, { flat: { defense: 8 }, percent: {} })
+  assert.match(mirror.description, /紧邻右侧已装备、层数已达其上限/)
+  assert.match(mirror.description, /普攻、怒技或二者结束触发/)
+  assert.match(mirror.description, /复制其本次全部觉醒输出一次/)
+  assert.match(mirror.description, /右侧法宝照常结算/)
+  assert.match(mirror.description, /旧式被动、破盾与治疗事件觉醒不复制/)
 
   const awakeningArtifacts = entitiesOf('artifact').filter((artifact) => artifact.awakening)
   assert.ok(awakeningArtifacts.some((artifact) => Array.isArray(artifact.awakening.effects)))
@@ -299,6 +315,8 @@ test('V2 resonance rules are authored once on their owners and render with the c
   assert.match(pages.get('methods/RKF06.md'), /与回春功（`RKF03`）配对/)
   assert.match(pages.get('artifacts/RARE.md'), /毒火/)
   assert.match(pages.get('artifacts/LEGENDARY.md'), /四段攻击0.25倍/)
+  assert.match(pages.get('artifacts/LEGENDARY.md'), /### 昆仑镜/)
+  assert.match(pages.get('artifacts/LEGENDARY.md'), /普攻、怒技或二者结束触发[\s\S]*同次触发复制其本次全部觉醒输出一次/)
 })
 
 test('authored trials and reward-seeking families stay on the public contract', () => {

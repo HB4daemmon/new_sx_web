@@ -125,6 +125,52 @@ test('separates absorbed damage from shield consumption and generation', () => {
   assert.equal(group.enemy.hits, 1);
 });
 
+test('aggregates damage, healing, shields, status stacks, and real rage deltas across one effect group', () => {
+  const frames = [
+    frame('round', {
+      player: fighter({ hp: 80, shield: 5, rage: 10 }),
+      enemy: fighter({ hp: 100, shield: 10, rage: 20 }),
+    }),
+    frame('action', {
+      actor: 'player',
+      target: 'enemy',
+      player: fighter({ hp: 80, shield: 5, rage: 10 }),
+      enemy: fighter({ hp: 100, shield: 10, rage: 20 }),
+    }),
+    frame('damage', {
+      actor: 'player',
+      target: 'enemy',
+      player: fighter({ hp: 80, shield: 5, rage: 13 }),
+      enemy: fighter({ hp: 95, shield: 7, rage: 20, statuses: { poison: 1 } }),
+    }),
+    frame('heal', {
+      actor: 'player',
+      target: 'player',
+      player: fighter({ hp: 88, shield: 5, rage: 15 }),
+      enemy: fighter({ hp: 95, shield: 7, rage: 20, statuses: { poison: 2, burn: 1 } }),
+    }),
+    frame('shield', {
+      actor: 'player',
+      target: 'player',
+      player: fighter({ hp: 88, shield: 9, rage: 14 }),
+      enemy: fighter({ hp: 95, shield: 9, rage: 20, statuses: { poison: 3, burn: 2 } }),
+    }),
+    frame('action', { actor: 'enemy', target: 'player' }),
+  ];
+
+  const group = helper.combatPresentationGroup(frames, 4);
+
+  assert.equal(group.startIndex, 2);
+  assert.equal(group.endIndex, 4);
+  assert.equal(group.enemy.damage, 5);
+  assert.equal(group.enemy.shieldAbsorbed, 3);
+  assert.deepEqual(group.enemy.statuses, { poison: 3, burn: 2 });
+  assert.equal(group.player.healing, 8);
+  assert.equal(group.player.shieldGenerated, 4);
+  assert.equal(group.player.rageGained, 5);
+  assert.equal(group.player.rageSpent, 1);
+});
+
 test('groups a DOT cascade, including its healing proc, but ends at the next action', () => {
   const frames = [
     frame('round'),

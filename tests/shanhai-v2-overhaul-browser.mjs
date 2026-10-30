@@ -389,12 +389,12 @@ async function assertBattleLayout(page, viewport, fixture) {
       ...rect(element),
       fontSize: parseFloat(getComputedStyle(element).fontSize),
     }));
-    const ranking = [...document.querySelectorAll('.battle-damage-source-copy')].map(element => {
+    const ranking = [...document.querySelectorAll('.battle-damage-ranking .battle-damage-source-copy')].map(element => {
       const name = element.querySelector('b')?.innerText.trim() || '';
       const metrics = element.querySelector('span')?.innerText.trim() || '';
       return `${name} · ${metrics}`;
     });
-    const meters = [...document.querySelectorAll('.battle-damage-meter')].map(element => ({
+    const meters = [...document.querySelectorAll('.battle-damage-ranking .battle-damage-meter')].map(element => ({
       value: Number(element.getAttribute('aria-valuenow')),
       label: element.getAttribute('aria-label'),
       width: parseFloat(element.firstElementChild?.style.width || '0'),
@@ -426,9 +426,9 @@ async function assertBattleLayout(page, viewport, fixture) {
       `battle control is outside viewport at ${viewport.width}px: ${JSON.stringify(control)}`);
   }
   assert.deepEqual(metrics.ranking, [
-    `${fixture.methodName} · 伤害 300 · 46%`,
-    `${fixture.companionName} · 伤害 200 · 31%`,
-    '第三伤害来源 · 伤害 100 · 15%',
+    `${fixture.methodName} · 伤害（含吸收） 300 · 46%`,
+    `${fixture.companionName} · 伤害（含吸收） 200 · 31%`,
+    '第三伤害来源 · 伤害（含吸收） 100 · 15%',
   ]);
   assert.deepEqual(metrics.meters.map(meter => meter.value), [46, 31, 15]);
   assert.equal(metrics.meters.length, 3, 'only the top three credited damage sources should be shown');
@@ -557,7 +557,7 @@ try {
   await page.locator('.battle-damage-ranking').waitFor({ state: 'visible' });
   assert.match(await page.locator('[data-combat-semantic-cue="companion_assist"]').innerText(), /同伴助战/);
   assert.ok((await page.locator('[data-combat-semantic-cue="companion_assist"]').innerText()).includes(fixture.companionName));
-  assert.match(await page.locator('.battle-damage-ranking').innerText(), /伤害来源 · 实际记账/);
+  assert.match(await page.locator('.battle-damage-ranking').innerText(), /伤害来源 · 含护盾吸收/);
   for (const viewport of viewports) {
     await page.setViewportSize(viewport);
     await assertBattleLayout(page, viewport, fixture);

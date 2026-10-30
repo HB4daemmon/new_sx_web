@@ -14,7 +14,7 @@
 | `methods/` | RKF01-RKF10；每门基础动作、行旅、12 张天赋、3 条路线 |
 | `artifacts/common/` | RC01-RC24 |
 | `artifacts/rare/` | RR01-RR15 |
-| `artifacts/legendary/` | RL01-RL07 |
+| `artifacts/legendary/` | RL01-RL08 |
 | `events/ordinary/` | RE001-RE036，36 个短事件 |
 | `events/core/` | RK001-RK016，12 次人物相遇与4个独立机缘 |
 | `storylines/` | RS01-RS06，每条恰好两次相遇 |
@@ -200,13 +200,13 @@ category: enhance, effects: [...]}`。
 
 ### 共享突破天赋
 
-`rules.insights` 是15项跨功法共享天赋：首阶六项，第二至第四阶各三项，ID 固定为
-`V2-J1-A` 至 `V2-J1-F`、`V2-J2-A` 至 `V2-J4-C`，字段与功法天赋相同：
+`rules.insights` 是16项跨功法共享天赋：首阶七项，第二至第四阶各三项，ID 固定为
+`V2-J1-A` 至 `V2-J1-G`、`V2-J2-A` 至 `V2-J4-C`，字段与功法天赋相同：
 `{id, tier, branch, name, quick, category, effects}`。候选可给任何功法使用；
-每个角色的首破从一阶六项中按种子固定展示三项；后续突破将本阶一项功法天赋与两项共享天赋并列展示。
+每个角色的首破从一阶七项中按种子固定展示三项；后续突破将本阶一项功法天赋与两项共享天赋并列展示。
 候选冻结，不因查看、重读或切换功法重抽。
 
-14项新共享机制必须使用唯一效果结构：`trigger: always`、`operation: modify_effect`、
+15项新共享机制必须使用唯一效果结构：`trigger: always`、`operation: modify_effect`、
 `target: self`、`limit: {scope: permanent, count: 1}`，并将`requires/consumes/replaces`
 留空数组。此limit只表示安装一条规则，不限制kind内部的命中或行动触发次数；
 参数严格为`{build: <kind>, ...}`，每种kind只能使用下表列出的字段：
@@ -219,6 +219,7 @@ category: enhance, effects: [...]}`。
 | V2-J1-D | `carapace` | `defense_per_hit: 0..100`、`reflect_ratio: 0..1` |
 | V2-J1-E | `spending_power` | `base_attack: 0..100`、`attack_per_coin: 0..1` |
 | V2-J1-F | `collection_damage` | `base_bonus/per_kind: 0..1` |
+| V2-J1-G | `blood_vow` | `healing_multiplier: 1.5`、`damage_multiplier: 1.35` |
 | V2-J2-A | `bounty` | `attack_bonus: 0..100`、`normal_coins/elite_coins/boss_coins: 0..1000整数` |
 | V2-J2-B | `shop_discount` | `ratio: 0..1` |
 | V2-J2-C | `basic_split` | `extra_segments: 1..10整数`、`segment_ratio: 0..1` |
@@ -237,6 +238,13 @@ category: enhance, effects: [...]}`。
 普通核心法宝另有受限枚举的 `core_rule`。
 `attributes: {flat: {attack: 6}, percent: {}}`，只允许五维
 `attack/defense/max_hp/crit_rate/speed`；暴击率放flat且按比例加。
+
+仅 RL08 `昆仑镜` 可声明 `mirror_rule: {kind: neighbor_awakening}`，且规则映射不得增加
+其它字段或新kind。它只镜映紧邻右侧已装备、达到该法宝满层数，并拥有 `awakening.trigger`
+为 `basic/rage/either` 且含 `awakening.effects` 的法宝：右侧本体按原规则结算，镜器在相同的
+普攻或怒技结束时复制该次觉醒输出一次。它不复制属性、行旅、核心规则或融合，也不适用于
+没有显式普攻/怒技结束触发效果的旧式被动、破盾或治疗事件觉醒；右侧为空、层数未满或
+没有合格觉醒时无效。这项规则只覆盖上述明确的觉醒输出，不代表通用触发复制。
 普通按已定3或5层，稀有/传奇1层。每局最多装备五件互不重复的法宝，不按
 `equipment_role`拆分容量；`core/support`仅是描述类型：`RC01`、`RC09-RC12`、`RC14-RC15`、
 `RL01-RL07` 为 `core`，其余为`support`。层数不额外占装备件数，但获得与持有层数仍受法宝
@@ -253,7 +261,7 @@ category: enhance, effects: [...]}`。
 
 | 法宝 | 规则 | 参数与取舍 |
 | --- | --- | --- |
-| RC01 | `basic_convergence` | `damage_ratio: 1.25`；只将每次存活主普攻的基础段合为一次不可暴击直接命中，每次行动一次、不随层数叠加；保留攻击+6/层，不添加觉醒 |
+| RC01 | `basic_convergence` | `damage_ratio: 1.25`；只将每次存活主普攻的基础段合为一次不可暴击直接命中，每次行动一次、不随层数叠加；保留攻击+6/层，满层另有独立追击觉醒 |
 | RC09 | `basic_echo` | `ratio: 0.45`；怒技基础伤害倍率 `0.65` |
 | RC10 | `rage_gambit` | 怒技完成返怒 `20`；受到直接伤害倍率 `1.12` |
 | RC11 | `shield_burst` | 开场护盾为最大气血 `0.12`；怒技消耗实际护盾，参数 `shield_ratio: 0.5`、`damage_ratio: 1.4` |
@@ -266,7 +274,7 @@ category: enhance, effects: [...]}`。
 `unique_group:null` 或真实互斥组，RL01为`overflow_outlet`。
 `acquisition.pools` 引用 `common_artifact/rare_artifact/legendary_artifact` 等公共池。
 `balance.target: {B: 1, A: 5, J: 0}`；旅途型按法宝基线分摊，不能在B外再免费加属性。
-保留44件既有法宝的ID、名称、层数和基础属性；新增两件融合传奇各一件且不附加基础属性。
+保留44件既有法宝的ID、名称、层数和基础属性；新增两件融合传奇各一件且不附加基础属性，以及传奇昆仑镜。
 融合数据固定为 `fusion_recipe: {inputs: [<两张普通法宝ID>], fights: 2}` 与
 `fusion_rule: {kind: toxic_flame|twin_swords}`，并且 `acquisition.pools: []`，不进入商店或随机奖励池。
 每场计数的合格战斗可来自普通流程或事件内部战斗；战斗开始和胜利结算时都须持有每种材料至少一层，
@@ -389,7 +397,7 @@ RE001-C、RE002-B 的 `legacy_commitment` 与 `legacy_story_echo` 仅供旧存�
 preview/phases/reward_profile`。
 `tier: normal/elite/boss/final`，`method` 为真实RKF ID，
 `talents` 为完整ID数组，每阶最多一项且不越n；`artifacts: [{id: RC01, stacks: 1}]`。
-`stats` 是装备和功法修正前的五维基础值；敌方最多装备4件互不重复的法宝，
+`stats` 是装备和功法修正前的五维基础值；敌方最多装备5件互不重复的法宝，
 不按`equipment_role`拆分容量；计算预览时再加已装备法宝，禁止双计。
 `pressure` 为1-3个标签，`counterplay` 至少两条具体战前选择。
 `phases` 可为空，非空必须有现有卡面来源；不能私造隐藏倍率或流派免疫。

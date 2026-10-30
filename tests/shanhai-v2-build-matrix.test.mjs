@@ -13,7 +13,7 @@ const content = contentFromEntities(loaded.entities, loaded.manifest.content_ver
 
 const METHODS = Array.from({ length: 10 }, (_, index) => `RKF${String(index + 1).padStart(2, '0')}`);
 const INSIGHT_IDS = [
-  'V2-J1-A', 'V2-J1-B', 'V2-J1-C', 'V2-J1-D', 'V2-J1-E', 'V2-J1-F',
+  'V2-J1-A', 'V2-J1-B', 'V2-J1-C', 'V2-J1-D', 'V2-J1-E', 'V2-J1-F', 'V2-J1-G',
   'V2-J2-A', 'V2-J2-B', 'V2-J2-C',
   'V2-J3-A', 'V2-J3-B', 'V2-J3-C',
   'V2-J4-A', 'V2-J4-B', 'V2-J4-C',
@@ -24,7 +24,7 @@ const MATRIX_TALENTS = [
   ['V2-J1-A', 'V2-J2-A', 'V2-J3-A', 'V2-J4-A'],
   ['V2-J1-B', 'V2-J2-B', 'V2-J3-B', 'V2-J4-B'],
   ['V2-J1-C', 'V2-J2-C', 'V2-J3-C', 'V2-J4-C'],
-  ['V2-J1-D', 'V2-J2-A', 'V2-J3-B', 'V2-J4-C'],
+  ['V2-J1-G', 'V2-J2-A', 'V2-J3-B', 'V2-J4-C'],
   ['V2-J1-E', 'V2-J2-B', 'V2-J3-C', 'V2-J4-A'],
   ['V2-J1-F', 'V2-J2-C', 'V2-J3-A', 'V2-J4-B'],
   ['V2-J1-A', 'V2-J2-A', 'V2-J3-B', 'V2-J4-C'],
@@ -212,7 +212,7 @@ test('authored insights form legal four-tier builds across all methods with froz
   assert.deepEqual([...covered].sort(), [...INSIGHT_IDS].sort());
 });
 
-test('seeded drafts can offer all six first-tier insights and all later shared choices', () => {
+test('seeded drafts can offer all seven first-tier insights and all later shared choices', () => {
   const reached = new Set();
 
   for (let seedIndex = 0; seedIndex < 256 && reached.size < INSIGHT_IDS.length; seedIndex++) {

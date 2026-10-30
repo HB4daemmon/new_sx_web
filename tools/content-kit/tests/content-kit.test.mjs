@@ -12,6 +12,8 @@ import {
   ARTIFACT_FUSION_RECIPES,
   ARTIFACT_FUSION_RULES,
   ARTIFACT_GAMBIT_RULES,
+  ARTIFACT_MIRROR_RULES,
+  ARTIFACT_MIRROR_UNIQUE_GROUP,
   ARTIFACT_RARITIES,
   ARTIFACT_RESONANCE_RULES,
   CORE_ARTIFACT_RULES,
@@ -138,7 +140,7 @@ function makeEntities() {
     pools: { common_artifact: { kind: 'artifact', rarity: 'common' } },
     calibration: { damage_and_status_values: 'fixture' },
       insights: SHARED_INSIGHT_IDS.map((id) => {
-        const [, tier, branch] = id.match(/^V2-J([1-4])-([A-F])$/)
+      const [, tier, branch] = id.match(/^V2-J([1-4])-([A-G])$/)
         return {
           id,
           tier: Number(tier),
@@ -207,16 +209,19 @@ function makeEntities() {
         ? 'overflow_outlet'
         : ARTIFACT_FUSION_RECIPES[entry.id]
           ? `fusion_${ARTIFACT_FUSION_RECIPES[entry.id].inputs.join('_')}`
-          : null,
+          : ARTIFACT_MIRROR_RULES[entry.id]
+            ? ARTIFACT_MIRROR_UNIQUE_GROUP
+            : null,
       equipment_role: ARTIFACT_EQUIPMENT_ROLES[entry.id],
       ...(CORE_ARTIFACT_RULES[entry.id] ? { core_rule: structuredClone(CORE_ARTIFACT_RULES[entry.id]) } : {}),
       ...(ARTIFACT_GAMBIT_RULES[entry.id] ? { gambit_rule: structuredClone(ARTIFACT_GAMBIT_RULES[entry.id]) } : {}),
+      ...(ARTIFACT_MIRROR_RULES[entry.id] ? { mirror_rule: structuredClone(ARTIFACT_MIRROR_RULES[entry.id]) } : {}),
       ...(ARTIFACT_FUSION_RECIPES[entry.id] ? {
         fusion_recipe: structuredClone(ARTIFACT_FUSION_RECIPES[entry.id]),
         fusion_rule: structuredClone(ARTIFACT_FUSION_RULES[entry.id]),
       } : {}),
       attributes: { flat: baseline.flat, percent: baseline.percent },
-      effects: ARTIFACT_FUSION_RECIPES[entry.id]
+      effects: ARTIFACT_FUSION_RECIPES[entry.id] || ARTIFACT_MIRROR_RULES[entry.id]
         ? []
         : ARTIFACT_RESONANCE_RULES[entry.id]
         ? [resonanceEffect(entry.id, ARTIFACT_RESONANCE_RULES[entry.id])]
@@ -320,7 +325,7 @@ async function writeFixture() {
     files: EXPECTED_MANIFEST_ENTRIES,
     counts: {
       methods: 10,
-      artifacts: 46,
+      artifacts: 47,
       ordinary_events: 36,
       core_events: 16,
       storylines: 6,
@@ -413,6 +418,41 @@ test('fusion artifacts require unique known recipes and stay out of random pools
   await rewriteEntity(fixture, 'RL05', ordinaryLegendary)
   report = await reportFor(fixture)
   assert.ok(report.errors.some((error) => error.code === 'artifact-acquisition-pool'))
+})
+
+test('the neighbor awakening mirror rule belongs only to RL08 and has one exact kind', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  let report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map((error) => `${error.code}:${error.message}`).join('\n'))
+  assert.deepEqual(fixture.entities.get('RL08').mirror_rule, { kind: 'neighbor_awakening' })
+  assert.equal(fixture.entities.get('RL08').unique_group, ARTIFACT_MIRROR_UNIQUE_GROUP)
+  assert.deepEqual(fixture.entities.get('RL08').acquisition.pools, ['legendary_artifact'])
+
+  const unauthorized = structuredClone(fixture.entities.get('RL07'))
+  unauthorized.mirror_rule = { kind: 'neighbor_awakening' }
+  await rewriteEntity(fixture, 'RL07', unauthorized)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'artifact-mirror-owner'))
+
+  const mirror = structuredClone(fixture.entities.get('RL08'))
+  mirror.mirror_rule = { kind: 'copy_everything', include_attributes: true }
+  await rewriteEntity(fixture, 'RL08', mirror)
+  report = await reportFor(fixture)
+  const invalidCodes = new Set(report.errors.map((error) => error.code))
+  assert.ok(invalidCodes.has('artifact-mirror-kind'))
+  assert.ok(invalidCodes.has('artifact-mirror-fields'))
+
+  delete mirror.mirror_rule
+  await rewriteEntity(fixture, 'RL08', mirror)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'artifact-mirror-rule'))
+
+  mirror.mirror_rule = structuredClone(ARTIFACT_MIRROR_RULES.RL08)
+  mirror.unique_group = null
+  await rewriteEntity(fixture, 'RL08', mirror)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some((error) => error.code === 'artifact-mirror-unique-group'))
 })
 
 test('event commitment schema is bounded and cannot be combined with an encounter', async (t) => {

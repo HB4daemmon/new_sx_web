@@ -12,6 +12,7 @@ import {
   localizeStatus,
   localizeTier,
   localizeVisibleText,
+  talentSourceReference,
 } from '../build/shanhai/localization.js';
 
 const loaded = await loadContent();
@@ -29,6 +30,9 @@ test('localizes known combat vocabulary, branches, tiers, statuses, and source I
   assert.equal(localizeBranch('B'), '乙');
   assert.equal(localizeSourceId('RKF01-BASIC-DAMAGE'), '功法招式');
   assert.equal(localizeSourceId('RULES-RAGE-SETTLE'), '轮尾回怒');
+  assert.deepEqual(talentSourceReference('V2-J1-G-BUILD'), { methodId: '', talentId: 'V2-J1-G' });
+  assert.equal(localizeSourceId('V2-J1-G-BUILD'), '山海共悟');
+  assert.equal(localizeVisibleText('V2-J1-G-BUILD'), '山海共悟');
 });
 
 test('replaces unknown English errors and contribution reasons with safe Chinese fallbacks', () => {
