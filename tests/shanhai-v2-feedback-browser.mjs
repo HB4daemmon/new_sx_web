@@ -167,6 +167,9 @@ async function installBattleFixture(page) {
           { id: 'TEST-SECOND', name: '次要伤害', triggers: 1, damage: 10, healing: 0, shield: 50, absorbed: 2, rage: 0 },
           { id: 'TEST-THIRD', name: '第三伤害', triggers: 1, damage: 2, healing: 0, shield: 10, absorbed: 0, rage: 0 },
           { id: 'TEST-SUPPORT', name: '纯治疗护盾', triggers: 4, damage: 0, healing: 900, shield: 500, absorbed: 0, rage: 0 },
+          { id: 'TEST-HEAL-SECOND', name: '次要治疗', triggers: 2, damage: 0, healing: 300, shield: 0, absorbed: 0, rage: 0 },
+          { id: 'TEST-HEAL-THIRD', name: '第三治疗', triggers: 1, damage: 0, healing: 100, shield: 0, absorbed: 0, rage: 0 },
+          { id: 'TEST-HEAL-FOURTH', name: '第四治疗', triggers: 1, damage: 0, healing: 25, shield: 0, absorbed: 0, rage: 0 },
         ];
         return {
           outcome: 'player',
@@ -355,7 +358,25 @@ async function run() {
       elements.map(element => Number(element.getAttribute('aria-valuenow'))));
     assert.deepEqual(percentValues, [68, 27, 5],
       '伤害份额只按账本伤害计算，不得再加吸收、治疗或护盾');
-    const shields = page.locator('.battle-shield-ranking');
+    await page.locator('[data-action="battle-details"][data-tab="result"]').click();
+    const resultDetail = page.locator('.battle-detail-dialog[role="dialog"]');
+    await resultDetail.waitFor({ state: 'visible' });
+    const healing = resultDetail.locator('.battle-healing-ranking');
+    assert.ok(await healing.isVisible());
+    assert.equal(await healing.getAttribute('open'), null, '治疗明细应默认折叠');
+    await healing.locator('summary').click();
+    const healingText = await healing.innerText();
+    assert.equal(await healing.locator('[role="group"]').getAttribute('aria-label'), '有效治疗来源排行');
+    assert.match(healingText, /有效治疗 900/);
+    assert.match(healingText, /有效治疗 300/);
+    assert.match(healingText, /有效治疗 100/);
+    assert.doesNotMatch(healingText, /第四治疗|有效治疗 25/,
+      '治疗榜只展示实际治疗前三项，不混入第四名');
+    const healingPercentages = await healing.locator('.battle-damage-meter').evaluateAll(elements =>
+      elements.map(element => Number(element.getAttribute('aria-valuenow'))));
+    assert.deepEqual(healingPercentages, [68, 23, 8],
+      '治疗份额只按有效治疗计算，不与伤害或护盾合并');
+    const shields = resultDetail.locator('.battle-shield-ranking');
     await shields.locator('summary').click();
     const shieldText = await shields.innerText();
     assert.match(shieldText, /纯治疗护盾/);
@@ -373,7 +394,7 @@ async function run() {
         viewport: window.innerWidth,
         page: document.documentElement.scrollWidth,
       }));
-      assert.ok(layout.page <= layout.viewport + 1, `护盾榜横向溢出：${JSON.stringify(layout)}`);
+      assert.ok(layout.page <= layout.viewport + 1, `护盾与治疗榜横向溢出：${JSON.stringify(layout)}`);
     }
     assert.deepEqual(errors, [], `浏览器运行时报错：${errors.join(' | ')}`);
     console.log('ok - V2 多帧战斗反馈、伤害榜与 360/390/430/1440 宽度减少动态效果检查');

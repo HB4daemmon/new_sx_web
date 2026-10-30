@@ -21,7 +21,12 @@ export function equippedArtifactStacks(state: RunState): ArtifactStack[] {
   const ids = state.equipment?.slots ?? [];
   return ids.flatMap(id => {
     const stack = state.artifacts.find(item => item.id === id);
-    return stack ? [{ id, stacks: stack.stacks }] : [];
+    return stack ? [{
+      id,
+      stacks: stack.stacks,
+      ...(stack.inscription ? { inscription: stack.inscription } : {}),
+      ...(stack.devoured !== undefined ? { devoured: stack.devoured } : {}),
+    }] : [];
   });
 }
 

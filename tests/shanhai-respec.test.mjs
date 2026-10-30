@@ -66,7 +66,7 @@ function resolveCurrentNode(game) {
     else if (game.state.phase === 'event') {
       const event = content.byId.get(game.node.id);
       const option = event.options.find(candidate =>
-        !candidate.encounter && game.optionAvailability(candidate).available) ??
+        !candidate.encounter && !candidate.sacrifice_rule && game.optionAvailability(candidate).available) ??
         event.options.find(candidate => game.optionAvailability(candidate).available);
       assert.ok(option, `expected ${event.id} to expose an available option`);
       game.dispatch({ type: 'event', id: option.id });

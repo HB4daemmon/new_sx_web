@@ -4,8 +4,8 @@ kind: artifact
 id: RR08
 name: 血勇佩
 status: design_target
-summary: 最大气血 +30；敌方行动造成气血损失后额外获得10点怒气；支援定位
-description: 敌方行动造成气血损失时，额外获得10点怒气；每次敌方行动最多触发一次。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
+summary: 最大气血 +30；受创回怒并储存血勇，下一次有效出手反击；支援定位
+description: 敌方主动作实际扣除自身气血后，额外获得10点怒气，并将本次实际损失累积为血勇，最多储至自身最大气血的10%。下个对敌方造成实际气血伤害的普攻或怒技结束时，消耗全部血勇追加一次等量、不可暴击的派生反击；本场最多反击一次。纯护盾吸收、中毒、燃烧、反震、自伤与镜映伤害不回怒也不储血勇。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [max_hp, rage_gain, enemy_action, rare]
 source:
   basis: original
@@ -27,17 +27,14 @@ effects:
     target: self
     params:
       amount: 10
-      timing: round_end
-      requires_actual_hp_damage: true
-      shield_only_does_not_trigger: true
-      source: enemy_main_action_and_derived_damage
-      one_per_enemy_action: true
-      excludes: [poison, burn, reflect, self_damage, event_damage]
+      storage_cap_hp_ratio: 0.1
+      retaliation_ratio: 1
+      max_retaliations_per_battle: 1
     requires: [positive_actual_hp_damage]
     consumes: []
     replaces: []
     limit: {scope: enemy_action, count: 1}
-    text: 敌方一次行动造成气血损失后，额外获得10点怒气；同次行动最多触发一次。伤害被护盾完全吸收，或来自中毒、燃烧、反击、事件扣血时不触发。
+    text: 敌方主动作真实扣除气血后，额外获得10点怒气，并将该动作的实际气血损失储为血勇，最多为自身最大气血的10%；镜映拷贝、护盾吸收、中毒、燃烧、反震、自伤和事件扣血不计。下个造成敌方实际气血损伤的主动作结束时，消耗全部血勇追加一段等量不可暴击派生反击，每场战斗至多一次。
 equipment_role: support
 acquisition:
   pools: [rare_artifact]

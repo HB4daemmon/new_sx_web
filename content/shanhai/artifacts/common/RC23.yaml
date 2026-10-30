@@ -27,14 +27,14 @@ effects:
     target: self
     params:
       amount: 5
-      timing: round_end
+      timing: action_end_or_round_end
       completed_action_only: true
       fixed_return: true
     requires: []
     consumes: []
     replaces: []
     limit: {scope: action, count: 1}
-    text: 每层在怒技完成时固定返还5点怒气，在本轮结束时结算；与怒技消耗的怒气无关，普攻不触发。
+    text: 每层在怒技完成时固定返还5点怒气；本式回怒足以充满怒气时可立即连斩，否则在轮末结算。与怒技消耗无关，普攻不触发，单回合至多三式。
 equipment_role: support
 awakening:
   at_stacks: 3

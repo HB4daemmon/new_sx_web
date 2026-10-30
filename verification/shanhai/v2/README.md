@@ -5,6 +5,19 @@ The second overhaul uses `buildVersion: 5` and the `-v2-overhaul` storage
 namespace. Older saves are left untouched. V1 remains at tag `V1` (`2f08f08`);
 these reports do not replace its evidence or establish player win rates.
 
+The dated observations below record earlier V2 iterations. The latest
+multi-policy holdout and its content fingerprint are in
+`difficulty/v2-final-holdout-20261030.json` and its accompanying report;
+do not combine it with earlier seed cohorts or fixed encounter boards.
+
+The final content passes 471 runtime tests, 48 content-kit tests and the
+32-page generated-content check. The independent paired-policy sample has
+four-act cumulative passage of 76.7% / 66.3% / 55.3% / 42.3%; it is not a
+measurement of human players, and the last two values remain above target.
+The final browser journey used the handpicked `v2-functional-RKF01-1` seed:
+desktop completed 45 nodes and the mobile run completed all 11 first-act nodes,
+with no reported page errors. The common browser suite passed 13 checks.
+
 ## Functional Checks
 
 - `npm test`: 413 tests passed, including five-slot ordering and replay,
@@ -27,13 +40,12 @@ these reports do not replace its evidence or establish player win rates.
 ## Observed Samples
 
 `simulation.json` contains 25 real game runs, five per starting method, with a
-deterministic route and equipment heuristic. The current sample is **10 wins,
-15 losses and no errors**. Each method won 2/5. All losses occurred in act 1
-(steps 2, 6, 8 and 9); cumulative passage of each of the four acts was 10/25.
-The sample uses paired seed names and a seed-dependent route preference: it is
-not a sample of independent players or evidence of balanced difficulty.
+deterministic route and equipment heuristic. The sample uses paired seed names
+and a seed-dependent route preference: it is not a sample of independent players
+or evidence of balanced difficulty. The file is regenerated after balancing;
+the earlier 10-win/15-loss result belongs to a prior content version.
 
-The current build was also measured with 20 paired seeds per starting method:
+An earlier build was also measured with 20 paired seeds per starting method:
 **74 wins in 100 runs**, cumulative act passage **78 / 77 / 77 / 74**, and 57
 winning final battles of three rounds or fewer. Details and the content hash
 are in `simulation-100-current.json`. The 25-run sample is a subset and must
@@ -48,11 +60,11 @@ measurement of this build or 100 independent players. Among the
 72 wins, 52 final battles lasted three rounds or fewer. This reinforces the
 need to inspect late-game pressure; it does not prove the overall player rate.
 
-The calibration report contains 850 fixed-reference encounters: **825 player
-wins and 25 enemy wins**. Its 25 full runs use the same seed cohort as the
-simulation and must not be counted as another 25 independent runs. The current
-reference board uses five equipment slots, so its outcomes are not a direct
-comparison with earlier four-slot reference reports.
+The earlier calibration recorded 850 fixed-reference encounters and 825 player
+wins. The regenerated board now scales its five reference artifacts by
+cultivation tier; its input hash and layer rule are recorded in the report, so
+its outcomes are not directly comparable with that earlier board. Its 25 full
+runs use the same seed cohort as the simulation and must not be counted twice.
 
 `vow-comparison.json` compares 15 seed pairs under the current build. The vow
 was offered and selected in all pairs: the baseline won 12/15 and the forced
@@ -78,9 +90,9 @@ multi-policy tests plus human play are still needed to evaluate pressure,
 build diversity, fun and replay appeal. Damage contributions record actual
 credited output, not the counterfactual gain from equipping an item.
 
-The mirror currently copies only eligible action-end awakenings of the full-stack
-right neighbor; universal trigger copying, inscriptions and one-HP sacrifice remain
-proposals. Old experimental saves are not guaranteed to load after the content
-pool changed; use a new run. Old reaction and resonance
-experiments are documented in `docs/shanhai/rework/V2_EXPERIMENT.md`; do not
-combine their samples with this version.
+The current mirror copies eligible triggered outputs of its immediate right
+neighbor, including eligible non-awakening outputs. Inscriptions and the
+one-HP sacrifice are implemented; static attributes, travel effects and copied
+secondary triggers are not mirrored. The battle comparison is one same-seed
+counterfactual, not an estimate across opponents and random seeds. Old
+experimental saves are not guaranteed to load after the content pool changed.

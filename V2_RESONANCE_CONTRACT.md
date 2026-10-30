@@ -1,5 +1,8 @@
 # V2 Method / Artifact Resonance
 
+> Historical iteration contract; current slots, save version and delivery rules
+> are documented in `docs/shanhai/rework/V2_EXPERIMENT.md` and `AGENTS.md`.
+
 Implementation contract, 2026-10-27. Experimental branch only. V1/main unchanged.
 This builds on V2_JOURNEY_BUILD_CONTRACT.md, not the unimplemented synergy draft.
 

@@ -1,0 +1,62 @@
+schema_version: 1
+content_version: shanhai-content-0.2
+kind: event
+id: RE037
+name: 三法献祭
+status: design_target
+summary: 魔修传下三条以永久代价换取强力的斗法法则；可择一立誓，也可不取离开。
+description: 石壁将三条法则的代价与收益逐项刻明，立誓后直到本局终结都不可撤销。
+tags: [ordinary, sacrifice, permanent_rule, act1, act2, act3, act4]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创永久献祭规则；不追加节点或延迟奖励。
+balance:
+  target:
+    gross_U: [0.0, 3.0]
+    J: null
+  measured: null
+event_type: ordinary
+acts: [1, 2, 3, 4]
+scene: 石壁刻着三条魔门法则，每条都明示永久代价与斗法所得。你可以择一立誓，也可以合上石壁，不取任何法则。
+options:
+  - id: RE037-A
+    label: 立誓·碎丹化婴
+    quick: 永久代价：本局气血上限与当前气血立即锁为 1，任何治疗与气血上限变化都不能突破。收益：记录选择时原气血上限，每战开场获得其 250% 的可受击护盾，并使攻击提高 80%；护盾破尽后仍只剩 1 点气血，受击可立刻身死。
+    requirements: []
+    costs: []
+    rewards: []
+    sacrifice_rule: shattered_core
+    outcome: 你碎丹化婴，以一线气血换得护身灵罡与猛烈攻势；法则将伴你直到此局终结。
+    story_echo: 你立下碎丹化婴之誓，护盾与攻势随身，气血永锁一线。
+  - id: RE037-B
+    label: 立誓·盲眼剑圣
+    quick: 永久代价：本局无法暴击。收益：每次普攻或怒技的直接、派生命中，按该次原暴击率（限 0%–100%）附加相当于基础直接伤害 3 倍该比例的真实伤害；真实伤害无视防御但仍由护盾吸收，中毒、燃烧与反伤不转化。
+    requirements: []
+    costs: []
+    rewards: []
+    sacrifice_rule: blind_sword
+    outcome: 你蒙眼立下剑誓，暴击化作真实伤害；法则将伴你直到此局终结。
+    story_echo: 你立下盲眼剑圣之誓，舍弃暴击，令原有暴击率化作无视防御的剑意。
+  - id: RE037-C
+    label: 立誓·断普连诀
+    quick: 永久代价：本局永不执行普攻，强制普攻也不能破例。收益：每回合额外获得 80 怒气；只有达到当下真实怒气上限才施放怒技，不足时蓄气等待，怒技仍照常消耗怒气且最多连斩三式。
+    requirements: []
+    costs: []
+    rewards: []
+    sacrifice_rule: endless_chain
+    outcome: 你立下断普连诀之誓，封住普攻，以怒气直抵绝技；法则将伴你直到此局终结。
+    story_echo: 你立下断普连诀之誓，不再普攻，蓄满怒气后才出绝技。
+  - id: RE037-D
+    label: 合上石壁
+    quick: 不立誓，不付代价，不取得任何法则，带着原有行装离开。
+    requirements: []
+    costs: []
+    rewards: []
+    outcome: 你合上石壁，没有立誓，也没有取走任何法则。
+    story_echo: 你合上石壁，三条法则仍留在原处，继续踏上原本的路。
+settlement:
+  once: true
+  internal_battle_package: false
+  travel_triggers: 1
+  fallback: coins

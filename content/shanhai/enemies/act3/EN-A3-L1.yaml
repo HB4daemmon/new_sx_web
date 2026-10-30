@@ -28,9 +28,9 @@ artifacts:
   - {id: RC20, stacks: 2}
   - {id: RR05, stacks: 1}
 stats:
-  attack: 96
-  defense: 73
-  max_hp: 592
+  attack: 206.4
+  defense: 98.55
+  max_hp: 1272.8
   crit_rate: 0.12
   speed: 13
 pressure: [攻势渐强, 多段]

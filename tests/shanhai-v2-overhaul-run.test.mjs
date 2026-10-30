@@ -103,32 +103,41 @@ function assertInvalidCommandIsAtomic(game, command, pattern) {
   assert.deepEqual(game.state, before);
 }
 
-test('player companion follows acquisition order, changes with main method, and is owner-validated when frozen', () => {
+test('all player companions follow acquisition order, change with the main method, and are owner-validated when frozen', () => {
   const game = make('companion-order');
-  assert.equal(game.player.companion, undefined);
+  assert.deepEqual(game.player.companions, []);
   game.state.ownedMethods.push('RKF02', 'RKF03');
   game.state.talents.RKF02 = [];
   game.state.talents.RKF03 = [];
-  assert.equal(game.player.companion, 'RKF02');
+  assert.deepEqual(game.player.companions, ['RKF02', 'RKF03']);
 
   game.state.method = 'RKF02';
-  assert.equal(game.player.companion, 'RKF01');
+  assert.deepEqual(game.player.companions, ['RKF01', 'RKF03']);
   prepareNode(game, 1, 'L');
   game.dispatch({ type: 'fight' });
   assert.equal(game.state.battleInput.player.method, 'RKF02');
-  assert.equal(game.state.battleInput.player.companion, 'RKF01');
-  assert.equal(game.state.battleInput.enemy.companion, undefined);
+  assert.deepEqual(game.state.battleInput.player.companions, ['RKF01', 'RKF03']);
+  assert.equal(game.state.battleInput.enemy.companions, undefined);
   assert.equal(game.state.battleInput.enemy.thunderChallenge, undefined);
 
   const saved = serializeRun(game);
-  assert.equal(parseRunSave(content, saved).battleInput.player.companion, 'RKF01');
-  for (const companion of ['RKF03', 'RKF04']) {
+  assert.deepEqual(parseRunSave(content, saved).battleInput.player.companions, ['RKF01', 'RKF03']);
+  for (const companions of [
+    ['RKF01'],
+    ['RKF03', 'RKF01'],
+    ['RKF01', 'RKF04'],
+    ['RKF01', 'RKF03', 'RKF03'],
+    [null],
+  ]) {
     const corrupt = JSON.parse(saved);
-    corrupt.state.battleInput.player.companion = companion;
+    corrupt.state.battleInput.player.companions = companions;
     assert.throws(() => parseRunSave(content, JSON.stringify(corrupt)), /companion/i);
   }
+  const legacyCompanion = JSON.parse(saved);
+  legacyCompanion.state.battleInput.player.companion = 'RKF01';
+  assert.throws(() => parseRunSave(content, JSON.stringify(legacyCompanion)), /companion/i);
   const enemyCompanion = JSON.parse(saved);
-  enemyCompanion.state.battleInput.enemy.companion = 'RKF01';
+  enemyCompanion.state.battleInput.enemy.companions = ['RKF01'];
   assert.throws(() => serializeRun(enemyCompanion.state), /companion/i);
   assert.throws(() => parseRunSave(content, JSON.stringify(enemyCompanion)), /companion/i);
 });
@@ -421,10 +430,10 @@ test('battle cue validation accepts and binds V2 rage-chain and companion source
 
   const player = {
     name: '玩家', method: 'RKF01', n: 0, talents: [], artifacts: [], baseStats: byId.get('RKF01').stats,
-    hp: 100, preparation: 0,
+    hp: 100, preparation: 0, companions: [],
   };
   const enemy = {
-    name: '敌人', method: 'RKF01', companion: 'RKF02', n: 0, talents: [], artifacts: [],
+    name: '敌人', method: 'RKF01', companions: ['RKF02'], n: 0, talents: [], artifacts: [],
     baseStats: byId.get('RKF01').stats,
   };
   registerCombatWorker({

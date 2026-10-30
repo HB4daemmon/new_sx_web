@@ -1,0 +1,331 @@
+{
+  "description": "Paired deterministic policy comparisons during V2 tuning; not independent human-player win rates.",
+  "finalBoss": {
+    "before": {
+      "sourceFingerprint": "155ac686b0df7e9927647d31f44482e932898e32d88bcbaba4949ac1f32f1e70",
+      "simulationFingerprint": "155ac686b0df7e9927647d31f44482e932898e32d88bcbaba4949ac1f32f1e70",
+      "seedPrefix": "v2-final-holdout-20261030",
+      "pairedSeeds": 20,
+      "totalRuns": 300,
+      "wins": 128,
+      "rows": [
+        {
+          "strategy": "stable",
+          "runs": 100,
+          "cumulativeActClears": {
+            "act1": 74,
+            "act2": 56,
+            "act3": 50,
+            "act4": 39
+          },
+          "wins": 39,
+          "errors": 0
+        },
+        {
+          "strategy": "elite_hunt",
+          "runs": 100,
+          "cumulativeActClears": {
+            "act1": 77,
+            "act2": 61,
+            "act3": 50,
+            "act4": 32
+          },
+          "wins": 32,
+          "errors": 0
+        },
+        {
+          "strategy": "service_lean",
+          "runs": 100,
+          "cumulativeActClears": {
+            "act1": 86,
+            "act2": 75,
+            "act3": 70,
+            "act4": 57
+          },
+          "wins": 57,
+          "errors": 0
+        }
+      ],
+      "deaths": {
+        "2:EN-A2-B2": 12,
+        "2:EN-A2-C4": 15,
+        "4:EN-A4-C4": 16,
+        "1:EN-A1-L1": 28,
+        "1:EN-A1-C3": 2,
+        "4:EN-A4-L2": 3,
+        "2:EN-A2-C2": 12,
+        "1:EN-A1-C4": 8,
+        "3:EN-A3-C2": 8,
+        "1:EN-A1-C2": 2,
+        "4:EN-A4-B1": 9,
+        "4:EN-A4-B2": 9,
+        "1:EN-A1-L2": 9,
+        "3:EN-A3-C1": 3,
+        "3:EN-A3-L1": 4,
+        "1:EN-A1-C1": 7,
+        "4:EN-A4-C1": 5,
+        "3:EN-A3-C4": 6,
+        "1:EN-A1-B1": 7,
+        "2:EN-A2-C1": 2,
+        "2:EN-A2-B1": 2,
+        "3:EN-A3-B2": 1,
+        "2:EN-A2-C3": 2
+      },
+      "finalBattles": 128,
+      "finalEnemyWins": 0,
+      "finalMeanRounds": 1.7265625,
+      "finalWinningRounds": {
+        "1": 47,
+        "2": 72,
+        "3": 6,
+        "4": 3
+      }
+    },
+    "proposed": {
+      "sourceFingerprint": "155ac686b0df7e9927647d31f44482e932898e32d88bcbaba4949ac1f32f1e70",
+      "simulationFingerprint": "271b8d1633181a8556f02c2186d08c66417fb40601b76e2924c3db44ba57d12d",
+      "seedPrefix": "v2-final-holdout-20261030",
+      "pairedSeeds": 20,
+      "totalRuns": 300,
+      "wins": 125,
+      "rows": [
+        {
+          "strategy": "stable",
+          "runs": 100,
+          "cumulativeActClears": {
+            "act1": 74,
+            "act2": 56,
+            "act3": 50,
+            "act4": 39
+          },
+          "wins": 39,
+          "errors": 0
+        },
+        {
+          "strategy": "elite_hunt",
+          "runs": 100,
+          "cumulativeActClears": {
+            "act1": 77,
+            "act2": 61,
+            "act3": 50,
+            "act4": 32
+          },
+          "wins": 30,
+          "errors": 0
+        },
+        {
+          "strategy": "service_lean",
+          "runs": 100,
+          "cumulativeActClears": {
+            "act1": 86,
+            "act2": 75,
+            "act3": 70,
+            "act4": 57
+          },
+          "wins": 56,
+          "errors": 0
+        }
+      ],
+      "deaths": {
+        "2:EN-A2-B2": 12,
+        "2:EN-A2-C4": 15,
+        "4:EN-A4-C4": 16,
+        "1:EN-A1-L1": 28,
+        "1:EN-A1-C3": 2,
+        "4:EN-A4-L2": 3,
+        "2:EN-A2-C2": 12,
+        "1:EN-A1-C4": 8,
+        "3:EN-A3-C2": 8,
+        "1:EN-A1-C2": 2,
+        "4:EN-A4-B1": 9,
+        "4:EN-A4-B2": 9,
+        "1:EN-A1-L2": 9,
+        "3:EN-A3-C1": 3,
+        "3:EN-A3-L1": 4,
+        "1:EN-A1-C1": 7,
+        "4:EN-A4-C1": 5,
+        "3:EN-A3-C4": 6,
+        "1:EN-A1-B1": 7,
+        "5:EN-F1": 3,
+        "2:EN-A2-C1": 2,
+        "2:EN-A2-B1": 2,
+        "3:EN-A3-B2": 1,
+        "2:EN-A2-C3": 2
+      },
+      "finalBattles": 128,
+      "finalEnemyWins": 3,
+      "finalMeanRounds": 2.8984375,
+      "finalWinningRounds": {
+        "1": 1,
+        "2": 46,
+        "3": 52,
+        "4": 18,
+        "5": 8
+      }
+    }
+  },
+  "act4EnemyC4": {
+    "before": {
+      "sourceFingerprint": "f05e98da75a98295dea8b3dd3701873858bf12cbdb9b22a60a08ce33257bf896",
+      "simulationFingerprint": "f05e98da75a98295dea8b3dd3701873858bf12cbdb9b22a60a08ce33257bf896",
+      "seedPrefix": "v2-stable-final-20261030",
+      "pairedSeeds": 20,
+      "totalRuns": 300,
+      "wins": 105,
+      "rows": [
+        {
+          "strategy": "stable",
+          "runs": 100,
+          "cumulativeActClears": {
+            "act1": 88,
+            "act2": 64,
+            "act3": 52,
+            "act4": 38
+          },
+          "wins": 38,
+          "errors": 0
+        },
+        {
+          "strategy": "elite_hunt",
+          "runs": 100,
+          "cumulativeActClears": {
+            "act1": 82,
+            "act2": 56,
+            "act3": 50,
+            "act4": 31
+          },
+          "wins": 29,
+          "errors": 0
+        },
+        {
+          "strategy": "service_lean",
+          "runs": 100,
+          "cumulativeActClears": {
+            "act1": 97,
+            "act2": 80,
+            "act3": 55,
+            "act4": 41
+          },
+          "wins": 38,
+          "errors": 0
+        }
+      ],
+      "deaths": {
+        "2:EN-A2-B2": 29,
+        "3:EN-A3-C4": 22,
+        "2:EN-A2-C4": 15,
+        "1:EN-A1-C4": 3,
+        "2:EN-A2-B1": 9,
+        "1:EN-A1-C2": 6,
+        "4:EN-A4-C4": 34,
+        "1:EN-A1-L2": 5,
+        "2:EN-A2-C2": 8,
+        "3:EN-A3-C2": 15,
+        "1:EN-A1-L1": 6,
+        "4:EN-A4-B1": 5,
+        "1:EN-A1-C1": 3,
+        "1:EN-A1-C3": 7,
+        "4:EN-A4-B2": 8,
+        "2:EN-A2-C3": 3,
+        "2:EN-A2-C1": 3,
+        "1:EN-A1-B1": 2,
+        "5:EN-F1": 5,
+        "1:EN-A1-B2": 1,
+        "3:EN-A3-C1": 3,
+        "3:EN-A3-B1": 3
+      },
+      "finalBattles": 110,
+      "finalEnemyWins": 5,
+      "finalMeanRounds": 3.118181818181818,
+      "finalWinningRounds": {
+        "2": 31,
+        "3": 53,
+        "4": 9,
+        "5": 6,
+        "6": 3,
+        "7": 3
+      }
+    },
+    "proposed": {
+      "sourceFingerprint": "47fd269a0781247172b57390bba3466d9a8f81c07f4adbc4d174344b7b002c74",
+      "simulationFingerprint": "47fd269a0781247172b57390bba3466d9a8f81c07f4adbc4d174344b7b002c74",
+      "seedPrefix": "v2-stable-final-20261030",
+      "pairedSeeds": 20,
+      "totalRuns": 300,
+      "wins": 108,
+      "rows": [
+        {
+          "strategy": "stable",
+          "runs": 100,
+          "cumulativeActClears": {
+            "act1": 88,
+            "act2": 64,
+            "act3": 52,
+            "act4": 39
+          },
+          "wins": 39,
+          "errors": 0
+        },
+        {
+          "strategy": "elite_hunt",
+          "runs": 100,
+          "cumulativeActClears": {
+            "act1": 82,
+            "act2": 56,
+            "act3": 50,
+            "act4": 32
+          },
+          "wins": 30,
+          "errors": 0
+        },
+        {
+          "strategy": "service_lean",
+          "runs": 100,
+          "cumulativeActClears": {
+            "act1": 97,
+            "act2": 80,
+            "act3": 55,
+            "act4": 42
+          },
+          "wins": 39,
+          "errors": 0
+        }
+      ],
+      "deaths": {
+        "2:EN-A2-B2": 29,
+        "3:EN-A3-C4": 22,
+        "2:EN-A2-C4": 15,
+        "1:EN-A1-C4": 3,
+        "2:EN-A2-B1": 9,
+        "1:EN-A1-C2": 6,
+        "4:EN-A4-C4": 29,
+        "4:EN-A4-B1": 6,
+        "1:EN-A1-L2": 5,
+        "2:EN-A2-C2": 8,
+        "3:EN-A3-C2": 15,
+        "1:EN-A1-L1": 6,
+        "1:EN-A1-C1": 3,
+        "1:EN-A1-C3": 7,
+        "4:EN-A4-B2": 9,
+        "2:EN-A2-C3": 3,
+        "2:EN-A2-C1": 3,
+        "1:EN-A1-B1": 2,
+        "5:EN-F1": 5,
+        "1:EN-A1-B2": 1,
+        "3:EN-A3-C1": 3,
+        "3:EN-A3-B1": 3
+      },
+      "finalBattles": 113,
+      "finalEnemyWins": 5,
+      "finalMeanRounds": 3.1327433628318584,
+      "finalWinningRounds": {
+        "2": 31,
+        "3": 55,
+        "4": 10,
+        "5": 6,
+        "6": 3,
+        "7": 3
+      }
+    }
+  }
+}

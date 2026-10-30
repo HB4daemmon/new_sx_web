@@ -704,7 +704,7 @@ function renderIndex(report) {
     '| --- | ---: | --- |',
     `| 功法 | ${counts.methods ?? methods.length} 门 / ${talentCount} 专属天赋 + ${insightCount} 共享突破天赋 | ${link('功法阅读入口', './methods/RKF01.md')} |`,
     `| 法宝 | ${counts.artifacts ?? artifacts.length} 件 / 3 页 | ${link('法宝阅读入口', './artifacts/COMMON.md')} |`,
-    `| 事件 | ${ordinaryEvents.length || '36'} 普通 / ${coreEvents.length || '16'} 核心 | ${link('事件阅读入口', './events/ACT1.md')} |`,
+    `| 事件 | ${ordinaryEvents.length || '37'} 普通 / ${coreEvents.length || '16'} 核心 | ${link('事件阅读入口', './events/ACT1.md')} |`,
     `| 故事线 | ${counts.storylines ?? storylines.length} 条人物线 + 4 项独立核心 | ${link('人物线阅读入口', './storylines/RS01.md')} |`,
     `| 敌人 | ${actEnemies.length || '32'} 套幕敌人 + ${finalEnemies.length || '2'} 套终战 | ${link('敌人阅读入口', './enemies/ACT1.md')} |`,
     `| 幕结构 | ${counts.acts ?? acts.length} 幕 | ${link('幕结构阅读入口', './ACTS.md')} |`,
@@ -725,7 +725,7 @@ function renderIndex(report) {
     '',
     ...artifactLinks.map((entry) => `- ${entry}`),
     '',
-    `### 事件（4页；${ordinaryEvents.length || 36}普通 / ${coreEvents.length || 16}核心）`,
+    `### 事件（4页；${ordinaryEvents.length || 37}普通 / ${coreEvents.length || 16}核心）`,
     '',
     ...eventLinks.map((entry) => `- ${entry}`),
     '',
@@ -1039,7 +1039,10 @@ function renderArtifacts(artifacts, rarity, context) {
       lines.push(`- 融合规则：${fusionText ?? `未识别融合规则 ${line(artifact.fusion_rule?.kind)}`}`)
     }
     if (artifact.mirror_rule?.kind === 'neighbor_awakening') {
-      lines.push('- 镜映规则：只复制紧邻右侧已装备且满层法宝的普攻/怒技结束型觉醒输出一次，右侧法宝照常触发；不复制属性、行旅、核心、融合或旧式事件型觉醒。')
+      lines.push('- 镜映规则：镜器先复制紧邻右侧已装备法宝本次触发中实际生效的伤害、治疗、护盾、怒气和状态输出，右侧法宝仍按正常条件触发；无需满层，若被镜映的输出来自觉醒，觉醒仍须满足自身条件。不复制基础属性、静态数值/规则改写、行旅、消耗本身或镜映产生的次级触发；右侧未装备或本次没有可触发的此类输出时无效。镜器自身的双生/疾行铭刻可作用于镜映，右侧铭刻不转移。')
+    }
+    if (artifact.devour_rule?.kind === 'stack_consumption_damage') {
+      lines.push(`- 吞噬成长（仅装备时生效）：每吞噬一件其他已持有法宝整栈，独立伤害乘区乘以 ${scalarText(artifact.devour_rule.multiplier_per_stack)}；卸下后成长保留，重新装备恢复。倍率最高为 ${scalarText(artifact.devour_rule.maximum_multiplier)}；无主动战斗触发，铭刻不会生效。`)
     }
     if (artifact.awakening) {
       lines.push(`- 觉醒条件：集齐 ${scalarText(artifact.awakening.at_stacks)} 层；${line(artifact.awakening.name, context)}：${line(artifact.awakening.quick, context)}`)

@@ -4,8 +4,8 @@ kind: artifact
 id: RR10
 name: 引雷针
 status: design_target
-summary: 攻击 +8；直接攻击暴击后获得5点怒气，每次行动最多两次；支援定位
-description: 基础或追加直接攻击暴击后，额外获得5点怒气。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
+summary: 攻击 +8；直接暴击回怒；每次主动作第二次直接暴击引发不可暴击雷击；支援定位
+description: 每次有效直接攻击暴击后获得5点怒气，每次普攻或怒技最多两次；同一主动作第二次直接暴击时，再追加一段攻击0.45倍、不可暴击的派生雷击，可触发其他合法命中联动但不会再次触发引雷针。盲剑法则压制暴击时，本法宝不回怒也不引雷。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [attack, crit_rate, rage_gain, direct, rare]
 source:
   basis: original
@@ -27,16 +27,14 @@ effects:
     target: self
     params:
       amount: 5
-      timing: round_end
-      source: direct_attack
-      include: [base_direct, artifact_followup]
-      excludes: [poison, burn, reflect]
       per_action_cap: 2
+      lightning_on_crit: 2
+      lightning_attack_ratio: 0.45
     requires: [effective_direct_critical_hit]
     consumes: []
     replaces: []
     limit: {scope: action, count: 2}
-    text: 每次基础或追加直接攻击暴击后获得5点怒气；每次普攻或怒技最多触发两次，中毒、燃烧和反击不触发。
+    text: 每次有效直接攻击暴击后获得5点怒气，每次主动作最多两次；本次主动作第二次直接暴击时追加一段攻击0.45倍、不可暴击的派生雷击，可触发其他合法命中联动但不会再次触发引雷针。盲剑法则压制暴击时，本效果不回怒也不引雷。
 equipment_role: support
 acquisition:
   pools: [rare_artifact]

@@ -16,6 +16,13 @@ import {
 import { assertEventCheckResult, resolveEventCheck } from './event-checks.js';
 import { routeLayoutForAct } from './route-profiles.js';
 import {
+  DEVOURING_ARTIFACT_ID,
+  artifactDevourRule,
+  artifactDevouredCount,
+  devouredDamageMultiplier,
+  assertArtifactDevouredField,
+} from './artifact-growth.js';
+import {
   MAX_EQUIPMENT_SLOTS,
   artifactRole,
   autoEquipArtifact,
@@ -25,6 +32,7 @@ import {
 } from './equipment.js';
 import type {
   ArtifactStack,
+  ArtifactInscription,
   ArtifactRewardFamily,
   BattleFrame,
   BattleResult,
@@ -44,6 +52,7 @@ import type {
   RouteMapNode,
   ShopItem,
   Stats,
+  PermanentSacrificeRule,
 } from './types.js';
 
 /**
@@ -61,6 +70,17 @@ export interface ShanhaiCombatWorker {
     seed: string,
     options?: { roundLimit?: number; artifactAwakenings?: boolean },
   ): BattleResult;
+}
+
+export interface ArtifactDevourAvailability {
+  available: boolean;
+  reason: string;
+  devoured: number;
+  currentMultiplier: number;
+  nextMultiplier: number;
+  target?: ArtifactStack;
+  cauldronEquipped: boolean;
+  targetEquipped: boolean;
 }
 
 let combatWorker: ShanhaiCombatWorker | undefined;
@@ -92,6 +112,7 @@ const PHASES: readonly RunPhase[] = [
 ];
 
 const SHOP_KINDS = ['artifact', 'recovery', 'preparation', 'talent_reset'] as const;
+const ARTIFACT_INSCRIPTIONS: readonly ArtifactInscription[] = ['twin', 'leech', 'swift'];
 const METHOD_IDS = /^RKF\d\d$/;
 const ARTIFACT_IDS = /^(?:RC|RR|RL)\d\d$/;
 const ARTIFACT_REWARD_FAMILIES: readonly ArtifactRewardFamily[] = [
@@ -210,6 +231,27 @@ function finite(value: unknown): value is number {
 
 function integer(value: unknown): value is number {
   return Number.isInteger(value);
+}
+
+function isPermanentSacrificeRule(value: unknown): value is PermanentSacrificeRule {
+  if (!isObject(value) || typeof value.kind !== 'string') return false;
+  if (value.kind === 'shattered_core') {
+    return Object.keys(value).length === 2 && finite(value.originalMaxHp) && value.originalMaxHp > 0;
+  }
+  if (value.kind === 'blind_sword' || value.kind === 'endless_chain') {
+    return Object.keys(value).length === 1;
+  }
+  return false;
+}
+
+function sacrificeRuleKind(value: unknown): PermanentSacrificeRule['kind'] | undefined {
+  return value === 'shattered_core' || value === 'blind_sword' || value === 'endless_chain'
+    ? value
+    : undefined;
+}
+
+function isArtifactInscription(value: unknown): value is ArtifactInscription {
+  return typeof value === 'string' && ARTIFACT_INSCRIPTIONS.includes(value as ArtifactInscription);
 }
 
 function contentEntity(content: Content, id: string | undefined): Entity | undefined {
@@ -681,8 +723,15 @@ function snapshotEntry(state: RunStateInternals): RunState['nodeEntry'] {
   return {
     method: state.method,
     talents: clone(state.talents[state.method] ?? []),
-    artifacts: equippedArtifactStacks(state),
+    artifacts: equippedArtifactStacksWithInscription(state),
   };
+}
+
+function equippedArtifactStacksWithInscription(state: RunState): ArtifactStack[] {
+  return equippedArtifactStacks(state).map(stack => {
+    const owned = state.artifacts.find(candidate => candidate.id === stack.id);
+    return owned?.inscription ? { ...stack, inscription: owned.inscription } : stack;
+  });
 }
 
 function artifactCount(state: RunState, id: string): number {
@@ -941,6 +990,7 @@ export class ShanhaiGame {
       _actEliteChallengeUsed: false,
       _thunderChallenge: false,
       _thunderRewardCandidates: [],
+      _shopInscribed: false,
       _nodeEnemyByKey: {},
       _bossEnemyByAct: {},
       _travelSnapshots: [],
@@ -966,14 +1016,14 @@ export class ShanhaiGame {
 
   get player(): Loadout {
     const state = this.state as RunStateInternals;
-    const companion = state.ownedMethods.find(method => method !== state.method);
     return {
       name: state.name,
       method: state.method,
-      ...(companion ? { companion } : {}),
+      companions: state.ownedMethods.filter(method => method !== state.method),
       n: state.n,
       talents: clone(state.talents[state.method] ?? []),
-      artifacts: equippedArtifactStacks(state),
+      artifacts: equippedArtifactStacksWithInscription(state),
+      ...(state.permanentRule ? { permanentRule: clone(state.permanentRule) } : {}),
       baseStats: baseStats(this.content, state.n),
       hp: state.hp,
       preparation: state.preparation,
@@ -983,7 +1033,31 @@ export class ShanhaiGame {
   }
 
   equippedArtifacts(): ArtifactStack[] {
-    return clone(equippedArtifactStacks(this.state));
+    return clone(equippedArtifactStacksWithInscription(this.state));
+  }
+
+  inscriptionPrice(): number {
+    return Math.ceil((this.actContent.economy?.shop?.common_price ?? 40) * 0.5);
+  }
+
+  inscriptionOptions(): ArtifactInscription[] {
+    return [...ARTIFACT_INSCRIPTIONS];
+  }
+
+  inscriptionAvailability(
+    artifactId: string,
+    inscription: unknown,
+  ): { available: boolean; reason: string } {
+    if (this.state.phase !== 'shop') return { available: false, reason: 'not-shop' };
+    if (this.state._shopInscribed) return { available: false, reason: 'already-inscribed-this-shop' };
+    if (!isArtifactInscription(inscription)) return { available: false, reason: 'invalid-inscription' };
+    const artifact = this.state.artifacts.find(stack => stack.id === artifactId && stack.stacks > 0);
+    if (!artifact || artifactEntity(this.content, artifactId)?.kind !== 'artifact') {
+      return { available: false, reason: 'artifact-not-owned' };
+    }
+    if (artifact.inscription !== undefined) return { available: false, reason: 'already-inscribed' };
+    if (this.state.coins < this.inscriptionPrice()) return { available: false, reason: 'cannot-pay' };
+    return { available: true, reason: '' };
   }
 
   fusionStatus(): FusionStatus[] {
@@ -1003,6 +1077,35 @@ export class ShanhaiGame {
 
   canChangeEquipment(): boolean {
     return ['map', 'reward', 'shop', 'rest', 'transition'].includes(this.state.phase);
+  }
+
+  devourAvailability(targetId: string): ArtifactDevourAvailability {
+    const cauldron = this.state.artifacts.find(stack => stack.id === DEVOURING_ARTIFACT_ID);
+    const devoured = artifactDevouredCount(cauldron);
+    const rule = artifactDevourRule(this.content);
+    const currentMultiplier = devouredDamageMultiplier(rule, devoured);
+    const nextMultiplier = devoured < Number.MAX_SAFE_INTEGER
+      ? devouredDamageMultiplier(rule, devoured + 1)
+      : currentMultiplier;
+    const target = this.state.artifacts.find(stack => stack.id === targetId);
+    if (target) assertArtifactDevouredField(target, 'devour target');
+    const base = {
+      devoured,
+      currentMultiplier,
+      nextMultiplier,
+      ...(target ? { target: clone(target) } : {}),
+      cauldronEquipped: this.state.equipment.slots.includes(DEVOURING_ARTIFACT_ID),
+      targetEquipped: typeof targetId === 'string' && this.state.equipment.slots.includes(targetId),
+    };
+    if (!this.canChangeEquipment()) return { ...base, available: false, reason: 'equipment-locked' };
+    if (!cauldron || cauldron.stacks < 1) return { ...base, available: false, reason: 'cauldron-not-owned' };
+    if (typeof targetId !== 'string' || !targetId) return { ...base, available: false, reason: 'invalid-target' };
+    if (targetId === DEVOURING_ARTIFACT_ID) return { ...base, available: false, reason: 'cannot-devour-self' };
+    if (!target || target.stacks < 1) return { ...base, available: false, reason: 'target-not-owned' };
+    if (devoured >= Number.MAX_SAFE_INTEGER || nextMultiplier <= currentMultiplier) {
+      return { ...base, available: false, reason: 'growth-limit-reached' };
+    }
+    return { ...base, available: true, reason: '' };
   }
 
   canChallengeElite(): boolean {
@@ -1385,6 +1488,19 @@ export class ShanhaiGame {
         case 'reforge':
           this.reforge(command.source, command.target);
           break;
+        case 'inscribe':
+          if (Object.keys(command).length !== 3 || typeof command.artifact !== 'string' ||
+            !isArtifactInscription(command.inscription)) {
+            throw new Error('Invalid inscription command');
+          }
+          this.inscribe(command.artifact, command.inscription);
+          break;
+        case 'devour':
+          if (Object.keys(command).length !== 2 || typeof command.id !== 'string') {
+            throw new Error('Invalid artifact devour command');
+          }
+          this.devourArtifact(command.id);
+          break;
         case 'leave_shop':
           this.leaveShop();
           break;
@@ -1436,6 +1552,20 @@ export class ShanhaiGame {
       if (this.state.equipment.slots.length >= MAX_EQUIPMENT_SLOTS) throw new Error('Equipment slots are full');
       this.state.equipment.slots.push(id);
     }
+    this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
+  }
+
+  private devourArtifact(targetId: string): void {
+    const availability = this.devourAvailability(targetId);
+    if (!availability.available || !availability.target) {
+      throw new Error(`Artifact devour is unavailable: ${availability.reason}`);
+    }
+    const cauldron = this.state.artifacts.find(stack => stack.id === DEVOURING_ARTIFACT_ID);
+    if (!cauldron) throw new Error('Artifact devour cauldron is not owned');
+    cauldron.devoured = availability.devoured + 1;
+    removeArtifact(this.state, targetId, availability.target.stacks);
+    // Removing an equipped vitality artifact may lower the cap. This clamp is
+    // intentionally one-way; consuming equipment never restores HP.
     this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
   }
 
@@ -1670,7 +1800,10 @@ export class ShanhaiGame {
       state._eventOutcome = undefined;
       this.state.eventCheck = undefined;
       this.state.eventStoryEcho = undefined;
-      if (node.type === 'S') state._shopReforged = false;
+      if (node.type === 'S') {
+        state._shopReforged = false;
+        state._shopInscribed = false;
+      }
       this.state.eventOption = undefined;
       this.state.resultText = '';
       this.advanceCommitments('entered');
@@ -2373,6 +2506,12 @@ export class ShanhaiGame {
       return { available: false, reason: 'unknown-option' };
     }
     if (this.state.eventOption) return { available: false, reason: 'event-already-settled' };
+    if (option.sacrifice_rule !== undefined) {
+      if (event.id !== 'RE037' || !sacrificeRuleKind(option.sacrifice_rule)) {
+        return { available: false, reason: 'invalid-sacrifice-rule' };
+      }
+      if (this.state.permanentRule) return { available: false, reason: 'sacrifice-already-chosen' };
+    }
     for (const requirement of Array.isArray(option.requirements) ? option.requirements : []) {
       if (!isObject(requirement) || typeof requirement.type !== 'string') return { available: false, reason: 'invalid-requirement' };
       switch (requirement.type) {
@@ -2432,9 +2571,21 @@ export class ShanhaiGame {
     const check = option.check ? resolveEventCheck(option.check, {
       seed: this.state.seed, act: this.state.act, step: this.state.step + 1,
       eventId: event.id, optionId: option.id, stats: this.stats, hp: this.state.hp,
-      ownedMethods: this.state.ownedMethods, artifacts: equippedArtifactStacks(this.state),
+      ownedMethods: this.state.ownedMethods, artifacts: equippedArtifactStacksWithInscription(this.state),
     }) : undefined;
     this.applyCosts(optionCosts(option));
+    const sacrificeKind = sacrificeRuleKind(option.sacrifice_rule);
+    if (sacrificeKind) {
+      if (event.id !== 'RE037' || this.state.permanentRule) throw new Error('Invalid permanent sacrifice selection');
+      if (sacrificeKind === 'shattered_core') {
+        const originalMaxHp = this.stats.max_hp;
+        if (!finite(originalMaxHp) || originalMaxHp <= 0) throw new Error('Invalid original maximum HP');
+        this.state.permanentRule = { kind: sacrificeKind, originalMaxHp };
+        this.state.hp = 1;
+      } else {
+        this.state.permanentRule = { kind: sacrificeKind };
+      }
+    }
     this.state.eventOption = id;
     this.state.eventCheck = check;
     if (encounter) {
@@ -2512,6 +2663,7 @@ export class ShanhaiGame {
     state._eventOutcome = undefined;
     state._previewKind = undefined;
     state._shopReforged = false;
+    state._shopInscribed = false;
     this.state.phase = 'map';
   }
 
@@ -2640,6 +2792,28 @@ export class ShanhaiGame {
     if (!finite(spent)) throw new Error('Invalid run spending total');
     this.state.coins = Math.max(0, this.state.coins - amount);
     this.state.progress.coinsSpent = spent;
+  }
+
+  private inscribe(artifactId: string, inscription: ArtifactInscription): void {
+    const availability = this.inscriptionAvailability(artifactId, inscription);
+    if (!availability.available) {
+      const messages: Record<string, string> = {
+        'not-shop': 'Shop is not open',
+        'already-inscribed-this-shop': 'This shop has already inscribed an artifact',
+        'invalid-inscription': 'Unknown artifact inscription',
+        'artifact-not-owned': 'Artifact is not owned',
+        'already-inscribed': 'Artifact already has an inscription',
+        'cannot-pay': 'Cannot pay for inscription',
+      };
+      throw new Error(messages[availability.reason] ?? availability.reason);
+    }
+    const artifact = this.state.artifacts.find(stack => stack.id === artifactId)!;
+    this.chargeCoins(this.inscriptionPrice());
+    artifact.inscription = inscription;
+    this.state._shopInscribed = true;
+    const artifactName = artifactEntity(this.content, artifactId).name;
+    const inscriptionName = inscription === 'twin' ? '双生' : inscription === 'leech' ? '噬血' : '疾行';
+    this.state.resultText = `以${this.inscriptionPrice()}灵石为${artifactName}铭刻「${inscriptionName}」。`;
   }
 
   reforgePrice(): number {
@@ -3187,6 +3361,10 @@ export class ShanhaiGame {
     );
     const selected = this.state.eventOption && entity?.kind === 'event'
       ? eventOption(entity, this.state.eventOption) : undefined;
+    const sacrificeKind = sacrificeRuleKind(selected?.sacrifice_rule);
+    if (sacrificeKind && this.state.permanentRule?.kind !== sacrificeKind) {
+      throw new Error('Permanent sacrifice choice lost its run marker');
+    }
     const echo = this.state.eventStoryEcho ??
       (selected?.legacy_story_echo && !this.state.eventCheck ? selected.legacy_story_echo : undefined);
     this.state.history.push({
@@ -3201,6 +3379,9 @@ export class ShanhaiGame {
           ...(state._eventOutcome ? { eventOutcome: state._eventOutcome } : {}),
           ...(this.state.eventCheck ? { eventCheck: clone(this.state.eventCheck) } : {}),
           ...(echo ? { storyEcho: echo } : {}),
+          ...(sacrificeKind && this.state.permanentRule
+            ? { sacrificeRule: clone(this.state.permanentRule) }
+            : {}),
         } : {}),
     });
     node.completed = true;
@@ -3235,6 +3416,7 @@ export class ShanhaiGame {
     this.state.rewardCandidates = [];
     this.state.shop = [];
     state._shopReforged = false;
+    state._shopInscribed = false;
     this.state.step += 1;
     this.state.nodeEntry = undefined;
     state._nodeEntry = undefined;
@@ -3337,7 +3519,8 @@ export class ShanhaiGame {
       method: source?.method ?? this.state.method,
       n: this.state.n,
       talents: clone(source?.talents ?? this.state.talents[this.state.method] ?? []),
-      artifacts: clone(source?.artifacts ?? equippedArtifactStacks(this.state)),
+      artifacts: clone(source?.artifacts ?? equippedArtifactStacksWithInscription(this.state)),
+      ...(this.state.permanentRule ? { permanentRule: clone(this.state.permanentRule) } : {}),
       baseStats: baseStats(this.content, this.state.n),
       hp: this.state.hp,
       preparation: 0,
@@ -3414,7 +3597,7 @@ export class ShanhaiGame {
   private applyTravel(node: RunNode, source: RunState['nodeEntry']): void {
     const state = this.state as RunStateInternals;
     const entry = source ?? snapshotEntry(state)!;
-    const currentlyEquipped = new Map(equippedArtifactStacks(state).map(stack => [stack.id, stack]));
+    const currentlyEquipped = new Map(equippedArtifactStacksWithInscription(state).map(stack => [stack.id, stack]));
     const travelSource: NonNullable<RunState['nodeEntry']> = {
       method: entry.method,
       talents: entry.talents.slice(),
@@ -3595,10 +3778,12 @@ function validateFusionInventory(content: Content, inventory: unknown): asserts 
   const ids = new Set<string>();
   const groups = new Set<string>();
   for (const stack of inventory) {
+    assertArtifactDevouredField(stack, 'fusion inventory stack');
     const artifact = isObject(stack) && typeof stack.id === 'string'
       ? contentEntity(content, stack.id) : undefined;
     if (!isObject(stack) || !integer(stack.stacks) || stack.stacks <= 0 || ids.has(stack.id) ||
       !artifact || artifact.kind !== 'artifact' || !artifactRole(content, stack.id) ||
+      (stack.inscription !== undefined && !isArtifactInscription(stack.inscription)) ||
       stack.stacks > (integer(artifact.max_stacks) ? artifact.max_stacks : 1) ||
       (artifact.unique_group && groups.has(artifact.unique_group))) {
       throw new Error('Invalid fusion inventory snapshot');
@@ -3792,7 +3977,7 @@ export function validateBattleResult(result: BattleResult): void {
       (countedCue && !Object.prototype.hasOwnProperty.call(cue, 'count')) ||
       (!countedCue && Object.prototype.hasOwnProperty.call(cue, 'count')) ||
       !['sword_volley', 'guard_counter', 'spring_bloom', 'enemy_charge', 'enemy_release',
-        'rage_chain', 'companion_assist'].includes(cue.kind) ||
+        'rage_chain', 'companion_assist', 'blood_valor'].includes(cue.kind) ||
       !['player', 'enemy'].includes(cue.owner) ||
       typeof cue.sourceId !== 'string' || cue.sourceId.length < 1 || cue.sourceId.length > 128) {
       throw new Error('Invalid battle reaction cue');
@@ -3804,6 +3989,7 @@ export function validateBattleResult(result: BattleResult): void {
       sword_volley: 'RKF05-V2-RESONANCE',
       guard_counter: 'RKF01-V2-RESONANCE',
       spring_bloom: 'RKF03-V2-RESONANCE',
+      blood_valor: 'RR08-ENEMY-ACTION-RAGE-GAIN',
     };
     const expectedSource = expectedSources[cue.kind];
     if (expectedSource && cue.sourceId !== expectedSource) {
@@ -3865,8 +4051,13 @@ function validateBattleCuesAgainstInput(
       }
     } else if (cue.kind === 'companion_assist') {
       const owner = cue.owner === 'player' ? input.player : input.enemy;
-      if (!owner.companion || cue.sourceId !== `${owner.companion}-COMPANION`) {
-        throw new Error('Companion-assist source does not match the frozen companion');
+      if (!(owner.companions ?? []).some(id => cue.sourceId === `${id}-COMPANION`)) {
+        throw new Error('Companion-assist source does not match a frozen companion');
+      }
+    } else if (cue.kind === 'blood_valor') {
+      const owner = cue.owner === 'player' ? input.player : input.enemy;
+      if (!(owner.artifacts ?? []).some(stack => stack.id === 'RR08' && stack.stacks > 0)) {
+        throw new Error('Blood-valor source does not match a frozen artifact');
       }
     }
   }
@@ -3881,22 +4072,40 @@ function validateLoadoutReferences(
   if (!isObject(loadout) || typeof loadout.name !== 'string' || typeof loadout.method !== 'string' ||
     !integer(loadout.n) || loadout.n < 0 || loadout.n > 4 || !Array.isArray(loadout.talents) ||
     !Array.isArray(loadout.artifacts)) throw new Error('Invalid saved loadout');
-  if (loadout.companion !== undefined) {
-    const companion = typeof loadout.companion === 'string'
-      ? contentEntity(content, loadout.companion)
-      : undefined;
+  if (loadout.permanentRule !== undefined &&
+    (enemy || !isPermanentSacrificeRule(loadout.permanentRule))) {
+    throw new Error('Invalid saved permanent sacrifice rule');
+  }
+  if (Object.hasOwn(loadout, 'companion')) {
+    throw new Error('Invalid legacy saved companion field');
+  }
+  if (loadout.companions !== undefined && !Array.isArray(loadout.companions)) {
+    throw new Error('Invalid saved companion list');
+  }
+  const companionIds = loadout.companions ?? [];
+  const seenCompanions = new Set<string>();
+  let previousOwnedIndex = -1;
+  for (const id of companionIds) {
+    if (typeof id !== 'string' || !id.trim() || seenCompanions.has(id)) {
+      throw new Error('Invalid saved companion ID or duplicate companion');
+    }
+    seenCompanions.add(id);
+    const companion = contentEntity(content, id);
     if (!companion || companion.kind !== 'method' || companion.id === loadout.method ||
-      (!enemy && (!ownedMethods?.includes(companion.id) ||
-        ownedMethods.find(id => id !== loadout.method) !== companion.id)) ||
       !isObject(companion.companion) || typeof companion.companion.name !== 'string' ||
       typeof companion.companion.quick !== 'string' || !companion.companion.effect) {
-      throw new Error(enemy ? 'Invalid saved enemy companion' : 'Invalid saved companion ownership');
+      throw new Error(enemy ? 'Invalid saved enemy companion' : 'Invalid saved companion reference');
     }
+    if (enemy) throw new Error('Saved enemy loadouts cannot configure companions');
+    const ownedIndex = ownedMethods?.indexOf(id) ?? -1;
+    if (ownedIndex < 0 || ownedIndex <= previousOwnedIndex) {
+      throw new Error('Invalid saved companion ownership or acquisition order');
+    }
+    previousOwnedIndex = ownedIndex;
   }
   if ((enemy && loadout.thunderChallenge !== undefined && loadout.thunderChallenge !== true) ||
-    (!enemy && loadout.thunderChallenge !== undefined) ||
-    (!enemy && loadout.companion !== undefined && typeof loadout.companion !== 'string')) {
-    throw new Error('Invalid saved loadout challenge or companion');
+    (!enemy && loadout.thunderChallenge !== undefined)) {
+    throw new Error('Invalid saved loadout challenge');
   }
   if (loadout.encounterId !== undefined) {
     const encounter = typeof loadout.encounterId === 'string'
@@ -3921,8 +4130,15 @@ function validateLoadoutReferences(
   const ids = new Set<string>();
   const groups = new Set<string>();
   for (const stack of loadout.artifacts) {
+    assertArtifactDevouredField(stack, 'saved loadout artifact');
+    if (enemy && isObject(stack) && Object.hasOwn(stack, 'devoured')) {
+      throw new Error('Enemy loadouts cannot carry artifact devour growth');
+    }
     if (!isObject(stack) || typeof stack.id !== 'string' || !integer(stack.stacks) || stack.stacks <= 0 || ids.has(stack.id)) {
       throw new Error('Invalid saved loadout artifact');
+    }
+    if (stack.inscription !== undefined && !isArtifactInscription(stack.inscription)) {
+      throw new Error('Invalid saved artifact inscription');
     }
     ids.add(stack.id);
     const artifact = contentEntity(content, stack.id);
@@ -4104,6 +4320,12 @@ export function validateRunState(content: Content, raw: RunState): void {
   if (!state.bloodVow && Object.values(state.talents).some(talents => talents.includes('V2-J1-G'))) {
     throw new Error('Selected blood vow is missing its permanent run marker');
   }
+  if (state.permanentRule !== undefined && !isPermanentSacrificeRule(state.permanentRule)) {
+    throw new Error('Invalid permanent sacrifice rule');
+  }
+  if (state.permanentRule?.kind === 'shattered_core' && state.hp > 1) {
+    throw new Error('Shattered core run exceeds its locked one HP');
+  }
   validateTalentDrafts(content, state);
   if (!integer(state.n) || state.n < 0 || state.n > 4 || !finite(state.hp) || state.hp < 0 ||
     !finite(state.xp) || state.xp < 0 || !finite(state.coins) || state.coins < 0 ||
@@ -4267,6 +4489,7 @@ export function validateRunState(content: Content, raw: RunState): void {
     '_rewardSettled',
     '_eventSettled',
     '_shopReforged',
+    '_shopInscribed',
     '_coreRewardOffered',
   ] as const) {
     if (state[key] !== undefined && typeof state[key] !== 'boolean') throw new Error(`Invalid ${key}`);
@@ -4401,21 +4624,58 @@ export function validateRunState(content: Content, raw: RunState): void {
       !integer(entry.step) || entry.step < 0 || typeof entry.title !== 'string' || typeof entry.text !== 'string') {
       throw new Error('Invalid run history');
     }
+    let historyEvent: Entity | undefined;
+    let historyOption: AnyRecord | undefined;
     if (entry.eventId !== undefined || entry.optionId !== undefined || entry.eventOutcome !== undefined) {
-      const event = typeof entry.eventId === 'string' ? contentEntity(content, entry.eventId) : undefined;
-      const option = event?.kind === 'event' && typeof entry.optionId === 'string'
-        ? eventOption(event, entry.optionId) : undefined;
-      if (!option || (entry.eventOutcome !== undefined &&
+      historyEvent = typeof entry.eventId === 'string' ? contentEntity(content, entry.eventId) : undefined;
+      historyOption = historyEvent?.kind === 'event' && typeof entry.optionId === 'string'
+        ? eventOption(historyEvent, entry.optionId) : undefined;
+      if (!historyOption || (entry.eventOutcome !== undefined &&
         !['success', 'failure'].includes(entry.eventOutcome)) ||
-        (entry.eventOutcome === 'failure' && !option.encounter && !option.check)) {
+        (entry.eventOutcome === 'failure' && !historyOption.encounter && !historyOption.check)) {
         throw new Error('Invalid event history outcome');
       }
       if (entry.eventCheck !== undefined) {
-        validateSavedEventCheck(option, entry.eventCheck, entry.eventOutcome);
+        validateSavedEventCheck(historyOption, entry.eventCheck, entry.eventOutcome);
       }
       if (entry.storyEcho !== undefined &&
         (typeof entry.storyEcho !== 'string' || entry.storyEcho.length > 2000)) throw new Error('Invalid history story echo');
     }
+    const historicalSacrificeKind = historyEvent?.id === 'RE037' && historyOption
+      ? sacrificeRuleKind(historyOption.sacrifice_rule)
+      : undefined;
+    if ((entry.sacrificeRule !== undefined &&
+      (!isPermanentSacrificeRule(entry.sacrificeRule) ||
+        historicalSacrificeKind !== entry.sacrificeRule.kind || entry.eventOutcome !== 'success')) ||
+      (historicalSacrificeKind && (entry.eventOutcome !== 'success' || entry.sacrificeRule === undefined))) {
+      throw new Error('Invalid permanent sacrifice event history');
+    }
+  }
+  const recordedSacrificeRules = state.history.flatMap(entry => {
+    if (entry.eventId !== 'RE037' || typeof entry.optionId !== 'string' || entry.eventOutcome !== 'success') return [];
+    return entry.sacrificeRule && isPermanentSacrificeRule(entry.sacrificeRule)
+      ? [entry.sacrificeRule]
+      : [];
+  });
+  const currentSacrificeEvent = state.nodes[state.step];
+  const currentSacrificeOption = currentSacrificeEvent?.id === 'RE037' && typeof state.eventOption === 'string'
+    ? eventOption(contentEntity(content, 'RE037')!, state.eventOption)
+    : undefined;
+  const pendingSacrificeRule = currentSacrificeOption &&
+    ['event_result', 'talent', 'rest'].includes(state.phase) &&
+    (state as RunStateInternals)._eventOutcome === 'success'
+    ? sacrificeRuleKind(currentSacrificeOption.sacrifice_rule)
+    : undefined;
+  const sourceRules = [...recordedSacrificeRules];
+  if ((currentSacrificeOption && sacrificeRuleKind(currentSacrificeOption.sacrifice_rule) && !pendingSacrificeRule) ||
+    (pendingSacrificeRule && state.permanentRule?.kind !== pendingSacrificeRule) ||
+    sourceRules.length > 1 ||
+    (sourceRules.length > 0 && pendingSacrificeRule) ||
+    (sourceRules.length === 0 && !pendingSacrificeRule ? state.permanentRule !== undefined : false) ||
+    (sourceRules.length === 1 && (state.permanentRule?.kind !== sourceRules[0]?.kind ||
+      (state.permanentRule?.kind === 'shattered_core' && sourceRules[0]?.kind === 'shattered_core' &&
+        state.permanentRule.originalMaxHp !== sourceRules[0].originalMaxHp)))) {
+    throw new Error('Permanent sacrifice rule does not match its RE037 choice');
   }
   const finalHistory = state.history.filter(entry => entry.act === 5);
   if (finalHistory.length > 1) throw new Error('Duplicate final history');
@@ -4560,7 +4820,11 @@ export function validateRunState(content: Content, raw: RunState): void {
   const stacks = new Set<string>();
   const groups = new Set<string>();
   for (const stack of state.artifacts) {
+    assertArtifactDevouredField(stack, 'artifact stack');
     if (!isObject(stack) || typeof stack.id !== 'string' || !integer(stack.stacks) || stack.stacks <= 0 || stacks.has(stack.id)) throw new Error('Invalid artifact stack');
+    if (stack.inscription !== undefined && !isArtifactInscription(stack.inscription)) {
+      throw new Error('Invalid artifact inscription');
+    }
     stacks.add(stack.id);
     const artifact = contentEntity(content, stack.id);
     if (!artifact || artifact.kind !== 'artifact' || stack.stacks > (integer(artifact.max_stacks) ? artifact.max_stacks : 1)) throw new Error('Invalid artifact capacity');
@@ -4575,7 +4839,8 @@ export function validateRunState(content: Content, raw: RunState): void {
     method: state.method,
     n: state.n,
     talents: state.talents[state.method] ?? [],
-    artifacts: equippedArtifactStacks(state),
+    artifacts: equippedArtifactStacksWithInscription(state),
+    ...(state.permanentRule ? { permanentRule: clone(state.permanentRule) } : {}),
     baseStats: baseStats(content, state.n),
     hp: state.hp,
     preparation: state.preparation,
@@ -4702,8 +4967,25 @@ export function validateRunState(content: Content, raw: RunState): void {
     if (state.battleInput.rules !== undefined && state.battleInput.rules !== 'awakening-v1') throw new Error('Invalid battle rules');
     validateLoadoutReferences(content, state.battleInput.player, false, state.ownedMethods);
     validateLoadoutReferences(content, state.battleInput.enemy, true);
-    if (state.battleInput.enemy.companion !== undefined) {
-      throw new Error('Frozen enemy companion does not match the selected encounter');
+    const frozenPlayer = state.battleInput.player;
+    const frozenKnownMethods = frozenPlayer.journey?.knownMethods;
+    if (!integer(frozenKnownMethods) || frozenKnownMethods < 1 || frozenKnownMethods > state.ownedMethods.length) {
+      throw new Error('Frozen battle method count does not match journey context or owned methods');
+    }
+    const expectedCompanions = state.ownedMethods.slice(0, frozenKnownMethods)
+      .filter(id => id !== frozenPlayer.method);
+    if (!Array.isArray(frozenPlayer.companions) ||
+      JSON.stringify(frozenPlayer.companions) !== JSON.stringify(expectedCompanions)) {
+      throw new Error('Frozen battle companions do not match owned methods');
+    }
+    if (state.battleInput.enemy.companions?.length) {
+      throw new Error('Frozen enemy companions do not match the selected encounter');
+    }
+    const frozenRule = state.battleInput.player.permanentRule;
+    if (state.permanentRule?.kind !== frozenRule?.kind ||
+        (state.permanentRule?.kind === 'shattered_core' && frozenRule?.kind === 'shattered_core' &&
+          state.permanentRule.originalMaxHp !== frozenRule.originalMaxHp)) {
+      throw new Error('Frozen battle sacrifice rule does not match the run');
     }
   }
   if (state.phase === 'battle') {
@@ -4712,10 +4994,6 @@ export function validateRunState(content: Content, raw: RunState): void {
     if (!journey || Object.keys(expected).some(key =>
       journey[key as keyof typeof expected] !== expected[key as keyof typeof expected])) {
       throw new Error('Frozen battle journey context mismatch');
-    }
-    const expectedCompanion = state.ownedMethods.find(id => id !== state.battleInput?.player?.method);
-    if (state.battleInput?.player?.companion !== expectedCompanion) {
-      throw new Error('Frozen battle companion does not match owned methods');
     }
   }
   if (state.battle) validateBattleResult(state.battle);

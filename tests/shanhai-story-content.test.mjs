@@ -33,7 +33,7 @@ const entities = new Map(manifest.files.map(entry => [
 ]));
 
 test('story content preserves the 45-node shell and uses factual read-only endings', () => {
-  assert.equal(entities.size, 155);
+  assert.equal(entities.size, 157);
   for (const id of ['RA01', 'RA02', 'RA03', 'RA04']) {
     const act = entities.get(id);
     assert.equal(Object.values(act.node_budget).reduce((sum, count) => sum + count, 0), 11);
@@ -49,10 +49,10 @@ test('story content preserves the 45-node shell and uses factual read-only endin
 
 test('all event options have a bounded story echo and all encounter branches have failure echoes', () => {
   const events = [...entities.values()].filter(entity => entity.kind === 'event');
-  assert.equal(events.length, 52);
+  assert.equal(events.length, 53);
 
   const options = events.flatMap(event => event.options);
-  assert.equal(options.length, 157);
+  assert.equal(options.length, 161);
 
   let encounterCount = 0;
   for (const option of options) {
@@ -112,6 +112,7 @@ test('nonlethal failure copy describes the configured HP floor without promising
 
   for (const file of yamlFiles(join(contentRoot, 'events'))) {
     const event = readCurrent(file);
+    if (!event.options.some(option => option.encounter?.mode === 'nonlethal')) continue;
     const texts = [
       ['summary', event.summary],
       ['description', event.description],

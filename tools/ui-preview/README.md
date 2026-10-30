@@ -38,7 +38,7 @@ The server binds to `0.0.0.0:4174`. Public entry:
 - `/?screen=compare`: four 320x760 desktop samples.
 - `/?screen=map&node=coast`: directly open a partial encounter preview.
 - `/?screen=battle&method=RKF03`: physician skin; `RKF01` through `RKF05` are supported.
-- The toolbar's `宝` opens a 44-item catalog populated from the actual content library.
+- The toolbar's `宝` opens a 48-item catalog populated from the actual content library.
 
 The overview does not use exported screenshots, iframes, or cloned screens. Its game
 controls are inert; the title links open the real screens. The shared router supports
@@ -94,8 +94,8 @@ route-generation system.
 
 `public/assets/library.json` augments, rather than replaces, the baseline asset contract.
 It declares six legacy layered atlases, six map illustrations
-and nineteen icon exports. Shared icons cover all 44 real artifacts; all five legendary items
-have dedicated images. Character parts are extracted from connected silhouettes, not blindly
+and nineteen icon exports. Shared icons cover all 48 artifacts; the five original legendary items
+have dedicated images and the newer artifacts reuse approved icon families. Character parts are extracted from connected silhouettes, not blindly
 cut at grid boundaries. `npm run prepare:expansion` needs the ignored generated originals and
 the existing content-kit dependencies. It slices art, then enriches names and attributes from
 the explicit YAML manifest. No model or publishing command runs during this export.
@@ -137,7 +137,7 @@ Lowered weapon tips retain space below the feet. No limb stitching or flexible m
 Fresh clones render and test committed PNGs without credentials or original source files.
 The production build also consumes this committed public asset source: it validates the
 approval records and PNG hashes, publishes only the three scenes, four UI modules, assets
-referenced by the 44 artifact mappings, six map illustrations and six frame atlases, then
+referenced by the 48 artifact mappings, six map illustrations and six frame atlases, then
 copies `rig.js` as the game's animation module with its MIT notice. It does not publish the
 preview app, old layered rigs, WebP scene drafts, prompts or authoring tools.
 

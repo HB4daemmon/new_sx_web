@@ -9,6 +9,7 @@ import { validateRouteMap } from './route-map.js';
 import { assertEventCommitmentRecords } from './event-commitments.js';
 import { assertEventCheckResult } from './event-checks.js';
 import { MAX_EQUIPMENT_SLOTS } from './equipment.js';
+import { assertArtifactDevouredField } from './artifact-growth.js';
 
 export const SHANHAI_SAVE_KEY = 'suishi-shanhai-run-v2-overhaul';
 export const SHANHAI_BUILD_KEY = 'suishi-shanhai-build-v2-overhaul';
@@ -82,6 +83,7 @@ const RUN_PHASES = new Set([
 ]);
 const NODE_TYPES = new Set(['C', 'E', 'K', 'L', 'S', 'R', 'B', 'F']);
 const SHOP_KINDS = new Set(['artifact', 'recovery', 'preparation', 'talent_reset']);
+const ARTIFACT_INSCRIPTIONS = new Set(['twin', 'leech', 'swift']);
 
 function allFiniteNumbers(value: unknown): boolean {
   if (typeof value === 'number') return Number.isFinite(value);
@@ -100,8 +102,10 @@ function assertFusionInventoryShape(value: unknown, label: string): void {
   if (!Array.isArray(value) || value.length > 128) throw new Error(`Invalid ${label}`);
   const ids = new Set<string>();
   for (const stack of value) {
+    assertArtifactDevouredField(stack, label);
     if (!isObject(stack) || !validArtifactId(stack.id) ||
-      !Number.isInteger(stack.stacks) || stack.stacks < 1 || stack.stacks > 16 || ids.has(stack.id)) {
+      !Number.isInteger(stack.stacks) || stack.stacks < 1 || stack.stacks > 16 || ids.has(stack.id) ||
+      (stack.inscription !== undefined && !ARTIFACT_INSCRIPTIONS.has(stack.inscription))) {
       throw new Error(`Invalid ${label}`);
     }
     ids.add(stack.id);
@@ -197,9 +201,19 @@ function assertLoadoutShapeWithoutContent(loadout: unknown, side: 'player' | 'en
     !Array.isArray(loadout.artifacts) || loadout.artifacts.length > MAX_EQUIPMENT_SLOTS) {
     throw new Error('Invalid saved loadout');
   }
-  if (loadout.companion !== undefined &&
-    (typeof loadout.companion !== 'string' || !loadout.companion.trim())) {
-    throw new Error('Invalid saved companion reference');
+  if (Object.hasOwn(loadout, 'companion')) {
+    throw new Error('Invalid legacy saved companion field');
+  }
+  if (loadout.companions !== undefined && !Array.isArray(loadout.companions)) {
+    throw new Error('Invalid saved companion list');
+  }
+  const companionIds = loadout.companions ?? [];
+  if (companionIds.some((id: unknown) => typeof id !== 'string' || !id.trim()) ||
+    new Set(companionIds).size !== companionIds.length) {
+    throw new Error('Invalid saved companion ID or duplicate companion');
+  }
+  if (side === 'enemy' && companionIds.length > 0) {
+    throw new Error('Enemy loadouts cannot carry companions');
   }
   if (loadout.thunderChallenge !== undefined &&
     (side !== 'enemy' || loadout.thunderChallenge !== true)) {
@@ -220,9 +234,16 @@ function assertLoadoutShapeWithoutContent(loadout: unknown, side: 'player' | 'en
   if (talentIds.size !== loadout.talents.length) throw new Error('Duplicate saved talent');
   const artifactIds = new Set<string>();
   for (const stack of loadout.artifacts) {
+    assertArtifactDevouredField(stack, 'saved loadout artifact');
+    if (side === 'enemy' && isObject(stack) && Object.hasOwn(stack, 'devoured')) {
+      throw new Error('Enemy loadouts cannot carry artifact devour growth');
+    }
     if (!isObject(stack) || typeof stack.id !== 'string' || !Number.isInteger(stack.stacks) ||
       stack.stacks <= 0 || artifactIds.has(stack.id)) {
       throw new Error('Invalid saved loadout artifact');
+    }
+    if (stack.inscription !== undefined && !ARTIFACT_INSCRIPTIONS.has(stack.inscription)) {
+      throw new Error('Invalid saved artifact inscription');
     }
     artifactIds.add(stack.id);
   }
@@ -431,9 +452,13 @@ function assertStateShapeWithoutContent(state: RunState): void {
   if (!Array.isArray(state.artifacts)) throw new Error('Invalid Shanhai artifacts');
   const artifactIds = new Set<string>();
   for (const stack of state.artifacts) {
+    assertArtifactDevouredField(stack, 'saved artifact stack');
     if (!isObject(stack) || typeof stack.id !== 'string' || !Number.isInteger(stack.stacks) ||
       stack.stacks <= 0 || artifactIds.has(stack.id)) {
       throw new Error('Invalid Shanhai artifact stack');
+    }
+    if (stack.inscription !== undefined && !ARTIFACT_INSCRIPTIONS.has(stack.inscription)) {
+      throw new Error('Invalid Shanhai artifact inscription');
     }
     artifactIds.add(stack.id);
   }
@@ -564,20 +589,29 @@ function assertStateShapeWithoutContent(state: RunState): void {
     }
     assertLoadoutShapeWithoutContent(battleInput.player, 'player');
     assertLoadoutShapeWithoutContent(battleInput.enemy, 'enemy');
-    if (battleInput.player.companion !== undefined &&
-      (!state.ownedMethods.includes(battleInput.player.companion) ||
-        battleInput.player.companion === battleInput.player.method ||
-        state.ownedMethods.find(id => id !== battleInput.player.method) !==
-          battleInput.player.companion)) {
-      throw new Error('Invalid saved battle companion owner');
+    const companions = battleInput.player.companions ?? [];
+    const companionIds = new Set<string>();
+    let previousOwnedIndex = -1;
+    for (const companion of companions) {
+      const ownedIndex = state.ownedMethods.indexOf(companion);
+      if (!state.ownedMethods.includes(companion) || companion === battleInput.player.method ||
+        companionIds.has(companion) || ownedIndex <= previousOwnedIndex) {
+        throw new Error('Invalid saved battle companion owner or order');
+      }
+      companionIds.add(companion);
+      previousOwnedIndex = ownedIndex;
     }
-    if (battleInput.enemy.companion !== undefined) {
-      throw new Error('Invalid frozen enemy companion');
+    if (battleInput.enemy.companions?.length) {
+      throw new Error('Invalid frozen enemy companions');
     }
-    if (state.phase === 'battle' &&
-      battleInput.player.companion !==
-        state.ownedMethods.find(id => id !== battleInput.player.method)) {
-      throw new Error('Invalid frozen battle companion');
+    const frozenKnownMethods = battleInput.player.journey?.knownMethods;
+    if (typeof frozenKnownMethods !== 'number' || !Number.isInteger(frozenKnownMethods) || frozenKnownMethods < 1 ||
+      frozenKnownMethods > state.ownedMethods.length ||
+      !Array.isArray(battleInput.player.companions) ||
+      JSON.stringify(battleInput.player.companions) !== JSON.stringify(
+        state.ownedMethods.slice(0, frozenKnownMethods).filter(id => id !== battleInput.player.method),
+      )) {
+      throw new Error('Invalid frozen battle companions or journey context');
     }
     if ((battleInput.enemy.thunderChallenge === true) !== (state._thunderChallenge === true)) {
       throw new Error('Frozen enemy challenge state mismatch');
@@ -646,8 +680,13 @@ function assertStateShapeWithoutContent(state: RunState): void {
       !Number.isInteger(snapshot.act) || snapshot.act < 1 || snapshot.act > 5 ||
       !Number.isInteger(snapshot.step) || snapshot.step < 0 || typeof snapshot.method !== 'string' ||
       !Array.isArray(snapshot.talents) || !Array.isArray(snapshot.artifacts) ||
+      snapshot.artifacts.some(stack => !isObject(stack) ||
+        (stack.inscription !== undefined && !ARTIFACT_INSCRIPTIONS.has(stack.inscription))) ||
       !RUN_PHASES.has(snapshot.phase)))) {
     throw new Error('Invalid Shanhai travel snapshots');
+  }
+  for (const snapshot of state._travelSnapshots ?? []) {
+    for (const stack of snapshot.artifacts) assertArtifactDevouredField(stack, 'saved travel artifact');
   }
   if (state._previewKind !== undefined && !['node', 'event'].includes(state._previewKind)) {
     throw new Error('Invalid Shanhai preview kind');
@@ -680,6 +719,7 @@ function assertStateShapeWithoutContent(state: RunState): void {
     '_eventSettled',
     '_restFromEvent',
     '_shopReforged',
+    '_shopInscribed',
   ]) {
     if (state[key] !== undefined && typeof state[key] !== 'boolean') {
       throw new Error('Invalid Shanhai internal flag');
@@ -842,6 +882,11 @@ function readBuildRecords(storage?: StorageLike): ShanhaiBuildRecord[] {
       typeof record.name !== 'string' || typeof record.method !== 'string' ||
       !Number.isInteger(record.n) || !Array.isArray(record.talents) || !Array.isArray(record.artifacts) ||
       record.artifacts.length > MAX_EQUIPMENT_SLOTS ||
+      record.artifacts.some(stack => {
+        assertArtifactDevouredField(stack, 'saved build artifact');
+        return !isObject(stack) ||
+          (stack.inscription !== undefined && !ARTIFACT_INSCRIPTIONS.has(stack.inscription));
+      }) ||
       !isObject(record.stats) || !finite(record.stats.attack) || !finite(record.stats.defense) ||
       !finite(record.stats.max_hp) || !finite(record.stats.crit_rate) || !finite(record.stats.speed)) {
       throw new Error('Corrupted Shanhai build records');
@@ -857,7 +902,7 @@ export function saveWinningBuild(
   if (game.state.phase !== 'won') return null;
   const state = game.state;
   const artifacts = game.equippedArtifacts();
-  const buildId = `${state.id}:${state.method}:${state.n}:${state.talents[state.method]?.join(',') ?? ''}:${artifacts.map(item => `${item.id}x${item.stacks}`).join(',')}`;
+  const buildId = `${state.id}:${state.method}:${state.n}:${state.talents[state.method]?.join(',') ?? ''}:${artifacts.map(item => `${item.id}x${item.stacks}${item.inscription ? `@${item.inscription}` : ''}${item.devoured !== undefined ? `#d${item.devoured}` : ''}`).join(',')}`;
   const record: ShanhaiBuildRecord = {
     schema: 1,
     buildId,

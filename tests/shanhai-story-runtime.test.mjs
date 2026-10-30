@@ -81,6 +81,7 @@ function resolvingOption(game) {
   const event = content.byId.get(game.node.id);
   return event.options.find(candidate =>
     !candidate.encounter &&
+    !candidate.sacrifice_rule &&
     !candidate.rewards?.some(reward => ['method', 'swap_method'].includes(reward.type)) &&
     game.optionAvailability(candidate).available) ??
     event.options.find(candidate =>

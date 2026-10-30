@@ -42,7 +42,7 @@ const BASE_STATS = Object.freeze({
 });
 
 function makeLoadout(method = 'RKF01', artifacts = [], overrides = {}) {
-  const { talents = [], n = 4, hp, ...stats } = overrides;
+  const { talents = [], n = 4, hp, journey, ...stats } = overrides;
   return {
     name: method,
     method,
@@ -51,6 +51,17 @@ function makeLoadout(method = 'RKF01', artifacts = [], overrides = {}) {
     artifacts: structuredClone(artifacts),
     baseStats: { ...BASE_STATS, ...stats },
     ...(hp === undefined ? {} : { hp }),
+    ...(journey === undefined ? {} : {
+      journey: {
+        coins: 0,
+        coinsSpent: 0,
+        eliteWins: 0,
+        bossWins: 0,
+        artifactKinds: 0,
+        knownMethods: 0,
+        ...structuredClone(journey),
+      },
+    }),
   };
 }
 
@@ -98,6 +109,15 @@ function contentWithMirror({ trigger = 'basic', outputs = OUTPUTS, neighborStack
   };
   const content = contentFromEntities([...filtered, mirror, neighbor], `${baseContent.version}-mirror-fixture`);
   return { content, mirror, neighbor, neighborStacks };
+}
+
+function contentWithRightNeighborResonance() {
+  const entities = structuredClone(baseContent.entities);
+  const mirror = entities.find(entity => entity.id === MIRROR_ID);
+  const neighbor = entities.find(entity => entity.id === 'RR04');
+  assert.ok(mirror && neighbor, 'fixture needs the real mirror and RR04');
+  neighbor.max_stacks = 3;
+  return contentFromEntities(entities, `${baseContent.version}-mirror-resonance-fixture`);
 }
 
 function contentPatch(edit) {
@@ -184,12 +204,28 @@ test('right neighbor outputs mirror once in order and all contribution belongs t
     assert.equal(mirrorOutput.actor, 'player');
     assert.equal(nativeOutput.actor, 'player');
   }
-  assert.match(awakeningFrame(result, mirrorSource(1), 'status').text, /法宝镜映/);
+  assert.match(awakeningFrame(result, mirrorSource(1), 'status').text, /昆仑镜镜映/);
   assert.equal(outputFrames(result, mirrorSource(1), 'damage').length, 1);
   assert.equal(outputFrames(result, neighborSource(1), 'damage').length, 1);
   assert.deepEqual(result.frames.filter(frame => frame.kind === 'damage' &&
     [mirrorSource(1), neighborSource(1)].includes(frame.source)).map(frame => frame.source),
-  [mirrorSource(1), neighborSource(1)], 'mirror output resolves at RL08 before the right neighbor’s native slot');
+  [mirrorSource(1), neighborSource(1)], 'the mirror resolves before the right neighbor output');
+  for (const [index, kind] of [
+    [2, 'shield'],
+    [3, 'heal'],
+    [4, 'rage'],
+  ]) {
+    const mirrorFrame = outputFrames(result, mirrorSource(index), kind)[0];
+    const neighborFrame = outputFrames(result, neighborSource(index), kind)[0];
+    assert.ok(mirrorFrame && neighborFrame);
+    assert.ok(result.frames.indexOf(mirrorFrame) < result.frames.indexOf(neighborFrame),
+      `${kind} mirror must resolve before its right neighbor`);
+  }
+  const mirrorPoisonIndex = result.frames.indexOf(appliedStatusFrame(result, mirrorSource(5), 'enemy', 'poison'));
+  const neighborPoisonIndex = result.frames.findIndex(frame => frame.source === neighborSource(5) &&
+    frame.kind === 'status' && frame.text.includes('获得poison'));
+  assert.ok(mirrorPoisonIndex >= 0 && neighborPoisonIndex >= 0 && mirrorPoisonIndex < neighborPoisonIndex,
+    'status mirrors resolve before their right neighbor');
   assert.equal(outputFrames(result, mirrorSource(2), 'shield').length, 1);
   assert.equal(outputFrames(result, neighborSource(2), 'shield').length, 1);
   assert.equal(outputFrames(result, mirrorSource(3), 'heal').length, 1);
@@ -207,6 +243,24 @@ test('right neighbor outputs mirror once in order and all contribution belongs t
   assert.ok(contribution(result, MIRROR_ID).healing > 0);
   assert.ok(contribution(result, NEIGHBOR_ID).damage > 0);
   assert.ok(contribution(result, NEIGHBOR_ID).healing > 0);
+});
+
+test('mirror copies non-awakening RR04 hits from a right neighbor below its stack cap', () => {
+  const content = contentWithRightNeighborResonance();
+  const player = makeLoadout('RKF01', [
+    { id: MIRROR_ID, stacks: 1 },
+    { id: 'RR04', stacks: 1 },
+  ], { journey: { coins: 200 }, speed: 100 });
+  const result = simulateBattle(content, player, makeEnemy(), 'v2-mirror-real-rr04', { roundLimit: 1 });
+  const native = outputFrames(result, 'RR04-V2-RESONANCE', 'damage');
+  const mirrored = outputFrames(result, 'RL08-MIRROR-RR04-V2-RESONANCE', 'damage');
+
+  assert.equal(content.byId.RR04.max_stacks, 3);
+  assert.equal(player.artifacts[1].stacks, 1, 'the right neighbor is not at its stack cap');
+  assert.equal(native.length, 3, 'RR04 still resolves its real resonance output');
+  assert.equal(mirrored.length, native.length, 'RL08 copies every RR04 hit output once');
+  assert.ok(contribution(result, MIRROR_ID).damage > 0);
+  assert.ok(contribution(result, 'RR04').damage > 0);
 });
 
 test('mirror only reads the adjacent right slot and never mirrors at the end or backwards', () => {
@@ -272,6 +326,55 @@ test('mirror requires the neighbor awakening to be full and to match basic or ra
   assert.equal(outputFrames(rage, neighborSource(1), 'damage').length, 1);
 });
 
+test('mirror copies RL04 opening rage as a source-attributed battle-start output', () => {
+  const content = withOpeningRage(baseContent, 0);
+  const player = makeLoadout('RKF01', [
+    { id: MIRROR_ID, stacks: 1 },
+    { id: 'RL04', stacks: 1 },
+  ]);
+  const result = simulateBattle(content, player, makeEnemy(), 'v2-mirror-rl04-opening-rage', { roundLimit: 1 });
+  const mirroredRage = awakeningFrame(result, `${MIRROR_ID}-MIRROR-RL04-OPENING-RAGE-GAIN`, 'rage');
+
+  assert.equal(mirroredRage.amount, 50);
+  assert.equal(contribution(result, MIRROR_ID).rage, 50);
+});
+
+test('mirrored RC14 poison creates two independent layers whose ticks are not copied again', () => {
+  const content = withOpeningRage(baseContent, 0);
+  const player = makeLoadout('RKF01', [
+    { id: MIRROR_ID, stacks: 1 },
+    { id: 'RC14', stacks: 3 },
+  ], { speed: 100 });
+  const result = simulateBattle(content, player, makeEnemy(), 'v2-mirror-rc14-dot-once', { roundLimit: 3 });
+  const originalTicks = result.frames.filter(frame => frame.kind === 'dot' && frame.actor === 'player' &&
+    frame.source === 'RC14');
+  const mirroredTicks = result.frames.filter(frame => frame.kind === 'dot' && frame.actor === 'player' &&
+    frame.source?.startsWith(`${MIRROR_ID}-MIRROR-RC14`));
+  const applications = source => result.frames.filter(frame => frame.kind === 'status' &&
+    frame.source === source && frame.text.includes('获得poison'));
+
+  assert.deepEqual(originalTicks.reduce((counts, frame) => {
+    counts[frame.round - 1] += 1;
+    return counts;
+  }, [0, 0, 0]), [1, 2, 3]);
+  assert.deepEqual(mirroredTicks.reduce((counts, frame) => {
+    counts[frame.round - 1] += 1;
+    return counts;
+  }, [0, 0, 0]), [1, 2, 3]);
+  assert.equal(applications('RC14').length, 3);
+  assert.equal(applications(`${MIRROR_ID}-MIRROR-RC14`).length, 3,
+    'each RC14 poison application receives exactly one mirror layer');
+
+  const ordinaryBurn = simulateBattle(content, makeLoadout('RKF04'), makeEnemy(),
+    'v2-ordinary-dot-still-ticks-once', { roundLimit: 3 });
+  const ordinaryTicks = ordinaryBurn.frames.filter(frame => frame.kind === 'dot' && frame.actor === 'player' &&
+    frame.source === 'RKF04-BASIC-BURN');
+  assert.deepEqual(ordinaryTicks.reduce((counts, frame) => {
+    counts[frame.round - 1] += 1;
+    return counts;
+  }, [0, 0, 0]), [1, 2, 3], 'ordinary unmirrored DOT layers retain their normal tick count');
+});
+
 test('mirror resolution is symmetric when the enemy owns the mirror', () => {
   const { content } = contentWithMirror();
   const enemy = makeLoadout('RKF01', [
@@ -292,10 +395,10 @@ test('mirror resolution is symmetric when the enemy owns the mirror', () => {
     'enemy mirror outputs do not enter player contributions');
 });
 
-test('a lethal mirrored output stops its remaining effects and the neighbor awakening', () => {
+test('a lethal mirror resolves first and stops the right neighbor output chain', () => {
   const lethalContent = contentWithMirror({
     outputs: [
-      { kind: 'damage', value: 100 },
+      { kind: 'damage', value: 0.2 },
       { kind: 'shield', value: 0.5 },
     ],
   }).content;
@@ -304,7 +407,7 @@ test('a lethal mirrored output stops its remaining effects and the neighbor awak
   const firstMainDamage = plain.frames.find(frame => frame.kind === 'damage' &&
     frame.actor === 'player' && frame.target === 'enemy');
   assert.ok(firstMainDamage, 'baseline main action needs a target hit');
-  const enemyHp = firstMainDamage.amount + 1;
+  const enemyHp = firstMainDamage.amount + 10;
   const lethal = simulateBattle(lethalContent, playerWithMirrorAndNeighbor(), makeEnemy({ hp: enemyHp }),
     'v2-mirror-lethal-copy', { roundLimit: 1 });
 
@@ -314,7 +417,32 @@ test('a lethal mirrored output stops its remaining effects and the neighbor awak
   assert.equal(outputFrames(lethal, mirrorSource(2), 'shield').length, 0,
     'the remaining mirrored output cannot resolve after the target dies');
   assert.equal(outputFrames(lethal, neighborSource(1), 'damage').length, 0,
-    'the neighbor does not get its native awakening after the mirror kills the target');
+    'the source output does not run after its mirror kills the target');
+  assert.equal(outputFrames(lethal, neighborSource(2), 'shield').length, 0,
+    'the target death prevents the next source awakening output');
+});
+
+test('round-end rage mirrors use the rage recipient side when both fighters own the same artifact', () => {
+  const player = makeLoadout('RKF01', [
+    { id: MIRROR_ID, stacks: 1, inscription: 'twin' },
+    { id: 'RC21', stacks: 1 },
+  ], { speed: 100 });
+  const enemy = makeLoadout('RKF01', [
+    { id: MIRROR_ID, stacks: 1 },
+    { id: 'RC21', stacks: 1 },
+  ], { speed: 1, attack: 0 });
+  const result = simulateBattle(baseContent, player, enemy, 'v2-mirror-rage-owner-side', { roundLimit: 1 });
+  const playerMirror = result.frames.filter(frame => frame.kind === 'rage' && frame.actor === 'player' &&
+    frame.source?.startsWith(`${MIRROR_ID}-MIRROR-RC21`));
+  const enemyMirror = result.frames.filter(frame => frame.kind === 'rage' && frame.actor === 'enemy' &&
+    frame.source?.startsWith(`${MIRROR_ID}-MIRROR-RC21`));
+
+  assert.ok(playerMirror.some(frame => frame.source?.endsWith('-INSCRIPTION-TWIN')),
+    'the player mirror applies its own twin inscription');
+  assert.ok(enemyMirror.some(frame => !frame.source?.endsWith('-INSCRIPTION-TWIN')),
+    'the enemy mirror resolves its own copy');
+  assert.equal(enemyMirror.some(frame => frame.source?.endsWith('-INSCRIPTION-TWIN')), false,
+    'an enemy rage output cannot inherit the player mirror inscription');
 });
 
 test('runtime mirror validation accepts only RL08 and the exact neighbor_awakening schema', () => {

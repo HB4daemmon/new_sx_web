@@ -11,12 +11,12 @@ import { nextCommand } from './shanhai-policy.mjs';
 export const START_METHODS = Object.freeze(['RKF01', 'RKF02', 'RKF03', 'RKF04', 'RKF05']);
 // Handpicked functional win fixtures only; this seed set is not a win-rate cohort.
 export const FUNCTIONAL_WIN_SEEDS = Object.freeze({
-  RKF01: 'v2-functional-RKF01-0',
-  RKF02: 'v2-functional-RKF02-0',
-  RKF03: 'v2-functional-RKF03-0',
-  // -0 loses in Act 3 and -1 loses at node 44; -2 is a deterministic smoke win.
-  RKF04: 'v2-functional-RKF04-2',
-  // The -0 fixture loses to the Act 1 boss; this handpicked smoke seed is not win-rate evidence.
+  RKF01: 'v2-functional-RKF01-1',
+  RKF02: 'v2-functional-RKF02-3',
+  RKF03: 'v2-functional-RKF03-5',
+  RKF04: 'v2-functional-RKF04-0',
+  // These seeds exercise all 45 nodes under the revised enemies; they are
+  // deliberately selected functional fixtures, not win-rate evidence.
   RKF05: 'v2-functional-RKF05-1',
 });
 export const METHOD_BRANCHES = Object.freeze({
@@ -154,7 +154,13 @@ function playerLoadout(content, enemy, method) {
     method,
     n,
     talents,
-    artifacts: REFERENCE_EQUIPMENT.map(id => ({ id, stacks: 1 })),
+    // A fixed reference, not a sampled run: later cultivation tiers use
+    // additional common layers so late encounters are not evaluated against
+    // five permanently first-layer items. Never exceed the authored cap.
+    artifacts: REFERENCE_EQUIPMENT.map(id => ({
+      id,
+      stacks: Math.min(content.byId[id].max_stacks, 1 + Math.ceil(n / 2)),
+    })),
     baseStats,
     preparation: 0,
     firstStrike: 0,
@@ -335,6 +341,7 @@ export function buildEncounterCalibration(content, seedCount = 5) {
     board: 'V2 fixed reference loadout (5 generic slots; 3 core-role and 2 support-role artifacts) against authored enemy.n; no runtime node growth, rewards, or route state',
     contentVersion: content.version,
     referenceEquipment: clone(REFERENCE_EQUIPMENT),
+    referenceStackRule: 'min(authored cap, 1 + ceil(reference cultivation tier / 2))',
     roundLimit: 256,
     seedCount,
     seeds,
@@ -520,6 +527,7 @@ export async function runCalibration({
       encounterInputHash: encounter.inputHash,
       fullRunInputHash: fullRuns.inputHash,
       referenceEquipment: clone(REFERENCE_EQUIPMENT),
+      referenceStackRule: encounter.input.referenceStackRule,
       encounterSeeds: encounter.input.seeds,
       fullRunSeeds: fullRuns.input.seeds,
     },

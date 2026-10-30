@@ -1,5 +1,8 @@
 # V2 Reaction Prototype
 
+> Historical iteration contract; current slots, save version and delivery rules
+> are documented in `docs/shanhai/rework/V2_EXPERIMENT.md` and `AGENTS.md`.
+
 2026-10-27. Experimental branch `feat/v2-build-engine` only. V1/main unchanged.
 This supersedes the relevant behavior in V2_RESONANCE_CONTRACT.md, not the
 untracked rejected V2_SYNERGY_CONTRACT.md. Do not use that draft as instructions.

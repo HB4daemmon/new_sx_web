@@ -1,6 +1,12 @@
 import { hashSeed, seededRandom } from './content.js';
 import { MAX_EQUIPMENT_SLOTS } from './equipment.js';
 import {
+  DEVOURING_ARTIFACT_ID,
+  artifactDevourRule,
+  devouredDamageMultiplier,
+  assertArtifactDevouredField,
+} from './artifact-growth.js';
+import {
   journeyFacts,
   selectedBuildMechanics,
   staticBuildStats,
@@ -14,6 +20,7 @@ import type {
   Contribution,
   FighterView,
   Loadout,
+  PermanentSacrificeRule,
   Stats,
 } from './types.js';
 
@@ -29,7 +36,9 @@ type AnyMap = Record<string, any>;
 type Effect = AnyMap & { id: string; trigger: string; operation: string; target?: string };
 type ActiveEffect = Effect & { ownerId: string; ownerName: string; ownerKind: SourceKind; ownerSide?: 'player' | 'enemy'; stacks: number };
 type SourceKind = 'method' | 'talent' | 'artifact';
+type ArtifactInscription = 'twin' | 'leech' | 'swift';
 type ActionType = 'basic_action' | 'rage_action';
+type LockedActionType = ActionType | 'wait';
 type StatusName = 'poison' | 'burn' | 'weakness' | 'armor_break' | 'sword_intent' | 'charge_luck' | 'day_night';
 type FusionKind = 'toxic_flame' | 'twin_swords';
 type ResonanceKind =
@@ -62,6 +71,14 @@ interface StatusLayer {
 interface ArtifactRuntime {
   entity: AnyMap;
   stacks: number;
+  inscription?: ArtifactInscription;
+  devoured?: number;
+}
+
+interface CompanionRuntime {
+  method: AnyMap;
+  sourceId: string;
+  usesAlternateEffect: boolean;
 }
 
 interface CoreRuleRuntime {
@@ -88,12 +105,10 @@ type EnemyTrial =
 interface Fighter {
   artifactAwakenings: boolean;
   side: 'player' | 'enemy';
-  lockedAction?: ActionType;
+  lockedAction?: LockedActionType;
   loadout: Loadout;
   method: AnyMap;
-  companion?: AnyMap;
-  companionSourceId?: string;
-  companionUsesAlternateEffect: boolean;
+  companions: CompanionRuntime[];
   talents: AnyMap[];
   artifacts: ArtifactRuntime[];
   coreRules: CoreRuleRuntime[];
@@ -101,6 +116,7 @@ interface Fighter {
   stats: Stats;
   hp: number;
   shield: number;
+  maxShield: number;
   rage: number;
   rageCap: number;
   firstStrike: number;
@@ -176,6 +192,8 @@ interface ActionContext {
   actualHpDamage: number;
   actualAbsorbed: number;
   enemyActualHpDamage: number;
+  unmirroredMainHpDamage: number;
+  rr02SelfHealConversion?: boolean;
   reflectDamage: number;
   phaseBefore: 'day' | 'night';
   phaseChanged: boolean;
@@ -225,6 +243,7 @@ interface BattleRuntime {
   openingDrainRequested: Map<'player' | 'enemy', number>;
   currentAction: ActionContext | null;
   sameSpeedFirst: 'player' | 'enemy';
+  artifactOutputReplayDepth: number;
 }
 
 const COMBAT_TRIGGERS = new Set([
@@ -911,9 +930,20 @@ function validateLoadout(
   content: Content,
   loadout: Loadout,
   side: 'player' | 'enemy',
-): { method: AnyMap; companion?: AnyMap; talents: AnyMap[]; artifacts: ArtifactRuntime[]; trial?: EnemyTrial } {
+): { method: AnyMap; companions: AnyMap[]; talents: AnyMap[]; artifacts: ArtifactRuntime[]; trial?: EnemyTrial } {
   if (!loadout || typeof loadout !== 'object') throw new Error('Invalid Shanhai loadout');
   if (typeof loadout.method !== 'string') throw new Error('Loadout method is required');
+  if (Object.hasOwn(loadout, 'companion')) throw new Error('Loadout uses unsupported single companion field');
+  if (loadout.permanentRule !== undefined) {
+    const rule = loadout.permanentRule as PermanentSacrificeRule;
+    const validShattered = rule?.kind === 'shattered_core' &&
+      Object.keys(rule).length === 2 && Number.isFinite(rule.originalMaxHp) && rule.originalMaxHp > 0;
+    const validMarker = (rule?.kind === 'blind_sword' || rule?.kind === 'endless_chain') &&
+      Object.keys(rule).length === 1;
+    if (side !== 'player' || (!validShattered && !validMarker)) {
+      throw new Error('Invalid permanent sacrifice rule');
+    }
+  }
   validateMirrorRules(content);
   validateResonanceRules(content);
   validateFusionRules(content);
@@ -924,15 +954,23 @@ function validateLoadout(
     }
   }
   const method = entity(content, loadout.method, 'method');
-  let companion: AnyMap | undefined;
-  if (loadout.companion !== undefined) {
-    if (typeof loadout.companion !== 'string') throw new Error('Loadout companion must be a method ID');
-    companion = entity(content, loadout.companion, 'method');
-    if (companion.id === method.id) throw new Error('Loadout companion must differ from the main method');
+  if (loadout.companions !== undefined && !Array.isArray(loadout.companions)) {
+    throw new Error('Loadout companions must be an array of method IDs');
+  }
+  const companionIds = loadout.companions ?? [];
+  const companionSet = new Set<string>();
+  const companions: AnyMap[] = [];
+  for (const id of companionIds) {
+    if (typeof id !== 'string' || !id.trim()) throw new Error('Loadout companions must contain method IDs');
+    if (companionSet.has(id)) throw new Error(`Duplicate companion method ${id}`);
+    companionSet.add(id);
+    const companion = entity(content, id, 'method');
+    if (companion.id === method.id) throw new Error('Loadout companions must differ from the main method');
     if (!companion.companion || typeof companion.companion.name !== 'string' ||
         typeof companion.companion.quick !== 'string' || !companion.companion.effect) {
       throw new Error(`Method ${companion.id} has no valid companion assistance configuration`);
     }
+    companions.push(companion);
   }
   let trial: EnemyTrial | undefined;
   if (loadout.encounterId !== undefined) {
@@ -977,8 +1015,16 @@ function validateLoadout(
     throw new Error(`Loadout exceeds ${MAX_EQUIPMENT_SLOTS} artifact slots`);
   }
   for (const stack of loadout.artifacts) {
+    assertArtifactDevouredField(stack, 'loadout artifact');
+    if (side === 'enemy' && stack && typeof stack === 'object' && Object.hasOwn(stack, 'devoured')) {
+      throw new Error('Enemy loadouts cannot carry artifact devour growth');
+    }
     if (!stack || typeof stack.id !== 'string' || !Number.isInteger(stack.stacks) || stack.stacks <= 0) {
       throw new Error(`Invalid artifact stack ${JSON.stringify(stack)}`);
+    }
+    const inscription = (stack as AnyMap).inscription;
+    if (inscription !== undefined && inscription !== 'twin' && inscription !== 'leech' && inscription !== 'swift') {
+      throw new Error(`Invalid artifact inscription ${String(inscription)} (${stack.id})`);
     }
     const artifact = entity(content, stack.id, 'artifact');
     if (artifactIds.has(artifact.id)) throw new Error(`Duplicate artifact ID ${artifact.id}`);
@@ -996,10 +1042,15 @@ function validateLoadout(
       if (uniqueGroups.has(group)) throw new Error(`Duplicate unique artifact group ${group}`);
       uniqueGroups.add(group);
     }
-    artifacts.push({ entity: artifact, stacks: stack.stacks });
+    artifacts.push({
+      entity: artifact,
+      stacks: stack.stacks,
+      ...(inscription ? { inscription: inscription as ArtifactInscription } : {}),
+      ...(stack.devoured !== undefined ? { devoured: stack.devoured } : {}),
+    });
   }
   validateEffects(method, chosen, artifacts, [...sharedTalents.values()]);
-  return { method, ...(companion ? { companion } : {}), talents: chosen, artifacts, ...(trial ? { trial } : {}) };
+  return { method, companions, talents: chosen, artifacts, ...(trial ? { trial } : {}) };
 }
 
 function rules(content: Content): AnyMap {
@@ -1077,6 +1128,10 @@ function calculateStatsForSide(
     addStatEffect(stats, effect, effect.stacks);
   }
   stats.defense *= gambitDefenseMultiplier(compiled.artifacts);
+  if (side === 'player' && loadout.permanentRule?.kind === 'shattered_core') {
+    stats.max_hp = 1;
+    stats.attack *= 1.8;
+  }
   for (const key of STAT_KEYS) if (!isFiniteNumber(stats[key]) || stats[key] < 0) throw new Error(`Invalid calculated stat ${key}`);
   return stats;
 }
@@ -1111,6 +1166,14 @@ function sourceBelongsToPlayer(
   if (explicitSide) return explicitSide === 'player';
   if (typeof effect !== 'string' && effect.ownerSide) return effect.ownerSide === 'player';
   const id = typeof effect === 'string' ? effect : effect.ownerId;
+  const permanentRuleId = runtime.player.loadout.permanentRule?.kind === 'shattered_core'
+    ? 'RE037-A'
+    : runtime.player.loadout.permanentRule?.kind === 'blind_sword'
+      ? 'RE037-B'
+      : runtime.player.loadout.permanentRule?.kind === 'endless_chain'
+        ? 'RE037-C'
+        : undefined;
+  if (id === permanentRuleId) return true;
   const action = runtime.currentAction;
   if (action) {
     const actor = action.actor;
@@ -1128,22 +1191,21 @@ function fighterOwnsSource(fighter: Fighter, sourceId: string, sourceSide?: 'pla
   return sourceId === fighter.method.id ||
     fighter.talents.some(talent => talent.id === sourceId) ||
     fighter.artifacts.some(artifact => artifact.entity.id === sourceId) ||
-    sourceId === fighter.companionSourceId;
+    fighter.companions.some(companion => companion.sourceId === sourceId);
 }
 
 function fighterOwnsDotLayer(fighter: Fighter, layer: StatusLayer): boolean {
   return fighterOwnsSource(fighter, layer.ownerId ?? layer.sourceId ?? '', layer.ownerSide);
 }
 
-function companionSource(fighter: Fighter): ActiveEffect | undefined {
-  if (!fighter.companion || !fighter.companionSourceId) return undefined;
-  const config = fighter.companion.companion;
+function companionSource(fighter: Fighter, companion: CompanionRuntime): ActiveEffect {
+  const config = companion.method.companion;
   return {
-    id: `${fighter.companion.id}-COMPANION-ASSIST`,
+    id: `${companion.method.id}-COMPANION-ASSIST`,
     trigger: 'companion_assist',
     operation: 'companion_assist',
     params: {},
-    ownerId: fighter.companionSourceId,
+    ownerId: companion.sourceId,
     ownerName: config.name,
     ownerKind: 'method',
     ownerSide: fighter.side,
@@ -1190,10 +1252,114 @@ function buildSourceRegistry(runtime: BattleRuntime, fighter: Fighter): void {
     runtime.sourceNames.set(artifact.entity.id, artifact.entity.name);
     if (fighter.side === 'player') ensureContribution(runtime, artifact.entity.id, artifact.entity.name);
   }
-  if (fighter.companion && fighter.companionSourceId) {
-    const name = fighter.companion.companion.name;
-    runtime.sourceNames.set(fighter.companionSourceId, name);
-    if (fighter.side === 'player') ensureContribution(runtime, fighter.companionSourceId, name);
+  for (const companion of fighter.companions) {
+    const name = companion.method.companion.name;
+    runtime.sourceNames.set(companion.sourceId, name);
+    if (fighter.side === 'player') ensureContribution(runtime, companion.sourceId, name);
+  }
+  if (fighter.side === 'player' && fighter.loadout.permanentRule) {
+    const [id, name] = fighter.loadout.permanentRule.kind === 'shattered_core'
+      ? ['RE037-A', '法则·碎丹化婴']
+      : fighter.loadout.permanentRule.kind === 'blind_sword'
+        ? ['RE037-B', '法则·盲眼剑圣']
+        : ['RE037-C', '法则·断普连诀'];
+    runtime.sourceNames.set(id, name);
+    ensureContribution(runtime, id, name);
+  }
+}
+
+function artifactOutputCopyEffect(
+  original: ActiveEffect,
+  artifact: ArtifactRuntime,
+  owner: Fighter,
+  mode: 'mirror' | 'twin' | 'swift',
+): ActiveEffect {
+  let id: string;
+  if (mode === 'mirror') {
+    const awakeningSuffix = original.id.match(/-AWAKENING-\d+$/)?.[0];
+    const suffix = awakeningSuffix ?? `-${original.id}`;
+    id = `${artifact.entity.id}-MIRROR${suffix}`;
+  } else {
+    id = `${original.id}-INSCRIPTION-${mode.toUpperCase()}`;
+  }
+  return {
+    ...clone(original),
+    id,
+    ownerId: artifact.entity.id,
+    ownerName: artifact.entity.name,
+    ownerKind: 'artifact',
+    ownerSide: owner.side,
+    stacks: artifact.stacks,
+  };
+}
+
+function artifactOwnerForOutput(runtime: BattleRuntime, source: ActiveEffect): Fighter | undefined {
+  const side = source.ownerSide ?? runtime.currentAction?.actor.side;
+  const owner = side === 'player' ? runtime.player : side === 'enemy' ? runtime.enemy : undefined;
+  if (!owner || source.ownerKind !== 'artifact') return undefined;
+  return owner.artifacts.some(artifact => artifact.entity.id === source.ownerId) ? owner : undefined;
+}
+
+function isFirstMirrorOutput(runtime: BattleRuntime, source: ActiveEffect | string): source is ActiveEffect {
+  return typeof source !== 'string' && runtime.artifactOutputReplayDepth === 1 &&
+    source.ownerId === 'RL08' && source.id.startsWith('RL08-MIRROR-');
+}
+
+function leftMirrorForArtifact(owner: Fighter, artifact: ArtifactRuntime): ArtifactRuntime | undefined {
+  const index = owner.artifacts.indexOf(artifact);
+  if (index <= 0) return undefined;
+  const mirror = owner.artifacts[index - 1];
+  return mirror.entity.id === 'RL08' && mirror.entity.mirror_rule?.kind === 'neighbor_awakening'
+    ? mirror
+    : undefined;
+}
+
+function resolveArtifactOutputCopies(
+  runtime: BattleRuntime,
+  source: ActiveEffect | string,
+  outputTarget: Fighter,
+  resolve: (effect: ActiveEffect, mode: 'mirror' | 'twin' | 'swift') => void,
+  phase: 'mirror' | 'inscription' | 'all' = 'all',
+): void {
+  if (typeof source === 'string' || source.ownerKind !== 'artifact' ||
+      !runtime.active || outputTarget.hp <= 0) return;
+  const isMirrorOutput = isFirstMirrorOutput(runtime, source);
+  if (runtime.artifactOutputReplayDepth > 0 && !isMirrorOutput) return;
+  const owner = artifactOwnerForOutput(runtime, source);
+  if (!owner || owner.hp <= 0) return;
+  const artifact = owner.artifacts.find(item => item.entity.id === source.ownerId);
+  if (!artifact) return;
+
+  const inscription = artifact.inscription;
+  const inscriptionMode: 'twin' | 'swift' | undefined = inscription === 'twin'
+    ? 'twin'
+    : inscription === 'swift' && runtime.round === 1 ? 'swift' : undefined;
+  const mirror = isMirrorOutput ? undefined : leftMirrorForArtifact(owner, artifact);
+  const copies: { artifact: ArtifactRuntime; mode: 'mirror' | 'twin' | 'swift' }[] = [];
+  // The right artifact's inscription stays with its own output. RL08 may use
+  // its own inscription on a mirrored output, but that copy cannot mirror again.
+  if (phase !== 'inscription' && mirror) copies.push({ artifact: mirror, mode: 'mirror' });
+  if (phase !== 'mirror' && inscriptionMode) copies.push({ artifact, mode: inscriptionMode });
+
+  for (const copy of copies) {
+    if (!runtime.active || owner.hp <= 0 || outputTarget.hp <= 0) break;
+    const copiedEffect = artifactOutputCopyEffect(source, copy.artifact, owner, copy.mode);
+    if (copy.mode === 'mirror' && source.trigger === 'awakening') {
+      frame(
+        runtime,
+        'status',
+        `昆仑镜镜映（${artifact.entity.name}）：觉醒输出`,
+        owner.side,
+        outputTarget.side,
+        copiedEffect.id,
+      );
+    }
+    runtime.artifactOutputReplayDepth += 1;
+    try {
+      resolve(copiedEffect, copy.mode);
+    } finally {
+      runtime.artifactOutputReplayDepth -= 1;
+    }
   }
 }
 
@@ -1377,6 +1543,34 @@ function resonanceCounters(fighter: Fighter): NonNullable<FighterView['counters'
   });
 }
 
+function rr08StoredKey(): string {
+  return 'RR08:BLOOD-VALOR';
+}
+
+function rr08Effect(fighter: Fighter): ActiveEffect | undefined {
+  return selectedEffect(fighter, 'RR08-ENEMY-ACTION-RAGE-GAIN');
+}
+
+function rr08Stored(fighter: Fighter): number {
+  return Math.max(0, n(fighter.battleLayers[rr08StoredKey()], 0));
+}
+
+function rr08StorageCap(fighter: Fighter, effect = rr08Effect(fighter)): number {
+  return effect ? fighter.stats.max_hp * n(effect.params?.storage_cap_hp_ratio, 0) : 0;
+}
+
+function rr08Counter(fighter: Fighter): NonNullable<FighterView['counters']> {
+  const effect = rr08Effect(fighter);
+  if (!effect) return [];
+  const maximum = Math.max(0, rr08StorageCap(fighter, effect));
+  return [{
+    id: effect.id,
+    name: '血勇',
+    value: Math.min(maximum, rr08Stored(fighter)),
+    max: maximum,
+  }];
+}
+
 function trialCounters(fighter: Fighter): NonNullable<FighterView['counters']> {
   if (!fighter.trial || fighter.trialCharges === undefined || fighter.trialCountdown === undefined) return [];
   const chargeName = fighter.trial.kind === 'tidal_charge' ? '蓄潮' : '回雾';
@@ -1409,7 +1603,11 @@ function flyingSwordSnapshot(fighter: Fighter): FighterView['summons'] {
 
 function fighterView(fighter: Fighter): FighterView {
   const statuses: Record<string, number> = {};
-  const counters = [...(resonanceCounters(fighter) ?? []), ...trialCounters(fighter)];
+  const counters = [
+    ...(resonanceCounters(fighter) ?? []),
+    ...rr08Counter(fighter),
+    ...trialCounters(fighter),
+  ];
   const summons = flyingSwordSnapshot(fighter);
   for (const status of ['poison', 'burn', 'weakness', 'armor_break', 'sword_intent', 'charge_luck', 'day_night'] as StatusName[]) {
     const count = statusCount(fighter, status);
@@ -1420,6 +1618,9 @@ function fighterView(fighter: Fighter): FighterView {
     method: fighter.method.id,
     hp: Math.max(0, fighter.hp),
     maxHp: fighter.stats.max_hp,
+    maxShield: fighter.loadout.permanentRule?.kind === 'shattered_core'
+      ? fighter.maxShield
+      : fighter.stats.max_hp,
     shield: Math.max(0, fighter.shield),
     rage: Math.max(0, fighter.rage),
     rageCap: fighter.rageCap,
@@ -1427,6 +1628,7 @@ function fighterView(fighter: Fighter): FighterView {
     ...(counters?.length ? { counters } : {}),
     ...(summons?.length ? { summons } : {}),
     ...(fighter.lockedAction ? { lockedAction: fighter.lockedAction } : {}),
+    ...(fighter.loadout.permanentRule ? { permanentRule: clone(fighter.loadout.permanentRule) } : {}),
   };
 }
 
@@ -1720,6 +1922,7 @@ function dynamicStats(runtime: BattleRuntime, fighter: Fighter, target: Fighter,
       actualHpDamage: 0,
       actualAbsorbed: 0,
       enemyActualHpDamage: 0,
+      unmirroredMainHpDamage: 0,
       reflectDamage: 0,
       phaseBefore: fighter.phase,
       phaseChanged: false,
@@ -2242,6 +2445,34 @@ function triggerOutgoingResonances(
   }
 }
 
+function cauldronGrowth(fighter: Fighter): { count: number; multiplier: number } {
+  if (fighter.side !== 'player') return { count: 0, multiplier: 1 };
+  const cauldron = fighter.artifacts.find(artifact => artifact.entity.id === DEVOURING_ARTIFACT_ID);
+  if (!cauldron) return { count: 0, multiplier: 1 };
+  const count = cauldron.devoured ?? 0;
+  const rule = artifactDevourRule((fighter as AnyMap).__content as Content);
+  return { count, multiplier: devouredDamageMultiplier(rule, count) };
+}
+
+function damageAmounts(hp: number, shield: number, amount: number, trueAmount: number): {
+  regularAbsorbed: number;
+  regularHpDamage: number;
+  trueAbsorbed: number;
+  trueHpDamage: number;
+} {
+  const regularAbsorbed = Math.min(shield, amount);
+  const regularHpDamage = Math.min(hp, amount - regularAbsorbed);
+  const hpAfterRegular = Math.max(0, hp - regularHpDamage);
+  const shieldAfterRegular = Math.max(0, shield - regularAbsorbed);
+  const trueAbsorbed = trueAmount > 0 && hpAfterRegular > 0
+    ? Math.min(shieldAfterRegular, trueAmount)
+    : 0;
+  const trueHpDamage = trueAmount > 0 && hpAfterRegular > 0
+    ? Math.min(hpAfterRegular, trueAmount - trueAbsorbed)
+    : 0;
+  return { regularAbsorbed, regularHpDamage, trueAbsorbed, trueHpDamage };
+}
+
 function dealDamage(
   runtime: BattleRuntime,
   source: Fighter,
@@ -2258,6 +2489,10 @@ function dealDamage(
     round?: number;
     criticalBonusRatio?: number;
     resonanceEffectId?: string;
+    rawIsResolved?: boolean;
+    outputCopy?: boolean;
+    devourScaled?: boolean;
+    devourBaselineRaw?: number;
   },
 ): HitResult {
   if (!runtime.active || source.hp <= 0 || target.hp <= 0) {
@@ -2276,45 +2511,129 @@ function dealDamage(
     ? options.sourceEffect
     : options.sourceEffect;
   const stats = attackStats(runtime, source, target, action);
+  const blindSwordOwner = source.loadout.permanentRule?.kind === 'blind_sword';
+  const blindSwordSuppressesCrit = blindSwordOwner &&
+    (options.kind === 'direct' || options.kind === 'derived');
+  const blindSwordConversion = blindSwordOwner &&
+    action?.actor === source && (action.type === 'basic_action' || action.type === 'rage_action') &&
+    (options.kind === 'direct' || options.kind === 'derived');
+  const convertedCritChance = blindSwordConversion ? clamp(stats.crit_rate, 0, 1) : 0;
   let raw = options.rawOverride ?? stats.attack * ratio;
   let critical = false;
-  if (options.canCrit && options.kind !== 'dot' && options.kind !== 'reflect') {
-    const chance = clamp(stats.crit_rate, 0, 1);
-    critical = runtime.random() < chance;
-    if (critical) raw *= n(rules(runtime.content).combat?.crit_multiplier, 1.5);
-  }
-  if (options.criticalBonusRatio) raw += stats.attack * options.criticalBonusRatio;
-  if (options.echoScale !== false && action?.isEcho && action.actor === source) {
-    raw *= n(action.powerScale, 0.45);
-  }
-  raw *= outgoingBuildMultiplier(runtime, source, target, action, options.kind) *
-    gambitDamageMultiplier(source, options.kind);
-  if (options.kind === 'direct') {
-    for (const core of source.coreRules) {
-      if (core.kind !== 'healing_guard') continue;
-      raw *= n(core.params.direct_damage_ratio, 1);
-      mark(runtime, core.effect, 1, source.side);
+  if (!options.rawIsResolved) {
+    if (!blindSwordSuppressesCrit && options.canCrit && options.kind !== 'dot' && options.kind !== 'reflect') {
+      const chance = clamp(stats.crit_rate, 0, 1);
+      critical = runtime.random() < chance;
+      if (critical) raw *= n(rules(runtime.content).combat?.crit_multiplier, 1.5);
+    }
+    if (options.criticalBonusRatio) raw += stats.attack * options.criticalBonusRatio;
+    if (options.echoScale !== false && action?.isEcho && action.actor === source) {
+      raw *= n(action.powerScale, 0.45);
+    }
+    raw *= outgoingBuildMultiplier(runtime, source, target, action, options.kind) *
+      gambitDamageMultiplier(source, options.kind);
+    if (options.kind === 'direct') {
+      for (const core of source.coreRules) {
+        if (core.kind !== 'healing_guard') continue;
+        raw *= n(core.params.direct_damage_ratio, 1);
+        mark(runtime, core.effect, 1, source.side);
+      }
     }
   }
+  const growth = options.kind === 'direct' || options.kind === 'derived' ||
+    options.kind === 'dot' || options.kind === 'reflect'
+    ? cauldronGrowth(source)
+    : { count: 0, multiplier: 1 };
+  const devourBaselineRaw = options.devourScaled === true
+    ? options.devourBaselineRaw ?? raw / growth.multiplier
+    : raw;
+  const devourApplied = growth.count > 0 && growth.multiplier > 1 &&
+    (options.devourScaled === true || raw > 0);
+  if (devourApplied && options.devourScaled !== true) raw *= growth.multiplier;
+
+  if ((options.kind !== 'dot') && raw > 0 &&
+      (!options.outputCopy || isFirstMirrorOutput(runtime, sourceEffect))) {
+    resolveArtifactOutputCopies(runtime, sourceEffect, target, (copy, mode) => {
+      dealDamage(runtime, source, target, 0, {
+        sourceEffect: copy,
+        kind: options.kind,
+        canCrit: false,
+        rawOverride: raw,
+        rawIsResolved: true,
+        outputCopy: true,
+        ...(devourApplied ? { devourScaled: true, devourBaselineRaw } : {}),
+      });
+      void mode;
+    }, 'mirror');
+  }
+  if (!runtime.active || source.hp <= 0 || target.hp <= 0) {
+    return {
+      raw: 0,
+      amount: 0,
+      absorbed: 0,
+      hpDamage: 0,
+      critical: false,
+      effective: false,
+      shieldBroken: false,
+    };
+  }
+
   const multiplier = options.kind === 'dot' ? 1 : incomingMultiplier(runtime, target, source, options.kind);
   let amount = raw * multiplier;
+  let baselineAmount = devourApplied ? devourBaselineRaw * multiplier : amount;
+  let trueAmount = blindSwordConversion ? raw * 3 * convertedCritChance * multiplier : 0;
+  let baselineTrueAmount = devourApplied
+    ? blindSwordConversion ? devourBaselineRaw * 3 * convertedCritChance * multiplier : 0
+    : trueAmount;
   if (options.kind !== 'dot' && options.kind !== 'reflect') {
-    amount = amount * n(rules(runtime.content).combat?.direct_defense_constant, 100) /
-      (n(rules(runtime.content).combat?.direct_defense_constant, 100) + targetDefense(runtime, target, source, action));
+    const defenseConstant = n(rules(runtime.content).combat?.direct_defense_constant, 100);
+    const defenseFactor = defenseConstant / (defenseConstant + targetDefense(runtime, target, source, action));
+    amount *= defenseFactor;
+    baselineAmount *= defenseFactor;
   }
   amount = Math.max(0, amount);
+  trueAmount = Math.max(0, trueAmount);
+  baselineAmount = Math.max(0, baselineAmount);
+  baselineTrueAmount = Math.max(0, baselineTrueAmount);
+  const beforeHp = target.hp;
   const beforeShield = target.shield;
-  const absorbed = Math.min(beforeShield, amount);
-  target.shield = Math.max(0, beforeShield - absorbed);
-  const hpDamage = Math.min(target.hp, amount - absorbed);
-  target.hp = Math.max(0, target.hp - hpDamage);
+  const applied = damageAmounts(beforeHp, beforeShield, amount, trueAmount);
+  const baseline = damageAmounts(beforeHp, beforeShield, baselineAmount, baselineTrueAmount);
+  const { regularAbsorbed, regularHpDamage, trueAbsorbed, trueHpDamage } = applied;
+  target.shield = Math.max(0, beforeShield - regularAbsorbed - trueAbsorbed);
+  target.hp = Math.max(0, beforeHp - regularHpDamage - trueHpDamage);
+  const regularDamage = regularAbsorbed + regularHpDamage;
+  const convertedDamage = trueAbsorbed + trueHpDamage;
+  amount += trueAmount;
+  const absorbed = regularAbsorbed + trueAbsorbed;
+  const hpDamage = regularHpDamage + trueHpDamage;
   const effective = absorbed > 0 || hpDamage > 0;
   const shieldBroken = beforeShield > 0 && target.shield <= 0 && absorbed > 0;
+  const baselineRegularDamage = baseline.regularAbsorbed + baseline.regularHpDamage;
+  const baselineConvertedDamage = baseline.trueAbsorbed + baseline.trueHpDamage;
+  const cauldronBonus = devourApplied
+    ? Math.max(0, regularDamage + convertedDamage - baselineRegularDamage - baselineConvertedDamage)
+    : 0;
+  const regularGrowth = Math.max(0, regularDamage - baselineRegularDamage);
+  const convertedGrowth = Math.max(0, convertedDamage - baselineConvertedDamage);
+  const growthParts = regularGrowth + convertedGrowth;
+  const regularGrowthShare = growthParts > 0 ? cauldronBonus * regularGrowth / growthParts : 0;
+  const convertedGrowthShare = cauldronBonus - regularGrowthShare;
+  const regularSourceDamage = Math.max(0, regularDamage - regularGrowthShare);
+  const convertedSourceDamage = Math.max(0, convertedDamage - convertedGrowthShare);
   if (typeof sourceEffect !== 'string') {
     mark(runtime, sourceEffect, 1, source.side);
-    addContribution(runtime, sourceEffect, 'damage', hpDamage + absorbed, source.side);
+    addContribution(runtime, sourceEffect, 'damage', regularSourceDamage, source.side);
   } else {
-    addContribution(runtime, sourceEffect, 'damage', hpDamage + absorbed, source.side);
+    addContribution(runtime, sourceEffect, 'damage', regularSourceDamage, source.side);
+  }
+  if (convertedSourceDamage > 0) {
+    mark(runtime, 'RE037-B', 1, source.side);
+    addContribution(runtime, 'RE037-B', 'damage', convertedSourceDamage, source.side);
+  }
+  if (cauldronBonus > 0) {
+    mark(runtime, DEVOURING_ARTIFACT_ID, 1, source.side);
+    addContribution(runtime, DEVOURING_ARTIFACT_ID, 'damage', cauldronBonus, source.side);
   }
   if (options.kind === 'dot' && sourceEffect) {
     // DOT damage is attributed to its authored source, while the defender's
@@ -2330,7 +2649,10 @@ function dealDamage(
     : action?.isEcho && action.actor === source
       ? `${sourceEffect.id}-RAGE-ECHO`
       : sourceEffect.id;
-  frame(runtime, options.kind === 'dot' ? 'dot' : 'damage', `${sideText}造成${kindText} ${Math.round(hpDamage + absorbed)}`, source.side, target.side, frameSource, hpDamage + absorbed);
+  frame(runtime, options.kind === 'dot' ? 'dot' : 'damage', `${sideText}造成${kindText} ${Math.round(regularDamage)}`, source.side, target.side, frameSource, regularDamage);
+  if (convertedDamage > 0) {
+    frame(runtime, 'damage', `${sideText}造成真实伤害 ${Math.round(convertedDamage)}`, source.side, target.side, 'RE037-B', convertedDamage);
+  }
   if (target.trial?.kind === 'tidal_charge' && source.side !== target.side &&
       (options.kind === 'direct' || options.kind === 'derived') && effective &&
       (target.trialCharges ?? 0) > 0) {
@@ -2358,6 +2680,9 @@ function dealDamage(
       action.enemyActualHpDamage += hpDamage;
       action.actualHpDamage += hpDamage;
       action.actualAbsorbed += absorbed;
+      if (action.isMainAction && !action.isEcho && !options.outputCopy) {
+        action.unmirroredMainHpDamage += hpDamage;
+      }
       if (options.kind === 'direct') registerIncomingDirectRage(runtime, target);
   }
   if (effective && action?.actor === source && action.target === target &&
@@ -2389,7 +2714,7 @@ function dealDamage(
     if (!action.isEcho) triggerDirectCrit(runtime, source, target, action, options.base === true || options.followup === true);
   }
   if (shieldBroken && target.hp > 0) {
-    if (options.kind === 'direct') triggerShieldBreak(runtime, target, source, action);
+    if (options.kind === 'direct' && !options.outputCopy) triggerShieldBreak(runtime, target, source, action);
   }
   if (absorbed > 0 && target.hp > 0 && action && source.side !== target.side && options.kind === 'direct') {
     triggerShieldAbsorbed(runtime, target, source, action, absorbed);
@@ -2401,16 +2726,41 @@ function dealDamage(
     addGuardPressure(runtime, target, action, absorbed);
   }
   if (effective) {
-    triggerOutgoingResonances(
-      runtime,
-      source,
-      target,
-      action,
-      sourceEffect,
-      options.kind,
-      effective,
-      options.resonanceEffectId,
-    );
+    if (!options.outputCopy) {
+      triggerOutgoingResonances(
+        runtime,
+        source,
+        target,
+        action,
+        sourceEffect,
+        options.kind,
+        effective,
+        options.resonanceEffectId,
+      );
+    }
+  }
+  if (hpDamage > 0 && typeof sourceEffect !== 'string' && sourceEffect.ownerKind === 'artifact' &&
+      sourceEffect.ownerSide === source.side) {
+    const sourceArtifact = source.artifacts.find(artifact => artifact.entity.id === sourceEffect.ownerId);
+    if (sourceArtifact?.inscription === 'leech' && source.side !== target.side && source.hp > 0) {
+      const leechAction = action?.actor === source ? action : syntheticAction(runtime, source, target);
+      resolveHeal(runtime, leechAction, hpDamage * 0.15, sourceEffect);
+    }
+  }
+  if ((options.kind !== 'dot') && (!options.outputCopy || isFirstMirrorOutput(runtime, sourceEffect)) &&
+      raw > 0 && typeof sourceEffect !== 'string') {
+    resolveArtifactOutputCopies(runtime, sourceEffect, target, (copy, mode) => {
+      dealDamage(runtime, source, target, 0, {
+        sourceEffect: copy,
+        kind: options.kind,
+        canCrit: false,
+        rawOverride: raw,
+        rawIsResolved: true,
+        outputCopy: true,
+        ...(devourApplied ? { devourScaled: true, devourBaselineRaw } : {}),
+      });
+      void mode;
+    }, 'inscription');
   }
   if (target.hp <= 0) runtime.active = false;
   return { raw, amount, absorbed, hpDamage, critical, effective, shieldBroken };
@@ -2418,11 +2768,55 @@ function dealDamage(
 
 function registerRage(runtime: BattleRuntime, fighter: Fighter, amount: number, sourceId: string, sourceOwner: string): void {
   if (amount <= 0 || fighter.hp <= 0) return;
+  const source = selectedEffect(fighter, sourceId) ?? selectedEffect(fighter, sourceOwner);
+  const artifact = fighter.artifacts.find(candidate => candidate.entity.id === sourceOwner);
+  const artifactSource = source?.ownerKind === 'artifact' && source.ownerId === sourceOwner
+    ? source
+    : artifact
+      ? {
+        id: sourceId,
+        trigger: 'rage_gain',
+        operation: 'rage_gain',
+        params: {},
+        ownerId: artifact.entity.id,
+        ownerName: artifact.entity.name,
+        ownerKind: 'artifact' as SourceKind,
+        ownerSide: fighter.side,
+        stacks: artifact.stacks,
+      }
+      : undefined;
+  if (artifactSource) {
+    resolveArtifactOutputCopies(runtime, artifactSource, fighter, (copy, mode) => {
+      registerRage(runtime, fighter, amount, copy.id, copy.ownerId);
+      frame(
+        runtime,
+        'rage',
+        `${fighter.side === 'player' ? '玩家' : '敌人'}${mode === 'mirror' ? '镜映' : mode === 'twin' ? '双生铭刻' : '极速铭刻'}回怒 ${Math.round(amount)}`,
+        fighter.side,
+        fighter.side,
+        copy.id,
+        amount,
+      );
+    }, 'mirror');
+  }
   fighter.pendingGains.push({ amount, sourceId, sourceOwner, isEcho: runtime.currentAction?.isEcho === true });
   addContribution(runtime, sourceOwner, 'rage', amount, fighter.side);
   recordCombatEvent(runtime, 'rage', fighter);
-  const source = selectedEffect(fighter, sourceId) ?? selectedEffect(fighter, sourceOwner);
   if (source) mark(runtime, source, 1, fighter.side);
+  if (artifactSource) {
+    resolveArtifactOutputCopies(runtime, artifactSource, fighter, (copy, mode) => {
+      registerRage(runtime, fighter, amount, copy.id, copy.ownerId);
+      frame(
+        runtime,
+        'rage',
+        `${fighter.side === 'player' ? '玩家' : '敌人'}${mode === 'mirror' ? '镜映' : mode === 'twin' ? '双生铭刻' : '极速铭刻'}回怒 ${Math.round(amount)}`,
+        fighter.side,
+        fighter.side,
+        copy.id,
+        amount,
+      );
+    }, 'inscription');
+  }
 }
 
 function recordCombatEvent(runtime: BattleRuntime, event: CompanionTrigger, owner?: Fighter): void {
@@ -2434,16 +2828,41 @@ function recordCombatEvent(runtime: BattleRuntime, event: CompanionTrigger, owne
 
 function requestDrain(runtime: BattleRuntime, target: Fighter, amount: number, sourceId: string, sourceOwner: string, opening = false): void {
   if (amount <= 0) return;
+  const sourceFighter = other(runtime, target);
+  const source = selectedEffect(sourceFighter, sourceId) ??
+    selectedEffect(sourceFighter, sourceOwner) ??
+    selectedEffect(target, sourceId) ??
+    selectedEffect(target, sourceOwner);
+  const artifact = sourceFighter.artifacts.find(candidate => candidate.entity.id === sourceOwner);
+  let artifactSource: ActiveEffect | undefined;
+  if (artifact) {
+    artifactSource = source?.ownerKind === 'artifact' && source.ownerId === sourceOwner
+      ? source
+      : {
+        id: sourceId,
+        trigger: 'rage_drain',
+        operation: 'rage_drain',
+        params: {},
+        ownerId: artifact.entity.id,
+        ownerName: artifact.entity.name,
+        ownerKind: 'artifact' as SourceKind,
+        ownerSide: sourceFighter.side,
+        stacks: artifact.stacks,
+      };
+    resolveArtifactOutputCopies(runtime, artifactSource, target, (copy, _mode) => {
+      requestDrain(runtime, target, amount, copy.id, copy.ownerId, opening);
+    }, 'mirror');
+  }
   const map = opening ? runtime.openingDrainRequested : runtime.roundDrainRequested;
   map.set(target.side, (map.get(target.side) ?? 0) + amount);
   target.pendingDrains.push({ amount, sourceId, sourceOwner, opening });
-  const sourceFighter = other(runtime, target);
   addContribution(runtime, sourceOwner, 'rage', -amount, sourceFighter.side);
-  const source = selectedEffect(target, sourceId) ??
-    selectedEffect(target, sourceOwner) ??
-    selectedEffect(sourceFighter, sourceId) ??
-    selectedEffect(sourceFighter, sourceOwner);
   if (source) mark(runtime, source, 1, sourceFighter.side);
+  if (artifactSource) {
+    resolveArtifactOutputCopies(runtime, artifactSource, target, (copy, _mode) => {
+      requestDrain(runtime, target, amount, copy.id, copy.ownerId, opening);
+    }, 'inscription');
+  }
 }
 
 function addShield(
@@ -2454,30 +2873,44 @@ function addShield(
   text: string,
   additionalBonus = 0,
   scaleForEcho = true,
+  outputCopy = false,
 ): number {
   if (amount <= 0 || fighter.hp <= 0) return 0;
   let input = amount;
   const action = runtime.currentAction;
-  if (scaleForEcho && action?.isEcho && action.actor === fighter) {
+  if (!outputCopy && scaleForEcho && action?.isEcho && action.actor === fighter) {
     input *= n(action.powerScale, 0.45);
   }
   let shieldBonus = additionalBonus;
-  for (const artifact of fighter.artifacts) {
-    if (artifact.entity.id !== 'RC11') continue;
-    shieldBonus += 0.06 * artifact.stacks;
-    const effect = artifact.entity.effects?.[0];
-    if (effect) {
-      mark(runtime, Object.assign(clone(effect), {
-        ownerId: artifact.entity.id,
-        ownerName: artifact.entity.name,
-        ownerKind: 'artifact' as SourceKind,
-        ownerSide: fighter.side,
-        stacks: artifact.stacks,
-      }), artifact.stacks);
+  if (!outputCopy) {
+    for (const artifact of fighter.artifacts) {
+      if (artifact.entity.id !== 'RC11') continue;
+      shieldBonus += 0.06 * artifact.stacks;
+      const effect = artifact.entity.effects?.[0];
+      if (effect) {
+        mark(runtime, Object.assign(clone(effect), {
+          ownerId: artifact.entity.id,
+          ownerName: artifact.entity.name,
+          ownerKind: 'artifact' as SourceKind,
+          ownerSide: fighter.side,
+          stacks: artifact.stacks,
+        }), artifact.stacks);
+      }
     }
   }
   input *= 1 + shieldBonus;
-  const gained = Math.max(0, Math.min(input, fighter.stats.max_hp - fighter.shield));
+  const capacity = fighter.loadout.permanentRule?.kind === 'shattered_core'
+    ? fighter.maxShield
+    : fighter.stats.max_hp;
+  const plannedGain = Math.max(0, Math.min(input, capacity - fighter.shield));
+  if ((!outputCopy || isFirstMirrorOutput(runtime, source)) && plannedGain > 0) {
+    resolveArtifactOutputCopies(runtime, source, fighter, (copy, mode) => {
+      const label = mode === 'mirror' ? '镜映护盾' : mode === 'twin' ? '双生铭刻护盾' : '极速铭刻护盾';
+      addShield(runtime, fighter, plannedGain, copy, label, 0, false, true);
+    }, 'mirror');
+  }
+  if (fighter.hp <= 0) return 0;
+  const gained = Math.max(0, Math.min(input, capacity - fighter.shield));
   fighter.shield += gained;
   if (gained > 0 && action?.actor === fighter) recordCombatEvent(runtime, 'shield', fighter);
   if (typeof source !== 'string') {
@@ -2490,6 +2923,12 @@ function addShield(
       ? `${source.id}-RAGE-ECHO`
       : source.id;
   frame(runtime, 'shield', `${fighter.side === 'player' ? '玩家' : '敌人'}${text} ${Math.round(gained)}`, fighter.side, fighter.side, frameSource, gained);
+  if ((!outputCopy || isFirstMirrorOutput(runtime, source)) && gained > 0) {
+    resolveArtifactOutputCopies(runtime, source, fighter, (copy, mode) => {
+      const label = mode === 'mirror' ? '镜映护盾' : mode === 'twin' ? '双生铭刻护盾' : '极速铭刻护盾';
+      addShield(runtime, fighter, gained, copy, label, 0, false, true);
+    }, 'inscription');
+  }
   return gained;
 }
 
@@ -2528,9 +2967,12 @@ function addRegularStatus(
   dot?: { damage: number; attackRatio: number; ownerId: string },
   maxStacks?: number,
   scaleForEcho = true,
+  deferArtifactEcho = false,
+  outputCopy = false,
 ): number {
   const cap = maxStacks ?? n(rules(runtime.content).statuses?.[status]?.max_stacks, status === 'sword_intent' ? 5 : 1);
   const layers = getStatusLayers(target, status);
+  const beforeCount = layers.length;
   const isEchoSource = runtime.currentAction?.isEcho &&
     sourceTargetSide(runtime, source) === runtime.currentAction.actor.side;
   const echo = isEchoSource && scaleForEcho
@@ -2538,6 +2980,27 @@ function addRegularStatus(
     : 1;
   const effectiveCount = count > 0 && echo < 1 ? Math.max(1, Math.round(count * echo)) : count;
   const effectiveDuration = duration > 0 && echo < 1 ? Math.max(1, Math.round(duration * echo)) : duration;
+  const plannedAdded = Math.min(Math.max(0, effectiveCount), Math.max(0, cap - layers.length));
+  let copiedAdded = 0;
+  if (plannedAdded > 0 && !outputCopy && !deferArtifactEcho) {
+    const copyDot = dot ? { ...dot } : undefined;
+    resolveArtifactOutputCopies(runtime, source, target, (copy, mode) => {
+      copiedAdded += addRegularStatus(
+        runtime,
+        target,
+        status,
+        plannedAdded,
+        Math.max(1, effectiveDuration),
+        copy,
+        copyDot ? { ...copyDot, ownerId: copy.ownerId } : undefined,
+        cap,
+        false,
+        false,
+        true,
+      );
+      void mode;
+    }, 'mirror');
+  }
   const added = Math.min(Math.max(0, effectiveCount), Math.max(0, cap - layers.length));
   for (let i = 0; i < added; i++) {
     layers.push({
@@ -2563,8 +3026,35 @@ function addRegularStatus(
     frame(runtime, 'status', `${target.side === 'player' ? '玩家' : '敌人'}获得${status}${added}层`, sourceTargetSide(runtime, source), target.side, frameSource, added);
     if ((status === 'weakness' || status === 'armor_break') && action?.target === target &&
         sourceTargetSide(runtime, source) === action.actor.side) recordCombatEvent(runtime, 'debuff', action.actor);
+    if ((!outputCopy && !deferArtifactEcho) || isFirstMirrorOutput(runtime, source)) {
+      const emittedLayers = layers.slice(beforeCount, beforeCount + added).map(layer => ({ ...layer }));
+      resolveArtifactOutputCopies(runtime, source, target, (copy, mode) => {
+        const firstLayer = emittedLayers[0];
+        const copyDot = firstLayer?.kind === 'dot'
+          ? {
+            damage: n(firstLayer.damage, 0),
+            attackRatio: n(firstLayer.attackRatio, 0),
+            ownerId: copy.ownerId,
+          }
+          : undefined;
+        void mode;
+        addRegularStatus(
+          runtime,
+          target,
+          status,
+          emittedLayers.length,
+          Math.max(1, int(firstLayer?.remaining, effectiveDuration)),
+          copy,
+          copyDot,
+          cap,
+          false,
+          false,
+          true,
+        );
+      }, 'inscription');
+    }
   }
-  return added;
+  return added + copiedAdded;
 }
 
 function sourceTargetSide(runtime: BattleRuntime, source: ActiveEffect | string): 'player' | 'enemy' | undefined {
@@ -2587,6 +3077,19 @@ function triggerShieldBreak(runtime: BattleRuntime, target: Fighter, source: Fig
   if (awakening && !target.battleFlags.has(battleFlag)) {
     target.battleFlags.add(battleFlag);
     addShield(runtime, target, target.stats.max_hp * n(awakening.params?.max_hp_ratio, 0.06), awakening, '铁壁符觉醒续护');
+  }
+  const genuineEnemyMainBreak = action.isMainAction && !action.isEcho && !action.isReaction &&
+    action.actor === source && action.target === target;
+  const rr02 = genuineEnemyMainBreak
+    ? selectedEffect(target, 'RR02-ENEMY-SHIELD-BREAK-HEAL')
+    : undefined;
+  if (rr02 && !target.battleFlags.has(rr02.id)) {
+    target.battleFlags.add(rr02.id);
+    withAuxiliaryAction(runtime, target, source, response => {
+      response.rr02SelfHealConversion = true;
+      frame(runtime, 'status', `${target.loadout.name}甘露盏真破回春`, target.side, target.side, rr02.id);
+      resolveHeal(runtime, response, target.stats.max_hp * n(rr02.params?.max_hp_ratio, 0), rr02);
+    });
   }
 }
 
@@ -2642,10 +3145,27 @@ function triggerShieldAbsorbed(runtime: BattleRuntime, target: Fighter, source: 
 }
 
 function triggerDirectCrit(runtime: BattleRuntime, source: Fighter, target: Fighter, action: ActionContext, baseOrFollowup: boolean): void {
-  for (const artifact of source.artifacts) {
-    if (artifact.entity.id !== 'RR10' || action.rr10CritCount >= 2) continue;
+  const rr10 = selectedEffect(source, 'RR10-DIRECT-CRIT-RAGE');
+  if (rr10 && action.isMainAction && !action.isEcho && action.actor === source &&
+      action.rr10CritCount < int(rr10.params?.per_action_cap, 2)) {
     action.rr10CritCount += 1;
-    registerRage(runtime, source, 5 * artifact.stacks, 'RR10-DIRECT-CRIT-RAGE', artifact.entity.id);
+    registerRage(
+      runtime,
+      source,
+      n(rr10.params?.amount, 0) * rr10.stacks,
+      rr10.id,
+      rr10.ownerId,
+    );
+    if (action.rr10CritCount === int(rr10.params?.lightning_on_crit, 2) &&
+        runtime.active && source.hp > 0 && target.hp > 0) {
+      frame(runtime, 'status', `${source.loadout.name}引雷针第二次直接暴击引雷`, source.side, target.side, rr10.id);
+      dealDamage(runtime, source, target, n(rr10.params?.lightning_attack_ratio, 0), {
+        sourceEffect: rr10,
+        kind: 'derived',
+        canCrit: false,
+        followup: true,
+      });
+    }
   }
   const follow = selectedEffect(source, 'RKF05-J3-C-CRIT-FOLLOWUP');
   if (follow && !source.battleFlags.has(`crit-followup-${action.round}-${source.actionNumber}`)) {
@@ -2718,7 +3238,52 @@ function applyDot(
   const echoSource = action?.isEcho && action.actor === owner ? action.echoSource : undefined;
   const echoScale = scaleForEcho && echoSource ? n(action?.powerScale, 0.45) : 1;
   ratio *= echoScale;
-  const damage = snapshotAttack * ratio;
+  const cap = maxStacks ?? n(rules(runtime.content).statuses?.[status]?.max_stacks, 10);
+  const layers = getStatusLayers(target, status);
+  const effectiveStacks = stacks > 0 && echoScale < 1
+    ? Math.max(1, Math.round(stacks * echoScale))
+    : stacks;
+  const plannedAdded = Math.min(Math.max(0, effectiveStacks), Math.max(0, cap - layers.length));
+  const effectiveDuration = duration > 0 && echoScale < 1
+    ? Math.max(1, Math.round(duration * echoScale))
+    : duration;
+  const awakeningId = status === 'poison'
+    ? 'RC14-AWAKENING-POISON-ON-BURN'
+    : 'RC15-AWAKENING-BURN-ON-POISON';
+  const awakening = selectedEffect(owner, awakeningId);
+  const oppositeStatus = status === 'poison' ? 'burn' : 'poison';
+  const roundFlag = `${awakeningId}:${runtime.round}`;
+  let addedRatio = 0;
+  if (plannedAdded > 0 && awakening && hasStatus(target, oppositeStatus) && !owner.battleFlags.has(roundFlag)) {
+    owner.battleFlags.add(roundFlag);
+    addedRatio = n(awakening.params?.attack_ratio_per_stack_add, 0.04) * echoScale;
+    mark(runtime, awakening);
+  }
+  const finalRatio = ratio + addedRatio;
+  const dot = {
+    damage: snapshotAttack * finalRatio,
+    attackRatio: finalRatio,
+    ownerId: echoSource && effect.ownerKind !== 'artifact' ? echoSource.ownerId : effect.ownerId,
+  };
+  let mirroredAdded = 0;
+  if (plannedAdded > 0) {
+    resolveArtifactOutputCopies(runtime, effect, target, (copy, mode) => {
+      mirroredAdded += addRegularStatus(
+        runtime,
+        target,
+        status,
+        plannedAdded,
+        effectiveDuration,
+        copy,
+        { ...dot, ownerId: copy.ownerId },
+        cap,
+        false,
+        false,
+        true,
+      );
+      void mode;
+    }, 'mirror');
+  }
   const added = addRegularStatus(
     runtime,
     target,
@@ -2726,28 +3291,39 @@ function applyDot(
     stacks,
     duration,
     effect,
-    { damage, attackRatio: ratio, ownerId: echoSource && effect.ownerKind !== 'artifact' ? echoSource.ownerId : effect.ownerId },
+    dot,
     maxStacks,
     scaleForEcho,
+    true,
   );
-  if (added <= 0) return added;
+  if (added <= 0 && mirroredAdded <= 0) return added;
   recordCombatEvent(runtime, status, owner);
-  const awakeningId = status === 'poison'
-    ? 'RC14-AWAKENING-POISON-ON-BURN'
-    : 'RC15-AWAKENING-BURN-ON-POISON';
-  const awakening = selectedEffect(owner, awakeningId);
-  const oppositeStatus = status === 'poison' ? 'burn' : 'poison';
-  const roundFlag = `${awakeningId}:${runtime.round}`;
-  if (!awakening || !hasStatus(target, oppositeStatus) || owner.battleFlags.has(roundFlag)) return added;
-  owner.battleFlags.add(roundFlag);
-  const ratioAdd = n(awakening.params?.attack_ratio_per_stack_add, 0.04) * echoScale;
-  const addedLayers = getStatusLayers(target, status).slice(-added);
-  for (const layer of addedLayers) {
-    layer.damage = n(layer.damage, 0) + snapshotAttack * ratioAdd;
-    layer.attackRatio = n(layer.attackRatio, ratio) + ratioAdd;
+  if (added > 0) {
+    const emittedLayers = getStatusLayers(target, status).slice(-added).map(layer => ({ ...layer }));
+    resolveArtifactOutputCopies(runtime, effect, target, (copy, mode) => {
+      const firstLayer = emittedLayers[0];
+      const copyDot = firstLayer ? {
+        damage: n(firstLayer.damage, 0),
+        attackRatio: n(firstLayer.attackRatio, 0),
+        ownerId: copy.ownerId,
+      } : undefined;
+      addRegularStatus(
+        runtime,
+        target,
+        status,
+        emittedLayers.length,
+        Math.max(1, int(firstLayer?.remaining, duration)),
+        copy,
+        copyDot,
+        maxStacks,
+        false,
+        false,
+        true,
+      );
+      void mode;
+    }, 'inscription');
   }
-  mark(runtime, awakening);
-  return added;
+  return added + mirroredAdded;
 }
 
 function effectValueForStatus(
@@ -2973,27 +3549,50 @@ function resolveSpringBloom(
   mark(runtime, rule);
 }
 
-function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: number, source: ActiveEffect, allowOverflow = true): { effective: number; overflow: number } {
+function resolveHeal(
+  runtime: BattleRuntime,
+  action: ActionContext,
+  amount: number,
+  source: ActiveEffect,
+  allowOverflow = true,
+  outputCopy = false,
+): { effective: number; overflow: number; totalEffective: number } {
   const fighter = action.actor;
-  if (fighter.hp <= 0) return { effective: 0, overflow: 0 };
-  let total = Math.max(0, amount) * (action.isEcho ? n(action.powerScale, 0.45) : 1);
-  for (const artifact of fighter.artifacts) {
-    if (artifact.entity.id === 'RC12') {
-      total *= 1 + 0.06 * artifact.stacks;
-      const ae = artifact.entity.effects?.[0];
-      if (ae) mark(runtime, Object.assign(clone(ae), { ownerId: artifact.entity.id, ownerName: artifact.entity.name, ownerKind: 'artifact' as SourceKind, ownerSide: fighter.side, stacks: artifact.stacks }), artifact.stacks);
+  if (!runtime.active || fighter.hp <= 0 || action.target.hp <= 0) {
+    return { effective: 0, overflow: 0, totalEffective: 0 };
+  }
+  let total = Math.max(0, amount) * (!outputCopy && action.isEcho ? n(action.powerScale, 0.45) : 1);
+  let copiedEffective = 0;
+  if (!outputCopy) {
+    for (const artifact of fighter.artifacts) {
+      if (artifact.entity.id === 'RC12') {
+        total *= 1 + 0.06 * artifact.stacks;
+        const ae = artifact.entity.effects?.[0];
+        if (ae) mark(runtime, Object.assign(clone(ae), { ownerId: artifact.entity.id, ownerName: artifact.entity.name, ownerKind: 'artifact' as SourceKind, ownerSide: fighter.side, stacks: artifact.stacks }), artifact.stacks);
+      }
+    }
+    for (const mechanic of mechanicsOf(fighter, 'blood_vow')) {
+      total *= n(mechanic.params.healing_multiplier, 1);
+      const effect = buildEffect(fighter, mechanic);
+      if (effect) mark(runtime, effect);
     }
   }
-  for (const mechanic of mechanicsOf(fighter, 'blood_vow')) {
-    total *= n(mechanic.params.healing_multiplier, 1);
-    const effect = buildEffect(fighter, mechanic);
-    if (effect) mark(runtime, effect);
+  if ((!outputCopy || isFirstMirrorOutput(runtime, source)) && total > 0) {
+    resolveArtifactOutputCopies(runtime, source, fighter, (copy, mode) => {
+      const copyAction = syntheticAction(runtime, fighter, other(runtime, fighter));
+      copiedEffective += resolveHeal(runtime, copyAction, total, copy, allowOverflow, true).totalEffective;
+      void mode;
+    }, 'mirror');
+  }
+  if (!runtime.active || fighter.hp <= 0 || action.target.hp <= 0) {
+    return { effective: 0, overflow: 0, totalEffective: copiedEffective };
   }
   const effective = Math.min(total, Math.max(0, fighter.stats.max_hp - fighter.hp));
   const overflow = Math.max(0, total - effective);
   fighter.hp += effective;
   if (effective > 0 && action.actor === fighter) recordCombatEvent(runtime, 'heal', fighter);
   (action as AnyMap).lastEffectiveHeal = effective;
+  (action as AnyMap).lastOverflow = overflow;
   mark(runtime, source, 1, fighter.side);
   addContribution(runtime, source, 'healing', effective, fighter.side);
   const cleanse = selectedEffect(fighter, 'RC12-AWAKENING-CLEANSE');
@@ -3008,7 +3607,7 @@ function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: numb
     }
   }
   if (effective > 0) {
-    const sourceId = action.isEcho ? `${source.id}-RAGE-ECHO` : source.id;
+    const sourceId = action.isEcho && !outputCopy ? `${source.id}-RAGE-ECHO` : source.id;
     frame(runtime, 'heal', `${fighter.side === 'player' ? '玩家' : '敌人'}恢复 ${Math.round(effective)}`, fighter.side, fighter.side, sourceId, effective);
     for (const core of fighter.coreRules) {
       if (core.kind !== 'healing_guard') continue;
@@ -3021,12 +3620,6 @@ function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: numb
         0,
         false,
       );
-    }
-    const rr02 = fighter.artifacts.find(artifact => artifact.entity.id === 'RR02');
-    if (rr02 && action.isMainAction && !fighter.battleFlags.has(`rr02-${action.round}-${fighter.actionNumber}`)) {
-      fighter.battleFlags.add(`rr02-${action.round}-${fighter.actionNumber}`);
-      const ae = rr02.entity.effects?.[0];
-      if (ae) addShield(runtime, fighter, effective * n(ae.params?.ratio, 0.35) * rr02.stacks, Object.assign(clone(ae), { ownerId: rr02.entity.id, ownerName: rr02.entity.name, ownerKind: 'artifact' as SourceKind, ownerSide: fighter.side, stacks: rr02.stacks }), '有效治疗转盾', 0, false);
     }
     const bladeRule = resonanceRule(fighter, 'healing_blades');
     if (bladeRule && !action.isEcho && (action.isMainAction || action.roundDotSettlement)) {
@@ -3056,7 +3649,6 @@ function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: numb
       mark(runtime, reduce);
     }
   }
-  (action as AnyMap).lastOverflow = overflow;
   if (allowOverflow && overflow > 0) {
     const rl01 = fighter.artifacts.find(artifact => artifact.entity.id === 'RL01');
     if (rl01) {
@@ -3106,7 +3698,24 @@ function resolveHeal(runtime: BattleRuntime, action: ActionContext, amount: numb
     }
   }
   resolveSpringBloom(runtime, action, effective + overflow);
-  return { effective, overflow };
+  if ((!outputCopy || isFirstMirrorOutput(runtime, source)) && total > 0) {
+    resolveArtifactOutputCopies(runtime, source, fighter, (copy, mode) => {
+      const copyAction = syntheticAction(runtime, fighter, other(runtime, fighter));
+      copiedEffective += resolveHeal(runtime, copyAction, total, copy, allowOverflow, true).totalEffective;
+      void mode;
+    }, 'inscription');
+  }
+  const rr02 = fighter.artifacts.find(artifact => artifact.entity.id === 'RR02');
+  const rr02ConversionKey = action.rr02SelfHealConversion
+    ? `rr02-shield-break-${action.round}`
+    : `rr02-${action.round}-${fighter.actionNumber}`;
+  if (rr02 && (action.isMainAction || action.rr02SelfHealConversion) &&
+      effective + copiedEffective > 0 && !fighter.battleFlags.has(rr02ConversionKey)) {
+    fighter.battleFlags.add(rr02ConversionKey);
+    const ae = rr02.entity.effects?.[0];
+    if (ae) addShield(runtime, fighter, (effective + copiedEffective) * n(ae.params?.ratio, 0.35) * rr02.stacks, Object.assign(clone(ae), { ownerId: rr02.entity.id, ownerName: rr02.entity.name, ownerKind: 'artifact' as SourceKind, ownerSide: fighter.side, stacks: rr02.stacks }), '有效治疗转盾', 0, false);
+  }
+  return { effective, overflow, totalEffective: effective + copiedEffective };
 }
 
 function syntheticAction(
@@ -3151,6 +3760,7 @@ function syntheticAction(
     actualHpDamage: 0,
     actualAbsorbed: 0,
     enemyActualHpDamage: 0,
+    unmirroredMainHpDamage: 0,
     reflectDamage: 0,
     phaseBefore: actor.phase,
     phaseChanged: false,
@@ -3254,35 +3864,37 @@ function resolveCombatOutput(
 
 function resolveCompanionAssist(runtime: BattleRuntime, action: ActionContext): void {
   const { actor, target } = action;
-  const companion = actor.companion;
-  const config = companion?.companion;
-  const source = companionSource(actor);
   const events = action.combatEvents;
   if (!action.isMainAction || action.isEcho || !action.completed || !events?.size ||
-      !runtime.active || actor.hp <= 0 || target.hp <= 0 || !companion || !config || !source) return;
+      !runtime.active || actor.hp <= 0 || target.hp <= 0 || actor.companions.length === 0) return;
 
-  const pair = (config.pair_bonuses ?? []).find((bonus: AnyMap) =>
-    bonus.with === actor.method.id && events.has(bonus.trigger));
-  const usesAlternateEffect = !pair && actor.companionUsesAlternateEffect && Boolean(config.alternate_effect);
-  const output = pair?.effect ?? (events.has(config.trigger)
-    ? (usesAlternateEffect ? config.alternate_effect : config.effect)
-    : undefined);
-  if (!output) return;
-  const trigger = pair?.trigger ?? config.trigger;
-  const display = pair
-    ? `${config.name}与${actor.method.name}合练`
-    : config.name;
-  withReactionBeat(
-    runtime,
-    actor,
-    target,
-    'companion_assist',
-    source.ownerId,
-    `${actor.side === 'player' ? '玩家' : '敌人'}伴生协力：${display}（${trigger}）`,
-    reaction => resolveCombatOutput(runtime, reaction, source, output, '伴生护盾'),
-  );
-  if (!pair && config.alternate_effect) {
-    actor.companionUsesAlternateEffect = !actor.companionUsesAlternateEffect;
+  for (const companion of actor.companions) {
+    if (!runtime.active || actor.hp <= 0 || target.hp <= 0) break;
+    const config = companion.method.companion;
+    const source = companionSource(actor, companion);
+    const pair = (config.pair_bonuses ?? []).find((bonus: AnyMap) =>
+      bonus.with === actor.method.id && events.has(bonus.trigger));
+    const usesAlternateEffect = !pair && companion.usesAlternateEffect && Boolean(config.alternate_effect);
+    const output = pair?.effect ?? (events.has(config.trigger)
+      ? (usesAlternateEffect ? config.alternate_effect : config.effect)
+      : undefined);
+    if (!output) continue;
+    const trigger = pair?.trigger ?? config.trigger;
+    const display = pair
+      ? `${config.name}与${actor.method.name}合练`
+      : config.name;
+    withReactionBeat(
+      runtime,
+      actor,
+      target,
+      'companion_assist',
+      source.ownerId,
+      `${actor.side === 'player' ? '玩家' : '敌人'}伴生协力：${display}（${trigger}）`,
+      reaction => resolveCombatOutput(runtime, reaction, source, output, '伴生护盾'),
+    );
+    if (!pair && config.alternate_effect) {
+      companion.usesAlternateEffect = !companion.usesAlternateEffect;
+    }
   }
 }
 
@@ -3300,15 +3912,12 @@ function resolveArtifactAwakeningOutputs(
   action: ActionContext,
   awakening: AnyMap,
   sourceArtifact: ArtifactRuntime,
-  mirrored: boolean,
 ): void {
   const { actor, target } = action;
   for (const [index, output] of awakening.effects.entries()) {
     if (!runtime.active || actor.hp <= 0 || target.hp <= 0) break;
     const source: ActiveEffect = {
-      id: mirrored
-        ? `${sourceArtifact.entity.id}-MIRROR-AWAKENING-${index + 1}`
-        : `${sourceArtifact.entity.id}-AWAKENING-${index + 1}`,
+      id: `${sourceArtifact.entity.id}-AWAKENING-${index + 1}`,
       trigger: 'awakening',
       operation: 'combat_output',
       params: output,
@@ -3320,10 +3929,7 @@ function resolveArtifactAwakeningOutputs(
     };
     withAuxiliaryAction(runtime, actor, target, reaction => {
       const sideName = actor.side === 'player' ? '玩家' : '敌人';
-      const text = mirrored
-        ? `${sideName}法宝镜映（${sourceArtifact.entity.name}）：${awakening.name}`
-        : `${sideName}法宝觉醒：${awakening.name}`;
-      frame(runtime, 'status', text, actor.side, actor.side, source.id);
+      frame(runtime, 'status', `${sideName}法宝觉醒：${awakening.name}`, actor.side, actor.side, source.id);
       resolveCombatOutput(runtime, reaction, source, output, '觉醒护盾');
     });
   }
@@ -3339,16 +3945,8 @@ function resolveArtifactAwakenings(runtime: BattleRuntime, action: ActionContext
     if (!runtime.active || actor.hp <= 0 || target.hp <= 0) break;
     const artifact = actor.artifacts[index];
     if (artifactAwakeningMatchesAction(artifact, action)) {
-      resolveArtifactAwakeningOutputs(runtime, action, artifact.entity.awakening, artifact, false);
+      resolveArtifactAwakeningOutputs(runtime, action, artifact.entity.awakening, artifact);
     }
-    if (!runtime.active || actor.hp <= 0 || target.hp <= 0 ||
-        artifact.entity.mirror_rule?.kind !== 'neighbor_awakening') continue;
-    const neighbor = actor.artifacts[index + 1];
-    if (!neighbor || !artifactAwakeningMatchesAction(neighbor, action)) continue;
-    // A mirror uses the right neighbor's authored outputs as-is, but attributes
-    // their single extra execution to the mirror. The neighbor still resolves
-    // normally when iteration reaches its own position.
-    resolveArtifactAwakeningOutputs(runtime, action, neighbor.entity.awakening, artifact, true);
   }
 }
 
@@ -4001,15 +4599,69 @@ function resolveActionEnd(runtime: BattleRuntime, action: ActionContext): void {
       : 0;
     if (refundRatio > 0) registerRage(runtime, actor, action.lockedCost * refundRatio, 'RKF02-RAGE-REFUND', actor.method.id);
   }
-  if (!action.isEcho && target.hp > 0) {
-    for (const artifact of target.artifacts) {
-      if (artifact.entity.id === 'RR08' && action.enemyActualHpDamage > 0) {
-        registerRage(runtime, target, 10 * artifact.stacks, 'RR08-ENEMY-ACTION-RAGE-GAIN', artifact.entity.id);
-      }
+  const incomingRr08 = rr08Effect(target);
+  if (incomingRr08 && action.isMainAction && !action.isEcho && actor.side !== target.side &&
+      target.hp > 0 && action.unmirroredMainHpDamage > 0) {
+    registerRage(
+      runtime,
+      target,
+      n(incomingRr08.params?.amount, 0) * incomingRr08.stacks,
+      incomingRr08.id,
+      incomingRr08.ownerId,
+    );
+    const stored = rr08Stored(target);
+    const next = Math.min(
+      rr08StorageCap(target, incomingRr08),
+      stored + action.unmirroredMainHpDamage,
+    );
+    if (next > stored) {
+      target.battleLayers[rr08StoredKey()] = next;
+      mark(runtime, incomingRr08);
+      frame(
+        runtime,
+        'status',
+        `${target.loadout.name}积蓄血勇 ${Math.round(next)}`,
+        target.side,
+        target.side,
+        incomingRr08.id,
+        next,
+      );
     }
   }
   resolveCoreActionEnd(runtime, action);
   resolveResonanceActionEnd(runtime, action);
+
+  const rr08 = rr08Effect(actor);
+  const storedBloodValor = rr08Stored(actor);
+  const retaliationFlag = 'RR08:BLOOD-VALOR-RETALIATED';
+  if (rr08 && action.isMainAction && !action.isEcho &&
+      (action.type === 'basic_action' || action.type === 'rage_action') &&
+      action.unmirroredMainHpDamage > 0 && storedBloodValor > 0 &&
+      !actor.battleFlags.has(retaliationFlag) && runtime.active &&
+      actor.hp > 0 && target.hp > 0) {
+    actor.battleFlags.add(retaliationFlag);
+    actor.battleLayers[rr08StoredKey()] = 0;
+    mark(runtime, rr08);
+    const retaliation = storedBloodValor * n(rr08.params?.retaliation_ratio, 1);
+    withReactionBeat(
+      runtime,
+      actor,
+      target,
+      'blood_valor',
+      rr08.id,
+      `${actor.loadout.name}血勇反击 ${Math.round(retaliation)}`,
+      response => {
+        dealDamage(runtime, actor, target, 0, {
+          sourceEffect: rr08,
+          kind: 'derived',
+          canCrit: false,
+          rawOverride: retaliation,
+          followup: true,
+        });
+        void response;
+      },
+    );
+  }
 }
 
 function executeRageEcho(runtime: BattleRuntime, original: ActionContext): void {
@@ -4048,6 +4700,7 @@ function executeRageEcho(runtime: BattleRuntime, original: ActionContext): void 
       actualHpDamage: 0,
       actualAbsorbed: 0,
       enemyActualHpDamage: 0,
+      unmirroredMainHpDamage: 0,
       reflectDamage: 0,
     };
     runtime.currentAction = echo;
@@ -4256,6 +4909,43 @@ function resolveHostileActionResponses(runtime: BattleRuntime, completed: Action
   const responder = completed.target;
   const hostile = completed.actor;
 
+  const rr06 = selectedEffect(responder, 'RR06-ENEMY-HP-LOSS-HEAL-BURN');
+  if (rr06 && completed.unmirroredMainHpDamage > 0 && !responder.battleFlags.has(rr06.id)) {
+    responder.battleFlags.add(rr06.id);
+    withAuxiliaryAction(runtime, responder, hostile, response => {
+      frame(
+        runtime,
+        'status',
+        `${responder.loadout.name}长明灯受创回春`,
+        responder.side,
+        responder.side,
+        rr06.id,
+      );
+      const healing = resolveHeal(
+        runtime,
+        response,
+        responder.stats.max_hp * n(rr06.params?.max_hp_ratio, 0),
+        rr06,
+      );
+      if (healing.totalEffective <= 0 || !runtime.active || responder.hp <= 0 || hostile.hp <= 0) return;
+      const added = applyDot(
+        runtime,
+        responder,
+        hostile,
+        rr06,
+        'burn',
+        int(rr06.params?.burn_stacks, 1),
+        int(rr06.params?.burn_duration_rounds, 2),
+        n(rr06.params?.burn_attack_ratio, 0.06),
+        int(rules(runtime.content).statuses?.burn?.max_stacks, 10),
+        attackStats(runtime, responder, hostile, response).attack,
+        false,
+      );
+      if (added > 0) mark(runtime, rr06);
+    });
+  }
+  if (!runtime.active || responder.hp <= 0 || hostile.hp <= 0) return;
+
   const swords = resonanceRule(responder, 'sword_array');
   const swordCount = swords ? Math.floor(resonanceState(responder, swords, 'flying_swords')) : 0;
   if (swords && swordCount > 0) {
@@ -4379,6 +5069,7 @@ function executeActionOnce(runtime: BattleRuntime, actor: Fighter, target: Fight
     actualHpDamage: 0,
     actualAbsorbed: 0,
     enemyActualHpDamage: 0,
+    unmirroredMainHpDamage: 0,
     reflectDamage: 0,
     phaseBefore: actor.phase,
     phaseChanged: false,
@@ -4595,7 +5286,9 @@ function executeAction(runtime: BattleRuntime, actor: Fighter, target: Fighter, 
   if (type !== 'rage_action' || !action?.completed) return;
 
   let rageActions = 1;
-  while (rageActions < 3 && runtime.active && actor.hp > 0 && target.hp > 0 && !actor.forcedBasic) {
+  while (rageActions < 3 && runtime.active && actor.hp > 0 && target.hp > 0 &&
+      (!actor.forcedBasic || actor.loadout.permanentRule?.kind === 'endless_chain')) {
+    if (actor.loadout.permanentRule?.kind === 'endless_chain') actor.forcedBasic = null;
     const actionGains = actor.pendingGains.slice(actionPendingStart).filter(entry => !entry.isEcho);
     const gained = actionGains.reduce((sum, entry) => sum + entry.amount, 0);
     if (actionGains.length === 0 || actor.rage + gained < actor.rageCap) break;
@@ -4798,6 +5491,7 @@ function processRoundDots(runtime: BattleRuntime): void {
       actualHpDamage: 0,
       actualAbsorbed: 0,
       enemyActualHpDamage: 0,
+      unmirroredMainHpDamage: 0,
       reflectDamage: 0,
       phaseBefore: owner.phase,
       phaseChanged: false,
@@ -4890,20 +5584,56 @@ function applyOpening(runtime: BattleRuntime): void {
       if (artifact.entity.id === 'RC22') requested = 15 * artifact.stacks;
       if (artifact.entity.id === 'RL04') requested = 50 * artifact.stacks;
       if (requested <= 0) continue;
+      const plannedGain = Math.min(requested, Math.max(0, fighter.rageCap - fighter.rage));
+      if (plannedGain <= 0) continue;
+      const effect = artifact.entity.effects?.find((item: Effect) => item.operation === 'rage_gain' && item.trigger === 'battle_start');
+      const outputSource: ActiveEffect = Object.assign(clone(effect ?? {
+        id: `${artifact.entity.id}-OPENING-RAGE`,
+        trigger: 'battle_start',
+        operation: 'rage_gain',
+        params: {},
+      }), {
+        ownerId: artifact.entity.id,
+        ownerName: artifact.entity.name,
+        ownerKind: 'artifact' as SourceKind,
+        ownerSide: fighter.side,
+        stacks: artifact.stacks,
+      });
+      if (effect) {
+        mark(runtime, outputSource, artifact.stacks, fighter.side);
+      }
+      const applyOpeningCopy = (copy: ActiveEffect, mode: 'mirror' | 'twin' | 'swift', requestedCopyGain: number): void => {
+        const copiedGain = Math.min(requestedCopyGain, Math.max(0, fighter.rageCap - fighter.rage));
+        if (copiedGain <= 0) return;
+        fighter.rage += copiedGain;
+        actualBonus += copiedGain;
+        addContribution(runtime, copy, 'rage', copiedGain, fighter.side);
+        frame(
+          runtime,
+          'rage',
+          `${fighter.side === 'player' ? '玩家' : '敌人'}${mode === 'mirror' ? '镜映' : mode === 'twin' ? '双生铭刻' : '极速铭刻'}开场回怒`,
+          fighter.side,
+          fighter.side,
+          copy.id,
+          copiedGain,
+        );
+      };
+      resolveArtifactOutputCopies(runtime, outputSource, fighter, (copy, mode) => {
+        applyOpeningCopy(copy, mode, plannedGain);
+        if (mode === 'mirror') {
+          resolveArtifactOutputCopies(runtime, copy, fighter, (nestedCopy, nestedMode) => {
+            applyOpeningCopy(nestedCopy, nestedMode, plannedGain);
+          }, 'inscription');
+        }
+      }, 'mirror');
       const gained = Math.min(requested, Math.max(0, fighter.rageCap - fighter.rage));
       fighter.rage += gained;
       actualBonus += gained;
       if (gained <= 0) continue;
       addContribution(runtime, artifact.entity.id, 'rage', gained, fighter.side);
-      const effect = artifact.entity.effects?.find((item: Effect) => item.operation === 'rage_gain' && item.trigger === 'battle_start');
-      if (effect) {
-        mark(runtime, Object.assign(clone(effect), {
-          ownerId: artifact.entity.id,
-          ownerName: artifact.entity.name,
-          ownerKind: 'artifact' as SourceKind,
-          stacks: artifact.stacks,
-        }), artifact.stacks, fighter.side);
-      }
+      resolveArtifactOutputCopies(runtime, outputSource, fighter, (copy, mode) => {
+        applyOpeningCopy(copy, mode, gained);
+      }, 'inscription');
     }
     if (thunderBonus > 0) {
       const gained = Math.min(thunderBonus, Math.max(0, fighter.rageCap - fighter.rage));
@@ -4985,6 +5715,11 @@ function startBattle(runtime: BattleRuntime): void {
       }
     }
   }
+  for (const fighter of [runtime.player, runtime.enemy]) {
+    if (fighter.loadout.permanentRule?.kind !== 'shattered_core') {
+      fighter.maxShield = fighter.stats.max_hp;
+    }
+  }
   applyOpening(runtime);
   for (const fighter of [runtime.player, runtime.enemy]) {
     const journey = journeyFacts(fighter.loadout);
@@ -5013,6 +5748,17 @@ function startBattle(runtime: BattleRuntime): void {
     if (fighter.side === 'enemy' && fighter.loadout.thunderChallenge === true) {
       addShield(runtime, fighter, fighter.stats.max_hp * 0.15, 'THUNDER-CHALLENGE', '雷霆挑战开场护盾', 0, false);
     }
+    if (fighter.loadout.permanentRule?.kind === 'shattered_core') {
+      addShield(
+        runtime,
+        fighter,
+        fighter.loadout.permanentRule.originalMaxHp * 2.5,
+        'RE037-A',
+        '碎丹化婴开场护盾',
+        0,
+        false,
+      );
+    }
   }
   for (const fighter of [runtime.player, runtime.enemy]) {
     const swords = resonanceRule(fighter, 'sword_array');
@@ -5026,10 +5772,30 @@ function startBattle(runtime: BattleRuntime): void {
   }
 }
 
-function chooseAction(fighter: Fighter): { type: ActionType; cost: number } {
+function chooseAction(fighter: Fighter): { type: LockedActionType; cost: number } {
+  if (fighter.loadout.permanentRule?.kind === 'endless_chain') {
+    // This rule is absolute: a queued forced basic cannot replace its wait or rage action.
+    fighter.forcedBasic = null;
+    return fighter.rage >= fighter.rageCap
+      ? { type: 'rage_action', cost: fighter.rageCap }
+      : { type: 'wait', cost: 0 };
+  }
   if (fighter.forcedBasic) return { type: 'basic_action', cost: 0 };
   if (fighter.rage >= fighter.rageCap) return { type: 'rage_action', cost: fighter.rageCap };
   return { type: 'basic_action', cost: 0 };
+}
+
+function executeLockedAction(
+  runtime: BattleRuntime,
+  actor: Fighter,
+  target: Fighter,
+  choice: { type: LockedActionType; cost: number },
+): void {
+  if (choice.type === 'wait') {
+    frame(runtime, 'wait', `${actor.side === 'player' ? '玩家' : '敌人'}蓄气等待，尚未达到怒气上限`, actor.side, actor.side, 'RE037-C');
+    return;
+  }
+  executeAction(runtime, actor, target, choice.type, choice.cost);
 }
 
 function createFighter(
@@ -5044,11 +5810,11 @@ function createFighter(
     side,
     loadout,
     method: compiled.method,
-    ...(compiled.companion ? {
-      companion: compiled.companion,
-      companionSourceId: `${compiled.companion.id}-COMPANION`,
-    } : {}),
-    companionUsesAlternateEffect: false,
+    companions: compiled.companions.map(method => ({
+      method,
+      sourceId: `${method.id}-COMPANION`,
+      usesAlternateEffect: false,
+    })),
     talents: compiled.talents,
     artifacts: compiled.artifacts,
     coreRules: [],
@@ -5056,6 +5822,9 @@ function createFighter(
     stats,
     hp: clamp(n(loadout.hp, stats.max_hp), 0, stats.max_hp),
     shield: 0,
+    maxShield: loadout.permanentRule?.kind === 'shattered_core'
+      ? loadout.permanentRule.originalMaxHp * 2.5
+      : stats.max_hp,
     rage: 0,
     rageCap: 100,
     firstStrike: Math.max(0, n(loadout.firstStrike, 0)),
@@ -5120,6 +5889,7 @@ export function simulateBattle(
     openingDrainRequested: new Map(),
     currentAction: null,
     sameSpeedFirst: 'player',
+    artifactOutputReplayDepth: 0,
   } as BattleRuntime;
   runtime.player = createFighter(runtime, 'player', player);
   runtime.enemy = createFighter(runtime, 'enemy', enemy);
@@ -5158,23 +5928,34 @@ export function simulateBattle(
     executePreparedFirstStrike(runtime, first, first === runtime.player ? runtime.enemy : runtime.player);
     outcome = checkOutcome(runtime);
     if (outcome) break;
-    executeAction(runtime, first, first === runtime.player ? runtime.enemy : runtime.player,
-      first === runtime.player ? pChoice.type : eChoice.type,
-      first === runtime.player ? pChoice.cost : eChoice.cost);
+    executeLockedAction(
+      runtime,
+      first,
+      first === runtime.player ? runtime.enemy : runtime.player,
+      first === runtime.player ? pChoice : eChoice,
+    );
     outcome = checkOutcome(runtime);
     if (outcome) break;
     executePreparedFirstStrike(runtime, second, second === runtime.player ? runtime.enemy : runtime.player);
     outcome = checkOutcome(runtime);
     if (outcome) break;
-    executeAction(runtime, second, second === runtime.player ? runtime.enemy : runtime.player,
-      second === runtime.player ? pChoice.type : eChoice.type,
-      second === runtime.player ? pChoice.cost : eChoice.cost);
+    executeLockedAction(
+      runtime,
+      second,
+      second === runtime.player ? runtime.enemy : runtime.player,
+      second === runtime.player ? pChoice : eChoice,
+    );
     outcome = checkOutcome(runtime);
     if (outcome) break;
     processRoundDots(runtime);
     outcome = checkOutcome(runtime);
     if (outcome) break;
-    if (runtime.player.hp > 0) registerRage(runtime, runtime.player, n(rules(content).rage?.round_end, 10), 'RULES-ROUND-END', runtime.player.method.id);
+    if (runtime.player.hp > 0) {
+      registerRage(runtime, runtime.player, n(rules(content).rage?.round_end, 10), 'RULES-ROUND-END', runtime.player.method.id);
+      if (runtime.player.loadout.permanentRule?.kind === 'endless_chain') {
+        registerRage(runtime, runtime.player, 80, 'RE037-C', 'RE037-C');
+      }
+    }
     if (runtime.enemy.hp > 0) registerRage(runtime, runtime.enemy, n(rules(content).rage?.round_end, 10), 'RULES-ROUND-END', runtime.enemy.method.id);
     for (const fighter of [runtime.player, runtime.enemy]) {
       if (fighter.hp <= 0) continue;
@@ -5215,12 +5996,20 @@ export function simulateBattle(
     frame(runtime, 'end', outcome === 'player' ? '玩家胜利' : outcome === 'enemy' ? '敌人胜利' : '双方同时倒下');
   }
   assignZeroContributionReasons(runtime);
+  const permanentRuleContributionId = runtime.player.loadout.permanentRule?.kind === 'shattered_core'
+    ? 'RE037-A'
+    : runtime.player.loadout.permanentRule?.kind === 'blind_sword'
+      ? 'RE037-B'
+      : runtime.player.loadout.permanentRule?.kind === 'endless_chain'
+        ? 'RE037-C'
+        : undefined;
   const contributions = [...runtime.contributions.values()].filter(contribution =>
     runtime.player.side === 'player' && (
       contribution.id === runtime.player.method.id ||
       runtime.player.talents.some(talent => talent.id === contribution.id) ||
       runtime.player.artifacts.some(artifact => artifact.entity.id === contribution.id) ||
-      runtime.player.companionSourceId === contribution.id
+      runtime.player.companions.some(companion => companion.sourceId === contribution.id) ||
+      contribution.id === permanentRuleContributionId
     ),
   );
   const frames = runtime.frames.length > 12000

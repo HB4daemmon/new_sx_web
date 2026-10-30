@@ -21,7 +21,17 @@ export interface Stats {
   crit_rate: number;
   speed: number;
 }
-export interface ArtifactStack { id: string; stacks: number }
+export type ArtifactInscription = 'twin' | 'leech' | 'swift';
+export interface ArtifactStack {
+  id: string;
+  stacks: number;
+  inscription?: ArtifactInscription;
+  devoured?: number;
+}
+export type PermanentSacrificeRule =
+  | { kind: 'shattered_core'; originalMaxHp: number }
+  | { kind: 'blind_sword' }
+  | { kind: 'endless_chain' };
 export type EquipmentRole = 'core' | 'support';
 export interface RunEquipment {
   slots: string[];
@@ -39,10 +49,11 @@ export interface JourneyContext extends RunProgress {
 export interface Loadout {
   name: string;
   method: string;
-  companion?: string;
+  companions?: string[];
   n: number;
   talents: string[];
   artifacts: ArtifactStack[];
+  permanentRule?: PermanentSacrificeRule;
   baseStats?: Stats;
   hp?: number;
   preparation?: number;
@@ -58,12 +69,14 @@ export interface FighterView {
   hp: number;
   maxHp: number;
   shield: number;
+  maxShield: number;
   rage: number;
   rageCap: number;
   statuses: Record<string, number>;
   counters?: { id: string; name: string; value: number; max: number }[];
   summons?: { id: string; kind: 'sword'; count: number; max: number }[];
-  lockedAction?: 'basic_action' | 'rage_action';
+  lockedAction?: 'basic_action' | 'rage_action' | 'wait';
+  permanentRule?: PermanentSacrificeRule;
 }
 export interface BattleFrame {
   round: number;
@@ -74,7 +87,7 @@ export interface BattleFrame {
   text: string;
   amount?: number;
   cue?: {
-    kind: 'sword_volley' | 'guard_counter' | 'spring_bloom' | 'enemy_charge' | 'enemy_release' | 'rage_chain' | 'companion_assist';
+    kind: 'sword_volley' | 'guard_counter' | 'spring_bloom' | 'enemy_charge' | 'enemy_release' | 'rage_chain' | 'companion_assist' | 'blood_valor';
     owner: Side;
     sourceId: string;
     count?: number;
@@ -196,6 +209,7 @@ export interface RunState {
   equipment: RunEquipment;
   buildVersion: 5;
   bloodVow: boolean;
+  permanentRule?: PermanentSacrificeRule;
   rewardSearches: RewardSearchRecord[];
   rewardRefinements: RewardRefineRecord[];
   fusionProgress: FusionProgressRecord[];
@@ -218,6 +232,7 @@ export interface RunState {
     eventOutcome?: 'success' | 'failure';
     eventCheck?: EventCheckResult;
     storyEcho?: string;
+    sacrificeRule?: PermanentSacrificeRule;
   }[];
   seenEvents: string[];
   completedCore: string[];
@@ -234,6 +249,7 @@ export interface RunState {
   eventCheck?: EventCheckResult;
   eventStoryEcho?: string;
   _shopReforged?: boolean;
+  _shopInscribed?: boolean;
   returnPhase?: RunPhase;
   nodeEntry?: { method: string; talents: string[]; artifacts: ArtifactStack[] };
   [key: string]: any;
@@ -254,6 +270,8 @@ export type RunCommand =
   | { type: 'continue' }
   | { type: 'buy'; id: string }
   | { type: 'reforge'; source: string; target: string }
+  | { type: 'inscribe'; artifact: string; inscription: ArtifactInscription }
+  | { type: 'devour'; id: string }
   | { type: 'leave_shop' }
   | { type: 'rest'; choice: 'heal' | 'preparation' | 'swap_method' | 'temper'; method?: string; artifact?: string }
   | { type: 'talent'; id: string }

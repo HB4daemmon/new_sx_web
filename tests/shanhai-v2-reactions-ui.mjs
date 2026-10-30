@@ -98,6 +98,7 @@ test('each authored reaction cue has its own short playback name', () => {
     spring_bloom: '春生回涌',
     enemy_charge: '首领蓄势',
     enemy_release: '首领释招',
+    blood_valor: '血勇反击',
   };
   for (const [kind, label] of Object.entries(labels)) {
     assert.equal(

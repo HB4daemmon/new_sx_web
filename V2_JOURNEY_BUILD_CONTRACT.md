@@ -1,5 +1,8 @@
 # V2 Journey Build Experiment
 
+> Historical iteration contract; current slots, save version and delivery rules
+> are documented in `docs/shanhai/rework/V2_EXPERIMENT.md` and `AGENTS.md`.
+
 Implementation contract, 2026-10-26. Experimental branch only; not V1 or main.
 This supersedes the old unimplemented synergy proposal, which is not part of this change.
 The later V2_RESONANCE_CONTRACT.md updates method/artifact rules and storage to

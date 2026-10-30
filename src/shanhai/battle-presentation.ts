@@ -43,6 +43,7 @@ const BASE_BEATS: Record<string, number> = {
   draw: 400,
   end: 400,
   summary: 220,
+  wait: 400,
 };
 
 export const BASIC_ACTION_CONTACT_MS = 19 * 1000 / 60;

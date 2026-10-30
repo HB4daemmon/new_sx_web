@@ -57,20 +57,20 @@ async function installPreviewFixture(page) {
       name: '雷劫邀战验收行者',
       method: 'RKF04',
     });
-    const companionId = 'RKF06';
-    if (!content.byId[companionId]?.companion?.name || !content.byId[companionId]?.companion?.quick) {
-      throw new Error('Overhaul UI fixture companion has no authored companion name/quick fields');
+    const companionIds = ['RKF01', 'RKF05', 'RKF09'];
+    for (const companionId of companionIds) {
+      if (!content.byId[companionId]?.companion?.name || !content.byId[companionId]?.companion?.quick) {
+        throw new Error(`Overhaul UI fixture companion ${companionId} has no authored name/quick fields`);
+      }
+      game.state.ownedMethods.push(companionId);
+      game.state.talents[companionId] = [];
     }
-    game.state.ownedMethods.push(companionId);
-    game.state.talents[companionId] = [];
-    if (game.player.companion !== companionId) {
-      throw new Error(`Automatic companion selection was ${game.player.companion}, expected ${companionId}`);
+    if (JSON.stringify(game.player.companions) !== JSON.stringify(companionIds)) {
+      throw new Error(`Automatic companion selection was ${game.player.companions}, expected ${companionIds}`);
     }
 
-    // Give the real engine a legal, deterministic acquired build strong enough
-    // to win this frozen boss encounter. The companion's poison trigger does
-    // not match RKF04's burn, so the authoritative replay has no presentation
-    // cue fixture mixed into its combat result.
+    // Give the real engine three learned companions with distinct authored
+    // triggers and a legal, deterministic build strong enough to win.
     const authoredTalents = content.byId[game.state.method].talents || [];
     const fullTierTalents = Array.from({ length: 4 }, (_value, index) =>
       authoredTalents.find(talent => talent.tier === index + 1),
@@ -133,9 +133,11 @@ async function installPreviewFixture(page) {
     localStorage.setItem('suishi-shanhai-replay-v2-forging', 'preserve-forging-replay');
     localStorage.setItem('suishi-shanhai-replay-v2-reactions', 'preserve-reactions-replay');
     return {
-      companionId,
-      companionName: content.byId[companionId].companion.name,
-      companionQuick: content.byId[companionId].companion.quick,
+      companions: companionIds.map(id => ({
+        id,
+        name: content.byId[id].companion.name,
+        quick: content.byId[id].companion.quick,
+      })),
       methodName: content.byId.RKF04.name,
       bossName: content.byId[boss.id].name,
       enemyArtifactCount: previewEnemy.artifacts.length,
@@ -280,7 +282,9 @@ async function installPresentationBattleFixture(page) {
     const start = battle.frames.find(frame => frame.kind === 'start') || battle.frames[0];
     const finish = battle.frames.at(-1);
     const rageSource = `${input.player.method}-RAGE-CHAIN`;
-    const companionSource = `${input.player.companion}-COMPANION`;
+    const companionIds = input.player.companions;
+    const companionId = companionIds[0];
+    const companionSource = `${companionId}-COMPANION`;
     const makeFrame = (kind, text, view, extra = {}) => ({
       round: kind === 'start' ? start.round : Math.max(1, finish.round),
       kind,
@@ -302,25 +306,33 @@ async function installPresentationBattleFixture(page) {
       makeFrame('damage', 'fixture first impact', start, {
         actor: 'player', target: 'enemy', source: input.player.method, amount: 100,
       }),
-      makeFrame('action', '绝技连斩 ×3 同伴助战', start, {
+      makeFrame('action', '绝技连斩 ×3 多门护道', start, {
         actor: 'player', source: input.player.method,
       }),
-      makeFrame('damage', 'fixture companion impact', finish, {
-        actor: 'player', target: 'enemy', source: companionSource, amount: 1,
-      }),
-      makeFrame('reaction', 'this text carries no companion name', finish, {
-        actor: 'player', target: 'enemy', source: companionSource,
-        cue: { kind: 'companion_assist', owner: 'player', sourceId: companionSource },
-      }),
     ];
-    const companionName = content.byId[input.player.companion]?.companion?.name;
-    if (!companionName) throw new Error('Frozen battle companion has no authored companion name');
+    const companionCueIndices = [];
+    for (const id of companionIds) {
+      const sourceId = `${id}-COMPANION`;
+      frames.push(makeFrame('damage', `fixture ${id} companion impact`, finish, {
+        actor: 'player', target: 'enemy', source: `${id}-COMPANION-ASSIST`, amount: 1,
+      }));
+      companionCueIndices.push(frames.length);
+      frames.push(makeFrame('reaction', 'this text carries no companion name', finish, {
+        actor: 'player', target: 'enemy', source: sourceId,
+        cue: { kind: 'companion_assist', owner: 'player', sourceId },
+      }));
+    }
+    const companionName = content.byId[companionId]?.companion?.name;
+    const additionalCompanionName = content.byId[companionIds[1]]?.companion?.name;
+    const cueCompanionName = content.byId[companionIds.at(-1)]?.companion?.name;
+    if (!companionName || !additionalCompanionName || !cueCompanionName) {
+      throw new Error('Frozen battle companions have no authored names');
+    }
     const presentationContributions = [
       { id: input.player.method, name: content.byId[input.player.method].name, triggers: 1, damage: 300, healing: 0, shield: 0, absorbed: 0, rage: 0 },
-      { id: companionSource, name: companionName, triggers: 1, damage: 200, healing: 5000, shield: 7000, absorbed: 0, rage: 0 },
-      { id: 'RKF07', name: '第三伤害来源', triggers: 1, damage: 100, healing: 0, shield: 0, absorbed: 0, rage: 0 },
-      { id: 'RKF08', name: '第四伤害来源', triggers: 1, damage: 50, healing: 0, shield: 0, absorbed: 0, rage: 0 },
-      { id: 'RKF09', name: '仅治疗与护盾来源', triggers: 2, damage: 0, healing: 9000, shield: 12000, absorbed: 0, rage: 0 },
+      { id: `${companionIds[0]}-COMPANION`, name: companionName, triggers: 1, damage: 200, healing: 5000, shield: 7000, absorbed: 0, rage: 0 },
+      { id: `${companionIds[1]}-COMPANION`, name: additionalCompanionName, triggers: 1, damage: 100, healing: 0, shield: 0, absorbed: 0, rage: 0 },
+      { id: `${companionIds[2]}-COMPANION`, name: cueCompanionName, triggers: 1, damage: 50, healing: 0, shield: 0, absorbed: 0, rage: 0 },
     ];
     const presentationState = structuredClone(game.state);
     presentationState.battle.frames = frames;
@@ -351,6 +363,10 @@ async function installPresentationBattleFixture(page) {
     return {
       frames: frames.length,
       companionName,
+      additionalCompanionName,
+      cueCompanionName,
+      companionNames: companionIds.map(id => content.byId[id].companion.name),
+      companionCueIndices,
       companionSource,
       methodName: content.byId[input.player.method].name,
       authoritative,
@@ -369,6 +385,9 @@ async function setReplayCursor(page, cursor) {
   }, { saveKey, replayKey, cursor });
   await page.reload({ waitUntil: 'networkidle' });
   await waitForPhase(page, 'battle');
+  await page.waitForFunction(expected =>
+    document.querySelector('.combat-arena')?.getAttribute('data-frame-index') === String(expected) &&
+    document.querySelector('[data-action="battle-pause"]')?.getAttribute('aria-pressed') === 'true', cursor);
 }
 
 async function assertBattleLayout(page, viewport, fixture) {
@@ -428,7 +447,7 @@ async function assertBattleLayout(page, viewport, fixture) {
   assert.deepEqual(metrics.ranking, [
     `${fixture.methodName} · 伤害（含吸收） 300 · 46%`,
     `${fixture.companionName} · 伤害（含吸收） 200 · 31%`,
-    '第三伤害来源 · 伤害（含吸收） 100 · 15%',
+    `${fixture.additionalCompanionName} · 伤害（含吸收） 100 · 15%`,
   ]);
   assert.deepEqual(metrics.meters.map(meter => meter.value), [46, 31, 15]);
   assert.equal(metrics.meters.length, 3, 'only the top three credited damage sources should be shown');
@@ -461,10 +480,13 @@ try {
   assert.match(await page.locator('.thunder-challenge').innerText(), /改为灵石/);
 
   await clickTab(page, 'build');
-  await page.locator(`[data-active-companion="${fixture.companionId}"]`).waitFor({ state: 'visible' });
-  const companionText = await page.locator(`[data-active-companion="${fixture.companionId}"]`).innerText();
-  assert.ok(companionText.includes(fixture.companionName));
-  assert.ok(companionText.includes(fixture.companionQuick));
+  for (const companion of fixture.companions) {
+    const companionRow = page.locator(`[data-active-companion="${companion.id}"]`);
+    await companionRow.waitFor({ state: 'visible' });
+    const companionText = await companionRow.innerText();
+    assert.ok(companionText.includes(companion.name));
+    assert.ok(companionText.includes(companion.quick));
+  }
   await clickTab(page, 'journey');
   await waitForPhase(page, 'preview');
 
@@ -501,9 +523,17 @@ try {
 
   await page.locator('[data-action="fight"]').click();
   await waitForPhase(page, 'battle');
-  const actualBattle = await page.evaluate(key => {
+  const actualBattle = await page.evaluate(async key => {
+    const [{ loadContent }, persistence] = await Promise.all([
+      import('/shanhai/content.js'),
+      import('/shanhai/persistence.js'),
+    ]);
+    const content = await loadContent('/content/');
+    const loaded = persistence.loadRun(content);
+    const realBattle = loaded?.state.battle;
     const record = JSON.parse(localStorage.getItem(key) || 'null');
     const battle = record?.state?.battle;
+    const companionIds = record?.state?.battleInput?.player.companions ?? [];
     return {
       replay: record?.replay,
       phase: record?.state?.phase,
@@ -512,6 +542,13 @@ try {
       playerHp: battle?.playerHp,
       enemyHp: battle?.enemyHp,
       persistedFrames: battle?.frames?.length,
+      companions: companionIds,
+      actualCompanionCues: [...new Set((realBattle?.frames ?? [])
+        .filter(frame => frame.cue?.kind === 'companion_assist' && frame.cue.owner === 'player')
+        .map(frame => frame.cue.sourceId))],
+      actualCompanionTriggers: (realBattle?.contributions ?? [])
+        .filter(item => companionIds.includes(item.id.replace(/-COMPANION$/, '')))
+        .map(item => ({ id: item.id, triggers: item.triggers, damage: item.damage })),
     };
   }, saveKey);
   assert.equal(actualBattle.replay, 'deterministic-input-v1', 'real battle save omitted deterministic replay validation');
@@ -520,6 +557,14 @@ try {
   assert.ok(actualBattle.rounds > 0, 'real engine did not record any combat rounds');
   assert.equal(actualBattle.enemyHp, 0, 'real winning battle must finish with the enemy at zero HP');
   assert.equal(actualBattle.persistedFrames, 0, 'normal save should persist deterministic input instead of frames');
+  assert.deepEqual(actualBattle.companions, fixture.companions.map(item => item.id));
+  for (const companion of fixture.companions) {
+    assert.ok(actualBattle.actualCompanionCues.includes(`${companion.id}-COMPANION`),
+      `real replay did not show ${companion.name} in a companion cue`);
+    assert.ok(actualBattle.actualCompanionTriggers.some(item =>
+      item.id === `${companion.id}-COMPANION` && item.triggers > 0),
+    `real replay omitted ${companion.name} from its companion ledger`);
+  }
 
   await page.reload({ waitUntil: 'networkidle' });
   await waitForPhase(page, 'battle');
@@ -553,15 +598,39 @@ try {
   });
   await page.reload({ waitUntil: 'networkidle' });
   await waitForPhase(page, 'battle');
-  await page.locator('[data-combat-semantic-cue="companion_assist"]').waitFor({ state: 'visible' });
+  const companionCues = page.locator('[data-combat-semantic-cue="companion_assist"]');
+  await companionCues.first().waitFor({ state: 'visible' });
+  assert.equal(await companionCues.count(), 1, 'replay should show only the cue for the current companion frame');
   await page.locator('.battle-damage-ranking').waitFor({ state: 'visible' });
-  assert.match(await page.locator('[data-combat-semantic-cue="companion_assist"]').innerText(), /同伴助战/);
-  assert.ok((await page.locator('[data-combat-semantic-cue="companion_assist"]').innerText()).includes(fixture.companionName));
+  const lastCompanionCue = await companionCues.first().innerText();
+  assert.match(lastCompanionCue, /同伴助战/);
+  assert.ok(lastCompanionCue.includes(battleFixture.cueCompanionName));
   assert.match(await page.locator('.battle-damage-ranking').innerText(), /伤害来源 · 含护盾吸收/);
   for (const viewport of viewports) {
     await page.setViewportSize(viewport);
-    await assertBattleLayout(page, viewport, fixture);
+    await assertBattleLayout(page, viewport, battleFixture);
     await saveScreenshot(page, 'battle', viewport);
+  }
+
+  // Pause as soon as each replay document renders. Waiting for networkidle
+  // alone can let the animation advance past the exact cue under test.
+  await page.addInitScript(() => {
+    const observer = new MutationObserver(() => {
+      const pause = document.querySelector('[data-action="battle-pause"]');
+      if (pause?.getAttribute('aria-pressed') === 'false') {
+        observer.disconnect();
+        pause.click();
+      }
+    });
+    observer.observe(document.documentElement || document, { childList: true, subtree: true });
+  });
+  for (const [index, cueFrame] of battleFixture.companionCueIndices.entries()) {
+    await setReplayCursor(page, cueFrame);
+    const cue = page.locator('[data-combat-semantic-cue="companion_assist"]');
+    await cue.waitFor({ state: 'visible' });
+    assert.equal(await cue.count(), 1, 'each companion cue should replace the previous playback cue');
+    assert.ok((await cue.first().innerText()).includes(battleFixture.companionNames[index]),
+      `playback did not show ${battleFixture.companionNames[index]} at its own frame`);
   }
 
   await setReplayCursor(page, 1);

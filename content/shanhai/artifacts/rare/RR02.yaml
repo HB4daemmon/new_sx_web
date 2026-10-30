@@ -4,8 +4,8 @@ kind: artifact
 id: RR02
 name: 甘露盏
 status: design_target
-summary: 最大气血 +30；普攻或怒技回复气血后按比例获得护盾；支援定位
-description: 自身治疗回复气血后，按回复量的35%获得护盾。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
+summary: 最大气血 +30；有效自疗转盾；敌方真破盾后每战回春一次；支援定位
+description: 每次普攻或怒技首次实际恢复气血后，按有效治疗量的35%获得护盾，护盾最多累积到最大气血。每战一次，敌方主动作的直接攻击确实击破自身护盾且自身存活时，再恢复最大气血的3%；这次治疗仍遵守有效治疗、溢疗与死亡截断规则。没有护盾、仅被持续伤害或反震击中、镜映伤害单独破盾时不触发回春。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [max_hp, heal, shield, rare]
 source:
   basis: original
@@ -27,16 +27,21 @@ effects:
     target: self
     params:
       ratio: 0.35
-      basis: effective_self_heal
-      first_effective_self_heal_per_action: true
-      preserve_effective_heal: true
-      shield_cap: max_hp
-      first_test_value: 0.35
     requires: [effective_self_heal]
     consumes: []
     replaces: []
     limit: {scope: action, count: 1}
     text: 每次普攻或怒技首次回复气血后，按回复量的35%获得护盾，护盾最多累积到最大气血；治疗溢出不计入。
+  - id: RR02-ENEMY-SHIELD-BREAK-HEAL
+    trigger: shield_broken
+    operation: heal
+    target: self
+    params: {max_hp_ratio: 0.03}
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: battle, count: 1}
+    text: 每场战斗一次：存活时被敌方主动作的直接攻击真实击破护盾后，恢复最大气血的3%；无护盾、仅受持续伤害或反震、镜映伤害单独破盾及死亡时不触发，治疗照常结算有效回复与溢疗。
 equipment_role: support
 acquisition:
   pools: [rare_artifact]

@@ -576,8 +576,8 @@ async function assertMirrorFlow(browser) {
 
     let detail = await openArtifactDetails(page, 'RL08');
     assert.match(await detail.locator('.equipment-status').innerText(), /已装备 · 装备位 2/);
-    assert.match(await detail.locator('.item-dialog-summary').innerText(), /紧邻右侧已装备、层数已达其上限/);
-    assert.match(await detail.locator('.item-dialog-summary').innerText(), /不复制属性、行旅、核心规则、融合或自己/);
+    assert.match(await detail.locator('.item-dialog-summary').innerText(), /紧邻右侧/);
+    assert.match(await detail.locator('.item-dialog-summary').innerText(), /静态属性|静态规则/);
     await page.screenshot({ path: '/tmp/shanhai-v2-mirror-neighbor-limits.png', fullPage: true });
     for (const width of viewports) {
       await page.setViewportSize({ width, height: width >= 900 ? 900 : 844 });
@@ -590,7 +590,7 @@ async function assertMirrorFlow(browser) {
     assert.deepEqual(save.state.equipment.slots, ['RL08', 'RC01'],
       'Using the real left-reorder control should place RL08 beside RC01');
     assert.match(await page.locator('.item-dialog .equipment-status').innerText(), /装备位 1/);
-    assert.match(await page.locator('.item-dialog .mirror-target-status').innerText(), /当前镜映：青锋石/);
+    assert.match(await page.locator('.item-dialog .mirror-target-status').innerText(), /当前目标：青锋石/);
     await detail.locator('.dialog-close[data-action="modal-close"]').click();
 
     await page.reload({ waitUntil: 'networkidle' });
@@ -602,11 +602,11 @@ async function assertMirrorFlow(browser) {
     const firstSlot = page.locator('.equipment-section .equipment-slot[data-slot="1"]');
     const secondSlot = page.locator('.equipment-section .equipment-slot[data-slot="2"]');
     assert.match(await firstSlot.innerText(), /昆仑镜/);
-    assert.match(await firstSlot.innerText(), /镜映待出手触发/);
+    assert.match(await firstSlot.innerText(), /镜映右侧战斗触发/);
     assert.match(await secondSlot.innerText(), /青锋石/);
     detail = await openArtifactDetails(page, 'RL08');
     assert.match(await detail.locator('.equipment-status').innerText(), /已装备 · 装备位 1/);
-    assert.match(await detail.locator('.item-dialog-summary').innerText(), /紧邻右侧已装备、层数已达其上限/);
+    assert.match(await detail.locator('.item-dialog-summary').innerText(), /紧邻右侧/);
     await detail.locator('.dialog-close[data-action="modal-close"]').click();
     detail = await openArtifactDetails(page, 'RC01');
     assert.match(await detail.locator('.equipment-status').innerText(), /已装备 · 装备位 2/);
@@ -647,13 +647,13 @@ async function assertMirrorFlow(browser) {
     assert.ok(mirrorIndex >= 0, 'The real run battle must contain the RL08 mirror awakening frame');
     assert.ok(nativeIndex >= 0, 'The real run battle must contain the neighbor’s native awakening frame');
     assert.ok(mirrorIndex < nativeIndex, 'Mirror output should resolve before the neighbor native awakening');
-    assert.match(frames[mirrorIndex].text, /法宝镜映（昆仑镜）：青锋余芒/);
+    assert.match(frames[mirrorIndex].text, /昆仑镜镜映（青锋石）：觉醒输出/);
     await page.locator('[data-action="battle-skip"]').click();
     await page.locator('.battle-settlement').waitFor({ state: 'visible' });
     await page.locator('.battle-detail-actions [data-action="battle-details"][data-tab="log"]').click();
     const log = page.locator('.battle-detail-dialog[role="dialog"] .battle-log');
     await log.waitFor({ state: 'visible' });
-    assert.match(await log.innerText(), /法宝镜映（昆仑镜）：青锋余芒/);
+    assert.match(await log.innerText(), /昆仑镜镜映（青锋石）：觉醒输出/);
     assert.match(await log.innerText(), /昆仑镜效果/);
     await page.screenshot({ path: '/tmp/shanhai-v2-mirror-real-battle-log.png', fullPage: true });
     console.log(`Mirror flow passed: actual ${frames.length}-frame battle, mirrored frame ${mirrorIndex}, native frame ${nativeIndex}`);

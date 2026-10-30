@@ -28,7 +28,7 @@ export interface CombatPresentationGroup {
 
 export type CombatPresentationMotion = 'idle' | 'hit' | 'block' | 'heal' | 'shield' | 'dot' | 'buff';
 
-const BOUNDARY_KINDS = new Set(['action', 'round', 'start', 'end', 'draw', 'summary']);
+const BOUNDARY_KINDS = new Set(['action', 'round', 'start', 'end', 'draw', 'summary', 'wait']);
 const REACTION_LABELS: Record<NonNullable<BattleFrame['cue']>['kind'], string> = {
   sword_volley: '飞剑齐射',
   guard_counter: '架势反击',
@@ -37,6 +37,7 @@ const REACTION_LABELS: Record<NonNullable<BattleFrame['cue']>['kind'], string> =
   enemy_release: '首领释招',
   rage_chain: '绝技连斩',
   companion_assist: '同伴助战',
+  blood_valor: '血勇反击',
 };
 
 function isBoundary(frame: BattleFrame): boolean {

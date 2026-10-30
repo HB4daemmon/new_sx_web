@@ -30,9 +30,9 @@ artifacts:
   - {id: RC15, stacks: 2}
   - {id: RC22, stacks: 1}
 stats:
-  attack: 68
+  attack: 71.4
   defense: 39
-  max_hp: 315
+  max_hp: 327.6
   crit_rate: 0.05
   speed: 9
 pressure: [持续伤害]

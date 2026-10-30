@@ -48,6 +48,7 @@ function resolveCurrentNode(game) {
         const event = content.byId[game.node.id];
         const direct = event.options.filter(candidate =>
           !candidate.encounter &&
+          !candidate.sacrifice_rule &&
           !candidate.commitment &&
           !candidate.legacy_commitment &&
           !candidate.rewards?.some(reward => ['method', 'swap_method'].includes(reward.type)) &&
@@ -232,9 +233,9 @@ test('fixed-seed chance checks survive event back, reload, settlement, and paid 
   }
 });
 
-test('all 52 events retain a safe legal choice at zero coins, one HP, full artifacts and all known methods', () => {
+test('all 53 events retain a safe legal choice at zero coins, one HP, full artifacts and all known methods', () => {
   const events = content.entities.filter(entity => entity.kind === 'event');
-  assert.equal(events.length, 52);
+  assert.equal(events.length, 53);
   for (const event of events) {
     const act = event.acts[0];
     const game = enterAuthoredEvent({ eventId: `RE${String((act - 1) * 9 + 1).padStart(3, '0')}`, act,

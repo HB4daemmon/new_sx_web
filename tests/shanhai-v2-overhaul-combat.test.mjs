@@ -35,7 +35,7 @@ function makeLoadout(method, overrides = {}) {
     n = 4,
     talents = [],
     artifacts = [],
-    companion,
+    companions,
     hp,
     preparation,
     ...stats
@@ -47,7 +47,7 @@ function makeLoadout(method, overrides = {}) {
     talents: [...talents],
     artifacts: structuredClone(artifacts),
     baseStats: { ...BASE_STATS, ...stats },
-    ...(companion === undefined ? {} : { companion }),
+    companions: companions ?? [],
     ...(hp === undefined ? {} : { hp }),
     ...(preparation === undefined ? {} : { preparation }),
   };
@@ -210,7 +210,7 @@ test('companion output kinds resolve as real effects with one source-attributed 
       companion.pair_bonuses = [];
     });
     const result = simulateBattle(content, makeLoadout('RKF05', {
-      companion: 'RKF02',
+      companions: ['RKF02'],
       hp: 500,
     }), makeEnemy(), `v2-overhaul-assist-${output.kind}`, { roundLimit: 1 });
     const cue = findFrame(result, frame => frame.cue?.kind === 'companion_assist' &&
@@ -233,7 +233,7 @@ test('companion output kinds resolve as real effects with one source-attributed 
 
 test('RKF03 and RKF06 companion pair bonuses work in either main-method direction', () => {
   const healToPoison = simulateBattle(baseContent, makeLoadout('RKF03', {
-    companion: 'RKF06',
+    companions: ['RKF06'],
     hp: 500,
   }), makeEnemy(), 'v2-overhaul-pair-heal-poison', { roundLimit: 1 });
   const poisonCue = findFrame(healToPoison, frame => frame.cue?.kind === 'companion_assist' &&
@@ -244,7 +244,7 @@ test('RKF03 and RKF06 companion pair bonuses work in either main-method directio
   assert.ok(contribution(healToPoison, 'RKF06-COMPANION').triggers > 0);
 
   const poisonToHeal = simulateBattle(baseContent, makeLoadout('RKF06', {
-    companion: 'RKF03',
+    companions: ['RKF03'],
     hp: 500,
   }), makeEnemy(), 'v2-overhaul-pair-poison-heal', { roundLimit: 1 });
   const healCue = findFrame(poisonToHeal, frame => frame.cue?.kind === 'companion_assist' &&
@@ -256,7 +256,7 @@ test('RKF03 and RKF06 companion pair bonuses work in either main-method directio
 
 test('RKF01 and RKF04 companion pair bonuses cross shield and fire in either direction', () => {
   const shieldToBurn = simulateBattle(baseContent, makeLoadout('RKF01', {
-    companion: 'RKF04',
+    companions: ['RKF04'],
     defense: 200,
   }), makeEnemy(), 'v2-overhaul-pair-shield-burn', { roundLimit: 1 });
   const burnCue = findFrame(shieldToBurn, frame => frame.cue?.kind === 'companion_assist' &&
@@ -267,7 +267,7 @@ test('RKF01 and RKF04 companion pair bonuses cross shield and fire in either dir
   assert.ok(contribution(shieldToBurn, 'RKF04-COMPANION').triggers > 0);
 
   const burnToShield = simulateBattle(baseContent, makeLoadout('RKF04', {
-    companion: 'RKF01',
+    companions: ['RKF01'],
   }), makeEnemy(), 'v2-overhaul-pair-burn-shield', { roundLimit: 1 });
   const shieldCue = findFrame(burnToShield, frame => frame.cue?.kind === 'companion_assist' &&
     frame.cue.sourceId === 'RKF01-COMPANION' && frame.cue.owner === 'player');
@@ -279,7 +279,7 @@ test('RKF01 and RKF04 companion pair bonuses cross shield and fire in either dir
 
 test('enemy-side companions assist their own main fighter when explicitly supplied', () => {
   const enemy = makeLoadout('RKF03', {
-    companion: 'RKF06',
+    companions: ['RKF06'],
     hp: 5_000,
     max_hp: 10_000,
     speed: 1,

@@ -1577,6 +1577,49 @@ button:disabled {
   padding: 10px 0;
 }
 
+.game-page .permanent-rule-state {
+  display: grid;
+  gap: 2px 8px;
+  padding: 7px 9px;
+  border-left: 3px solid var(--vermilion);
+  color: var(--ink);
+  background: color-mix(in srgb, var(--vermilion) 7%, var(--panel));
+}
+
+.game-page .permanent-rule-state > span {
+  color: var(--vermilion);
+  font: 10px/1.3 var(--sans);
+  letter-spacing: .04em;
+}
+
+.game-page .permanent-rule-state > b {
+  color: var(--ink);
+  font: 700 12px/1.35 var(--sans);
+}
+
+.game-page .permanent-rule-state > p {
+  margin: 0;
+  color: var(--muted);
+  font: 11px/1.45 var(--sans);
+  overflow-wrap: anywhere;
+}
+
+.game-page .rail-permanent-rule {
+  margin: 8px 0 10px;
+}
+
+.game-page .hud-permanent-rule {
+  grid-column: 1 / -1;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 2px 7px;
+  padding: 3px 7px;
+}
+
+.game-page .hud-permanent-rule > p {
+  grid-column: 1 / -1;
+}
+
 .game-page .vital-title,
 .game-page .resource-box,
 .game-page .detailed-stat {
@@ -2235,6 +2278,24 @@ button:disabled {
   min-width: 0;
   gap: 2px;
   padding: 0 1px;
+}
+
+.game-page .combatant-permanent-rule {
+  position: relative;
+  z-index: 3;
+  grid-template-columns: auto auto;
+  align-items: baseline;
+  margin-top: 3px;
+  padding: 4px 6px;
+}
+
+.game-page .combatant-permanent-rule > p {
+  grid-column: 1 / -1;
+  font-size: 10px;
+}
+
+.game-page .battle-detail-rule {
+  margin-top: 10px;
 }
 
 .game-page .combatant .fighter-numbers {
@@ -3713,6 +3774,11 @@ button:disabled {
 .game-page .combat-arena[data-reaction-kind="enemy_release"] .round-seal {
   border-color: #803b36;
   color: #803b36;
+}
+
+.game-page .combat-arena[data-reaction-kind="blood_valor"] .round-seal {
+  border-color: var(--vermilion);
+  color: var(--vermilion);
 }
 
 .game-page .reaction-launch {
@@ -6110,14 +6176,14 @@ button:disabled {
 .game-page .build-companion-brief {
   display: grid;
   min-width: 0;
-  gap: 3px;
-  margin: 9px 0;
-  padding: 7px 9px;
+  gap: 2px;
+  margin: 4px 0;
+  padding: 5px 7px;
   border-left: 3px solid var(--jade);
   color: var(--muted);
   background: var(--panel);
-  font-size: 14px;
-  line-height: 1.45;
+  font-size: 13px;
+  line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
@@ -6202,13 +6268,50 @@ button:disabled {
 }
 
 .game-page .battle-damage-ranking,
-.game-page .battle-shield-ranking-content {
+.game-page .battle-shield-ranking-content,
+.game-page .battle-healing-ranking-content {
   display: grid;
   min-width: 0;
   gap: 8px;
   margin: 8px 0;
   padding: 8px 10px;
   border-top: 1px solid var(--line);
+}
+
+.game-page .battle-comparison-body,
+.game-page .battle-comparison-results,
+.game-page .battle-comparison-results > div {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.game-page .battle-comparison-body {
+  padding: 0 10px 10px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.game-page .battle-comparison-body :is(select, button) {
+  width: 100%;
+  min-height: 46px;
+}
+
+.game-page .battle-comparison-results {
+  gap: 8px;
+  padding-top: 6px;
+}
+
+.game-page .battle-comparison-results > div {
+  padding: 8px 10px;
+  border-left: 3px solid var(--jade);
+  background: var(--panel);
+}
+
+.game-page .battle-comparison-results b {
+  color: var(--ink);
 }
 
 .game-page .battle-damage-ranking > h3 {
@@ -6298,6 +6401,14 @@ button:disabled {
 .game-page .combat-semantic-cue strong {
   color: var(--vermilion);
   white-space: nowrap;
+}
+
+.game-page .combat-semantic-cue.blood-valor > span {
+  border-color: var(--vermilion);
+}
+
+.game-page .combat-semantic-cue.blood-valor .icon {
+  color: var(--vermilion);
 }
 
 .game-page .combat-semantic-cue.companion-assist > span {
@@ -6532,5 +6643,373 @@ button:disabled {
 
   .game-page .fusion-input {
     align-items: flex-start;
+  }
+}
+
+.game-page .inscription-tool {
+  min-width: 0;
+  margin: 8px 0;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  background: rgba(13, 22, 19, 0.42);
+}
+
+.game-page .inscription-tool > summary {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  font-weight: 700;
+  list-style: none;
+  cursor: pointer;
+}
+
+.game-page .inscription-tool > summary::-webkit-details-marker {
+  display: none;
+}
+
+.game-page .inscription-tool > summary::after {
+  margin-left: auto;
+  color: var(--jade);
+  content: '+';
+}
+
+.game-page .inscription-tool[open] > summary::after {
+  content: '−';
+}
+
+.game-page .inscription-tool > summary span {
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.game-page .inscription-tool > summary:focus-visible,
+.game-page .inscription-tool :is(select, .inscription-commit):focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.game-page .inscription-tool-body {
+  padding: 2px 0 12px;
+}
+
+.game-page .inscription-controls {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
+.game-page .inscription-selects {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(120px, 0.65fr) minmax(0, 1.35fr);
+  align-items: center;
+  gap: 8px 10px;
+}
+
+.game-page .inscription-selects label {
+  color: var(--paper-muted);
+  font-size: 14px;
+}
+
+.game-page .inscription-selects select {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--ink);
+  background: var(--panel-deep);
+  font: inherit;
+}
+
+.game-page .inscription-effect {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 8px 10px;
+  border-left: 3px solid var(--jade);
+  color: var(--paper-muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.game-page .inscription-effect b {
+  color: var(--jade);
+}
+
+.game-page .inscription-terms,
+.game-page .inscription-unavailable {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.game-page .inscription-unavailable {
+  color: var(--gold);
+}
+
+.game-page .inscription-commit {
+  min-height: 48px;
+  justify-self: start;
+  padding: 8px 16px;
+}
+
+.game-page .inscription-commit:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
+.game-page .artifact-inscription-detail {
+  margin: 10px 0;
+  padding: 9px 11px;
+  border-left: 3px solid var(--jade);
+  background: rgba(21, 62, 50, 0.2);
+}
+
+.game-page .artifact-inscription-detail h3,
+.game-page .artifact-inscription-detail p {
+  margin: 0;
+}
+
+.game-page .artifact-inscription-detail h3 {
+  color: var(--jade);
+  font-size: 15px;
+}
+
+.game-page .artifact-inscription-detail p {
+  margin-top: 4px;
+  color: var(--paper-muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+@media (max-width: 600px) {
+  .game-page .inscription-tool {
+    margin: 6px 0;
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .game-page .inscription-tool > summary {
+    min-height: 48px;
+    flex-wrap: wrap;
+  }
+
+  .game-page .inscription-tool > summary span {
+    margin-left: auto;
+  }
+
+  .game-page .inscription-selects {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .game-page .inscription-selects select,
+  .game-page .inscription-commit {
+    min-height: 48px;
+  }
+
+  .game-page .inscription-commit {
+    width: 100%;
+  }
+}
+
+.game-page .cauldron-tool {
+  min-width: 0;
+  margin: 8px 0;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  background: rgba(13, 22, 19, 0.42);
+}
+
+.game-page .cauldron-tool > summary {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  color: var(--ink);
+  font-weight: 700;
+  list-style: none;
+  cursor: pointer;
+}
+
+.game-page .cauldron-tool > summary::-webkit-details-marker {
+  display: none;
+}
+
+.game-page .cauldron-tool > summary::after {
+  margin-left: auto;
+  color: var(--jade);
+  content: '+';
+}
+
+.game-page .cauldron-tool[open] > summary::after {
+  content: '−';
+}
+
+.game-page .cauldron-tool > summary span {
+  min-width: 0;
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.game-page .cauldron-tool > summary:focus-visible,
+.game-page .cauldron-tool :is(select, .cauldron-devour-commit):focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.game-page .cauldron-tool-body,
+.game-page .cauldron-devour-controls {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
+.game-page .cauldron-tool-body {
+  padding: 2px 0 12px;
+}
+
+.game-page .cauldron-devour-controls > label {
+  color: var(--paper-muted);
+  font-size: 14px;
+}
+
+.game-page .cauldron-devour-controls select {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--ink);
+  background: var(--panel-deep);
+  font: inherit;
+}
+
+.game-page .cauldron-devour-preview,
+.game-page .artifact-growth-detail {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  padding: 9px 10px;
+  border-left: 3px solid var(--gold);
+  background: rgba(91, 66, 25, 0.16);
+}
+
+.game-page .cauldron-devour-preview > b,
+.game-page .artifact-growth-detail h3 {
+  margin: 0;
+  color: var(--gold);
+  font-size: 14px;
+}
+
+.game-page .cauldron-devour-preview p,
+.game-page .artifact-growth-detail p {
+  display: grid;
+  grid-template-columns: minmax(58px, auto) minmax(0, 1fr);
+  gap: 6px;
+  margin: 0;
+  color: var(--paper-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.game-page .cauldron-devour-preview strong {
+  min-width: 0;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.game-page .cauldron-devour-preview small,
+.game-page .cauldron-devour-terms,
+.game-page .cauldron-devour-unavailable {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.game-page .cauldron-devour-unavailable {
+  color: var(--gold);
+}
+
+.game-page .cauldron-devour-commit {
+  min-height: 48px;
+  justify-self: start;
+  padding: 8px 16px;
+}
+
+.game-page .cauldron-devour-commit:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
+.game-page .artifact-growth-brief {
+  display: block;
+  color: var(--gold);
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.game-page .artifact-growth-detail {
+  margin: 10px 0;
+}
+
+.game-page .battle-growth-summary {
+  border-left: 3px solid var(--gold);
+}
+
+.game-page .battle-growth-summary h3,
+.game-page .battle-growth-summary p {
+  margin: 0;
+}
+
+.game-page .battle-growth-summary p {
+  margin-top: 5px;
+  color: var(--paper-muted);
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .game-page .cauldron-tool {
+    margin: 6px 0;
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .game-page .cauldron-tool > summary {
+    min-height: 48px;
+  }
+
+  .game-page .cauldron-tool > summary span {
+    flex: 1 1 calc(100% - 30px);
+    margin-left: 24px;
+  }
+
+  .game-page .cauldron-devour-controls select,
+  .game-page .cauldron-devour-commit {
+    min-height: 48px;
+  }
+
+  .game-page .cauldron-devour-commit {
+    width: 100%;
+  }
+
+  .game-page .cauldron-devour-preview p,
+  .game-page .artifact-growth-detail p {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
   }
 }

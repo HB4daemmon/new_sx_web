@@ -30,9 +30,9 @@ artifacts:
   - {id: RR05, stacks: 1}
   - {id: RL03, stacks: 1}
 stats:
-  attack: 32
-  defense: 77
-  max_hp: 740
+  attack: 70.4
+  defense: 100.1
+  max_hp: 1628
   crit_rate: 0.12
   speed: 12
 pressure: [多段, 攻势渐强]

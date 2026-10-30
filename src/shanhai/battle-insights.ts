@@ -19,9 +19,17 @@ export interface BattleInsightDamage {
   lethal: boolean;
 }
 
+export interface BattleInsightContribution {
+  source: string;
+  amount: number;
+  share: number;
+}
+
 export interface BattleInsights {
   highlights: BattleInsightHighlight[];
+  healingRanking: BattleInsightContribution[];
   keyDamage?: BattleInsightDamage;
+  defeatHit?: BattleInsightDamage;
 }
 
 const METRICS: BattleInsightMetric[] = ['damage', 'healing', 'shield', 'rage'];
@@ -50,9 +58,23 @@ export function battleInsights(result: BattleResult): BattleInsights {
     if (highlights.length === 2) break;
   }
 
+  const healingEntries = contributions
+    .map((item, index) => ({ item, index, healing: item.healing }))
+    .filter(entry => typeof entry.item.id === 'string' && entry.item.id.length > 0 &&
+      Number.isFinite(entry.healing) && entry.healing > 0)
+    .sort((left, right) => right.healing - left.healing || left.index - right.index);
+  const totalHealing = healingEntries.reduce((sum, entry) => sum + entry.healing, 0);
+  const healingRanking = healingEntries.slice(0, 3).map(({ item, healing }) => ({
+    source: item.id,
+    amount: healing,
+    share: healing / totalHealing * 100,
+  }));
+
   const frames = Array.isArray(result?.frames) ? result.frames : [];
   let largestHit: BattleInsightDamage | undefined;
   let lethalHit: BattleInsightDamage | undefined;
+  let largestPlayerHit: BattleInsightDamage | undefined;
+  let lethalPlayerHit: BattleInsightDamage | undefined;
 
   for (let index = 1; index < frames.length; index += 1) {
     const frame = frames[index];
@@ -80,10 +102,19 @@ export function battleInsights(result: BattleResult): BattleInsights {
     if (!largestHit || hpLost + shieldLost > largestHit.hpLost + largestHit.shieldLost) {
       largestHit = hit;
     }
+    if (frame.actor === 'enemy' && frame.target === 'player') {
+      if (hit.lethal) lethalPlayerHit = hit;
+      if (!largestPlayerHit || hpLost + shieldLost > largestPlayerHit.hpLost + largestPlayerHit.shieldLost) {
+        largestPlayerHit = hit;
+      }
+    }
   }
 
+  const defeatHit = result.outcome === 'enemy' ? lethalPlayerHit || largestPlayerHit : undefined;
   return {
     highlights,
+    healingRanking,
     ...(lethalHit || largestHit ? { keyDamage: lethalHit || largestHit } : {}),
+    ...(defeatHit ? { defeatHit } : {}),
   };
 }

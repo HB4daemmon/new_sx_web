@@ -1,0 +1,30 @@
+schema_version: 1
+content_version: shanhai-content-0.2
+kind: artifact
+id: RL09
+name: 饕餮鼎
+status: design_target
+summary: 支援定位；手动吞噬任意其他已持有法宝整栈，每栈使装备时伤害乘以 1.1；吞噬不可撤回，铭刻无战斗触发可用
+description: 仅在地图、领奖、坊市、休整或幕间安全配装时，可选择并确认吞噬一件其他已持有法宝的整栈，普通、稀有、传奇均可。目标层数与铭刻一并消失；若目标已装备，会一并卸下并将当前气血钳制到新上限，不会回血。每栈吞噬为本鼎增加一个独立 1.1 伤害乘区，乘区仅在装备本鼎时生效；卸下后成长保留。吞噬不是战斗触发，铭刻没有可生效的战斗触发。
+tags: [devour, growth, damage, legendary]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创器物，不声称古籍存在此效果。
+balance:
+  target: {B: 4, A: 20, J: 0, U: 4}
+  measured: null
+rarity: legendary
+max_stacks: 1
+unique_group: null
+attributes:
+  flat: {}
+  percent: {}
+effects: []
+equipment_role: support
+devour_rule:
+  kind: stack_consumption_damage
+  multiplier_per_stack: 1.1
+  maximum_multiplier: 1000000000000
+acquisition:
+  pools: [legendary_artifact]

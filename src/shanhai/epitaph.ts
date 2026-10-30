@@ -2,7 +2,17 @@ import type { Entity, RunState } from './types.js';
 
 type EpitaphState = Pick<
   RunState,
-  'phase' | 'act' | 'step' | 'fusionHistory' | 'artifacts' | 'ownedMethods' | 'eventCommitments'
+  | 'phase'
+  | 'act'
+  | 'step'
+  | 'fusionHistory'
+  | 'artifacts'
+  | 'equipment'
+  | 'ownedMethods'
+  | 'eventCommitments'
+  | 'bloodVow'
+  | 'battle'
+  | 'battleInput'
 > & { thunderChallenges?: unknown };
 
 type EpitaphEntity = Entity & { max_stacks?: unknown; options?: unknown };
@@ -59,18 +69,24 @@ export function buildVictoryEpitaph(
   state: EpitaphState,
   resolveEntity: (id: string) => EpitaphEntity | undefined,
 ): string[] {
-  if (state.phase !== 'won') return [];
+  if (!isRecord(state) || state.phase !== 'won' || typeof resolveEntity !== 'function') return [];
 
   const fusionNames = uniqueInOrder(records(state.fusionHistory)
     .filter(record => isAtOrBeforeEnd(record, state))
     .map(record => entityName(record.id, 'artifact', resolveEntity)));
 
+  const equippedIds = new Set(
+    isRecord(state.equipment) && Array.isArray(state.equipment.slots)
+      ? state.equipment.slots.filter((id): id is string => typeof id === 'string' && Boolean(id.trim()))
+      : [],
+  );
   const fullStackArtifactNames = uniqueInOrder(records(state.artifacts).flatMap(record => {
     const id = record.id;
-    if (typeof id !== 'string' || !Number.isInteger(record.stacks) || (record.stacks as number) < 1) return [];
+    if (typeof id !== 'string' || !equippedIds.has(id) || !Number.isInteger(record.stacks) ||
+      (record.stacks as number) < 1) return [];
     const artifact = resolveEntity(id);
     const maxStacks = artifact?.max_stacks;
-    if (artifact?.kind !== 'artifact' || !isRecord(artifact.awakening) || !Number.isInteger(maxStacks) ||
+    if (artifact?.kind !== 'artifact' || !Number.isInteger(maxStacks) ||
       (maxStacks as number) < 1 || (record.stacks as number) < (maxStacks as number)) return [];
     const name = typeof artifact.name === 'string' ? artifact.name.trim() : '';
     return name ? [name] : [];
@@ -97,15 +113,89 @@ export function buildVictoryEpitaph(
     .filter(record => record.outcome === 'win' && isAtOrBeforeEnd(record, state))
     .map(record => entityName(record.enemyId, 'enemy', resolveEntity)));
 
+  const finalBattleContributors = finalBattleDamageLeaders(state);
+  const vowLine = state.bloodVow === true ? '背负断生之誓，战外禁疗。' : undefined;
+  const craftAndEquipmentLine = [
+    withNames('途中合炼出', fusionNames, '件', '，旧器在战火中重铸'),
+    withNames('终局仍装备', fullStackArtifactNames, '件', '，皆已满层'),
+  ].filter((line): line is string => Boolean(line)).join('；');
+
   return [
-    withNames('途中合炼出', fusionNames, '件', '，旧器在战火中重铸。'),
+    craftAndEquipmentLine ? `${craftAndEquipmentLine}。` : undefined,
     [
-      withNames('最终持有的', fullStackArtifactNames, '件', '已至满层'),
       withNames('身怀', methodNames, '门'),
+      vowLine,
     ].filter((line): line is string => Boolean(line)).join('；') || undefined,
     [
       withNames('兑现了', fulfilledCommitmentNames, '项', '留下的约定'),
       withNames('曾引雷战胜', thunderWinNames, '场'),
+      finalBattleContributors.length === 1
+        ? `终战伤敌最多：${finalBattleContributors[0]}`
+        : finalBattleContributors.length > 1
+          ? `终战伤敌并列最多：${compactNames(finalBattleContributors, '位')}`
+          : undefined,
     ].filter((line): line is string => Boolean(line)).join('；') || undefined,
   ].filter((line): line is string => Boolean(line));
+}
+
+/** A final fight highlight is shown only when the complete player build can be checked. */
+function finalBattleDamageLeaders(state: EpitaphState): string[] {
+  const battle = state.battle;
+  const input = state.battleInput;
+  if (!isRecord(battle) || battle.outcome !== 'player' || !isRecord(input) ||
+    !isRecord(input.player) || !Array.isArray(battle.contributions)) return [];
+
+  const player = input.player;
+  if (typeof player.method !== 'string' || !player.method.trim() ||
+    !Array.isArray(player.talents) || !Array.isArray(player.artifacts)) return [];
+
+  const sourceIds = new Set<string>([player.method]);
+  for (const id of player.talents) {
+    if (typeof id !== 'string' || !id.trim()) return [];
+    sourceIds.add(id);
+  }
+  for (const artifact of player.artifacts) {
+    if (!isRecord(artifact) || typeof artifact.id !== 'string' || !artifact.id.trim()) return [];
+    sourceIds.add(artifact.id);
+  }
+  if (isRecord(player.permanentRule)) {
+    const permanentSourceId = player.permanentRule.kind === 'shattered_core'
+      ? 'RE037-A'
+      : player.permanentRule.kind === 'blind_sword'
+        ? 'RE037-B'
+        : player.permanentRule.kind === 'endless_chain'
+          ? 'RE037-C'
+          : undefined;
+    if (permanentSourceId) sourceIds.add(permanentSourceId);
+  }
+  for (const companion of Array.isArray(player.companions) ? player.companions : []) {
+    if (typeof companion === 'string' && companion.trim()) {
+      sourceIds.add(`${companion}-COMPANION`);
+    }
+  }
+
+  const contributions = records(battle.contributions);
+  if (contributions.length !== battle.contributions.length) return [];
+
+  const seen = new Set<string>();
+  let highestDamage = 0;
+  const leaders: string[] = [];
+  for (const contribution of contributions) {
+    if (typeof contribution.id !== 'string' || !sourceIds.has(contribution.id) ||
+      seen.has(contribution.id) || typeof contribution.name !== 'string' || !contribution.name.trim() ||
+      typeof contribution.damage !== 'number' || !Number.isFinite(contribution.damage) ||
+      contribution.damage < 0) return [];
+    seen.add(contribution.id);
+    if (contribution.damage > highestDamage) {
+      highestDamage = contribution.damage;
+      leaders.length = 0;
+      leaders.push(contribution.name.trim());
+    } else if (contribution.damage > 0 && contribution.damage === highestDamage) {
+      leaders.push(contribution.name.trim());
+    }
+  }
+
+  // Combat registers every player source, including sources that dealt zero damage.
+  if (seen.size !== sourceIds.size || highestDamage <= 0) return [];
+  return uniqueInOrder(leaders);
 }

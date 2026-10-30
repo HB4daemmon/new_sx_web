@@ -44,14 +44,16 @@ function winningState(overrides = {}) {
     step: 0,
     fusionHistory: [],
     artifacts: [],
+    equipment: { slots: [] },
     ownedMethods: [],
     eventCommitments: [],
     thunderChallenges: [],
+    bloodVow: false,
     ...overrides,
   };
 }
 
-test('writes three compact lines from content names and current-run records', () => {
+test('writes three compact lines from current-run craft, equipment, vow, journey, and final-battle facts', () => {
   const lines = helper.buildVictoryEpitaph(winningState({
     fusionHistory: [
       { id: 'RL06', act: 2, step: 4, title: '虚构的成器名', text: '未发生的斩神事迹' },
@@ -59,26 +61,38 @@ test('writes three compact lines from content names and current-run records', ()
     artifacts: [
       { id: 'RC14', stacks: 3 },
       { id: 'RC15', stacks: 2 },
-      { id: 'RC16', stacks: 2 },
+      { id: 'RC16', stacks: 3 },
       { id: 'RL07', stacks: 1 },
     ],
+    equipment: { slots: ['RC14', 'RC15', 'RC16'] },
     ownedMethods: ['RKF02', 'RKF01', 'RKF02'],
+    bloodVow: true,
     eventCommitments: [
       { eventId: 'RE001', optionId: 'RE001-C', originAct: 1, originStep: 1, status: 'fulfilled' },
     ],
     thunderChallenges: [
       { act: 2, step: 5, enemyId: 'EN_A1_L1', outcome: 'win' },
     ],
+    battleInput: {
+      player: { method: 'RKF02', talents: [], artifacts: [{ id: 'RC14', stacks: 3 }] },
+    },
+    battle: {
+      outcome: 'player',
+      contributions: [
+        { id: 'RKF02', name: '逆潮功', damage: 40 },
+        { id: 'RC14', name: '逐浪剑', damage: 150 },
+      ],
+    },
   }), resolveEntity);
 
   assert.deepEqual(lines, [
-    '途中合炼出玉石山河印，旧器在战火中重铸。',
-    '最终持有的逐浪剑、守潮盾已至满层；身怀逆潮功、引气诀',
-    '兑现了潮痕药篓留下的约定；曾引雷战胜雷门守将',
+    '途中合炼出玉石山河印，旧器在战火中重铸；终局仍装备逐浪剑、守潮盾等共3件，皆已满层。',
+    '身怀逆潮功、引气诀；背负断生之誓，战外禁疗。',
+    '兑现了潮痕药篓留下的约定；曾引雷战胜雷门守将；终战伤敌最多：逐浪剑',
   ]);
   assert.equal(lines.length, 3);
   assert.doesNotMatch(lines.join('\n'), /虚构|斩神|最高|伤害占比/);
-  assert.doesNotMatch(lines[1], /逆潮灯/);
+  assert.doesNotMatch(lines[0], /逆潮灯/);
 });
 
 test('shows no facts on a loss and leaves an empty victory record empty', () => {
@@ -134,16 +148,101 @@ test('keeps source order, skips unfulfilled or future records, and ignores event
   assert.doesNotMatch(lines.join('\n'), /护送药箱|未遇之神|未来结局|雷门守将/);
 });
 
-test('describes ending inventory and starting method without inventing when they were acquired', () => {
+test('describes ending equipment and known methods without inventing when they were acquired', () => {
   const lines = helper.buildVictoryEpitaph(winningState({
     fusionHistory: [{ id: 'RL06', act: 5, step: 0 }],
     artifacts: [{ id: 'RC14', stacks: 3 }],
+    equipment: { slots: ['RC14'] },
     ownedMethods: ['RKF01'],
   }), resolveEntity);
 
   assert.deepEqual(lines, [
-    '途中合炼出玉石山河印，旧器在战火中重铸。',
-    '最终持有的逐浪剑已至满层；身怀引气诀',
+    '途中合炼出玉石山河印，旧器在战火中重铸；终局仍装备逐浪剑，皆已满层。',
+    '身怀引气诀',
   ]);
   assert.doesNotMatch(lines.join('\n'), /登门时|此行习得/);
+});
+
+test('only calls the final battle damage leader when its complete player build is verifiable', () => {
+  const build = {
+    method: 'RKF02',
+    talents: ['RKF02-T1'],
+    artifacts: [{ id: 'RC14', stacks: 3 }],
+    companions: ['RKF01', 'RKF03'],
+  };
+  const state = winningState({
+    battleInput: { player: build },
+    battle: {
+      outcome: 'player',
+      contributions: [
+        { id: 'RKF02', name: '逆潮功', damage: 60 },
+        { id: 'RKF02-T1', name: '引雷天赋', damage: 40 },
+        { id: 'RC14', name: '逐浪剑', damage: 40 },
+        { id: 'RKF01-COMPANION', name: '引气诀同修', damage: 5 },
+        { id: 'RKF03-COMPANION', name: '春脉灵医同修', damage: 80 },
+      ],
+    },
+  });
+  const lines = helper.buildVictoryEpitaph(state, resolveEntity);
+  assert.equal(lines.at(-1), '终战伤敌最多：春脉灵医同修');
+
+  for (const battle of [
+    { outcome: 'enemy', contributions: state.battle.contributions },
+    { outcome: 'player', contributions: state.battle.contributions.slice(0, 2) },
+    { outcome: 'player', contributions: [...state.battle.contributions, { id: 'ENEMY', name: '敌人', damage: 999 }] },
+    { outcome: 'player' },
+  ]) {
+    const invalidLines = helper.buildVictoryEpitaph(winningState({
+      battleInput: { player: build },
+      battle,
+    }), resolveEntity);
+    assert.doesNotMatch(invalidLines.join('\n'), /终战伤敌/);
+  }
+});
+
+test('includes only the permanent sacrifice law owned by the final battle build', () => {
+  const player = {
+    method: 'RKF02',
+    talents: [],
+    artifacts: [],
+    permanentRule: { kind: 'blind_sword' },
+  };
+  const lawful = helper.buildVictoryEpitaph(winningState({
+    battleInput: { player },
+    battle: {
+      outcome: 'player',
+      contributions: [
+        { id: 'RKF02', name: '逆潮功', damage: 40 },
+        { id: 'RE037-B', name: '法则·盲眼剑圣', damage: 80 },
+      ],
+    },
+  }), resolveEntity);
+  assert.equal(lawful.at(-1), '终战伤敌最多：法则·盲眼剑圣');
+
+  const forged = helper.buildVictoryEpitaph(winningState({
+    battleInput: { player: { ...player, permanentRule: undefined } },
+    battle: {
+      outcome: 'player',
+      contributions: [
+        { id: 'RKF02', name: '逆潮功', damage: 40 },
+        { id: 'RE037-B', name: '法则·盲眼剑圣', damage: 80 },
+      ],
+    },
+  }), resolveEntity);
+  assert.doesNotMatch(forged.join('\n'), /终战伤敌/,
+    'a law not frozen in the battle build cannot be used as a final-battle source');
+});
+
+test('handles sparse and malformed victory records without creating unsupported facts', () => {
+  assert.deepEqual(helper.buildVictoryEpitaph(undefined, resolveEntity), []);
+  assert.deepEqual(helper.buildVictoryEpitaph({ phase: 'won' }, resolveEntity), []);
+  assert.deepEqual(helper.buildVictoryEpitaph(winningState({
+    fusionHistory: [null, { id: 'RL06', act: 5, step: '0' }],
+    artifacts: [{ id: 'RC14', stacks: Infinity }],
+    equipment: { slots: ['RC14'] },
+    ownedMethods: [null, 'unknown'],
+    eventCommitments: [null, { eventId: 'RE001', optionId: 'RE001-C', status: 'fulfilled' }],
+    thunderChallenges: [{ act: 1, step: '0', enemyId: 'EN_A1_L1', outcome: 'win' }],
+    battle: { outcome: 'player', contributions: [{ id: 'RKF01', name: '引气诀', damage: Infinity }] },
+  }), resolveEntity), []);
 });

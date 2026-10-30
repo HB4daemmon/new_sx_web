@@ -2,6 +2,7 @@ import path from 'node:path'
 import {
   ARTIFACT_BASELINE,
   ARTIFACT_BUDGET,
+  ARTIFACT_DEVOUR_RULES,
   ARTIFACT_EQUIPMENT_ROLES,
   ARTIFACT_FUSION_RECIPES,
   ARTIFACT_FUSION_RULES,
@@ -11,6 +12,7 @@ import {
   ARTIFACT_MIRROR_UNIQUE_GROUP,
   ARTIFACT_RARITIES,
   ARTIFACT_RESONANCE_RULES,
+  RARE_ARTIFACT_EFFECT_RULES,
   AWAKENING_EFFECT_KINDS,
   AWAKENING_TRIGGERS,
   ATTRIBUTES,
@@ -968,6 +970,34 @@ function validateArtifactMirror(entity, errors) {
   }
 }
 
+function validateArtifactDevourRule(entity, errors) {
+  const source = sourceFor(entity)
+  const expected = ARTIFACT_DEVOUR_RULES[entity.id]
+  if (!expected) {
+    if (Object.hasOwn(entity, 'devour_rule')) {
+      addIssue(errors, 'artifact-devour-owner', `${entity.id} cannot define a devour_rule`, source)
+    }
+    return
+  }
+  if (!isRecord(entity.devour_rule)) {
+    addIssue(errors, 'artifact-devour-rule', `${entity.id} must define its devour_rule mapping`, source)
+    return
+  }
+  if (!exactKeys(entity.devour_rule, ['kind', 'multiplier_per_stack', 'maximum_multiplier'])) {
+    addIssue(errors, 'artifact-devour-fields', `${entity.id}.devour_rule must contain exactly kind, multiplier_per_stack, and maximum_multiplier`, source)
+  }
+  if (entity.devour_rule.kind !== expected.kind) {
+    addIssue(errors, 'artifact-devour-kind', `${entity.id}.devour_rule.kind must be ${expected.kind}`, source)
+  }
+  finiteNumber(errors, entity.devour_rule.multiplier_per_stack, source, 'devour_rule.multiplier_per_stack', expected.multiplier_per_stack)
+  finiteNumber(errors, entity.devour_rule.maximum_multiplier, source, 'devour_rule.maximum_multiplier', expected.maximum_multiplier)
+  if (typeof entity.devour_rule.multiplier_per_stack === 'number' &&
+      typeof entity.devour_rule.maximum_multiplier === 'number' &&
+      entity.devour_rule.maximum_multiplier < entity.devour_rule.multiplier_per_stack) {
+    addIssue(errors, 'artifact-devour-cap', `${entity.id}.devour_rule.maximum_multiplier must be at least multiplier_per_stack`, source)
+  }
+}
+
 function validateArtifact(entity, errors, effectIds, known) {
   const source = sourceFor(entity)
   const expected = ARTIFACT_BASELINE[entity.id]
@@ -981,6 +1011,7 @@ function validateArtifact(entity, errors, effectIds, known) {
   const isFusion = validateArtifactFusion(entity, errors, known)
   validateArtifactGambit(entity, errors)
   validateArtifactMirror(entity, errors)
+  validateArtifactDevourRule(entity, errors)
   const expectedRarity = ARTIFACT_RARITIES[entity.id]
   if (entity.rarity !== expectedRarity) addIssue(errors, 'artifact-rarity', `artifact rarity must be ${expectedRarity}`, source)
   const expectedRole = ARTIFACT_EQUIPMENT_ROLES[entity.id]
@@ -1074,9 +1105,12 @@ function validateArtifact(entity, errors, effectIds, known) {
     if (Object.hasOwn(entity.attributes.percent ?? {}, 'crit_rate')) {
       addIssue(errors, 'artifact-crit-rate', 'crit_rate must be a flat ratio, not a percent attribute', source)
     }
-    if (keys.length === 0 && !isFusion) addIssue(errors, 'artifact-attributes', 'each non-fusion artifact must provide at least one base attribute', source)
+    if (keys.length === 0 && !isFusion && !Object.hasOwn(ARTIFACT_DEVOUR_RULES, entity.id)) {
+      addIssue(errors, 'artifact-attributes', 'each non-fusion artifact must provide at least one base attribute', source)
+    }
   }
   validateEffectArray(entity, 'effects', entity.effects, errors, effectIds)
+  validateRareArtifactEffectRules(entity, errors)
   if (!isRecord(entity.acquisition)) {
     addIssue(errors, 'artifact-acquisition', 'acquisition must be a mapping', source)
   } else if (!Array.isArray(entity.acquisition.pools) || entity.acquisition.pools.some((pool) => typeof pool !== 'string' || !POOLS.has(pool))) {
@@ -1103,6 +1137,58 @@ function validateArtifact(entity, errors, effectIds, known) {
   if (typeof target.A === 'number' && typeof target.J === 'number' && typeof target.B === 'number') {
     if (Math.abs(target.A / 5 + target.J - target.B) > 1e-9) {
       addIssue(errors, 'artifact-budget', 'balance.target must satisfy A / 5 + J = B', source)
+    }
+  }
+}
+
+function validateRareArtifactEffectRules(entity, errors) {
+  const contracts = RARE_ARTIFACT_EFFECT_RULES[entity.id]
+  if (!contracts) return
+  const source = sourceFor(entity)
+  const effects = Array.isArray(entity.effects) ? entity.effects : []
+  for (const [effectId, contract] of Object.entries(contracts)) {
+    const matches = effects.filter(effect => effect?.id === effectId)
+    if (matches.length !== 1) {
+      addIssue(errors, 'rare-artifact-effect-count', `${effectId} must appear exactly once`, source)
+      continue
+    }
+    const effect = matches[0]
+    const location = `${source}:effects[${effects.indexOf(effect)}]`
+    if (!exactKeys(effect, [
+      'id', 'trigger', 'operation', 'target', 'params', 'requires', 'consumes', 'replaces', 'limit', 'text',
+    ])) {
+      addIssue(errors, 'rare-artifact-effect-fields', `${effectId} must use only standard effect fields`, location)
+    }
+    for (const field of ['trigger', 'operation', 'target']) {
+      if (effect[field] !== contract[field]) {
+        addIssue(errors, 'rare-artifact-effect-shape', `${effectId}.${field} must be ${contract[field]}`, location)
+      }
+    }
+    if (!Array.isArray(effect.requires) || JSON.stringify(effect.requires) !== JSON.stringify(contract.requires)) {
+      addIssue(errors, 'rare-artifact-effect-requires', `${effectId}.requires must match its trigger contract`, location)
+    }
+    for (const field of ['consumes', 'replaces']) {
+      if (!Array.isArray(effect[field]) || effect[field].length !== 0) {
+        addIssue(errors, 'rare-artifact-effect-boundary', `${effectId}.${field} must be empty`, location)
+      }
+    }
+    if (!isRecord(effect.limit) || !exactKeys(effect.limit, ['scope', 'count']) ||
+        effect.limit.scope !== contract.limit.scope || effect.limit.count !== contract.limit.count) {
+      addIssue(errors, 'rare-artifact-effect-limit', `${effectId}.limit must be ${contract.limit.scope}/${contract.limit.count}`, location)
+    }
+    const expectedParams = contract.params
+    if (!isRecord(effect.params) || !exactKeys(effect.params, expectedParams)) {
+      addIssue(errors, 'rare-artifact-effect-params', `${effectId}.params must use exactly ${Object.keys(expectedParams).join(', ')}`, location)
+      continue
+    }
+    for (const [key, expected] of Object.entries(expectedParams)) {
+      if (typeof expected === 'string') {
+        if (effect.params[key] !== expected) {
+          addIssue(errors, 'rare-artifact-effect-parameter', `${effectId}.${key} must be ${expected}`, location)
+        }
+      } else {
+        finiteNumber(errors, effect.params[key], location, `${effectId}.${key}`, expected)
+      }
     }
   }
 }
@@ -1409,6 +1495,7 @@ function validateEvent(entity, errors, known) {
   }
   const options = Array.isArray(entity.options) ? entity.options : []
   const optionIds = new Set()
+  const sacrificeRules = []
   for (const [index, option] of options.entries()) {
     const location = `${source}:options[${index}]`
     if (!isRecord(option)) {
@@ -1426,6 +1513,21 @@ function validateEvent(entity, errors, known) {
       addIssue(errors, 'option-id', `duplicate option id ${option.id}`, location)
     }
     if (typeof option.id === 'string') optionIds.add(option.id)
+    if (option.sacrifice_rule !== undefined) {
+      const kinds = ['shattered_core', 'blind_sword', 'endless_chain']
+      if (entity.id !== 'RE037') {
+        addIssue(errors, 'sacrifice-rule-location', 'sacrifice_rule is reserved for RE037', location)
+      }
+      if (!kinds.includes(option.sacrifice_rule)) {
+        addIssue(errors, 'sacrifice-rule-kind', 'sacrifice_rule must be shattered_core, blind_sword, or endless_chain', location)
+      } else {
+        sacrificeRules.push(option.sacrifice_rule)
+      }
+      if (option.requirements?.length || option.costs?.length || option.rewards?.length ||
+        option.encounter !== undefined || option.check !== undefined || option.commitment !== undefined) {
+        addIssue(errors, 'sacrifice-rule-terms', 'permanent sacrifice options must be immediate choices without additional costs, rewards, checks, encounters, or commitments', location)
+      }
+    }
     for (const field of ['label', 'quick', 'outcome']) requiredString(errors, option, field, location)
     optionalStoryEcho(errors, option, 'story_echo', location)
     optionalStoryEcho(errors, option, 'story_failure_echo', location)
@@ -1478,6 +1580,22 @@ function validateEvent(entity, errors, known) {
     if (option.encounter !== undefined) validateEncounter(option.encounter, option, known, errors, `${location}:encounter`)
     if (option.commitment !== undefined) validateCommitment(option.commitment, option, known, errors, `${location}:commitment`)
     if (option.check !== undefined) validateEventCheck(option.check, option, known, errors, `${location}:check`)
+  }
+  if (entity.id === 'RE037') {
+    const exit = options.find(option => isRecord(option) && option.id === 'RE037-D')
+    if (options.length !== 4 || sacrificeRules.length !== 3 ||
+      new Set(sacrificeRules).size !== 3 ||
+      !['shattered_core', 'blind_sword', 'endless_chain'].every(kind => sacrificeRules.includes(kind)) ||
+      !exit || exit.sacrifice_rule !== undefined ||
+      !Array.isArray(exit.requirements) || exit.requirements.length !== 0 ||
+      !Array.isArray(exit.costs) || exit.costs.length !== 0 ||
+      !Array.isArray(exit.rewards) || exit.rewards.length !== 0 ||
+      ['check', 'encounter', 'commitment'].some(field => exit[field] !== undefined)) {
+      addIssue(errors, 'sacrifice-rule-options', 'RE037 must offer each permanent rule exactly once and a fourth no-rule exit', source)
+    }
+    if (![1, 2, 3, 4].every(act => entity.acts?.includes(act))) {
+      addIssue(errors, 'sacrifice-rule-acts', 'RE037 must be available in all four acts', source)
+    }
   }
   if (!isRecord(entity.settlement)) {
     addIssue(errors, 'settlement', 'settlement must be a mapping', source)

@@ -34,7 +34,7 @@ function makeLoadout(method, overrides = {}) {
     artifacts = [],
     n = 4,
     hp,
-    companion,
+    companions,
     ...stats
   } = overrides;
   return {
@@ -45,7 +45,7 @@ function makeLoadout(method, overrides = {}) {
     artifacts: structuredClone(artifacts),
     baseStats: { ...BASE_STATS, ...stats },
     ...(hp === undefined ? {} : { hp }),
-    ...(companion === undefined ? {} : { companion }),
+    companions: companions ?? [],
   };
 }
 
@@ -95,14 +95,14 @@ function battleStats(content, loadout) {
 }
 
 function expectedCompanionDamage(content, target, mainMethod = 'RKF05') {
-  const attack = battleStats(content, makeLoadout(mainMethod, { companion: 'RKF10' })).attack;
+  const attack = battleStats(content, makeLoadout(mainMethod, { companions: ['RKF10'] })).attack;
   const defense = battleStats(content, target).defense;
   const constant = content.rules.combat.direct_defense_constant;
   return 0.25 * attack * constant / (constant + defense);
 }
 
 test('RKF10 companion alternates shield, derived damage, shield on a different main method', () => {
-  const player = makeLoadout('RKF05', { companion: 'RKF10' });
+  const player = makeLoadout('RKF05', { companions: ['RKF10'] });
   const enemy = makeEnemy();
   const result = simulateBattle(baseContent, player, enemy, 'rkf10-companion-live-cycle', { roundLimit: 3 });
   const replay = simulateBattle(baseContent, player, enemy, 'rkf10-companion-live-cycle', { roundLimit: 3 });
@@ -126,11 +126,88 @@ test('RKF10 companion alternates shield, derived damage, shield on a different m
   assert.deepEqual(result, replay, 'the same seed must reproduce every frame and contribution');
 });
 
+test('four learned companions all assist one main hit in acquisition order with separate ledgers', () => {
+  const companions = ['RKF02', 'RKF03', 'RKF04', 'RKF06'];
+  const content = patchContent(entities => {
+    companions.forEach((id, index) => {
+      const config = entities.find(entity => entity.id === id).companion;
+      config.trigger = 'hit';
+      config.effect = { kind: 'damage', value: 0.08 + index * 0.03 };
+      config.pair_bonuses = [];
+      delete config.alternate_effect;
+    });
+  });
+  const player = makeLoadout('RKF05', { companions });
+  const enemy = makeEnemy();
+  const result = simulateBattle(content, player, enemy, 'four-live-companions', { roundLimit: 1 });
+  const replay = simulateBattle(content, player, enemy, 'four-live-companions', { roundLimit: 1 });
+  const cues = result.frames.filter(frame => frame.kind === 'reaction' &&
+    frame.cue?.kind === 'companion_assist' && frame.cue.owner === 'player');
+
+  assert.deepEqual(cues.map(frame => frame.cue.sourceId), companions.map(id => `${id}-COMPANION`));
+  for (const id of companions) {
+    const source = `${id}-COMPANION-ASSIST`;
+    assert.ok(result.frames.some(frame => frame.source === source && frame.kind === 'damage'),
+      `${id} did not produce its authored companion damage`);
+    const ledger = contribution(result, `${id}-COMPANION`);
+    assert.equal(ledger.triggers, 1);
+    assert.ok(ledger.damage > 0, `${id} was omitted from the independent damage ledger`);
+  }
+  assert.deepEqual(result, replay, 'multi-companion frames and ledgers must replay deterministically');
+});
+
+test('combat rejects malformed, duplicate, main-method, unknown, and legacy companion fields', () => {
+  for (const companions of [
+    null,
+    [null],
+    [7],
+    ['RKF05'],
+    ['RKF02', 'RKF02'],
+    ['NOT-A-METHOD'],
+  ]) {
+    const player = makeLoadout('RKF05');
+    player.companions = companions;
+    assert.throws(() => simulateBattle(baseContent, player, makeEnemy(), 'invalid-companion-list'), /companion|method/i);
+  }
+  const legacy = makeLoadout('RKF05');
+  legacy.companion = 'RKF02';
+  assert.throws(() => simulateBattle(baseContent, legacy, makeEnemy(), 'legacy-companion-field'), /single companion/i);
+});
+
+test('each alternating companion keeps its own output state', () => {
+  const content = patchContent(entities => {
+    const first = entities.find(entity => entity.id === 'RKF10').companion;
+    first.trigger = 'hit';
+    first.effect = { kind: 'shield', value: 0.02 };
+    first.alternate_effect = { kind: 'damage', value: 0.25 };
+    first.pair_bonuses = [];
+
+    const second = entities.find(entity => entity.id === 'RKF09').companion;
+    second.trigger = 'hit';
+    second.effect = { kind: 'rage', value: 3 };
+    second.alternate_effect = { kind: 'shield', value: 0.01 };
+    second.pair_bonuses = [];
+  });
+  const result = simulateBattle(
+    content,
+    makeLoadout('RKF05', { companions: ['RKF10', 'RKF09'], max_hp: 1_000_000 }),
+    makeEnemy(),
+    'independent-companion-alternation',
+    { roundLimit: 3 },
+  );
+  const outputs = id => result.frames.filter(frame =>
+    frame.source === `${id}-COMPANION-ASSIST` && ['shield', 'damage', 'rage'].includes(frame.kind));
+  assert.deepEqual(outputs('RKF10').map(frame => frame.kind), ['shield', 'damage', 'shield']);
+  assert.deepEqual(outputs('RKF09').map(frame => frame.kind), ['rage', 'shield', 'rage']);
+  assert.equal(contribution(result, 'RKF10-COMPANION').triggers, 3);
+  assert.equal(contribution(result, 'RKF09-COMPANION').triggers, 3);
+});
+
 test('each fighter has an independent companion cycle, including a full-shield output', () => {
   const bothSides = simulateBattle(
     baseContent,
-    makeLoadout('RKF05', { companion: 'RKF10', max_hp: 1_000_000_000 }),
-    makeLoadout('RKF05', { companion: 'RKF10', max_hp: 1_000_000_000 }),
+    makeLoadout('RKF05', { companions: ['RKF10'], max_hp: 1_000_000_000 }),
+    makeLoadout('RKF05', { companions: ['RKF10'], max_hp: 1_000_000_000 }),
     'rkf10-companion-side-cycles',
     { roundLimit: 3 },
   );
@@ -143,7 +220,7 @@ test('each fighter has an independent companion cycle, including a full-shield o
   });
   const fullShield = simulateBattle(
     fullShieldContent,
-    makeLoadout('RKF05', { companion: 'RKF10', talents: ['V2-J4-A'] }),
+    makeLoadout('RKF05', { companions: ['RKF10'], talents: ['V2-J4-A'] }),
     makeEnemy(),
     'rkf10-companion-full-shield',
     { roundLimit: 2 },
@@ -153,7 +230,7 @@ test('each fighter has an independent companion cycle, including a full-shield o
   near(outputFrames[0].amount, 0);
   near(outputFrames[1].amount, expectedCompanionDamage(fullShieldContent, makeEnemy()));
   near(calculateStats(fullShieldContent, makeLoadout('RKF05', {
-    companion: 'RKF10',
+    companions: ['RKF10'],
     talents: ['V2-J4-A'],
   })).max_hp, 10_000);
 });
@@ -161,6 +238,9 @@ test('each fighter has an independent companion cycle, including a full-shield o
 test('a selected pair bonus does not advance RKF10 companion alternation', () => {
   const content = patchContent(entities => {
     const companion = entities.find(entity => entity.id === 'RKF10').companion;
+    companion.trigger = 'hit';
+    companion.effect = { kind: 'shield', value: 0.01 };
+    companion.alternate_effect = { kind: 'damage', value: 0.25 };
     companion.pair_bonuses = [{
       with: 'RKF03',
       trigger: 'heal',
@@ -169,7 +249,7 @@ test('a selected pair bonus does not advance RKF10 companion alternation', () =>
   });
   const result = simulateBattle(
     content,
-    makeLoadout('RKF03', { companion: 'RKF10', hp: 9_999 }),
+    makeLoadout('RKF03', { companions: ['RKF06', 'RKF10'], hp: 9_999 }),
     makeEnemy(),
     'rkf10-companion-pair-does-not-advance',
     { roundLimit: 3 },
@@ -181,14 +261,43 @@ test('a selected pair bonus does not advance RKF10 companion alternation', () =>
   assert.deepEqual(assistKinds, ['rage', 'shield', 'damage']);
   assert.equal(result.frames.filter(frame => frame.cue?.kind === 'companion_assist' &&
     frame.cue.sourceId === 'RKF10-COMPANION' && frame.text.includes('合练')).length, 1);
+  assert.equal(result.frames.filter(frame => frame.cue?.kind === 'companion_assist' &&
+    frame.cue.sourceId === 'RKF06-COMPANION' && frame.text.includes('合练')).length, 1,
+  'the second companion applies its own RKF03 pair bonus on the same action');
   near(result.frames.find(frame => frame.source === 'RKF10-COMPANION-ASSIST' && frame.kind === 'damage').amount,
     expectedCompanionDamage(content, makeEnemy(), 'RKF03'));
+  assert.ok(contribution(result, 'RKF06-COMPANION').triggers > 0);
+});
+
+test('a lethal first companion stops later companions on that main action', () => {
+  const content = patchContent(entities => {
+    const lethal = entities.find(entity => entity.id === 'RKF02').companion;
+    lethal.trigger = 'hit';
+    lethal.effect = { kind: 'damage', value: 100 };
+    lethal.pair_bonuses = [];
+    const later = entities.find(entity => entity.id === 'RKF03').companion;
+    later.trigger = 'hit';
+    later.effect = { kind: 'rage', value: 12 };
+    later.pair_bonuses = [];
+  });
+  const result = simulateBattle(
+    content,
+    makeLoadout('RKF05', { companions: ['RKF02', 'RKF03'], attack: 1 }),
+    makeEnemy({ max_hp: 50, defense: 0 }),
+    'companion-death-truncation',
+    { roundLimit: 1 },
+  );
+  assert.ok(result.frames.some(frame => frame.cue?.kind === 'companion_assist' &&
+    frame.cue.sourceId === 'RKF02-COMPANION'));
+  assert.equal(result.frames.some(frame => frame.cue?.kind === 'companion_assist' &&
+    frame.cue.sourceId === 'RKF03-COMPANION'), false);
+  assert.equal(contribution(result, 'RKF03-COMPANION').triggers, 0);
 });
 
 test('dead fighters and actions with no effective hit do not trigger or recurse companion output', () => {
   const dead = simulateBattle(
     baseContent,
-    makeLoadout('RKF05', { companion: 'RKF10', hp: 0 }),
+    makeLoadout('RKF05', { companions: ['RKF10'], hp: 0 }),
     makeEnemy(),
     'rkf10-companion-dead-owner',
     { roundLimit: 1 },
@@ -198,7 +307,7 @@ test('dead fighters and actions with no effective hit do not trigger or recurse 
 
   const noHit = simulateBattle(
     baseContent,
-    makeLoadout('RKF05', { companion: 'RKF10', attack: 0 }),
+    makeLoadout('RKF05', { companions: ['RKF10'], attack: 0 }),
     makeEnemy(),
     'rkf10-companion-no-effective-hit',
     { roundLimit: 1 },
@@ -211,7 +320,7 @@ test('dead fighters and actions with no effective hit do not trigger or recurse 
 
   const ordinary = simulateBattle(
     baseContent,
-    makeLoadout('RKF05', { companion: 'RKF02' }),
+    makeLoadout('RKF05', { companions: ['RKF02'] }),
     makeEnemy(),
     'rkf02-companion-legacy-output',
     { roundLimit: 1 },

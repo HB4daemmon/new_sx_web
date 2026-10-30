@@ -202,7 +202,7 @@ pools:
       draw_once_per_act: true
       freeze_at: node_generation
   events:
-    ordinary: [RE018, RE021, RE025, RE027, RE028, RE029, RE030, RE031, RE032, RE033, RE034, RE035, RE036]
+    ordinary: [RE018, RE021, RE025, RE027, RE028, RE029, RE030, RE031, RE032, RE033, RE034, RE035, RE036, RE037]
     core: [RK006, RK008, RK010, RK012, RK016]
     storylines:
       RS01: [RK001, RK002]

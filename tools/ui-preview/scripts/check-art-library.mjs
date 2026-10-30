@@ -62,4 +62,4 @@ for (const entry of actual) {
 }
 assert.ok(new Set(Object.values(library.artifacts).map(item => item.src)).size < 30,
   'ordinary artifacts reuse a bounded icon family');
-console.log('Art library passed: 31 image hashes, 6 rigs, 6 map illustrations, all 44 actual artifact mappings');
+console.log('Art library passed: 31 image hashes, 6 rigs, 6 map illustrations, all 48 actual artifact mappings');

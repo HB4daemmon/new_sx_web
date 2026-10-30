@@ -425,7 +425,7 @@
   - 效果1：恢复最大气血 4%
 
 ::: details 法宝开发效果
-- `RC23-RAGE-ACTION-RETURN`；每层在怒技完成时固定返还5点怒气，在本轮结束时结算；与怒技消耗的怒气无关，普攻不触发。；操作：获得怒气；触发：怒技动作；目标：自身；参数：数量=5；时机=round_end；completed_action_only=是；fixed_return=是；限制：范围=action；次数=1
+- `RC23-RAGE-ACTION-RETURN`；每层在怒技完成时固定返还5点怒气；本式回怒足以充满怒气时可立即连斩，否则在轮末结算。与怒技消耗无关，普攻不触发，单回合至多三式。；操作：获得怒气；触发：怒技动作；目标：自身；参数：数量=5；时机=action_end_or_round_end；completed_action_only=是；fixed_return=是；限制：范围=action；次数=1
 :::
 
 ### 血气石

@@ -40,10 +40,16 @@ import {
 } from './persistence.js';
 import { semanticTextMarkup } from './ui-text.js';
 import { GameArt } from './game-art.js';
-import { battleInsights } from './battle-insights.js';
+import { battleInsights, type BattleInsightContribution } from './battle-insights.js';
+import { compareArtifactRemoval, type ArtifactBattleComparison } from './battle-comparison.js';
 import { buildMechanicViews } from './build-mechanics.js';
 import { buildVictoryEpitaph } from './epitaph.js';
 import { MAX_EQUIPMENT_SLOTS } from './equipment.js';
+import {
+  DEVOURING_ARTIFACT_ID,
+  artifactDevouredCount,
+  devouredMultiplierForContent,
+} from './artifact-growth.js';
 import {
   artifactArt,
   characterArt,
@@ -52,6 +58,7 @@ import {
 } from './art-assets.js';
 import type {
   ArtifactRewardFamily,
+  ArtifactInscription,
   ArtifactStack,
   BattleFrame,
   BattleResult,
@@ -59,6 +66,7 @@ import type {
   Entity,
   FighterView,
   Loadout,
+  PermanentSacrificeRule,
   RunCommand,
   RunNode,
   RouteMapNode,
@@ -70,6 +78,25 @@ import type { ShanhaiBuildRecord } from './persistence.js';
 import { esc, icon, landscape, sigil } from '../art.js';
 
 const REPLAY_KEY = 'suishi-shanhai-replay-v2-overhaul';
+const INSCRIPTION_COPY: Record<ArtifactInscription, { label: string; effect: string }> = {
+  twin: { label: '双生', effect: '法宝触发的伤害、治疗、护盾、怒气和状态输出额外结算一次。' },
+  leech: { label: '噬血', effect: '该法宝实际造成敌方气血伤害时，回复伤害的 15%。' },
+  swift: { label: '疾行', effect: '首回合法宝触发的伤害、治疗、护盾、怒气和状态输出额外结算一次。' },
+};
+const PERMANENT_RULE_COPY: Record<PermanentSacrificeRule['kind'], { label: string; detail: string }> = {
+  shattered_core: {
+    label: '碎丹化婴',
+    detail: '气血上限与当前气血锁为 1；攻击提高 80%；每战以立誓时原气血上限的 250% 获得护盾。',
+  },
+  blind_sword: {
+    label: '盲眼剑圣',
+    detail: '不能暴击；普攻与怒技的直接、派生伤害按原暴击率转为无视防御、仍由护盾吸收的真实伤害。',
+  },
+  endless_chain: {
+    label: '断普连诀',
+    detail: '禁用普攻；每回合额外获得 80 怒气，达到当下怒气上限才施放怒技。',
+  },
+};
 const CONTENT_BASE = './content/';
 const NODE_META: Record<string, { label: string; icon: string; tone: string }> = {
   C: { label: '普通战', icon: 'sword', tone: 'jade' },
@@ -116,8 +143,12 @@ const FRAME_KIND_LABEL: Record<string, string> = {
   draw: '平局',
   end: '结束',
   summary: '折叠摘要',
+  wait: '蓄气等待',
 };
 const FRAME_SOURCE_LABEL: Record<string, string> = {
+  'RE037-A': '法则·碎丹化婴',
+  'RE037-B': '法则·盲眼剑圣',
+  'RE037-C': '法则·断普连诀',
   'RULES-INCOMING-DIRECT': '受击回怒',
   'RULES-ROUND-END': '轮尾回怒',
   'RULES-RAGE-SETTLE': '轮尾回怒',
@@ -284,7 +315,13 @@ function loadoutArtifacts(loadout: any): ArtifactStack[] {
   return artifacts.map((item) => ({
     id: asText(item?.id),
     stacks: Math.max(1, asNumber(item?.stacks, 1)),
+    ...(isArtifactInscription(item?.inscription) ? { inscription: item.inscription } : {}),
+    ...(typeof item?.devoured === 'number' ? { devoured: item.devoured } : {}),
   })).filter((item) => item.id);
+}
+
+function isArtifactInscription(value: unknown): value is ArtifactInscription {
+  return value === 'twin' || value === 'leech' || value === 'swift';
 }
 
 function loadoutStats(loadout: any, entity?: Entity): Stats {
@@ -341,6 +378,9 @@ class ShanhaiApp {
   private talentTreeReturnFocus = '';
   private pendingTalentResetItemId = '';
   private reforgeSourceId = '';
+  private inscriptionArtifactId = '';
+  private inscriptionChoice: ArtifactInscription = 'twin';
+  private devourTargetId = '';
   private rewardRefineSourceId = '';
   private rewardRefineTargetId = '';
   private warmArtifactId = '';
@@ -353,6 +393,13 @@ class ShanhaiApp {
   private battlePaused = false;
   private battleFinished = false;
   private battleKey = '';
+  private battleComparison: {
+    key: string;
+    artifactId: string;
+    loading: boolean;
+    result?: ArtifactBattleComparison;
+    error?: string;
+  } | null = null;
   private rafId = 0;
   private battleBeatElapsed = 0;
   private battleFloatProgress = 0;
@@ -539,6 +586,10 @@ class ShanhaiApp {
       )
         ? command.id
         : '';
+    const devourStack = command.type === 'devour'
+      ? this.game.state.artifacts.find(stack => stack.id === command.id)
+      : undefined;
+    const devourTarget = devourStack ? { ...devourStack } : undefined;
     try {
       this.game.dispatch(command as unknown as RunCommand);
       const settled = this.game.state.eventCommitments?.filter((record, index) =>
@@ -550,6 +601,15 @@ class ShanhaiApp {
         this.appendNotice(this.equipmentResultNotice(command.id, equipmentBefore));
       } else if (command.type === 'unequip') {
         this.appendNotice(`已卸下${asText(this.artifactEntity(command.id)?.name, '法宝')}，仍收在背包；不会回血。`);
+      } else if (command.type === 'devour' && devourTarget) {
+        const cauldron = this.game.state.artifacts.find(stack => stack.id === DEVOURING_ARTIFACT_ID);
+        const count = artifactDevouredCount(cauldron);
+        const multiplier = devouredMultiplierForContent(this.content!, count);
+        const active = this.game.state.equipment.slots.includes(DEVOURING_ARTIFACT_ID);
+        this.appendNotice(
+          `已吞噬${asText(this.artifactEntity(devourTarget.id)?.name, '法宝')}整栈 ×${formatNumber(devourTarget.stacks)}；` +
+          `饕餮鼎累计吞 ${count} 栈，${active ? `装备时伤害乘区 ×${formatNumber(multiplier, 2)}` : `当前未装备，成长倍率 ×${formatNumber(multiplier, 2)} 暂不生效`}。`,
+        );
       } else if (acquiredId) {
         this.appendNotice(this.acquisitionResultNotice(acquiredId, equipmentBefore));
       }
@@ -815,6 +875,18 @@ class ShanhaiApp {
     const source = asText(id);
     if (source.endsWith('-RAGE-ECHO')) {
       return `身外化身 · ${this.sourceLabel(source.slice(0, -'-RAGE-ECHO'.length))}`;
+    }
+    const companionMethodId = source.endsWith('-COMPANION-ASSIST')
+      ? source.slice(0, -'-COMPANION-ASSIST'.length)
+      : source.endsWith('-COMPANION')
+        ? source.slice(0, -'-COMPANION'.length)
+        : undefined;
+    if (companionMethodId) {
+      const companionMethod = this.methodEntity(companionMethodId);
+      const companionName = isRecord(companionMethod?.companion)
+        ? companionMethod.companion.name
+        : undefined;
+      if (companionMethod) return asText(companionName, asText(companionMethod.name, companionMethod.id));
     }
     if (source.endsWith('-V2-RESONANCE')) {
       const owner = this.byId(source.slice(0, -'-V2-RESONANCE'.length));
@@ -1116,17 +1188,15 @@ class ShanhaiApp {
     let equipmentEffect = '效果生效';
     if (isRecord(artifact?.mirror_rule) && artifact.mirror_rule.kind === 'neighbor_awakening') {
       const neighborId = this.equipmentItems()[index + 1];
-      const neighbor = neighborId ? this.artifactEntity(neighborId) : undefined;
-      const neighborStack = neighborId ? this.equippedArtifacts().find(item => item.id === neighborId) : undefined;
-      equipmentEffect = !neighborId ? '右侧无器物'
-        : !neighbor || !listOf<any>(neighbor.awakening?.effects).length ? '右侧无出手型觉醒'
-          : asNumber(neighborStack?.stacks) < asNumber(neighbor.max_stacks, 1) ? '右侧尚未满层'
-            : '镜映待出手触发';
+      equipmentEffect = neighborId ? '镜映右侧战斗触发' : '右侧无器物';
     }
+    const inscriptionLabel = stack?.inscription ? `铭刻${INSCRIPTION_COPY[stack.inscription].label}` : '';
+    const inscription = inscriptionLabel ? ` · ${inscriptionLabel}` : '';
+    const growth = this.artifactGrowthSummary(stack, true);
     return `<article class="equipment-slot ${id ? 'is-filled' : 'is-empty'}" data-slot="${index + 1}">
       <div class="equipment-slot-head"><b>${esc(label)}</b><span>${id ? '已装备' : '空位'}</span></div>
       ${id && artifact
-      ? `<button type="button" class="equipment-slot-item rarity-${esc(rarity)}" data-action="inspect-artifact" data-id="${esc(id)}" aria-label="${esc(`${label} · ${asText(artifact.name, id)} · 查看详录`)}"><span class="equipment-slot-icon">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : 'jade'))}</span><span><strong>${esc(asText(artifact.name, '未知法宝'))}</strong><small>${esc(equipmentEffect)} · ×${formatNumber(stack?.stacks, 0)}</small>${resonance ? `<small class="equipment-resonance-brief">${this.textMarkup(resonance)}</small>` : ''}</span>${icon('eye', 15)}</button>`
+      ? `<button type="button" class="equipment-slot-item rarity-${esc(rarity)}" data-action="inspect-artifact" data-id="${esc(id)}" aria-label="${esc(`${label} · ${asText(artifact.name, id)} · ${inscriptionLabel ? `${inscriptionLabel} · ` : ''}${growth ? `${growth} · ` : ''}查看详录`)}"><span class="equipment-slot-icon">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : 'jade'))}</span><span><strong>${esc(asText(artifact.name, '未知法宝'))}</strong><small>${esc(equipmentEffect)} · ×${formatNumber(stack?.stacks, 0)}${esc(inscription)}</small>${growth ? `<small class="artifact-growth-brief">${esc(growth)}</small>` : ''}${resonance ? `<small class="equipment-resonance-brief">${this.textMarkup(resonance)}</small>` : ''}</span>${icon('eye', 15)}</button>`
         : `<div class="equipment-slot-empty" aria-hidden="true">${icon('ring', 19)}</div>`}
     </article>`;
   }
@@ -1142,9 +1212,77 @@ class ShanhaiApp {
           this.equipmentSlotMarkup(index, equippedIds[index] || null),
         ).join('')}
       </div>
+      ${state.artifacts.some(stack => stack.id === DEVOURING_ARTIFACT_ID)
+        ? this.cauldronToolMarkup(state)
+        : ''}
       ${this.fusionLedgerMarkup(state)}
       ${lockedReason ? `<p class="equipment-lock" role="status">${icon('close', 15)}${esc(lockedReason)}</p>` : ''}
     </section>`;
+  }
+
+  private cauldronToolMarkup(state: RunState): string {
+    const cauldron = state.artifacts.find(stack => stack.id === DEVOURING_ARTIFACT_ID);
+    if (!cauldron || !this.content) return '';
+    const count = artifactDevouredCount(cauldron);
+    const multiplier = devouredMultiplierForContent(this.content, count);
+    const active = state.equipment.slots.includes(DEVOURING_ARTIFACT_ID);
+    const growthLabel = `已吞 ${count} 栈 · 伤害乘区 ×${formatNumber(multiplier, 2)}${active ? ' · 本局已装备生效' : ' · 当前未装备'}`;
+    return `<details class="disclosure cauldron-tool" data-details="cauldron-devour">
+      <summary>${icon('pearl', 16)}饕餮鼎吞噬 <span>${esc(growthLabel)}</span></summary>
+      <div class="cauldron-tool-body" data-devour-controls>${this.devourControlsMarkup(state)}</div>
+    </details>`;
+  }
+
+  private devourControlsMarkup(state: RunState): string {
+    const cauldron = state.artifacts.find(stack => stack.id === DEVOURING_ARTIFACT_ID);
+    if (!cauldron || !this.game || !this.content) return '<p class="empty-note">未持有饕餮鼎。</p>';
+    const candidates = state.artifacts.filter(stack =>
+      stack.id !== DEVOURING_ARTIFACT_ID && stack.stacks > 0 && Boolean(this.artifactEntity(stack.id)));
+    const selectedId = candidates.some(stack => stack.id === this.devourTargetId)
+      ? this.devourTargetId
+      : asText(candidates[0]?.id);
+    this.devourTargetId = selectedId;
+    const count = artifactDevouredCount(cauldron);
+    const multiplier = devouredMultiplierForContent(this.content, count);
+    if (!selectedId) {
+      return `<p class="cauldron-growth-summary" role="status">${esc(`已吞 ${count} 栈；装备本鼎时独立伤害乘区 ×${formatNumber(multiplier, 2)}。背包中没有其他可吞噬法宝。`)}</p>`;
+    }
+    const target = candidates.find(stack => stack.id === selectedId)!;
+    const artifact = this.artifactEntity(selectedId);
+    const availability = this.game.devourAvailability(selectedId);
+    const inscription = target.inscription
+      ? `铭刻「${INSCRIPTION_COPY[target.inscription].label}」`
+      : '无铭刻';
+    const equipped = this.equipmentSlotLabel(selectedId);
+    const details = `${asText(artifact?.name, selectedId)}整栈 ×${formatNumber(target.stacks)} · ${inscription} · ${equipped ? `已装备${equipped}` : '背包未装备'}`;
+    const afterMultiplier = availability.nextMultiplier;
+    const resultLine = equipped
+      ? '吞噬后会卸下该装备位，并将当前气血钳制到新上限；不会回血。'
+      : '该法宝会从背包中移除。';
+    const lockReason = this.equipmentLockReason();
+    const unavailable = availability.available
+      ? ''
+      : availability.reason === 'growth-limit-reached'
+        ? '饕餮鼎已达到卡面倍率上限。'
+        : lockReason || '当前不能吞噬此法宝。';
+    return `<div class="cauldron-devour-controls">
+      <label for="cauldron-devour-target">选择牺牲法宝整栈</label>
+      <select id="cauldron-devour-target" data-devour-target>${candidates.map(stack => {
+        const item = this.artifactEntity(stack.id);
+        const mark = stack.inscription ? ` · 铭刻${INSCRIPTION_COPY[stack.inscription].label}` : '';
+        const slot = this.equipmentSlotLabel(stack.id);
+        return `<option value="${esc(stack.id)}" ${stack.id === selectedId ? 'selected' : ''}>${esc(asText(item?.name, stack.id))} · ×${formatNumber(stack.stacks)}${esc(mark)}${slot ? ` · ${esc(slot)}` : ''}</option>`;
+      }).join('')}</select>
+      <div class="cauldron-devour-preview" aria-live="polite">
+        <b>确认前核对</b>
+        <p><span>牺牲</span><strong>${esc(details)}</strong></p>
+        <p><span>倍率</span><strong>×${formatNumber(multiplier, 2)} → ×${formatNumber(afterMultiplier, 2)}</strong></p>
+        <small>${esc(resultLine)}</small>
+      </div>
+      <p class="cauldron-devour-terms">整栈只计一次成长；已发生的行旅快照、合炼记录和事件结算不会改写。卸下饕餮鼎后伤害乘区暂停，成长保留。</p>
+      ${unavailable ? `<p class="cauldron-devour-unavailable" role="status">${esc(unavailable)}</p>` : ''}
+      <button type="button" class="button primary cauldron-devour-commit" data-action="devour" data-id="${esc(selectedId)}" ${availability.available ? '' : 'disabled'}>确认吞噬整栈</button>
+    </div>`;
   }
 
   private equipmentActionMarkup(
@@ -1293,7 +1431,7 @@ class ShanhaiApp {
   private archiveMarkup(): string {
     if (this.archiveIssue) return `<p class="empty-note">${esc(this.archiveIssue)}</p>`;
     if (!this.archives.length) return '<p class="empty-note">还没有通关构筑。</p>';
-    return `<div class="archive-list">${this.archives.slice().reverse().map(record => `<article class="archive-item"><div><span class="eyebrow">${esc(record.savedAt.slice(0, 10))}</span><h3>${esc(record.name)}</h3><p>${esc(asText(this.methodEntity(record.method)?.name, record.method))} · ${esc(this.realmName(record.n))}</p><small>${esc(record.artifacts.map(item => `${asText(this.artifactEntity(item.id)?.name, item.id)} ×${item.stacks}`).join(' · ') || '无持有法宝')}</small></div><button class="button small" data-action="export-archive" data-id="${esc(record.buildId)}">${icon('arrow', 14)}导出</button></article>`).join('')}</div>`;
+    return `<div class="archive-list">${this.archives.slice().reverse().map(record => `<article class="archive-item"><div><span class="eyebrow">${esc(record.savedAt.slice(0, 10))}</span><h3>${esc(record.name)}</h3><p>${esc(asText(this.methodEntity(record.method)?.name, record.method))} · ${esc(this.realmName(record.n))}</p><small>${esc(record.artifacts.map(item => `${asText(this.artifactEntity(item.id)?.name, item.id)} ×${item.stacks}${item.inscription ? ` · 铭刻${INSCRIPTION_COPY[item.inscription].label}` : ''}${item.id === DEVOURING_ARTIFACT_ID ? ` · 已吞 ${artifactDevouredCount(item)} 栈 · 伤害 ×${formatNumber(devouredMultiplierForContent(this.content!, artifactDevouredCount(item)), 2)}` : ''}`).join(' · ') || '无持有法宝')}</small></div><button class="button small" data-action="export-archive" data-id="${esc(record.buildId)}">${icon('arrow', 14)}导出</button></article>`).join('')}</div>`;
   }
 
   private openArchives(): void {
@@ -2003,7 +2141,8 @@ class ShanhaiApp {
       this.updateCombatant(combatant, frame[side], side, frame, cue, cursor, changed);
     });
     if (changed) {
-      arena.querySelectorAll('.combat-vfx, .combat-feedback-layer').forEach(element => element.remove());
+      arena.querySelectorAll('.combat-vfx, .combat-feedback-layer, .combat-semantic-cue, .reaction-launch')
+        .forEach(element => element.remove());
       arena.insertAdjacentHTML('beforeend',
         this.battleVfx(frame, previous, group) + this.battleFeedback(frame, previous, group));
     }
@@ -2213,6 +2352,16 @@ class ShanhaiApp {
     </div>`;
   }
 
+  private permanentRuleMarkup(
+    rule: PermanentSacrificeRule | undefined,
+    className = '',
+  ): string {
+    if (!rule) return '';
+    const copy = PERMANENT_RULE_COPY[rule.kind];
+    if (!copy) return '';
+    return `<section class="permanent-rule-state ${esc(className)}" data-permanent-rule="${esc(rule.kind)}" aria-label="本局永久法则"><span>永久法则</span><b>${esc(copy.label)}</b><p>${this.textMarkup(copy.detail)}</p></section>`;
+  }
+
   private chapterStrip(state: RunState): string {
     const names = ['一', '二', '三', '四', '终'];
     const total = Math.max(5, state.act);
@@ -2235,6 +2384,7 @@ class ShanhaiApp {
       <span class="hud-resource hud-hp"><span>气血</span><b>${this.textMarkup(`${formatNumber(hp)} / ${formatNumber(stats.max_hp)}`)}</b><span class="bar"><span style="width:${pct(hp, stats.max_hp)}%"></span></span></span>
       <span class="hud-resource hud-xp"><span>修为</span><b>${this.textMarkup(xpComplete ? '圆满' : `${formatNumber(state.xp)} / ${formatNumber(xpThreshold)}`)}</b><span class="bar"><span style="width:${xpComplete ? 100 : pct(asNumber(state.xp), xpThreshold)}%"></span></span></span>
       <span class="mobile-gold">${icon('coin', 17)} ${this.textMarkup(state.coins)}</span>
+      ${state.permanentRule ? this.permanentRuleMarkup(state.permanentRule, 'hud-permanent-rule') : ''}
     </div>`;
   }
 
@@ -2295,11 +2445,12 @@ class ShanhaiApp {
       <button class="player-identity" data-action="character" aria-label="查看人物属性">${characterArt(state.method)}<span><small>山海行者</small><strong>${esc(asText(state.name, '无名行者'))}</strong><em>${esc(this.realmName(state.n))}</em></span></button>
       <div class="panel-body">
         <div class="vital-title"><span>气血</span><strong>${this.textMarkup(`${formatNumber(hp)} / ${formatNumber(maxHp)}`)}</strong></div><div class="bar hp"><span style="width:${pct(hp, maxHp)}%"></span></div>
+        ${this.permanentRuleMarkup(state.permanentRule, 'rail-permanent-rule')}
         <div class="vital-title xp-label"><span>修为</span><span>${this.textMarkup(xpComplete ? '圆满' : `${formatNumber(state.xp)} / ${formatNumber(xpThreshold)}`)}</span></div><div class="bar xp"><span style="width:${xpComplete ? 100 : pct(asNumber(state.xp), xpThreshold)}%"></span></div>
         <div class="resource-box"><span>${icon('coin', 15)}灵石</span><strong>${this.textMarkup(state.coins)}</strong></div>
         <button class="rail-method" data-action="inspect-method" data-id="${esc(state.method)}">${icon('book', 17)}${esc(asText(method?.name, '未知功法'))}${icon('eye', 15)}</button>
         <details class="disclosure" data-details="profile-details"><summary>属性与构筑</summary>
-          <div class="stats-grid detailed">${(['attack', 'defense', 'crit_rate', 'speed'] as const).map((key) => `<div class="stat detailed-stat"><span>${icon(key === 'attack' ? 'sword' : key === 'defense' ? 'shield' : key === 'speed' ? 'feather' : 'star', 13)}${STAT_LABEL[key]}</span><b>${this.textMarkup(key === 'crit_rate' ? `${Math.round(asNumber(stats[key]) * 100)}%` : formatNumber(stats[key]))}</b></div>`).join('')}</div>
+          <div class="stats-grid detailed">${(['attack', 'defense', 'crit_rate', 'speed'] as const).map((key) => `<div class="stat detailed-stat"><span>${icon(key === 'attack' ? 'sword' : key === 'defense' ? 'shield' : key === 'speed' ? 'feather' : 'star', 13)}${key === 'crit_rate' && state.permanentRule?.kind === 'blind_sword' ? '原暴击·转化' : STAT_LABEL[key]}</span><b>${this.textMarkup(key === 'crit_rate' ? `${Math.round(asNumber(stats[key]) * 100)}%` : formatNumber(stats[key]))}</b></div>`).join('')}</div>
           <div class="profile-build">
             <div class="profile-talents"><span class="eyebrow">已选天赋</span><div class="profile-talent-list">${selectedTalents.length ? selectedTalents.map((talent) => this.talentButton(talent, state.method)).join('') : '<span class="muted">未选天赋</span>'}</div></div>
             <div class="profile-actions"><span class="eyebrow">当前功法动作</span>${actionDetails.map(({ label, action }) => `<div class="profile-action"><b>${esc(label)} · ${esc(asText(action?.name, '动作'))}</b><small>${esc(this.displayText(asText(action?.quick, asText(action?.description, '暂无说明'))))}</small></div>`).join('')}</div>
@@ -2315,7 +2466,16 @@ class ShanhaiApp {
     const artifact = this.artifactEntity(stack.id);
     const rarity = entityRarity(artifact);
     const slot = this.equipmentSlotLabel(stack.id);
-    return `<button class="mini-card ${rarity === 'legendary' ? 'mythic' : rarity === 'rare' ? 'shield' : 'jade'} rarity-${esc(rarity)}" data-action="inspect-artifact" data-id="${esc(stack.id)}" aria-label="${esc(asText(artifact?.name, stack.id))}，${esc(slot)}，叠层 ${formatNumber(stack.stacks)}"><span class="slot-glyph">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : 'jade'))}</span><span class="name">${esc(asText(artifact?.name, stack.id))}</span><span class="rank">${esc(slot)} · ×${formatNumber(stack.stacks)}</span></button>`;
+    const inscription = stack.inscription ? ` · 铭刻·${INSCRIPTION_COPY[stack.inscription].label}` : '';
+    const growth = this.artifactGrowthSummary(stack, Boolean(slot));
+    return `<button class="mini-card ${rarity === 'legendary' ? 'mythic' : rarity === 'rare' ? 'shield' : 'jade'} rarity-${esc(rarity)}" data-action="inspect-artifact" data-id="${esc(stack.id)}" aria-label="${esc(asText(artifact?.name, stack.id))}，${esc(slot)}，叠层 ${formatNumber(stack.stacks)}${inscription}${growth ? `，${growth}` : ''}"><span class="slot-glyph">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : 'jade'))}</span><span class="name">${esc(asText(artifact?.name, stack.id))}</span><span class="rank">${esc(slot)} · ×${formatNumber(stack.stacks)}${esc(inscription)}</span>${growth ? `<small class="artifact-growth-brief">${esc(growth)}</small>` : ''}</button>`;
+  }
+
+  private artifactGrowthSummary(stack: ArtifactStack | undefined, equipped: boolean): string {
+    if (stack?.id !== DEVOURING_ARTIFACT_ID || !this.content) return '';
+    const count = artifactDevouredCount(stack);
+    const multiplier = devouredMultiplierForContent(this.content, count);
+    return `已吞 ${count} 栈 · 伤害 ×${formatNumber(multiplier, 2)} · ${equipped ? '装备生效' : '未装备'}`;
   }
 
   private buildView(state: RunState): string {
@@ -2363,17 +2523,15 @@ class ShanhaiApp {
   }
 
   private activeCompanionMarkup(state: RunState): string {
-    const player = this.game?.player;
-    const battlePlayer = state.battleInput?.player;
-    const companionId = asText(battlePlayer?.companion, asText(player?.companion)) ||
-      state.ownedMethods.find((id) => id !== state.method) || '';
-    if (!companionId || companionId === state.method) return '';
-    const method = this.methodEntity(companionId);
-    const authored = isRecord(method?.companion) ? method.companion : undefined;
-    if (!method || !authored) return '';
-    const name = asText(authored.name, asText(method.name, '随行同伴'));
-    const quick = asText(authored.quick, '');
-    return `<p class="build-companion-brief" data-active-companion="${esc(companionId)}"><b>随行同伴 · ${esc(name)}</b>${quick ? `<span>${this.textMarkup(quick)}</span>` : ''}</p>`;
+    const companions = this.game?.player.companions ?? state.ownedMethods.filter(id => id !== state.method);
+    return companions.filter(id => id !== state.method).map(companionId => {
+      const method = this.methodEntity(companionId);
+      const authored = isRecord(method?.companion) ? method.companion : undefined;
+      if (!method || !authored) return '';
+      const name = asText(authored.name, asText(method.name, '护道灵相'));
+      const quick = asText(authored.quick, '');
+      return `<p class="build-companion-brief" data-active-companion="${esc(companionId)}"><b>护道 · ${esc(name)}</b>${quick ? `<span>${this.textMarkup(quick)}</span>` : ''}</p>`;
+    }).join('');
   }
 
   private artifactCard(artifact: Entity, stacks: number): string {
@@ -2390,13 +2548,18 @@ class ShanhaiApp {
       : stacks
         ? '背包中 · 未装备不生效'
         : '尚未取得';
+    const inscription = listOf<ArtifactStack>(state?.artifacts)
+      .find((stack) => stack.id === artifact.id)?.inscription;
     const overview = fusionRecipe && !stacks
       ? `融合进度 · 合格战斗胜利 ${formatNumber(fusionStatus?.wins ?? 0)} / ${formatNumber(fusionStatus?.requiredWins ?? fusionRecipe.fights)} · ${fusionStatus?.label ?? '尚未形成 · 未取得'}`
-      : resonance || entitySummary(artifact) || '法宝效果详录可查看。';
+      : `${resonance || entitySummary(artifact) || '法宝效果详录可查看。'}${inscription ? ` 铭刻：${INSCRIPTION_COPY[inscription].label} · ${INSCRIPTION_COPY[inscription].effect}` : ''}`;
+    const growth = artifact.id === DEVOURING_ARTIFACT_ID
+      ? this.artifactGrowthSummary(state?.artifacts.find(stack => stack.id === artifact.id), Boolean(equipmentSlot))
+      : '';
     return `<button type="button" class="ability-card rarity-${esc(rarity)} ${stacks ? 'owned' : ''}" data-action="inspect-artifact" data-id="${esc(artifact.id)}">
       <div class="card-top"><span class="rarity-label rarity-${esc(rarity)}">${esc(rarityLabel(rarity))} · 法宝</span><span class="card-rank">${stacks ? `×${formatNumber(stacks)}` : '未持有'}</span></div>
       <div class="card-heading">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : rarity === 'rare' ? 'shield' : 'jade'))}<h3 class="card-title rarity-${esc(rarity)}">${esc(artifact.name)}</h3></div>
-      <p class="ability-overview">${this.textMarkup(overview)}</p>
+      <p class="ability-overview">${this.textMarkup(overview)}${growth ? `<span class="artifact-growth-brief">${esc(growth)}</span>` : ''}</p>
       <div class="card-foot"><span class="gain">${esc(inventoryStatus)}</span><span>查看详录 ${icon('arrow', 14)}</span></div>
     </button>`;
   }
@@ -2600,7 +2763,8 @@ class ShanhaiApp {
     return `<div class="inventory-list">${artifacts.map((stack) => {
       const artifact = this.artifactEntity(stack.id);
       const rarity = entityRarity(artifact);
-      return `<div class="inventory-item rarity-${esc(rarity)}"><span class="item-sigil">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : rarity === 'rare' ? 'shield' : 'jade'))}</span><span><b>${esc(asText(artifact?.name, '未知法宝'))}</b><small>${esc(this.displayText(asText(artifact?.summary, entitySummary(artifact))))}</small></span><strong>×${formatNumber(stack.stacks, 0)}</strong></div>`;
+      const inscription = stack.inscription ? ` · 铭刻·${INSCRIPTION_COPY[stack.inscription].label}` : '';
+      return `<div class="inventory-item rarity-${esc(rarity)}"><span class="item-sigil">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : rarity === 'rare' ? 'shield' : 'jade'))}</span><span><b>${esc(asText(artifact?.name, '未知法宝'))}</b><small>${esc(this.displayText(asText(artifact?.summary, entitySummary(artifact))))}${esc(inscription)}</small></span><strong>×${formatNumber(stack.stacks, 0)}</strong></div>`;
     }).join('')}</div>`;
   }
 
@@ -3000,12 +3164,13 @@ class ShanhaiApp {
       draw: '胜负未分',
       end: '斗法结束',
       summary: '战报摘要',
+      wait: '蓄气等待',
     };
     const label = frame.kind === 'action'
       ? cue.actionKind === 'rage' ? '怒技' : cue.actionKind === 'basic' ? '普攻' : '出手'
       : labels[frame.kind] || '战斗';
     if (group) return group.dot ? '持续伤害' : '交锋结算';
-    return frame.kind === 'action' && actor ? `${actor} · ${label}` : label;
+    return (frame.kind === 'action' || frame.kind === 'wait') && actor ? `${actor} · ${label}` : label;
   }
 
   private availableBattleDetailTabs(): BattleDetailTab[] {
@@ -3076,7 +3241,7 @@ class ShanhaiApp {
       { label: '怒技', action: method?.actions?.rage },
     ];
     const frameResources = fighter
-      ? `<div class="detail-stat-grid"><span>气血 <b>${formatNumber(fighter.hp)} / ${formatNumber(fighter.maxHp)}</b></span><span>护盾 <b>${formatNumber(fighter.shield)}</b></span><span>怒气 <b>${formatNumber(fighter.rage)} / ${formatNumber(fighter.rageCap)}</b></span></div>`
+      ? `<div class="detail-stat-grid"><span>气血 <b>${formatNumber(fighter.hp)} / ${formatNumber(fighter.maxHp)}</b></span><span>护盾 <b>${formatNumber(fighter.shield)} / ${formatNumber(fighter.maxShield)}</b></span><span>怒气 <b>${formatNumber(fighter.rage)} / ${formatNumber(fighter.rageCap)}</b></span></div>`
       : `<div class="detail-stat-grid"><span>气血 <b>${formatNumber(currentHp)} / ${formatNumber(stats.max_hp)}</b></span><span>准备护盾 <b>${formatNumber(currentShield)}</b></span><span>怒气 <b>交锋开始后记录</b></span></div>`;
     const selectedActions = actions.map(({ label, action }) =>
       `<div class="detail-action"><b>${esc(label)} · ${esc(asText(action?.name, '动作'))}</b><span>${esc(this.displayText(asText(action?.quick, asText(action?.description, '按功法规则结算。'))))}</span></div>`,
@@ -3101,7 +3266,7 @@ class ShanhaiApp {
       : '';
     return `<div class="battle-fighter-detail" data-detail-side="${side}">
       <div class="detail-character-art">${characterArt(methodIdValue, side === 'enemy' ? asText(entity?.id) : undefined)}</div>
-      <section class="detail-section"><h3>${esc(name)} · ${esc(asText(method?.name, '未知功法'))}</h3>${frameResources}<div class="detail-stat-grid"><span>攻击 <b>${formatNumber(stats.attack)}</b></span><span>防御 <b>${formatNumber(stats.defense)}</b></span><span>气血上限 <b>${formatNumber(stats.max_hp)}</b></span><span>速度 <b>${formatNumber(stats.speed)}</b></span><span>暴击 <b>${formatNumber(stats.crit_rate * 100)}%</b></span></div></section>
+      <section class="detail-section"><h3>${esc(name)} · ${esc(asText(method?.name, '未知功法'))}</h3>${frameResources}<div class="detail-stat-grid"><span>攻击 <b>${formatNumber(stats.attack)}</b></span><span>防御 <b>${formatNumber(stats.defense)}</b></span><span>气血上限 <b>${formatNumber(stats.max_hp)}</b></span><span>速度 <b>${formatNumber(stats.speed)}</b></span><span>${loadout.permanentRule?.kind === 'blind_sword' ? '原暴击·转化' : '暴击'} <b>${formatNumber(stats.crit_rate * 100)}%</b></span></div>${this.permanentRuleMarkup((loadout as any).permanentRule, 'battle-detail-rule')}</section>
       <section class="detail-section"><h3>战斗状态</h3><div class="combat-statuses">${fighter ? this.fighterStatusMarkup(fighter) : '<span class="muted">交锋开始后记录</span>'}</div>${fighter ? this.fighterLockedMarkup(fighter) || '<div class="locked-actions"><span>锁定动作</span><b>当前无锁定动作</b></div>' : '<div class="locked-actions"><span>锁定动作</span><b>交锋开始后记录</b></div>'}</section>
       ${trialMarkup}${trialState}
       <section class="detail-section"><h3>功法动作</h3><div class="detail-actions-list">${selectedActions}</div></section>
@@ -3140,13 +3305,26 @@ class ShanhaiApp {
         ? `<button class="button primary" data-action="continue-battle" ${asNumber(state.battleInput?.roundLimit) < 4096 ? '' : 'disabled'}>继续交锋 ${icon('arrow', 15)}</button><button class="button quiet" data-action="retire">收手结束本局</button>`
         : `<button class="button primary" data-action="battle-finish">${result.outcome === 'player' ? '收下战果' : '回望此局'} ${icon('arrow', 15)}</button>`
       : '';
-    return `<div class="battle-result-detail"><section class="detail-section"><h3>最终结果</h3><div class="detail-stat-grid"><span>胜负 <b>${outcome}</b></span><span>回合 <b>${formatNumber(result.rounds)}</b></span><span>我方气血 <b>${formatNumber(result.playerHp)}</b></span><span>敌方气血 <b>${formatNumber(result.enemyHp)}</b></span></div></section>${this.battleInsightsMarkup(result)}<section class="detail-section"><h3>效果来源</h3>${this.battleDiagnostics(result)}</section>${resultActions ? `<div class="battle-result-actions">${resultActions}</div>` : ''}</div>`;
+    return `<div class="battle-result-detail"><section class="detail-section"><h3>最终结果</h3><div class="detail-stat-grid"><span>胜负 <b>${outcome}</b></span><span>回合 <b>${formatNumber(result.rounds)}</b></span><span>我方气血 <b>${formatNumber(result.playerHp)}</b></span><span>敌方气血 <b>${formatNumber(result.enemyHp)}</b></span></div></section>${this.battleGrowthMarkup()}${this.battleInsightsMarkup(result)}${this.battleComparisonMarkup()}<section class="detail-section"><h3>效果来源</h3>${this.battleDiagnostics(result)}</section>${resultActions ? `<div class="battle-result-actions">${resultActions}</div>` : ''}</div>`;
   }
 
-  private battleInsightsMarkup(result?: BattleResult): string {
+  private battleGrowthMarkup(): string {
+    const state = this.gameState();
+    if (!state || !this.content) return '';
+    const cauldron = state.artifacts.find(stack => stack.id === DEVOURING_ARTIFACT_ID);
+    if (!cauldron) return '';
+    const battleStack = loadoutArtifacts(state.battleInput?.player)
+      .find(stack => stack.id === DEVOURING_ARTIFACT_ID);
+    const count = artifactDevouredCount(battleStack ?? cauldron);
+    const multiplier = devouredMultiplierForContent(this.content, count);
+    return `<section class="detail-section battle-growth-summary" data-devoured="${count}" data-growth-active="${Boolean(battleStack)}"><h3>饕餮鼎吞噬成长</h3><p>已吞 ${count} 栈 · 伤害乘区 ×${formatNumber(multiplier, 2)} · ${battleStack ? '本战已装备，成长生效。' : '本战未装备，成长未生效。'}</p></section>`;
+  }
+
+  private battleInsightsMarkup(result?: BattleResult, detailed = true): string {
     if (!result) return '';
     const coreIds = this.currentBattleCoreIds();
     const filteredResult = { ...result, contributions: this.battleContributions(result) };
+    const allInsights = battleInsights(filteredResult);
     const insights = battleInsights({
       ...filteredResult,
       contributions: filteredResult.contributions.filter((item) => !coreIds.includes(item.id)),
@@ -3180,14 +3358,35 @@ class ShanhaiApp {
     const highlights = highlight
       ? `<li><b>${esc(this.sourceLabel(highlight.source))}</b><span>${metricLabels[highlight.metric]} ${formatNumber(highlight.amount)}</span></li>`
       : '';
-    const hit = insights.keyDamage;
-    const damage = hit
-      ? `<p class="battle-insight-hit"><b>关键伤害 · 第 ${formatNumber(hit.round)} 回合${hit.lethal ? ' · 致命帧' : ''}</b><span>${esc(this.sourceLabel(hit.source))}：气血 -${formatNumber(hit.hpLost)}${hit.shieldLost ? `，护盾 -${formatNumber(hit.shieldLost)}` : ''} · ${hit.target === 'player' ? '我方受击' : '敌方受击'}</span></p>`
-      : '';
+    const failure = result.outcome === 'enemy';
+    const hit = failure ? insights.defeatHit : allInsights.keyDamage;
+    const damage = failure
+      ? hit
+        ? `<p class="battle-insight-hit"><b>${hit.lethal ? '致命一击' : '最大受击'} · 第 ${formatNumber(hit.round)} 回合</b><span>敌方 ${esc(this.sourceLabel(hit.source))}：我方气血 -${formatNumber(hit.hpLost)}${hit.shieldLost ? `，护盾 -${formatNumber(hit.shieldLost)}` : ''}</span></p>`
+        : '<p class="battle-insight-hit"><b>败局受击</b><span>战报未记录可核对的敌方受击帧，无法确认致命来源或最大受击。</span></p>'
+      : hit
+        ? `<p class="battle-insight-hit"><b>关键伤害 · 第 ${formatNumber(hit.round)} 回合${hit.lethal ? ' · 致命帧' : ''}</b><span>${esc(this.sourceLabel(hit.source))}：气血 -${formatNumber(hit.hpLost)}${hit.shieldLost ? `，护盾 -${formatNumber(hit.shieldLost)}` : ''} · ${hit.target === 'player' ? '我方受击' : '敌方受击'}</span></p>`
+        : '';
     const damageRanking = this.battleDamageRankingMarkup(result);
-    const shieldRanking = this.battleShieldRankingMarkup(result);
-    if (!coreInsight && !highlights && !damage && !damageRanking && !shieldRanking) return '';
-    return `<section class="battle-insights" aria-label="斗法简报">${coreInsight}${damageRanking}${shieldRanking}${highlights ? `<div><h3>构筑显效</h3><ul>${highlights}</ul></div>` : ''}${damage}</section>`;
+    const shieldRanking = detailed ? this.battleShieldRankingMarkup(result) : '';
+    const healingRanking = detailed ? this.battleHealingRankingMarkup(filteredResult, allInsights.healingRanking) : '';
+    if (!coreInsight && !highlights && !damage && !damageRanking && !shieldRanking && !healingRanking) return '';
+    return `<section class="battle-insights" aria-label="斗法简报">${coreInsight}${damageRanking}${shieldRanking}${healingRanking}${highlights ? `<div><h3>构筑显效</h3><ul>${highlights}</ul></div>` : ''}${damage}</section>`;
+  }
+
+  private battleHealingRankingMarkup(
+    result: BattleResult,
+    entries: BattleInsightContribution[],
+  ): string {
+    if (!entries.length) return '';
+    const names = new Map(this.battleContributions(result).map(item => [item.id, item.name]));
+    return `<details class="disclosure battle-healing-ranking" data-details="battle-healing-ranking"><summary>治疗来源 · 前三</summary><div class="battle-healing-ranking-content" role="group" aria-label="有效治疗来源排行">${entries.map(({ source, amount, share }) => {
+      const percent = Math.min(100, Math.max(0, share));
+      const shownPercent = Math.round(percent);
+      const name = this.displayText(names.get(source), this.sourceLabel(source));
+      const label = `${name}：有效治疗 ${formatNumber(amount)}，占总有效治疗 ${shownPercent}%`;
+      return `<div class="battle-damage-source"><div class="battle-damage-source-copy"><b>${esc(name)}</b><span>有效治疗 ${formatNumber(amount)} · ${shownPercent}%</span></div><div class="battle-damage-meter" role="progressbar" aria-label="${esc(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${shownPercent}" aria-valuetext="${esc(label)}"><i style="width:${percent.toFixed(2)}%"></i></div></div>`;
+    }).join('')}</div></details>`;
   }
 
   private battleShieldRankingMarkup(result?: BattleResult): string {
@@ -3247,7 +3446,27 @@ class ShanhaiApp {
           ? '胜负未分，可继续交锋。'
           : '僵持已久，可收手离去。'
         : '';
-    return `<section class="battle-settlement" aria-label="斗法结算">${note ? `<p>${note}</p>` : ''}${this.battleInsightsMarkup(result)}</section>`;
+    return `<section class="battle-settlement" aria-label="斗法结算">${note ? `<p>${note}</p>` : ''}${this.battleInsightsMarkup(result, false)}</section>`;
+  }
+
+  private battleComparisonMarkup(): string {
+    const state = this.gameState();
+    const artifacts = loadoutArtifacts(state?.battleInput?.player);
+    if (!state || state.phase !== 'battle' || !this.battleFinished || artifacts.length === 0) return '';
+    const key = this.battleIdentity(state);
+    const comparison = this.battleComparison?.key === key ? this.battleComparison : null;
+    const selected = comparison?.artifactId || artifacts[0].id;
+    const result = comparison?.result;
+    const scenario = (label: string, value: ArtifactBattleComparison['original']): string =>
+      `<div><b>${label}</b><span>${esc(value.outcomeLabel)} · ${formatNumber(value.rounds)} 回合</span><span>我方气血 ${formatNumber(value.player.remainingHp)} / ${formatNumber(value.player.maxHp)} · 敌方气血 ${formatNumber(value.enemy.remainingHp)} / ${formatNumber(value.enemy.maxHp)}</span></div>`;
+    const resultMarkup = result
+      ? `<div class="battle-comparison-results" aria-live="polite"><p>移除 ${esc(this.artifactEntity(result.removedArtifact.id)?.name || result.removedArtifact.id)} ×${formatNumber(result.removedArtifact.stacks)} 后：</p>${scenario('本场', result.original)}${scenario('不带此宝', result.withoutArtifact)}</div>`
+      : comparison?.loading
+        ? '<p class="battle-comparison-message" role="status">正在试演这一场……</p>'
+        : comparison?.error
+          ? `<p class="battle-comparison-message" role="status">${esc(comparison.error)}</p>`
+          : '';
+    return `<details class="disclosure battle-comparison" data-details="battle-comparison"><summary>法宝试演 · 看看少一件会怎样</summary><div class="battle-comparison-body"><p>同一场战斗、同一命数，入场时移除所选法宝；试演不会改变命途。触发变化可能改变后续结果。</p><label for="battle-comparison-artifact">选择法宝</label><select id="battle-comparison-artifact" data-battle-comparison-artifact ${comparison?.loading ? 'disabled' : ''}>${artifacts.map(artifact => `<option value="${esc(artifact.id)}" ${artifact.id === selected ? 'selected' : ''}>${esc(this.artifactEntity(artifact.id)?.name || artifact.id)} ×${formatNumber(artifact.stacks)}</option>`).join('')}</select><button type="button" class="button quiet" data-action="battle-compare-artifact" ${comparison?.loading ? 'disabled' : ''}>试演不带此宝</button>${resultMarkup}</div></details>`;
   }
 
   private fighterStatusMarkup(fighter: FighterView): string {
@@ -3320,7 +3539,7 @@ class ShanhaiApp {
   ): string {
     const enemy = side === 'enemy' ? this.enemyEntity() : undefined;
     const action = acting ? (fighter.lockedAction || this.frameAction(frame, side)) : undefined;
-    const turnLabel = action === 'rage_action' ? '怒技' : action === 'basic_action' ? '普攻' : '出手';
+    const turnLabel = action === 'rage_action' ? '怒技' : action === 'basic_action' ? '普攻' : action === 'wait' ? '蓄气等待' : '出手';
     const resources = bloodShieldPresentation(fighter);
     const motion = cue[side === 'player' ? 'playerMotion' : 'enemyMotion'];
     const lowHealth = pct(fighter.hp, fighter.maxHp) <= 30;
@@ -3329,13 +3548,14 @@ class ShanhaiApp {
       <div class="fighter-art"><span class="fighter-side-badge">${side === 'player' ? '我方' : '敌方'}</span>${characterArt(asText(fighter.method, side === 'player' ? asText(this.gameState()?.method) : ''), asText(enemy?.id) || undefined)}</div>
       <div class="fighter-identity"><h2>${esc(asText(fighter.name, side === 'player' ? '行者' : '敌手'))}</h2><button type="button" class="fighter-detail-trigger" data-action="battle-details" data-tab="${side}" aria-label="${side === 'player' ? '我方详情' : '敌方详情'}" title="${side === 'player' ? '我方详情' : '敌方详情'}">${icon('eye', 16)}</button>${acting ? `<span class="turn-mark">${turnLabel}</span>` : ''}</div>
       <div class="fighter-bars">
-        <div class="fighter-numbers"><span>生命</span><span><b data-value="hp">${formatNumber(resources.hp)}</b> / ${formatNumber(fighter.maxHp)} <span class="shield-count">${icon('shield', 12)} +<b data-value="shield">${formatNumber(resources.shield)}</b></span></span></div>
+        <div class="fighter-numbers"><span>生命</span><span><b data-value="hp">${formatNumber(resources.hp)}</b> / ${formatNumber(fighter.maxHp)} <span class="shield-count">${icon('shield', 12)} +<b data-value="shield">${formatNumber(resources.shield)}</b> / ${formatNumber(fighter.maxShield)}</span></span></div>
         <div class="bar hp" role="progressbar" aria-label="${esc(`${fighter.name}气血与护盾`)}" aria-valuemin="0" aria-valuemax="${resources.capacity}" aria-valuenow="${resources.total}" aria-valuetext="气血 ${formatNumber(resources.hp)} / ${formatNumber(fighter.maxHp)}，护盾 ${formatNumber(resources.shield)}"><span class="hp-fill" style="width:${resources.hpPercent}%"></span><span class="shield-fill" style="width:${resources.shieldPercent}%"></span></div>
         <div class="fighter-numbers"><span>怒气</span><span data-value="rage">${formatNumber(fighter.rage)} / ${formatNumber(fighter.rageCap)}</span></div>
         <div class="bar rage" role="progressbar" aria-label="${esc(`${fighter.name}怒气`)}" aria-valuemin="0" aria-valuemax="${fighter.rageCap}" aria-valuenow="${fighter.rage}"><span style="width:${pct(fighter.rage, fighter.rageCap)}%"></span></div>
       </div>
       ${this.fighterSummonsMarkup(fighter)}
       ${this.fighterCountersMarkup(fighter, side)}
+      ${this.permanentRuleMarkup(fighter.permanentRule, 'combatant-permanent-rule')}
     </article>`;
   }
 
@@ -3377,7 +3597,7 @@ class ShanhaiApp {
       const resources = bloodShieldPresentation(fighter);
       hpBar.setAttribute('aria-valuemax', String(resources.capacity));
       hpBar.setAttribute('aria-valuenow', String(resources.total));
-      hpBar.setAttribute('aria-valuetext', `气血 ${formatNumber(resources.hp)} / ${formatNumber(fighter.maxHp)}，护盾 ${formatNumber(resources.shield)}`);
+      hpBar.setAttribute('aria-valuetext', `气血 ${formatNumber(resources.hp)} / ${formatNumber(fighter.maxHp)}，护盾 ${formatNumber(resources.shield)} / ${formatNumber(fighter.maxShield)}`);
       const hpFill = hpBar.querySelector<HTMLElement>('.hp-fill');
       const shieldFill = hpBar.querySelector<HTMLElement>('.shield-fill');
       if (hpFill) hpFill.style.width = `${resources.hpPercent}%`;
@@ -3413,8 +3633,9 @@ class ShanhaiApp {
     }
   }
 
-  private frameAction(frame: BattleFrame | undefined, side: 'player' | 'enemy'): 'basic_action' | 'rage_action' | undefined {
+  private frameAction(frame: BattleFrame | undefined, side: 'player' | 'enemy'): 'basic_action' | 'rage_action' | 'wait' | undefined {
     if (!frame || frame.actor !== side) return undefined;
+    if (frame.kind === 'wait') return 'wait';
     if (frame.kind === 'action' && /怒技/.test(asText(frame.text))) return 'rage_action';
     if (frame.kind === 'action' && /普攻/.test(asText(frame.text))) return 'basic_action';
     return undefined;
@@ -3565,6 +3786,9 @@ class ShanhaiApp {
       if (reaction.count !== 2 && reaction.count !== 3) return '';
       return `<div class="combat-semantic-cue rage-chain owner-${reaction.owner}" data-combat-semantic-cue="rage_chain" role="status"><span>${icon('sword', 15)}<b>绝技连斩</b><strong>×${reaction.count}</strong></span></div>`;
     }
+    if (reaction.kind === 'blood_valor') {
+      return `<div class="combat-semantic-cue blood-valor owner-${reaction.owner}" data-combat-semantic-cue="blood_valor" role="status"><span>${icon('shield', 15)}<b>血勇反击</b></span></div>`;
+    }
     if (reaction.kind === 'companion_assist') {
       const companionMethodId = reaction.sourceId.match(/^(RKF\d\d)-COMPANION$/)?.[1] || reaction.sourceId;
       const sourceMethod = this.methodEntity(companionMethodId);
@@ -3593,6 +3817,7 @@ class ShanhaiApp {
 
   private actionLabel(methodIdValue: unknown, action: any): string {
     const id = asText(action?.id, action);
+    if (id === 'wait') return '蓄气等待';
     const method = this.methodEntity(methodIdValue);
     const actions = [method?.actions?.basic, method?.actions?.rage];
     const found = actions.find(item => item?.id === id || item?.name === id);
@@ -4126,6 +4351,80 @@ class ShanhaiApp {
     return `<details class="disclosure reforge-tool" data-details="shop-reforge"><summary>${icon('mirror', 16)}重铸普通法宝</summary><div class="reforge-tool-body"><label for="reforge-source">献祭器物</label><select id="reforge-source" data-reforge-source ${sources.length ? '' : 'disabled'}>${sources.map(source => `<option value="${esc(source.id)}" ${source.id === sourceId ? 'selected' : ''}>${esc(source.name)} ×${formatNumber(source.stacks)}</option>`).join('') || '<option value="">没有普通法宝</option>'}</select>${!sources.length ? '<p class="reforge-unavailable" role="status">需要持有一件普通法宝。</p>' : ''}<p class="reforge-terms">本店限一次</p>${balanceReason ? `<p class="reforge-unavailable" role="status">${balanceReason}</p>` : ''}${used && !balanceReason ? '<p class="reforge-unavailable" role="status">本店已重铸过一次。</p>' : ''}<div class="reforge-targets" data-reforge-targets>${this.reforgeTargetsMarkup(state, sourceId)}</div></div></details>`;
   }
 
+  private inscriptionAvailability(artifactId: string, inscription: ArtifactInscription): { available: boolean; reason: string } {
+    try {
+      const result = this.game?.inscriptionAvailability(artifactId, inscription);
+      if (isRecord(result)) return { available: Boolean(result.available), reason: asText(result.reason) };
+    } catch {
+      // Keep the action unavailable if the run cannot verify its price or ownership.
+    }
+    return { available: false, reason: '铭刻状态暂不可确认' };
+  }
+
+  private inscriptionReason(reason: string): string {
+    if (/[一-鿿]/.test(reason)) return reason;
+    if (/already.?inscribed.?this.?shop/.test(reason)) return '本店已铭刻一次';
+    if (/already.?inscribed/.test(reason)) return '这件法宝已有铭刻';
+    if (/coin|price|pay|fund/.test(reason)) return '灵石不足';
+    if (/owned|artifact/.test(reason)) return '没有持有这件法宝';
+    if (/not.?shop/.test(reason)) return '坊市当前未开放';
+    if (/invalid.?inscription/.test(reason)) return '铭刻类型无效';
+    return '当前无法铭刻';
+  }
+
+  private inscriptionControlsMarkup(state: RunState): string {
+    const held = listOf<ArtifactStack>(state.artifacts).filter(stack =>
+      asNumber(stack.stacks) > 0 && Boolean(this.artifactEntity(stack.id)));
+    const candidates = held.filter(stack => !stack.inscription);
+    const selectedId = candidates.some(stack => stack.id === this.inscriptionArtifactId)
+      ? this.inscriptionArtifactId
+      : asText(candidates[0]?.id);
+    this.inscriptionArtifactId = selectedId;
+    const inscriptions = (this.game?.inscriptionOptions() ?? ['twin', 'leech', 'swift']) as ArtifactInscription[];
+    if (!inscriptions.includes(this.inscriptionChoice)) this.inscriptionChoice = 'twin';
+    const choice = this.inscriptionChoice;
+    const price = Math.max(0, asNumber(this.game?.inscriptionPrice()));
+    const availability = selectedId
+      ? this.inscriptionAvailability(selectedId, choice)
+      : { available: false, reason: 'artifact-not-owned' };
+    const reason = availability.available ? '' : this.inscriptionReason(availability.reason);
+    const noCandidate = candidates.length === 0;
+    const noCandidateReason = held.length
+      ? '持有法宝均已有铭刻。'
+      : '尚未持有可铭刻法宝。';
+    const used = Boolean(state._shopInscribed);
+    const cauldron = held.find(stack => stack.id === DEVOURING_ARTIFACT_ID);
+    const cauldronNote = cauldron
+      ? `<p class="inscription-unavailable" role="note">饕餮鼎没有主动战斗触发；${cauldron.inscription ? `已记录的${INSCRIPTION_COPY[cauldron.inscription].label}铭刻` : '为其铭刻'}不会生效。</p>`
+      : '';
+    return `<div class="inscription-controls">
+      <div class="inscription-selects">
+        <label for="inscription-artifact">选择持有法宝</label>
+        <select id="inscription-artifact" data-inscription-artifact ${candidates.length ? '' : 'disabled'}>${candidates.map(stack => {
+          const artifact = this.artifactEntity(stack.id);
+          const equipped = this.equipmentSlotLabel(stack.id);
+          return `<option value="${esc(stack.id)}" ${stack.id === selectedId ? 'selected' : ''}>${esc(asText(artifact?.name, stack.id))} · ${equipped ? `已装备 ${equipped}` : '背包未装备'} · ×${formatNumber(stack.stacks)}</option>`;
+        }).join('') || '<option value="">暂无未铭刻法宝</option>'}</select>
+        <label for="inscription-choice">选择铭刻</label>
+        <select id="inscription-choice" data-inscription-choice>${inscriptions.map(inscription =>
+          `<option value="${inscription}" ${inscription === choice ? 'selected' : ''}>${INSCRIPTION_COPY[inscription].label} · ${INSCRIPTION_COPY[inscription].effect}</option>`,
+        ).join('')}</select>
+      </div>
+      <p class="inscription-effect"><b>${INSCRIPTION_COPY[choice].label}</b><span>${INSCRIPTION_COPY[choice].effect}</span></p>
+      <p class="inscription-terms">铭刻花费 ${formatNumber(price)} 灵石 · 每间坊市限一件 · 同 ID 叠层保留原铭刻</p>
+      ${cauldronNote}
+      ${noCandidate ? `<p class="inscription-unavailable" role="status">${noCandidateReason}</p>` : ''}
+      ${used ? '<p class="inscription-unavailable" role="status">本店已铭刻一次。</p>' : ''}
+      ${reason && !noCandidate && !used ? `<p class="inscription-unavailable" role="status">${esc(reason)}</p>` : ''}
+      <button type="button" class="button primary inscription-commit" data-action="inscribe" data-artifact="${esc(selectedId)}" data-inscription="${choice}" title="${esc(reason)}" ${availability.available && !used ? '' : 'disabled'}>铭刻${INSCRIPTION_COPY[choice].label} · ${formatNumber(price)} 灵石</button>
+    </div>`;
+  }
+
+  private inscriptionToolMarkup(state: RunState): string {
+    const price = Math.max(0, asNumber(this.game?.inscriptionPrice()));
+    return `<details class="disclosure inscription-tool" data-details="shop-inscription"><summary>${icon('pearl', 16)}古炉铭刻 <span>每店一次 · ${formatNumber(price)} 灵石</span></summary><div class="inscription-tool-body" data-inscription-controls>${this.inscriptionControlsMarkup(state)}</div></details>`;
+  }
+
   private warmableArtifacts(): string[] {
     try {
       return unique(listOf<string>(this.game?.warmableArtifacts()))
@@ -4167,7 +4466,7 @@ class ShanhaiApp {
   private shopView(state: RunState): string {
     const items = listOf<any>(state.shop);
     return `<header class="shop-heading">${this.stageHeading('', '坊市')}<span class="shop-stock">库存 ${items.filter((item) => !item.sold).length} / ${items.length || 5}</span></header>
-      <div class="shop-grid">${items.map((item) => this.shopItem(item)).join('') || '<p class="empty-note">坊市没有可展示的库存。</p>'}</div>${this.reforgeToolMarkup(state)}<div class="stage-actions"><button class="button primary" data-action="leave-shop" data-autofocus>离开坊市 ${icon('arrow', 16)}</button></div>${this.inlineMessage()}`;
+      <div class="shop-grid">${items.map((item) => this.shopItem(item)).join('') || '<p class="empty-note">坊市没有可展示的库存。</p>'}</div>${this.inscriptionToolMarkup(state)}${this.reforgeToolMarkup(state)}<div class="stage-actions"><button class="button primary" data-action="leave-shop" data-autofocus>离开坊市 ${icon('arrow', 16)}</button></div>${this.inlineMessage()}`;
   }
 
   private shopItem(item: any): string {
@@ -4417,7 +4716,7 @@ class ShanhaiApp {
       const method = this.methodEntity(state.method);
       const selectedTalents = listOf<string>(state.talents?.[state.method]).map((id) => this.talentEntity(state.method, id)).filter((item): item is Entity => Boolean(item));
       const stats = this.stats();
-      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">人物</p><h2 id="dialog-title">${esc(state.name)}</h2><p>${esc(asText(method?.name, state.method))} · ${esc(this.realmName(state.n))}</p><div class="character-detail-art">${characterArt(state.method)}</div><div class="character-stats">${(['max_hp', 'attack', 'defense', 'crit_rate', 'speed'] as const).map((key) => `<div><span>${STAT_LABEL[key]}</span><strong>${this.textMarkup(key === 'crit_rate' ? `${Math.round(asNumber(stats[key]) * 100)}%` : formatNumber(stats[key]))}</strong></div>`).join('')}</div><div class="character-detail"><p>气血 ${this.textMarkup(`${formatNumber(state.hp)} / ${formatNumber(stats.max_hp)}`)} · 修为 ${this.textMarkup(state.xp)} · 灵石 ${this.textMarkup(state.coins)}</p><p>已拥有功法：${state.ownedMethods.map((id) => esc(asText(this.methodEntity(id)?.name, id))).join('、') || '无'}</p><p>已选天赋：${selectedTalents.map((talent) => esc(asText(talent.name, talent.id))).join('、') || '无'}</p></div><div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
+      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">人物</p><h2 id="dialog-title">${esc(state.name)}</h2><p>${esc(asText(method?.name, state.method))} · ${esc(this.realmName(state.n))}</p><div class="character-detail-art">${characterArt(state.method)}</div><div class="character-stats">${(['max_hp', 'attack', 'defense', 'crit_rate', 'speed'] as const).map((key) => `<div><span>${key === 'crit_rate' && state.permanentRule?.kind === 'blind_sword' ? '原暴击·转化' : STAT_LABEL[key]}</span><strong>${this.textMarkup(key === 'crit_rate' ? `${Math.round(asNumber(stats[key]) * 100)}%` : formatNumber(stats[key]))}</strong></div>`).join('')}</div><div class="character-detail"><p>气血 ${this.textMarkup(`${formatNumber(state.hp)} / ${formatNumber(stats.max_hp)}`)} · 修为 ${this.textMarkup(state.xp)} · 灵石 ${this.textMarkup(state.coins)}</p><p>已拥有功法：${state.ownedMethods.map((id) => esc(asText(this.methodEntity(id)?.name, id))).join('、') || '无'}</p><p>已选天赋：${selectedTalents.map((talent) => esc(asText(talent.name, talent.id))).join('、') || '无'}</p></div><div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
     }
     if (this.modal === 'artifact') {
       const artifact = this.artifactEntity(this.modalId);
@@ -4446,13 +4745,9 @@ class ShanhaiApp {
       const mirrorIndex = mirrorEquipment.findIndex(stack => stack.id === artifact.id);
       const mirrorNeighbor = mirrorIndex >= 0 ? mirrorEquipment[mirrorIndex + 1] : undefined;
       const neighborEntity = mirrorNeighbor ? this.artifactEntity(mirrorNeighbor.id) : undefined;
-      const neighborReady = neighborEntity && mirrorNeighbor &&
-        listOf<any>(neighborEntity.awakening?.effects).length > 0 &&
-        mirrorNeighbor.stacks >= asNumber(neighborEntity.max_stacks, 1);
       const mirrorStatus = !mirrorArtifact ? '' : mirrorIndex < 0 ? '装备后查看右侧镜映。'
         : !mirrorNeighbor ? '右侧没有装备法宝。'
-          : neighborReady ? `当前镜映：${asText(neighborEntity?.name, mirrorNeighbor.id)}的出手型觉醒。`
-            : `${asText(neighborEntity?.name, mirrorNeighbor.id)}尚未满层或没有出手型觉醒。`;
+          : `当前目标：${asText(neighborEntity?.name, mirrorNeighbor.id)}。其战斗输出触发时镜映；纯属性和静态规则不复制。`;
       const effectMarkup = hideUnownedFusionEffect
         ? ''
         : (fusionArtifact || mirrorArtifact) && effects.length === 0
@@ -4472,7 +4767,15 @@ class ShanhaiApp {
         : owned
           ? equipped ? `已装备 · ${equipped}` : '背包中 · 未装备不生效'
           : '典藏记录 · 尚未取得';
-      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow item-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><div class="item-dialog-head"><span class="item-dialog-motif">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), entityRarity(artifact) === 'legendary' ? 'mythic' : 'jade'))}</span><div><p class="eyebrow">${esc(rarityLabel(entityRarity(artifact)))} · 法宝 · ${this.textMarkup(ownership)}</p><h2 id="dialog-title">${esc(artifact.name)}</h2><small class="artifact-ownership">${esc(inventoryLabel)}</small></div></div><div class="item-dialog-art">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), entityRarity(artifact) === 'legendary' ? 'mythic' : 'jade'))}</div><p class="item-dialog-summary">${this.textMarkup(summary)}</p>${mirrorStatus ? `<p class="mirror-target-status" role="status">${esc(mirrorStatus)}</p>` : ''}${this.fusionDetailMarkup(artifact, state, inspectingEnemy)}${coreRuleMarkup}${awakeningMarkup}${statsMarkup}${effectMarkup}${this.equipmentActionMarkup(artifact, Boolean(owned), inspectingEnemy)}<div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
+      const growthMarkup = artifact.id === DEVOURING_ARTIFACT_ID && owned
+        ? `<section class="artifact-growth-detail"><h3>吞噬成长</h3><p>${esc(this.artifactGrowthSummary(owned, Boolean(equipped)))}</p></section>`
+        : '';
+      const inscriptionMarkup = owned
+        ? artifact.id === DEVOURING_ARTIFACT_ID
+          ? `<section class="artifact-inscription-detail"><h3>${owned.inscription ? `古炉铭刻 · ${INSCRIPTION_COPY[owned.inscription].label}` : '古炉铭刻 · 尚未铭刻'}</h3><p>饕餮鼎没有主动战斗触发；${owned.inscription ? '此铭刻不会生效。' : '铭刻不会产生战斗效果。'}</p></section>`
+          : `<section class="artifact-inscription-detail"><h3>${owned.inscription ? `古炉铭刻 · ${INSCRIPTION_COPY[owned.inscription].label}` : '古炉铭刻 · 尚未铭刻'}</h3><p>${owned.inscription ? INSCRIPTION_COPY[owned.inscription].effect : '此法宝尚无额外铭刻效果。'}</p></section>`
+        : '';
+      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow item-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><div class="item-dialog-head"><span class="item-dialog-motif">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), entityRarity(artifact) === 'legendary' ? 'mythic' : 'jade'))}</span><div><p class="eyebrow">${esc(rarityLabel(entityRarity(artifact)))} · 法宝 · ${this.textMarkup(ownership)}</p><h2 id="dialog-title">${esc(artifact.name)}</h2><small class="artifact-ownership">${esc(inventoryLabel)}</small></div></div><div class="item-dialog-art">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), entityRarity(artifact) === 'legendary' ? 'mythic' : 'jade'))}</div><p class="item-dialog-summary">${this.textMarkup(summary)}</p>${growthMarkup}${inscriptionMarkup}${mirrorStatus ? `<p class="mirror-target-status" role="status">${esc(mirrorStatus)}</p>` : ''}${this.fusionDetailMarkup(artifact, state, inspectingEnemy)}${coreRuleMarkup}${awakeningMarkup}${statsMarkup}${effectMarkup}${this.equipmentActionMarkup(artifact, Boolean(owned), inspectingEnemy)}<div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
     }
     if (this.modal === 'talent') {
       const talent = this.talentEntity(this.modalMethodId, this.modalId);
@@ -4551,6 +4854,26 @@ class ShanhaiApp {
       if (panel) {
         panel.innerHTML = this.reforgeTargetsMarkup(state, target.value);
         target.focus({ preventScroll: true });
+      }
+    } else if (target.matches('[data-inscription-artifact]') || target.matches('[data-inscription-choice]')) {
+      if (target.matches('[data-inscription-artifact]')) this.inscriptionArtifactId = target.value;
+      if (target.matches('[data-inscription-choice]') && isArtifactInscription(target.value)) {
+        this.inscriptionChoice = target.value;
+      }
+      const panel = target.closest<HTMLElement>('.inscription-tool')?.querySelector<HTMLElement>('[data-inscription-controls]');
+      if (panel) {
+        panel.innerHTML = this.inscriptionControlsMarkup(state);
+        const selector = target.matches('[data-inscription-artifact]')
+          ? '[data-inscription-artifact]'
+          : '[data-inscription-choice]';
+        panel.querySelector<HTMLSelectElement>(selector)?.focus({ preventScroll: true });
+      }
+    } else if (target.matches('[data-devour-target]')) {
+      this.devourTargetId = target.value;
+      const panel = target.closest<HTMLElement>('.cauldron-tool')?.querySelector<HTMLElement>('[data-devour-controls]');
+      if (panel) {
+        panel.innerHTML = this.devourControlsMarkup(state);
+        panel.querySelector<HTMLSelectElement>('[data-devour-target]')?.focus({ preventScroll: true });
       }
     } else if (target.matches('[data-refine-source]')) {
       this.rewardRefineSourceId = target.value;
@@ -4999,6 +5322,28 @@ class ShanhaiApp {
         this.saveReplay();
         this.render();
         break;
+      case 'battle-compare-artifact': {
+        const state = this.gameState();
+        const artifactId = this.root.querySelector<HTMLSelectElement>('[data-battle-comparison-artifact]')?.value || '';
+        if (!state || state.phase !== 'battle' || !this.battleFinished || !state.battleInput || !this.content ||
+          !loadoutArtifacts(state.battleInput.player).some(artifact => artifact.id === artifactId)) break;
+        const key = this.battleIdentity(state);
+        const input = structuredClone(state.battleInput);
+        const content = this.content;
+        this.battleComparison = { key, artifactId, loading: true };
+        this.render();
+        window.setTimeout(() => {
+          if (this.gameState()?.phase !== 'battle' || this.battleIdentity() !== key) return;
+          try {
+            const result = compareArtifactRemoval(content, input, artifactId);
+            this.battleComparison = { key, artifactId, loading: false, result };
+          } catch {
+            this.battleComparison = { key, artifactId, loading: false, error: '此场试演暂不可用，请查看战报。' };
+          }
+          this.render();
+        }, 0);
+        break;
+      }
       case 'battle-finish':
         this.stopPlayback();
         this.dismissBattleDetails();
@@ -5132,6 +5477,44 @@ class ShanhaiApp {
           this.send({ type: 'reforge', source, target: targetId });
         }
         break;
+      case 'inscribe':
+        {
+          const artifact = asText(target.dataset.artifact);
+          const inscription = target.dataset.inscription;
+          const state = this.gameState();
+          if (!state || state.phase !== 'shop' || !isArtifactInscription(inscription)) {
+            this.notice = '坊市或铭刻选项已变化，请重新选择。';
+            this.render();
+            break;
+          }
+          const availability = this.inscriptionAvailability(artifact, inscription);
+          if (!availability.available) {
+            this.notice = this.inscriptionReason(availability.reason);
+            this.render();
+            break;
+          }
+          this.send({ type: 'inscribe', artifact, inscription });
+        }
+        break;
+      case 'devour': {
+        const id = asText(target.dataset.id);
+        const state = this.gameState();
+        if (!state || !this.game || !this.canChangeEquipment()) {
+          this.notice = this.equipmentLockReason();
+          this.render();
+          break;
+        }
+        const availability = this.game.devourAvailability(id);
+        if (!availability.available) {
+          this.notice = availability.reason === 'growth-limit-reached'
+            ? '饕餮鼎已达到卡面倍率上限。'
+            : this.equipmentLockReason() || '吞噬目标已变化，请重新选择。';
+          this.render();
+          break;
+        }
+        this.send({ type: 'devour', id });
+        break;
+      }
       case 'leave-shop':
         this.send({ type: 'leave_shop' });
         break;

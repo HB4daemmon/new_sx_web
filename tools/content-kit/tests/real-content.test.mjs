@@ -6,6 +6,7 @@ import { validateLoadedContent } from '../src/validator.mjs'
 import { renderDocuments } from '../src/renderer.mjs'
 import {
   ARTIFACT_EQUIPMENT_ROLES,
+  ARTIFACT_DEVOUR_RULES,
   ARTIFACT_MIRROR_RULES,
   ARTIFACT_MIRROR_UNIQUE_GROUP,
   ARTIFACT_RESONANCE_RULES,
@@ -56,13 +57,13 @@ function enumerateStructuralTalentBuilds(method) {
 
 test('real content validates and preserves the authored entity and talent counts', () => {
   assert.equal(report.ok, true, validationDetails())
-  assert.equal(model.entities.length, 155)
-  assert.equal(model.manifestEntries.length, 155)
+  assert.equal(model.entities.length, 157)
+  assert.equal(model.manifestEntries.length, 157)
 
   const expectedManifestCounts = {
     methods: 10,
-    artifacts: 47,
-    ordinary_events: 36,
+    artifacts: 48,
+    ordinary_events: 37,
     core_events: 16,
     storylines: 6,
     act_enemies: 32,
@@ -80,8 +81,8 @@ test('real content validates and preserves the authored entity and talent counts
     assert.equal(typeof method.companion.quick, 'string', `${method.id} companion quick description`)
     assert.ok(method.companion.effect, `${method.id} has a combat output`)
   }
-  assert.equal(entitiesOf('artifact').length, 47)
-  assert.equal(entitiesOf('event').length, 52)
+  assert.equal(entitiesOf('artifact').length, 48)
+  assert.equal(entitiesOf('event').length, 53)
   assert.equal(entitiesOf('storyline').length, 6)
   assert.equal(entitiesOf('enemy').length, 34)
   assert.equal(entitiesOf('act').length, 5)
@@ -90,10 +91,27 @@ test('real content validates and preserves the authored entity and talent counts
   const coreEvents = entitiesOf('event').filter((event) => event.event_type === 'core')
   const actEnemies = entitiesOf('enemy').filter((enemy) => enemy.tier !== 'final')
   const finalEnemies = entitiesOf('enemy').filter((enemy) => enemy.tier === 'final')
-  assert.equal(ordinaryEvents.length, 36)
+  assert.equal(ordinaryEvents.length, 37)
   assert.equal(coreEvents.length, 16)
+  const sacrificeEvent = ordinaryEvents.find(event => event.id === 'RE037')
+  assert.ok(sacrificeEvent)
+  assert.deepEqual(sacrificeEvent.acts, [1, 2, 3, 4])
+  assert.deepEqual(
+    sacrificeEvent.options.flatMap(option => option.sacrifice_rule ? [option.sacrifice_rule] : []).sort(),
+    ['blind_sword', 'endless_chain', 'shattered_core'],
+  )
+  const exit = sacrificeEvent.options.find(option => option.id === 'RE037-D')
+  assert.deepEqual(exit?.requirements, [])
+  assert.deepEqual(exit?.costs, [])
+  assert.deepEqual(exit?.rewards, [])
+  for (let act = 1; act <= 4; act += 1) {
+    assert.ok(
+      entitiesOf('act').find(entity => entity.id === `RA0${act}`)?.pools?.events?.ordinary.includes('RE037'),
+      `RE037 should be reachable from act ${act}`,
+    )
+  }
   const eventOptions = entitiesOf('event').flatMap((event) => event.options)
-  assert.equal(eventOptions.length, 157)
+  assert.equal(eventOptions.length, 161)
   assert.equal(eventOptions.filter((option) => option.encounter).length, 21)
   assert.equal(eventOptions.filter((option) => option.check).length, 8)
   assert.equal(actEnemies.length, 32)
@@ -181,12 +199,22 @@ test('real content validates and preserves the authored entity and talent counts
   assert.equal(mirror.max_stacks, 1)
   assert.equal(mirror.rarity, 'legendary')
   assert.deepEqual(mirror.acquisition.pools, ['legendary_artifact'])
+
+  const cauldron = model.byId.get('RL09')
+  assert.deepEqual(cauldron.devour_rule, {
+    kind: ARTIFACT_DEVOUR_RULES.RL09.kind,
+    multiplier_per_stack: 1.1,
+    maximum_multiplier: 1_000_000_000_000,
+  })
+  assert.deepEqual(cauldron.acquisition.pools, ['legendary_artifact'])
+  assert.equal(cauldron.effects.length, 0)
   assert.deepEqual(mirror.attributes, { flat: { defense: 8 }, percent: {} })
-  assert.match(mirror.description, /紧邻右侧已装备、层数已达其上限/)
-  assert.match(mirror.description, /普攻、怒技或二者结束触发/)
-  assert.match(mirror.description, /复制其本次全部觉醒输出一次/)
-  assert.match(mirror.description, /右侧法宝照常结算/)
-  assert.match(mirror.description, /旧式被动、破盾与治疗事件觉醒不复制/)
+  assert.match(mirror.description, /本次触发中实际产生的伤害、治疗、护盾、怒气和状态输出/)
+  assert.match(mirror.description, /镜映先结算，右侧法宝仍按正常条件触发/)
+  assert.match(mirror.description, /无需右侧法宝满层/)
+  assert.match(mirror.description, /若被镜映的输出来自觉醒，该觉醒仍须满足自身条件/)
+  assert.match(mirror.description, /静态数值或规则改写、行旅、消耗本身或镜映产生的次级触发/)
+  assert.match(mirror.description, /双生、疾行铭刻可作用于镜映，右侧法宝的铭刻不会转移给镜器/)
 
   const awakeningArtifacts = entitiesOf('artifact').filter((artifact) => artifact.awakening)
   assert.ok(awakeningArtifacts.some((artifact) => Array.isArray(artifact.awakening.effects)))
@@ -316,7 +344,8 @@ test('V2 resonance rules are authored once on their owners and render with the c
   assert.match(pages.get('artifacts/RARE.md'), /毒火/)
   assert.match(pages.get('artifacts/LEGENDARY.md'), /四段攻击0.25倍/)
   assert.match(pages.get('artifacts/LEGENDARY.md'), /### 昆仑镜/)
-  assert.match(pages.get('artifacts/LEGENDARY.md'), /普攻、怒技或二者结束触发[\s\S]*同次触发复制其本次全部觉醒输出一次/)
+  assert.match(pages.get('artifacts/LEGENDARY.md'), /### 饕餮鼎[\s\S]*每吞噬一件其他已持有法宝整栈[\s\S]*独立伤害乘区乘以 1\.1[\s\S]*铭刻不会生效/)
+  assert.match(pages.get('artifacts/LEGENDARY.md'), /镜映规则：镜器先复制紧邻右侧[\s\S]*双生\/疾行铭刻可作用于镜映，右侧铭刻不转移/)
 })
 
 test('authored trials and reward-seeking families stay on the public contract', () => {

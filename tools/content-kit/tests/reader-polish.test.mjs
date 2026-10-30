@@ -32,7 +32,7 @@ test('INDEX exposes every fixed reader page with readable names and counts', () 
   }
 
   assert.match(index, /10 门 \/ 120 专属天赋 \+ 16 共享突破天赋/)
-  assert.match(index, /36 普通 \/ 16 核心/)
+  assert.match(index, /37 普通 \/ 16 核心/)
   assert.match(index, /6 条人物线 \+ 4 项独立核心/)
   assert.match(index, /32 套幕敌人 \+ 2 套终战/)
   assert.match(index, /金刚功（RKF01）/)
@@ -65,7 +65,10 @@ test('artifact reader pages disclose descriptive roles and equipped core tradeof
 
   const legendary = pages.get('artifacts/LEGENDARY.md')
   assert.match(legendary, /RL01[\s\S]*装备定位：核心；仅作描述，不限制装备数量/)
-  assert.match(legendary, /RL08[\s\S]*镜映规则：只复制紧邻右侧/)
+  assert.match(legendary, /RL08[\s\S]*镜映规则：镜器先复制紧邻右侧/)
+  assert.match(legendary, /无需满层，若被镜映的输出来自觉醒，觉醒仍须满足自身条件/)
+  assert.match(legendary, /双生\/疾行铭刻可作用于镜映，右侧铭刻不转移/)
+  assert.match(legendary, /RL09[\s\S]*吞噬成长（仅装备时生效）[\s\S]*铭刻不会生效/)
   assert.doesNotMatch(legendary, /核心规则（仅装备时生效）/)
 })
 

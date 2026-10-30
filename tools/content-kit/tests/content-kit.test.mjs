@@ -8,6 +8,7 @@ import { stringify } from 'yaml'
 import {
   ARTIFACT_BASELINE,
   ARTIFACT_BUDGET,
+  ARTIFACT_DEVOUR_RULES,
   ARTIFACT_EQUIPMENT_ROLES,
   ARTIFACT_FUSION_RECIPES,
   ARTIFACT_FUSION_RULES,
@@ -22,6 +23,7 @@ import {
   METHOD_RARITIES,
   METHOD_P_BY_TIER,
   METHOD_RESONANCE_RULES,
+  RARE_ARTIFACT_EFFECT_RULES,
   SCHEMA_VERSION,
   SHARED_INSIGHT_BUILD_RULES,
   SHARED_INSIGHT_IDS,
@@ -85,6 +87,30 @@ function resonanceEffect(owner, rule) {
     limit: { scope: 'permanent', count: 1 },
     text: 'fixture resonance',
   }
+}
+
+function rareArtifactEffects(owner) {
+  const contracts = RARE_ARTIFACT_EFFECT_RULES[owner]
+  if (!contracts) return undefined
+  return Object.entries(contracts).map(([id, contract]) => ({
+    id,
+    trigger: contract.trigger,
+    operation: contract.operation,
+    target: contract.target,
+    params: Object.fromEntries(Object.entries(contract.params).map(([key, expected]) => [
+      key,
+      typeof expected === 'string'
+        ? expected
+        : expected.integer
+          ? expected.min
+          : expected.min + (expected.max - expected.min) / 2,
+    ])),
+    requires: [...contract.requires],
+    consumes: [],
+    replaces: [],
+    limit: { ...contract.limit },
+    text: 'fixture rare-artifact effect',
+  }))
 }
 
 function sharedInsightEffect(id) {
@@ -202,6 +228,7 @@ function makeEntities() {
     const baseline = structuredClone(ARTIFACT_BASELINE[entry.id])
     const entity = common(entry.id, 'artifact', baseline.name)
     const rarity = ARTIFACT_RARITIES[entry.id]
+    const rareEffects = rareArtifactEffects(entry.id)
     Object.assign(entity, {
       rarity,
       max_stacks: baseline.max_stacks,
@@ -216,16 +243,21 @@ function makeEntities() {
       ...(CORE_ARTIFACT_RULES[entry.id] ? { core_rule: structuredClone(CORE_ARTIFACT_RULES[entry.id]) } : {}),
       ...(ARTIFACT_GAMBIT_RULES[entry.id] ? { gambit_rule: structuredClone(ARTIFACT_GAMBIT_RULES[entry.id]) } : {}),
       ...(ARTIFACT_MIRROR_RULES[entry.id] ? { mirror_rule: structuredClone(ARTIFACT_MIRROR_RULES[entry.id]) } : {}),
+      ...(ARTIFACT_DEVOUR_RULES[entry.id] ? { devour_rule: {
+        kind: ARTIFACT_DEVOUR_RULES[entry.id].kind,
+        multiplier_per_stack: 1.1,
+        maximum_multiplier: 1_000_000_000_000,
+      } } : {}),
       ...(ARTIFACT_FUSION_RECIPES[entry.id] ? {
         fusion_recipe: structuredClone(ARTIFACT_FUSION_RECIPES[entry.id]),
         fusion_rule: structuredClone(ARTIFACT_FUSION_RULES[entry.id]),
       } : {}),
       attributes: { flat: baseline.flat, percent: baseline.percent },
-      effects: ARTIFACT_FUSION_RECIPES[entry.id] || ARTIFACT_MIRROR_RULES[entry.id]
+      effects: ARTIFACT_FUSION_RECIPES[entry.id] || ARTIFACT_MIRROR_RULES[entry.id] || ARTIFACT_DEVOUR_RULES[entry.id]
         ? []
-        : ARTIFACT_RESONANCE_RULES[entry.id]
-        ? [resonanceEffect(entry.id, ARTIFACT_RESONANCE_RULES[entry.id])]
-        : [effect(`${entry.id}-EFFECT`)],
+        : rareEffects ?? (ARTIFACT_RESONANCE_RULES[entry.id]
+          ? [resonanceEffect(entry.id, ARTIFACT_RESONANCE_RULES[entry.id])]
+          : [effect(`${entry.id}-EFFECT`)]),
       acquisition: { pools: ARTIFACT_FUSION_RECIPES[entry.id] ? [] : [`${rarity}_artifact`] },
     })
     entity.balance.target = { B: ARTIFACT_BUDGET[rarity], A: ARTIFACT_BUDGET[rarity] * 5, J: 0 }
@@ -238,9 +270,14 @@ function makeEntities() {
     const entity = common(entry.id, 'event', entry.id)
     Object.assign(entity, {
       event_type: core ? 'core' : 'ordinary',
-      acts: [act],
+      acts: entry.id === 'RE037' ? [1, 2, 3, 4] : [act],
       scene: '场景',
-      options: [
+      options: entry.id === 'RE037' ? [
+        { id: 'RE037-A', label: '碎丹化婴', quick: '锁定一线气血，换取护盾与攻势。', requirements: [], costs: [], rewards: [], sacrifice_rule: 'shattered_core', outcome: '立誓。' },
+        { id: 'RE037-B', label: '盲眼剑圣', quick: '舍弃暴击，换取真实伤害。', requirements: [], costs: [], rewards: [], sacrifice_rule: 'blind_sword', outcome: '立誓。' },
+        { id: 'RE037-C', label: '断普连诀', quick: '舍弃普攻，换取怒气。', requirements: [], costs: [], rewards: [], sacrifice_rule: 'endless_chain', outcome: '立誓。' },
+        { id: 'RE037-D', label: '离开', quick: '不立誓。', requirements: [], costs: [], rewards: [], outcome: '离开。' },
+      ] : [
         { id: `${entry.id}-A`, label: '选择甲', quick: '安全选择', requirements: [], costs: [], rewards: [], outcome: '结果甲' },
         { id: `${entry.id}-B`, label: '选择乙', quick: '风险选择', requirements: [], costs: [], rewards: [], outcome: '结果乙' },
       ],
@@ -325,8 +362,8 @@ async function writeFixture() {
     files: EXPECTED_MANIFEST_ENTRIES,
     counts: {
       methods: 10,
-      artifacts: 47,
-      ordinary_events: 36,
+      artifacts: 48,
+      ordinary_events: 37,
       core_events: 16,
       storylines: 6,
       act_enemies: 32,
@@ -453,6 +490,71 @@ test('the neighbor awakening mirror rule belongs only to RL08 and has one exact 
   await rewriteEntity(fixture, 'RL08', mirror)
   report = await reportFor(fixture)
   assert.ok(report.errors.some((error) => error.code === 'artifact-mirror-unique-group'))
+})
+
+test('artifact devour growth is configurable but belongs only to RL09', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  let report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map(error => `${error.code}:${error.message}`).join('\n'))
+  assert.deepEqual(fixture.entities.get('RL09').devour_rule, {
+    kind: 'stack_consumption_damage',
+    multiplier_per_stack: 1.1,
+    maximum_multiplier: 1_000_000_000_000,
+  })
+  const page = renderDocuments(report).get('artifacts/LEGENDARY.md')
+  assert.match(page, /每吞噬一件其他已持有法宝整栈，独立伤害乘区乘以 1\.1/)
+  assert.match(page, /最高为 1000000000000；无主动战斗触发，铭刻不会生效/)
+
+  const cauldron = structuredClone(fixture.entities.get('RL09'))
+  cauldron.devour_rule = { kind: 'other', multiplier_per_stack: 1.1, maximum_multiplier: 1_000_000_000_000, bonus: true }
+  await rewriteEntity(fixture, 'RL09', cauldron)
+  const unauthorized = structuredClone(fixture.entities.get('RL08'))
+  unauthorized.devour_rule = { kind: 'stack_consumption_damage', multiplier_per_stack: 1.1, maximum_multiplier: 1_000_000_000_000 }
+  await rewriteEntity(fixture, 'RL08', unauthorized)
+  report = await reportFor(fixture)
+  const codes = new Set(report.errors.map(error => error.code))
+  assert.ok(codes.has('artifact-devour-fields'))
+  assert.ok(codes.has('artifact-devour-kind'))
+  assert.ok(codes.has('artifact-devour-owner'))
+
+  delete unauthorized.devour_rule
+  await rewriteEntity(fixture, 'RL08', unauthorized)
+  cauldron.devour_rule.maximum_multiplier = 1
+  await rewriteEntity(fixture, 'RL09', cauldron)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some(error => error.code === 'artifact-devour-cap'))
+})
+
+test('RR02, RR06, RR08, and RR10 effects keep their exact authored contracts', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  let report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map(error => `${error.code}:${error.message}`).join('\n'))
+
+  const missingHeal = structuredClone(fixture.entities.get('RR02'))
+  missingHeal.effects = [missingHeal.effects[1]]
+  await rewriteEntity(fixture, 'RR02', missingHeal)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some(error => error.code === 'rare-artifact-effect-count'))
+
+  const wrongTrigger = structuredClone(fixture.entities.get('RR06'))
+  wrongTrigger.effects[1].trigger = 'round_end'
+  await rewriteEntity(fixture, 'RR06', wrongTrigger)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some(error => error.code === 'rare-artifact-effect-shape'))
+
+  const unboundedStorage = structuredClone(fixture.entities.get('RR08'))
+  unboundedStorage.effects[0].params.storage_cap_hp_ratio = 0.11
+  await rewriteEntity(fixture, 'RR08', unboundedStorage)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some(error => error.code === 'number-range'))
+
+  const extraCritField = structuredClone(fixture.entities.get('RR10'))
+  extraCritField.effects[0].params.extra_lightning_count = 2
+  await rewriteEntity(fixture, 'RR10', extraCritField)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some(error => error.code === 'rare-artifact-effect-params'))
 })
 
 test('event commitment schema is bounded and cannot be combined with an encounter', async (t) => {
@@ -1119,6 +1221,23 @@ test('loader rejects empty content files', async (t) => {
   const model = await loadContent({ contentRoot: fixture.root, manifestPath: path.join(fixture.root, 'manifest.yaml') })
   assert.ok(model.issues.some((issue) => issue.code === 'empty' && issue.path === 'rules/RULES.yaml'))
   assert.equal(validateLoadedContent(model).ok, false)
+})
+
+test('RE037 requires three immediate permanent-rule choices and a clean no-rule exit', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  const event = structuredClone(fixture.entities.get('RE037'))
+  const exit = event.options.find(option => option.id === 'RE037-D')
+  exit.rewards = [{ type: 'resource', resource: 'coins', amount: 1, basis: 'flat' }]
+  await rewriteEntity(fixture, 'RE037', event)
+  let report = await reportFor(fixture)
+  assert.ok(report.errors.some(error => error.code === 'sacrifice-rule-options'))
+
+  exit.rewards = []
+  event.acts = [1, 2, 3]
+  await rewriteEntity(fixture, 'RE037', event)
+  report = await reportFor(fixture)
+  assert.ok(report.errors.some(error => error.code === 'sacrifice-rule-acts'))
 })
 
 test('renderer structures mappings, expands talent and event effects, and keeps option encounters readable', async (t) => {

@@ -241,6 +241,10 @@ test('seeded drafts can offer all seven first-tier insights and all later shared
 
 test('rage echoes stay single-payment and do not copy artifact or sword resource bursts', () => {
   const boss = enemyLoadout('EN-A4-B1');
+  // Hold this mechanics fixture's opponent constant when campaign difficulty
+  // changes; otherwise its first hit can consume the shield before the tested
+  // rage action and the test no longer exercises the intended interaction.
+  boss.baseStats = { ...boss.baseStats, attack: 160, defense: 100, max_hp: 1185 };
   const shieldCombo = ['RL04', 'RC11'];
   const fourCoreCombo = ['RL04', 'RC09', 'RC12', 'RC14'];
 

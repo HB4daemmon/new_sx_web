@@ -1,5 +1,9 @@
 # V2 Experimental Contract
 
+> Historical first-iteration contract. Slot counts, save versions and branch
+> restrictions below describe that iteration; current rules are in
+> `docs/shanhai/rework/V2_EXPERIMENT.md` and repository collaboration in `AGENTS.md`.
+
 V1 is frozen at tag `V1` (`2f08f08`). Work only on `feat/v2-build-engine`.
 Do not merge the experiment into main. Do not edit the formal checkout's UI experiments.
 

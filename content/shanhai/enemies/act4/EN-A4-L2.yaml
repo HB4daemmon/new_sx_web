@@ -28,9 +28,9 @@ artifacts:
   - {id: RC15, stacks: 2}
   - {id: RR04, stacks: 1}
 stats:
-  attack: 144
-  defense: 84
-  max_hp: 990
+  attack: 273.6
+  defense: 105
+  max_hp: 1881
   crit_rate: 0.15
   speed: 14
 pressure: [持续伤害, 多段]

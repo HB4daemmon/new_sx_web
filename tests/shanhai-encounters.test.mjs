@@ -55,6 +55,7 @@ test('fixed reference board uses authored early/late tiers and traces its input 
   assert.match(report.inputHash, /^[a-f0-9]{64}$/);
   assert.equal(report.inputHash, report.records[0].inputHash);
   assert.deepEqual(report.input.referenceEquipment, REFERENCE_EQUIPMENT);
+  assert.equal(report.input.referenceStackRule, 'min(authored cap, 1 + ceil(reference cultivation tier / 2))');
   assert.equal(MAX_EQUIPMENT_SLOTS, 5);
   assert.equal(report.input.referenceEquipment.length, MAX_EQUIPMENT_SLOTS);
   assert.equal(report.input.referenceEquipment.filter(id =>
@@ -78,6 +79,10 @@ test('fixed reference board uses authored early/late tiers and traces its input 
     }
     assert.equal(row.player.artifacts.length, MAX_EQUIPMENT_SLOTS,
       `${row.enemyId}/${row.method} reference player loadout fills all five slots`);
+    for (const stack of row.player.artifacts) {
+      assert.equal(stack.stacks, Math.min(content.byId[stack.id].max_stacks, 1 + Math.ceil(row.referenceTier / 2)),
+        `${row.enemyId}/${row.method}/${stack.id} has the declared reference layers`);
+    }
   }
   for (const row of report.records) {
     const enemy = content.byId[row.enemyId];
@@ -166,7 +171,7 @@ test('enemy cards do not claim removed shield outlets or inflated player-facing 
 
   const c1 = content.byId['EN-A1-C1'];
   const c1Text = [c1.summary, c1.description, c1.identity, ...c1.counterplay, c1.preview].join('\n');
-  assert.equal(c1.stats.max_hp, 280);
+  assert.equal(c1.stats.max_hp, 291.2);
   assert.doesNotMatch(c1Text, /(?:气血|生命值).{0,12}(?:低于|高于).{0,12}(?:玩家|行者)/);
 
   const l1 = content.byId['EN-A4-L1'];

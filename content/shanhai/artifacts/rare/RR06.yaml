@@ -4,8 +4,8 @@ kind: artifact
 id: RR06
 name: 长明灯
 status: design_target
-summary: 最大气血 +30；完成战斗节点后恢复最大气血的8%；支援定位
-description: 每完成一次普通战、精英战或首领战节点，恢复最大气血的8%。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
+summary: 最大气血 +30；战后疗愈；每战首次受创回春并引燃敌人；支援定位
+description: 每完成一次普通战、精英战或首领战节点，恢复最大气血的8%。每场战斗首次被敌方主动作实际扣除气血后，再恢复最大气血的4%；只有这次治疗实际恢复了气血，才给敌人施加1层、持续2轮的燃烧。护盾完全吸收、持续伤害、反震及镜映伤害不触发受创回春；治疗仍可与甘露盏、琉璃法印和五毒经等规则联动。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [max_hp, travel, heal, battle_node, rare]
 source:
   basis: original
@@ -28,17 +28,25 @@ effects:
     params:
       ratio: 0.08
       basis: max_hp
-      combat: false
-      battle_types: [C, L, B]
-      real_battle_node_only: true
-      once_per_node: true
-      cap: max_hp
-      first_test_value: {max_hp_ratio: 0.08}
     requires: [real_battle_node_completed]
     consumes: []
     replaces: []
     limit: {scope: node, count: 1}
     text: 完成普通战、精英战或首领战节点后，恢复最大气血的8%；每个节点只触发一次，非战斗节点不触发。
+  - id: RR06-ENEMY-HP-LOSS-HEAL-BURN
+    trigger: enemy_action_end
+    operation: heal
+    target: self
+    params:
+      max_hp_ratio: 0.04
+      burn_stacks: 1
+      burn_duration_rounds: 2
+      burn_attack_ratio: 0.06
+    requires: []
+    consumes: []
+    replaces: []
+    limit: {scope: battle, count: 1}
+    text: 每场战斗首次遭敌方主动作实际扣除气血后，恢复最大气血的4%；只有实际恢复了气血才给该敌方1层持续2轮的燃烧。纯护盾吸收、中毒、燃烧、反震、镜映与自伤不触发。
 equipment_role: support
 acquisition:
   pools: [rare_artifact]

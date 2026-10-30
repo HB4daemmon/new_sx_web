@@ -49,12 +49,12 @@ export const AWAKENING_EFFECT_KINDS = COMPANION_EFFECT_KINDS
 export const ARTIFACT_IDS = Object.freeze([
   ...Array.from({ length: 24 }, (_, index) => `RC${String(index + 1).padStart(2, '0')}`),
   ...Array.from({ length: 15 }, (_, index) => `RR${String(index + 1).padStart(2, '0')}`),
-  ...Array.from({ length: 8 }, (_, index) => `RL${String(index + 1).padStart(2, '0')}`),
+  ...Array.from({ length: 9 }, (_, index) => `RL${String(index + 1).padStart(2, '0')}`),
 ])
 export const ARTIFACT_RARITIES = Object.freeze({
   ...Object.fromEntries(Array.from({ length: 24 }, (_, index) => [`RC${String(index + 1).padStart(2, '0')}`, 'common'])),
   ...Object.fromEntries(Array.from({ length: 15 }, (_, index) => [`RR${String(index + 1).padStart(2, '0')}`, 'rare'])),
-  ...Object.fromEntries(Array.from({ length: 8 }, (_, index) => [`RL${String(index + 1).padStart(2, '0')}`, 'legendary'])),
+  ...Object.fromEntries(Array.from({ length: 9 }, (_, index) => [`RL${String(index + 1).padStart(2, '0')}`, 'legendary'])),
 })
 export const ARTIFACT_FUSION_RECIPES = Object.freeze({
   RL06: Object.freeze({ inputs: Object.freeze(['RC14', 'RC15']), fights: 2 }),
@@ -70,6 +70,13 @@ export const ARTIFACT_GAMBIT_RULES = Object.freeze({
 })
 export const ARTIFACT_MIRROR_RULES = Object.freeze({
   RL08: Object.freeze({ kind: 'neighbor_awakening' }),
+})
+export const ARTIFACT_DEVOUR_RULES = Object.freeze({
+  RL09: Object.freeze({
+    kind: 'stack_consumption_damage',
+    multiplier_per_stack: Object.freeze({ min: 1.000001, max: 5 }),
+    maximum_multiplier: Object.freeze({ min: 2, max: 1_000_000_000_000 }),
+  }),
 })
 export const ARTIFACT_MIRROR_UNIQUE_GROUP = 'awakening_mirror'
 export const CORE_ARTIFACT_RULES = Object.freeze({
@@ -276,8 +283,62 @@ export const ARTIFACT_RESONANCE_RULES = Object.freeze({
   }),
 })
 
+const rareArtifactEffect = (trigger, operation, params, requires, scope, count) => Object.freeze({
+  trigger,
+  operation,
+  target: 'self',
+  params: Object.freeze(params),
+  requires: Object.freeze(requires),
+  limit: Object.freeze({ scope, count }),
+})
+
+export const RARE_ARTIFACT_EFFECT_RULES = Object.freeze({
+  RR02: Object.freeze({
+    'RR02-FIRST-SELF-HEAL-SHIELD': rareArtifactEffect(
+      'heal_resolved', 'shield', { ratio: numericRange(0, 1) }, ['effective_self_heal'], 'action', 1,
+    ),
+    'RR02-ENEMY-SHIELD-BREAK-HEAL': rareArtifactEffect(
+      'shield_broken', 'heal', { max_hp_ratio: numericRange(0, 1) }, [], 'battle', 1,
+    ),
+  }),
+  RR06: Object.freeze({
+    'RR06-BATTLE-NODE-HEAL': rareArtifactEffect(
+      'battle_node_complete', 'heal', { ratio: numericRange(0, 1), basis: 'max_hp' },
+      ['real_battle_node_completed'], 'node', 1,
+    ),
+    'RR06-ENEMY-HP-LOSS-HEAL-BURN': rareArtifactEffect(
+      'enemy_action_end', 'heal', {
+        max_hp_ratio: numericRange(0, 1),
+        burn_stacks: numericRange(1, 10, true),
+        burn_duration_rounds: numericRange(1, 10, true),
+        burn_attack_ratio: numericRange(0, 1),
+      }, [], 'battle', 1,
+    ),
+  }),
+  RR08: Object.freeze({
+    'RR08-ENEMY-ACTION-RAGE-GAIN': rareArtifactEffect(
+      'enemy_action_end', 'rage_gain', {
+        amount: numericRange(0, 100, true),
+        storage_cap_hp_ratio: numericRange(0, 0.1),
+        retaliation_ratio: numericRange(0, 1),
+        max_retaliations_per_battle: numericRange(1, 1, true),
+      }, ['positive_actual_hp_damage'], 'enemy_action', 1,
+    ),
+  }),
+  RR10: Object.freeze({
+    'RR10-DIRECT-CRIT-RAGE': rareArtifactEffect(
+      'direct_crit', 'rage_gain', {
+        amount: numericRange(0, 100, true),
+        per_action_cap: numericRange(1, 2, true),
+        lightning_on_crit: numericRange(2, 2, true),
+        lightning_attack_ratio: numericRange(0, 1),
+      }, ['effective_direct_critical_hit'], 'action', 2,
+    ),
+  }),
+})
+
 export const ORDINARY_EVENT_IDS = Object.freeze(
-  Array.from({ length: 36 }, (_, index) => `RE${String(index + 1).padStart(3, '0')}`),
+  Array.from({ length: 37 }, (_, index) => `RE${String(index + 1).padStart(3, '0')}`),
 )
 export const CORE_EVENT_IDS = Object.freeze(
   Array.from({ length: 16 }, (_, index) => `RK${String(index + 1).padStart(3, '0')}`),
@@ -437,6 +498,7 @@ export const ARTIFACT_BASELINE = Object.freeze({
   RL06: { name: '九幽毒火幡', max_stacks: 1, flat: {}, percent: {} },
   RL07: { name: '雌雄剑', max_stacks: 1, flat: {}, percent: {} },
   RL08: { name: '昆仑镜', max_stacks: 1, flat: { defense: 8 }, percent: {} },
+  RL09: { name: '饕餮鼎', max_stacks: 1, flat: {}, percent: {} },
 })
 
 export const ROUTE_LABELS = Object.freeze(['稳健', '精英', '追踪', '省钱', '硬闯', '避险'])
