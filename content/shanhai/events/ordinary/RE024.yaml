@@ -45,12 +45,13 @@ options:
     story_echo: 你付石系上剑穗，带着强化后的兵刃穿过经阁的余火。
   - id: RE024-C
     label: 合页退出经阁
-    quick: 不付灵石、不取法本或法宝，保留灵石与当前功法。
+    quick: 不取法本或法宝，记下残页中的几句剑意后离开。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你合上经页，带着原有灵石和功法离开火光。
-    story_echo: 你把残页留在经阁，合门离开时，现用功法与灵石仍在身边。
+    rewards:
+      - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
+    outcome: 你合上经页，记下残页中的几句剑意后离开；灵石与现用功法都未改变。
+    story_echo: 你只记下残页中的几句剑意便合页离开，没有取走经卷或法宝。
 settlement:
   once: true
   internal_battle_package: false

@@ -45,12 +45,13 @@ options:
     story_echo: 你付石收下赤炎珠，带着炉火余温离开被水汽侵扰的石道。
   - id: RE015-C
     label: 合纸沿旧路离开
-    quick: 不付灵石、不取法本或法宝，保留当前功法继续前行。
+    quick: 不取法本或法宝、不付灵石，记下余火中的几分行功心得。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你合上火纸离开旧炉，灵石与现用功法都留在身边。
-    story_echo: 你没有取炉边的法本或法宝，沿旧河道留下的高处继续前行。
+    rewards:
+      - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
+    outcome: 你合上火纸，记下余火中的几分行功心得后离开；灵石与现用功法都未改变。
+    story_echo: 你合上火纸，记下余火中的行功心得，沿旧路继续前行。
 settlement:
   once: true
   internal_battle_package: false

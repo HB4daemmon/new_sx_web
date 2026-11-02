@@ -94,15 +94,15 @@ function battleStats(content, loadout) {
   return stats;
 }
 
-function expectedCompanionDamage(content, target, mainMethod = 'RKF05') {
-  const attack = battleStats(content, makeLoadout(mainMethod, { companions: ['RKF10'] })).attack;
+function expectedCompanionDamage(content, target, mainMethod = 'RKF05', n = 4) {
+  const attack = battleStats(content, makeLoadout(mainMethod, { n, companions: ['RKF10'] })).attack;
   const defense = battleStats(content, target).defense;
   const constant = content.rules.combat.direct_defense_constant;
-  return 0.25 * attack * constant / (constant + defense);
+  return 0.25 * attack * constant / (constant + defense) * (n >= 3 ? 2 : 1);
 }
 
 test('RKF10 companion alternates shield, derived damage, shield on a different main method', () => {
-  const player = makeLoadout('RKF05', { companions: ['RKF10'] });
+  const player = makeLoadout('RKF05', { n: 2, companions: ['RKF10'] });
   const enemy = makeEnemy();
   const result = simulateBattle(baseContent, player, enemy, 'rkf10-companion-live-cycle', { roundLimit: 3 });
   const replay = simulateBattle(baseContent, player, enemy, 'rkf10-companion-live-cycle', { roundLimit: 3 });
@@ -115,7 +115,7 @@ test('RKF10 companion alternates shield, derived damage, shield on a different m
     frame.cue.owner === 'player').length, 3);
   assert.deepEqual(outputs.map(frame => frame.kind), ['shield', 'damage', 'shield']);
   near(outputs[0].amount, 250);
-  const derivedDamage = expectedCompanionDamage(baseContent, enemy);
+  const derivedDamage = expectedCompanionDamage(baseContent, enemy, 'RKF05', 2);
   near(outputs[1].amount, derivedDamage);
   near(outputs[2].amount, 250);
   assert.match(outputs[1].text, new RegExp(`伤害 ${Math.round(derivedDamage)}$`));
@@ -220,7 +220,7 @@ test('each fighter has an independent companion cycle, including a full-shield o
   });
   const fullShield = simulateBattle(
     fullShieldContent,
-    makeLoadout('RKF05', { companions: ['RKF10'], talents: ['V2-J4-A'] }),
+    makeLoadout('RKF05', { n: 4, companions: ['RKF10'], talents: ['V2-J4-A'] }),
     makeEnemy(),
     'rkf10-companion-full-shield',
     { roundLimit: 2 },
@@ -249,7 +249,7 @@ test('a selected pair bonus does not advance RKF10 companion alternation', () =>
   });
   const result = simulateBattle(
     content,
-    makeLoadout('RKF03', { companions: ['RKF06', 'RKF10'], hp: 9_999 }),
+    makeLoadout('RKF03', { n: 2, companions: ['RKF06', 'RKF10'], hp: 9_999 }),
     makeEnemy(),
     'rkf10-companion-pair-does-not-advance',
     { roundLimit: 3 },
@@ -265,7 +265,7 @@ test('a selected pair bonus does not advance RKF10 companion alternation', () =>
     frame.cue.sourceId === 'RKF06-COMPANION' && frame.text.includes('合练')).length, 1,
   'the second companion applies its own RKF03 pair bonus on the same action');
   near(result.frames.find(frame => frame.source === 'RKF10-COMPANION-ASSIST' && frame.kind === 'damage').amount,
-    expectedCompanionDamage(content, makeEnemy(), 'RKF03'));
+    expectedCompanionDamage(content, makeEnemy(), 'RKF03', 2));
   assert.ok(contribution(result, 'RKF06-COMPANION').triggers > 0);
 });
 
@@ -320,7 +320,7 @@ test('dead fighters and actions with no effective hit do not trigger or recurse 
 
   const ordinary = simulateBattle(
     baseContent,
-    makeLoadout('RKF05', { companions: ['RKF02'] }),
+    makeLoadout('RKF05', { n: 2, companions: ['RKF02'] }),
     makeEnemy(),
     'rkf02-companion-legacy-output',
     { roundLimit: 1 },

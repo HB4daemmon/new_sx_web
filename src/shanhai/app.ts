@@ -970,8 +970,10 @@ class ShanhaiApp {
     const loadout = this.game?.player;
     const incomingStack = state?.artifacts.find((item) => item.id === incomingId);
     if (!this.content || !loadout || !incomingStack) return 0;
-    const artifacts = loadoutArtifacts(loadout).filter((stack) => stack.id !== replacedId);
-    artifacts.push({ id: incomingId, stacks: incomingStack.stacks });
+    const artifacts = loadoutArtifacts(loadout);
+    const index = artifacts.findIndex((stack) => stack.id === replacedId);
+    if (index < 0) return 0;
+    artifacts[index] = { id: incomingId, stacks: incomingStack.stacks };
     return calculateStats(this.content, { ...loadout, artifacts }).max_hp - this.stats().max_hp;
   }
 
@@ -1207,6 +1209,10 @@ class ShanhaiApp {
     const lockedReason = this.equipmentLockReason();
     return `<section class="build-section equipment-section" aria-labelledby="equipment-title">
       <div class="section-heading"><h2 id="equipment-title">当前装备</h2><span>已装备 ${equippedIds.length} / ${MAX_EQUIPMENT_SLOTS}</span></div>
+      <div class="equipment-position-guide" aria-label="阵位效果">
+        <span><b>阵首（第1格）</b> 法宝静态属性 ×1.5；可叠层普通法宝觉醒判定 +1 层，不增加真实层数。</span>
+        <span><b>阵尾（第5格）</b> 仅该法宝自身触发的伤害、治疗、护盾 ×1.25；镜映与铭刻复制不加成，未满五件时无阵尾。</span>
+      </div>
       <div class="equipment-slot-grid">
         ${Array.from({ length: MAX_EQUIPMENT_SLOTS }, (_, index) =>
           this.equipmentSlotMarkup(index, equippedIds[index] || null),
@@ -1495,9 +1501,9 @@ class ShanhaiApp {
     return this.game?.availableTalents() || [];
   }
 
-  private optionAvailability(option: Entity): { available: boolean; reason: string } {
+  private optionAvailability(option: Entity, targetId?: string): { available: boolean; reason: string } {
     try {
-      const value = this.game?.optionAvailability(option);
+      const value = this.game?.optionAvailability(option, targetId);
       if (!value) return { available: false, reason: '无法检查选项' };
       if (value.available) return value;
       return { ...value, reason: this.optionUnavailableReason(option, value.reason) };
@@ -2524,13 +2530,18 @@ class ShanhaiApp {
 
   private activeCompanionMarkup(state: RunState): string {
     const companions = this.game?.player.companions ?? state.ownedMethods.filter(id => id !== state.method);
-    return companions.filter(id => id !== state.method).map(companionId => {
+    return companions.filter(id => id !== state.method).map((companionId, index) => {
       const method = this.methodEntity(companionId);
       const authored = isRecord(method?.companion) ? method.companion : undefined;
       if (!method || !authored) return '';
       const name = asText(authored.name, asText(method.name, '护道灵相'));
       const quick = asText(authored.quick, '');
-      return `<p class="build-companion-brief" data-active-companion="${esc(companionId)}"><b>护道 · ${esc(name)}</b>${quick ? `<span>${this.textMarkup(quick)}</span>` : ''}</p>`;
+      const advancement = index === 0
+        ? state.n >= 3
+          ? '<span class="build-companion-advance">元婴三重已进阶：护道协战的伤害、护盾、治疗、怒气与状态层数均翻倍。</span>'
+          : '<span class="build-companion-advance">元婴三重后，护道协战的伤害、护盾、治疗、怒气与状态层数均翻倍。</span>'
+        : '';
+      return `<p class="build-companion-brief" data-active-companion="${esc(companionId)}"><b>护道 · ${esc(name)}</b>${quick ? `<span>${this.textMarkup(quick)}</span>` : ''}${advancement}</p>`;
     }).join('');
   }
 
@@ -2551,7 +2562,7 @@ class ShanhaiApp {
     const inscription = listOf<ArtifactStack>(state?.artifacts)
       .find((stack) => stack.id === artifact.id)?.inscription;
     const overview = fusionRecipe && !stacks
-      ? `融合进度 · 合格战斗胜利 ${formatNumber(fusionStatus?.wins ?? 0)} / ${formatNumber(fusionStatus?.requiredWins ?? fusionRecipe.fights)} · ${fusionStatus?.label ?? '尚未形成 · 未取得'}`
+      ? `融合进度 · ${formatNumber(fusionStatus?.wins ?? 0)} 场真实胜利 + ${formatNumber(fusionStatus?.catalyses ?? 0)} 次催化 / ${formatNumber(fusionStatus?.requiredWins ?? fusionRecipe.fights)} · ${fusionStatus?.label ?? '尚未形成 · 未取得'}`
       : `${resonance || entitySummary(artifact) || '法宝效果详录可查看。'}${inscription ? ` 铭刻：${INSCRIPTION_COPY[inscription].label} · ${INSCRIPTION_COPY[inscription].effect}` : ''}`;
     const growth = artifact.id === DEVOURING_ARTIFACT_ID
       ? this.artifactGrowthSummary(state?.artifacts.find(stack => stack.id === artifact.id), Boolean(equipmentSlot))
@@ -2591,7 +2602,7 @@ class ShanhaiApp {
     artifact: Entity,
     state: RunState,
     requiredWins: number,
-  ): { wins: number; requiredWins: number; formed: boolean; received: boolean; label: string } {
+  ): { wins: number; catalyses: number; progress: number; requiredWins: number; formed: boolean; received: boolean; label: string } {
     const record = this.fusionRecord(state, artifact.id);
     let runtimeStatus: Record<string, any> | undefined;
     try {
@@ -2601,9 +2612,14 @@ class ShanhaiApp {
       // Fall back to the saved evidence count if the runtime status is unavailable.
     }
     const winsFromEvidence = listOf<any>(record?.wins).length;
+    const catalysesFromEvidence = listOf<any>((state as any).catalyses)
+      .filter((entry) => isRecord(entry) && entry.kind === 'fusion_step' && entry.targetId === artifact.id).length;
     const rawWins = Number.isFinite(runtimeStatus?.wins)
       ? asNumber(runtimeStatus?.wins)
       : winsFromEvidence;
+    const rawCatalyses = Number.isFinite(runtimeStatus?.catalyses)
+      ? asNumber(runtimeStatus?.catalyses)
+      : catalysesFromEvidence;
     const actualRequiredWins = Math.max(1, Math.floor(asNumber(runtimeStatus?.requiredWins, requiredWins)));
     const received = listOf<ArtifactStack>(state.artifacts)
       .some((stack) => stack.id === artifact.id && asNumber(stack.stacks) > 0);
@@ -2611,12 +2627,14 @@ class ShanhaiApp {
     const formed = received || runtimeStatus?.complete === true ||
       historyRecords.some((entry) => isRecord(entry) && entry.id === artifact.id);
     const wins = clamp(Math.floor(asNumber(rawWins)), 0, actualRequiredWins);
+    const catalyses = clamp(Math.floor(asNumber(rawCatalyses)), 0, actualRequiredWins);
+    const progress = clamp(wins + catalyses, 0, actualRequiredWins);
     const label = received
       ? '已形成 · 已收入'
       : formed
         ? '已形成 · 尚未收入'
         : '尚未形成 · 未取得';
-    return { wins, requiredWins: actualRequiredWins, formed, received, label };
+    return { wins, catalyses, progress, requiredWins: actualRequiredWins, formed, received, label };
   }
 
   private fusionInputMarkup(inputId: string, state: RunState): string {
@@ -2634,11 +2652,11 @@ class ShanhaiApp {
     const recipe = this.fusionRecipe(artifact);
     if (!recipe) return '';
     const status = this.fusionStatus(artifact, state, recipe.fights);
-    return `<article class="fusion-recipe ${compact ? 'is-compact' : ''}" data-fusion-output="${esc(artifact.id)}" data-fusion-wins="${status.wins}">
+    return `<article class="fusion-recipe ${compact ? 'is-compact' : ''}" data-fusion-output="${esc(artifact.id)}" data-fusion-wins="${status.wins}" data-fusion-catalyses="${status.catalyses}">
       <header class="fusion-recipe-head"><b>${esc(asText(artifact.name, artifact.id))}</b><span>${esc(status.label)}</span></header>
-      <p class="fusion-progress"><b>${formatNumber(status.wins)} / ${formatNumber(status.requiredWins)}</b><span>合格战斗胜利</span></p>
+      <p class="fusion-progress"><b>${formatNumber(status.wins)} + ${formatNumber(status.catalyses)} / ${formatNumber(status.requiredWins)}</b><span>真实胜利 + 炉火催化</span></p>
       <ul class="fusion-inputs">${recipe.inputs.map((id) => this.fusionInputMarkup(id, state)).join('')}</ul>
-      ${compact ? '' : `<p class="fusion-rule-copy">战斗开始与胜利结算时都须持有每种材料各一层；事件中的战斗胜利也计入。</p>`}
+      ${compact ? '' : `<p class="fusion-rule-copy">真实胜利要求战斗开始与胜利结算时都持有每种材料各一层；事件中的真实胜利也计入。炉火催化另行记录，不伪装成战斗胜利。</p>`}
     </article>`;
   }
 
@@ -2658,7 +2676,7 @@ class ShanhaiApp {
     const summary = recipes.map((artifact) => {
       const recipe = this.fusionRecipe(artifact)!;
       const status = this.fusionStatus(artifact, state, recipe.fights);
-      return `${asText(artifact.name, artifact.id)} ${formatNumber(status.wins)} / ${formatNumber(status.requiredWins)}`;
+      return `${asText(artifact.name, artifact.id)} ${formatNumber(status.wins)}胜 + ${formatNumber(status.catalyses)}催化 / ${formatNumber(status.requiredWins)}`;
     }).join(' · ');
     return `<details class="disclosure fusion-ledger" data-details="fusion-ledger"><summary>融合进度 · ${esc(summary)}</summary><div class="fusion-ledger-body">${recipes.map((artifact) => this.fusionRecipeMarkup(artifact, state, true)).join('')}<p class="fusion-consumption-note">完成时各消耗材料一层，装备中的材料也会消耗；有空装备位时成品自动装备，否则收入背包。</p></div></details>`;
   }
@@ -2679,11 +2697,45 @@ class ShanhaiApp {
     const fusionEntries: Array<Record<string, any>> = listOf<any>((state as any).fusionHistory)
       .filter(isRecord)
       .map((entry): Record<string, any> => ({ ...entry, _journeyKind: 'fusion' }));
-    return [...routeEntries, ...fusionEntries].sort((left, right) =>
+    const catalysisEntries: Array<Record<string, any>> = listOf<any>((state as any).catalyses)
+      .filter(isRecord)
+      .map((entry): Record<string, any> => ({
+        act: entry.act,
+        step: entry.step,
+        title: entry.kind === 'fusion_step' ? '合炼催化'
+          : entry.kind === 'artifact_growth' ? '装备点化' : '断生立誓',
+        text: this.catalysisHistoryText(entry),
+        _journeyKind: 'catalysis',
+      }));
+    return [...routeEntries, ...fusionEntries, ...catalysisEntries].sort((left, right) =>
       asNumber(right.act) - asNumber(left.act) ||
       asNumber(right.step) - asNumber(left.step) ||
-      Number(right._journeyKind === 'fusion') - Number(left._journeyKind === 'fusion'),
+      ({ fusion: 2, catalysis: 1 }[right._journeyKind as 'fusion' | 'catalysis'] ?? 0) -
+        ({ fusion: 2, catalysis: 1 }[left._journeyKind as 'fusion' | 'catalysis'] ?? 0),
     );
+  }
+
+  private catalysisHistoryText(record: Record<string, any>): string {
+    const location = `第${formatNumber(record.act)}幕第${formatNumber(asNumber(record.step) + 1)}处`;
+    const event = this.byId(record.eventId);
+    const option = isRecord(event) ? listOf<Entity>(event.options).find(candidate => candidate.id === record.optionId) : undefined;
+    const eventSource = `${asText(event?.name, '行旅事件')} · ${asText(option?.label, '机缘选择')}`;
+    const cost = `${formatNumber(record.costCoins, 2)} 灵石`;
+    if (record.kind === 'fusion_step') {
+      const recipe = this.artifactEntity(record.targetId);
+      const materials = listOf<any>(record.materials).map(stack =>
+        `${asText(this.artifactEntity(stack.id)?.name, stack.id)} ×${formatNumber(stack.stacks)}`,
+      ).join('、');
+      const source = record.source === 'event' ? eventSource : record.source === 'rest' ? '休整炉火' : '坊市炉火';
+      return `${asText(recipe?.name, record.targetId)}前进一步 · ${source} · 材料 ${materials} · 实付 ${cost}。`;
+    }
+    if (record.kind === 'artifact_growth') {
+      const artifact = this.artifactEntity(record.targetId);
+      return `${asText(artifact?.name, record.targetId)}由 ${formatNumber(record.beforeStacks)} 层点化至满层 ${formatNumber(record.afterStacks)} 层 · ${eventSource} · ${location} · 实付 ${cost}。`;
+    }
+    const method = this.methodEntity(record.methodId);
+    const replaced = this.talentEntity(record.methodId, record.replacedTalent);
+    return `在${asText(method?.name, record.methodId)}中以${asText(replaced?.name, record.replacedTalent)}替换一阶天赋，习得断生入魔 · ${eventSource} · ${location} · 实付 ${cost}。`;
   }
 
   private artifactStatMarkup(artifact: Entity, limit = 3): string {
@@ -2729,7 +2781,7 @@ class ShanhaiApp {
       ${journeys.length ? `<section class="build-section karma-characters"><div class="section-heading"><h2>人物因缘</h2></div>${this.characterJourneyMarkup(state)}</section>` : ''}
       ${commitments.length ? `<section class="build-section journey-commitments"><div class="section-heading"><h2>行旅约定</h2><span>${commitments.filter(record => record.status === 'active').length} 项待兑现</span></div>${commitments.map(record => `<article class="journey-commitment" data-commitment-status="${record.status}"><h3>${esc(record.snapshot.name)}<small>${record.status === 'active' ? `余 ${record.remaining} 处` : ({ fulfilled: '已兑现', broken: '已失约', expired: '已过期' }[record.status])}</small></h3><p>${record.status === 'active' ? esc(`期间不进入${record.snapshot.avoid_node_types.map(type => nodeMeta(type).label).join('、')}；${record.snapshot.rewards.map(reward => this.effectLabel(reward, false)).join('，')}。失约不退费，终战前未兑现作废；满层或冲突部分每层折4灵石。`) : esc(record.resultText || record.snapshot.failure_outcome)}</p></article>`).join('')}</section>` : ''}
       ${this.storyEchoMarkup(state)}
-      <details class="disclosure" data-details="journey-history"><summary>完整行迹 · ${history.length} 处</summary><section class="timeline" aria-label="行迹记录">${history.length ? history.map((item, index) => `<article class="timeline-item ${item._journeyKind === 'fusion' ? 'fusion-history' : ''}" data-history-kind="${item._journeyKind === 'fusion' ? 'fusion' : 'node'}"><span class="timeline-index">${String(history.length - index).padStart(2, '0')}</span><div><small>${item.act === 5 ? '天门' : `第${esc(asText(item.act))}幕`} · 节点 ${formatNumber(asNumber(item.step) + 1)}${item._journeyKind === 'fusion' ? ' · 融合完成' : ''}</small><h3>${esc(this.displayText(asText(item.title, '山海一刻')))}</h3><p>${esc(this.displayText(asText(item.text, '')))}</p></div></article>`).join('') : '<p class="empty-note">山河初展，尚待第一笔记录。</p>'}</section></details>
+      <details class="disclosure" data-details="journey-history"><summary>完整行迹 · ${history.length} 处</summary><section class="timeline" aria-label="行迹记录">${history.length ? history.map((item, index) => `<article class="timeline-item ${item._journeyKind === 'fusion' ? 'fusion-history' : item._journeyKind === 'catalysis' ? 'catalysis-history' : ''}" data-history-kind="${item._journeyKind === 'fusion' ? 'fusion' : item._journeyKind === 'catalysis' ? 'catalysis' : 'node'}"><span class="timeline-index">${String(history.length - index).padStart(2, '0')}</span><div><small>${item.act === 5 ? '天门' : `第${esc(asText(item.act))}幕`} · 节点 ${formatNumber(asNumber(item.step) + 1)}${item._journeyKind === 'fusion' ? ' · 融合完成' : item._journeyKind === 'catalysis' ? ' · 催化记录' : ''}</small><h3>${esc(this.displayText(asText(item.title, '山海一刻')))}</h3><p>${esc(this.displayText(asText(item.text, '')))}</p></div></article>`).join('') : '<p class="empty-note">山河初展，尚待第一笔记录。</p>'}</section></details>
       ${this.inlineMessage()}
     </section>`;
   }
@@ -2754,7 +2806,7 @@ class ShanhaiApp {
     const completed = state.nodes.filter((node) => node.completed).length;
     const total = state.act === 5 ? 1 : 11;
     return `<section class="goal-panel"><p class="eyebrow">第${String(state.act).padStart(2, '0')}幕</p><h2>${esc(asText(story.title || act.name, `第${state.act}幕`))}</h2><div class="node-count-line"><span>行程</span><b>${completed} / ${total}</b></div><div class="bar thin"><i style="width:${pct(completed, total)}%"></i></div></section>
-      <section class="history-panel"><div class="rail-heading"><span>行迹</span><small>最近记录</small></div>${history.length ? history.map((item) => `<article class="${item._journeyKind === 'fusion' ? 'fusion-history' : ''}" data-history-kind="${item._journeyKind === 'fusion' ? 'fusion' : 'node'}"><b>${esc(this.displayText(asText(item.title, '山海一刻')))}</b><p>${esc(this.displayText(asText(item.text, '')))}</p></article>`).join('') : '<p class="empty-note">第一笔行迹尚未落下。</p>'}</section>
+      <section class="history-panel"><div class="rail-heading"><span>行迹</span><small>最近记录</small></div>${history.length ? history.map((item) => `<article class="${item._journeyKind === 'fusion' ? 'fusion-history' : item._journeyKind === 'catalysis' ? 'catalysis-history' : ''}" data-history-kind="${item._journeyKind === 'fusion' ? 'fusion' : item._journeyKind === 'catalysis' ? 'catalysis' : 'node'}"><b>${esc(this.displayText(asText(item.title, '山海一刻')))}</b><p>${esc(this.displayText(asText(item.text, '')))}</p></article>`).join('') : '<p class="empty-note">第一笔行迹尚未落下。</p>'}</section>
       `;
   }
 
@@ -2945,7 +2997,7 @@ class ShanhaiApp {
     if (trial.kind === 'tidal_charge') {
       return {
         kind: 'tidal_charge',
-        title: '潮汐蓄击',
+        title: entity.id === 'EN-A2-B2' ? '干将战誓' : '潮汐蓄击',
         period,
         charges,
         effect: `每格造成 ${formatNumber(asNumber(trial.attack_ratio_per_charge) * 100, 1)}% 攻击力伤害`,
@@ -2962,18 +3014,87 @@ class ShanhaiApp {
         counterplay: '中毒或燃烧跳伤实际扣到气血时削去 1 格；只伤护盾的持续伤害和直击不计。',
       };
     }
+    if (trial.kind === 'rage_gale') {
+      return {
+        kind: 'rage_gale',
+        title: '雷怒削势',
+        period,
+        charges,
+        effect: `每格削减 ${formatNumber(asNumber(trial.rage_drain_per_charge))} 怒气，受每轮 20 点上限约束`,
+        counterplay: '每次有效直接或派生命中削去 1 格；释放不取消已经锁定的动作。',
+      };
+    }
+    if (trial.kind === 'ember_shell') {
+      return {
+        kind: 'ember_shell',
+        title: '烬甲回响',
+        period,
+        charges,
+        effect: `每格生成最大气血的 ${formatNumber(asNumber(trial.shield_hp_ratio_per_charge) * 100, 1)}% 护盾`,
+        counterplay: '中毒或燃烧跳伤实际扣到气血时削去 1 格；直击仍可继续拆已生成的护盾。',
+      };
+    }
+    if (trial.kind === 'blade_oath') {
+      return {
+        kind: 'blade_oath',
+        title: '干将战誓',
+        period,
+        charges,
+        effect: `以剩余格数合成一记攻击 ${formatNumber(asNumber(trial.attack_ratio_per_charge) * 100, 1)}% / 格的直接斩击`,
+        counterplay: '每次有效直接或派生命中削去 1 格；多段和派生攻击都计入。',
+      };
+    }
+    if (trial.kind === 'six_eye_gaze') {
+      return {
+        kind: 'six_eye_gaze',
+        title: '六目镇阶',
+        period,
+        charges,
+        effect: `每格施加虚弱 ${formatNumber(asNumber(trial.weakness_stacks_per_charge))} 层、破甲 ${formatNumber(asNumber(trial.armor_break_stacks_per_charge))} 层，持续 ${formatNumber(asNumber(trial.duration_rounds))} 轮`,
+        counterplay: '有效直接、派生命中或毒火跳伤实际扣血，各削去 1 格。',
+      };
+    }
     return undefined;
+  }
+
+  private bossPhaseGateInfo(entity?: Entity): {
+    shieldRatio: number;
+    exposureRatio: number;
+    exposureRounds: number;
+  } | undefined {
+    if (entity?.kind !== 'enemy' || !isRecord(entity.phase_gate) || entity.phase_gate.kind !== 'half_health_gate') {
+      return undefined;
+    }
+    return {
+      shieldRatio: asNumber(entity.phase_gate.shield_hp_ratio),
+      exposureRatio: asNumber(entity.phase_gate.exposure_damage_ratio),
+      exposureRounds: Math.max(1, Math.floor(asNumber(entity.phase_gate.exposure_rounds, 1))),
+    };
   }
 
   private bossTrialMarkup(entity?: Entity, compact = false): string {
     const trial = this.bossTrialInfo(entity);
-    if (!trial) return '';
-    const summary = `每 ${formatNumber(trial.period)} 回合 · 初始准备 ${formatNumber(trial.charges)} 格`;
-    return `<section class="boss-trial-brief ${compact ? 'compact' : ''}" data-trial-kind="${esc(trial.kind)}" aria-label="${esc(`${trial.title}首领准备`)}">
-      <div class="boss-trial-heading"><span>${icon(trial.kind === 'tidal_charge' ? 'sword' : 'gourd', 16)}首领准备</span><strong>${esc(trial.title)}</strong></div>
-      <p>${esc(summary)} · ${esc(trial.effect)}。</p>
-      <p><b>破解</b> · ${esc(trial.counterplay)}</p>
-    </section>`;
+    const gate = this.bossPhaseGateInfo(entity);
+    const trialMarkup = trial
+      ? (() => {
+        const summary = `每 ${formatNumber(trial.period)} 轮 · 初始准备 ${formatNumber(trial.charges)} 格`;
+        const trialIcon = ['tidal_charge', 'blade_oath'].includes(trial.kind) ? 'sword'
+          : ['reviving_mist', 'ember_shell'].includes(trial.kind) ? 'gourd' : 'bolt';
+        return `<section class="boss-trial-brief ${compact ? 'compact' : ''}" data-trial-kind="${esc(trial.kind)}" aria-label="${esc(`${trial.title}首领准备`)}">
+          <div class="boss-trial-heading"><span>${icon(trialIcon, 16)}首领准备</span><strong>${esc(trial.title)}</strong></div>
+          <p>${esc(summary)} · ${esc(trial.effect)}。</p>
+          <p><b>破解</b> · ${esc(trial.counterplay)}</p>
+        </section>`;
+      })()
+      : '';
+    const gateMarkup = gate
+      ? `<section class="boss-trial-brief phase-gate-brief ${compact ? 'compact' : ''}" data-phase-gate="half-health" aria-label="终战半血劫门">
+          <div class="boss-trial-heading"><span>${icon('shield', 16)}二阶段</span><strong>半血劫门</strong></div>
+          <p>首次降至最大气血一半时只触发一次：截住该击余伤，生成最大气血 ${formatNumber(gate.shieldRatio * 100, 1)}% 的有限护罩。直击、派生、毒火、反噬均可消耗，不会重生。</p>
+          <p><b>破罩</b> · 本轮余下及随后 ${formatNumber(gate.exposureRounds)} 轮，承受伤害提高 ${formatNumber((gate.exposureRatio - 1) * 100, 1)}%。</p>
+        </section>`
+      : '';
+    return `${trialMarkup}${gateMarkup}`;
   }
 
   private reachableMapNode(id: string): RouteMapNode | undefined {
@@ -4226,6 +4347,17 @@ class ShanhaiApp {
     const costs = listOf<any>(option.costs);
     const rewards = listOf<any>(option.rewards);
     const label = this.textMarkup(asText(option.label, option.name));
+    if (isRecord(option.catalysis)) {
+      const targets = listOf<any>(this.game?.eventCatalysisTargets(option));
+      const targetButtons = targets.map((target) => {
+        const availability = this.optionAvailability(option, asText(target.id));
+        return `<button type="button" class="button small ${availability.available ? 'primary' : ''}" data-action="event" data-id="${esc(asText(option.id))}" data-target="${esc(asText(target.id))}" ${availability.available ? '' : 'disabled'}><b>${esc(asText(target.label, target.id))}</b><small>${esc(this.displayText(asText(target.detail)))}</small></button>`;
+      }).join('');
+      const noTarget = !targets.length
+        ? `<em class="disabled-reason">${esc(check.reason || '当前没有可催化对象')}</em>`
+        : '';
+      return `<div class="event-option event-catalysis-option" role="group" aria-label="${esc(asText(option.label, option.name))}"><span class="event-option-main"><b>${label}</b>${asText(option.quick) ? `<small>${semanticTextMarkup(this.displayText(asText(option.quick)))}</small>` : ''}${costs.length ? `<span class="event-costs">${costs.map((cost) => `<i>${this.textMarkup(this.effectLabel(cost, true))}</i>`).join('')}</span>` : ''}${noTarget}</span><div class="event-catalysis-targets">${targetButtons}</div></div>`;
+    }
     if (option.reveal === 'hint') {
       const hint = this.displayText(asText(option.check?.hint || option.quick, ''));
       return `<button class="event-option ${check.available ? '' : 'disabled'} event-option-hint" data-action="event" data-id="${esc(option.id)}" ${check.available ? '' : 'disabled'}><span class="event-option-main"><b>${label}</b>${hint ? `<small>${semanticTextMarkup(hint)}</small>` : ''}${costs.length ? `<span class="event-costs">${costs.map((cost) => `<i>${this.textMarkup(this.effectLabel(cost, true))}</i>`).join('')}</span>` : ''}</span>${icon(check.available ? 'arrow' : 'close', 18)}</button>`;
@@ -4463,10 +4595,30 @@ class ShanhaiApp {
     }).join('')}</select><p class="rest-temper-result">${esc(asText(artifact.name, artifactId))}：叠层 ${formatNumber(currentStacks)} → ${formatNumber(Math.min(maxStacks, currentStacks + 1))} / ${formatNumber(maxStacks)}</p><p class="reforge-terms">定向提升 1 层 · ${formatNumber(cost)} 灵石</p>${enoughCoins ? '' : '<p class="reforge-unavailable" role="status">灵石不足</p>'}<button class="button small primary" data-action="rest" data-choice="temper" data-artifact="${esc(artifactId)}" ${enoughCoins ? '' : 'disabled'}>温养此物</button>`;
   }
 
+  private fusionCatalysisMarkup(): string {
+    let offers: any[] = [];
+    try {
+      offers = listOf<any>(this.game?.fusionCatalysisOffers());
+    } catch {
+      return '';
+    }
+    if (!offers.length) return '';
+    return `<details class="disclosure fusion-catalysis" data-details="fusion-catalysis"><summary>炉火催动 · ${offers.length} 项未完成合炼</summary><div class="fusion-ledger-body"><p>本次休整或坊市仅可催动一项。每次支付半份普通法宝标价，须先取得该配方的一场真实胜利并仍持有两种材料。</p>${offers.map(offer => {
+      const materials = listOf<string>(offer.materials).map(id => asText(this.artifactEntity(id)?.name, id)).join('、');
+      const reason = offer.reason === 'cannot-pay' ? '灵石不足'
+        : offer.reason === 'missing-materials' ? '缺少配方材料'
+          : offer.reason === 'fusion-capacity' ? '装备与收纳空间不足'
+            : offer.reason === 'service-already-used' ? '本处已催动过合炼'
+              : offer.reason === 'needs-real-win' ? '尚无真实胜利记录'
+                : offer.available ? '' : '当前无法催动';
+      return `<article class="fusion-recipe fusion-catalysis-offer" data-catalysis-recipe="${esc(asText(offer.id))}"><header class="fusion-recipe-head"><b>${esc(asText(offer.name, offer.id))}</b><span>${formatNumber(offer.wins)} 场真实胜利 + ${formatNumber(offer.catalyses)} 次催化 / ${formatNumber(offer.required)}</span></header><p class="fusion-consumption-note">材料：${esc(materials)} · 本次 ${formatNumber(offer.price)} 灵石${offer.completes ? ' · 催动后完成合炼' : ''}</p>${reason ? `<small class="shop-item-unavailable" role="status">${esc(reason)}</small>` : ''}<button type="button" class="button small primary" data-action="catalyze-fusion" data-id="${esc(asText(offer.id))}" ${offer.available ? '' : 'disabled'}>催动一步</button></article>`;
+    }).join('')}</div></details>`;
+  }
+
   private shopView(state: RunState): string {
     const items = listOf<any>(state.shop);
     return `<header class="shop-heading">${this.stageHeading('', '坊市')}<span class="shop-stock">库存 ${items.filter((item) => !item.sold).length} / ${items.length || 5}</span></header>
-      <div class="shop-grid">${items.map((item) => this.shopItem(item)).join('') || '<p class="empty-note">坊市没有可展示的库存。</p>'}</div>${this.inscriptionToolMarkup(state)}${this.reforgeToolMarkup(state)}<div class="stage-actions"><button class="button primary" data-action="leave-shop" data-autofocus>离开坊市 ${icon('arrow', 16)}</button></div>${this.inlineMessage()}`;
+      <div class="shop-grid">${items.map((item) => this.shopItem(item)).join('') || '<p class="empty-note">坊市没有可展示的库存。</p>'}</div>${this.fusionCatalysisMarkup()}${this.inscriptionToolMarkup(state)}${this.reforgeToolMarkup(state)}<div class="stage-actions"><button class="button primary" data-action="leave-shop" data-autofocus>离开坊市 ${icon('arrow', 16)}</button></div>${this.inlineMessage()}`;
   }
 
   private shopItem(item: any): string {
@@ -4515,7 +4667,7 @@ class ShanhaiApp {
       : `<p class="rest-limit">本次休整仅选一项</p><div class="rest-grid"><button class="rest-choice" data-action="rest" data-choice="heal" ${healBlocked ? 'disabled' : ''}><span>${sigil('gourd', 'shield')}</span><b>调息</b><p>${this.textMarkup(healBlocked ? '断生之誓：本局战外无法回血' : `恢复 ${formatNumber(healAmount)} 气血`)}</p></button><button class="rest-choice" data-action="rest" data-choice="preparation" ${state.preparation > 0 ? 'disabled' : ''}><span>${sigil('shield', 'jade')}</span><b>备战</b><p>${this.textMarkup(`下战护盾 +${formatNumber(prepAmount)}`)}</p>${state.preparation > 0 ? `<small>${this.textMarkup(`已有 ${formatNumber(state.preparation)} 护盾`)}</small>` : ''}</button>${swapDisabled ? '' : `<details class="rest-choice rest-swap" data-details="rest-swap"><summary>${sigil('book', 'gold')}<b>换法</b></summary>${swapList}</details>`}<details class="rest-choice rest-temper" data-details="rest-temper"><summary>${sigil('pearl', 'jade')}<b>温养</b><small>定向提升法宝一层</small></summary><div class="rest-temper-panel" data-temper-panel>${this.restTemperPanelMarkup(state)}</div></details></div><details class="disclosure rest-rules" data-details="rest-rules"><summary>休整详情</summary><p>调息不增加怒气。预备护盾用于下一场战斗，不能重复准备。温养定向提升一件可温养法宝一层并支付灵石。换法只切换已拥有的功法，各门天赋保留；完成任一选项同样消耗本次休整。</p></details>`;
     return `${this.stageHeading('途中歇息', '山中一息')}
       <section class="rest-summary"><div><span>预备护盾</span><b>${this.textMarkup(state.preparation)}</b></div><div><span>当前功法</span><b>${esc(asText(currentMethod?.name, state.method))}</b></div></section>
-      ${choices}${this.inlineMessage()}`;
+      ${choices}${fromEvent ? '' : this.fusionCatalysisMarkup()}${this.inlineMessage()}`;
   }
 
   private talentTreeMarkup(methodIdValue: string, selectable = false, activeTalents: Entity[] = []): string {
@@ -5437,8 +5589,26 @@ class ShanhaiApp {
         this.render();
         break;
       case 'event':
-        this.send({ type: 'event', id: asText(target.dataset.id) });
+        this.send({
+          type: 'event',
+          id: asText(target.dataset.id),
+          ...(target.dataset.target ? { targetId: target.dataset.target } : {}),
+        });
         break;
+      case 'catalyze-fusion': {
+        const id = asText(target.dataset.id);
+        const offer = this.game?.fusionCatalysisAvailability(id);
+        if (!offer?.available) {
+          this.notice = offer?.reason === 'cannot-pay' ? '灵石不足，无法催动合炼。'
+            : offer?.reason === 'missing-materials' ? '配方材料已变化，无法催动合炼。'
+              : offer?.reason === 'fusion-capacity' ? '没有足够空间收入合炼成品。'
+                : '这处服务已不能催动该合炼。';
+          this.render();
+          break;
+        }
+        this.send({ type: 'catalyze_fusion', id });
+        break;
+      }
       case 'buy':
         {
           const id = asText(target.dataset.id);

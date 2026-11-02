@@ -218,16 +218,16 @@ test('five equipped artifacts round-trip and a sixth equipped artifact is reject
   assert.throws(() => serializeRun(sixEquipped.state), /equipment/i);
 });
 
-test('build version 5 and real run progress are required save data', () => {
+test('build version 6 and real run progress are required save data', () => {
   const game = make('v2-progress-save');
-  assert.equal(game.state.buildVersion, 5);
+  assert.equal(game.state.buildVersion, 6);
   assert.deepEqual(game.state.progress, { coinsSpent: 0, eliteWins: 0, bossWins: 0 });
   const saved = JSON.parse(serializeRun(game));
   delete saved.state.buildVersion;
   assert.throws(() => parseRunSave(content, JSON.stringify(saved)), /build version/);
 
   const previousRules = structuredClone(game.state);
-  previousRules.buildVersion = 2;
+  previousRules.buildVersion = 5;
   assert.throws(() => parseRunSave(content, JSON.stringify(previousRules)), /build version/);
   assert.throws(() => validateRunState(content, previousRules), /build version/);
   assert.throws(() => serializeRun(previousRules), /build version/);

@@ -21,6 +21,7 @@ import {
   CONTENT_VERSION,
   CORE_EVENT_IDS,
   CORE_ARTIFACT_RULES,
+  ENEMY_PHASE_GATE_RULES,
   ENEMY_TRIAL_RULES,
   EFFECT_LIMIT_SCOPES,
   EFFECT_OPERATIONS,
@@ -112,6 +113,8 @@ const NUMERIC_KEYS = new Set([
   'duration_rounds_add',
   'effective_heal_ratio',
   'effective_incoming_segment',
+  'exposure_damage_ratio',
+  'exposure_rounds',
   'elite_coins_by_act',
   'elite_xp_by_act',
   'event_heal_ratio',
@@ -160,6 +163,7 @@ const NUMERIC_KEYS = new Set([
   'planned_storylines',
   'ratio',
   'ratio_add',
+  'rage_drain_per_charge',
   'rate',
   'reduction',
   'reduction_per_stack',
@@ -171,6 +175,8 @@ const NUMERIC_KEYS = new Set([
   'segments',
   'segments_per_stack',
   'shield_consume_ratio',
+  'shield_hp_ratio',
+  'shield_hp_ratio_per_charge',
   'shield_ratio_add',
   'speed',
   'stacks',
@@ -184,6 +190,8 @@ const NUMERIC_KEYS = new Set([
   'threshold',
   'total_ratio',
   'value',
+  'weakness_stacks_per_charge',
+  'armor_break_stacks_per_charge',
   'window',
   'xp',
 ])
@@ -1182,7 +1190,15 @@ function validateRareArtifactEffectRules(entity, errors) {
       continue
     }
     for (const [key, expected] of Object.entries(expectedParams)) {
-      if (typeof expected === 'string') {
+      if (Array.isArray(expected)) {
+        if (JSON.stringify(effect.params[key]) !== JSON.stringify(expected)) {
+          addIssue(errors, 'rare-artifact-effect-parameter', `${effectId}.${key} must match its authored values`, location)
+        }
+      } else if (typeof expected === 'boolean') {
+        if (effect.params[key] !== expected) {
+          addIssue(errors, 'rare-artifact-effect-parameter', `${effectId}.${key} must be ${expected}`, location)
+        }
+      } else if (typeof expected === 'string') {
         if (effect.params[key] !== expected) {
           addIssue(errors, 'rare-artifact-effect-parameter', `${effectId}.${key} must be ${expected}`, location)
         }
@@ -1474,6 +1490,33 @@ function validateEventCheck(check, option, known, errors, source) {
   }
 }
 
+function validateEventCatalysis(option, errors, source) {
+  if (option.catalysis === undefined) return
+  const kinds = ['fusion_step', 'artifact_growth', 'blood_vow']
+  if (!isRecord(option.catalysis) || !exactKeys(option.catalysis, ['kind']) ||
+    !kinds.includes(option.catalysis.kind)) {
+    addIssue(errors, 'event-catalysis', 'catalysis must contain exactly one supported kind', source)
+  }
+  const allowedOptionFields = [
+    'id', 'label', 'quick', 'requirements', 'costs', 'rewards', 'outcome', 'story_echo', 'catalysis',
+  ]
+  if (Object.keys(option).some(field => !allowedOptionFields.includes(field))) {
+    addIssue(errors, 'event-catalysis-fields', 'catalysis options cannot include checks, encounters, rewards, commitments, or other effects', source)
+  }
+  if (!Array.isArray(option.requirements) || option.requirements.length !== 0) {
+    addIssue(errors, 'event-catalysis-requirements', 'catalysis options must have no additional requirements', source)
+  }
+  if (!Array.isArray(option.costs) || option.costs.length !== 1 ||
+    !exactKeys(option.costs?.[0], ['type', 'resource', 'amount', 'basis']) ||
+    option.costs[0]?.type !== 'resource' || option.costs[0]?.resource !== 'coins' ||
+    option.costs[0]?.amount !== 0.5 || option.costs[0]?.basis !== 'common_price') {
+    addIssue(errors, 'event-catalysis-cost', 'catalysis costs must be exactly half the common artifact price in coins', source)
+  }
+  if (!Array.isArray(option.rewards) || option.rewards.length !== 0) {
+    addIssue(errors, 'event-catalysis-rewards', 'catalysis options cannot grant other rewards', source)
+  }
+}
+
 function validateEvent(entity, errors, known) {
   const source = sourceFor(entity)
   const expectedCore = CORE_EVENT_IDS.includes(entity.id)
@@ -1538,6 +1581,7 @@ function validateEvent(entity, errors, known) {
     if (option.reveal !== undefined && option.check === undefined) {
       addIssue(errors, 'option-reveal-check', 'option.reveal requires an option.check', location)
     }
+    validateEventCatalysis(option, errors, location)
     if (option.legacy_commitment !== undefined) {
       if (!['RE001-C', 'RE002-B'].includes(option.id)) {
         addIssue(errors, 'legacy-commitment-location', 'legacy_commitment is reserved for migrated RE001-C and RE002-B saves', location)
@@ -1792,6 +1836,30 @@ function validateEnemy(entity, errors, known) {
         finiteNumber(errors, entity.trial[key], location, `trial.${key}`, range)
       }
     }
+  } else if (ENEMY_TRIAL_RULES[entity.id]) {
+    addIssue(errors, 'enemy-trial-required', `${entity.id} must define its public trial`, `${source}:trial`)
+  }
+  if (Object.hasOwn(entity, 'phase_gate')) {
+    const phaseGateRule = ENEMY_PHASE_GATE_RULES[entity.id]
+    const location = `${source}:phase_gate`
+    if (!phaseGateRule || !final) {
+      addIssue(errors, 'enemy-phase-gate-owner', 'only final enemies may define a phase gate', location)
+    } else if (!isRecord(entity.phase_gate)) {
+      addIssue(errors, 'enemy-phase-gate-map', 'phase_gate must be a mapping', location)
+    } else {
+      const expectedFields = ['kind', ...Object.keys(phaseGateRule.params)]
+      if (!exactKeys(entity.phase_gate, expectedFields)) {
+        addIssue(errors, 'enemy-phase-gate-fields', `phase_gate must contain exactly ${expectedFields.join(', ')}`, location)
+      }
+      if (entity.phase_gate.kind !== phaseGateRule.kind) {
+        addIssue(errors, 'enemy-phase-gate-kind', `${entity.id} phase_gate kind must be ${phaseGateRule.kind}`, location)
+      }
+      for (const [key, range] of Object.entries(phaseGateRule.params)) {
+        finiteNumber(errors, entity.phase_gate[key], location, `phase_gate.${key}`, range)
+      }
+    }
+  } else if (ENEMY_PHASE_GATE_RULES[entity.id]) {
+    addIssue(errors, 'enemy-phase-gate-required', `${entity.id} must define its one-time half-health phase gate`, `${source}:phase_gate`)
   }
   const loadoutSources = enemyLoadoutSources(entity, known)
   if (!Array.isArray(entity.phases)) {

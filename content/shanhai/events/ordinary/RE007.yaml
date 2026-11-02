@@ -45,12 +45,13 @@ options:
     story_echo: 你付石带走一层回春瓶，沿着尚未被水淹没的堤脚继续走。
   - id: RE007-C
     label: 合卷离开堤脚
-    quick: 合上残简离开，保留灵石与当前功法。
+    quick: 合上残简，记下几句旧法心得后离开。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你合上旧页，没有花费灵石，现用功法也没有改变。
-    story_echo: 你合上旧页保留灵石与现用功法，趁堤脚尚可通行离开。
+    rewards:
+      - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
+    outcome: 你合上旧页，记下几句行功心得；没有花费灵石，也没有改变现用功法。
+    story_echo: 你合上残简，记下几句旧法心得，没有动用灵石或改修。
 settlement:
   once: true
   internal_battle_package: false

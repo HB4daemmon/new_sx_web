@@ -50,12 +50,13 @@ options:
     story_echo: 你付石取走赤炎珠，沿阵缘绕行，毒火与阵心仍留在身后。
   - id: RE027-C
     label: 顺阵缘继续找路
-    quick: 不付灵石、不参加问阵，保留气血与资源沿阵缘离开。
+    quick: 不闯阵、不取法宝，沿阵缘拾得少量盘缠后离开。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你没有闯阵或取珠，沿阵缘离开，太阴经仍在阵心。
-    story_echo: 你沿阵缘离开，没有取法本或法宝，继续寻找热流的来处。
+    rewards:
+      - {type: resource, resource: coins, amount: 0.1, basis: common_price}
+    outcome: 你没有闯阵或取珠，沿阵缘拾得少量盘缠后离开；太阴经仍在阵心。
+    story_echo: 你沿阵缘拾起少量盘缠后离开，太阴经仍留在阵心。
 settlement:
   once: true
   internal_battle_package: false

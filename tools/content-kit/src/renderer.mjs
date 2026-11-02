@@ -96,12 +96,15 @@ const fieldLabels = {
   damage_ratio: '伤害倍率',
   damage_ratio_add: '伤害倍率增量',
   damage_scope: '伤害范围',
+  armor_break_stacks_per_charge: '每格破甲层数',
   defense: '防御',
   defense_ratio: '防御倍率',
   description: '说明',
   duration: '持续范围',
   duration_policy: '持续规则',
   duration_rounds: '持续轮数',
+  exposure_damage_ratio: '破门易伤倍率',
+  exposure_rounds: '易伤轮数',
   duration_rounds_add: '持续轮数增量',
   effect: '效果',
   effect_id: '效果 ID',
@@ -157,6 +160,7 @@ const fieldLabels = {
   quick: '玩家摘要',
   ratio: '比例',
   ratio_add: '比例增量',
+  rage_drain_per_charge: '每格削怒',
   rarity: '位阶',
   reduction: '减免',
   reduction_per_stack: '每层减免',
@@ -176,6 +180,8 @@ const fieldLabels = {
   segments: '段数',
   set_flags: '设置标记',
   shield_from: '护盾取值',
+  shield_hp_ratio: '护罩气血倍率',
+  shield_hp_ratio_per_charge: '每格护盾气血倍率',
   shield_bonus_from: '护盾加成取值',
   shield_ratio_add: '护盾倍率增量',
   source: '来源',
@@ -198,6 +204,7 @@ const fieldLabels = {
   value: '数值',
   victory_condition: '胜利条件',
   window: '观察轮数',
+  weakness_stacks_per_charge: '每格虚弱层数',
   xp: '修为',
   requirement: '前置条件',
   requirements: '前置条件',
@@ -774,7 +781,7 @@ function renderRules(rules, context) {
     '',
     '## 共享突破天赋',
     '',
-    `首破从一阶${insights.filter((talent) => talent.tier === 1).length}项共享天赋中按种子固定展示三项；后续突破将本阶一项功法天赋与两项共享天赋并列展示。候选冻结，不因查看、重读或切换功法重抽。`,
+    `首破按种子固定展示一项本门天赋与两项共享天赋；后续突破展示不同分支的两项本门天赋与两项共享天赋。每阶只选一项；候选冻结，不因查看、重读或切换功法重抽。`,
     '',
     '| 阶 | 支 | 天赋 | 效果摘要 |',
     '| ---: | :---: | --- | --- |',
@@ -1031,10 +1038,14 @@ function renderArtifacts(artifacts, rarity, context) {
       lines.push('- 同时装备多件带防御倍率的战术法宝时，各件防御倍率分别相乘一次。')
     }
     if (artifact.fusion_recipe) {
-      lines.push(`- 融合配方：${list(artifact.fusion_recipe.inputs, context)}；累计 ${scalarText(artifact.fusion_recipe.fights)} 场合格战斗胜利后结算，事件中的战斗胜利也计数；战斗开始与胜利结算时都须持有每种材料至少一层，完成时各消耗一层。融合传奇不进入普通获取池。`)
+      lines.push(`- 融合配方：${list(artifact.fusion_recipe.inputs, context)}；累计 ${scalarText(artifact.fusion_recipe.fights)} 次进度后结算。每场合格胜利增加一次进度，事件战胜利也计数；至少取得一场真实胜利后，可在坊市、休整或相应奇遇支付灵石催化一次。战斗开始与胜利结算时都须持有每种材料至少一层，完成时各消耗一层。融合传奇不进入普通获取池。`)
       const fusionText = {
         toxic_flame: '存活主动作完成后至多触发一次：敌方有自身施加的中毒与燃烧时，分别消耗最早一层，按这两层各自剩余跳数的合计伤害×1.2造成不可暴击派生伤害；未消费层不计入、不消耗。只有中毒或燃烧时，分别补另一种状态一层。新状态持续2轮，每层每轮按攻击0.05造成伤害，最多10层；本效果不递归。',
         twin_swords: '存活主普攻完成且基础段至少一次有效命中后，独立追加两次各为攻击0.4倍的不可暴击派生伤害；追加命中可触发其他合法命中效果，但不触发雌雄剑自身，也不会复制或重做主动作。',
+        shield_cannon: '战斗中每次实际获得护盾时按1:1积为炮势，最多储存自身最大气血的30%；镜映复制的护盾不再计入。每个自身存活主动作完成时，若炮势大于0，消耗全部炮势并对敌方造成储量0.7倍的不可暴击派生伤害，每个主动作至多一次；伤害不再生成炮势。',
+        healing_burst: '有效治疗与溢疗分别按实际数值1:1积为甘露，最多储存自身最大气血的50%；镜映复制的治疗不再计入。每个自身存活主动作完成时，甘露达到最大气血20%则消耗全部储量并对敌方造成储量0.8倍的不可暴击派生伤害，每个主动作至多一次。',
+        thunder_rebate: '自身存活主动作内至少命中一次直接暴击后，动作结束时落雷一次，造成自身攻击0.65倍的不可暴击派生伤害，并返还10点怒气；每个主动作至多触发一次，怒气按上限结算。',
+        coin_treasury: '战斗入场时记录当前灵石，最多按1000枚计；本场直接、派生、持续与盾返伤害乘以1+记录灵石×0.0005，倍率最高1.5。战斗中新增灵石不改变本场倍率。玩家入场装备且获胜（含事件战斗）时每场固定额外获得12枚灵石、只结算一次。倍率和胜利灵石不是可复制输出，不触发镜映或铭刻。',
       }[artifact.fusion_rule?.kind]
       lines.push(`- 融合规则：${fusionText ?? `未识别融合规则 ${line(artifact.fusion_rule?.kind)}`}`)
     }
@@ -1047,7 +1058,7 @@ function renderArtifacts(artifacts, rarity, context) {
     if (artifact.awakening) {
       lines.push(`- 觉醒条件：集齐 ${scalarText(artifact.awakening.at_stacks)} 层；${line(artifact.awakening.name, context)}：${line(artifact.awakening.quick, context)}`)
       if (artifact.awakening.effects?.length) {
-        lines.push(`- 觉醒结算：达到满层后，在${awakeningTriggerText(artifact.awakening.trigger ?? 'either')}且存活的主动作完成后，各效果按卡面顺序结算一次。`)
+        lines.push(`- 觉醒结算：达到满层后，在${awakeningTriggerText(artifact.awakening.trigger ?? 'either')}且存活的主动作完成后，各效果按卡面顺序结算一次。可叠层普通法宝处于阵首时，觉醒判定额外加一层，不增加真实层数。`)
         for (const [index, effect] of artifact.awakening.effects.entries()) {
           lines.push(`  - 效果${index + 1}：${combatOutputText(effect)}`)
         }
@@ -1058,7 +1069,7 @@ function renderArtifacts(artifacts, rarity, context) {
   }
   lines.push('::: details 开发边界')
   lines.push('- `A` 是战斗综合增益目标，`J` 是旅途换算尺，`B = A/5 + J` 只用于设计分摊。')
-  lines.push('- 44 张既有法宝保留原基础属性与层数；两张融合传奇各为一件、无额外基础属性；昆仑镜为额外传奇；实测仍为空。')
+  lines.push('- 44张既有法宝保留原基础属性与层数；六件融合传奇各为一件且无额外基础属性；昆仑镜与饕餮鼎是另外两件传奇；实测仍为空。')
   lines.push(':::')
   lines.push('')
   return lines.join('\n')
@@ -1066,7 +1077,7 @@ function renderArtifacts(artifacts, rarity, context) {
 
 function renderOption(option, context) {
   const hidden = option.reveal === 'hint' && option.check
-  const rewardLabel = option.encounter ? '胜利获得' : option.commitment ? '即时获得' : option.check ? '检定成功获得' : '获得'
+  const rewardLabel = option.encounter ? '胜利获得' : option.commitment ? '即时获得' : option.check ? '检定成功获得' : option.catalysis ? '附加奖励' : '获得'
   const lines = [
     `### ${line(option.label, context)}`,
     '',
@@ -1077,6 +1088,14 @@ function renderOption(option, context) {
       ? '- 检定结果：选择前隐藏具体奖励与分支结果；已知成本如上。'
       : `- ${rewardLabel}：${rewardText(option.rewards, context)}`,
   ]
+  if (option.catalysis) {
+    const effect = {
+      fusion_step: '选择仍持有材料且已有真实胜场的配方，催化推进一次；完成时消耗材料。',
+      artifact_growth: '选择一件已装备且未满层的普通法宝，立即点化至满层。',
+      blood_vow: '以当前功法已选的一阶天赋换取断生入魔，禁疗誓言持续本局。',
+    }[option.catalysis.kind]
+    lines.push(`- 即时催化：${effect ?? '未识别催化类型。'}`)
+  }
   if (option.check) {
     const check = option.check
     if (hidden) {
@@ -1245,7 +1264,24 @@ function renderEnemyTrial(trial) {
   if (trial?.kind === 'reviving_mist') {
     return `回生雾准备：开战装满${scalarText(trial.charges)}层；第${trial.period}、${trial.period * 2}……轮开始按剩余层数治疗，每层恢复最大气血${percentageText(trial.heal_hp_ratio_per_charge)}，之后存活则补满。仅中毒或燃烧实际造成气血伤害时消耗一层；盾吸收的跳伤和直接攻击不消耗。`
   }
+  if (trial?.kind === 'rage_gale') {
+    return `雷怒准备：开战装满${scalarText(trial.charges)}层；每${trial.period}轮开始按剩余层数登记削怒，每层削减${scalarText(trial.rage_drain_per_charge)}点，受公共每轮20点上限约束且不取消已锁动作。每次有效直接或派生命中消耗一层；零层释放落空，存活则补满。`
+  }
+  if (trial?.kind === 'ember_shell') {
+    return `烬甲准备：开战装满${scalarText(trial.charges)}层；每${trial.period}轮开始按剩余层数生成护盾，每层为最大气血${percentageText(trial.shield_hp_ratio_per_charge)}，之后存活则补满。仅中毒或燃烧实际造成气血伤害时消耗一层；直接攻击能继续削减已生成的护盾。`
+  }
+  if (trial?.kind === 'blade_oath') {
+    return `剑誓准备：开战装满${scalarText(trial.charges)}层；每${trial.period}轮开始以剩余层数合成一记直接斩击，每层为攻击${percentageText(trial.attack_ratio_per_charge)}，之后存活则补满。每次有效直接或派生命中消耗一层；零层释放落空。`
+  }
+  if (trial?.kind === 'six_eye_gaze') {
+    return `六目准备：开战装满${scalarText(trial.charges)}层；每${trial.period}轮开始按剩余层数施加虚弱${scalarText(trial.weakness_stacks_per_charge)}层与破甲${scalarText(trial.armor_break_stacks_per_charge)}层，持续${scalarText(trial.duration_rounds)}轮，之后存活则补满。有效直接、派生命中或造成气血伤害的毒火跳伤各消耗一层。`
+  }
   return null
+}
+
+function renderEnemyPhaseGate(phaseGate) {
+  if (phaseGate?.kind !== 'half_health_gate') return null
+  return `仅触发一次：首次降至最大气血一半时截住该次余伤并生成最大气血${percentageText(phaseGate.shield_hp_ratio)}的二阶段护罩；护罩可正常受击、跳伤和反噬消耗。破罩后，破罩当轮余下及随后${scalarText(phaseGate.exposure_rounds)}轮承受伤害提高${percentageText(phaseGate.exposure_damage_ratio - 1)}；不会重生护罩。`
 }
 
 function renderEnemies(enemies, act, context) {
@@ -1272,6 +1308,8 @@ function renderEnemies(enemies, act, context) {
     lines.push(`- 预览：${line(enemy.preview, context)}`)
     const trial = renderEnemyTrial(enemy.trial)
     if (trial) lines.push(`- 公开准备：${trial}`)
+    const phaseGate = renderEnemyPhaseGate(enemy.phase_gate)
+    if (phaseGate) lines.push(`- 二阶段劫门：${phaseGate}`)
     lines.push(`- 阶段：${enemy.phases?.length ? enemy.phases.map((phase) => line(phase.name ?? phase.id ?? phase.source ?? '已声明来源', context)).join('、') : '无额外阶段'}`)
     lines.push(`- 奖励档：${tierLabels[enemy.reward_profile] ?? line(enemy.reward_profile, context)}；实测仍为空。`)
     lines.push(':::')
@@ -1301,6 +1339,8 @@ function renderFinalEnemies(enemies, context) {
         '',
         '::: details 敌方开发详情',
         `- 预览：${line(enemy.preview, context)}`,
+        ...(renderEnemyTrial(enemy.trial) ? [`- 公开准备：${renderEnemyTrial(enemy.trial)}`] : []),
+        ...(renderEnemyPhaseGate(enemy.phase_gate) ? [`- 二阶段劫门：${renderEnemyPhaseGate(enemy.phase_gate)}`] : []),
         '- 奖励档：F；终战不发奖励。',
         ':::',
         '',

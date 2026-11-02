@@ -49,20 +49,28 @@ export const AWAKENING_EFFECT_KINDS = COMPANION_EFFECT_KINDS
 export const ARTIFACT_IDS = Object.freeze([
   ...Array.from({ length: 24 }, (_, index) => `RC${String(index + 1).padStart(2, '0')}`),
   ...Array.from({ length: 15 }, (_, index) => `RR${String(index + 1).padStart(2, '0')}`),
-  ...Array.from({ length: 9 }, (_, index) => `RL${String(index + 1).padStart(2, '0')}`),
+  ...Array.from({ length: 13 }, (_, index) => `RL${String(index + 1).padStart(2, '0')}`),
 ])
 export const ARTIFACT_RARITIES = Object.freeze({
   ...Object.fromEntries(Array.from({ length: 24 }, (_, index) => [`RC${String(index + 1).padStart(2, '0')}`, 'common'])),
   ...Object.fromEntries(Array.from({ length: 15 }, (_, index) => [`RR${String(index + 1).padStart(2, '0')}`, 'rare'])),
-  ...Object.fromEntries(Array.from({ length: 9 }, (_, index) => [`RL${String(index + 1).padStart(2, '0')}`, 'legendary'])),
+  ...Object.fromEntries(Array.from({ length: 13 }, (_, index) => [`RL${String(index + 1).padStart(2, '0')}`, 'legendary'])),
 })
 export const ARTIFACT_FUSION_RECIPES = Object.freeze({
   RL06: Object.freeze({ inputs: Object.freeze(['RC14', 'RC15']), fights: 2 }),
   RL07: Object.freeze({ inputs: Object.freeze(['RC01', 'RC09']), fights: 2 }),
+  RL10: Object.freeze({ inputs: Object.freeze(['RC03', 'RC11']), fights: 2 }),
+  RL11: Object.freeze({ inputs: Object.freeze(['RC05', 'RC12']), fights: 2 }),
+  RL12: Object.freeze({ inputs: Object.freeze(['RC07', 'RC10']), fights: 2 }),
+  RL13: Object.freeze({ inputs: Object.freeze(['RC18', 'RC19']), fights: 2 }),
 })
 export const ARTIFACT_FUSION_RULES = Object.freeze({
   RL06: Object.freeze({ kind: 'toxic_flame' }),
   RL07: Object.freeze({ kind: 'twin_swords' }),
+  RL10: Object.freeze({ kind: 'shield_cannon' }),
+  RL11: Object.freeze({ kind: 'healing_burst' }),
+  RL12: Object.freeze({ kind: 'thunder_rebate' }),
+  RL13: Object.freeze({ kind: 'coin_treasury' }),
 })
 export const ARTIFACT_GAMBIT_RULES = Object.freeze({
   RL04: Object.freeze({ kind: 'overdrive', rage_cap: 50, defense_multiplier: 0.65 }),
@@ -97,6 +105,9 @@ export const CORE_ARTIFACT_IDS = Object.freeze([
   'RL05',
   'RL06',
   'RL07',
+  'RL10',
+  'RL11',
+  'RL12',
 ])
 export const ARTIFACT_EQUIPMENT_ROLES = Object.freeze(Object.fromEntries(
   ARTIFACT_IDS.map((id) => [id, CORE_ARTIFACT_IDS.includes(id) ? 'core' : 'support']),
@@ -117,6 +128,7 @@ const resonanceIntegerPoints = numericRange(0, undefined, true)
 const resonanceCount = numericRange(1, undefined, true)
 const trialPeriod = numericRange(1, 10, true)
 const trialCharges = numericRange(1, 10, true)
+const trialRatio = numericRange(Number.MIN_VALUE, 1)
 export const REWARD_SEEKING_FAMILIES = Object.freeze(['sword', 'guard', 'vitality', 'affliction'])
 export const ENEMY_TRIAL_RULES = Object.freeze({
   'EN-A1-B1': Object.freeze({
@@ -133,6 +145,92 @@ export const ENEMY_TRIAL_RULES = Object.freeze({
       period: trialPeriod,
       charges: trialCharges,
       heal_hp_ratio_per_charge: resonancePositiveRatio,
+    }),
+  }),
+  'EN-A2-B1': Object.freeze({
+    kind: 'reviving_mist',
+    params: Object.freeze({
+      period: trialPeriod,
+      charges: trialCharges,
+      heal_hp_ratio_per_charge: trialRatio,
+    }),
+  }),
+  'EN-A2-B2': Object.freeze({
+    kind: 'tidal_charge',
+    params: Object.freeze({
+      period: trialPeriod,
+      charges: trialCharges,
+      attack_ratio_per_charge: trialRatio,
+    }),
+  }),
+  'EN-A3-B1': Object.freeze({
+    kind: 'rage_gale',
+    params: Object.freeze({
+      period: trialPeriod,
+      charges: trialCharges,
+      rage_drain_per_charge: numericRange(1, 20, true),
+    }),
+  }),
+  'EN-A3-B2': Object.freeze({
+    kind: 'ember_shell',
+    params: Object.freeze({
+      period: trialPeriod,
+      charges: trialCharges,
+      shield_hp_ratio_per_charge: numericRange(Number.MIN_VALUE, 0.2),
+    }),
+  }),
+  'EN-A4-B1': Object.freeze({
+    kind: 'blade_oath',
+    params: Object.freeze({
+      period: trialPeriod,
+      charges: trialCharges,
+      attack_ratio_per_charge: trialRatio,
+    }),
+  }),
+  'EN-A4-B2': Object.freeze({
+    kind: 'six_eye_gaze',
+    params: Object.freeze({
+      period: trialPeriod,
+      charges: trialCharges,
+      weakness_stacks_per_charge: numericRange(1, 3, true),
+      armor_break_stacks_per_charge: numericRange(1, 3, true),
+      duration_rounds: numericRange(1, 4, true),
+    }),
+  }),
+  'EN-F1': Object.freeze({
+    kind: 'rage_gale',
+    params: Object.freeze({
+      period: trialPeriod,
+      charges: trialCharges,
+      rage_drain_per_charge: numericRange(1, 20, true),
+    }),
+  }),
+  'EN-F2': Object.freeze({
+    kind: 'six_eye_gaze',
+    params: Object.freeze({
+      period: trialPeriod,
+      charges: trialCharges,
+      weakness_stacks_per_charge: numericRange(1, 3, true),
+      armor_break_stacks_per_charge: numericRange(1, 3, true),
+      duration_rounds: numericRange(1, 4, true),
+    }),
+  }),
+})
+export const ENEMY_PHASE_GATE_RULES = Object.freeze({
+  'EN-F1': Object.freeze({
+    kind: 'half_health_gate',
+    params: Object.freeze({
+      shield_hp_ratio: numericRange(0.08, 0.45),
+      exposure_damage_ratio: numericRange(1.05, 1.5),
+      exposure_rounds: numericRange(1, 2, true),
+    }),
+  }),
+  'EN-F2': Object.freeze({
+    kind: 'half_health_gate',
+    params: Object.freeze({
+      shield_hp_ratio: numericRange(0.08, 0.45),
+      exposure_damage_ratio: numericRange(1.05, 1.5),
+      exposure_rounds: numericRange(1, 2, true),
     }),
   }),
 })
@@ -283,16 +381,22 @@ export const ARTIFACT_RESONANCE_RULES = Object.freeze({
   }),
 })
 
-const rareArtifactEffect = (trigger, operation, params, requires, scope, count) => Object.freeze({
+const rareArtifactEffect = (trigger, operation, params, requires, scope, count, target = 'self') => Object.freeze({
   trigger,
   operation,
-  target: 'self',
+  target,
   params: Object.freeze(params),
   requires: Object.freeze(requires),
   limit: Object.freeze({ scope, count }),
 })
 
 export const RARE_ARTIFACT_EFFECT_RULES = Object.freeze({
+  RR01: Object.freeze({
+    'RR01-CHARGED-RAGE-STRIKE': rareArtifactEffect(
+      'rage_action', 'damage', { attack_ratio: numericRange(0.25, 0.25) },
+      ['RR01-BASE-HIT-RAGE-GAIN'], 'action', 1, 'enemy',
+    ),
+  }),
   RR02: Object.freeze({
     'RR02-FIRST-SELF-HEAL-SHIELD': rareArtifactEffect(
       'heal_resolved', 'shield', { ratio: numericRange(0, 1) }, ['effective_self_heal'], 'action', 1,
@@ -322,6 +426,7 @@ export const RARE_ARTIFACT_EFFECT_RULES = Object.freeze({
         storage_cap_hp_ratio: numericRange(0, 0.1),
         retaliation_ratio: numericRange(0, 1),
         max_retaliations_per_battle: numericRange(1, 1, true),
+        max_missing_hp_damage_bonus: numericRange(0.2, 0.2),
       }, ['positive_actual_hp_damage'], 'enemy_action', 1,
     ),
   }),
@@ -332,7 +437,68 @@ export const RARE_ARTIFACT_EFFECT_RULES = Object.freeze({
         per_action_cap: numericRange(1, 2, true),
         lightning_on_crit: numericRange(2, 2, true),
         lightning_attack_ratio: numericRange(0, 1),
+        dot_echo_statuses: ['poison', 'burn'],
       }, ['effective_direct_critical_hit'], 'action', 2,
+    ),
+  }),
+  RR07: Object.freeze({
+    'RR07-FIRST-RAGE-CAP-REDUCTION': rareArtifactEffect(
+      'rage_action', 'rage_cap', {
+        delta: numericRange(-15, -15),
+        first_rage_action_only: true,
+        scope: 'current_battle',
+        apply_at: 'round_end',
+        cost_uses_pre_change_cap: true,
+        lower_bound: numericRange(60, 60, true),
+      }, ['rage_action_completed'], 'battle', 1,
+    ),
+    'RR07-NEXT-BASIC-STRIKE': rareArtifactEffect(
+      'basic_action', 'damage', { attack_ratio: numericRange(0.25, 0.25) },
+      ['RR07-FIRST-RAGE-CAP-REDUCTION'], 'battle', 1, 'enemy',
+    ),
+  }),
+  RR13: Object.freeze({
+    'RR13-FIRST-BASIC-RAGE-DRAIN': rareArtifactEffect(
+      'direct_hit', 'rage_drain', {
+        amount: numericRange(10, 10, true),
+        request_only: true,
+        deferred: 'round_end',
+        action_type: 'basic_action',
+        hit_scope: 'first_effective_base_direct_hit',
+        one_per_action: true,
+        counts_toward_target_round_cap: true,
+        target_round_cap: numericRange(20, 20, true),
+        excludes: ['rage_action', 'artifact_followup', 'reflect', 'poison', 'burn'],
+        rage_return_ratio: numericRange(1, 1),
+        shield_ratio: numericRange(1, 1),
+      }, ['effective_basic_base_hit'], 'action', 1, 'enemy',
+    ),
+  }),
+  RR14: Object.freeze({
+    'RR14-OPENING-RAGE-DRAIN': rareArtifactEffect(
+      'battle_start', 'rage_drain', {
+        amount: numericRange(30, 30, true),
+        request_only: true,
+        deferred: 'opening_window',
+        independent_from_round_cap: true,
+        opening_cap: numericRange(50, 50, true),
+        once_per_battle: true,
+        read_save_once: true,
+        first_trial_release_delay_rounds: numericRange(1, 1, true),
+      }, [], 'battle', 1, 'enemy',
+    ),
+  }),
+  RR15: Object.freeze({
+    'RR15-EXTERNAL-RAGE-DRAIN-RESIST': rareArtifactEffect(
+      'always', 'rage_drain_resist', {
+        ratio: numericRange(0.5, 0.5),
+        source: 'external_rage_drain_only',
+        combine: 'additive',
+        cap: numericRange(1, 1),
+        rounding: 'floor_after_resistance',
+        excludes: ['rage_gain', 'incoming_segments'],
+        protected_rage_shield_ratio: numericRange(0.5, 0.5),
+      }, [], 'permanent', 1,
     ),
   }),
 })
@@ -499,6 +665,10 @@ export const ARTIFACT_BASELINE = Object.freeze({
   RL07: { name: '雌雄剑', max_stacks: 1, flat: {}, percent: {} },
   RL08: { name: '昆仑镜', max_stacks: 1, flat: { defense: 8 }, percent: {} },
   RL09: { name: '饕餮鼎', max_stacks: 1, flat: {}, percent: {} },
+  RL10: { name: '铁壁神铳', max_stacks: 1, flat: {}, percent: {} },
+  RL11: { name: '玉液回天壶', max_stacks: 1, flat: {}, percent: {} },
+  RL12: { name: '天机落雷箓', max_stacks: 1, flat: {}, percent: {} },
+  RL13: { name: '万金聚灵炉', max_stacks: 1, flat: {}, percent: {} },
 })
 
 export const ROUTE_LABELS = Object.freeze(['稳健', '精英', '追踪', '省钱', '硬闯', '避险'])

@@ -17,7 +17,7 @@ const BASE_STATS = Object.freeze({
 });
 
 function makeLoadout(method, artifacts = [], overrides = {}) {
-  const { name = method, talents = [], n = 4, hp, ...stats } = overrides;
+  const { name = method, talents = [], n = 4, hp, preparation, journey, ...stats } = overrides;
   return {
     name,
     method,
@@ -26,6 +26,8 @@ function makeLoadout(method, artifacts = [], overrides = {}) {
     artifacts: structuredClone(artifacts),
     baseStats: { ...BASE_STATS, ...stats },
     ...(hp === undefined ? {} : { hp }),
+    ...(preparation === undefined ? {} : { preparation }),
+    ...(journey === undefined ? {} : { journey: structuredClone(journey) }),
   };
 }
 
@@ -244,7 +246,7 @@ test('RL07 adds two noncritical 0.4 attack hits and those hits can trigger RR03'
     entities.find(item => item.id === 'RULES').rage.opening = 0;
     resonance(entities, 'RR03').params.hit_threshold = 3;
   });
-  const player = makeLoadout('RKF01', [
+  const player = makeLoadout('RKF06', [
     { id: 'RL07', stacks: 1 },
     { id: 'RR03', stacks: 1 },
   ], { attack: 100, speed: 30 });
@@ -375,4 +377,293 @@ test('fusion rules do not re-enter through rage echoes or reaction actions', () 
   assert.ok(reacted.frames.some(frame => frame.kind === 'reaction' && frame.cue?.kind === 'sword_volley'));
   assert.equal(reacted.frames.some(frame => frame.source === 'RL07'), false,
     'the defender response and its later rage action are not RL07 basic actions');
+});
+
+test('RL10 converts real shield gains into one capped cannon shot per own action', () => {
+  const activeContent = withOpeningRage(0);
+  const player = makeLoadout('RKF06', [
+    { id: 'RL10', stacks: 1 },
+    { id: 'RC11', stacks: 1 },
+  ], { attack: 100, speed: 30 });
+  const enemy = makeEnemy({ attack: 0, speed: 1 });
+  const result = simulateBattle(activeContent, player, enemy, 'fusion-shield-cannon', { roundLimit: 2 });
+  const openingShield = framesFrom(result, 'shield', 'RC11', 'player')[0];
+  const shots = damageFrom(result, 'RL10', 'player');
+
+  assert.ok(openingShield, 'RC11 supplies actual opening shield for the fusion to bank');
+  assert.equal(shots.length, 1, 'opening charge is spent once and does not fire again without new shield');
+  const enemyDefense = combatDefense(activeContent, enemy);
+  near(shots[0].amount, openingShield.amount * 0.7 * 100 / (100 + enemyDefense));
+  assert.ok(result.frames.some(frame => frame.source === 'RL10' && /蓄存炮势/.test(frame.text)));
+  near(contribution(result, 'RL10').damage, shots[0].amount);
+
+  const enemyResult = simulateBattle(
+    activeContent,
+    makeEnemy({ attack: 0, speed: 1 }),
+    makeLoadout('RKF06', [
+      { id: 'RL10', stacks: 1 },
+      { id: 'RC11', stacks: 1 },
+    ], { attack: 100, speed: 30 }),
+    'fusion-shield-cannon-enemy',
+    { roundLimit: 2 },
+  );
+  const enemyShots = damageFrom(enemyResult, 'RL10', 'enemy');
+  assert.equal(enemyShots.length, 1, 'the same shield conversion runs on the enemy side');
+  near(enemyShots[0].amount, shots[0].amount);
+  assert.equal(enemyResult.contributions.some(item => item.id === 'RL10'), false);
+  assert.deepEqual(result, simulateBattle(activeContent, player, enemy, 'fusion-shield-cannon', { roundLimit: 2 }));
+
+  const mirroredShot = simulateBattle(
+    activeContent,
+    makeLoadout('RKF06', [
+      { id: 'RL08', stacks: 1 },
+      { id: 'RL10', stacks: 1 },
+      { id: 'RC11', stacks: 1 },
+    ], { attack: 100, speed: 30 }),
+    enemy,
+    'fusion-shield-cannon-mirrored',
+    { roundLimit: 2 },
+  );
+  const originalShot = damageFrom(mirroredShot, 'RL10', 'player');
+  const copiedShot = damageFrom(mirroredShot, 'RL08-MIRROR-RL10', 'player');
+  assert.equal(originalShot.length, 1);
+  assert.equal(copiedShot.length, 1);
+  near(copiedShot[0].amount, originalShot[0].amount);
+  near(contribution(mirroredShot, 'RL10').damage, originalShot[0].amount);
+  near(contribution(mirroredShot, 'RL08').damage, copiedShot[0].amount);
+
+  const mirroredShield = simulateBattle(
+    activeContent,
+    makeLoadout('RKF06', [
+      { id: 'RL10', stacks: 1 },
+      { id: 'RL08', stacks: 1 },
+      { id: 'RC11', stacks: 1 },
+    ], { attack: 100, speed: 30 }),
+    enemy,
+    'fusion-shield-cannon-mirrored-shield',
+    { roundLimit: 2 },
+  );
+  const originalShield = framesFrom(mirroredShield, 'shield', 'RC11', 'player')[0];
+  const copiedShield = framesFrom(mirroredShield, 'shield', 'RL08-MIRROR-RC11', 'player')[0];
+  const storedCharge = framesFrom(mirroredShield, 'status', 'RL10', 'player')
+    .find(frame => /蓄存炮势/.test(frame.text));
+  assert.ok(originalShield && copiedShield && storedCharge);
+  near(copiedShield.amount, originalShield.amount);
+  near(storedCharge.amount, originalShield.amount);
+  near(contribution(mirroredShield, 'RL08').shield, copiedShield.amount);
+  assert.equal(damageFrom(mirroredShield, 'RL10', 'player').length, 1,
+    'the copied RC11 shield does not charge RL10 a second time');
+});
+
+test('RL11 banks effective healing and overflow under a half-health cap before one burst', () => {
+  const activeContent = withOpeningRage(0);
+  const playerWithoutHp = makeLoadout('RKF01', [
+    { id: 'RL11', stacks: 1 },
+    { id: 'RC12', stacks: 1 },
+  ], { attack: 100, speed: 30 });
+  const maxHp = calculateStats(activeContent, playerWithoutHp).max_hp;
+  const player = { ...playerWithoutHp, hp: maxHp - maxHp * 0.04 };
+  const result = simulateBattle(
+    activeContent,
+    player,
+    makeEnemy({ attack: 0, speed: 1 }),
+    'fusion-healing-burst-overflow',
+    { roundLimit: 8 },
+  );
+  const bursts = damageFrom(result, 'RL11', 'player');
+  const reservoirFrames = framesFrom(result, 'status', 'RL11', 'player')
+    .filter(frame => /积存甘露/.test(frame.text));
+
+  assert.equal(bursts.length, 1, 'the charge fires once after crossing its threshold');
+  const playerTargetDefense = combatDefense(activeContent, makeEnemy({ attack: 0, speed: 1 }));
+  near(bursts[0].amount, maxHp * 0.212 * 0.8 * 100 / (100 + playerTargetDefense));
+  assert.equal(reservoirFrames.length, 6, 'five heals fill the burst and the next heal starts a fresh reservoir');
+  near(reservoirFrames[0].amount, maxHp * 0.0424);
+  near(reservoirFrames[4].amount, maxHp * 0.212);
+  near(reservoirFrames.at(-1).amount, maxHp * 0.0424);
+  near(contribution(result, 'RL11').damage, bursts[0].amount);
+
+  const enemyBase = makeLoadout('RKF01', [
+    { id: 'RL11', stacks: 1 },
+    { id: 'RC12', stacks: 1 },
+  ], { attack: 0, max_hp: 1_000, speed: 30 });
+  const enemyMaxHp = calculateStats(activeContent, enemyBase).max_hp;
+  const enemyOwner = { ...enemyBase, hp: enemyMaxHp - enemyMaxHp * 0.04 };
+  const enemyResult = simulateBattle(
+    activeContent,
+    makeEnemy({ attack: 0, speed: 1 }),
+    enemyOwner,
+    'fusion-healing-burst-enemy',
+    { roundLimit: 8 },
+  );
+  const enemyBursts = damageFrom(enemyResult, 'RL11', 'enemy');
+  assert.equal(enemyBursts.length, 1);
+  near(enemyBursts[0].amount, enemyMaxHp * 0.212 * 0.8 * 100 / (100 + playerTargetDefense));
+  assert.equal(enemyResult.contributions.some(item => item.id === 'RL11'), false);
+  assert.deepEqual(result, simulateBattle(
+    activeContent,
+    player,
+    makeEnemy({ attack: 0, speed: 1 }),
+    'fusion-healing-burst-overflow',
+    { roundLimit: 8 },
+  ));
+
+  const mirrored = simulateBattle(
+    activeContent,
+    makeLoadout('RKF01', [
+      { id: 'RL08', stacks: 1 },
+      { id: 'RL11', stacks: 1 },
+      { id: 'RC12', stacks: 1 },
+    ], { attack: 100, speed: 30, hp: maxHp - maxHp * 0.04 }),
+    makeEnemy({ attack: 0, speed: 1 }),
+    'fusion-healing-burst-mirrored',
+    { roundLimit: 8 },
+  );
+  const originalBurst = damageFrom(mirrored, 'RL11', 'player');
+  const copiedBurst = damageFrom(mirrored, 'RL08-MIRROR-RL11', 'player');
+  assert.equal(originalBurst.length, 1);
+  assert.equal(copiedBurst.length, 1);
+  near(copiedBurst[0].amount, originalBurst[0].amount);
+  near(contribution(mirrored, 'RL11').damage, originalBurst[0].amount);
+  near(contribution(mirrored, 'RL08').damage, copiedBurst[0].amount);
+});
+
+test('RL12 releases one noncritical lightning strike and bounded rage return per critical action', () => {
+  const activeContent = withOpeningRage(0);
+  const player = makeLoadout('RKF01', [{ id: 'RL12', stacks: 1 }], {
+    attack: 100,
+    crit_rate: 1,
+    speed: 30,
+  });
+  const enemy = makeEnemy({ attack: 0, speed: 1 });
+  const result = simulateBattle(activeContent, player, enemy, 'fusion-thunder-rebate', { roundLimit: 2 });
+  const lightning = damageFrom(result, 'RL12', 'player');
+
+  assert.equal(lightning.length, 2, 'each critical main action produces at most one lightning strike');
+  for (const hit of lightning) near(hit.amount, expectedDerivedDamage(activeContent, player, enemy, 0.65));
+  assert.equal(result.contributions.find(item => item.id === 'RL12').rage, 20);
+  assert.equal(result.frames.filter(frame => frame.kind === 'status' && frame.source === 'RL12' && /引雷返怒/.test(frame.text)).length, 2);
+  near(contribution(result, 'RL12').damage, lightning.reduce((sum, hit) => sum + hit.amount, 0));
+
+  const mirrored = simulateBattle(
+    activeContent,
+    makeLoadout('RKF01', [
+      { id: 'RL08', stacks: 1 },
+      { id: 'RL12', stacks: 1 },
+    ], { attack: 100, crit_rate: 1, speed: 30 }),
+    enemy,
+    'fusion-thunder-rebate-mirrored',
+    { roundLimit: 1 },
+  );
+  const originalBolt = damageFrom(mirrored, 'RL12', 'player');
+  const mirroredBolt = damageFrom(mirrored, 'RL08-MIRROR-RL12', 'player');
+  const mirrorRage = framesFrom(mirrored, 'rage', 'RL08-MIRROR-RL12', 'player');
+  const rageReturn = framesFrom(mirrored, 'status', 'RL12', 'player')
+    .find(frame => /引雷返怒/.test(frame.text));
+  assert.equal(originalBolt.length, 1);
+  assert.equal(mirroredBolt.length, 1, 'RL08 copies the RL12 lightning output once when it is the left neighbor');
+  near(mirroredBolt[0].amount, originalBolt[0].amount);
+  assert.equal(mirrorRage.length, 1, 'RL08 copies RL12 rage output once');
+  assert.ok(rageReturn);
+  assert.ok(
+    mirrored.frames.indexOf(mirrorRage[0]) < mirrored.frames.indexOf(rageReturn) &&
+    mirrored.frames.indexOf(rageReturn) < mirrored.frames.indexOf(mirroredBolt[0]) &&
+    mirrored.frames.indexOf(mirroredBolt[0]) < mirrored.frames.indexOf(originalBolt[0]),
+    'RL08 mirrors the rage return before RL12 records its proc, then mirrors the bolt before the original hit frame',
+  );
+  assert.equal(contribution(mirrored, 'RL08').rage, 10);
+  near(contribution(mirrored, 'RL08').damage, mirroredBolt[0].amount);
+  assert.deepEqual(
+    mirrored,
+    simulateBattle(
+      activeContent,
+      makeLoadout('RKF01', [
+        { id: 'RL08', stacks: 1 },
+        { id: 'RL12', stacks: 1 },
+      ], { attack: 100, crit_rate: 1, speed: 30 }),
+      enemy,
+      'fusion-thunder-rebate-mirrored',
+      { roundLimit: 1 },
+    ),
+  );
+});
+
+test('RL13 locks its capped coin multiplier at entry and mirror does not copy the passive rule', () => {
+  const activeContent = withOpeningRage(0);
+  const enemy = makeEnemy({ attack: 0, speed: 1 });
+  const unscaledPlayer = makeLoadout('RKF01', [], { attack: 100, speed: 30 });
+  const unscaled = simulateBattle(activeContent, unscaledPlayer, enemy, 'fusion-coin-baseline', { roundLimit: 1 });
+  const player = makeLoadout('RKF01', [{ id: 'RL13', stacks: 1 }], {
+    attack: 100,
+    speed: 30,
+    journey: { coins: 200, coinsSpent: 0, eliteWins: 0, bossWins: 0, artifactKinds: 1, knownMethods: 1 },
+  });
+  const scaled = simulateBattle(activeContent, player, enemy, 'fusion-coin-scaled', { roundLimit: 1 });
+  const baselineHit = unscaled.frames.find(frame => frame.kind === 'damage' && frame.actor === 'player');
+  const scaledHit = scaled.frames.find(frame => frame.kind === 'damage' && frame.actor === 'player');
+
+  near(scaledHit.amount, baselineHit.amount * 1.1);
+  near(contribution(scaled, 'RL13').damage, scaledHit.amount - baselineHit.amount);
+  assert.ok(contribution(scaled, 'RL13').triggers > 0);
+  assert.deepEqual(scaled, simulateBattle(activeContent, player, enemy, 'fusion-coin-scaled', { roundLimit: 1 }));
+
+  const cappedPlayer = makeLoadout('RKF01', [{ id: 'RL13', stacks: 1 }], {
+    attack: 100,
+    speed: 30,
+    journey: { coins: 2_000, coinsSpent: 0, eliteWins: 0, bossWins: 0, artifactKinds: 1, knownMethods: 1 },
+  });
+  const capped = simulateBattle(activeContent, cappedPlayer, enemy, 'fusion-coin-capped', { roundLimit: 1 });
+  const cappedHit = capped.frames.find(frame => frame.kind === 'damage' && frame.actor === 'player');
+  near(cappedHit.amount, baselineHit.amount * 1.5);
+
+  const mirroredLoadout = makeLoadout('RKF01', [
+    { id: 'RL08', stacks: 1 },
+    { id: 'RL13', stacks: 1 },
+  ], {
+    attack: 100,
+    speed: 30,
+    journey: { coins: 200, coinsSpent: 0, eliteWins: 0, bossWins: 0, artifactKinds: 2, knownMethods: 1 },
+  });
+  const passiveNextToMirror = simulateBattle(
+    activeContent,
+    mirroredLoadout,
+    enemy,
+    'fusion-coin-no-mirror',
+    { roundLimit: 1 },
+  );
+  assert.equal(passiveNextToMirror.frames.some(frame => frame.source?.startsWith('RL08-MIRROR-')), false,
+    'RL13 supplies no independent output for RL08 to copy');
+  assert.ok(contribution(passiveNextToMirror, 'RL13').damage > 0,
+    'the passive multiplier remains attributed to RL13');
+});
+
+test('new fusion rules reject mismatched schema and do not appear when unequipped', () => {
+  const setups = [
+    ['RL10', 'shield_cannon'],
+    ['RL11', 'healing_burst'],
+    ['RL12', 'thunder_rebate'],
+    ['RL13', 'coin_treasury'],
+  ];
+  for (const [id, kind] of setups) {
+    const wrongKind = patchContent(entities => {
+      entities.find(item => item.id === id).fusion_rule.kind = 'unknown';
+    });
+    assert.throws(() => simulateBattle(
+      wrongKind,
+      makeLoadout('RKF01', [{ id, stacks: 1 }]),
+      makeEnemy(),
+      `fusion-${id}-invalid-kind`,
+    ), /fusion_rule/);
+
+    const unequipped = simulateBattle(
+      content,
+      makeLoadout('RKF01', [], { speed: 30 }),
+      makeEnemy(),
+      `fusion-${id}-unequipped`,
+      { roundLimit: 1 },
+    );
+    assert.equal(unequipped.frames.some(frame => frame.source === id), false);
+    assert.equal(unequipped.contributions.some(item => item.id === id), false);
+    assert.equal(typeof kind, 'string');
+  }
 });

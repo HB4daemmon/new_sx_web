@@ -185,7 +185,7 @@ test('five-run calibration smoke reaches terminal outcomes without errors', asyn
   const content = await calibratedContent();
   const report = runFullCalibration(content, 1);
   assert.equal(report.runs.length, 5);
-  assert.equal(report.experimentTrack, 'V2 second overhaul; buildVersion 5; shanhai-content-0.2; uncalibrated');
+  assert.equal(report.experimentTrack, 'V2 gameplay depth; buildVersion 6; shanhai-content-0.2; uncalibrated');
   assert.deepEqual(report.input.functionalWinSeeds, FUNCTIONAL_WIN_SEEDS);
   assert.deepEqual(report.runs.map(row => row.method), START_METHODS);
   assert.equal(report.outcomes.error, 0);
@@ -199,6 +199,9 @@ test('five-run calibration smoke reaches terminal outcomes without errors', asyn
 test('each opening method has an explicit legal 45-node winning fixture', async () => {
   const content = await calibratedContent();
   assert.deepEqual(Object.keys(FUNCTIONAL_WIN_SEEDS), START_METHODS);
+  assert.equal(FUNCTIONAL_WIN_SEEDS.RKF01, 'v2-45node-fixture-RKF01-004');
+  assert.notEqual(FUNCTIONAL_WIN_SEEDS.RKF01, 'v2-functional-RKF01-1',
+    'full-run fixtures stay separate from the browser journey seed');
 
   for (const method of START_METHODS) {
     const seed = FUNCTIONAL_WIN_SEEDS[method];

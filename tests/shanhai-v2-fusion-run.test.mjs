@@ -153,7 +153,9 @@ test('two recipes can complete together and equipped last stacks are cleaned up 
   inventory(game, [['RC14'], ['RC15'], ['RC01'], ['RC09']]);
   enterFight(game);
   game.dispatch({ type: 'battle_done' });
-  assert.deepEqual(game.fusionStatus().map(item => [item.id, item.wins]), [['RL06', 1], ['RL07', 1]]);
+  assert.deepEqual(game.fusionStatus().map(item => [item.id, item.wins]), [
+    ['RL06', 1], ['RL07', 1], ['RL10', 0], ['RL11', 0], ['RL12', 0], ['RL13', 0],
+  ]);
   game.dispatch({ type: 'reward', id: null });
   game.startAct(2);
   inventory(game,
@@ -165,6 +167,10 @@ test('two recipes can complete together and equipped last stacks are cleaned up 
   assert.deepEqual(game.fusionStatus().map(item => [item.id, item.wins, item.complete]), [
     ['RL06', 2, true],
     ['RL07', 2, true],
+    ['RL10', 0, false],
+    ['RL11', 0, false],
+    ['RL12', 0, false],
+    ['RL13', 0, false],
   ]);
   assert.equal(game.state.artifacts.some(stack => ['RC14', 'RC15', 'RC01', 'RC09'].includes(stack.id)), false);
   assert.equal(game.state.artifacts.some(stack => stack.id === 'RL06'), true);

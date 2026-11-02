@@ -55,12 +55,13 @@ options:
       failure_echo: 云铁从炉中滑脱，旧伤仍在，标价灵石已付出。
   - id: RE029-C
     label: 熄炉带旧物过门
-    quick: 不付灵石、不取新法宝，保留灵石与当前法宝通过。
+    quick: 不付灵石、不取新法宝，借云铁余温静心积累少量修为。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你没有取用云铁，带着原有法宝和灵石走过昆仑前门。
-    story_echo: 你让炉火熄下，带着已有行装跨过前门，最后一段路仍由自己走。
+    rewards:
+      - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
+    outcome: 你没有取用云铁，借余温静心片刻，带着原有法宝和灵石走过昆仑前门。
+    story_echo: 你让炉火熄下，借余温静心片刻后带旧物过门。
 settlement:
   once: true
   internal_battle_package: false

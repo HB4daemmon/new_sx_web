@@ -19,9 +19,9 @@ const reportDir = reportOverride
 const screenshotDir = path.join(reportDir, 'screenshots');
 const saveKey = 'suishi-shanhai-run-v2-overhaul';
 const buildKey = 'suishi-shanhai-build-v2-overhaul';
-// A selected winning seed exercises all 45 browser nodes after the V2 enemy
-// rebalance. This functional fixture is not a win-rate measurement.
-const seed = process.env.SHANHAI_JOURNEY_SEED || 'v2-functional-RKF01-1';
+// This RKF01 seed is a calibrated 45-node functional win fixture, not a
+// win-rate measurement.
+const seed = process.env.SHANHAI_JOURNEY_SEED || 'v2-45node-fixture-RKF01-004';
 const playerName = '真实浏览器行者';
 
 function playwrightModule() {

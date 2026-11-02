@@ -66,12 +66,13 @@ options:
     legacy_story_echo: 你预付炉钱与炉工立约，两处行程尚未走完，凝气珠仍未到手。
   - id: RE002-C
     label: 收起灵石离炉
-    quick: 放弃两种交易，保留灵石和已有法宝。
+    quick: 放弃两种交易，拾起炉边少量散石折成盘缠。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你没有动炉台上的旧器，带着现有灵石和法宝离开。
-    story_echo: 你收好灵石与随身法宝，离炉时没有接下额外等候。
+    rewards:
+      - {type: resource, resource: coins, amount: 0.1, basis: common_price}
+    outcome: 你没有动炉台上的旧器，只拾起炉边少量散石折成盘缠后离开。
+    story_echo: 你收好随身法宝，拾起炉边散石后离炉，没有接下额外等候。
 settlement:
   once: true
   internal_battle_package: false

@@ -5,7 +5,7 @@ id: RE012
 name: 锈锁双匣
 status: design_target
 summary: 在旧河墩前付气血撬开木匣，或不碰锁匣静坐修行。
-description: 锈锁后的养气玉与厚土环都可取两层，但滚烫锁芯会割伤手；静坐所得修为提高下一次进阶所需的两成。
+description: 锈锁后的养气玉与厚土环都可取两层，但滚烫锁芯会割伤手；也可付出灵石，以炉火催动已开始的合炼。
 tags: [ordinary, blood_price, two_layers, artifact, act2]
 source:
   basis: original
@@ -18,7 +18,7 @@ balance:
   measured: null
 event_type: ordinary
 acts: [2]
-scene: 水流冲开旧河墩，锈锁下两只木匣仍紧扣不动。养气玉与厚土环隔板泛光，撬锁要损失约78点气血，旁边尚有一块可静坐的干石。
+scene: 水流冲开旧河墩，锈锁下两只木匣仍紧扣不动。养气玉与厚土环隔板泛光，撬锁要损失约78点气血；河工还留下一处小炉，可付灵石催动一件已经开始的合炼。
 options:
   - id: RE012-A
     label: 以气血撬锁取养气玉
@@ -43,14 +43,24 @@ options:
     outcome: 你付出气血撬开木匣，取出两层厚土环，护身之力贴上肩背。
     story_echo: 你忍痛撬出两层厚土环，带着更稳的防护离开冲水的河墩。
   - id: RE012-C
-    label: 放下锁匣静坐
-    quick: 不耗气血、不碰木匣；静坐使修为提高下一次进阶所需的两成。
+    label: 付石催动合炼
+    quick: 付出半份普通法宝标价，让已真实胜利过的合炼前进一步；持有配方材料且尚未完成才能选择。
+    requirements: []
+    costs:
+      - {type: resource, resource: coins, amount: 0.5, basis: common_price}
+    rewards: []
+    catalysis: {kind: fusion_step}
+    outcome: 你付出灵石借小炉催动一件合炼，炉火只推进了一步。
+    story_echo: 你付石催动合炼后离开河墩，炉中余火尚在。
+  - id: RE012-D
+    label: 静坐歇息
+    quick: 不动锁匣，在河墩旁静坐片刻后离开。
     requirements: []
     costs: []
     rewards:
-      - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
-    outcome: 你没有撬锁，在干石上静坐，让修为向下一次进阶推进两成。
-    story_echo: 你放下滚烫锁匣，在河墩干石上静坐片刻后重新上路。
+      - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
+    outcome: 你避开滚烫的锁芯，在河墩旁静坐，略有所得。
+    story_echo: 你没有撬锁，静坐片刻后沿河继续前行。
 settlement:
   once: true
   internal_battle_package: false

@@ -4,8 +4,8 @@ kind: artifact
 id: RR13
 name: 截脉针
 status: design_target
-summary: 攻击 +8；普攻命中后削减敌方怒气10点，每次普攻一次；支援定位
-description: 普攻首次命中后，使敌方本轮怒气减少10点。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
+summary: 攻击 +8；普攻削怒，并将每次实际削怒等额转为自身怒气和护盾；支援定位
+description: 普攻首段基础攻击命中后尝试削减敌方最多10点怒气；每轮我方削怒总量仍受20点上限与敌方抗性约束。每个开场或轮尾结算窗口中，持有者所有来源实际削去的怒气（包括其他功法与法宝）均按100%返还为自身怒气，并另生成等量护盾；返怒受自身怒气上限约束，护盾受护盾上限约束。无怒可削或削怒被完全抵御时不返还、不造盾。镜映与铭刻遵循各自输出复制规则。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [attack, rage_drain, basic, rare]
 source:
   basis: original
@@ -35,11 +35,13 @@ effects:
       counts_toward_target_round_cap: true
       target_round_cap: 20
       excludes: [rage_action, artifact_followup, reflect, poison, burn]
+      rage_return_ratio: 1.0
+      shield_ratio: 1.0
     requires: [effective_basic_base_hit]
     consumes: []
     replaces: []
     limit: {scope: action, count: 1}
-    text: 普攻首段基础攻击命中后，使敌方本轮怒气最多减少10点，并在本轮结束时结算；来自我方的削怒每轮最多减少20点，且会受敌方削怒抗性影响。
+    text: 普攻首段基础攻击命中后请求削怒10点，在本轮结束时受我方每轮20点总上限、敌方削怒抗性和敌方当前怒气限制。每个开场或轮尾结算窗口内，按持有者所有来源的最终实际削去总量100%返还怒气，并生成等量护盾；自身怒气与护盾上限照常生效，不按请求量虚增。回怒与造盾不会再次请求削怒，镜映与铭刻按现有输出复制规则结算。
 equipment_role: support
 acquisition:
   pools: [rare_artifact]

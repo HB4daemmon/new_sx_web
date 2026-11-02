@@ -57,12 +57,12 @@ function enumerateStructuralTalentBuilds(method) {
 
 test('real content validates and preserves the authored entity and talent counts', () => {
   assert.equal(report.ok, true, validationDetails())
-  assert.equal(model.entities.length, 157)
-  assert.equal(model.manifestEntries.length, 157)
+  assert.equal(model.entities.length, 161)
+  assert.equal(model.manifestEntries.length, 161)
 
   const expectedManifestCounts = {
     methods: 10,
-    artifacts: 48,
+    artifacts: 52,
     ordinary_events: 37,
     core_events: 16,
     storylines: 6,
@@ -81,7 +81,7 @@ test('real content validates and preserves the authored entity and talent counts
     assert.equal(typeof method.companion.quick, 'string', `${method.id} companion quick description`)
     assert.ok(method.companion.effect, `${method.id} has a combat output`)
   }
-  assert.equal(entitiesOf('artifact').length, 48)
+  assert.equal(entitiesOf('artifact').length, 52)
   assert.equal(entitiesOf('event').length, 53)
   assert.equal(entitiesOf('storyline').length, 6)
   assert.equal(entitiesOf('enemy').length, 34)
@@ -111,9 +111,23 @@ test('real content validates and preserves the authored entity and talent counts
     )
   }
   const eventOptions = entitiesOf('event').flatMap((event) => event.options)
-  assert.equal(eventOptions.length, 161)
+  assert.equal(eventOptions.length, 165)
   assert.equal(eventOptions.filter((option) => option.encounter).length, 21)
   assert.equal(eventOptions.filter((option) => option.check).length, 8)
+  const medicine = ordinaryEvents.find((event) => event.id === 'RE010')
+  assert.deepEqual(medicine.options.map((option) => option.id), [
+    'RE010-A', 'RE010-B', 'RE010-C', 'RE010-D',
+  ])
+  assert.deepEqual(medicine.options[0].rewards.map(({ type, resource, amount }) => [type, resource, amount]), [
+    ['resource', 'hp', 0.2], ['resource', 'coins', 0.1],
+  ])
+  assert.deepEqual(medicine.options[1].rewards, [{ type: 'artifact', id: 'RC17', count: 1 }])
+  const methodOptions = medicine.options.slice(2)
+  assert.deepEqual(methodOptions.flatMap((option) => option.rewards.map((reward) => reward.id)), [
+    'RKF06', 'RKF07',
+  ])
+  assert.ok(methodOptions.every((option) => option.costs.length === 0 &&
+    !option.rewards.some((reward) => reward.type === 'swap_method')))
   assert.equal(actEnemies.length, 32)
   assert.equal(finalEnemies.length, 2)
 
@@ -369,7 +383,15 @@ test('authored trials and reward-seeking families stay on the public contract', 
   assert.match(mist.preview, /最大气血4\.5%/)
   assert.match(mist.preview, /直接伤害不消耗/)
   assert.ok(mist.counterplay.some((text) => /中毒或燃烧/.test(text)))
-  assert.equal(entitiesOf('enemy').filter((enemy) => Object.hasOwn(enemy, 'trial')).length, 2)
+  const trialEnemies = entitiesOf('enemy').filter((enemy) => Object.hasOwn(enemy, 'trial'))
+  assert.equal(trialEnemies.length, 10)
+  assert.deepEqual(trialEnemies.map((enemy) => enemy.id).sort(), [
+    'EN-A1-B1', 'EN-A1-B2', 'EN-A2-B1', 'EN-A2-B2', 'EN-A3-B1', 'EN-A3-B2',
+    'EN-A4-B1', 'EN-A4-B2', 'EN-F1', 'EN-F2',
+  ])
+  assert.deepEqual(entitiesOf('enemy').filter((enemy) => Object.hasOwn(enemy, 'phase_gate')).map((enemy) => enemy.id).sort(), [
+    'EN-F1', 'EN-F2',
+  ])
 
   const seeking = model.byId.get('RULES').economy.reward_seeking
   assert.equal(seeking.price, 8)

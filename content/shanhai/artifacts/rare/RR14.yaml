@@ -4,8 +4,8 @@ kind: artifact
 id: RR14
 name: 封元镜
 status: design_target
-summary: 防御 +8；每场战斗开始时削减敌方最多30点怒气；支援定位
-description: 镜面封住对手入战时的气机，使其在战斗开始时失去怒气。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
+summary: 防御 +8；开场削敌怒，并将对手首轮首领试炼延后一轮；支援定位
+description: 每场战斗开始时削减敌方最多30点怒气，仍受敌方削怒抗性影响且不占用每轮削怒上限。若对手拥有首领试炼，仅将其首次释放延后一轮；之后按原间隔循环。镜映或铭刻不会重复延后。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [defense, rage_drain, battle_start, rare]
 source:
   basis: original
@@ -33,11 +33,12 @@ effects:
       opening_cap: 50
       once_per_battle: true
       read_save_once: true
+      first_trial_release_delay_rounds: 1
     requires: []
     consumes: []
     replaces: []
     limit: {scope: battle, count: 1}
-    text: 每场战斗开始时削减敌方最多30点怒气，实际削减量受敌方削怒抗性影响；此效果不占用每轮来自我方的20点削怒限额。
+    text: 每场战斗开始时削减敌方最多30点怒气，实际削减量受敌方削怒抗性影响且不占用每轮来自我方的20点限额。若对手有首领试炼，只将首次释放延后1轮，后续照原间隔释放；镜映与铭刻只复制开场削怒，不会再次延长试炼。
 equipment_role: support
 acquisition:
   pools: [rare_artifact]

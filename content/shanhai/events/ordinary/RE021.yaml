@@ -5,7 +5,7 @@ id: RE021
 name: 赤砂双层
 status: design_target
 summary: 在热砂中付气血取蛇纹瓶或赤炎珠，也可无伤拾取冷石换灵石。
-description: 热风卷来的砂砾埋住两种法宝，取出任一项都会损失气血；砂边冷石可直接换成灵石，不必触碰热砂。
+description: 热风卷来的砂砾埋住两种法宝，取出任一项都会损失气血；砂边冷石可直接换成灵石，也可付石以当前功法的一阶天赋立下断生誓。
 tags: [ordinary, blood_price, two_layers, artifact, act3]
 source:
   basis: original
@@ -18,7 +18,7 @@ balance:
   measured: null
 event_type: ordinary
 acts: [3, 4]
-scene: 热流沿地表掠过，砂下两件法宝透出不同颜色的光，冷石则停在砂边。取宝要损失约定比例的气血，拾冷石没有血价。
+scene: 热流沿地表掠过，砂下两件法宝透出不同颜色的光，冷石则停在砂边。取宝要损失约定比例的气血，拾冷石没有血价；砂边还留着一处以灵石换誓的古印。
 options:
   - id: RE021-A
     label: 付气血取蛇纹瓶
@@ -51,6 +51,16 @@ options:
       - {type: resource, resource: coins, amount: 0.2, basis: common_price}
     outcome: 你捡起砂边冷石换来灵石，没有付出气血，也没有取走法宝。
     story_echo: 你只捡起砂边冷石换来灵石，避开热砂继续追索火流。
+  - id: RE021-D
+    label: 以一阶天赋立下断生誓
+    quick: 付出半份普通法宝标价，替换当前功法已选的一阶天赋，习得断生入魔；须已突破且有一阶天赋可换。
+    requirements: []
+    costs:
+      - {type: resource, resource: coins, amount: 0.5, basis: common_price}
+    rewards: []
+    catalysis: {kind: blood_vow}
+    outcome: 你以已悟的一阶天赋换得断生入魔，今后战外不得恢复气血。
+    story_echo: 你以一阶所悟立誓，断生入魔之意自此随身。
 settlement:
   once: true
   internal_battle_package: false

@@ -97,10 +97,10 @@ test('EN-F2 preview describes the capped RL04 opening and the 45-node ending', a
   assert.match(enemy.preview, /J2-B.*0\.26倍.*J3-B.*0\.12倍.*J4-B.*0\.38倍/);
 });
 
-test('EN-A1-L1 remains dangerous at realistic tier-one HP while the fixed samples stay viable', async () => {
+test('EN-A1-L1 remains dangerous at realistic tier-one HP after smoothing the burst', async () => {
   const content = await loadGameContent();
   const enemy = content.byId['EN-A1-L1'];
-  assert.equal(enemy.stats.attack, 66);
+  assert.equal(enemy.stats.attack, 60);
 
   const results = new Map();
   for (const method of START_METHODS) {
@@ -115,9 +115,9 @@ test('EN-A1-L1 remains dangerous at realistic tier-one HP while the fixed sample
     }
   }
 
-  // Before attack 82 -> 66, four of these 25 fixed samples died: RKF01 and RKF03
-  // seeds 1 and 3. At attack 66 all 25 win; the hardest unchanged fixture starts
-  // 625 vs 450 HP and ends round 5 at 28.6355 vs 0. This is fixture evidence only.
+  // At attack 66, four of these 25 fixed samples died: RKF01 and RKF03 seeds 1
+  // and 3. Attack 60 clears all 25; the hardest fixture still ends round 5 at
+  // 28.6355 vs 0. This deterministic board is fixture evidence only.
   const hardest = results.get('RKF01-1');
   const start = hardest.frames.find(frame => frame.kind === 'start');
   const end = hardest.frames.filter(frame => frame.kind === 'end').at(-1);
@@ -129,4 +129,26 @@ test('EN-A1-L1 remains dangerous at realistic tier-one HP while the fixed sample
     `low remaining HP ${end.player.hp} keeps this deterministic encounter threatening`);
   assert.ok(Math.abs(end.player.hp - 28.635555555555293) < 1e-8,
     'records the post-tune survivor HP for the fixed threatening seed');
+});
+
+test('EN-A3-C2 no-equipment references sometimes survive its sustained attack loop', async () => {
+  const content = await loadGameContent();
+  const enemy = content.byId['EN-A3-C2'];
+  assert.equal(enemy.stats.attack, 81.7);
+  assert.equal(enemy.stats.max_hp, 983.84);
+
+  const results = [];
+  for (const method of START_METHODS) {
+    const { player, target } = referenceLoadouts(content, enemy, method);
+    for (let seedIndex = 0; seedIndex < 5; seedIndex += 1) {
+      const seed = `calibration-${enemy.id}-${method}-${seedIndex}`;
+      results.push(simulateBattle(content, player, target, seed, { roundLimit: 256 }));
+    }
+  }
+
+  assert.equal(results.filter(result => result.outcome === 'player').length, 18);
+  assert.equal(results.filter(result => result.outcome === 'enemy').length, 7);
+  assert.ok(results.every(result => result.rounds >= 4 && result.rounds <= 6));
+  // Five methods × five fixed seeds, with no player artifacts: this is a
+  // deterministic reference fixture, not a player win-rate estimate.
 });

@@ -1,22 +1,23 @@
 # V2 Experimental Verification
 
-Track: `feat/v2-build-engine`, 2026-10-30, content `shanhai-content-0.2`.
-The second overhaul uses `buildVersion: 5` and the `-v2-overhaul` storage
-namespace. Older saves are left untouched. V1 remains at tag `V1` (`2f08f08`);
+Track: V2 gameplay depth, 2026-11-02, content `shanhai-content-0.2`.
+The current gameplay version uses `buildVersion: 6` and the `-v2-overhaul` storage
+namespace; version 5 saves are rejected. V1 remains at tag `V1` (`2f08f08`);
 these reports do not replace its evidence or establish player win rates.
 
-The dated observations below record earlier V2 iterations. The latest
-multi-policy holdout and its content fingerprint are in
-`difficulty/v2-final-holdout-20261030.json` and its accompanying report;
-do not combine it with earlier seed cohorts or fixed encounter boards.
+The latest multi-policy holdout and content fingerprint are in
+`difficulty/v2-depth-holdout-20261102.json` and its accompanying report.
+The 180 paired policy runs reached acts one through four at 76.7% / 68.9% /
+53.9% / 39.4%; the separate fixed-policy 25-run sample won twice and passed
+the four acts 13 / 10 / 8 / 4 times. Neither is a player win rate; do not
+combine the cohorts or the fixed encounter board.
 
-The final content passes 471 runtime tests, 48 content-kit tests and the
-32-page generated-content check. The independent paired-policy sample has
-four-act cumulative passage of 76.7% / 66.3% / 55.3% / 42.3%; it is not a
-measurement of human players, and the last two values remain above target.
-The final browser journey used the handpicked `v2-functional-RKF01-1` seed:
-desktop completed 45 nodes and the mobile run completed all 11 first-act nodes,
-with no reported page errors. The common browser suite passed 13 checks.
+The current content passed 524 runtime tests, 50 content-kit tests and the
+32-page generated-content check. A handpicked browser seed completed all 45
+desktop nodes and the 11-node first act on mobile; these are functional checks,
+not evidence of win rate. The latest results are in `browser/report.json` and
+`journey/report.json`; screenshots were inspected locally and are not included.
+The observations below record earlier V2 iterations.
 
 ## Functional Checks
 

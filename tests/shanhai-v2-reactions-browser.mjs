@@ -726,7 +726,8 @@ async function testBossDisclosure(page, viewport, bossId) {
   const mapTrial = hint.locator(`.boss-trial-brief[data-trial-kind="${trialKind}"]`);
   await mapTrial.waitFor({ state: 'visible' });
   const mapText = await mapTrial.innerText();
-  assert.match(mapText, /每\s*3\s*回合/);
+  assert.ok(mapText.includes('每 3 轮 · 初始准备 3 格'),
+    `首领预告应按每 3 轮显示准备周期，实际为：${mapText}`);
   assert.match(mapText, /初始准备\s*3\s*格/);
   assert.match(mapText, /破解/);
   if (bossId === 'EN-A1-B1') {
@@ -743,7 +744,7 @@ async function testBossDisclosure(page, viewport, bossId) {
   await modal.waitFor({ state: 'visible' });
   const modalTrial = modal.locator(`.boss-trial-brief[data-trial-kind="${trialKind}"]`);
   await modalTrial.waitFor({ state: 'visible' });
-  assert.ok((await modalTrial.innerText()).includes('每 3 回合'));
+  assert.ok((await modalTrial.innerText()).includes('每 3 轮 · 初始准备 3 格'));
   await modal.locator('[data-action="confirm-node"]').click();
   await waitForApp(page, 'preview');
   const previewTrial = page.locator(`.game-page.phase-preview .boss-trial-brief[data-trial-kind="${trialKind}"]`);
@@ -764,7 +765,7 @@ async function testBossReplay(page, viewport, scenario) {
   await pauseAtCurrentFrame(page, viewport, 'enemy_release');
   const counters = page.locator('.combatant[data-side="enemy"] .fighter-counters');
   const counterText = await counters.innerText();
-  const chargeLabel = scenario === 'tidal_charge' ? '蓄潮' : '回雾';
+  const chargeLabel = scenario === 'tidal_charge' ? '潮势' : '回雾';
   assert.match(counterText, new RegExp(`${chargeLabel}\\s*0\\s*/\\s*3`));
   assert.match(counterText, /释势倒计时\s*0\s*\/\s*3/);
   await assertReactionLog(page, viewport, '首领释招', fixture.bossName);

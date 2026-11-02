@@ -161,7 +161,12 @@ test('RC11 opens with capped shield and rage consumes only actual shield without
 });
 
 test('RC12 converts every positive effective heal once and weakens direct damage', () => {
-  const player = makeLoadout('RKF08', [{ id: 'RC12', stacks: 1 }], { hp: 1_000 });
+  // Keep RC12 out of the lead slot so this fixture isolates its healing rule from
+  // the lead slot's static attribute bonus and early awakening.
+  const player = makeLoadout('RKF08', [
+    { id: 'RL09', stacks: 1 },
+    { id: 'RC12', stacks: 1 },
+  ], { hp: 1_000 });
   const result = simulateBattle(content, player, makeLoadout('RKF01', [], {
     attack: 0,
     defense: 0,

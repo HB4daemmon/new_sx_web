@@ -5,7 +5,7 @@ id: RE022
 name: 断炉商筹
 status: design_target
 summary: 熄火沟边用余料为下一战备盾、折回盘缠，或静坐积累修为。
-description: 炉火将熄，余料可付灵石留给下一场战斗作护盾准备，也可折成灵石或用来静坐修行。
+description: 炉火将熄，余料可付灵石留给下一场战斗作护盾准备、折成灵石，或为一件已装备的普通法宝点化至满层。
 tags: [ordinary, shop_prep, preparation, act3]
 source:
   basis: original
@@ -18,7 +18,7 @@ balance:
   measured: null
 event_type: ordinary
 acts: [3]
-scene: 熔灰压住炉口，炉工把一份未用尽的护行余料放到石沿。你可以付标价灵石留作下一战护盾，取一笔盘缠，或借短暂清静修行。
+scene: 熔灰压住炉口，炉工把一份未用尽的护行余料放到石沿。你可以付标价灵石留作下一战护盾、取一笔盘缠，或付出半份普通法宝标价，以余火点化一件已装备的普通法宝至满层。
 options:
   - id: RE022-A
     label: 付石留作战盾
@@ -41,14 +41,15 @@ options:
     outcome: 你收下炉工折回的灵石，余料没有变成战斗准备。
     story_echo: 你收下折回的灵石，没有预作战斗准备，绕开炉口的塌灰继续走。
   - id: RE022-C
-    label: 借炉余温静坐
-    quick: 不耗灵石；静坐使修为提高下一次进阶所需的两成。
+    label: 付石点化装备法宝
+    quick: 付出半份普通法宝标价，将一件已装备且未满层的普通法宝点化至满层。
     requirements: []
-    costs: []
-    rewards:
-      - {type: resource, resource: xp, amount: 0.2, basis: next_xp}
-    outcome: 你在炉边静坐，修为向下一次进阶推进两成。
-    story_echo: 你借炉火将熄前的余温静坐修行，起身后继续追踪火流去向。
+    costs:
+      - {type: resource, resource: coins, amount: 0.5, basis: common_price}
+    rewards: []
+    catalysis: {kind: artifact_growth}
+    outcome: 你付出灵石借炉余火点化一件已装备的普通法宝，直至满层。
+    story_echo: 你付石借炉余火点化法宝后起身，继续追踪火流去向。
 settlement:
   once: true
   internal_battle_package: false

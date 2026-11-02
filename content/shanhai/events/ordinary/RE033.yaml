@@ -45,12 +45,13 @@ options:
     story_echo: 你付石系上返气环，灯影在身后收窄，天门仍要独自面对。
   - id: RE033-C
     label: 吹灯带旧法过阶
-    quick: 不付灵石、不取法本或法宝，保留灵石与当前功法。
+    quick: 不取法本或法宝，在灯下静息片刻积累少量修为。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你吹灭孤灯，没有取走法本或法宝，现用功法与灵石仍在身边。
-    story_echo: 你吹灭孤灯，带着现有灵石和功法走向天门，没有回头取卷。
+    rewards:
+      - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
+    outcome: 你吹灭孤灯，借片刻静息积累少量修为；法本未取，现用功法与灵石仍在身边。
+    story_echo: 你吹灭孤灯，在灯下静息片刻后带着旧法继续赶路。
 settlement:
   once: true
   internal_battle_package: false

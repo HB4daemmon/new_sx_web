@@ -1,0 +1,30 @@
+schema_version: 1
+content_version: shanhai-content-0.2
+kind: artifact
+id: RL12
+name: 天机落雷箓
+status: design_target
+summary: 核心定位；融合明目珠与雷纹印，暴击引雷并返怒
+description: 累计两次合炼进度后消耗明目珠与雷纹印各一层。每场合格胜利增加一次进度；至少取得一场真实胜利后，也可付灵石催化一次。战斗开始和胜利结算时都须持有每种材料至少一层，事件战胜利也计数。装备者存活主动作内至少命中一次直接暴击后，在该主动作结束时落下一道雷，造成自身攻击0.65倍的不可暴击派生伤害，并返还10点怒气；每个主动作至多落雷并返怒一次，返怒依照战斗怒气上限结算。落雷来源归本箓，可由左侧相邻的昆仑镜镜映一次；自身合法铭刻按原输出规则结算。融合传奇不进入随机获取池。
+tags: [fusion, critical, lightning, rage, derived_damage, legendary]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创融合器物，不声称古籍存在此效果。
+balance:
+  target: {B: 4, A: 20, J: 0, U: 4}
+  measured: null
+rarity: legendary
+max_stacks: 1
+unique_group: fusion_RC07_RC10
+attributes:
+  flat: {}
+  percent: {}
+effects: []
+equipment_role: core
+fusion_recipe:
+  inputs: [RC07, RC10]
+  fights: 2
+fusion_rule: {kind: thunder_rebate}
+acquisition:
+  pools: []

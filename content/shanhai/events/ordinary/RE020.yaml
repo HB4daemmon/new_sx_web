@@ -39,7 +39,7 @@ options:
       chance: 0.4
       bonuses:
         - {type: stat, stat: attack, threshold: 230, amount: 0.12}
-        - {type: method, id: RKF03, amount: 0.1}
+        - {type: method, id: RKF05, amount: 0.1}
         - {type: artifact, id: RC09, amount: 0.1}
       failure_rewards: []
       failure_outcome: 熔脉过早翻涌，赤铁没能成器，标价灵石已经付出。
@@ -58,12 +58,13 @@ options:
     story_echo: 你付石带走厚土环，护住身体穿过岩缝间未散的热气。
   - id: RE020-C
     label: 退出热沟
-    quick: 不付灵石、不取法宝，保留灵石与当前法宝离开。
+    quick: 不付灵石、不取法宝，观察熔脉走势后退回冷灰边。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 熔脉闭合前你退回冷灰边，现有灵石与法宝都没有改变。
-    story_echo: 你退回冷灰边，没有动用灵石，另寻绕过热沟的道路。
+    rewards:
+      - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
+    outcome: 熔脉闭合前你记下火流走势，退回冷灰边后积累少量修为。
+    story_echo: 你观察熔脉走势后退回冷灰边，没有投入灵石或取用法宝。
 settlement:
   once: true
   internal_battle_package: false

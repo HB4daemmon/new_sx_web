@@ -169,6 +169,45 @@ export interface FusionHistoryRecord {
   title: string;
   text: string;
 }
+export type CatalysisKind = 'fusion_step' | 'artifact_growth' | 'blood_vow';
+export type CatalysisSource = 'event' | 'rest' | 'shop';
+export interface BuildCatalysisRecord {
+  kind: CatalysisKind;
+  source: CatalysisSource;
+  act: number;
+  step: number;
+  targetId: string;
+  costCoins: number;
+  materials?: ArtifactStack[];
+  eventId?: string;
+  optionId?: string;
+  beforeStacks?: number;
+  afterStacks?: number;
+  methodId?: string;
+  replacedTalent?: string | null;
+}
+export interface TreasureBattleRewardRecord {
+  act: number;
+  step: number;
+  kind: 'node' | 'event';
+  enemyId: string;
+  outcome: 'player' | 'enemy';
+  coins: 0 | 12;
+  entryArtifacts: ArtifactStack[];
+}
+export interface TreasureBattleEntry {
+  act: number;
+  step: number;
+  kind: 'node' | 'event';
+  enemyId: string;
+  eligible: boolean;
+  coins?: 0 | 12;
+}
+export interface EventCatalysisTarget {
+  id: string;
+  label: string;
+  detail: string;
+}
 export interface FusionBattleEntry {
   act: number;
   step: number;
@@ -183,6 +222,8 @@ export interface FusionStatus {
   name: string;
   inputs: [string, string];
   wins: number;
+  catalyses: number;
+  progress: number;
   requiredWins: number;
   complete: boolean;
 }
@@ -207,13 +248,15 @@ export interface RunState {
   coins: number;
   artifacts: ArtifactStack[];
   equipment: RunEquipment;
-  buildVersion: 5;
+  buildVersion: 6;
   bloodVow: boolean;
   permanentRule?: PermanentSacrificeRule;
   rewardSearches: RewardSearchRecord[];
   rewardRefinements: RewardRefineRecord[];
   fusionProgress: FusionProgressRecord[];
   fusionHistory: FusionHistoryRecord[];
+  catalyses: BuildCatalysisRecord[];
+  treasureBattleRewards: TreasureBattleRewardRecord[];
   progress: RunProgress;
   talentDraftGeneration: number;
   talentDrafts: Record<string, string[]>;
@@ -225,6 +268,7 @@ export interface RunState {
   history: {
     act: number;
     step: number;
+    nodeType?: NodeType;
     title: string;
     text: string;
     eventId?: string;
@@ -245,6 +289,7 @@ export interface RunState {
   battle?: BattleResult;
   battleInput?: { player: Loadout; enemy: Loadout; seed: string; roundLimit: number; rules?: 'awakening-v1' };
   _fusionBattleEntry?: FusionBattleEntry;
+  _treasureBattleEntry?: TreasureBattleEntry;
   eventOption?: string;
   eventCheck?: EventCheckResult;
   eventStoryEcho?: string;
@@ -266,7 +311,8 @@ export type RunCommand =
   | { type: 'reward'; id: string | null }
   | { type: 'seek_reward'; family: ArtifactRewardFamily }
   | { type: 'refine_reward'; source: string; target: string }
-  | { type: 'event'; id: string }
+  | { type: 'event'; id: string; targetId?: string }
+  | { type: 'catalyze_fusion'; id: string }
   | { type: 'continue' }
   | { type: 'buy'; id: string }
   | { type: 'reforge'; source: string; target: string }

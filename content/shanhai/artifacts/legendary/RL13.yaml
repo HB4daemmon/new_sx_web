@@ -1,0 +1,30 @@
+schema_version: 1
+content_version: shanhai-content-0.2
+kind: artifact
+id: RL13
+name: 万金聚灵炉
+status: design_target
+summary: 支援定位；融合聚财钱与凝气珠，以开战灵石放大伤害并助长财道
+description: 累计两次合炼进度后消耗聚财钱与凝气珠各一层。每场合格胜利增加一次进度；至少取得一场真实胜利后，也可付灵石催化一次。战斗开始和胜利结算时都须持有每种材料至少一层，事件战胜利也计数。战斗入场时记录装备者持有的灵石，最多按1000枚计；本场造成的直接、派生、持续与盾返伤害倍率为1+记录灵石×0.0005，最高1.5倍。战斗中获得的灵石不会回溯改变本场倍率。若玩家在战斗入场时装备本炉并取得胜利（包括事件战斗），本场胜利结算固定额外获得12枚灵石，同一场只结算一次。倍率与胜利灵石均为非输出型规则，不会被昆仑镜镜映或铭刻复制，也不触发铭刻。融合传奇不进入随机获取池。
+tags: [fusion, wealth, coins, damage, legendary]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创融合器物，不声称古籍存在此效果。
+balance:
+  target: {B: 4, A: 20, J: 0, U: 4}
+  measured: null
+rarity: legendary
+max_stacks: 1
+unique_group: fusion_RC18_RC19
+attributes:
+  flat: {}
+  percent: {}
+effects: []
+equipment_role: support
+fusion_recipe:
+  inputs: [RC18, RC19]
+  fights: 2
+fusion_rule: {kind: coin_treasury}
+acquisition:
+  pools: []

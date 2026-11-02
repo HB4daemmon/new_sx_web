@@ -9,15 +9,14 @@ import { ShanhaiGame } from '../build/shanhai/run.js';
 import { nextCommand } from './shanhai-policy.mjs';
 
 export const START_METHODS = Object.freeze(['RKF01', 'RKF02', 'RKF03', 'RKF04', 'RKF05']);
-// Handpicked functional win fixtures only; this seed set is not a win-rate cohort.
+// Handpicked 45-node functional fixtures only; this is not a win-rate cohort
+// and is disjoint from the browser journey default v2-functional-RKF01-1.
 export const FUNCTIONAL_WIN_SEEDS = Object.freeze({
-  RKF01: 'v2-functional-RKF01-1',
-  RKF02: 'v2-functional-RKF02-3',
-  RKF03: 'v2-functional-RKF03-5',
-  RKF04: 'v2-functional-RKF04-0',
-  // These seeds exercise all 45 nodes under the revised enemies; they are
-  // deliberately selected functional fixtures, not win-rate evidence.
-  RKF05: 'v2-functional-RKF05-1',
+  RKF01: 'v2-45node-fixture-RKF01-004',
+  RKF02: 'v2-45node-fixture-RKF02-001',
+  RKF03: 'v2-45node-fixture-RKF03-016',
+  RKF04: 'v2-45node-fixture-RKF04-001',
+  RKF05: 'v2-45node-fixture-RKF05-008',
 });
 export const METHOD_BRANCHES = Object.freeze({
   RKF01: 'A',
@@ -478,7 +477,7 @@ export function runFullCalibration(content, seedCount = 5) {
   const seeds = runs.map(row => row.seed);
   const input = {
     mode: 'real_shanhai_game_policy',
-    experimentTrack: 'V2 second overhaul; buildVersion 5; uncalibrated',
+    experimentTrack: 'V2 gameplay depth; buildVersion 6; uncalibrated',
     functionalWinSeeds: clone(FUNCTIONAL_WIN_SEEDS),
     contentVersion: content.version,
     methods: [...START_METHODS],
@@ -494,7 +493,7 @@ export function runFullCalibration(content, seedCount = 5) {
   }
   return {
     policy: 'tests/shanhai-policy.mjs',
-    experimentTrack: 'V2 second overhaul; buildVersion 5; shanhai-content-0.2; uncalibrated',
+    experimentTrack: 'V2 gameplay depth; buildVersion 6; shanhai-content-0.2; uncalibrated',
     note: '真实 ShanhaiGame 与 simulateBattle；胜率是当前种子样本的直接观测，不沿用 V1 校准结果。装备策略在合法阶段依据当前库存和槽位价值换装，选择器不读取未来路线节点、战斗结果或隐藏事件结果。',
     seedCount,
     inputHash: hash,
@@ -516,11 +515,11 @@ export async function runCalibration({
   return {
     contentVersion: content.version,
     input: {
-      experimentTrack: 'V2 second overhaul; buildVersion 5; shanhai-content-0.2; uncalibrated',
+      experimentTrack: 'V2 gameplay depth; buildVersion 6; shanhai-content-0.2; uncalibrated',
       fullRunSeeds,
       encounterSeeds,
       functionalWinSeeds: clone(FUNCTIONAL_WIN_SEEDS),
-      functionalWinPolicy: 'tests/shanhai-policy.mjs nextCommand(game, steady); real battle and authored enemy stats',
+      functionalWinPolicy: 'Handpicked deterministic 45-node wins using tests/shanhai-policy.mjs nextCommand(game, steady), real battles and authored enemy stats; the RKF01 seed is also used by the browser journey; not a win-rate sample',
       roundLimit: 256,
       measuredFieldsRemainNull: true,
       referenceBoard: 'V2 fixed five-slot reference equipment; authored enemy.n; no runtime node growth or rewards',

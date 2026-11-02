@@ -14,7 +14,7 @@
 | `methods/` | RKF01-RKF10；每门基础动作、行旅、12 张天赋、3 条路线 |
 | `artifacts/common/` | RC01-RC24 |
 | `artifacts/rare/` | RR01-RR15 |
-| `artifacts/legendary/` | RL01-RL09 |
+| `artifacts/legendary/` | RL01-RL13 |
 | `events/ordinary/` | RE001-RE037，37 个短事件 |
 | `events/core/` | RK001-RK016，12 次人物相遇与4个独立机缘 |
 | `storylines/` | RS01-RS06，每条恰好两次相遇 |
@@ -154,12 +154,16 @@ V2 共鸣效果只允许用于已接入的实体，且只能放在功法 `passiv
 
 ### 反应试炼与悬赏寻器
 
-只有 `EN-A1-B1` 和 `EN-A1-B2` 可声明可选 `trial`，字段必须按类型精确匹配，未知、遗漏
-或其它敌人的试炼配置均会被校验拒绝。潮势试炼 `{kind: tidal_charge, period: 3,
+四幕各两名候选首领与两名终战候选均须声明 `trial`；字段必须按对应敌人与类型精确匹配，
+未知、遗漏或其它敌人的试炼配置均会被校验拒绝。潮势试炼 `{kind: tidal_charge, period: 3,
 charges: 3, attack_ratio_per_charge: 0.45}` 每次敌方有效直接或派生命中消耗一层，
 不受持续伤害或反震影响；回生雾 `{kind: reviving_mist, period: 3, charges: 3,
 heal_hp_ratio_per_charge: 0.045}` 只被实际扣除气血的中毒/燃烧跳伤打断。两者的公开
-`preview` 与 `counterplay` 都必须说明周期、准备内容和实际打断手段。
+`preview` 与 `counterplay` 都必须说明周期、准备内容和实际打断手段。其他类型包括
+削怒的 `rage_gale`、生盾的 `ember_shell`、合一斩击的 `blade_oath` 和施加减益的
+`six_eye_gaze`；各字段和取值范围以 `ENEMY_TRIAL_RULES` 为准。仅 EN-F1/EN-F2 须声明
+`phase_gate: {kind: half_health_gate, shield_hp_ratio, exposure_damage_ratio, exposure_rounds}`。
+首次降至半血时截断该击溢出伤害并生成一次护罩，破罩后触发有限易伤窗口；不得复生。
 
 `RULES.economy.reward_seeking` 固定公开 `{price: 8, max_per_act: 1, families: ...}`；
 四个且仅四个显式族为 `sword/guard/vitality/affliction`，引用现存普通或稀有法宝 ID，
@@ -203,7 +207,8 @@ category: enhance, effects: [...]}`。
 `rules.insights` 是16项跨功法共享天赋：首阶七项，第二至第四阶各三项，ID 固定为
 `V2-J1-A` 至 `V2-J1-G`、`V2-J2-A` 至 `V2-J4-C`，字段与功法天赋相同：
 `{id, tier, branch, name, quick, category, effects}`。候选可给任何功法使用；
-每个角色的首破从一阶七项中按种子固定展示三项；后续突破将本阶一项功法天赋与两项共享天赋并列展示。
+首破按种子固定展示一项本门天赋与两项共享天赋；后续每阶展示不同分支的两项本门天赋
+与两项共享天赋。每阶只选一项；池不足时明确报错，不伪造候选。
 候选冻结，不因查看、重读或切换功法重抽。
 
 15项新共享机制必须使用唯一效果结构：`trigger: always`、`operation: modify_effect`、
@@ -249,7 +254,7 @@ category: enhance, effects: [...]}`。
 可触发的上述输出时，镜器无效。镜器自身的双生、疾行铭刻可作用于镜映，右侧法宝的铭刻不会转移给镜器。
 普通按已定3或5层，稀有/传奇1层。每局最多装备五件互不重复的法宝，不按
 `equipment_role`拆分容量；`core/support`仅是描述类型：`RC01`、`RC09-RC12`、`RC14-RC15`、
-`RL01-RL07` 为 `core`，其余为`support`。饕餮鼎仅在地图、领奖、坊市、休整或幕间允许吞噬
+`RL01-RL07` 和 `RL10-RL12` 为 `core`，其余为`support`。饕餮鼎仅在地图、领奖、坊市、休整或幕间允许吞噬
 玩家选定的一件其他已持有法宝整栈；一栈只增加一次独立伤害乘区，目标的层数和铭刻同时消失。
 吞掉已装备法宝会移除其装备位并钳制气血上限，不治疗。成长计数归属 RL09：卸下时不生效，
 重新装备后恢复；吞噬本身不触发镜映、铭刻或其他战斗输出。饕餮鼎无主动战斗触发，铭刻不生效。
@@ -260,6 +265,8 @@ category: enhance, effects: [...]}`。
 不刷新节点、不重抽遭遇。地图、奖励、商店、休整和幕间可调整，事件、斗法及战前预览中不可调整。
 已装备法宝的槽位顺序可自由调整；处于同一触发结算路径的法宝效果按槽位顺序处理。不同触发类别
 之间不设统一的全局顺序；融合规则使用独立的固定优先级。
+第一格静态属性加成乘 1.5，可叠层普通法宝的觉醒判定额外加一层，不改变真实层数；只有
+装备满五格时，第五格法宝自身触发的伤害、治疗与护盾乘 1.25，镜映或铭刻副本不重复加成。
 法宝获取机会与装备容量互不替代；装备已满时可保留库存中的未装备法宝，但不会使其生效。
 法宝配装仍受总件数限制；纯属性与机制法宝自由组合，不要在已定 A/J/B 预算外补免费属性。
 核心定位法宝的玩家摘要与说明必须讲明能力、代价与定位，不把 `core_rule` 再复制成普通 `effects`。
@@ -280,12 +287,17 @@ category: enhance, effects: [...]}`。
 `unique_group:null` 或真实互斥组，RL01为`overflow_outlet`。
 `acquisition.pools` 引用 `common_artifact/rare_artifact/legendary_artifact` 等公共池。
 `balance.target: {B: 1, A: 5, J: 0}`；旅途型按法宝基线分摊，不能在B外再免费加属性。
-保留44件既有法宝的ID、名称、层数和基础属性；新增两件融合传奇各一件且不附加基础属性，以及传奇昆仑镜。
+保留44件既有法宝的ID、名称、层数和基础属性；六件融合传奇各一件且不附加基础属性，
+昆仑镜与饕餮鼎为另两件传奇。
 融合数据固定为 `fusion_recipe: {inputs: [<两张普通法宝ID>], fights: 2}` 与
-`fusion_rule: {kind: toxic_flame|twin_swords}`，并且 `acquisition.pools: []`，不进入商店或随机奖励池。
+`fusion_rule: {kind: toxic_flame|twin_swords|shield_cannon|healing_burst|thunder_rebate|coin_treasury}`，
+并且 `acquisition.pools: []`，不进入商店或随机奖励池。
 每场计数的合格战斗可来自普通流程或事件内部战斗；战斗开始和胜利结算时都须持有每种材料至少一层，
-融合完成时各消耗一层。RL06 配方为 RC14+RC15；RL07 配方为 RC01+RC09；每个配方只对应唯一融合产物。
-`fusion_recipe` 与 `fusion_rule` 只允许出现在 RL06/RL07；二者均为一件、无基础属性，配方输入
+融合完成时各消耗一层。至少取得一场真实合格胜利后，也可支付半份普通法宝标价，
+在坊市、休整或相应奇遇中催化一次；胜场与催化分别留证，催化结束服务节点。
+RL06/07/10/11/12/13 配方依次为 RC14+RC15、RC01+RC09、RC03+RC11、RC05+RC12、
+RC07+RC10、RC18+RC19；每个配方只对应唯一融合产物。
+`fusion_recipe` 与 `fusion_rule` 只允许出现在上述六件法宝；它们均为一件、无基础属性，配方输入
 ID 必须存在、不得重复，且不得出现在任何随机获取池中。已有核心普通法宝 RC01 仍保留
 `common_artifact` 获取资格，供首次普通核心奖励按现有规则抽取。
 V2契约指定的交互卡按新规则替换旧触发，
@@ -293,7 +305,8 @@ V2契约指定的交互卡按新规则替换旧触发，
 可选 `awakening: {at_stacks: 3, name: ..., quick: ...}` 只能在
 `at_stacks == max_stacks` 时声明完整叠层觉醒；相应法宝效果可写顶层 `min_stacks`，
 必须为不超过该法宝上限的正整数。达门槛后该效果只触发一次，不乘总层数；
-其它实体效果不能使用 `min_stacks`。阅读页显示觉醒条件与效果门槛。
+其它实体效果不能使用 `min_stacks`。第一格的普通可叠层法宝可提前一层满足觉醒判定，
+但 `min_stacks`、真实层数和库存不变。阅读页显示觉醒条件与效果门槛。
 
 ### 事件
 
@@ -322,6 +335,10 @@ rewards:
 `{type: owned_artifact, id: RC07, count: 1}`、
 `{type: flag, id: RS01-promised, value: true}`、`{type: known_method, id: RKF03}`。
 `capacity` 检查还能取得几层，`owned_artifact` 检查实际持有，二者不能替代。
+可选 `catalysis: {kind: fusion_step|artifact_growth|blood_vow}` 表示即时特殊选择：依次为
+推进已取得真实胜场的合炼、点化一件装备中未满层的普通法宝、以当前一阶天赋换断生入魔。
+其选项固定支付半份普通法宝标价，`requirements/rewards` 为空，不可同时附加检定、内部战、
+承诺或其它效果；无可用目标时不可选。目标、费用和来源单独存证，成功后即时结算。
 可另加 `set_flags` 对象、`encounter: {enemy_id: EN-A1-C1, mode: nonlethal,
 failure_hp_floor: 1, failure_rewards: [], failure_outcome: ...}`；
 有encounter时 `rewards/outcome` 只在胜利兑现。失败不发通用战斗包。

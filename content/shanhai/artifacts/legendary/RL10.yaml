@@ -1,0 +1,30 @@
+schema_version: 1
+content_version: shanhai-content-0.2
+kind: artifact
+id: RL10
+name: 铁壁神铳
+status: design_target
+summary: 核心定位；融合玄铁甲与铁壁符，蓄存实得护盾并轰击
+description: 累计两次合炼进度后消耗玄铁甲与铁壁符各一层。每场合格胜利增加一次进度；至少取得一场真实胜利后，也可付灵石催化一次。战斗开始和胜利结算时都须持有每种材料至少一层，事件战胜利也计数。战斗中每次实际获得护盾，将新增量按1:1计入炮势，炮势最多储存自身最大气血的30%；镜映复制的护盾不再计入。每个自身存活主动作完成时，若炮势大于0，消耗全部炮势并对敌方造成其0.7倍的不可暴击派生伤害；每个主动作至多轰击一次，轰击不会生成炮势。该伤害来源归本铳，可由左侧相邻的昆仑镜镜映一次；自身合法铭刻按原输出规则结算。融合传奇不进入随机获取池。
+tags: [fusion, shield, counter, derived_damage, legendary]
+source:
+  basis: original
+  reference: null
+  note: 游戏原创融合器物，不声称古籍存在此效果。
+balance:
+  target: {B: 4, A: 20, J: 0, U: 4}
+  measured: null
+rarity: legendary
+max_stacks: 1
+unique_group: fusion_RC03_RC11
+attributes:
+  flat: {}
+  percent: {}
+effects: []
+equipment_role: core
+fusion_recipe:
+  inputs: [RC03, RC11]
+  fights: 2
+fusion_rule: {kind: shield_cannon}
+acquisition:
+  pools: []

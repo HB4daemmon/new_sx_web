@@ -54,12 +54,13 @@ options:
     story_echo: 你用 36 灵石取到烛龙真经，绕开昼夜试炼；昆仑天门仍是接下来的目标。
   - id: RK016-close-cloud-gate
     label: 关上云门
-    quick: 不挑战、不付灵石、不取法本，保留当前功法回主路
+    quick: 不挑战、不付灵石、不取法本，借云门静气积累少量修为。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你让云门重新合拢，烛龙真经只是一条可绕开的高风险机缘。
-    story_echo: 你合上云门，没有改功法或付出资源；天门主路还在前方。
+    rewards:
+      - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
+    outcome: 你让云门重新合拢，借片刻静气积累少量修为；天门主路仍在前方。
+    story_echo: 你合上云门静息片刻，没有改功法或付出资源，随后走向天门主路。
 settlement:
   once: true
   internal_battle_package: false

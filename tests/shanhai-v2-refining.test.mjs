@@ -124,7 +124,7 @@ function assertAtomicRefineFailure(game, source, target, reason) {
 }
 
 test('refining configuration is required and accepts only the exact authored limit', () => {
-  assert.equal(make('v2-refining-authored-config').state.buildVersion, 5);
+  assert.equal(make('v2-refining-authored-config').state.buildVersion, 6);
   for (const config of [
     undefined,
     {},
@@ -173,7 +173,8 @@ test('a frozen ordinary reward refines atomically, triggers the authored thresho
   assert.equal(game.state.artifacts.find(stack => stack.id === 'RC12')?.stacks, 3);
   assert.deepEqual(game.state.equipment.slots, ['RC12']);
   assert.equal(game.state.hp, hpBefore, 'a larger maximum HP does not heal');
-  assert.equal(game.stats.max_hp, maxHpBefore + 10);
+  assert.equal(game.stats.max_hp, maxHpBefore + 15,
+    'the refined layer adds 10 max HP, amplified by the artifact occupying the lead slot');
   assert.equal(game.state.coins, coinsBefore);
   assert.equal(game.state.progress.coinsSpent, spentBefore);
   assert.equal(game.state.rewardCandidates.length, 0);

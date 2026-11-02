@@ -4,8 +4,8 @@ kind: artifact
 id: RR15
 name: 定心佩
 status: design_target
-summary: 最大气血 +30；受到的外来削怒量减半；支援定位
-description: 来自其他来源的削怒效果减半。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
+summary: 最大气血 +30；外来削怒减半，首个实际抵御量转为护盾；支援定位
+description: 来自其他来源的削怒效果减半。每场开场及此后每轮，首次因本法宝实际抵御的怒气会按50%转为护盾；没有实际抵御量时不造盾，护盾仍受上限约束。装备后可与最多4件其他法宝一同装备；未装备时不提供属性或效果。
 tags: [max_hp, rage_drain_resist, combat, rare]
 source:
   basis: original
@@ -32,11 +32,12 @@ effects:
       cap: 1
       rounding: floor_after_resistance
       excludes: [rage_gain, incoming_segments]
+      protected_rage_shield_ratio: 0.5
     requires: []
     consumes: []
     replaces: []
     limit: {scope: permanent, count: 1}
-    text: 受到来自其他来源的削怒效果降低50%；多项削怒抗性相加，最高降低100%，不影响获得怒气或受击回怒。
+    text: 受到来自其他来源的削怒降低50%；每场开场及每轮首次实际抵御的怒气按50%转为护盾，受护盾上限约束。多项削怒抗性相加，最高降低100%，不影响获得怒气或受击回怒；没有实际被抵御的怒气时不造盾。
 equipment_role: support
 acquisition:
   pools: [rare_artifact]

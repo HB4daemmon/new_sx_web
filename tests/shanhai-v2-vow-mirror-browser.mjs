@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
-const url = process.env.BROWSER_URL || 'http://localhost:4178/';
+const url = process.env.BROWSER_URL || 'http://localhost:4194/';
 const saveKey = 'suishi-shanhai-run-v2-overhaul';
 const replayKey = 'suishi-shanhai-replay-v2-overhaul';
 const viewports = [360, 390, 430, 1440];
@@ -107,95 +107,100 @@ async function installVowCandidate(page) {
       : content.byId?.[id] ?? content.entities.find(entity => entity.id === id);
     const vow = content.rules.insights.find(item => item.id === 'V2-J1-G');
     const mirror = getEntity('RL08');
-    if (!vow || !mirror) throw new Error('4178 is not serving the V2-J1-G and RL08 content build');
+    if (!vow || !mirror) throw new Error('The browser service is not serving the V2-J1-G and RL08 content build');
     if (mirror.mirror_rule?.kind !== 'neighbor_awakening') throw new Error('RL08 mirror rule is missing');
     registerCombatWorker({ calculateStats, simulateBattle });
 
     const firstTierXp = getEntity('RULES')?.cultivation?.cumulative?.[0];
     if (!Number.isFinite(firstTierXp)) throw new Error('First breakthrough XP is missing from real content');
     const method = 'RKF03';
-    let selectedSeed;
-    for (let index = 0; index < 4096; index++) {
-      const seed = `v2-vow-browser-${index}`;
-      const probe = ShanhaiGame.create(content, { seed, name: '断生誓约验收', method });
-      probe.state.xp = firstTierXp;
-      if (probe.availableTalents().some(candidate => candidate.id === 'V2-J1-G')) {
-        selectedSeed = seed;
-        break;
+    function createGame(seed) {
+      const game = ShanhaiGame.create(content, {
+        seed,
+        name: '断生誓约验收',
+        method,
+      });
+      // A second authored start method makes the later in-run swap visible in the UI.
+      game.state.ownedMethods.push('RKF01');
+      game.state.talents.RKF01 = [];
+      game.state.coins = 200;
+      validateRunState(content, game.state);
+      return game;
+    }
+
+    function simulateRouteToFirstBreakthrough(game) {
+      function settleBattle() {
+        let battle = game.state.battle;
+        if (!battle && game.state.phase === 'preview') {
+          game.dispatch({ type: 'fight' });
+          battle = game.state.battle;
+        }
+        if (!battle) throw new Error(`Expected a real battle result, phase is ${game.state.phase}`);
+        let continuations = 0;
+        while (battle.outcome === 'draw' && continuations < 4) {
+          game.dispatch({ type: 'continue_battle' });
+          battle = game.state.battle;
+          continuations++;
+        }
+        if (battle.outcome !== 'player') return { outcome: battle.outcome };
+        game.dispatch({ type: 'battle_done' });
+        if (game.state.phase === 'reward') game.dispatch({ type: 'reward', id: null });
+        return { outcome: 'player' };
       }
-    }
-    if (!selectedSeed) throw new Error('Could not find a legal seed offering V2-J1-G at the first breakthrough');
 
-    const game = ShanhaiGame.create(content, {
-      seed: selectedSeed,
-      name: '断生誓约验收',
-      method,
-    });
-    // A second authored start method makes the later in-run swap visible in the UI.
-    game.state.ownedMethods.push('RKF01');
-    game.state.talents.RKF01 = [];
-    game.state.coins = 200;
-    validateRunState(content, game.state);
-
-    function chooseAvailableTalent(excludeVow = false) {
-      const candidates = game.availableTalents();
-      const candidate = candidates.find(item => !excludeVow || item.id !== 'V2-J1-G') || candidates[0];
-      if (!candidate) throw new Error('A legal breakthrough must offer a talent');
-      game.dispatch({ type: 'talent', id: candidate.id });
-      return candidate.id;
-    }
-
-    function settleBattle() {
-      let battle = game.state.battle;
-      if (!battle && game.state.phase === 'preview') {
-        game.dispatch({ type: 'fight' });
-        battle = game.state.battle;
+      function settleEvent(routeNode) {
+        const event = getEntity(routeNode.id);
+        const option = event?.options?.find(candidate =>
+          !candidate.rewards?.some(reward => reward.type === 'swap_method') &&
+          game.optionAvailability(candidate.id).available);
+        if (!option) throw new Error(`No available non-swap option on ${routeNode.id}`);
+        game.dispatch({ type: 'event', id: option.id });
+        if (game.state.phase === 'preview') {
+          const result = settleBattle();
+          if (result.outcome !== 'player') return result;
+        }
+        if (game.state.phase === 'event_result') game.dispatch({ type: 'continue' });
+        return { outcome: 'player' };
       }
-      if (!battle) throw new Error(`Expected a real battle result, phase is ${game.state.phase}`);
-      let continuations = 0;
-      while (battle.outcome === 'draw' && continuations < 4) {
-        game.dispatch({ type: 'continue_battle' });
-        battle = game.state.battle;
-        continuations++;
+
+      let visited = 0;
+      while (game.state.phase !== 'talent' && visited < 8) {
+        const nodes = game.availableNodes();
+        const target = nodes.find(node => node.type === 'C') || nodes[0];
+        if (!target) throw new Error('No legal route node is available before the first breakthrough');
+        game.dispatch({ type: 'enter', id: target.key });
+        let result = { outcome: 'player' };
+        if (['C', 'L', 'B', 'F'].includes(target.type)) result = settleBattle();
+        else if (target.type === 'E' || target.type === 'K') result = settleEvent(target);
+        else if (game.state.phase === 'rest') game.dispatch({ type: 'rest', choice: 'preparation' });
+        else if (game.state.phase === 'shop') game.dispatch({ type: 'leave_shop' });
+        if (result.outcome !== 'player') return { kind: 'lost', at: target.key, outcome: result.outcome };
+        visited++;
       }
-      if (battle.outcome !== 'player') throw new Error(`Legal fixture route lost a real battle (${battle.outcome})`);
-      game.dispatch({ type: 'battle_done' });
-      if (game.state.phase === 'reward') game.dispatch({ type: 'reward', id: null });
+      if (game.state.phase !== 'talent') throw new Error('Real route did not reach the first breakthrough');
+      const offeredIds = game.availableTalents().map(candidate => candidate.id);
+      return { kind: offeredIds.includes('V2-J1-G') ? 'eligible' : 'no-vow', offeredIds };
     }
 
-    function settleEvent(routeNode) {
-      const event = getEntity(routeNode.id);
-      const option = event?.options?.find(candidate =>
-        !candidate.rewards?.some(reward => reward.type === 'swap_method') &&
-        game.optionAvailability(candidate.id).available);
-      if (!option) throw new Error(`No available non-swap option on ${routeNode.id}`);
-      game.dispatch({ type: 'event', id: option.id });
-      if (game.state.phase === 'preview') settleBattle();
-      if (game.state.phase === 'event_result') game.dispatch({ type: 'continue' });
+    const selectedSeed = 'v2-vow-browser-36';
+    const game = createGame(selectedSeed);
+    const route = simulateRouteToFirstBreakthrough(game);
+    if (route.kind === 'lost') {
+      throw new Error(`Fixed seed ${selectedSeed} lost a real battle at ${route.at} (${route.outcome})`);
     }
-
-    let visited = 0;
-    while (game.state.phase !== 'talent' && visited < 8) {
-      const nodes = game.availableNodes();
-      const target = nodes.find(node => node.type === 'C') || nodes[0];
-      if (!target) throw new Error('No legal route node is available before the first breakthrough');
-      game.dispatch({ type: 'enter', id: target.key });
-      if (['C', 'L', 'B', 'F'].includes(target.type)) settleBattle();
-      else if (target.type === 'E' || target.type === 'K') settleEvent(target);
-      else if (game.state.phase === 'rest') game.dispatch({ type: 'rest', choice: 'preparation' });
-      else if (game.state.phase === 'shop') game.dispatch({ type: 'leave_shop' });
-      if (game.state.phase === 'talent') break;
-      while (game.state.phase === 'talent') chooseAvailableTalent(true);
-      visited++;
+    if (route.kind !== 'eligible') {
+      throw new Error(`Fixed seed ${selectedSeed} did not legally offer V2-J1-G at the first breakthrough`);
     }
-    if (game.state.phase !== 'talent') throw new Error('Real route did not reach the first breakthrough');
-    const offeredIds = game.availableTalents().map(candidate => candidate.id);
-    if (!offeredIds.includes('V2-J1-G')) throw new Error('The live draft does not contain V2-J1-G');
     validateRunState(content, game.state);
     localStorage.removeItem(saveKey);
     localStorage.removeItem(replayKey);
     saveRun(game);
-    return { seed: selectedSeed, offeredIds, phase: game.state.phase, step: game.state.step };
+    return {
+      seed: selectedSeed,
+      offeredIds: route.offeredIds,
+      phase: game.state.phase,
+      step: game.state.step,
+    };
   }, { saveKey, replayKey });
   await page.reload({ waitUntil: 'networkidle' });
   await waitForGame(page, fixture.phase);
@@ -576,8 +581,10 @@ async function assertMirrorFlow(browser) {
 
     let detail = await openArtifactDetails(page, 'RL08');
     assert.match(await detail.locator('.equipment-status').innerText(), /已装备 · 装备位 2/);
-    assert.match(await detail.locator('.item-dialog-summary').innerText(), /紧邻右侧/);
-    assert.match(await detail.locator('.item-dialog-summary').innerText(), /静态属性|静态规则/);
+    const mirrorSummary = await detail.locator('.item-dialog-summary').innerText();
+    assert.match(mirrorSummary, /紧邻右侧/);
+    assert.match(mirrorSummary, /不复制基础属性/);
+    assert.match(mirrorSummary, /静态数值或规则改写/);
     await page.screenshot({ path: '/tmp/shanhai-v2-mirror-neighbor-limits.png', fullPage: true });
     for (const width of viewports) {
       await page.setViewportSize({ width, height: width >= 900 ? 900 : 844 });
@@ -642,21 +649,34 @@ async function assertMirrorFlow(browser) {
       registerCombatWorker({ calculateStats, simulateBattle });
       return parseRunSave(content, localStorage.getItem(key)).battle?.frames || [];
     }, saveKey);
-    const mirrorIndex = frames.findIndex(frame => frame.source === 'RL08-MIRROR-AWAKENING-1');
-    const nativeIndex = frames.findIndex(frame => frame.source === 'RC01-AWAKENING-1');
-    assert.ok(mirrorIndex >= 0, 'The real run battle must contain the RL08 mirror awakening frame');
-    assert.ok(nativeIndex >= 0, 'The real run battle must contain the neighbor’s native awakening frame');
-    assert.ok(mirrorIndex < nativeIndex, 'Mirror output should resolve before the neighbor native awakening');
-    assert.match(frames[mirrorIndex].text, /昆仑镜镜映（青锋石）：觉醒输出/);
+    const mirrorPrompt = frames.find(frame => frame.kind === 'status' &&
+      frame.source === 'RL08-MIRROR-AWAKENING-1');
+    const nativePromptIndex = frames.findIndex(frame => frame.kind === 'status' &&
+      frame.source === 'RC01-AWAKENING-1');
+    const mirrorDamageIndex = frames.findIndex(frame => frame.kind === 'damage' &&
+      frame.source === 'RL08-MIRROR-AWAKENING-1');
+    const nativeDamageIndex = frames.findIndex(frame => frame.kind === 'damage' &&
+      frame.source === 'RC01-AWAKENING-1');
+    assert.ok(mirrorPrompt, 'The real run battle must contain the RL08 mirror awakening prompt');
+    assert.match(mirrorPrompt.text, /昆仑镜镜映（青锋石）：觉醒输出/);
+    assert.ok(nativePromptIndex >= 0, 'The native awakening prompt must remain in the real battle');
+    assert.ok(mirrorDamageIndex >= 0, 'The real run battle must contain the mirrored damage frame');
+    assert.ok(nativeDamageIndex >= 0, 'The real run battle must contain the neighbor’s native damage frame');
+    assert.ok(nativePromptIndex < mirrorDamageIndex,
+      'The native awakening status prompt precedes the two damage output frames');
+    assert.ok(mirrorDamageIndex < nativeDamageIndex,
+      'The mirrored damage frame must resolve before the neighbor’s native damage frame');
     await page.locator('[data-action="battle-skip"]').click();
     await page.locator('.battle-settlement').waitFor({ state: 'visible' });
     await page.locator('.battle-detail-actions [data-action="battle-details"][data-tab="log"]').click();
     const log = page.locator('.battle-detail-dialog[role="dialog"] .battle-log');
     await log.waitFor({ state: 'visible' });
-    assert.match(await log.innerText(), /昆仑镜镜映（青锋石）：觉醒输出/);
+    const battleLog = await log.innerText();
+    assert.match(battleLog, /昆仑镜镜映（青锋石）：觉醒输出/);
+    assert.match(battleLog, /青锋石/);
     assert.match(await log.innerText(), /昆仑镜效果/);
     await page.screenshot({ path: '/tmp/shanhai-v2-mirror-real-battle-log.png', fullPage: true });
-    console.log(`Mirror flow passed: actual ${frames.length}-frame battle, mirrored frame ${mirrorIndex}, native frame ${nativeIndex}`);
+    console.log(`Mirror flow passed: actual ${frames.length}-frame battle, mirrored damage frame ${mirrorDamageIndex}, native damage frame ${nativeDamageIndex}`);
   } finally {
     await context.close();
   }

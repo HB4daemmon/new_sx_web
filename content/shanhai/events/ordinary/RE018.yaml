@@ -50,12 +50,13 @@ options:
     story_echo: 你付石收下先机符，绕开雷光截路处，继续循着回流方向探行。
   - id: RE018-C
     label: 沿安全边绕行
-    quick: 不付灵石、不参加试诀，保留气血与资源绕行。
+    quick: 不参加试诀、不付灵石，观察雷光步律后绕行。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你没有参加试诀，绕开雷光路段，气血与资源都未改变。
-    story_echo: 你从雷光边缘绕行，气血与资源仍在手中，旧路还需继续辨认。
+    rewards:
+      - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
+    outcome: 你观察雷光步律，沿安全边绕过路段后继续前行。
+    story_echo: 你看清雷光游走的间隙，沿安全边绕过试场。
 settlement:
   once: true
   internal_battle_package: false

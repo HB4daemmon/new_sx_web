@@ -175,6 +175,20 @@ test('reorder accepts only editable phases and rejects invalid commands atomical
     /not owned/i);
 });
 
+test('moving an HP artifact from the first position clamps current HP without healing on return', () => {
+  const game = make('reorder-hp-clamp');
+  giveArtifacts(game, ['RC05', 'RC01'], ['RC05', 'RC01']);
+  game.state.hp = game.stats.max_hp;
+  const oldMax = game.stats.max_hp;
+  game.dispatch({ type: 'reorder_equipment', id: 'RC05', direction: 'right' });
+  const lowerMax = game.stats.max_hp;
+  assert.ok(lowerMax < oldMax);
+  assert.equal(game.state.hp, lowerMax);
+  game.dispatch({ type: 'reorder_equipment', id: 'RC05', direction: 'left' });
+  assert.equal(game.stats.max_hp, oldMax);
+  assert.equal(game.state.hp, lowerMax);
+});
+
 test('reorder changes only slot order; back, entry snapshots, battle input, save and replay preserve order', () => {
   installReplayCombat();
   const game = ShanhaiGame.create(content, {
@@ -250,6 +264,60 @@ test('reorder changes only slot order; back, entry snapshots, battle input, save
   buildStorage.value = JSON.stringify([invalidBuild]);
   assert.throws(() => loadWinningBuilds(buildStorage), /build records/i,
     'saved winning builds must reject a sixth equipped artifact');
+});
+
+test('RL13 equipped from the backpack freezes actual battle gear through departure, reorder, and reload', () => {
+  const game = make('five-slot-treasure-after-reentry');
+  giveArtifacts(game, ['RL13', 'RC01']);
+
+  const node = nextBattleNode(game);
+  game.dispatch({ type: 'enter', id: node.key });
+  const initialEntry = structuredClone(game.state.nodeEntry);
+  assert.deepEqual(initialEntry.artifacts, [], 'the node begins with no equipped artifacts');
+  game.dispatch({ type: 'back' });
+  game.dispatch({ type: 'equip', id: 'RL13' });
+  game.dispatch({ type: 'equip', id: 'RC01' });
+  assert.deepEqual(game.state.nodeEntry, initialEntry,
+    'equipping at the map does not rewrite the first node-entry snapshot');
+
+  game.dispatch({ type: 'enter', id: node.key });
+  game.dispatch({ type: 'fight' });
+  assert.deepEqual(game.state.battleInput.player.artifacts.map(stack => stack.id), ['RL13', 'RC01']);
+  assert.equal(game.state._treasureBattleEntry.eligible, true);
+  assert.deepEqual(
+    game.state._travelSnapshots.filter(snapshot => snapshot.phase === 'battle').map(snapshot =>
+      snapshot.artifacts.map(stack => stack.id)),
+    [['RL13', 'RC01']],
+  );
+
+  const afterReload = new ShanhaiGame(content, parseRunSave(content, serializeRun(game)));
+  afterReload.dispatch({ type: 'battle_done' });
+  assert.equal(afterReload.state._treasureBattleEntry.coins, 12);
+  assert.equal(afterReload.state.treasureBattleRewards.length, 1);
+  assert.deepEqual(afterReload.state.treasureBattleRewards[0].entryArtifacts.map(stack => stack.id),
+    ['RL13', 'RC01']);
+  afterReload.dispatch({ type: 'reward', id: null });
+  assert.equal(afterReload.state.phase, 'map');
+  assert.equal(afterReload.state._treasureBattleEntry, undefined);
+
+  const departedSave = serializeRun(afterReload);
+  const departed = new ShanhaiGame(content, parseRunSave(content, departedSave));
+  assert.deepEqual(departed.state.treasureBattleRewards[0].entryArtifacts.map(stack => stack.id),
+    ['RL13', 'RC01']);
+  assert.equal(departed.state.history.length, 1);
+  departed.dispatch({ type: 'reorder_equipment', id: 'RC01', direction: 'left' });
+  assert.deepEqual(departed.state.equipment.slots, ['RC01', 'RL13']);
+
+  const refreshedSave = serializeRun(departed);
+  const refreshed = new ShanhaiGame(content, parseRunSave(content, refreshedSave));
+  assert.deepEqual(refreshed.state.equipment.slots, ['RC01', 'RL13']);
+  assert.deepEqual(refreshed.state.treasureBattleRewards[0].entryArtifacts.map(stack => stack.id),
+    ['RL13', 'RC01'], 'the past battle keeps its actual entry order after later equipment changes');
+
+  const forged = JSON.parse(refreshedSave);
+  forged.state.treasureBattleRewards[0].entryArtifacts.pop();
+  assert.throws(() => parseRunSave(content, JSON.stringify(forged)), /frozen battle entry/i,
+    'historical reward evidence must match the frozen entry equipment, not the first node snapshot');
 });
 
 test('fusion consumes an equipped material, auto-fills the fifth slot, and stays valid with thunder', () => {

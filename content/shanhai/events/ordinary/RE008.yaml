@@ -46,12 +46,13 @@ options:
     story_echo: 你付石取走一层玄铁甲，绕开炉旁的湿滑石面继续赶路。
   - id: RE008-C
     label: 熄影沿旧路前行
-    quick: 熄灭炉影，保留当前功法和资源。
+    quick: 不付灵石，趁炉影未散记下一点修行心得。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你让炉影归于寂静，熟悉的功法与手中资源都未改变。
-    story_echo: 你没有动炉火或行囊，沿着熟悉的功法继续前行。
+    rewards:
+      - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
+    outcome: 你让炉影归于寂静，记下一点旧法脉络后沿路前行。
+    story_echo: 炉影散去前你记下几分法脉心得，沿旧路继续赶程。
 settlement:
   once: true
   internal_battle_package: false

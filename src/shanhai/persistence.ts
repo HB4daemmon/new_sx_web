@@ -194,6 +194,214 @@ function assertFusionStateShape(state: RunState): void {
   }
 }
 
+function assertCatalysisStateShape(state: RunState): void {
+  if (!Array.isArray(state.catalyses) || state.catalyses.length > 45) {
+    throw new Error('Invalid saved catalysis history');
+  }
+  let previousPosition = -1;
+  const coordinates = new Set<string>();
+  for (const record of state.catalyses) {
+    if (!isObject(record) || !['fusion_step', 'artifact_growth', 'blood_vow'].includes(record.kind) ||
+      !['event', 'rest', 'shop'].includes(record.source) ||
+      !Number.isInteger(record.act) || record.act < 1 || record.act > 4 ||
+      !Number.isInteger(record.step) || record.step < 0 || record.step > 10 ||
+      typeof record.targetId !== 'string' || !record.targetId.trim() ||
+      !Number.isFinite(record.costCoins) || record.costCoins <= 0) {
+      throw new Error('Invalid saved catalysis record');
+    }
+    let expectedKeys: string[];
+    if (record.kind === 'fusion_step') {
+      const event = record.source === 'event';
+      expectedKeys = ['kind', 'source', 'act', 'step', 'targetId', 'costCoins', 'materials',
+        ...(event ? ['eventId', 'optionId'] : [])];
+      if (!Array.isArray(record.materials) || record.materials.length !== 2 ||
+        record.materials.some(stack => typeof stack?.id !== 'string' || !/^(?:RC|RR|RL)\d\d$/.test(stack.id)) ||
+        new Set(record.materials.map(stack => stack.id)).size !== 2) {
+        throw new Error('Invalid saved fusion catalysis materials');
+      }
+      assertFusionInventoryShape(record.materials, 'saved fusion catalysis materials');
+      if (event && (typeof record.eventId !== 'string' || !record.eventId.trim() ||
+        typeof record.optionId !== 'string' || !record.optionId.trim())) {
+        throw new Error('Invalid saved event fusion catalysis source');
+      }
+    } else if (record.kind === 'artifact_growth') {
+      expectedKeys = ['kind', 'source', 'act', 'step', 'targetId', 'costCoins', 'eventId', 'optionId',
+        'beforeStacks', 'afterStacks'];
+      if (record.source !== 'event' || !/^RC\d\d$/.test(record.targetId) ||
+        typeof record.eventId !== 'string' || typeof record.optionId !== 'string' ||
+        typeof record.beforeStacks !== 'number' || !Number.isInteger(record.beforeStacks) || record.beforeStacks < 1 ||
+        typeof record.afterStacks !== 'number' || !Number.isInteger(record.afterStacks) || record.afterStacks <= record.beforeStacks) {
+        throw new Error('Invalid saved artifact growth catalysis');
+      }
+    } else {
+      expectedKeys = ['kind', 'source', 'act', 'step', 'targetId', 'costCoins', 'eventId', 'optionId',
+        'methodId', 'replacedTalent'];
+      if (record.source !== 'event' || record.targetId !== 'V2-J1-G' ||
+        typeof record.eventId !== 'string' || typeof record.optionId !== 'string' ||
+        typeof record.methodId !== 'string' || !/^RKF\d\d$/.test(record.methodId) ||
+        (record.replacedTalent !== null && typeof record.replacedTalent !== 'string')) {
+        throw new Error('Invalid saved blood vow catalysis');
+      }
+    }
+    if (Object.keys(record).length !== expectedKeys.length ||
+      expectedKeys.some(key => !Object.prototype.hasOwnProperty.call(record, key)) ||
+      Object.keys(record).some(key => !expectedKeys.includes(key))) {
+      throw new Error('Invalid saved catalysis fields');
+    }
+    const position = (record.act - 1) * 11 + record.step;
+    const coordinate = `${record.act}:${record.step}`;
+    if (position <= previousPosition || coordinates.has(coordinate)) {
+      throw new Error('Invalid saved catalysis order');
+    }
+    previousPosition = position;
+    coordinates.add(coordinate);
+  }
+  assertCatalysisHistoryCompleteness(state);
+}
+
+function saveContentEntity(content: Content | undefined, id: unknown): Record<string, any> | undefined {
+  if (!content || typeof id !== 'string') return undefined;
+  const byId = (content as any).byId;
+  if (byId instanceof Map) return byId.get(id);
+  if (isObject(byId)) return byId[id];
+  return content.entities?.find(entity => entity.id === id) as Record<string, any> | undefined;
+}
+
+function successfulEventCatalysisKind(
+  content: Content | undefined,
+  eventId: unknown,
+  optionId: unknown,
+): string | undefined {
+  const event = saveContentEntity(content, eventId);
+  if (!event || event.kind !== 'event' || typeof optionId !== 'string' || !Array.isArray(event.options)) {
+    return undefined;
+  }
+  const option = event.options.find((candidate: any) => candidate?.id === optionId);
+  const kind = option?.catalysis?.kind;
+  return ['fusion_step', 'artifact_growth', 'blood_vow'].includes(kind) ? kind : undefined;
+}
+
+function assertCatalysisHistoryCompleteness(state: RunState, content?: Content): void {
+  if (!Array.isArray(state.catalyses)) return;
+  const matchingRecord = (act: unknown, step: unknown) => state.catalyses.some(record =>
+    record?.act === act && record?.step === step);
+  const requireEventRecord = (
+    act: unknown,
+    step: unknown,
+    eventId: unknown,
+    optionId: unknown,
+  ) => {
+    const kind = successfulEventCatalysisKind(content, eventId, optionId);
+    if (kind && !state.catalyses.some(record => record?.act === act && record?.step === step &&
+      record?.source === 'event' && record?.kind === kind &&
+      record?.eventId === eventId && record?.optionId === optionId)) {
+      throw new Error('Successful event catalysis is missing its saved history record');
+    }
+  };
+
+  const markers = [
+    '合炼催化记录：',
+    '装备点化记录：',
+    '断生立誓记录：',
+  ];
+  for (const entry of Array.isArray(state.history) ? state.history : []) {
+    const hasCatalysisText = typeof entry?.text === 'string' && markers.some(marker => entry.text.includes(marker));
+    const hasServiceCatalysisMarker = entry?.nodeType === 'R' || entry?.nodeType === 'S';
+    if ((hasCatalysisText || hasServiceCatalysisMarker) && !matchingRecord(entry.act, entry.step)) {
+      throw new Error('Catalysis settlement history is missing its saved record');
+    }
+    if (entry?.eventOutcome === 'success') {
+      requireEventRecord(entry.act, entry.step, entry.eventId, entry.optionId);
+    }
+  }
+
+  const currentNode = Array.isArray(state.nodes) ? state.nodes[state.step] : undefined;
+  if (state._eventOutcome === 'success' && typeof state.eventOption === 'string' &&
+    (currentNode?.type === 'E' || currentNode?.type === 'K')) {
+    requireEventRecord(state.act, state.step, currentNode.id, state.eventOption);
+  }
+  if (state._eventOutcome === 'success' && typeof state.eventOption === 'string' &&
+    (currentNode?.type === 'E' || currentNode?.type === 'K') &&
+    typeof state.resultText === 'string' && markers.some(marker => state.resultText.includes(marker)) &&
+    !matchingRecord(state.act, state.step)) {
+    throw new Error('Pending catalysis settlement is missing its saved record');
+  }
+}
+
+function assertTreasureBattleStateShape(state: RunState): void {
+  if (!Array.isArray(state.treasureBattleRewards) || state.treasureBattleRewards.length > 45) {
+    throw new Error('Invalid saved treasure battle rewards');
+  }
+  if (state.battleInput !== undefined && state._treasureBattleEntry === undefined) {
+    throw new Error('Saved battle is missing its frozen treasure battle entry');
+  }
+  const records = new Set<string>();
+  let previousPosition = -1;
+  for (const record of state.treasureBattleRewards) {
+    if (!isObject(record) || Object.keys(record).length !== 7 ||
+      !['act', 'step', 'kind', 'enemyId', 'outcome', 'coins', 'entryArtifacts']
+        .every(key => Object.prototype.hasOwnProperty.call(record, key)) ||
+      !Number.isInteger(record.act) || record.act < 1 || record.act > 5 ||
+      !Number.isInteger(record.step) || record.step < 0 || record.step > (record.act === 5 ? 0 : 10) ||
+      !['node', 'event'].includes(record.kind) || typeof record.enemyId !== 'string' || !record.enemyId.trim() ||
+      !['player', 'enemy'].includes(record.outcome) ||
+      ![0, 12].includes(record.coins) || record.coins !== (record.outcome === 'player' ? 12 : 0) ||
+      !Array.isArray(record.entryArtifacts) || !record.entryArtifacts.some(stack => stack?.id === 'RL13')) {
+      throw new Error('Invalid saved treasure battle reward record');
+    }
+    assertFusionInventoryShape(record.entryArtifacts, 'saved treasure battle equipment');
+    const position = (record.act - 1) * 11 + record.step;
+    const coordinate = `${record.act}:${record.step}`;
+    if (position <= previousPosition || records.has(coordinate)) {
+      throw new Error('Invalid saved treasure battle reward order');
+    }
+    previousPosition = position;
+    records.add(coordinate);
+  }
+  if (state._treasureBattleEntry !== undefined) {
+    const entry = state._treasureBattleEntry;
+    const settled = isObject(entry) && Object.prototype.hasOwnProperty.call(entry, 'coins');
+    const keys = ['act', 'step', 'kind', 'enemyId', 'eligible', ...(settled ? ['coins'] : [])];
+    if (!isObject(entry) || Object.keys(entry).length !== keys.length ||
+      Object.keys(entry).some(key => !keys.includes(key)) ||
+      !keys.filter(key => key !== 'coins').every(key => Object.prototype.hasOwnProperty.call(entry, key)) ||
+      !Number.isInteger(entry.act) || entry.act < 1 || entry.act > 5 ||
+      !Number.isInteger(entry.step) || entry.step < 0 || entry.step > (entry.act === 5 ? 0 : 10) ||
+      !['node', 'event'].includes(entry.kind) || typeof entry.enemyId !== 'string' || !entry.enemyId.trim() ||
+      typeof entry.eligible !== 'boolean' ||
+      (settled && (typeof entry.coins !== 'number' || ![0, 12].includes(entry.coins)))) {
+      throw new Error('Invalid saved treasure battle entry');
+    }
+  }
+  assertTreasureBattleHistoryCompleteness(state);
+}
+
+function assertTreasureBattleHistoryCompleteness(state: RunState): void {
+  if (!Array.isArray(state.treasureBattleRewards)) return;
+  const records = new Set(state.treasureBattleRewards.map(record => `${record?.act}:${record?.step}`));
+  const key = (act: unknown, step: unknown) => `${act}:${step}`;
+  const entry = state._treasureBattleEntry;
+  const currentBattleSettled = isObject(entry) &&
+    (Object.prototype.hasOwnProperty.call(entry, 'coins') || state._battleSettled === true);
+  if (isObject(entry) && entry.eligible === true && currentBattleSettled &&
+    !records.has(key(entry.act, entry.step))) {
+    throw new Error('Settled eligible treasure battle is missing its reward record');
+  }
+
+  if (!Array.isArray(state._travelSnapshots) || !Array.isArray(state.history)) return;
+  for (const snapshot of state._travelSnapshots) {
+    if (snapshot?.phase !== 'battle' || !Array.isArray(snapshot.artifacts) ||
+      !snapshot.artifacts.some((stack: any) => stack?.id === 'RL13' && stack.stacks > 0)) continue;
+    const history = state.history.filter(item => item?.act === snapshot.act && item?.step === snapshot.step);
+    // A started battle without settlement history can be the current battle,
+    // including a draw that still needs to continue. Its active entry above
+    // supplies the settlement evidence when the battle is finished.
+    if (history.length === 1 && !records.has(key(snapshot.act, snapshot.step))) {
+      throw new Error('Settled eligible treasure battle is missing its reward record');
+    }
+  }
+}
+
 function assertLoadoutShapeWithoutContent(loadout: unknown, side: 'player' | 'enemy' = 'player'): void {
   if (!isObject(loadout) || typeof loadout.name !== 'string' || typeof loadout.method !== 'string' ||
     !Number.isInteger(loadout.n) || loadout.n < 0 || loadout.n > 4 ||
@@ -284,10 +492,12 @@ function assertStateShapeWithoutContent(state: RunState): void {
   if (!Number.isInteger(state.n) || state.n < 0 || state.n > 4) {
     throw new Error('Invalid Shanhai realm');
   }
-  if (state.buildVersion !== 5) {
+  if (state.buildVersion !== 6) {
     throw new Error('Invalid saved build version');
   }
   assertFusionStateShape(state);
+  assertCatalysisStateShape(state);
+  assertTreasureBattleStateShape(state);
   if (!isObject(state.progress) ||
     !nonNegative(state.progress.coinsSpent) ||
     !Number.isInteger(state.progress.eliteWins) || state.progress.eliteWins < 0 ||
@@ -468,6 +678,7 @@ function assertStateShapeWithoutContent(state: RunState): void {
   if (!Array.isArray(state.history) || state.history.some(entry =>
     !isObject(entry) || !Number.isInteger(entry.act) || entry.act < 1 || entry.act > 5 ||
     !Number.isInteger(entry.step) || entry.step < 0 ||
+    (entry.nodeType !== undefined && !NODE_TYPES.has(entry.nodeType)) ||
     typeof entry.title !== 'string' || typeof entry.text !== 'string')) {
     throw new Error('Invalid Shanhai history');
   }
@@ -751,6 +962,8 @@ function extractState(payload: unknown): RunState {
 
 function assertStateForSave(content: Content | undefined, state: RunState): void {
   if (content) {
+    assertCatalysisHistoryCompleteness(state, content);
+    assertTreasureBattleHistoryCompleteness(state);
     validateRunState(content, state);
     return;
   }
@@ -812,6 +1025,8 @@ export function parseRunSave(content: Content, text: string): RunState {
     throw new Error('Corrupted Shanhai save: invalid JSON');
   }
   let state = extractState(payload);
+  assertCatalysisHistoryCompleteness(state, content);
+  assertTreasureBattleHistoryCompleteness(state);
   validateRunState(content, state);
   const game = new ShanhaiGame(content, state);
   state = game.state;

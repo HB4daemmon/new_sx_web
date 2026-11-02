@@ -51,12 +51,13 @@ options:
     story_echo: 你付石取下铁壁符，避开白线试招，沿河岸寻找安全的接桥处。
   - id: RE014-C
     label: 退回岸边
-    quick: 不参加试招、不付灵石，保留气血与资源另寻通路。
+    quick: 不参加试招、不付灵石，拾起岸边少量散落盘缠。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 守桥人收回雷纹印，你带着原有气血与资源退回岸边。
-    story_echo: 你退回河岸另寻通路，气血与资源留在手中，雷纹印仍在桥上。
+    rewards:
+      - {type: resource, resource: coins, amount: 0.1, basis: common_price}
+    outcome: 守桥人收回雷纹印；你拾起岸边少量散落盘缠后退回主路。
+    story_echo: 你拾起岸边少量散落盘缠后退回主路，没有参加试招。
 settlement:
   once: true
   internal_battle_package: false

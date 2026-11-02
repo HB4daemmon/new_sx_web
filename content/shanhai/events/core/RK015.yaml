@@ -54,12 +54,13 @@ options:
     story_echo: 你用 36 灵石取走金乌真经，绕过攀树挑战；这份机缘没有改变主路。
   - id: RK015-turn-back
     label: 放弃扶桑
-    quick: 不挑战、不付灵石、不取法本，保留当前功法回主路
+    quick: 不挑战、不付灵石、不取法本，观火静息片刻积累少量修为。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你让扶桑火潮继续倒悬，金乌真经不是这一局的必经之法。
-    story_echo: 你绕过扶桑岔路，既不改功法也不再投入；火海主路仍向前延伸。
+    rewards:
+      - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
+    outcome: 你让扶桑火潮继续倒悬，观火静息片刻积累少量修为；金乌真经不是这一局的必经之法。
+    story_echo: 你绕过扶桑岔路，观火静息片刻后继续沿火海主路前行。
 settlement:
   once: true
   internal_battle_package: false

@@ -4,9 +4,9 @@ kind: event
 id: RE010
 name: 潮关药签
 status: design_target
-summary: 过水关前决定止住眼前的伤，还是把药留给之后的行旅。
-description: 旧河边只找回一份药材，煎服能立即恢复一段气血，封进行医囊则留待旅途中的行医触发。
-tags: [ordinary, heal, artifact, act2]
+summary: 过水关前可煎服旧药、把药材缝进行囊，或从残简中择一门新功法。
+description: 旧河岸只找回一份干燥药材和两份功法残简。药材可用来疗伤或留待行旅；残简可以习得新法，但不会自动改变现用功法。
+tags: [ordinary, heal, artifact, method, act2]
 source:
   basis: original
   reference: null
@@ -18,17 +18,18 @@ balance:
   measured: null
 event_type: ordinary
 acts: [2]
-scene: 被顶回的河水漫过旧路，岸边只剩一份干燥药材。你可以当场煎服，也可以把它封进行医囊，留给后面的行旅。
+scene: 被顶回的河水漫过旧路，岸边留下一份干燥药材和两份卡在石缝里的残简。你可以煎药、收起药材，或择一习得五毒经与奔雷诀中的一门。
 options:
   - id: RE010-A
     label: 趁干药煎服
-    quick: 不耗灵石，当场煎服并立即恢复一段气血。
+    quick: 不耗灵石，当场恢复一段气血并拾起少量散落灵石；断生之誓下气血不恢复。
     requirements: []
     costs: []
     rewards:
       - {type: resource, resource: hp, amount: 0.2, basis: reference_hp}
-    outcome: 你煎服药材，气血得到即时恢复，再看河水的涨势选路。
-    story_echo: 你趁药材未受潮煎服，伤痛缓下来后沿岸继续找路。
+      - {type: resource, resource: coins, amount: 0.1, basis: common_price}
+    outcome: 你煎服药材，气血得到即时恢复，也收起岸边零落的灵石。
+    story_echo: 你趁药材未受潮煎服，并收起岸边零落的灵石，伤痛缓下来后沿岸继续找路。
   - id: RE010-B
     label: 缝进行医囊
     quick: 不耗灵石，带走一层行医囊；须有一层空位，否则不能选。
@@ -39,6 +40,24 @@ options:
       - {type: artifact, id: RC17, count: 1}
     outcome: 你把药材封进一层行医囊，之后的行旅恢复仍要等行医触发。
     story_echo: 你把药材缝进行医囊，没有当场疗伤，沿着旧河岸继续探路。
+  - id: RE010-C
+    label: 收下五毒经残简
+    quick: 不耗灵石，习得五毒经；已习得时不可重复选择，现用功法不会改变。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: method, id: RKF06}
+    outcome: 你从残简中习得五毒经，仍沿用原先的功法继续行路。
+    story_echo: 你收起五毒经残简，现用功法未换，沿旧河寻找去路。
+  - id: RE010-D
+    label: 收下奔雷诀残简
+    quick: 不耗灵石，习得奔雷诀；已习得时不可重复选择，现用功法不会改变。
+    requirements: []
+    costs: []
+    rewards:
+      - {type: method, id: RKF07}
+    outcome: 你从残简中习得奔雷诀，仍沿用原先的功法继续行路。
+    story_echo: 你收起奔雷诀残简，现用功法未换，沿旧河寻找去路。
 settlement:
   once: true
   internal_battle_package: false

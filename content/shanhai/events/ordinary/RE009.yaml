@@ -50,12 +50,13 @@ options:
     story_echo: 你以灵石换来一层青锋石，绕过灯场，顺着河岸继续行路。
   - id: RE009-C
     label: 提灯离开河岸
-    quick: 提灯离台，保留气血与灵石。
+    quick: 不接试诀、不付灵石，拾起灯台旁少量散落盘缠。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你不接试诀，也没有花费灵石，提灯离开石台。
-    story_echo: 你提灯沿河岸离开，气血与灵石留在身边，灯影渐远。
+    rewards:
+      - {type: resource, resource: coins, amount: 0.1, basis: common_price}
+    outcome: 你不接试诀，拾起灯台旁少量散落盘缠后提灯离开。
+    story_echo: 你提灯离开河岸，拾起灯台旁的少量盘缠，没有进入试场。
 settlement:
   once: true
   internal_battle_package: false

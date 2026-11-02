@@ -99,7 +99,9 @@ function rareArtifactEffects(owner) {
     target: contract.target,
     params: Object.fromEntries(Object.entries(contract.params).map(([key, expected]) => [
       key,
-      typeof expected === 'string'
+      Array.isArray(expected)
+        ? structuredClone(expected)
+        : typeof expected === 'boolean' || typeof expected === 'string'
         ? expected
         : expected.integer
           ? expected.min
@@ -301,6 +303,29 @@ function makeEntities() {
     entities.set(entry.id, entity)
   }
 
+  const enemyTrials = {
+    'EN-A1-B1': { kind: 'tidal_charge', period: 3, charges: 3, attack_ratio_per_charge: 0.45 },
+    'EN-A1-B2': { kind: 'reviving_mist', period: 3, charges: 3, heal_hp_ratio_per_charge: 0.045 },
+    'EN-A2-B1': { kind: 'reviving_mist', period: 3, charges: 3, heal_hp_ratio_per_charge: 0.03 },
+    'EN-A2-B2': { kind: 'tidal_charge', period: 3, charges: 3, attack_ratio_per_charge: 0.24 },
+    'EN-A3-B1': { kind: 'rage_gale', period: 4, charges: 3, rage_drain_per_charge: 5 },
+    'EN-A3-B2': { kind: 'ember_shell', period: 4, charges: 3, shield_hp_ratio_per_charge: 0.04 },
+    'EN-A4-B1': { kind: 'blade_oath', period: 3, charges: 3, attack_ratio_per_charge: 0.28 },
+    'EN-A4-B2': {
+      kind: 'six_eye_gaze', period: 4, charges: 3,
+      weakness_stacks_per_charge: 1, armor_break_stacks_per_charge: 1, duration_rounds: 2,
+    },
+    'EN-F1': { kind: 'rage_gale', period: 4, charges: 3, rage_drain_per_charge: 6 },
+    'EN-F2': {
+      kind: 'six_eye_gaze', period: 4, charges: 3,
+      weakness_stacks_per_charge: 1, armor_break_stacks_per_charge: 1, duration_rounds: 2,
+    },
+  }
+  const enemyPhaseGates = {
+    'EN-F1': { kind: 'half_health_gate', shield_hp_ratio: 0.22, exposure_damage_ratio: 1.25, exposure_rounds: 1 },
+    'EN-F2': { kind: 'half_health_gate', shield_hp_ratio: 0.2, exposure_damage_ratio: 1.25, exposure_rounds: 1 },
+  }
+
   for (const entry of EXPECTED_MANIFEST_ENTRIES.filter((item) => item.kind === 'enemy')) {
     const final = entry.id.startsWith('EN-F')
     const entity = common(entry.id, 'enemy', entry.id)
@@ -319,12 +344,8 @@ function makeEntities() {
       preview: '战前公开预览',
       phases: [],
       reward_profile: final ? 'F' : tier === 'normal' ? 'C' : tier === 'elite' ? 'L' : 'B',
-      ...(entry.id === 'EN-A1-B1'
-        ? { trial: { kind: 'tidal_charge', period: 3, charges: 3, attack_ratio_per_charge: 0.45 } }
-        : {}),
-      ...(entry.id === 'EN-A1-B2'
-        ? { trial: { kind: 'reviving_mist', period: 3, charges: 3, heal_hp_ratio_per_charge: 0.045 } }
-        : {}),
+      ...(enemyTrials[entry.id] ? { trial: structuredClone(enemyTrials[entry.id]) } : {}),
+      ...(enemyPhaseGates[entry.id] ? { phase_gate: structuredClone(enemyPhaseGates[entry.id]) } : {}),
     })
     entities.set(entry.id, entity)
   }
@@ -362,7 +383,7 @@ async function writeFixture() {
     files: EXPECTED_MANIFEST_ENTRIES,
     counts: {
       methods: 10,
-      artifacts: 48,
+      artifacts: 52,
       ordinary_events: 37,
       core_events: 16,
       storylines: 6,
@@ -403,6 +424,10 @@ test('complete temporary fixture validates and renders the fixed 32 pages', asyn
   assert.ok(pages.get('INDEX.md').startsWith(GENERATED_HEADER))
   assert.match(pages.get('methods/RKF01.md'), /四字天赋/)
   assert.match(pages.get('enemies/FINAL.md'), /EN-F1/)
+  assert.match(pages.get('enemies/ACT2.md'), /公开准备：回生雾准备/)
+  assert.match(pages.get('enemies/ACT4.md'), /公开准备：剑誓准备/)
+  assert.match(pages.get('enemies/FINAL.md'), /公开准备：雷怒准备/)
+  assert.match(pages.get('enemies/FINAL.md'), /二阶段劫门：仅触发一次/)
   assert.doesNotMatch(pages.get('methods/RKF01.md'), /schema_version:/)
 })
 
@@ -414,17 +439,24 @@ test('fusion artifacts require unique known recipes and stay out of random pools
 
   const legendaryPage = renderDocuments(report).get('artifacts/LEGENDARY.md')
   assert.match(legendaryPage, /### 九幽毒火幡/)
-  assert.match(legendaryPage, /融合配方：蛇纹瓶（`RC14`）、赤炎珠（`RC15`）；累计 2 场合格战斗胜利/)
+  assert.match(legendaryPage, /融合配方：蛇纹瓶（`RC14`）、赤炎珠（`RC15`）；累计 2 次进度后结算/)
   assert.match(legendaryPage, /按这两层各自剩余跳数的合计伤害×1\.2造成不可暴击派生伤害；未消费层不计入、不消耗/)
   assert.match(legendaryPage, /### 雌雄剑/)
   assert.match(legendaryPage, /两次各为攻击0\.4倍的不可暴击派生伤害/)
-  for (const id of ['RL06', 'RL07']) {
+  for (const id of Object.keys(ARTIFACT_FUSION_RECIPES)) {
     const artifact = fixture.entities.get(id)
     assert.deepEqual(artifact.acquisition.pools, [])
     assert.deepEqual(artifact.attributes, { flat: {}, percent: {} })
+    assert.equal(artifact.max_stacks, 1)
   }
-  assert.equal(fixture.entities.get('RL06').max_stacks, 1)
-  assert.equal(fixture.entities.get('RL07').max_stacks, 1)
+  assert.deepEqual(ARTIFACT_FUSION_RECIPES.RL10.inputs, ['RC03', 'RC11'])
+  assert.deepEqual(ARTIFACT_FUSION_RECIPES.RL11.inputs, ['RC05', 'RC12'])
+  assert.deepEqual(ARTIFACT_FUSION_RECIPES.RL12.inputs, ['RC07', 'RC10'])
+  assert.deepEqual(ARTIFACT_FUSION_RECIPES.RL13.inputs, ['RC18', 'RC19'])
+  assert.match(legendaryPage, /### 铁壁神铳[\s\S]*每次实际获得护盾时按1:1积为炮势，最多储存自身最大气血的30%[\s\S]*每个自身存活主动作完成时[\s\S]*每个主动作至多一次/)
+  assert.match(legendaryPage, /### 玉液回天壶[\s\S]*有效治疗与溢疗分别按实际数值1:1[\s\S]*达到最大气血20%/)
+  assert.match(legendaryPage, /### 天机落雷箓[\s\S]*直接暴击[\s\S]*返还10点怒气/)
+  assert.match(legendaryPage, /### 万金聚灵炉[\s\S]*最多按1000枚计[\s\S]*额外获得12枚灵石[\s\S]*不是可复制输出/)
   assert.equal(fixture.entities.get('RC01').equipment_role, 'core')
   assert.deepEqual(fixture.entities.get('RC01').acquisition.pools, ['common_artifact'])
 
@@ -981,6 +1013,32 @@ test('boss trials and reward-seeking families enforce owners, exact fields, refe
     'reward-seeking-rarity',
     'reward-seeking-family-rarity',
   ]) {
+    assert.ok(codes.has(code), `expected ${code}; received ${[...codes].join(', ')}`)
+  }
+})
+
+test('half-health phase gates require a bounded final-enemy owner and exact shape', async (t) => {
+  const fixture = await writeFixture()
+  t.after(() => rm(fixture.root, { recursive: true, force: true }))
+  let report = await reportFor(fixture)
+  assert.equal(report.ok, true, report.errors.map((error) => error.message).join('\n'))
+
+  const malformed = structuredClone(fixture.entities.get('EN-F1'))
+  malformed.phase_gate.exposure_rounds = 3
+  malformed.phase_gate.extra = true
+  await rewriteEntity(fixture, malformed.id, malformed)
+
+  const foreign = structuredClone(fixture.entities.get('EN-A2-B1'))
+  foreign.phase_gate = structuredClone(fixture.entities.get('EN-F1').phase_gate)
+  await rewriteEntity(fixture, foreign.id, foreign)
+
+  const missing = structuredClone(fixture.entities.get('EN-F2'))
+  delete missing.phase_gate
+  await rewriteEntity(fixture, missing.id, missing)
+
+  report = await reportFor(fixture)
+  const codes = new Set(report.errors.map((error) => error.code))
+  for (const code of ['enemy-phase-gate-fields', 'enemy-phase-gate-owner', 'enemy-phase-gate-required', 'number-range']) {
     assert.ok(codes.has(code), `expected ${code}; received ${[...codes].join(', ')}`)
   }
 })

@@ -47,12 +47,13 @@ options:
     story_echo: 你付石收下凝气珠，带着更强的锋势与更低的怒气上限离开河道。
   - id: RE016-C
     label: 封印铁印继续行路
-    quick: 不付灵石或修为，放弃两项选择并保留当前功法与资源。
+    quick: 不付灵石、不开启功法重选，借铁印静息片刻积累修为。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你将铁印封回原位，没有改变功法、资源或法宝。
-    story_echo: 你封回铁印，沿着熟悉的功法走出河谷，旧法未作改动。
+    rewards:
+      - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
+    outcome: 你将铁印封回原位，借短暂静息积累少量修为后继续行路。
+    story_echo: 你封回铁印，借片刻静息整理心法后继续赶路。
 settlement:
   once: true
   internal_battle_package: false

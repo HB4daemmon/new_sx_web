@@ -33,7 +33,7 @@ const entities = new Map(manifest.files.map(entry => [
 ]));
 
 test('story content preserves the 45-node shell and uses factual read-only endings', () => {
-  assert.equal(entities.size, 157);
+  assert.equal(entities.size, 161);
   for (const id of ['RA01', 'RA02', 'RA03', 'RA04']) {
     const act = entities.get(id);
     assert.equal(Object.values(act.node_budget).reduce((sum, count) => sum + count, 0), 11);
@@ -52,7 +52,12 @@ test('all event options have a bounded story echo and all encounter branches hav
   assert.equal(events.length, 53);
 
   const options = events.flatMap(event => event.options);
-  assert.equal(options.length, 161);
+  assert.equal(options.length, 165);
+
+  const medicine = events.find(event => event.id === 'RE010');
+  assert.deepEqual(medicine.options.map(option => option.id), [
+    'RE010-A', 'RE010-B', 'RE010-C', 'RE010-D',
+  ]);
 
   let encounterCount = 0;
   for (const option of options) {

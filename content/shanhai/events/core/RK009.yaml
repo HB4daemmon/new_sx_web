@@ -50,12 +50,13 @@ options:
     story_echo: 你拿了修为，哪吒收起阵旗；这段路不再要求你闯阵。
   - id: RK009-leave
     label: 退出阵门
-    quick: 不付气血、不取修为或法宝，退出阵门回主路
+    quick: 不付气血、不取修为或法宝，拾起阵门边少量盘缠后回主路。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你看清两阵的锋口后转身，哪吒让开公共路线。
-    story_echo: 你看清阵门便转身离开，哪吒让开路；这次不留下任何挑战结果。
+    rewards:
+      - {type: resource, resource: coins, amount: 0.1, basis: common_price}
+    outcome: 你看清两阵的锋口后转身，拾起阵门边少量盘缠；哪吒让开公共路线。
+    story_echo: 你看清阵门便转身离开，拾起少量盘缠，没有留下挑战结果。
 settlement:
   once: true
   internal_battle_package: false

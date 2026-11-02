@@ -51,12 +51,13 @@ options:
     story_echo: 你付出 28 灵石取回元佩，没进月门；这条岔路没有改变主行程。
   - id: RK014-close-gate
     label: 关门离开
-    quick: 不挑战、不付灵石、不取器物，关门回主路
+    quick: 不挑战、不付灵石，借月门静气积累少量修为后回主路。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你关上月门，回澜印和回元佩都留在门内，公共道路仍然可走。
-    story_echo: 你合上月门，没有投入气血或灵石；离开岔口后仍可照常赶路。
+    rewards:
+      - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
+    outcome: 你关上月门，借片刻静气积累少量修为后沿公共道路继续赶路。
+    story_echo: 你合上月门静息片刻，没有投入气血或灵石，随后照常赶路。
 settlement:
   once: true
   internal_battle_package: false

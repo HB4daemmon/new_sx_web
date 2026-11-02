@@ -9,7 +9,7 @@ import test from 'node:test';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = path.join(ROOT, 'dist');
-const EXPECTED_ENTITY_COUNT = 157;
+const EXPECTED_ENTITY_COUNT = 161;
 const SHANHAI_MODULES = [
   'app.js',
   'animation.js',
@@ -145,7 +145,7 @@ async function startServer(port) {
   }
 }
 
-test('dist contains only the Shanhai Pages artifact and all 157 manifest entities', async () => {
+test('dist contains only the Shanhai Pages artifact and all 161 manifest entities', async () => {
   const manifest = await readDistributionManifest();
   const gameArt = JSON.parse(await readFile(path.join(DIST, 'assets/game-art.json'), 'utf8'));
   assert.equal(manifest.version, 'shanhai-content-0.2');
@@ -167,10 +167,14 @@ test('dist contains only the Shanhai Pages artifact and all 157 manifest entitie
     ...SHANHAI_MODULES.map(file => `shanhai/${file}`),
   ];
   assert.deepEqual(gameArt.approval, { status: 'approved', reviewedBy: 'user' });
-  assert.equal(Object.keys(gameArt.artifacts).length, 48);
+  assert.equal(Object.keys(gameArt.artifacts).length, 52);
   assert.deepEqual(
     { RL06: gameArt.artifacts.RL06, RL07: gameArt.artifacts.RL07, RL08: gameArt.artifacts.RL08 },
     { RL06: '/assets/icon-bottle.png', RL07: '/assets/icon-jade.png', RL08: '/assets/icon-jade.png' },
+  );
+  assert.deepEqual(
+    { RL10: gameArt.artifacts.RL10, RL11: gameArt.artifacts.RL11, RL12: gameArt.artifacts.RL12, RL13: gameArt.artifacts.RL13 },
+    { RL10: '/assets/icon-armor.png', RL11: '/assets/icon-bottle.png', RL12: '/assets/icon-talisman.png', RL13: '/assets/icon-coin.png' },
   );
   assert.equal(Object.keys(gameArt.map).length, 6);
   assert.equal(Object.keys(gameArt.frames).length, 39);

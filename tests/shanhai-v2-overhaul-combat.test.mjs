@@ -130,14 +130,15 @@ test('rage chain spends only rage gained by each living rage action and stops at
   assert.equal(first.frames.some(frame => frame.cue?.kind === 'rage_chain' && frame.cue.count === 4), false);
 
   // The faster enemy gives the player an unrelated 10 rage before its turn.
-  // Each completed RKF09 rage action makes 104 new rage from 3 hit-rage gains,
-  // RC10's core refund, RL05's return, and RR01's first-hit gain. The first
-  // two action-local amounts are consumed; the old 10 and third action's 104
-  // remain for the ordinary round-end settlement, along with round-end +10,
-  // the incoming direct hit's base +5, and RR08's +10.
+  // Each completed RKF09 rage action makes 112 new rage: four V2-J3-A hit-rage
+  // gains (three rage segments plus RR01's charged hit), RC10's core refund,
+  // RL05's return, and RR01's first-hit gain. The first two action-local
+  // amounts are consumed; the old 10 and third action's 112 remain for the
+  // ordinary round-end settlement, along with round-end +10, the incoming
+  // direct hit's base +5, and RR08's +10.
   const settled = findFrame(first, frame => frame.round === 1 && frame.kind === 'rage' &&
     frame.source === 'RULES-RAGE-SETTLE' && frame.actor === 'player');
-  near(settled.amount, 129);
+  near(settled.amount, 137);
   assert.ok(contribution(first, 'RC10').rage >= 60, 'the core refund contributes to all three rage actions');
   assert.ok(contribution(first, 'RR01').rage >= 30, 'first base hit rage contributes to all three rage actions');
 
@@ -210,6 +211,7 @@ test('companion output kinds resolve as real effects with one source-attributed 
       companion.pair_bonuses = [];
     });
     const result = simulateBattle(content, makeLoadout('RKF05', {
+      n: 2,
       companions: ['RKF02'],
       hp: 500,
     }), makeEnemy(), `v2-overhaul-assist-${output.kind}`, { roundLimit: 1 });
@@ -359,7 +361,11 @@ test('max-stack awakenings resolve every declared effect once on the matching li
 test('awakenings require max stacks and honor trigger, disabled mode, echo exclusion, and death', () => {
   const awakeningContent = patchContent(entities => {
     entities.find(item => item.id === 'RULES').rage.opening = 100;
-    entities.find(item => item.id === 'RC01').awakening = {
+    const artifact = entities.find(item => item.id === 'RC01');
+    // Keep this max-stack fixture separate from the common-artifact lead-slot
+    // pre-awakening check, which has its own coverage.
+    artifact.rarity = 'rare';
+    artifact.awakening = {
       at_stacks: 5,
       name: '怒技觉醒',
       quick: '怒技后造成派生伤害。',

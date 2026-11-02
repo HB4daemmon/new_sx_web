@@ -227,10 +227,14 @@ test('seeded drafts can offer all seven first-tier insights and all later shared
 
     for (let tier = 1; tier <= 4; tier++) {
       game.state._talentQueue = [{ method: 'RKF01', tier, advance: true }];
-      const shared = game.availableTalents().filter(talent => talent.id.startsWith('V2-J'));
-      assert.equal(shared.length, tier === 1 ? 3 : 2);
+      const offered = game.availableTalents();
+      const shared = offered.filter(talent => talent.id.startsWith('V2-J'));
+      const local = offered.filter(talent => talent.id.startsWith('RKF01-J'));
+      assert.equal(shared.length, 2);
+      assert.equal(local.length, tier === 1 ? 1 : 2);
       if (tier > 1) {
-        assert.equal(game.availableTalents().filter(talent => talent.id.startsWith('RKF01-J')).length, 1);
+        assert.equal(new Set(local.map(talent => talent.branch)).size, 2,
+          'later breakthroughs must offer local choices from different branches');
       }
       for (const talent of shared) reached.add(talent.id);
     }

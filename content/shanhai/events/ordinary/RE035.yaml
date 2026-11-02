@@ -46,12 +46,13 @@ options:
     story_echo: 你以较低标价带走调息玉，系好行囊后继续独自攀登。
   - id: RE035-C
     label: 不取法宝保留灵石
-    quick: 不付灵石、不取法宝，保留灵石继续赶路。
+    quick: 不付灵石、不取器物，拾起石阶边少量散落盘缠。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你没有取用守经人留下的法宝，灵石仍在身边。
-    story_echo: 你把两件法宝留在石阶，保留灵石，继续独自走向天门。
+    rewards:
+      - {type: resource, resource: coins, amount: 0.1, basis: common_price}
+    outcome: 你没有取用守经人留下的法宝，拾起石阶边少量散落盘缠后继续前行。
+    story_echo: 你不取守经人的法宝，拾起石阶边少量盘缠后继续赶路。
 settlement:
   once: true
   internal_battle_package: false

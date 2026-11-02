@@ -717,22 +717,27 @@ test('talent ratio additions and replacement outlets stay scoped to authored seg
   convertedAttack * convertedRageRatio + expectedShieldDamage);
   assert.equal(converted.frames.some(frame => frame.source === 'RKF01-RAGE-SHIELD'), false);
 
-  const segmentTalent = simulateBattle(
-    content,
-    makeLoadout('RKF04', { 4: 'A' }, [{ id: 'RL04', stacks: 1 }], {
+  const segmentTalentPlayer = makeLoadout(
+    'RKF04', { 4: 'A' }, [{ id: 'RL04', stacks: 1 }], {
       attack: 100,
       defense: 0,
       max_hp: 1_000_000,
-    }),
+    },
+  );
+  const segmentTalent = simulateBattle(
+    content,
+    segmentTalentPlayer,
     makeLoadout('RKF01', {}, [], { attack: 0, defense: 0, max_hp: 1_000_000, speed: 9 }),
     'rkf04-rage-segments',
     { roundLimit: 1 },
   );
   const rageSegments = segmentTalent.frames.filter(frame =>
     frame.kind === 'damage' && frame.actor === 'player' && frame.source === 'RKF04-RAGE-DAMAGE');
+  const rageSegmentRatio = effectParams('RKF04', 'RKF04-J4-A-RAGE-SEGMENTS').attack_ratio_per_segment;
   assert.equal(rageSegments.length, 2);
   assert.equal(rageSegments.length, 2);
-  assert.ok(rageSegments.every(frame => Math.abs(frame.amount - 98.56) < 1e-9));
+  assert.ok(rageSegments.every(frame => Math.abs(frame.amount -
+    calculateStats(content, segmentTalentPlayer).attack * rageSegmentRatio) < 1e-9));
 });
 
 test('RKF07 and RKF09 rage segment talents add one capped hit and keep one main action', () => {
@@ -855,21 +860,23 @@ test('RKF01 recoil bonuses add once and retain the talent contribution', () => {
 });
 
 test('RKF01 J1-A and RC11 combine on method shields, while preparation stays outside the talent scope', () => {
+  const basicPlayer = makeLoadout('RKF01', { 1: 'A', 2: 'C' }, [{ id: 'RC11', stacks: 1 }], {
+    attack: 0,
+    defense: 98,
+    max_hp: 1_000,
+    speed: 10,
+  });
   const basic = simulateBattle(
     content,
-    makeLoadout('RKF01', { 1: 'A', 2: 'C' }, [{ id: 'RC11', stacks: 1 }], {
-      attack: 0,
-      defense: 98,
-      max_hp: 1_000,
-      speed: 10,
-    }),
+    basicPlayer,
     makeLoadout('RKF01', {}, [], { attack: 0, defense: 0, max_hp: 1_000_000, speed: 1 }),
     'rkf01-shield-additive-basic',
     { roundLimit: 1 },
   );
   const basicShield = firstFrame(basic, frame =>
     frame.kind === 'shield' && frame.source === 'RKF01-BASIC-SHIELD');
-  assert.ok(Math.abs(basicShield.amount - ((100 * 0.10 + 1_000 * 0.01) * (1 + 0.18 + 0.06))) < 1e-9);
+  const basicDefense = calculateStats(content, basicPlayer).defense;
+  assert.ok(Math.abs(basicShield.amount - ((basicDefense * 0.10 + 1_000 * 0.01) * (1 + 0.18 + 0.06))) < 1e-9);
   assert.equal(contribution(basic, 'RKF01-J1-A').triggers, 1);
   assert.equal(contribution(basic, 'RC11').triggers, 3);
 
@@ -888,21 +895,23 @@ test('RKF01 J1-A and RC11 combine on method shields, while preparation stays out
   assert.ok(contribution(twoCoreRules, 'RC11').shield > 0);
   assert.equal(contribution(twoCoreRules, 'RL04').rage, 50);
 
-  const rage = simulateBattle(
-    openingRageContent(),
-    makeLoadout('RKF01', { 1: 'A', 2: 'C' }, [{ id: 'RC11', stacks: 1 }], {
+  const ragePlayer = makeLoadout('RKF01', { 1: 'A', 2: 'C' }, [{ id: 'RC11', stacks: 1 }], {
       attack: 0,
       defense: 98,
       max_hp: 1_000,
       speed: 10,
-    }),
+    });
+  const rage = simulateBattle(
+    openingRageContent(),
+    ragePlayer,
     makeLoadout('RKF01', {}, [], { attack: 0, defense: 0, max_hp: 1_000_000, speed: 1 }),
     'rkf01-shield-additive-rage',
     { roundLimit: 1 },
   );
   const rageShield = firstFrame(rage, frame =>
     frame.kind === 'shield' && frame.source === 'RKF01-RAGE-SHIELD');
-  assert.ok(Math.abs(rageShield.amount - ((100 * 0.18 + 1_000 * 0.01) * (1 + 0.18 + 0.06))) < 1e-9);
+  assert.ok(Math.abs(rageShield.amount - ((calculateStats(content, ragePlayer).defense * 0.18 +
+    1_000 * 0.01) * (1 + 0.18 + 0.06))) < 1e-9);
 
   const prepared = makeLoadout('RKF01', { 1: 'A' }, [{ id: 'RC11', stacks: 1 }], {
     attack: 0,
@@ -1072,16 +1081,17 @@ test('RKF03 J1-A uses its authored additive overflow percentage only on the defa
   assert.ok(Math.abs(directDamage.amount - 110) < 1e-9);
   assert.equal(directOutlet.frames.some(frame => frame.source === 'RKF03-J1-A-OVERFLOW'), false);
 
+  const shieldOutletPlayer = makeLoadout('RKF03', { 1: 'A' }, [{ id: 'RL01', stacks: 1 }], basePlayer);
   const shieldOutlet = simulateBattle(
     content,
-    makeLoadout('RKF03', { 1: 'A' }, [{ id: 'RL01', stacks: 1 }], basePlayer),
+    shieldOutletPlayer,
     enemy,
     'rkf03-j1a-overflow-shield-replacement',
     { roundLimit: 1 },
   );
   const overflowShield = firstFrame(shieldOutlet, frame =>
     frame.kind === 'shield' && frame.source === 'RL01-HEAL-OVERFLOW-TO-SHIELD');
-  assert.ok(Math.abs(overflowShield.amount - (5_600 * 0.02)) < 1e-9);
+  assert.ok(Math.abs(overflowShield.amount - (calculateStats(content, shieldOutletPlayer).max_hp * 0.02)) < 1e-9);
   assert.equal(shieldOutlet.frames.some(frame => frame.source === 'RKF03-J1-A-OVERFLOW'), false);
 });
 
@@ -1293,7 +1303,7 @@ test('artifact stat, basic damage, and shield multipliers use authored values', 
   const plain = makeLoadout('RKF01', {}, [], { max_hp: 1000 });
   const withAttack = makeLoadout('RKF01', {}, [{ id: 'RC01', stacks: 2 }], { max_hp: 1000 });
   const stats = calculateStats(content, withAttack);
-  assert.equal(stats.attack, 112);
+  assert.equal(stats.attack, 118);
   assert.equal(stats.defense, 100);
 
   const rc09Player = makeLoadout('RKF01', {}, [{ id: 'RC09', stacks: 1 }], { max_hp: 1000 });
@@ -1370,8 +1380,8 @@ test('killing a target stops artifact and derived followups', () => {
   assert.equal(result.frames.filter(frame => frame.source === 'RR04-BASIC-HIT-CHANCE-FOLLOWUP').length, 0);
 
   const derived = simulateBattle(
-    content,
-    makeLoadout('RKF08', { 3: 'B' }, [{ id: 'RL04', stacks: 1 }]),
+    openingRageContent(100),
+    makeLoadout('RKF08', { 3: 'B' }),
     makeLoadout('RKF01', {}, [], { attack: 0, defense: 0, max_hp: 150, speed: 1 }),
     'kill-derived-followup',
     { roundLimit: 1 },
@@ -1505,14 +1515,15 @@ test('RKF10 day shield talents add per shield while night actions do not create 
   assert.ok(contribution(stacked, 'RKF10-J2-C').triggers >= 2);
   assert.ok(contribution(stacked, 'RKF10-J4-A').triggers >= 2);
 
-  const nightRage = simulateBattle(
-    content,
-    makeLoadout('RKF10', { 2: 'C', 3: 'A', 4: 'A' }, [{ id: 'RC22', stacks: 1 }], {
+  const nightRagePlayer = makeLoadout('RKF10', { 2: 'C', 3: 'A', 4: 'A' }, [{ id: 'RC22', stacks: 1 }], {
       attack: 98,
       defense: 100,
       max_hp: 1_000_000,
       speed: 10,
-    }),
+    });
+  const nightRage = simulateBattle(
+    content,
+    nightRagePlayer,
     baseEnemy,
     'rkf10-night-rage-no-shield',
     { roundLimit: 2 },
@@ -1522,9 +1533,13 @@ test('RKF10 day shield talents add per shield while night actions do not create 
   assert.equal(nightRage.frames.some(frame =>
     frame.round === 2 && frame.kind === 'shield' && frame.actor === 'player' &&
     frame.source === 'RKF10-RAGE-SHIELD-DAY'), false);
+  const nightRageRatio = effectParams('RKF10', 'RKF10-RAGE-DAMAGE').attack_ratio_by_phase.night +
+    effectParams('RKF10', 'RKF10-J2-C-NIGHT').value +
+    effectParams('RKF10', 'RKF10-J4-A-DAMAGE').value;
   assert.ok(Math.abs(firstFrame(nightRage, frame =>
     frame.round === 2 && frame.kind === 'damage' && frame.actor === 'player' &&
-    frame.source === 'RKF10-RAGE-DAMAGE').amount - 185) < 1e-9);
+    frame.source === 'RKF10-RAGE-DAMAGE').amount -
+    calculateStats(content, nightRagePlayer).attack * nightRageRatio) < 1e-9);
 });
 
 test('RKF10 enemy day rage applies stacked shield talent additions', () => {

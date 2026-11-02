@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadContent } from '../tools/content-kit/src/loader.mjs';
-import { contentFromEntities, seededRandom } from '../build/shanhai/content.js';
+import { contentFromEntities } from '../build/shanhai/content.js';
 import { calculateStats, simulateBattle } from '../build/shanhai/combat.js';
 import { ShanhaiGame, registerCombatWorker } from '../build/shanhai/run.js';
 import { parseRunSave, serializeRun } from '../build/shanhai/persistence.js';
@@ -88,16 +88,6 @@ function selectVow(seedPrefix = 'blood-vow-selection', method = 'RKF03') {
     return game;
   }
   throw new Error(`No deterministic first-tier draft offered ${VOW}`);
-}
-
-function oldFirstTierDraft(seed, key) {
-  const pool = ['V2-J1-A', 'V2-J1-B', 'V2-J1-C', 'V2-J1-D', 'V2-J1-E', 'V2-J1-F'];
-  const random = seededRandom(`${seed}:talent-draft:${key}:shared`);
-  const result = [];
-  while (pool.length && result.length < 3) {
-    result.push(pool.splice(Math.floor(random() * pool.length), 1)[0]);
-  }
-  return result;
 }
 
 test('断生入魔 amplifies real self-healing, overheal, direct damage, and derived overflow damage', () => {
@@ -263,7 +253,7 @@ test('the run marker persists across save, talent reset, and method changes; ine
   assert.deepEqual(resumed.state._pendingTravelResources, {});
 });
 
-test('legacy buildVersion 5 saves default the missing marker to false and retain frozen first-tier offers', () => {
+test('first-tier save validation rejects a forged shared-only draft', () => {
   const game = ShanhaiGame.create(content, {
     seed: 'blood-vow-legacy-draft',
     name: '旧档试炼者',
@@ -273,20 +263,16 @@ test('legacy buildVersion 5 saves default the missing marker to false and retain
   game.state.xp = content.rules.cultivation.cumulative[0];
   game.state.phase = 'talent';
   const key = 'RKF01:1:0';
-  const oldDraft = oldFirstTierDraft(game.state.seed, key);
-  game.state.talentDrafts[key] = oldDraft;
   game.state._talentQueue = [{ method: 'RKF01', tier: 1, advance: false }];
   game.state._returnPhase = 'map';
+  game.availableTalents();
 
-  const oldRecord = JSON.parse(serializeRun(game));
-  oldRecord.state.buildVersion = 5;
-  delete oldRecord.state.bloodVow;
-  const restored = new ShanhaiGame(content, parseRunSave(content, JSON.stringify(oldRecord)));
-  assert.equal(restored.state.bloodVow, false);
-  assert.equal(restored.state.buildVersion, 5);
-  assert.deepEqual(restored.availableTalents().map(talent => talent.id), oldDraft);
-  restored.dispatch({ type: 'talent', id: oldDraft[0] });
-  assert.equal(restored.state.bloodVow, false);
+  const forged = JSON.parse(serializeRun(game));
+  forged.state.talentDrafts[key] = content.rules.insights
+    .filter(talent => talent.tier === 1)
+    .slice(0, 3)
+    .map(talent => talent.id);
+  assert.throws(() => parseRunSave(content, JSON.stringify(forged)), /run seed/);
 });
 
 test('the vow blocks healing without cancelling health loss or exposing a hidden event result', () => {

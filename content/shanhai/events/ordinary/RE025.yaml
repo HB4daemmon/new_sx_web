@@ -57,12 +57,13 @@ options:
     story_echo: 你付石系上返气环，越过旧石时，身后修行影子渐渐淡去。
   - id: RE025-C
     label: 不回头沿旧法前行
-    quick: 不付灵石，放弃重选与法宝，保留当前功法继续前行。
+    quick: 不付灵石，放弃重选与法宝，拾起路边少量盘缠继续前行。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你没有取石边机缘，沿用当前功法继续前行。
-    story_echo: 你不回头取机缘，沿着当前功法走过石面，行囊与旧路都未更改。
+    rewards:
+      - {type: resource, resource: coins, amount: 0.1, basis: common_price}
+    outcome: 你没有取石边机缘，拾起路边少量盘缠，沿用当前功法继续前行。
+    story_echo: 你拾起路边少量盘缠，不回头取机缘，沿当前功法前行。
 settlement:
   once: true
   internal_battle_package: false

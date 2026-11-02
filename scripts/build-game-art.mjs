@@ -147,10 +147,10 @@ export async function buildGameArt({ root, destination }) {
   }
   const mappedArtifactIds = Object.keys(library.artifacts || {});
   const contentArtifactIds = new Set(artifactIds);
-  if (artifactIds.length !== 48 || mappedArtifactIds.length !== artifactIds.length ||
+  if (artifactIds.length !== 52 || mappedArtifactIds.length !== artifactIds.length ||
       artifactIds.some(id => !Object.hasOwn(library.artifacts || {}, id)) ||
       mappedArtifactIds.some(id => !contentArtifactIds.has(id))) {
-    throw new Error('The approved art library must map exactly all 48 content artifacts');
+    throw new Error(`The approved art library must map exactly all ${artifactIds.length} content artifacts`);
   }
   if (!library.map || Object.keys(library.map).length !== 6) {
     throw new Error('The approved art library must map all six map illustrations');

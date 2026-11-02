@@ -134,7 +134,8 @@ test('five equipment slots ignore roles without healing or resetting route state
 
   game.dispatch({ type: 'equip', id: 'RC01' });
   assert.equal(game.state.hp, baseMaxHp - 30, 'increased maximum HP does not heal');
-  assert.equal(game.stats.max_hp, baseMaxHp + 100);
+  assert.equal(game.stats.max_hp, baseMaxHp + 150,
+    'the lead-slot artifact amplifies its 100 max-HP attribute by 1.5');
   game.state.hp = game.stats.max_hp;
   game.dispatch({ type: 'unequip', id: 'RC01' });
   assert.equal(game.state.hp, baseMaxHp, 'lower maximum HP clamps current HP');
@@ -356,7 +357,7 @@ test('travel artifact effects require entry equipment that remains owned and equ
   assert.equal(game.state.xp, 0, 'reforging cannot resurrect the sacrificed entry artifact');
 });
 
-test('first breakthrough freezes three shared choices, later tiers offer one local and two shared', () => {
+test('first breakthrough freezes one local and two shared choices, later tiers offer two branches and two shared', () => {
   const game = make('v2-frozen-draft');
   game.state.xp = 120;
   game.state.phase = 'talent';
@@ -366,7 +367,11 @@ test('first breakthrough freezes three shared choices, later tiers offer one loc
   const offeredIds = game.state.talentDrafts[key];
   assert.equal(content.rules.insights.filter(talent => talent.tier === 1).length, 7);
   assert.equal(offeredIds.length, 3);
-  assert.ok(initial.every(talent => talent.id.startsWith('V2-J1-')));
+  const initialLocal = initial.filter(talent => talent.id.startsWith('RKF01-J1-'));
+  const initialShared = initial.filter(talent => talent.id.startsWith('V2-J1-'));
+  assert.equal(initialLocal.length, 1);
+  assert.equal(initialShared.length, 2);
+  assert.equal(initialLocal[0].tier, 1);
   assert.equal(new Set(offeredIds).size, 3);
   const stable = structuredClone(offeredIds);
 
@@ -377,7 +382,7 @@ test('first breakthrough freezes three shared choices, later tiers offer one loc
     talent.tier === 1 && !offeredIds.includes(talent.id));
   assert.ok(unoffered);
   assert.throws(() => game.dispatch({ type: 'talent', id: unoffered.id }), /not offered/);
-  const shared = initial.find(talent => talent.id.startsWith('V2-J1-'));
+  const shared = initialShared[0];
   game.dispatch({ type: 'talent', id: shared.id });
   assert.deepEqual(game.state.talents.RKF01, [shared.id]);
   assert.equal(game.state.talentDraftGeneration, 0);
@@ -386,8 +391,13 @@ test('first breakthrough freezes three shared choices, later tiers offer one loc
   game.state.phase = 'talent';
   game.state._talentQueue = [{ method: 'RKF01', tier: 2, advance: true }];
   const secondTier = game.availableTalents();
-  assert.equal(secondTier.filter(talent => talent.id.startsWith('RKF01-J2-')).length, 1);
+  const localBranches = secondTier
+    .filter(talent => talent.id.startsWith('RKF01-J2-'))
+    .map(talent => talent.branch);
+  assert.equal(localBranches.length, 2);
+  assert.equal(new Set(localBranches).size, 2);
   assert.equal(secondTier.filter(talent => talent.id.startsWith('V2-J2-')).length, 2);
+  assert.equal(secondTier.length, 4);
   const secondTierDraft = structuredClone(game.state.talentDrafts['RKF01:2:0']);
   game.availableTalents();
   assert.deepEqual(game.state.talentDrafts['RKF01:2:0'], secondTierDraft);

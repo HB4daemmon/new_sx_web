@@ -10,7 +10,7 @@ import { calculateStats, simulateBattle } from '../build/shanhai/combat.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REPORT_DIR = path.join(ROOT, 'verification/shanhai/v2');
-const BUILD_VERSION = 5;
+const BUILD_VERSION = 6;
 const BASE_STATS = Object.freeze({
   attack: 100,
   defense: 0,
@@ -47,7 +47,7 @@ const buildVersion = ShanhaiGame.create(content, {
   name: 'controlled compare',
   method: 'RKF01',
 }).state.buildVersion;
-assert.equal(buildVersion, BUILD_VERSION, 'the loaded current build must be version 5');
+assert.equal(buildVersion, BUILD_VERSION, 'the loaded current build must be version 6');
 
 function makeLoadout(method, artifacts = [], {
   talents = [],

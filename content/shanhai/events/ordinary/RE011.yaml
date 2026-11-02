@@ -39,7 +39,7 @@ options:
       chance: 0.45
       bonuses:
         - {type: stat, stat: attack, threshold: 180, amount: 0.12}
-        - {type: method, id: RKF01, amount: 0.1}
+        - {type: method, id: RKF05, amount: 0.1}
         - {type: artifact, id: RC01, amount: 0.1}
       failure_rewards: []
       failure_outcome: 锻造未成，旧铁裂开，标价灵石已经付出。
@@ -58,12 +58,13 @@ options:
     story_echo: 你付石钉上铁壁符，驳船经过碎礁时护身之力随行。
   - id: RE011-C
     label: 不取旧铁过水
-    quick: 不付灵石、不取法宝，保留现有资源继续过碎礁。
+    quick: 不付灵石、不取法宝，观察水线后稳稳驶过碎礁。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 船工收起旧铁，驳船继续向前，你的灵石与法宝没有改变。
-    story_echo: 你不取船工的旧铁，带着原有行装穿过碎礁水道。
+    rewards:
+      - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
+    outcome: 船工收起旧铁；你观察水线调整船身，驳船稳稳驶过碎礁。
+    story_echo: 你观察水线与礁影，稳住船身通过水道，没有取用旧铁。
 settlement:
   once: true
   internal_battle_package: false

@@ -53,12 +53,13 @@ options:
     story_echo: 你付30灵石取走震山环，绕开雷门挑战，继续向天门行去。
   - id: RE036-C
     label: 关门保留行装
-    quick: 不参加挑战、不付灵石、不取法宝，保留气血与资源。
+    quick: 不挑战、不付灵石、不取震山环，静息片刻积累少量修为后离开。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你没有参加挑战或取走震山环，带着原有资源离开雷门。
-    story_echo: 你关上雷门，带着原有行装继续走向天门，试炼与法宝都未取。
+    rewards:
+      - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
+    outcome: 你没有参加挑战或取走震山环，在雷门外静息片刻积累少量修为后离开。
+    story_echo: 你关上雷门，在门外静息片刻后带着原有行装离开。
 settlement:
   once: true
   internal_battle_package: false

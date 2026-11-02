@@ -6,18 +6,19 @@ import path from 'node:path';
 import { loadContent } from '../tools/content-kit/src/loader.mjs';
 import { calculateStats, simulateBattle } from '../build/shanhai/combat.js';
 import { ShanhaiGame, registerCombatWorker } from '../build/shanhai/run.js';
-import { serializeRun } from '../build/shanhai/persistence.js';
+import { SHANHAI_SAVE_KEY, serializeRun } from '../build/shanhai/persistence.js';
 import { pauseNextReplay } from './shanhai-replay-fixture.mjs';
 
 const url = process.env.BROWSER_URL || 'http://localhost:4173/';
 const reportDir = process.env.SHANHAI_TALENT_TREE_REPORT_DIR
   ? path.resolve(process.env.SHANHAI_TALENT_TREE_REPORT_DIR)
   : path.join(os.tmpdir(), 'shanhai-talent-tree-browser');
-const saveKey = 'suishi-shanhai-run-v1';
-const replayKey = 'suishi-shanhai-replay-v1';
+const saveKey = SHANHAI_SAVE_KEY;
+const replayKey = 'suishi-shanhai-replay-v2-overhaul';
 const checks = [];
 const failures = [];
 const pageErrors = [];
+const screenshots = [];
 const loaded = await loadContent();
 const content = {
   version: loaded.manifest.content_version,
@@ -50,6 +51,11 @@ const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH ||
 
 function method(methodId) {
   return content.byId.get(methodId);
+}
+
+function talentTier(methodId, talentId) {
+  return method(methodId).talents.find(talent => talent.id === talentId)?.tier ??
+    content.rules.insights.find(talent => talent.id === talentId)?.tier;
 }
 
 function talentsFor(methodId, n, branches = ['A', 'B', 'C', 'A']) {
@@ -324,6 +330,14 @@ async function noOverflow(page, width, scope = 'document') {
     `${width}px body 横向溢出 ${JSON.stringify(metrics)} (${scope})`);
 }
 
+async function saveScreenshot(page, width, label) {
+  await mkdir(reportDir, { recursive: true });
+  const file = path.join(reportDir, `${width}-${label}.png`);
+  await page.screenshot({ path: file, fullPage: true, animations: 'disabled' });
+  screenshots.push(file);
+  return file;
+}
+
 async function installFixture(page, fixture) {
   await page.goto(url, { waitUntil: 'networkidle' });
   await page.evaluate(({ saveKey, save }) => {
@@ -440,14 +454,18 @@ async function assertReadOnlyTree(page, fixture, {
       `fixture 应覆盖跨分支的已悟路径 ${JSON.stringify(branches)}`);
   }
   if (candidateTier) {
-    assert.equal(nodes.filter(node => node.choice && node.tier === candidateTier).length, 3,
-      `第 ${candidateTier} 层应有三个当前可选节点`);
+    const expectedLocalChoices = candidateTier === 1 ? 1 : 2;
+    assert.equal(nodes.filter(node => node.choice && node.tier === candidateTier).length,
+      expectedLocalChoices,
+    `第 ${candidateTier} 层应标出 ${expectedLocalChoices} 个本门可选节点`);
     const selectedBranch = method(fixture.methodId).talents.find(talent =>
       talent.id === actualSelectedIds.at(-1))?.branch;
     const candidateBranches = nodes.filter(node => node.choice && node.tier === candidateTier)
       .map(node => method(fixture.methodId).talents.find(talent => talent.id === node.id)?.branch);
-    assert.deepEqual(candidateBranches.sort(), ['A', 'B', 'C'],
-      `当前候选应完整展示三个分支 ${JSON.stringify(candidateBranches)}`);
+    assert.equal(new Set(candidateBranches).size, expectedLocalChoices,
+      `本门候选应来自不同分支 ${JSON.stringify(candidateBranches)}`);
+    assert.ok(candidateBranches.every(branch => ['A', 'B', 'C'].includes(branch)),
+      `当前本门候选的分支标记不正确 ${JSON.stringify(candidateBranches)}`);
     assert.ok(candidateBranches.some(branch => branch !== selectedBranch),
       '当前候选必须能跨越上一层分支');
   }
@@ -534,8 +552,8 @@ async function assertReadOnlyTree(page, fixture, {
   const next = connectorData.filter(path => path.next);
   assert.equal(earned.length, Math.max(0, selectedCount - 1),
     `已悟路径连接数量错误 ${JSON.stringify(connectorData)}`);
-  if (candidateTier) assert.equal(next.length, 3,
-    `当前选择层应有三条分支连接 ${JSON.stringify(connectorData)}`);
+  if (candidateTier) assert.equal(next.length, candidateTier === 1 ? 1 : 2,
+    `当前本门候选连接数不正确 ${JSON.stringify(connectorData)}`);
   for (const connection of [...earned, ...next]) {
     assert.ok(connection.start && connection.end,
       `连接线没有有效路径坐标 ${JSON.stringify(connection)}`);
@@ -610,19 +628,33 @@ async function inspectEveryTalent(page, fixture) {
 async function assertCurrentChoices(page, { tier, expectedN }) {
   await waitForPhase(page, 'talent');
   const choices = page.locator('.game-page.phase-talent [data-action="talent"]');
-  assert.equal(await choices.count(), 3,
-    '当前突破选择必须是独立的三个 data-action=talent 按钮');
-  const currentTier = page.locator(`.game-page.phase-talent .talent-tier-row[data-tier="${tier}"]`);
-  assert.equal(await currentTier.locator('.talent-tree-node[data-choice="current"]').count(), 3);
-  const boxes = await choices.evaluateAll(elements => elements.map(element => {
-    const rect = element.getBoundingClientRect();
-    return { x: rect.x, y: rect.y, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height };
-  }));
+  assert.equal(await choices.count(), tier === 1 ? 3 : 4,
+    '首层突破应显示 1 个本门与 2 个共通选择，后续层显示 2+2 个候选');
+  const candidateCards = page.locator('.game-page.phase-talent .talent-candidate');
+  assert.equal(await candidateCards.count(), tier === 1 ? 3 : 4,
+    '每个可点击候选应对应一个独立候选卡');
+  const sharedCandidates = await candidateCards.evaluateAll(elements => elements
+    .map(element => element.classList.contains('is-shared'))
+    .sort());
+  assert.deepEqual(sharedCandidates, tier === 1
+    ? [false, true, true]
+    : [false, false, true, true],
+  '首层候选应为 1 个本门与 2 个共通选择，后续层为 2+2');
   const viewport = await page.evaluate(() => ({ width: innerWidth, height: innerHeight }));
-  assert.ok(boxes.every(box => box.width >= 44 && box.height >= 44 &&
-    box.x >= 0 && box.right <= viewport.width + 1 &&
-    box.y >= 0 && box.bottom <= viewport.height + 1),
-  `当前可选天赋触控区/首屏布局不合格 ${JSON.stringify({ boxes, viewport, tier })}`);
+  for (let index = 0; index < await choices.count(); index += 1) {
+    const choice = choices.nth(index);
+    await choice.scrollIntoViewIfNeeded();
+    const box = await choice.boundingBox();
+    assert.ok(box && box.width >= 44 && box.height >= 44 &&
+      box.x >= 0 && box.x + box.width <= viewport.width + 1 &&
+      box.y >= 0 && box.y + box.height <= viewport.height + 1,
+    `第 ${tier} 层第 ${index + 1} 个候选不可触达 ${JSON.stringify({ box, viewport, tier })}`);
+  }
+  await page.evaluate(() => {
+    const layout = document.querySelector('.game-layout');
+    if (layout) layout.scrollTop = 0;
+    window.scrollTo(0, 0);
+  });
   const run = await savedRun(page);
   assert.equal(run.state.n, expectedN, '重选阶段不应减少已达境界');
   assert.equal(run.state.phase, 'talent');
@@ -631,11 +663,11 @@ async function assertCurrentChoices(page, { tier, expectedN }) {
 async function installBattleFixture(page, fixture) {
   await page.goto(url, { waitUntil: 'networkidle' });
   await pauseNextReplay(page);
-  await page.evaluate(({ saveKey, save }) => {
+  await page.evaluate(({ saveKey, save, replayKey }) => {
     localStorage.clear();
     localStorage.setItem(saveKey, save);
-    localStorage.removeItem('suishi-shanhai-replay-v1');
-  }, { saveKey, save: fixture.save });
+    localStorage.removeItem(replayKey);
+  }, { saveKey, save: fixture.save, replayKey });
   await page.reload({ waitUntil: 'networkidle' });
   await waitForPhase(page, 'battle');
   await page.locator('.battle-shell[data-paused="true"]').waitFor();
@@ -656,11 +688,13 @@ async function writeReport() {
     viewports: [
       { width: 360, height: 780 },
       { width: 390, height: 844 },
+      { width: 430, height: 932 },
       { width: 1440, height: 900 },
     ],
     checks,
     failures,
     pageErrors,
+    screenshots,
   }, null, 2) + '\n');
 }
 
@@ -676,6 +710,7 @@ async function run() {
     const cases = [
       { width: 360, height: 780, fixture: shopFixtures[0] },
       { width: 390, height: 844, fixture: shopFixtures[1] },
+      { width: 430, height: 932, fixture: shopFixtures[1] },
       { width: 1440, height: 900, fixture: shopFixtures[2] },
     ];
     for (const item of cases) {
@@ -788,7 +823,7 @@ async function run() {
           assert.equal(reset._returnPhase, 'shop');
           await assertCurrentChoices(page, { tier: 1, expectedN: beforeConfirm.n });
 
-          const firstChoice = page.locator('.game-page.phase-talent [data-action="talent"]').last();
+          const firstChoice = page.locator('.game-page.phase-talent [data-action="talent"]').first();
           const firstChoiceId = await firstChoice.getAttribute('data-id');
           await firstChoice.click();
           await waitForPhase(page, 'talent');
@@ -855,8 +890,8 @@ async function run() {
           await noOverflow(page, item.width, 'respec-choice-flow');
           return { selectedAfterReload: partial.talents[item.fixture.methodId], partialTree };
         });
-      } else if (item.width === 390) {
-        await check('四层洗髓顺序、候选状态和原坊市返回', async () => {
+      } else if (item.width === 390 || item.width === 430) {
+        await check(`${item.width}px 四层洗髓、读档、候选点击和原坊市返回`, async () => {
           const coinsBefore = (await savedRun(page)).state.coins;
           await clickAction(page, 'buy',
             '.shop-item.service-talent_reset [data-action="buy"][data-id="talent_reset"]');
@@ -866,14 +901,43 @@ async function run() {
           const before = (await savedRun(page)).state;
           assert.equal(before.coins, coinsBefore - 40);
           await assertCurrentChoices(page, { tier: 1, expectedN: 4 });
+          await noOverflow(page, item.width, 'respec-first-breakthrough');
+          const firstBreakthroughScreenshot = await saveScreenshot(
+            page,
+            item.width,
+            'three-first-breakthrough-candidates',
+          );
+          const chosenIds = [];
+          let laterBreakthroughScreenshot;
           for (let tier = 1; tier <= 4; tier += 1) {
             const choice = page.locator('.game-page.phase-talent [data-action="talent"]').nth(tier % 3);
+            const chosenId = await choice.getAttribute('data-id');
+            assert.ok(chosenId, `第 ${tier} 层候选缺少天赋 ID`);
             await choice.click();
+            chosenIds.push(chosenId);
             const current = await savedRun(page);
             assert.equal(current.state.n, 4);
             assert.equal(current.state.coins, coinsBefore - 40);
+            assert.equal(current.state.talents[item.fixture.methodId].at(-1), chosenId,
+              `第 ${tier} 层实际点击应写入对应天赋`);
             if (tier < 4) {
               await assertCurrentChoices(page, { tier: tier + 1, expectedN: 4 });
+              await noOverflow(page, item.width, `respec-breakthrough-${tier + 1}`);
+              if (tier === 1) {
+                await page.reload({ waitUntil: 'networkidle' });
+                await waitForPhase(page, 'talent');
+                const reloaded = (await savedRun(page)).state;
+                assert.deepEqual(reloaded.talents[item.fixture.methodId], [chosenIds[0]],
+                  '首层候选点击后重载应保留已悟天赋');
+                assert.equal(reloaded._talentQueue.length, 3,
+                  '首层候选点击后重载应保留剩余三层洗髓队列');
+                await assertCurrentChoices(page, { tier: 2, expectedN: 4 });
+                laterBreakthroughScreenshot = await saveScreenshot(
+                  page,
+                  item.width,
+                  'four-later-breakthrough-candidates-after-reload',
+                );
+              }
             }
           }
           await waitForPhase(page, 'shop');
@@ -883,8 +947,16 @@ async function run() {
           assert.equal(finished.n, 4);
           assert.equal(finished.nodes[finished.step].type, 'S');
           assert.equal(finished.nodes[finished.step].completed, false);
-          return { chosenTiers: finished.talents[item.fixture.methodId].map(id =>
-            method(item.fixture.methodId).talents.find(talent => talent.id === id).tier).sort() };
+          await noOverflow(page, item.width, 'respec-choice-flow');
+          return {
+            chosenTiers: finished.talents[item.fixture.methodId].map(id =>
+              talentTier(item.fixture.methodId, id)).sort(),
+            firstBreakthroughCandidateCount: 3,
+            laterBreakthroughCandidateCount: 4,
+            clickedTalentIds: chosenIds,
+            firstBreakthroughScreenshot,
+            laterBreakthroughScreenshot,
+          };
         });
       } else {
         await check('一层洗髓可确认并立即返回原坊市', async () => {
@@ -895,6 +967,8 @@ async function run() {
             '.talent-reset-dialog [data-action="confirm-talent-reset"]');
           await waitForPhase(page, 'talent');
           await assertCurrentChoices(page, { tier: 1, expectedN: 1 });
+          await noOverflow(page, item.width, 'desktop-first-breakthrough');
+          await saveScreenshot(page, item.width, 'three-first-breakthrough-candidates');
           await clickAction(page, 'talent',
             '.game-page.phase-talent [data-action="talent"]');
           await waitForPhase(page, 'shop');

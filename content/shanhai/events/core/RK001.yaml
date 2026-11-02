@@ -44,12 +44,13 @@ options:
     story_echo: 你留下 8 枚灵石，与神农约好后段再见；回访时如何取舍，还由你决定。
   - id: RK001-leave
     label: 收紧行囊离开
-    quick: 不拿药、不付石，照原路继续赶程
+    quick: 不接药棚安排，临行前静息片刻积累少量修为。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你不接这份安排，神农收好药包，潮声里仍有一条普通道路。
-    story_echo: 你把路让给药棚，不多拿也不多留，循着水线独自上路。
+    rewards:
+      - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
+    outcome: 你不接这份安排，神农收好药包；你静息片刻后沿普通道路离开。
+    story_echo: 你没有立约或留下盘缠，静息片刻后沿普通道路离开。
 settlement:
   once: true
   internal_battle_package: false

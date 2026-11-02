@@ -212,8 +212,11 @@ test('equipped growth multiplies direct hits, DOT ticks, and player shield-refle
     baseStats: { defense: 50, speed: 10 },
   });
   const attackingDummy = dummy({ attack: 100, speed: 100 });
+  // Keep RC13 in the same non-lead slot in both runs so its scaled defense
+  // attribute does not get mixed into the devour damage multiplier check.
   const reflectPlain = simulateBattle(content,
-    reflector([{ id: 'RC13', stacks: 1 }]), attackingDummy, 'v2-devour-reflect', { roundLimit: 1 });
+    reflector([{ id: 'RL09', stacks: 1 }, { id: 'RC13', stacks: 1 }]),
+    attackingDummy, 'v2-devour-reflect', { roundLimit: 1 });
   const reflectGrown = simulateBattle(content,
     reflector([{ id: 'RL09', stacks: 1, devoured: 1 }, { id: 'RC13', stacks: 1 }]),
     attackingDummy, 'v2-devour-reflect', { roundLimit: 1 });

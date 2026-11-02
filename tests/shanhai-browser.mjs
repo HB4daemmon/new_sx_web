@@ -371,6 +371,9 @@ async function forceZeroContribution(page) {
     input.player.n = 3;
     input.player.talents = ['RKF01-J3-B'];
     input.player.artifacts = [{ id: 'RC07', stacks: 1 }];
+    game.state.n = 3;
+    game.state.xp = Math.max(game.state.xp, content.rules.cultivation.cumulative[2]);
+    game.state.talents[input.player.method] = [...input.player.talents];
     input.enemy.talents = [];
     input.enemy.artifacts = [];
     input.enemy.n = 0;
@@ -378,6 +381,14 @@ async function forceZeroContribution(page) {
       ...input.enemy.baseStats,
       attack: 0,
     };
+    // This display-only fixture rewrites the frozen battle loadout, so keep
+    // the battle-entry evidence in sync before exercising the save contract.
+    const battleSnapshot = game.state._travelSnapshots.find(snapshot =>
+      snapshot.act === game.state.act && snapshot.step === game.state.step && snapshot.phase === 'battle');
+    if (!battleSnapshot) throw new Error('Contribution fixture has no battle-entry snapshot');
+    battleSnapshot.method = input.player.method;
+    battleSnapshot.talents = structuredClone(input.player.talents);
+    battleSnapshot.artifacts = structuredClone(input.player.artifacts);
     game.state.battle = simulateBattle(content, input.player, input.enemy, input.seed, { roundLimit: input.roundLimit });
     saveRun(game);
     localStorage.removeItem(replayKey);

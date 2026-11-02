@@ -79,7 +79,9 @@ test('gambits change calculated defense and combat rage-cap displays symmetrical
   ]);
 
   near(calculateStats(baseContent, overdrive).defense, 13);
-  near(calculateStats(baseContent, reckless).defense, 14);
+  near(calculateStats(baseContent, reckless).defense,
+    (BASE_STATS.defense + baseContent.byId.RR05.attributes.flat.defense * 1.5) *
+      baseContent.byId.RR05.gambit_rule.defense_multiplier);
   near(calculateStats(baseContent, combined).defense, 9.1);
 
   const mirrorContent = patchContent(entities => {

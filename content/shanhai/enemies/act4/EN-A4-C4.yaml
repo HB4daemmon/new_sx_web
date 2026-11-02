@@ -30,7 +30,7 @@ artifacts:
 stats:
   attack: 242.972
   defense: 107.5
-  max_hp: 1691
+  max_hp: 2029.2
   crit_rate: 0.11
   speed: 13
 pressure: [攻势渐强]

@@ -46,12 +46,13 @@ options:
     story_echo: 你以较低标价换下引气符，系紧腕间后离开不断涌水的泉边。
   - id: RE017-C
     label: 合匣保留灵石
-    quick: 不付灵石、不取法宝，保留现有灵石和法宝。
+    quick: 不取器物，拾起泉边少量散落灵石后离开。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你没有取走器物，匣门被寒泉推回，灵石仍留在身边。
-    story_echo: 你任旧匣随水合拢，保留灵石与法宝，沿高处离开泉边。
+    rewards:
+      - {type: resource, resource: coins, amount: 0.1, basis: common_price}
+    outcome: 你没有取走器物，匣门被寒泉推回；你拾起泉边少量散落灵石后离开。
+    story_echo: 你合上匣门，拾起泉边散落的少量灵石后离开。
 settlement:
   once: true
   internal_battle_package: false

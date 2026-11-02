@@ -338,8 +338,8 @@ test('one merged hit breaks one boss charge and causes one carapace retaliation'
 
   const baseHits = damageFrom(result, 'RKF02-BASIC-DAMAGE', 'player', 1);
   assert.equal(baseHits.length, 1);
-  assert.equal(result.frames.filter(frame =>
-    frame.kind === 'status' && frame.text.includes('潮汐蓄势被打断')).length, 1);
+  assert.equal(result.frames.filter(frame => frame.kind === 'status' &&
+    frame.cue?.kind === 'enemy_charge' && frame.cue.sourceId === 'EN-A1-B1').length, 1);
   assert.equal(counter(result, 'enemy', 'EN-A1-B1-TRIAL-CHARGES'), 2);
   const retaliations = result.frames.filter(frame =>
     frame.kind === 'damage' && frame.source === 'V2-J1-D-BUILD' &&

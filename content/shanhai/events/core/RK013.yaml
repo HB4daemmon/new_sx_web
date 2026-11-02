@@ -51,12 +51,13 @@ options:
     story_echo: 你付 32 灵石坐渡取走甘露盏，不必试闯急流；琉璃法印仍留在岔路石台。
   - id: RK013-return-shore
     label: 退回岸边
-    quick: 不挑战、不付灵石、不取器物，退回岸边走主路
+    quick: 不挑战、不付灵石，沿岸拾起少量盘缠后走主路。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你看完岔路的风险后退回岸边，通往下一处关口的主路仍然可走。
-    story_echo: 你退回岸边，没有多付气血或灵石；急流岔路不挡主路。
+    rewards:
+      - {type: resource, resource: coins, amount: 0.1, basis: common_price}
+    outcome: 你看完岔路的风险后退回岸边，拾起少量盘缠；通往下一处关口的主路仍然可走。
+    story_echo: 你退回岸边拾起少量盘缠，没有多付气血或灵石；急流岔路不挡主路。
 settlement:
   once: true
   internal_battle_package: false

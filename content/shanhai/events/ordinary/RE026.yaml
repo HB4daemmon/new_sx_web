@@ -46,12 +46,13 @@ options:
     story_echo: 你按较低标价取走凝气珠，接受较低怒气上限，沿火流边继续走。
   - id: RE026-C
     label: 留下雷骨继续探路
-    quick: 不付灵石、不取法宝，保留灵石和当前法宝。
+    quick: 不取器物、不付灵石，观察雷骨裂纹后继续前行。
     requirements: []
     costs: []
-    rewards: []
-    outcome: 你把两件法宝留在雷骨旁，灵石与当前法宝都没有改变。
-    story_echo: 你没有取走雷骨中的器物，带着原有行囊绕过热流。
+    rewards:
+      - {type: resource, resource: xp, amount: 0.1, basis: next_xp}
+    outcome: 你把两件法宝留在雷骨旁，观察裂纹中的余火脉络后继续探路，积累少量修为。
+    story_echo: 你观察雷骨裂纹与余火脉络后继续探路，没有取走法宝。
 settlement:
   once: true
   internal_battle_package: false

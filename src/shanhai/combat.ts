@@ -34,13 +34,20 @@ import type {
 
 type AnyMap = Record<string, any>;
 type Effect = AnyMap & { id: string; trigger: string; operation: string; target?: string };
-type ActiveEffect = Effect & { ownerId: string; ownerName: string; ownerKind: SourceKind; ownerSide?: 'player' | 'enemy'; stacks: number };
+type ActiveEffect = Effect & {
+  ownerId: string;
+  ownerName: string;
+  ownerKind: SourceKind;
+  ownerSide?: 'player' | 'enemy';
+  stacks: number;
+  artifactOutputMode?: 'mirror' | 'twin' | 'swift';
+};
 type SourceKind = 'method' | 'talent' | 'artifact';
 type ArtifactInscription = 'twin' | 'leech' | 'swift';
 type ActionType = 'basic_action' | 'rage_action';
 type LockedActionType = ActionType | 'wait';
 type StatusName = 'poison' | 'burn' | 'weakness' | 'armor_break' | 'sword_intent' | 'charge_luck' | 'day_night';
-type FusionKind = 'toxic_flame' | 'twin_swords';
+type FusionKind = 'toxic_flame' | 'twin_swords' | 'shield_cannon' | 'healing_burst' | 'thunder_rebate' | 'coin_treasury';
 type ResonanceKind =
   | 'guard_pressure'
   | 'returning_breath'
@@ -66,6 +73,7 @@ interface StatusLayer {
   ownerSide?: 'player' | 'enemy';
   attackRatio?: number;
   kind?: 'dot' | 'regular';
+  artifactOutputMode?: 'mirror' | 'twin' | 'swift';
 }
 
 interface ArtifactRuntime {
@@ -88,19 +96,31 @@ interface CoreRuleRuntime {
   params: AnyMap;
 }
 
-type EnemyTrial =
+interface EnemyTrialBase {
+  period: number;
+  charges: number;
+}
+
+type EnemyTrial = EnemyTrialBase & (
+  | { kind: 'tidal_charge'; attack_ratio_per_charge: number }
+  | { kind: 'reviving_mist'; heal_hp_ratio_per_charge: number }
+  | { kind: 'rage_gale'; rage_drain_per_charge: number }
+  | { kind: 'ember_shell'; shield_hp_ratio_per_charge: number }
+  | { kind: 'blade_oath'; attack_ratio_per_charge: number }
   | {
-    kind: 'tidal_charge';
-    period: number;
-    charges: number;
-    attack_ratio_per_charge: number;
+    kind: 'six_eye_gaze';
+    weakness_stacks_per_charge: number;
+    armor_break_stacks_per_charge: number;
+    duration_rounds: number;
   }
-  | {
-    kind: 'reviving_mist';
-    period: number;
-    charges: number;
-    heal_hp_ratio_per_charge: number;
-  };
+);
+
+interface EnemyPhaseGate {
+  kind: 'half_health_gate';
+  shield_hp_ratio: number;
+  exposure_damage_ratio: number;
+  exposure_rounds: number;
+}
 
 interface Fighter {
   artifactAwakenings: boolean;
@@ -138,6 +158,13 @@ interface Fighter {
   trial?: EnemyTrial;
   trialCharges?: number;
   trialCountdown?: number;
+  trialNextReleaseRound?: number;
+  trialOpeningDelayed?: boolean;
+  phaseGate?: EnemyPhaseGate;
+  phaseGateState?: 'sealed' | 'shield' | 'exposed' | 'spent';
+  phaseGateShield?: number;
+  phaseGateShieldMax?: number;
+  phaseGateExposeUntilRound?: number;
   runtimeEffects?: ActiveEffect[];
 }
 
@@ -211,6 +238,8 @@ interface ActionContext {
   chargeLuckShieldOutput?: boolean;
   roundDotSettlement?: boolean;
   combatEvents?: Set<CompanionTrigger>;
+  rr01ChargedStrike?: ActiveEffect;
+  rr07FollowupStrike?: ActiveEffect;
 }
 
 type CompanionTrigger = 'hit' | 'shield' | 'heal' | 'rage' | 'poison' | 'burn' | 'debuff' | 'phase';
@@ -390,7 +419,18 @@ const RESONANCE_SCHEMAS: Record<string, ResonanceSchema> = {
 const FUSION_RULE_SCHEMAS: Record<string, FusionKind> = {
   RL06: 'toxic_flame',
   RL07: 'twin_swords',
+  RL10: 'shield_cannon',
+  RL11: 'healing_burst',
+  RL12: 'thunder_rebate',
+  RL13: 'coin_treasury',
 };
+
+const FUSION_SHIELD_CANNON_KEY = 'fusion:RL10:cannon-charge';
+const FUSION_HEALING_BURST_KEY = 'fusion:RL11:healing-reservoir';
+const FUSION_TREASURY_COINS_KEY = 'fusion:RL13:opening-coins';
+const FUSION_TREASURY_MAX_COINS = 1_000;
+const FUSION_TREASURY_DAMAGE_PER_COIN = 0.0005;
+const FUSION_TREASURY_MAX_BONUS = 0.5;
 
 const RESONANCE_INTEGER_PARAMETERS = new Set([
   'ticks',
@@ -662,6 +702,49 @@ function fusionRules(fighter: Fighter): FusionRuleRuntime[] {
   });
 }
 
+function fusionRule(fighter: Fighter, kind: FusionKind): FusionRuleRuntime | undefined {
+  return fusionRules(fighter).find(rule => rule.kind === kind);
+}
+
+function chargeShieldCannon(runtime: BattleRuntime, fighter: Fighter, gained: number): void {
+  if (gained <= 0) return;
+  const fusion = fusionRule(fighter, 'shield_cannon');
+  if (!fusion) return;
+  const cap = fighter.stats.max_hp * 0.3;
+  const current = Math.max(0, n(fighter.battleLayers[FUSION_SHIELD_CANNON_KEY], 0));
+  const next = Math.min(cap, current + gained);
+  if (next <= current) return;
+  fighter.battleLayers[FUSION_SHIELD_CANNON_KEY] = next;
+  mark(runtime, fusion.effect, 1, fighter.side);
+  frame(runtime, 'status', `${fighter.loadout.name}蓄存炮势 ${Math.round(next)}`, fighter.side, fighter.side, fusion.effect.id, next);
+}
+
+function accumulateHealingBurst(
+  runtime: BattleRuntime,
+  fighter: Fighter,
+  gained: number,
+): void {
+  if (gained <= 0) return;
+  const fusion = fusionRule(fighter, 'healing_burst');
+  if (!fusion) return;
+  const cap = fighter.stats.max_hp * 0.5;
+  const current = Math.max(0, n(fighter.battleLayers[FUSION_HEALING_BURST_KEY], 0));
+  const next = Math.min(cap, current + gained);
+  if (next <= current) return;
+  fighter.battleLayers[FUSION_HEALING_BURST_KEY] = next;
+  mark(runtime, fusion.effect, 1, fighter.side);
+  frame(runtime, 'status', `${fighter.loadout.name}积存甘露 ${Math.round(next)}`, fighter.side, fighter.side, fusion.effect.id, next);
+}
+
+function coinTreasuryMultiplier(fighter: Fighter): number {
+  if (!fusionRule(fighter, 'coin_treasury')) return 1;
+  const openingCoins = Math.min(
+    FUSION_TREASURY_MAX_COINS,
+    Math.max(0, n(fighter.battleLayers[FUSION_TREASURY_COINS_KEY], 0)),
+  );
+  return Math.min(1 + FUSION_TREASURY_MAX_BONUS, 1 + openingCoins * FUSION_TREASURY_DAMAGE_PER_COIN);
+}
+
 function resonanceMarker(effect: AnyMap): boolean {
   return typeof effect?.id === 'string' && effect.id.endsWith('-V2-RESONANCE') ||
     Boolean(effect?.params && typeof effect.params === 'object' &&
@@ -774,14 +857,51 @@ function validateResonanceRules(content: Content): void {
 }
 
 const ENEMY_TRIAL_CONTRACTS = {
-  'EN-A1-B1': { kind: 'tidal_charge', ratio: 'attack_ratio_per_charge' },
-  'EN-A1-B2': { kind: 'reviving_mist', ratio: 'heal_hp_ratio_per_charge' },
+  'EN-A1-B1': { kind: 'tidal_charge', params: { attack_ratio_per_charge: 'ratio' } },
+  'EN-A1-B2': { kind: 'reviving_mist', params: { heal_hp_ratio_per_charge: 'ratio' } },
+  'EN-A2-B1': { kind: 'reviving_mist', params: { heal_hp_ratio_per_charge: 'ratio' } },
+  'EN-A2-B2': { kind: 'tidal_charge', params: { attack_ratio_per_charge: 'ratio' } },
+  'EN-A3-B1': { kind: 'rage_gale', params: { rage_drain_per_charge: 'points' } },
+  'EN-A3-B2': { kind: 'ember_shell', params: { shield_hp_ratio_per_charge: 'ratio' } },
+  'EN-A4-B1': { kind: 'blade_oath', params: { attack_ratio_per_charge: 'ratio' } },
+  'EN-A4-B2': {
+    kind: 'six_eye_gaze',
+    params: {
+      weakness_stacks_per_charge: 'stacks',
+      armor_break_stacks_per_charge: 'stacks',
+      duration_rounds: 'duration',
+    },
+  },
+  'EN-F1': { kind: 'rage_gale', params: { rage_drain_per_charge: 'points' } },
+  'EN-F2': {
+    kind: 'six_eye_gaze',
+    params: {
+      weakness_stacks_per_charge: 'stacks',
+      armor_break_stacks_per_charge: 'stacks',
+      duration_rounds: 'duration',
+    },
+  },
+} as const;
+
+const ENEMY_PHASE_GATE_CONTRACTS = {
+  'EN-F1': true,
+  'EN-F2': true,
 } as const;
 
 function validateEnemyTrials(content: Content): void {
   for (const authored of content.entities) {
-    if (!Object.prototype.hasOwnProperty.call(authored, 'trial')) continue;
     const schema = ENEMY_TRIAL_CONTRACTS[authored.id as keyof typeof ENEMY_TRIAL_CONTRACTS];
+    const hasTrial = Object.prototype.hasOwnProperty.call(authored, 'trial');
+    if (schema && !hasTrial) throw new Error(`Missing enemy trial (${authored.id})`);
+    if (!hasTrial) {
+      if (authored.id in ENEMY_PHASE_GATE_CONTRACTS && !Object.prototype.hasOwnProperty.call(authored, 'phase_gate')) {
+        throw new Error(`Missing enemy phase gate (${authored.id})`);
+      }
+      if (Object.prototype.hasOwnProperty.call(authored, 'phase_gate') && !(authored.id in ENEMY_PHASE_GATE_CONTRACTS)) {
+        throw new Error(`Unsupported enemy phase gate owner ${authored.id}`);
+      }
+      continue;
+    }
     if (authored.kind !== 'enemy' || !schema) {
       throw new Error(`Unsupported enemy trial owner ${authored.id}`);
     }
@@ -789,7 +909,7 @@ function validateEnemyTrials(content: Content): void {
     if (!trial || typeof trial !== 'object' || Array.isArray(trial)) {
       throw new Error(`Invalid enemy trial (${authored.id})`);
     }
-    const expectedKeys = ['kind', 'period', 'charges', schema.ratio];
+    const expectedKeys = ['kind', 'period', 'charges', ...Object.keys(schema.params)];
     const keys = Object.keys(trial);
     if (keys.length !== expectedKeys.length || keys.some(key => !expectedKeys.includes(key))) {
       throw new Error(`Unknown or missing enemy trial parameter (${authored.id})`);
@@ -803,9 +923,35 @@ function validateEnemyTrials(content: Content): void {
         throw new Error(`Invalid enemy trial parameter ${key} (${authored.id})`);
       }
     }
-    const ratio = trial[schema.ratio];
-    if (!isFiniteNumber(ratio) || ratio <= 0 || ratio > 1) {
-      throw new Error(`Invalid enemy trial parameter ${schema.ratio} (${authored.id})`);
+    for (const [key, rule] of Object.entries(schema.params)) {
+      const value = trial[key];
+      const valid = rule === 'ratio'
+        ? isFiniteNumber(value) && value > 0 && value <= 1
+        : rule === 'points'
+          ? Number.isInteger(value) && value >= 1 && value <= 20
+          : rule === 'stacks'
+            ? Number.isInteger(value) && value >= 1 && value <= 3
+            : Number.isInteger(value) && value >= 1 && value <= 4;
+      if (!valid) throw new Error(`Invalid enemy trial parameter ${key} (${authored.id})`);
+    }
+    const phaseGate = authored.phase_gate;
+    const requiresGate = authored.id in ENEMY_PHASE_GATE_CONTRACTS;
+    if (requiresGate && (!phaseGate || typeof phaseGate !== 'object' || Array.isArray(phaseGate))) {
+      throw new Error(`Invalid enemy phase gate (${authored.id})`);
+    }
+    if (phaseGate !== undefined) {
+      if (!requiresGate || authored.kind !== 'enemy') throw new Error(`Unsupported enemy phase gate owner ${authored.id}`);
+      const expectedGateKeys = ['kind', 'shield_hp_ratio', 'exposure_damage_ratio', 'exposure_rounds'];
+      const gateKeys = Object.keys(phaseGate);
+      if (gateKeys.length !== expectedGateKeys.length || gateKeys.some(key => !expectedGateKeys.includes(key)) ||
+          phaseGate.kind !== 'half_health_gate') {
+        throw new Error(`Invalid enemy phase gate fields (${authored.id})`);
+      }
+      if (!isFiniteNumber(phaseGate.shield_hp_ratio) || phaseGate.shield_hp_ratio < 0.08 || phaseGate.shield_hp_ratio > 0.45 ||
+          !isFiniteNumber(phaseGate.exposure_damage_ratio) || phaseGate.exposure_damage_ratio <= 1 || phaseGate.exposure_damage_ratio > 1.5 ||
+          !Number.isInteger(phaseGate.exposure_rounds) || phaseGate.exposure_rounds < 1 || phaseGate.exposure_rounds > 2) {
+        throw new Error(`Invalid enemy phase gate parameter (${authored.id})`);
+      }
     }
   }
 }
@@ -930,7 +1076,14 @@ function validateLoadout(
   content: Content,
   loadout: Loadout,
   side: 'player' | 'enemy',
-): { method: AnyMap; companions: AnyMap[]; talents: AnyMap[]; artifacts: ArtifactRuntime[]; trial?: EnemyTrial } {
+): {
+  method: AnyMap;
+  companions: AnyMap[];
+  talents: AnyMap[];
+  artifacts: ArtifactRuntime[];
+  trial?: EnemyTrial;
+  phaseGate?: EnemyPhaseGate;
+} {
   if (!loadout || typeof loadout !== 'object') throw new Error('Invalid Shanhai loadout');
   if (typeof loadout.method !== 'string') throw new Error('Loadout method is required');
   if (Object.hasOwn(loadout, 'companion')) throw new Error('Loadout uses unsupported single companion field');
@@ -973,6 +1126,7 @@ function validateLoadout(
     companions.push(companion);
   }
   let trial: EnemyTrial | undefined;
+  let phaseGate: EnemyPhaseGate | undefined;
   if (loadout.encounterId !== undefined) {
     if (side !== 'enemy') throw new Error('Loadout encounterId is enemy-only');
     if (typeof loadout.encounterId !== 'string' || loadout.encounterId.length === 0) {
@@ -983,6 +1137,7 @@ function validateLoadout(
       throw new Error(`Enemy encounter ${encounter.id} does not match method ${method.id}`);
     }
     if (encounter.trial !== undefined) trial = clone(encounter.trial) as EnemyTrial;
+    if (encounter.phase_gate !== undefined) phaseGate = clone(encounter.phase_gate) as EnemyPhaseGate;
   }
   if (!Number.isInteger(loadout.n) || loadout.n < 0 || loadout.n > 4) {
     throw new Error(`Invalid cultivation tier n=${loadout.n}`);
@@ -1050,7 +1205,14 @@ function validateLoadout(
     });
   }
   validateEffects(method, chosen, artifacts, [...sharedTalents.values()]);
-  return { method, companions, talents: chosen, artifacts, ...(trial ? { trial } : {}) };
+  return {
+    method,
+    companions,
+    talents: chosen,
+    artifacts,
+    ...(trial ? { trial } : {}),
+    ...(phaseGate ? { phaseGate } : {}),
+  };
 }
 
 function rules(content: Content): AnyMap {
@@ -1116,9 +1278,10 @@ function calculateStatsForSide(
   const stats = tierBaseStats(content, loadout);
   const flat: Stats = { attack: 0, defense: 0, max_hp: 0, crit_rate: 0, speed: 0 };
   const percent: Stats = { attack: 0, defense: 0, max_hp: 0, crit_rate: 0, speed: 0 };
-  for (const artifact of compiled.artifacts) {
-    for (const key of STAT_KEYS) flat[key] += n(artifact.entity.attributes?.flat?.[key], 0) * artifact.stacks;
-    for (const key of STAT_KEYS) percent[key] += n(artifact.entity.attributes?.percent?.[key], 0) * artifact.stacks;
+  for (const [index, artifact] of compiled.artifacts.entries()) {
+    const slotMultiplier = index === 0 ? 1.5 : 1;
+    for (const key of STAT_KEYS) flat[key] += n(artifact.entity.attributes?.flat?.[key], 0) * artifact.stacks * slotMultiplier;
+    for (const key of STAT_KEYS) percent[key] += n(artifact.entity.attributes?.percent?.[key], 0) * artifact.stacks * slotMultiplier;
   }
   const buildStats = staticBuildStats(content, loadout);
   for (const key of STAT_KEYS) stats[key] += flat[key] + (buildStats[key] ?? 0);
@@ -1290,7 +1453,19 @@ function artifactOutputCopyEffect(
     ownerKind: 'artifact',
     ownerSide: owner.side,
     stacks: artifact.stacks,
+    artifactOutputMode: mode,
   };
+}
+
+function nativeTailOutputMultiplier(
+  owner: Fighter,
+  source: ActiveEffect | string,
+  outputCopy = false,
+): number {
+  if (outputCopy || typeof source === 'string' || source.ownerKind !== 'artifact' ||
+      source.artifactOutputMode || (source.ownerSide && source.ownerSide !== owner.side) ||
+      owner.artifacts.length !== MAX_EQUIPMENT_SLOTS) return 1;
+  return owner.artifacts[MAX_EQUIPMENT_SLOTS - 1]?.entity.id === source.ownerId ? 1.25 : 1;
 }
 
 function artifactOwnerForOutput(runtime: BattleRuntime, source: ActiveEffect): Fighter | undefined {
@@ -1573,7 +1748,7 @@ function rr08Counter(fighter: Fighter): NonNullable<FighterView['counters']> {
 
 function trialCounters(fighter: Fighter): NonNullable<FighterView['counters']> {
   if (!fighter.trial || fighter.trialCharges === undefined || fighter.trialCountdown === undefined) return [];
-  const chargeName = fighter.trial.kind === 'tidal_charge' ? '蓄潮' : '回雾';
+  const chargeName = trialLabel(fighter.trial, fighter.loadout.encounterId);
   return [
     {
       id: `${fighter.loadout.encounterId}-TRIAL-CHARGES`,
@@ -1585,9 +1760,29 @@ function trialCounters(fighter: Fighter): NonNullable<FighterView['counters']> {
       id: `${fighter.loadout.encounterId}-TRIAL-COUNTDOWN`,
       name: '释势倒计时',
       value: fighter.trialCountdown,
-      max: fighter.trial.period,
+      max: fighter.trial.period + (fighter.trialOpeningDelayed ? 1 : 0),
     },
   ];
+}
+
+function phaseGateCounters(fighter: Fighter): NonNullable<FighterView['counters']> {
+  if (!fighter.phaseGate || !fighter.phaseGateState || fighter.phaseGateShieldMax === undefined) return [];
+  if (fighter.phaseGateState === 'shield') {
+    return [{
+      id: `${fighter.loadout.encounterId}-PHASE-GATE`,
+      name: '二阶护罩',
+      value: Math.max(0, fighter.phaseGateShield ?? 0),
+      max: fighter.phaseGateShieldMax,
+    }];
+  }
+  return [{
+    id: `${fighter.loadout.encounterId}-PHASE-GATE`,
+    name: fighter.phaseGateState === 'sealed'
+      ? '半血劫门'
+      : fighter.phaseGateState === 'exposed' ? '破门窗口' : '劫门已渡',
+    value: fighter.phaseGateState === 'exposed' ? 1 : 0,
+    max: 1,
+  }];
 }
 
 function flyingSwordSnapshot(fighter: Fighter): FighterView['summons'] {
@@ -1607,6 +1802,7 @@ function fighterView(fighter: Fighter): FighterView {
     ...(resonanceCounters(fighter) ?? []),
     ...rr08Counter(fighter),
     ...trialCounters(fighter),
+    ...phaseGateCounters(fighter),
   ];
   const summons = flyingSwordSnapshot(fighter);
   for (const status of ['poison', 'burn', 'weakness', 'armor_break', 'sword_intent', 'charge_luck', 'day_night'] as StatusName[]) {
@@ -1618,9 +1814,7 @@ function fighterView(fighter: Fighter): FighterView {
     method: fighter.method.id,
     hp: Math.max(0, fighter.hp),
     maxHp: fighter.stats.max_hp,
-    maxShield: fighter.loadout.permanentRule?.kind === 'shattered_core'
-      ? fighter.maxShield
-      : fighter.stats.max_hp,
+    maxShield: Math.max(fighter.maxShield, fighter.shield),
     shield: Math.max(0, fighter.shield),
     rage: Math.max(0, fighter.rage),
     rageCap: fighter.rageCap,
@@ -2233,6 +2427,41 @@ function incomingMultiplier(runtime: BattleRuntime, target: Fighter, source: Fig
   return multiplier;
 }
 
+function phaseGateDamageMultiplier(runtime: BattleRuntime, target: Fighter, source: Fighter): number {
+  if (source.side === target.side || target.phaseGateState !== 'exposed' || !target.phaseGate ||
+      runtime.round > n(target.phaseGateExposeUntilRound, -1)) return 1;
+  return target.phaseGate.exposure_damage_ratio;
+}
+
+function capHitHpDamage(
+  damage: ReturnType<typeof damageAmounts>,
+  maximumHpDamage: number,
+): ReturnType<typeof damageAmounts> {
+  let remaining = Math.max(0, maximumHpDamage);
+  const regularHpDamage = Math.min(damage.regularHpDamage, remaining);
+  remaining -= regularHpDamage;
+  const trueHpDamage = Math.min(damage.trueHpDamage, remaining);
+  return { ...damage, regularHpDamage, trueHpDamage };
+}
+
+function expirePhaseGateOpening(runtime: BattleRuntime): void {
+  const owner = runtime.enemy;
+  if (owner.phaseGateState === 'exposed' && runtime.round > n(owner.phaseGateExposeUntilRound, -1)) {
+    owner.phaseGateState = 'spent';
+    frame(runtime, 'status', `${owner.loadout.name}的破门窗口结束，劫门已渡`, owner.side, owner.side, owner.loadout.encounterId);
+  }
+}
+
+function activatePhaseGate(target: Fighter): void {
+  if (!target.phaseGate || target.phaseGateState !== 'sealed') return;
+  const shield = target.stats.max_hp * target.phaseGate.shield_hp_ratio;
+  target.phaseGateState = 'shield';
+  target.phaseGateShield = shield;
+  target.phaseGateShieldMax = shield;
+  target.maxShield = Math.max(target.maxShield, target.shield) + shield;
+  target.shield += shield;
+}
+
 function targetDefense(runtime: BattleRuntime, target: Fighter, source: Fighter, action: ActionContext | null): number {
   const stats = dynamicStats(runtime, target, source, action);
   return Math.max(0, stats.defense);
@@ -2243,7 +2472,13 @@ function attackStats(runtime: BattleRuntime, source: Fighter, target: Fighter, a
 }
 
 function registerIncomingDirectRage(runtime: BattleRuntime, target: Fighter): void {
-  registerRage(runtime, target, 5, 'RULES-INCOMING-DIRECT', target.method.id);
+  registerRage(
+    runtime,
+    target,
+    n(rules(runtime.content).rage?.effective_incoming_segment, 5),
+    'RULES-INCOMING-DIRECT',
+    target.method.id,
+  );
   for (const artifact of target.artifacts) {
     if (artifact.entity.id !== 'RC24') continue;
     registerRage(runtime, target, 2 * artifact.stacks, 'RC24-INCOMING-SEGMENT-RAGE', artifact.entity.id);
@@ -2257,10 +2492,14 @@ function outgoingBuildMultiplier(
   action: ActionContext | null,
   kind: 'direct' | 'derived' | 'dot' | 'reflect',
 ): number {
-  if (kind !== 'direct' && kind !== 'derived') return 1;
+  if (kind !== 'direct' && kind !== 'derived' && kind !== 'dot') return 1;
   let multiplier = 1;
   const journey = journeyFacts(source.loadout);
   for (const mechanic of source.buildRules) {
+    // The shared damage insights apply to direct and derived attacks only.
+    // RR08 below deliberately also supports damage-over-time, without
+    // broadening the scope of unrelated insights such as the blood vow.
+    if (kind === 'dot') continue;
     const p = mechanic.params;
     if (mechanic.kind === 'wealth_damage') {
       const denominator = journey.coins + n(p.half_saturation, 0);
@@ -2283,6 +2522,13 @@ function outgoingBuildMultiplier(
     }
     const effect = buildEffect(source, mechanic);
     if (effect) mark(runtime, effect);
+  }
+  const bloodValor = selectedEffect(source, 'RR08-ENEMY-ACTION-RAGE-GAIN');
+  if (bloodValor && source.stats.max_hp > 0) {
+    const missingHpRatio = clamp(1 - source.hp / source.stats.max_hp, 0, 1);
+    const maximumBonus = Math.max(0, n(bloodValor.params?.max_missing_hp_damage_bonus, 0.2));
+    multiplier *= 1 + maximumBonus * missingHpRatio;
+    if (missingHpRatio > 0) mark(runtime, bloodValor);
   }
   return isFiniteNumber(multiplier) ? multiplier : 1;
 }
@@ -2493,6 +2739,8 @@ function dealDamage(
     outputCopy?: boolean;
     devourScaled?: boolean;
     devourBaselineRaw?: number;
+    wealthScaled?: boolean;
+    wealthBaselineRaw?: number;
   },
 ): HitResult {
   if (!runtime.active || source.hp <= 0 || target.hp <= 0) {
@@ -2519,6 +2767,8 @@ function dealDamage(
     (options.kind === 'direct' || options.kind === 'derived');
   const convertedCritChance = blindSwordConversion ? clamp(stats.crit_rate, 0, 1) : 0;
   let raw = options.rawOverride ?? stats.attack * ratio;
+  let wealthBaselineRaw = Math.max(0, raw);
+  let wealthApplied = options.wealthScaled === true;
   let critical = false;
   if (!options.rawIsResolved) {
     if (!blindSwordSuppressesCrit && options.canCrit && options.kind !== 'dot' && options.kind !== 'reflect') {
@@ -2539,17 +2789,30 @@ function dealDamage(
         mark(runtime, core.effect, 1, source.side);
       }
     }
+    wealthBaselineRaw = Math.max(0, raw);
+    const wealthMultiplier = coinTreasuryMultiplier(source);
+    if (wealthMultiplier > 1 && raw > 0) {
+      raw *= wealthMultiplier;
+      wealthApplied = true;
+    }
+  } else if (options.wealthBaselineRaw !== undefined) {
+    wealthBaselineRaw = Math.max(0, options.wealthBaselineRaw);
   }
   const growth = options.kind === 'direct' || options.kind === 'derived' ||
     options.kind === 'dot' || options.kind === 'reflect'
     ? cauldronGrowth(source)
     : { count: 0, multiplier: 1 };
-  const devourBaselineRaw = options.devourScaled === true
+  let devourBaselineRaw = options.devourScaled === true
     ? options.devourBaselineRaw ?? raw / growth.multiplier
     : raw;
   const devourApplied = growth.count > 0 && growth.multiplier > 1 &&
     (options.devourScaled === true || raw > 0);
   if (devourApplied && options.devourScaled !== true) raw *= growth.multiplier;
+  let wealthBaselineRawAfterDevour = wealthApplied
+    ? wealthBaselineRaw * (devourApplied ? growth.multiplier : 1)
+    : raw;
+  const copyableRaw = raw;
+  const copyableDevourBaselineRaw = devourBaselineRaw;
 
   if ((options.kind !== 'dot') && raw > 0 &&
       (!options.outputCopy || isFirstMirrorOutput(runtime, sourceEffect))) {
@@ -2558,13 +2821,23 @@ function dealDamage(
         sourceEffect: copy,
         kind: options.kind,
         canCrit: false,
-        rawOverride: raw,
+        rawOverride: copyableRaw,
         rawIsResolved: true,
         outputCopy: true,
-        ...(devourApplied ? { devourScaled: true, devourBaselineRaw } : {}),
+        ...(devourApplied ? { devourScaled: true, devourBaselineRaw: copyableDevourBaselineRaw } : {}),
+        ...(wealthApplied ? { wealthScaled: true, wealthBaselineRaw } : {}),
       });
       void mode;
     }, 'mirror');
+  }
+  const tailOutputMultiplier = nativeTailOutputMultiplier(source, sourceEffect, options.outputCopy);
+  if (tailOutputMultiplier > 1) {
+    // The mirror and inscription replay the unamplified trigger above. Keep
+    // the baseline channels aligned so this source-local bonus is not
+    // attributed to unrelated global multipliers such as RL09 or RL13.
+    raw *= tailOutputMultiplier;
+    if (devourApplied) devourBaselineRaw *= tailOutputMultiplier;
+    wealthBaselineRawAfterDevour *= tailOutputMultiplier;
   }
   if (!runtime.active || source.hp <= 0 || target.hp <= 0) {
     return {
@@ -2585,23 +2858,74 @@ function dealDamage(
   let baselineTrueAmount = devourApplied
     ? blindSwordConversion ? devourBaselineRaw * 3 * convertedCritChance * multiplier : 0
     : trueAmount;
+  let wealthBaselineAmount = wealthBaselineRawAfterDevour * multiplier;
+  let wealthBaselineTrueAmount = blindSwordConversion
+    ? wealthBaselineRawAfterDevour * 3 * convertedCritChance * multiplier
+    : 0;
   if (options.kind !== 'dot' && options.kind !== 'reflect') {
     const defenseConstant = n(rules(runtime.content).combat?.direct_defense_constant, 100);
     const defenseFactor = defenseConstant / (defenseConstant + targetDefense(runtime, target, source, action));
     amount *= defenseFactor;
     baselineAmount *= defenseFactor;
+    wealthBaselineAmount *= defenseFactor;
   }
+  const phaseMultiplier = phaseGateDamageMultiplier(runtime, target, source);
+  amount *= phaseMultiplier;
+  baselineAmount *= phaseMultiplier;
+  wealthBaselineAmount *= phaseMultiplier;
+  trueAmount *= phaseMultiplier;
+  baselineTrueAmount *= phaseMultiplier;
+  wealthBaselineTrueAmount *= phaseMultiplier;
   amount = Math.max(0, amount);
   trueAmount = Math.max(0, trueAmount);
   baselineAmount = Math.max(0, baselineAmount);
   baselineTrueAmount = Math.max(0, baselineTrueAmount);
+  wealthBaselineAmount = Math.max(0, wealthBaselineAmount);
+  wealthBaselineTrueAmount = Math.max(0, wealthBaselineTrueAmount);
   const beforeHp = target.hp;
   const beforeShield = target.shield;
-  const applied = damageAmounts(beforeHp, beforeShield, amount, trueAmount);
-  const baseline = damageAmounts(beforeHp, beforeShield, baselineAmount, baselineTrueAmount);
+  const proposedApplied = damageAmounts(beforeHp, beforeShield, amount, trueAmount);
+  const thresholdHp = target.stats.max_hp * 0.5;
+  const phaseGateTriggered = target.phaseGateState === 'sealed' &&
+    beforeHp > thresholdHp &&
+    proposedApplied.regularHpDamage + proposedApplied.trueHpDamage >= beforeHp - thresholdHp;
+  const phaseGateHpCap = phaseGateTriggered ? beforeHp - thresholdHp : Number.POSITIVE_INFINITY;
+  const applied = phaseGateTriggered
+    ? capHitHpDamage(proposedApplied, phaseGateHpCap)
+    : proposedApplied;
+  const proposedBaseline = damageAmounts(beforeHp, beforeShield, baselineAmount, baselineTrueAmount);
+  const proposedWealthBaseline = damageAmounts(
+    beforeHp,
+    beforeShield,
+    wealthBaselineAmount,
+    wealthBaselineTrueAmount,
+  );
+  const baseline = phaseGateTriggered
+    ? capHitHpDamage(proposedBaseline, phaseGateHpCap)
+    : proposedBaseline;
+  const wealthBaseline = phaseGateTriggered
+    ? capHitHpDamage(proposedWealthBaseline, phaseGateHpCap)
+    : proposedWealthBaseline;
   const { regularAbsorbed, regularHpDamage, trueAbsorbed, trueHpDamage } = applied;
   target.shield = Math.max(0, beforeShield - regularAbsorbed - trueAbsorbed);
   target.hp = Math.max(0, beforeHp - regularHpDamage - trueHpDamage);
+  let phaseGateBroken = false;
+  if (target.phaseGateState === 'shield' && target.phaseGate && target.phaseGateShield !== undefined) {
+    const phaseShieldBefore = Math.min(Math.max(0, target.phaseGateShield), beforeShield);
+    const nonPhaseShieldBefore = Math.max(0, beforeShield - phaseShieldBefore);
+    const phaseShieldAbsorbed = Math.min(
+      phaseShieldBefore,
+      Math.max(0, regularAbsorbed + trueAbsorbed - nonPhaseShieldBefore),
+    );
+    target.phaseGateShield = Math.max(0, phaseShieldBefore - phaseShieldAbsorbed);
+    if (phaseShieldBefore > 0 && target.phaseGateShield <= 0) {
+      phaseGateBroken = true;
+      target.phaseGateState = 'exposed';
+      target.phaseGateExposeUntilRound = runtime.round + target.phaseGate.exposure_rounds;
+      target.maxShield = Math.max(target.stats.max_hp, target.shield);
+    }
+  }
+  if (phaseGateTriggered) activatePhaseGate(target);
   const regularDamage = regularAbsorbed + regularHpDamage;
   const convertedDamage = trueAbsorbed + trueHpDamage;
   amount += trueAmount;
@@ -2611,6 +2935,8 @@ function dealDamage(
   const shieldBroken = beforeShield > 0 && target.shield <= 0 && absorbed > 0;
   const baselineRegularDamage = baseline.regularAbsorbed + baseline.regularHpDamage;
   const baselineConvertedDamage = baseline.trueAbsorbed + baseline.trueHpDamage;
+  const wealthBaselineRegularDamage = wealthBaseline.regularAbsorbed + wealthBaseline.regularHpDamage;
+  const wealthBaselineConvertedDamage = wealthBaseline.trueAbsorbed + wealthBaseline.trueHpDamage;
   const cauldronBonus = devourApplied
     ? Math.max(0, regularDamage + convertedDamage - baselineRegularDamage - baselineConvertedDamage)
     : 0;
@@ -2619,8 +2945,15 @@ function dealDamage(
   const growthParts = regularGrowth + convertedGrowth;
   const regularGrowthShare = growthParts > 0 ? cauldronBonus * regularGrowth / growthParts : 0;
   const convertedGrowthShare = cauldronBonus - regularGrowthShare;
-  const regularSourceDamage = Math.max(0, regularDamage - regularGrowthShare);
-  const convertedSourceDamage = Math.max(0, convertedDamage - convertedGrowthShare);
+  const wealthRegularGrowth = wealthApplied && !options.outputCopy
+    ? Math.max(0, baselineRegularDamage - wealthBaselineRegularDamage)
+    : 0;
+  const wealthConvertedGrowth = wealthApplied && !options.outputCopy
+    ? Math.max(0, baselineConvertedDamage - wealthBaselineConvertedDamage)
+    : 0;
+  const wealthBonus = wealthRegularGrowth + wealthConvertedGrowth;
+  const regularSourceDamage = Math.max(0, regularDamage - regularGrowthShare - wealthRegularGrowth);
+  const convertedSourceDamage = Math.max(0, convertedDamage - convertedGrowthShare - wealthConvertedGrowth);
   if (typeof sourceEffect !== 'string') {
     mark(runtime, sourceEffect, 1, source.side);
     addContribution(runtime, sourceEffect, 'damage', regularSourceDamage, source.side);
@@ -2634,6 +2967,10 @@ function dealDamage(
   if (cauldronBonus > 0) {
     mark(runtime, DEVOURING_ARTIFACT_ID, 1, source.side);
     addContribution(runtime, DEVOURING_ARTIFACT_ID, 'damage', cauldronBonus, source.side);
+  }
+  if (wealthBonus > 0 && fusionRule(source, 'coin_treasury')) {
+    mark(runtime, 'RL13', 1, source.side);
+    addContribution(runtime, 'RL13', 'damage', wealthBonus, source.side);
   }
   if (options.kind === 'dot' && sourceEffect) {
     // DOT damage is attributed to its authored source, while the defender's
@@ -2653,24 +2990,30 @@ function dealDamage(
   if (convertedDamage > 0) {
     frame(runtime, 'damage', `${sideText}造成真实伤害 ${Math.round(convertedDamage)}`, source.side, target.side, 'RE037-B', convertedDamage);
   }
-  if (target.trial?.kind === 'tidal_charge' && source.side !== target.side &&
-      (options.kind === 'direct' || options.kind === 'derived') && effective &&
-      (target.trialCharges ?? 0) > 0) {
-    target.trialCharges = Math.max(0, (target.trialCharges ?? 0) - 1);
+  if (phaseGateTriggered) {
     frame(
       runtime,
       'status',
-      `${target.loadout.name}潮汐蓄势被打断`,
+      `${target.loadout.name}半血劫门开启，生成${Math.round(target.phaseGateShield ?? 0)}点二阶护罩`,
       source.side,
       target.side,
-      frameSource,
-      1,
-      {
-        kind: 'enemy_charge',
-        owner: target.side,
-        sourceId: target.loadout.encounterId ?? '',
-      },
+      target.loadout.encounterId,
+      target.phaseGateShield,
     );
+  }
+  if (phaseGateBroken && target.phaseGate) {
+    frame(
+      runtime,
+      'status',
+      `${target.loadout.name}二阶护罩破开，破门窗口：本轮余下及随后${target.phaseGate.exposure_rounds}轮承受伤害提高${Math.round((target.phaseGate.exposure_damage_ratio - 1) * 100)}%`,
+      source.side,
+      target.side,
+      target.loadout.encounterId,
+      target.phaseGate.exposure_damage_ratio,
+    );
+  }
+  if (effective && (options.kind === 'direct' || options.kind === 'derived')) {
+    consumeEnemyTrialCharge(runtime, target, source.side, frameSource, 'direct');
   }
   if (options.kind === 'reflect' && effective) {
     triggerReboundGuard(runtime, source, target, action);
@@ -2754,10 +3097,11 @@ function dealDamage(
         sourceEffect: copy,
         kind: options.kind,
         canCrit: false,
-        rawOverride: raw,
+        rawOverride: copyableRaw,
         rawIsResolved: true,
         outputCopy: true,
-        ...(devourApplied ? { devourScaled: true, devourBaselineRaw } : {}),
+        ...(devourApplied ? { devourScaled: true, devourBaselineRaw: copyableDevourBaselineRaw } : {}),
+        ...(wealthApplied ? { wealthScaled: true, wealthBaselineRaw } : {}),
       });
       void mode;
     }, 'inscription');
@@ -2819,6 +3163,43 @@ function registerRage(runtime: BattleRuntime, fighter: Fighter, amount: number, 
   }
 }
 
+function grantImmediateRage(
+  runtime: BattleRuntime,
+  fighter: Fighter,
+  amount: number,
+  source: ActiveEffect,
+  outputCopy = false,
+): number {
+  if (amount <= 0 || fighter.hp <= 0) return 0;
+  const canReplay = !outputCopy || isFirstMirrorOutput(runtime, source);
+  if (canReplay) {
+    resolveArtifactOutputCopies(runtime, source, fighter, (copy) => {
+      grantImmediateRage(runtime, fighter, amount, copy, true);
+    }, 'mirror');
+  }
+  const gained = Math.min(amount, Math.max(0, fighter.rageCap - fighter.rage));
+  if (gained > 0) {
+    fighter.rage += gained;
+    mark(runtime, source, 1, fighter.side);
+    addContribution(runtime, source, 'rage', gained, fighter.side);
+    frame(
+      runtime,
+      'rage',
+      `${fighter.side === 'player' ? '玩家' : '敌人'}截脉返息 ${Math.round(gained)}`,
+      fighter.side,
+      fighter.side,
+      source.id,
+      gained,
+    );
+  }
+  if (canReplay) {
+    resolveArtifactOutputCopies(runtime, source, fighter, (copy) => {
+      grantImmediateRage(runtime, fighter, amount, copy, true);
+    }, 'inscription');
+  }
+  return gained;
+}
+
 function recordCombatEvent(runtime: BattleRuntime, event: CompanionTrigger, owner?: Fighter): void {
   const action = runtime.currentAction;
   if (!action?.isMainAction || action.isEcho || action.isReaction || !action.combatEvents ||
@@ -2826,7 +3207,14 @@ function recordCombatEvent(runtime: BattleRuntime, event: CompanionTrigger, owne
   action.combatEvents.add(event);
 }
 
-function requestDrain(runtime: BattleRuntime, target: Fighter, amount: number, sourceId: string, sourceOwner: string, opening = false): void {
+function requestDrain(
+  runtime: BattleRuntime,
+  target: Fighter,
+  amount: number,
+  sourceId: string,
+  sourceOwner: string,
+  opening = false,
+): void {
   if (amount <= 0) return;
   const sourceFighter = other(runtime, target);
   const source = selectedEffect(sourceFighter, sourceId) ??
@@ -2856,7 +3244,6 @@ function requestDrain(runtime: BattleRuntime, target: Fighter, amount: number, s
   const map = opening ? runtime.openingDrainRequested : runtime.roundDrainRequested;
   map.set(target.side, (map.get(target.side) ?? 0) + amount);
   target.pendingDrains.push({ amount, sourceId, sourceOwner, opening });
-  addContribution(runtime, sourceOwner, 'rage', -amount, sourceFighter.side);
   if (source) mark(runtime, source, 1, sourceFighter.side);
   if (artifactSource) {
     resolveArtifactOutputCopies(runtime, artifactSource, target, (copy, _mode) => {
@@ -2899,6 +3286,8 @@ function addShield(
     }
   }
   input *= 1 + shieldBonus;
+  const copyableInput = input;
+  const tailOutputMultiplier = nativeTailOutputMultiplier(fighter, source, outputCopy);
   const capacity = fighter.loadout.permanentRule?.kind === 'shattered_core'
     ? fighter.maxShield
     : fighter.stats.max_hp;
@@ -2910,8 +3299,10 @@ function addShield(
     }, 'mirror');
   }
   if (fighter.hp <= 0) return 0;
-  const gained = Math.max(0, Math.min(input, capacity - fighter.shield));
+  const copyableGain = Math.max(0, Math.min(copyableInput, capacity - fighter.shield));
+  const gained = Math.max(0, Math.min(input * tailOutputMultiplier, capacity - fighter.shield));
   fighter.shield += gained;
+  if (!outputCopy) chargeShieldCannon(runtime, fighter, gained);
   if (gained > 0 && action?.actor === fighter) recordCombatEvent(runtime, 'shield', fighter);
   if (typeof source !== 'string') {
     mark(runtime, source, 1, fighter.side);
@@ -2923,10 +3314,10 @@ function addShield(
       ? `${source.id}-RAGE-ECHO`
       : source.id;
   frame(runtime, 'shield', `${fighter.side === 'player' ? '玩家' : '敌人'}${text} ${Math.round(gained)}`, fighter.side, fighter.side, frameSource, gained);
-  if ((!outputCopy || isFirstMirrorOutput(runtime, source)) && gained > 0) {
+  if ((!outputCopy || isFirstMirrorOutput(runtime, source)) && copyableGain > 0) {
     resolveArtifactOutputCopies(runtime, source, fighter, (copy, mode) => {
       const label = mode === 'mirror' ? '镜映护盾' : mode === 'twin' ? '双生铭刻护盾' : '极速铭刻护盾';
-      addShield(runtime, fighter, gained, copy, label, 0, false, true);
+      addShield(runtime, fighter, copyableGain, copy, label, 0, false, true);
     }, 'inscription');
   }
   return gained;
@@ -3012,6 +3403,9 @@ function addRegularStatus(
         ownerSide: sourceTargetSide(runtime, source),
         kind: 'dot' as const,
       } : { kind: 'regular' as const }),
+      ...(typeof source !== 'string' && source.artifactOutputMode
+        ? { artifactOutputMode: source.artifactOutputMode }
+        : {}),
       sourceId: typeof source === 'string' ? source : isEchoSource ? `${source.id}-RAGE-ECHO` : source.id,
     });
   }
@@ -3146,6 +3540,9 @@ function triggerShieldAbsorbed(runtime: BattleRuntime, target: Fighter, source: 
 
 function triggerDirectCrit(runtime: BattleRuntime, source: Fighter, target: Fighter, action: ActionContext, baseOrFollowup: boolean): void {
   const rr10 = selectedEffect(source, 'RR10-DIRECT-CRIT-RAGE');
+  if (rr10 && action.isMainAction && !action.isEcho && action.actor === source) {
+    triggerRR10OwnedDotSettlements(runtime, source, target, rr10);
+  }
   if (rr10 && action.isMainAction && !action.isEcho && action.actor === source &&
       action.rr10CritCount < int(rr10.params?.per_action_cap, 2)) {
     action.rr10CritCount += 1;
@@ -3447,7 +3844,12 @@ function resolveDirectHitAdditions(runtime: BattleRuntime, action: ActionContext
     const hitRage = selectedEffect(actor, 'RKF02-J2-A-HIT-RAGE');
     if (hitRage && firstBase) registerRage(runtime, actor, n(hitRage.params?.amount, 10), hitRage.id, hitRage.ownerId);
     const rr01 = actor.artifacts.find(artifact => artifact.entity.id === 'RR01');
-    if (rr01 && firstBase) registerRage(runtime, actor, 10 * rr01.stacks, 'RR01-BASE-HIT-RAGE-GAIN', rr01.entity.id);
+    if (rr01 && firstBase) {
+      registerRage(runtime, actor, 10 * rr01.stacks, 'RR01-BASE-HIT-RAGE-GAIN', rr01.entity.id);
+      if (selectedEffect(actor, 'RR01-CHARGED-RAGE-STRIKE')) {
+        actor.battleFlags.add('RR01:BEAD-PENDING');
+      }
+    }
   }
   const j4b = selectedEffect(actor, 'RKF08-J4-B-RAGE');
   if (j4b && hasStatus(target, 'armor_break') && firstBase) registerRage(runtime, actor, n(j4b.params?.amount, 10), j4b.id, j4b.ownerId);
@@ -3577,16 +3979,19 @@ function resolveHeal(
       if (effect) mark(runtime, effect);
     }
   }
-  if ((!outputCopy || isFirstMirrorOutput(runtime, source)) && total > 0) {
+  const copyableTotal = total;
+  const tailOutputMultiplier = nativeTailOutputMultiplier(fighter, source, outputCopy);
+  if ((!outputCopy || isFirstMirrorOutput(runtime, source)) && copyableTotal > 0) {
     resolveArtifactOutputCopies(runtime, source, fighter, (copy, mode) => {
       const copyAction = syntheticAction(runtime, fighter, other(runtime, fighter));
-      copiedEffective += resolveHeal(runtime, copyAction, total, copy, allowOverflow, true).totalEffective;
+      copiedEffective += resolveHeal(runtime, copyAction, copyableTotal, copy, allowOverflow, true).totalEffective;
       void mode;
     }, 'mirror');
   }
   if (!runtime.active || fighter.hp <= 0 || action.target.hp <= 0) {
     return { effective: 0, overflow: 0, totalEffective: copiedEffective };
   }
+  total *= tailOutputMultiplier;
   const effective = Math.min(total, Math.max(0, fighter.stats.max_hp - fighter.hp));
   const overflow = Math.max(0, total - effective);
   fighter.hp += effective;
@@ -3698,10 +4103,10 @@ function resolveHeal(
     }
   }
   resolveSpringBloom(runtime, action, effective + overflow);
-  if ((!outputCopy || isFirstMirrorOutput(runtime, source)) && total > 0) {
+  if ((!outputCopy || isFirstMirrorOutput(runtime, source)) && copyableTotal > 0) {
     resolveArtifactOutputCopies(runtime, source, fighter, (copy, mode) => {
       const copyAction = syntheticAction(runtime, fighter, other(runtime, fighter));
-      copiedEffective += resolveHeal(runtime, copyAction, total, copy, allowOverflow, true).totalEffective;
+      copiedEffective += resolveHeal(runtime, copyAction, copyableTotal, copy, allowOverflow, true).totalEffective;
       void mode;
     }, 'inscription');
   }
@@ -3715,6 +4120,7 @@ function resolveHeal(
     const ae = rr02.entity.effects?.[0];
     if (ae) addShield(runtime, fighter, (effective + copiedEffective) * n(ae.params?.ratio, 0.35) * rr02.stacks, Object.assign(clone(ae), { ownerId: rr02.entity.id, ownerName: rr02.entity.name, ownerKind: 'artifact' as SourceKind, ownerSide: fighter.side, stacks: rr02.stacks }), '有效治疗转盾', 0, false);
   }
+  if (!outputCopy) accumulateHealingBurst(runtime, fighter, effective + overflow);
   return { effective, overflow, totalEffective: effective + copiedEffective };
 }
 
@@ -3879,6 +4285,10 @@ function resolveCompanionAssist(runtime: BattleRuntime, action: ActionContext): 
       ? (usesAlternateEffect ? config.alternate_effect : config.effect)
       : undefined);
     if (!output) continue;
+    const outputScale = actor.loadout.n >= 3 ? 2 : 1;
+    const resolvedOutput = outputScale === 1
+      ? output
+      : { ...output, value: n(output.value, 0) * outputScale };
     const trigger = pair?.trigger ?? config.trigger;
     const display = pair
       ? `${config.name}与${actor.method.name}合练`
@@ -3890,7 +4300,7 @@ function resolveCompanionAssist(runtime: BattleRuntime, action: ActionContext): 
       'companion_assist',
       source.ownerId,
       `${actor.side === 'player' ? '玩家' : '敌人'}伴生协力：${display}（${trigger}）`,
-      reaction => resolveCombatOutput(runtime, reaction, source, output, '伴生护盾'),
+      reaction => resolveCombatOutput(runtime, reaction, source, resolvedOutput, '伴生护盾'),
     );
     if (!pair && config.alternate_effect) {
       companion.usesAlternateEffect = !companion.usesAlternateEffect;
@@ -3900,9 +4310,13 @@ function resolveCompanionAssist(runtime: BattleRuntime, action: ActionContext): 
 
 function artifactAwakeningMatchesAction(artifact: ArtifactRuntime, action: ActionContext): boolean {
   const awakening = artifact.entity.awakening;
+  const maxStacks = int(artifact.entity.max_stacks, 1);
+  const isLeadStackableCommon = action.actor.artifacts[0] === artifact &&
+    artifact.entity.rarity === 'common' && maxStacks > 1;
+  const awakeningStacks = artifact.stacks + (isLeadStackableCommon ? 1 : 0);
   if (!Array.isArray(awakening?.effects) || awakening.effects.length === 0 ||
-      artifact.stacks < int(awakening.at_stacks, artifact.entity.max_stacks) ||
-      artifact.stacks < int(artifact.entity.max_stacks, 1)) return false;
+      awakeningStacks < int(awakening.at_stacks, maxStacks) ||
+      awakeningStacks < maxStacks) return false;
   const trigger = awakening.trigger ?? 'either';
   return trigger === 'either' || trigger === (action.type === 'basic_action' ? 'basic' : 'rage');
 }
@@ -3965,71 +4379,145 @@ function trialSource(owner: Fighter): ActiveEffect {
   };
 }
 
+function trialLabel(trial: EnemyTrial, encounterId?: string): string {
+  return {
+    tidal_charge: encounterId === 'EN-A2-B2' ? '战誓' : '潮势',
+    reviving_mist: '回雾',
+    rage_gale: '雷怒',
+    ember_shell: '烬甲',
+    blade_oath: '剑誓',
+    six_eye_gaze: '六目',
+  }[trial.kind];
+}
+
+function usesFirstActTrialCues(owner: Fighter): boolean {
+  return owner.loadout.encounterId === 'EN-A1-B1' || owner.loadout.encounterId === 'EN-A1-B2';
+}
+
+function trialAllowsCounter(trial: EnemyTrial, event: 'direct' | 'dot'): boolean {
+  if (trial.kind === 'reviving_mist' || trial.kind === 'ember_shell') return event === 'dot';
+  if (trial.kind === 'six_eye_gaze') return true;
+  return event === 'direct';
+}
+
+function consumeEnemyTrialCharge(
+  runtime: BattleRuntime,
+  target: Fighter,
+  sourceSide: 'player' | 'enemy',
+  sourceId: string,
+  event: 'direct' | 'dot',
+): void {
+  const trial = target.trial;
+  if (!trial || target.side !== 'enemy' || sourceSide === target.side ||
+      !trialAllowsCounter(trial, event) || (target.trialCharges ?? 0) <= 0) return;
+  target.trialCharges = Math.max(0, (target.trialCharges ?? 0) - 1);
+  const text = `${target.loadout.name}${trialLabel(trial, target.loadout.encounterId)}准备被削去1格（${target.trialCharges}/${trial.charges}）`;
+  if (usesFirstActTrialCues(target)) {
+    frame(runtime, 'status', text, sourceSide, target.side, sourceId, 1, {
+      kind: 'enemy_charge',
+      owner: target.side,
+      sourceId: target.loadout.encounterId ?? '',
+    });
+    return;
+  }
+  frame(runtime, 'status', text, sourceSide, target.side, sourceId, 1);
+}
+
 function emitEnemyTrialCharge(runtime: BattleRuntime, owner: Fighter): void {
   if (!owner.trial) return;
-  const label = owner.trial.kind === 'tidal_charge' ? '潮汐蓄势' : '回雾蓄势';
-  withReactionBeat(
-    runtime,
-    owner,
-    owner,
-    'enemy_charge',
-    owner.loadout.encounterId ?? '',
-    `${owner.loadout.name}${label} ${owner.trialCharges ?? 0}/${owner.trial.charges}`,
-  );
+  const text = `${owner.loadout.name}${trialLabel(owner.trial, owner.loadout.encounterId)}准备 ${owner.trialCharges ?? 0}/${owner.trial.charges}`;
+  if (usesFirstActTrialCues(owner)) {
+    withReactionBeat(
+      runtime,
+      owner,
+      owner,
+      'enemy_charge',
+      owner.loadout.encounterId ?? '',
+      text,
+    );
+    return;
+  }
+  frame(runtime, 'status', text, owner.side, owner.side, owner.loadout.encounterId, owner.trialCharges);
 }
 
 function prepareEnemyTrialRound(runtime: BattleRuntime): void {
   for (const fighter of [runtime.player, runtime.enemy]) {
     if (!fighter.trial) continue;
-    fighter.trialCountdown = fighter.trial.period -
-      ((runtime.round - 1) % fighter.trial.period);
+    fighter.trialCountdown = Math.max(
+      1,
+      (fighter.trialNextReleaseRound ?? fighter.trial.period) - runtime.round + 1,
+    );
   }
 }
 
 function releaseEnemyTrial(runtime: BattleRuntime, owner: Fighter): void {
   const trial = owner.trial;
-  if (!trial || runtime.round % trial.period !== 0 || owner.hp <= 0) return;
+  if (!trial || runtime.round < (owner.trialNextReleaseRound ?? trial.period) || owner.hp <= 0) return;
   const target = other(runtime, owner);
   const charges = Math.max(0, owner.trialCharges ?? 0);
   owner.trialCharges = 0;
   owner.trialCountdown = 0;
+  owner.trialNextReleaseRound = (owner.trialNextReleaseRound ?? trial.period) + trial.period;
+  owner.trialOpeningDelayed = false;
   const source = trialSource(owner);
-  const brokenText = trial.kind === 'tidal_charge'
-    ? `${owner.loadout.name}潮汐准备已被打断，释放落空`
-    : `${owner.loadout.name}回雾准备已被打断，未能恢复`;
-  const releaseText = trial.kind === 'tidal_charge'
-    ? `${owner.loadout.name}释放潮汐 ${charges} 段`
-    : `${owner.loadout.name}释放回雾，按剩余蓄势恢复`;
-  withReactionBeat(
-    runtime,
-    owner,
-    target,
-    'enemy_release',
-    source.id,
-    charges > 0 ? releaseText : brokenText,
-    action => {
-      if (charges === 0) return;
-      if (trial.kind === 'tidal_charge') {
-        for (let segment = 0; segment < charges; segment++) {
-          if (!runtime.active || owner.hp <= 0 || target.hp <= 0) break;
-          dealDamage(runtime, owner, target, 0, {
-            sourceEffect: source,
-            kind: 'direct',
-            canCrit: false,
-            rawOverride: attackStats(runtime, owner, target, action).attack *
-              trial.attack_ratio_per_charge,
-          });
-        }
-        return;
+  const releaseEffect = (action: ActionContext): void => {
+    if (charges <= 0) return;
+    if (trial.kind === 'tidal_charge') {
+      for (let segment = 0; segment < charges; segment++) {
+        if (!runtime.active || owner.hp <= 0 || target.hp <= 0) break;
+        dealDamage(runtime, owner, target, 0, {
+          sourceEffect: source,
+          kind: 'direct',
+          canCrit: false,
+          rawOverride: attackStats(runtime, owner, target, action).attack * trial.attack_ratio_per_charge,
+        });
       }
-      resolveHeal(
+      return;
+    }
+    if (trial.kind === 'blade_oath') {
+      dealDamage(runtime, owner, target, 0, {
+        sourceEffect: source,
+        kind: 'direct',
+        canCrit: false,
+        rawOverride: attackStats(runtime, owner, target, action).attack *
+          trial.attack_ratio_per_charge * charges,
+      });
+      return;
+    }
+    if (trial.kind === 'reviving_mist') {
+      resolveHeal(runtime, action, owner.stats.max_hp * trial.heal_hp_ratio_per_charge * charges, source);
+      return;
+    }
+    if (trial.kind === 'rage_gale') {
+      requestDrain(runtime, target, trial.rage_drain_per_charge * charges, source.id, source.ownerId);
+      return;
+    }
+    if (trial.kind === 'ember_shell') {
+      addShield(
         runtime,
-        action,
-        owner.stats.max_hp * trial.heal_hp_ratio_per_charge * charges,
+        owner,
+        owner.stats.max_hp * trial.shield_hp_ratio_per_charge * charges,
         source,
+        '烬甲回响护盾',
       );
-    },
-  );
+      return;
+    }
+    addRegularStatus(runtime, target, 'weakness', trial.weakness_stacks_per_charge * charges,
+      trial.duration_rounds, source);
+    addRegularStatus(runtime, target, 'armor_break', trial.armor_break_stacks_per_charge * charges,
+      trial.duration_rounds, source);
+  };
+  const trialReleaseText = charges > 0
+    ? `${owner.loadout.name}${trialLabel(trial, owner.loadout.encounterId)}释放${charges}格准备`
+    : `${owner.loadout.name}${trialLabel(trial, owner.loadout.encounterId)}准备已被拆空，释放落空`;
+  if (usesFirstActTrialCues(owner)) {
+    withReactionBeat(runtime, owner, target, 'enemy_release', source.id, trialReleaseText, releaseEffect);
+  } else {
+    withAuxiliaryAction(runtime, owner, target, action => {
+      frame(runtime, 'status', trialReleaseText, owner.side, target.side, source.id, charges);
+      releaseEffect(action);
+    });
+  }
   if (owner.hp > 0) {
     owner.trialCharges = trial.charges;
     owner.trialCountdown = trial.period;
@@ -4234,7 +4722,14 @@ function resolveFusionActionEnd(runtime: BattleRuntime, action: ActionContext): 
 
   // Stable order: Twin Swords hits first so their legal on-hit outputs are
   // visible to Toxic Flame. Toxic Flame then resolves before RR11's furnace.
-  const priority: Record<FusionKind, number> = { twin_swords: 0, toxic_flame: 1 };
+  const priority: Record<FusionKind, number> = {
+    twin_swords: 0,
+    toxic_flame: 1,
+    shield_cannon: 2,
+    healing_burst: 3,
+    thunder_rebate: 4,
+    coin_treasury: 5,
+  };
   const rulesInOrder = fusionRules(actor).sort((left, right) =>
     priority[left.kind] - priority[right.kind]);
   for (const fusion of rulesInOrder) {
@@ -4255,6 +4750,50 @@ function resolveFusionActionEnd(runtime: BattleRuntime, action: ActionContext): 
       }
       continue;
     }
+
+    if (fusion.kind === 'shield_cannon') {
+      const charge = Math.max(0, n(actor.battleLayers[FUSION_SHIELD_CANNON_KEY], 0));
+      if (charge <= 0 || !reserveActionLimit(action, onceKey, 1)) continue;
+      actor.battleLayers[FUSION_SHIELD_CANNON_KEY] = 0;
+      frame(runtime, 'status', '铁壁神铳消耗炮势轰击', actor.side, target.side, fusion.effect.id, charge);
+      dealDamage(runtime, actor, target, 0, {
+        sourceEffect: fusion.effect,
+        kind: 'derived',
+        canCrit: false,
+        rawOverride: charge * 0.7,
+      });
+      continue;
+    }
+
+    if (fusion.kind === 'healing_burst') {
+      const charge = Math.max(0, n(actor.battleLayers[FUSION_HEALING_BURST_KEY], 0));
+      if (charge < actor.stats.max_hp * 0.2 || !reserveActionLimit(action, onceKey, 1)) continue;
+      actor.battleLayers[FUSION_HEALING_BURST_KEY] = 0;
+      frame(runtime, 'status', '玉液回天壶消耗甘露爆发', actor.side, target.side, fusion.effect.id, charge);
+      dealDamage(runtime, actor, target, 0, {
+        sourceEffect: fusion.effect,
+        kind: 'derived',
+        canCrit: false,
+        rawOverride: charge * 0.8,
+      });
+      continue;
+    }
+
+    if (fusion.kind === 'thunder_rebate') {
+      if (action.directCritCount <= 0 || !reserveActionLimit(action, onceKey, 1)) continue;
+      mark(runtime, fusion.effect, 1, actor.side);
+      registerRage(runtime, actor, 10, fusion.effect.id, fusion.effect.ownerId);
+      frame(runtime, 'status', '天机落雷箓引雷返怒', actor.side, target.side, fusion.effect.id, 10);
+      dealDamage(runtime, actor, target, 0, {
+        sourceEffect: fusion.effect,
+        kind: 'derived',
+        canCrit: false,
+        rawOverride: action.actionStats.attack * 0.65,
+      });
+      continue;
+    }
+
+    if (fusion.kind === 'coin_treasury') continue;
 
     const poison = earliestOwnDotLayer(actor, target, 'poison');
     const burn = earliestOwnDotLayer(actor, target, 'burn');
@@ -4813,6 +5352,21 @@ function resolveAcceleratedOwnBurns(runtime: BattleRuntime, action: ActionContex
 
 function reserveMainActionResources(runtime: BattleRuntime, action: ActionContext): void {
   const { actor } = action;
+  if (action.type === 'rage_action') {
+    const beadStrike = selectedEffect(actor, 'RR01-CHARGED-RAGE-STRIKE');
+    if (beadStrike && actor.battleFlags.has('RR01:BEAD-PENDING')) {
+      actor.battleFlags.delete('RR01:BEAD-PENDING');
+      action.rr01ChargedStrike = beadStrike;
+      mark(runtime, beadStrike);
+    }
+  } else {
+    const followup = selectedEffect(actor, 'RR07-NEXT-BASIC-STRIKE');
+    if (followup && actor.battleFlags.has('RR07:BASIC-STRIKE-READY')) {
+      actor.battleFlags.delete('RR07:BASIC-STRIKE-READY');
+      action.rr07FollowupStrike = followup;
+      mark(runtime, followup);
+    }
+  }
   if (action.type === 'basic_action') {
     const blades = resonanceRule(actor, 'healing_blades');
     if (blades) {
@@ -5210,6 +5764,16 @@ function executeActionOnce(runtime: BattleRuntime, actor: Fighter, target: Fight
     }
     void before;
   }
+  for (const strike of [action.rr01ChargedStrike, action.rr07FollowupStrike]) {
+    if (!strike || !runtime.active || actor.hp <= 0 || target.hp <= 0) continue;
+    const isBeadStrike = strike.id === 'RR01-CHARGED-RAGE-STRIKE';
+    dealDamage(runtime, actor, target, n(strike.params?.attack_ratio, 0), {
+      sourceEffect: strike,
+      kind: 'direct',
+      canCrit: isBeadStrike,
+      followup: true,
+    });
+  }
   if (type === 'basic_action' && action.hadEffectiveBaseHit && runtime.active &&
       actor.hp > 0 && target.hp > 0 && !action.stop) {
     for (const core of actor.coreRules) {
@@ -5344,10 +5908,16 @@ function resolveDotTick(
   status: 'poison' | 'burn',
   layer: StatusLayer,
   action: ActionContext,
+  preserveLayer = false,
 ): HitResult {
   const sourceId = layer.sourceId ?? `${owner.method.id}-${status}`;
   const ownerId = layer.ownerId ?? layer.sourceId ?? '';
-  const ownerEffect = activeModifiers(owner).find(effect => effect.id === sourceId) ??
+  const activeOwnerEffect = activeModifiers(owner).find(effect => effect.id === sourceId);
+  const ownerEffect = activeOwnerEffect
+    ? Object.assign(clone(activeOwnerEffect), layer.artifactOutputMode
+      ? { artifactOutputMode: layer.artifactOutputMode }
+      : {})
+    :
     {
       id: sourceId,
       ownerId: ownerId || owner.method.id,
@@ -5357,6 +5927,7 @@ function resolveDotTick(
         : owner.artifacts.some(artifact => artifact.entity.id === ownerId) ? 'artifact' : 'method',
       ownerSide: layer.ownerSide ?? owner.side,
       stacks: 1,
+      ...(layer.artifactOutputMode ? { artifactOutputMode: layer.artifactOutputMode } : {}),
     };
   const previousAction = runtime.currentAction;
   let result: HitResult;
@@ -5368,24 +5939,8 @@ function resolveDotTick(
       canCrit: false,
       rawOverride: n(layer.damage, 0),
     });
-    if (target.trial?.kind === 'reviving_mist' && owner.side !== target.side &&
-        (status === 'poison' || status === 'burn') && result.hpDamage > 0 &&
-        (target.trialCharges ?? 0) > 0) {
-      target.trialCharges = Math.max(0, (target.trialCharges ?? 0) - 1);
-      frame(
-        runtime,
-        'status',
-        `${target.loadout.name}回雾被${status === 'poison' ? '毒伤' : '灼伤'}削弱`,
-        owner.side,
-        target.side,
-        ownerEffect.id,
-        1,
-        {
-          kind: 'enemy_charge',
-          owner: target.side,
-          sourceId: target.loadout.encounterId ?? '',
-        },
-      );
+    if (result.hpDamage > 0 && (status === 'poison' || status === 'burn')) {
+      consumeEnemyTrialCharge(runtime, target, owner.side, ownerEffect.id, 'dot');
     }
     (action as AnyMap).lastDotDamage = result.hpDamage + result.absorbed;
     (action as AnyMap).lastOwnDotHpDamage = fighterOwnsDotLayer(owner, layer)
@@ -5437,10 +5992,54 @@ function resolveDotTick(
     runtime.currentAction = previousAction;
   }
   const liveLayer = getStatusLayers(target, status).find(item => item === layer);
-  if (liveLayer) liveLayer.remaining -= 1;
+  if (liveLayer && !preserveLayer) liveLayer.remaining -= 1;
   const liveLayers = getStatusLayers(target, status);
   fighterStatusReplace(target, status, liveLayers.filter(item => item.remaining > 0));
   return result;
+}
+
+function triggerRR10OwnedDotSettlements(
+  runtime: BattleRuntime,
+  owner: Fighter,
+  target: Fighter,
+  effect: ActiveEffect,
+): void {
+  if (!runtime.active || owner.hp <= 0 || target.hp <= 0) return;
+  const roundFlag = `RR10:OWN-DOT-SETTLEMENT:${runtime.round}`;
+  if (owner.battleFlags.has(roundFlag)) return;
+  const statuses: ('poison' | 'burn')[] = Array.isArray(effect.params?.dot_echo_statuses)
+    ? effect.params.dot_echo_statuses.filter((status: unknown): status is 'poison' | 'burn' =>
+      status === 'poison' || status === 'burn')
+    : ['poison', 'burn'];
+  const owned = statuses.flatMap(status =>
+    [...getStatusLayers(target, status)]
+      .filter(layer => fighterOwnsDotLayer(owner, layer))
+      .map(layer => ({ status, layer })),
+  );
+  if (owned.length === 0) return;
+
+  // Set the guard before ticking: DOT reactions can deal damage, but cannot
+  // recursively trigger another RR10 settlement this round.
+  owner.battleFlags.add(roundFlag);
+  const action = syntheticAction(runtime, owner, target);
+  action.roundDotSettlement = true;
+  for (const status of statuses) {
+    const layers = owned.filter(entry => entry.status === status);
+    if (layers.length === 0) continue;
+    frame(
+      runtime,
+      'status',
+      `${owner.loadout.name}引雷针引动自施加的${status === 'poison' ? '中毒' : '燃烧'}各跳伤一次`,
+      owner.side,
+      target.side,
+      effect.id,
+      layers.length,
+    );
+    for (const { layer } of layers) {
+      if (!runtime.active || owner.hp <= 0 || target.hp <= 0) return;
+      resolveDotTick(runtime, owner, target, status, layer, action, true);
+    }
+  }
 }
 
 function processRoundDots(runtime: BattleRuntime): void {
@@ -5548,6 +6147,105 @@ function rageDrainResistance(runtime: BattleRuntime, fighter: Fighter, requested
   return clamp(resistance, 0, 1);
 }
 
+function recordActualRageDrainContributions(
+  runtime: BattleRuntime,
+  fighter: Fighter,
+  actual: number,
+  opening: boolean,
+): void {
+  if (actual <= 0) return;
+  const requests = fighter.pendingDrains.filter(entry => entry.opening === opening && entry.amount > 0);
+  const requested = requests.reduce((sum, entry) => sum + entry.amount, 0);
+  if (requested <= 0) return;
+  const sourceSide = other(runtime, fighter).side;
+  for (const entry of requests) {
+    addContribution(runtime, entry.sourceOwner, 'rage', -actual * entry.amount / requested, sourceSide);
+  }
+}
+
+function respondToActualRageDrain(runtime: BattleRuntime, target: Fighter, actual: number): void {
+  if (actual <= 0) return;
+  const rr13Owner = other(runtime, target);
+  const rr13 = selectedEffect(rr13Owner, 'RR13-FIRST-BASIC-RAGE-DRAIN');
+  if (!rr13 || rr13Owner.hp <= 0) return;
+  frame(
+    runtime,
+    'status',
+    `${rr13Owner.loadout.name}截脉针按实际削怒结算 ${actual} 点`,
+    rr13Owner.side,
+    target.side,
+    rr13.id,
+    actual,
+  );
+  grantImmediateRage(
+    runtime,
+    rr13Owner,
+    actual * n(rr13.params?.rage_return_ratio, 1),
+    rr13,
+  );
+  addShield(
+    runtime,
+    rr13Owner,
+    actual * n(rr13.params?.shield_ratio, 1),
+    rr13,
+    '截脉针返息成盾',
+    0,
+    false,
+  );
+}
+
+function resolveActualRageDrain(
+  runtime: BattleRuntime,
+  fighter: Fighter,
+  requested: number,
+  opening: boolean,
+): number {
+  if (requested <= 0 || fighter.hp <= 0) return 0;
+  const cap = n(
+    opening
+      ? rules(runtime.content).rage?.opening_drain_cap
+      : rules(runtime.content).rage?.round_drain_cap,
+    opening ? 50 : 20,
+  );
+  const before = fighter.rage;
+  const withoutResistance = Math.min(before, cap, Math.floor(requested));
+  const resistance = rageDrainResistance(runtime, fighter, requested);
+  const actual = Math.min(before, cap, Math.floor(requested * (1 - resistance)));
+  recordActualRageDrainContributions(runtime, fighter, actual, opening);
+  if (actual > 0) {
+    fighter.rage = Math.max(0, before - actual);
+    frame(
+      runtime,
+      'rage',
+      `${fighter.side === 'player' ? '玩家' : '敌人'}${opening ? '开场' : '轮尾'}被削怒 ${actual}`,
+      fighter.side,
+      fighter.side,
+      opening ? 'RULES-OPENING-DRAIN' : 'RULES-RAGE-DRAIN',
+      actual,
+    );
+  }
+
+  const resistedAmount = Math.max(0, withoutResistance - actual);
+  const rr15 = resistedAmount > 0
+    ? selectedEffect(fighter, 'RR15-EXTERNAL-RAGE-DRAIN-RESIST')
+    : undefined;
+  const rr15Flag = opening ? 'RR15:OPENING-INTERCEPT' : `RR15:INTERCEPT:${runtime.round}`;
+  if (rr15 && !fighter.battleFlags.has(rr15Flag)) {
+    fighter.battleFlags.add(rr15Flag);
+    addShield(
+      runtime,
+      fighter,
+      resistedAmount * n(rr15.params?.protected_rage_shield_ratio, 0.5),
+      rr15,
+      '定心佩化抵御之怒为护盾',
+      0,
+      false,
+    );
+  }
+
+  return actual;
+}
+
 function settleRage(runtime: BattleRuntime): void {
   for (const fighter of [runtime.player, runtime.enemy]) {
     if (fighter.hp <= 0) {
@@ -5560,13 +6258,16 @@ function settleRage(runtime: BattleRuntime): void {
       fighter.rage = Math.min(fighter.rageCap, fighter.rage + gains);
       frame(runtime, 'rage', `${fighter.side === 'player' ? '玩家' : '敌人'}轮尾回怒 ${Math.round(gains)}`, fighter.side, fighter.side, 'RULES-RAGE-SETTLE', gains);
     }
+  }
+  const actualDrains = new Map<'player' | 'enemy', number>();
+  for (const fighter of [runtime.player, runtime.enemy]) {
     const requested = runtime.roundDrainRequested.get(fighter.side) ?? 0;
-    const resistance = rageDrainResistance(runtime, fighter, requested);
-    const actualDrain = Math.min(n(rules(runtime.content).rage?.round_drain_cap, 20), Math.floor(requested * (1 - resistance)));
-    if (actualDrain > 0) {
-      fighter.rage = Math.max(0, fighter.rage - actualDrain);
-      frame(runtime, 'rage', `${fighter.side === 'player' ? '玩家' : '敌人'}被削怒 ${actualDrain}`, fighter.side, fighter.side, 'RULES-RAGE-DRAIN', actualDrain);
-    }
+    actualDrains.set(fighter.side, resolveActualRageDrain(runtime, fighter, requested, false));
+  }
+  for (const fighter of [runtime.player, runtime.enemy]) {
+    respondToActualRageDrain(runtime, fighter, actualDrains.get(fighter.side) ?? 0);
+  }
+  for (const fighter of [runtime.player, runtime.enemy]) {
     fighter.pendingGains = [];
     fighter.pendingDrains = [];
   }
@@ -5576,8 +6277,10 @@ function settleRage(runtime: BattleRuntime): void {
 function applyOpening(runtime: BattleRuntime): void {
   const base = n(rules(runtime.content).rage?.opening, 50);
   for (const fighter of [runtime.player, runtime.enemy]) {
-    const thunderBonus = fighter.side === 'enemy' && fighter.loadout.thunderChallenge === true ? 20 : 0;
     fighter.rage = Math.min(fighter.rageCap, Math.max(0, base));
+  }
+  for (const fighter of [runtime.player, runtime.enemy]) {
+    const thunderBonus = fighter.side === 'enemy' && fighter.loadout.thunderChallenge === true ? 20 : 0;
     let actualBonus = 0;
     for (const artifact of fighter.artifacts) {
       let requested = 0;
@@ -5644,13 +6347,14 @@ function applyOpening(runtime: BattleRuntime): void {
     if (actualBonus > 0) {
       frame(runtime, 'rage', `${fighter.side === 'player' ? '玩家' : '敌人'}开场回怒`, fighter.side, fighter.side, 'RULES-OPENING-RAGE', fighter.rage);
     }
+  }
+  const actualOpeningDrains = new Map<'player' | 'enemy', number>();
+  for (const fighter of [runtime.player, runtime.enemy]) {
     const drain = runtime.openingDrainRequested.get(fighter.side) ?? 0;
-    const resistance = rageDrainResistance(runtime, fighter, drain);
-    const actual = Math.min(n(rules(runtime.content).rage?.opening_drain_cap, 50), Math.floor(drain * (1 - resistance)));
-    if (actual > 0) {
-      fighter.rage = Math.max(0, fighter.rage - actual);
-      frame(runtime, 'rage', `${fighter.side === 'player' ? '玩家' : '敌人'}开场被削怒 ${actual}`, fighter.side, fighter.side, 'RULES-OPENING-DRAIN', actual);
-    }
+    actualOpeningDrains.set(fighter.side, resolveActualRageDrain(runtime, fighter, drain, true));
+  }
+  for (const fighter of [runtime.player, runtime.enemy]) {
+    respondToActualRageDrain(runtime, fighter, actualOpeningDrains.get(fighter.side) ?? 0);
   }
   runtime.openingDrainRequested.clear();
 }
@@ -5674,6 +6378,12 @@ function executePreparedFirstStrike(runtime: BattleRuntime, actor: Fighter, targ
 
 function startBattle(runtime: BattleRuntime): void {
   for (const fighter of [runtime.player, runtime.enemy]) {
+    if (fusionRule(fighter, 'coin_treasury')) {
+      fighter.battleLayers[FUSION_TREASURY_COINS_KEY] = Math.min(
+        FUSION_TREASURY_MAX_COINS,
+        journeyFacts(fighter.loadout).coins,
+      );
+    }
     for (const effect of activeModifiers(fighter)) {
       if (effect.trigger !== 'battle_start') continue;
       if (effect.operation === 'modify_stat') {
@@ -5721,6 +6431,27 @@ function startBattle(runtime: BattleRuntime): void {
     }
   }
   applyOpening(runtime);
+  for (const fighter of [runtime.player, runtime.enemy]) {
+    const delay = selectedEffect(fighter, 'RR14-OPENING-RAGE-DRAIN');
+    const rival = other(runtime, fighter);
+    const delayFlag = 'RR14:FIRST-TRIAL-DELAY-APPLIED';
+    if (!delay || !rival.trial || rival.trialNextReleaseRound === undefined ||
+        fighter.battleFlags.has(delayFlag)) continue;
+    const rounds = Math.max(0, int(delay.params?.first_trial_release_delay_rounds, 1));
+    if (rounds <= 0) continue;
+    rival.trialNextReleaseRound += rounds;
+    rival.trialOpeningDelayed = true;
+    fighter.battleFlags.add(delayFlag);
+    frame(
+      runtime,
+      'status',
+      `${fighter.loadout.name}封元镜将对方首轮试炼延后${rounds}轮`,
+      fighter.side,
+      rival.side,
+      delay.id,
+      rounds,
+    );
+  }
   for (const fighter of [runtime.player, runtime.enemy]) {
     const journey = journeyFacts(fighter.loadout);
     for (const mechanic of fighter.buildRules) {
@@ -5842,6 +6573,13 @@ function createFighter(
     ...(compiled.trial ? {
       trialCharges: compiled.trial.charges,
       trialCountdown: compiled.trial.period,
+      trialNextReleaseRound: compiled.trial.period,
+    } : {}),
+    ...(compiled.phaseGate ? {
+      phaseGate: compiled.phaseGate,
+      phaseGateState: 'sealed' as const,
+      phaseGateShield: 0,
+      phaseGateShieldMax: stats.max_hp * compiled.phaseGate.shield_hp_ratio,
     } : {}),
   };
   (fighter as AnyMap).__content = runtime.content;
@@ -5903,6 +6641,7 @@ export function simulateBattle(
   let outcome = checkOutcome(runtime);
   for (let round = 1; runtime.active && !outcome && round <= roundLimit; round++) {
     runtime.round = round;
+    expirePhaseGateOpening(runtime);
     prepareEnemyTrialRound(runtime);
     const pChoice = chooseAction(runtime.player);
     const eChoice = chooseAction(runtime.enemy);
@@ -5980,6 +6719,9 @@ export function simulateBattle(
         fighter.rage = Math.min(fighter.rage, fighter.rageCap);
         fighter.battleFlags.delete('RR07-PENDING');
         if (fighter.rageCap !== previousCap) {
+          if (fighter.rageCap < previousCap && selectedEffect(fighter, 'RR07-NEXT-BASIC-STRIKE')) {
+            fighter.battleFlags.add('RR07:BASIC-STRIKE-READY');
+          }
           frame(runtime, 'rage', `${fighter.side === 'player' ? '玩家' : '敌人'}怒气上限调整`, fighter.side, fighter.side, cap.id, fighter.rageCap);
         }
       }

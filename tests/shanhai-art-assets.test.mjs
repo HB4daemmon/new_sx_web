@@ -26,10 +26,14 @@ test('game-art release manifest is explicit, approved and hash-verified', async 
   assert.deepEqual(manifest.approval, { status: 'approved', reviewedBy: 'user' });
   assert.equal(Object.keys(manifest.scenes).length, 3);
   assert.equal(Object.keys(manifest.modules).length, 4);
-  assert.equal(Object.keys(manifest.artifacts).length, 48);
+  assert.equal(Object.keys(manifest.artifacts).length, 52);
   assert.deepEqual(
     { RL06: manifest.artifacts.RL06, RL07: manifest.artifacts.RL07, RL08: manifest.artifacts.RL08 },
     { RL06: '/assets/icon-bottle.png', RL07: '/assets/icon-jade.png', RL08: '/assets/icon-jade.png' },
+  );
+  assert.deepEqual(
+    { RL10: manifest.artifacts.RL10, RL11: manifest.artifacts.RL11, RL12: manifest.artifacts.RL12, RL13: manifest.artifacts.RL13 },
+    { RL10: '/assets/icon-armor.png', RL11: '/assets/icon-bottle.png', RL12: '/assets/icon-talisman.png', RL13: '/assets/icon-coin.png' },
   );
   assert.equal(Object.keys(manifest.map).length, 6);
   assert.equal(Object.keys(manifest.frames).length, 39);

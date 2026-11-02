@@ -1272,6 +1272,38 @@
           "每栈伤害 ×1.1"
         ]
       ]
+    },
+    "RL10": {
+      "src": "/assets/icon-armor.png",
+      "type": "special",
+      "name": "铁壁神铳",
+      "rarity": "legendary",
+      "description": "融合玄铁甲与铁壁符；实际获得的护盾蓄为炮势，并在主动作结束时轰击。",
+      "stats": []
+    },
+    "RL11": {
+      "src": "/assets/icon-bottle.png",
+      "type": "special",
+      "name": "玉液回天壶",
+      "rarity": "legendary",
+      "description": "融合养气玉与回春瓶；积累有效治疗和溢疗后爆发。",
+      "stats": []
+    },
+    "RL12": {
+      "src": "/assets/icon-talisman.png",
+      "type": "special",
+      "name": "天机落雷箓",
+      "rarity": "legendary",
+      "description": "融合明目珠与雷纹印；直接暴击引发落雷并返还怒气。",
+      "stats": []
+    },
+    "RL13": {
+      "src": "/assets/icon-coin.png",
+      "type": "special",
+      "name": "万金聚灵炉",
+      "rarity": "legendary",
+      "description": "融合聚财钱与凝气珠；以入场灵石提高本场伤害，玩家胜利时额外获得12灵石。",
+      "stats": []
     }
   },
   "assets": [
