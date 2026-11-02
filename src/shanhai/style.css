@@ -10255,3 +10255,377 @@ small {
     right: 1%;
   }
 }
+
+/* V2 build summaries: keep current equipment and service availability glanceable. */
+.game-page .v2-preview-build-brief {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 10px;
+}
+
+.game-page .v2-preview-build-chip {
+  display: grid;
+  min-width: min(100%, 9rem);
+  flex: 1 1 30%;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 7px;
+  padding: 7px 9px;
+  border: 1px solid var(--line-strong);
+  background: var(--ink-1);
+  overflow-wrap: anywhere;
+}
+
+.game-page .v2-preview-build-chip > b {
+  color: var(--gold-bright);
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: nowrap;
+}
+
+.game-page .v2-preview-build-chip > span {
+  min-width: 0;
+  color: var(--paper-muted);
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.game-page .equipment-slot.v2-equipment-slot-front,
+.game-page .equipment-slot.v2-equipment-slot-tail {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px #c7a9672b;
+}
+
+.game-page .v2-equipment-slot-heading {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+}
+
+.game-page .equipment-slot-head .v2-equipment-slot-position {
+  display: inline-flex;
+  min-height: 22px;
+  align-items: center;
+  padding: 1px 5px;
+  border: 1px solid var(--gold);
+  color: var(--gold-bright);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.game-page .equipment-slot-head .v2-equipment-slot-state {
+  color: var(--paper-muted);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.game-page .v2-equipment-position-rules {
+  margin: 0 0 8px;
+  padding: 0 8px;
+  border-left: 2px solid var(--gold);
+  background: var(--panel);
+}
+
+.game-page .equipment-position-guide.v2-equipment-position-rules {
+  display: block;
+  grid-template-columns: none;
+  gap: 0;
+}
+
+.game-page .disclosure.v2-equipment-position-rules > summary {
+  min-height: 44px;
+  color: var(--gold-bright);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.game-page .v2-equipment-position-rule-detail {
+  display: grid;
+  gap: 6px;
+  padding: 0 2px 8px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.game-page .v2-equipment-position-rule-detail b {
+  color: var(--gold-bright);
+}
+
+@media (max-width: 600px) {
+  .game-page .v2-preview-build-brief {
+    gap: 5px;
+  }
+
+  .game-page .v2-preview-build-chip {
+    grid-template-columns: minmax(0, 1fr);
+    min-width: min(100%, 8.5rem);
+    gap: 2px;
+    padding: 6px;
+  }
+
+  .game-page .v2-preview-build-chip > b,
+  .game-page .v2-preview-build-chip > span {
+    font-size: 14px;
+  }
+}
+
+/* V2 artifact state marks, reward disclosures, and first contribution seal. */
+.game-page .artifact-awakening-seal {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 26px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 5px;
+  padding: 2px 6px;
+  border: 1px solid var(--gold-bright);
+  color: var(--gold-bright);
+  background: var(--ink-1);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  vertical-align: middle;
+}
+
+.game-page .artifact-awakening-seal .icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+}
+
+.game-page .artifact-awakening-seal small {
+  color: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.game-page .artifact-awakening-seal.is-front {
+  border-style: dashed;
+  color: var(--paper);
+  background: #433a2b;
+}
+
+.game-page .equipment-slot[data-awakened],
+.game-page .ability-card[data-awakened],
+.game-page .mini-card[data-awakened],
+.game-page .reward-card[data-awakened] {
+  box-shadow: inset 0 0 0 1px #d9b75f55;
+}
+
+.game-page .equipment-slot[data-awakened="front"],
+.game-page .ability-card[data-awakened="front"],
+.game-page .mini-card[data-awakened="front"],
+.game-page .reward-card[data-awakened="front"] {
+  border-style: dashed;
+}
+
+.game-page .mini-card .rank {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}
+
+.game-page .equipment-mirror-target {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 5px;
+  margin-top: 2px;
+  padding-left: 6px;
+  border-left: 2px solid var(--gold);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.game-page .equipment-mirror-target > span:first-child {
+  grid-row: span 2;
+  color: var(--gold);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.game-page .equipment-mirror-target > b {
+  color: var(--ink);
+}
+
+.game-page .equipment-mirror-target > span:last-child {
+  color: var(--muted);
+}
+
+.game-page details.reward-search > summary.v2-reward-service-summary,
+.game-page details.reward-refine > summary.v2-reward-service-summary {
+  display: grid;
+  min-width: 0;
+  min-height: 68px;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  background: linear-gradient(110deg, var(--panel-selected), var(--panel));
+  cursor: pointer;
+  list-style: none;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.game-page details.reward-search > summary.v2-reward-service-summary::-webkit-details-marker,
+.game-page details.reward-refine > summary.v2-reward-service-summary::-webkit-details-marker {
+  display: none;
+}
+
+.game-page details.reward-search > summary.v2-reward-service-summary:hover,
+.game-page details.reward-refine > summary.v2-reward-service-summary:hover {
+  border-color: var(--gold-bright);
+  background: var(--panel-selected);
+}
+
+.game-page details.reward-search > summary.v2-reward-service-summary:focus-visible,
+.game-page details.reward-refine > summary.v2-reward-service-summary:focus-visible {
+  outline: 3px solid var(--gold-bright);
+  outline-offset: 2px;
+}
+
+.game-page .v2-reward-service-mark {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid var(--gold);
+  color: var(--gold-bright);
+  background: var(--ink-1);
+}
+
+.game-page .v2-reward-service-mark .icon {
+  width: 20px;
+  height: 20px;
+}
+
+.game-page .v2-reward-service-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.game-page .v2-reward-service-copy b {
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.game-page .v2-reward-service-copy small {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.game-page .v2-reward-service-action {
+  display: inline-flex;
+  min-width: 54px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+  border: 1px solid var(--line-strong);
+  color: var(--gold-bright);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.game-page .v2-reward-service-action .is-open,
+.game-page details[open] .v2-reward-service-action .is-closed {
+  display: none;
+}
+
+.game-page details[open] .v2-reward-service-action .is-open {
+  display: inline;
+}
+
+.game-page .battle-damage-source-copy .battle-damage-source-title {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 9px;
+}
+
+.game-page .battle-damage-source-title > b {
+  color: var(--ink);
+}
+
+.game-page .battle-damage-source-copy .battle-first-contribution-seal {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  border: 1px solid var(--vermilion);
+  color: var(--ink);
+  background: var(--panel-selected);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.game-page .battle-damage-source-copy .battle-first-contribution-seal b {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.game-page .battle-first-contribution-art {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  place-items: center;
+  color: var(--gold);
+}
+
+.game-page .battle-first-contribution-art :is(.artifact-art, .sigil) {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+@media (max-width: 600px) {
+  .game-page details.reward-search > summary.v2-reward-service-summary,
+  .game-page details.reward-refine > summary.v2-reward-service-summary {
+    min-height: 68px;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 7px;
+    padding: 7px;
+  }
+
+  .game-page .v2-reward-service-mark {
+    width: 36px;
+    height: 36px;
+  }
+
+  .game-page .v2-reward-service-action {
+    min-width: 50px;
+    padding: 0 5px;
+  }
+}

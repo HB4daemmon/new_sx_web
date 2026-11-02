@@ -224,6 +224,7 @@ async function assertFeedbackAtWidth(page, width) {
     const floats = [...document.querySelectorAll('.combat-float')];
     const details = [...document.querySelectorAll('.combat-float.detail, .combat-float.status-change')];
     const arenaRect = arena?.getBoundingClientRect();
+    const canvasRect = arena?.querySelector('.game-battle-canvas')?.getBoundingClientRect();
     const layer = document.querySelector('.combat-feedback-layer');
     const layerRect = layer?.getBoundingClientRect();
     const layerStyle = layer ? getComputedStyle(layer) : null;
@@ -254,7 +255,9 @@ async function assertFeedbackAtWidth(page, width) {
           arenaLeft: arenaRect?.left ?? 0,
           arenaRight: arenaRect?.right ?? window.innerWidth,
           arenaTop: arenaRect?.top ?? 0,
-          headY: (arenaRect?.top ?? 0) + headY,
+          // The animation renderer publishes head coordinates in canvas space,
+          // which now starts below the HUD rather than at the arena's top.
+          headY: (canvasRect?.top ?? arenaRect?.top ?? 0) + headY,
           headValue,
           groupTop: groupStyle.top,
           groupTransform: groupStyle.transform,

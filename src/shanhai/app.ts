@@ -16,6 +16,8 @@ import {
   nextCombatPresentationCursor,
 } from './battle-playback.js';
 import type { CombatPresentationGroup } from './battle-playback.js';
+import { battleHighlights } from './battle-highlights.js';
+import { battleBeatEquipmentTriggers, battleImpactSegments } from './battle-impact.js';
 import { ShanhaiGame } from './run.js';
 import { characterJourneys, eventEchoes } from './narrative.js';
 import {
@@ -1179,26 +1181,96 @@ class ShanhaiApp {
     return `<section class="core-rule-detail"><h3>核心规律</h3><p>${esc(copy.mechanism)}</p><p><b>代价</b> · ${esc(copy.tradeoff)}</p></section>`;
   }
 
+  private hasStackGatedAwakening(artifact: Entity | undefined): boolean {
+    return listOf<any>(artifact?.effects).some(effect =>
+      asText(effect?.id).includes('-AWAKENING-') && asNumber(effect?.min_stacks) > 0);
+  }
+
+  private artifactAwakeningMarker(
+    artifact: Entity | undefined,
+    stack: ArtifactStack | undefined,
+    equipmentIndex: number,
+  ): 'full' | 'front' | '' {
+    if (!artifact || !stack || stack.stacks < 1) return '';
+    const awakening = isRecord(artifact.awakening) ? artifact.awakening : undefined;
+    if (!awakening) return '';
+    const hasActionAwakening = listOf<any>(awakening.effects).length > 0;
+    if (!hasActionAwakening && !this.hasStackGatedAwakening(artifact)) return '';
+    const maxStacks = Math.max(1, Math.floor(asNumber(artifact.max_stacks, 1)));
+    const atStacks = Math.max(1, Math.floor(asNumber(awakening.at_stacks, maxStacks)));
+    const stacks = Math.max(0, Math.floor(asNumber(stack.stacks)));
+    if (stacks >= maxStacks && stacks >= atStacks) return 'full';
+    // The combat engine grants the front-slot bonus to action awakenings;
+    // stack-gated effects require the actual min_stacks on the item itself.
+    if (hasActionAwakening && equipmentIndex === 0 && entityRarity(artifact) === 'common' && maxStacks > 1 &&
+      stacks < maxStacks && stacks + 1 >= maxStacks && stacks + 1 >= atStacks) return 'front';
+    return '';
+  }
+
+  private artifactPresentationAttributes(
+    artifact: Entity | undefined,
+    stack: ArtifactStack | undefined,
+    equipmentIndex: number,
+  ): string {
+    if (!artifact) return '';
+    const attributes = [
+      `data-rarity="${esc(entityRarity(artifact))}"`,
+      `data-core="${this.isCoreRuleArtifact(artifact.id)}"`,
+      `data-fusion="${Boolean(this.fusionRecipe(artifact))}"`,
+    ];
+    const awakened = this.artifactAwakeningMarker(artifact, stack, equipmentIndex);
+    if (awakened) attributes.push(`data-awakened="${awakened}"`);
+    return attributes.join(' ');
+  }
+
+  private artifactAwakeningSealMarkup(
+    awakened: 'full' | 'front' | '',
+    stack: ArtifactStack | undefined,
+  ): string {
+    if (!awakened || !stack) return '';
+    const actualStacks = Math.max(0, Math.floor(asNumber(stack.stacks)));
+    const front = awakened === 'front';
+    const accessibleLabel = front
+      ? `醒印：阵首提前达到觉醒判定；实际叠层仍为 ${actualStacks}，没有增加库存层数。`
+      : `醒印：已达到真实满层觉醒判定；当前叠层 ${actualStacks}。`;
+    return `<span class="artifact-awakening-seal is-${awakened}" role="img" aria-label="${esc(accessibleLabel)}" title="${esc(accessibleLabel)}">${icon('star', 14)}<b>醒印</b><small>${front ? '阵首提前' : '真实满层'}</small></span>`;
+  }
+
   private equipmentSlotMarkup(index: number, id: string | null): string {
     const label = this.equipmentSlotName(index);
+    const positionLabel = index === 0 ? '阵首' : index === MAX_EQUIPMENT_SLOTS - 1 ? '阵尾' : '';
+    const positionClass = index === 0
+      ? ' v2-equipment-slot-front'
+      : index === MAX_EQUIPMENT_SLOTS - 1
+        ? ' v2-equipment-slot-tail'
+        : '';
     const artifact = id ? this.artifactEntity(id) : undefined;
     const stack = id
       ? this.equippedArtifacts().find((item) => item.id === id)
       : undefined;
     const rarity = entityRarity(artifact);
+    const equipmentIds = this.equipmentItems();
+    const awakened = this.artifactAwakeningMarker(artifact, stack, id ? index : -1);
+    const presentationAttributes = this.artifactPresentationAttributes(artifact, stack, id ? index : -1);
+    const awakeningSeal = this.artifactAwakeningSealMarkup(awakened, stack);
     const resonance = this.resonanceBrief(artifact);
     let equipmentEffect = '效果生效';
+    let mirrorTarget = '';
     if (isRecord(artifact?.mirror_rule) && artifact.mirror_rule.kind === 'neighbor_awakening') {
-      const neighborId = this.equipmentItems()[index + 1];
-      equipmentEffect = neighborId ? '镜映右侧战斗触发' : '右侧无器物';
+      const neighborId = equipmentIds[index + 1];
+      const neighbor = neighborId ? this.artifactEntity(neighborId) : undefined;
+      equipmentEffect = neighborId ? '镜映右侧器物' : '右侧无器物';
+      mirrorTarget = neighborId
+        ? `<small class="equipment-mirror-target"><span aria-hidden="true">→</span><b>${esc(asText(neighbor?.name, neighborId))}</b><span>仅镜映其实际战斗触发；静态属性不复制。</span></small>`
+        : '';
     }
     const inscriptionLabel = stack?.inscription ? `铭刻${INSCRIPTION_COPY[stack.inscription].label}` : '';
     const inscription = inscriptionLabel ? ` · ${inscriptionLabel}` : '';
     const growth = this.artifactGrowthSummary(stack, true);
-    return `<article class="equipment-slot ${id ? 'is-filled' : 'is-empty'}" data-slot="${index + 1}">
-      <div class="equipment-slot-head"><b>${esc(label)}</b><span>${id ? '已装备' : '空位'}</span></div>
+    return `<article class="equipment-slot ${id ? 'is-filled' : 'is-empty'}${positionClass}" data-slot="${index + 1}" ${presentationAttributes}>
+      <div class="equipment-slot-head"><div class="v2-equipment-slot-heading"><b>${esc(label)}</b>${positionLabel ? `<span class="v2-equipment-slot-position" aria-label="${positionLabel}（第${index + 1}格）">${positionLabel}</span>` : ''}</div><span class="v2-equipment-slot-state" aria-label="${id ? '已装备法宝' : '空位，当前未装备法宝'}">${id ? '已装备' : '空位'}</span></div>
       ${id && artifact
-      ? `<button type="button" class="equipment-slot-item rarity-${esc(rarity)}" data-action="inspect-artifact" data-id="${esc(id)}" aria-label="${esc(`${label} · ${asText(artifact.name, id)} · ${inscriptionLabel ? `${inscriptionLabel} · ` : ''}${growth ? `${growth} · ` : ''}查看详录`)}"><span class="equipment-slot-icon">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : 'jade'))}</span><span><strong>${esc(asText(artifact.name, '未知法宝'))}</strong><small>${esc(equipmentEffect)} · ×${formatNumber(stack?.stacks, 0)}${esc(inscription)}</small>${growth ? `<small class="artifact-growth-brief">${esc(growth)}</small>` : ''}${resonance ? `<small class="equipment-resonance-brief">${this.textMarkup(resonance)}</small>` : ''}</span>${icon('eye', 15)}</button>`
+      ? `<button type="button" class="equipment-slot-item rarity-${esc(rarity)}" data-action="inspect-artifact" data-id="${esc(id)}" ${presentationAttributes} aria-label="${esc(`${label} · ${asText(artifact.name, id)} · ${inscriptionLabel ? `${inscriptionLabel} · ` : ''}${growth ? `${growth} · ` : ''}查看详录`)}"><span class="equipment-slot-icon">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : 'jade'))}</span><span><strong>${esc(asText(artifact.name, '未知法宝'))}</strong>${awakeningSeal}<small>${esc(equipmentEffect)} · ×${formatNumber(stack?.stacks, 0)}${esc(inscription)}</small>${mirrorTarget}${growth ? `<small class="artifact-growth-brief">${esc(growth)}</small>` : ''}${resonance ? `<small class="equipment-resonance-brief">${this.textMarkup(resonance)}</small>` : ''}</span>${icon('eye', 15)}</button>`
         : `<div class="equipment-slot-empty" aria-hidden="true">${icon('ring', 19)}</div>`}
     </article>`;
   }
@@ -1209,10 +1281,7 @@ class ShanhaiApp {
     const lockedReason = this.equipmentLockReason();
     return `<section class="build-section equipment-section" aria-labelledby="equipment-title">
       <div class="section-heading"><h2 id="equipment-title">当前装备</h2><span>已装备 ${equippedIds.length} / ${MAX_EQUIPMENT_SLOTS}</span></div>
-      <div class="equipment-position-guide" aria-label="阵位效果">
-        <span><b>阵首（第1格）</b> 法宝静态属性 ×1.5；可叠层普通法宝觉醒判定 +1 层，不增加真实层数。</span>
-        <span><b>阵尾（第5格）</b> 仅该法宝自身触发的伤害、治疗、护盾 ×1.25；镜映与铭刻复制不加成，未满五件时无阵尾。</span>
-      </div>
+      <details class="equipment-position-guide disclosure v2-equipment-position-rules" data-details="equipment-position-rules"><summary>阵位规则 · 阵首（第1格）属性 ×1.5；阵尾（第5格）自身触发 ×1.25</summary><div class="v2-equipment-position-rule-detail"><p><b>阵首（第1格）</b> 法宝静态属性 ×1.5；可叠层普通法宝觉醒判定 +1 层，不增加真实层数。</p><p><b>阵尾（第5格）</b> 仅该法宝自身触发的伤害、治疗、护盾 ×1.25；镜映与铭刻复制不加成，未满五件时无阵尾。</p></div></details>
       <div class="equipment-slot-grid">
         ${Array.from({ length: MAX_EQUIPMENT_SLOTS }, (_, index) =>
           this.equipmentSlotMarkup(index, equippedIds[index] || null),
@@ -2142,15 +2211,20 @@ class ShanhaiApp {
     arena.dataset.actionKind = cue.actionKind;
     arena.dataset.reactionKind = asText(battleReactionCue(frame, group)?.kind);
     arena.dataset.motionTrigger = String(cursor % 2);
+    const beforeBeat = group && group.startIndex > 0 ? frames[group.startIndex - 1] : previous;
     arena.querySelectorAll<HTMLElement>('.combatant').forEach((combatant) => {
       const side = combatant.dataset.side === 'player' ? 'player' : 'enemy';
-      this.updateCombatant(combatant, frame[side], side, frame, cue, cursor, changed);
+      this.updateCombatant(combatant, frame[side], side, frame, cue, cursor, changed, beforeBeat?.[side]);
     });
+    this.updateBattleSwordOrbits(arena, frame);
     if (changed) {
-      arena.querySelectorAll('.combat-vfx, .combat-feedback-layer, .combat-semantic-cue, .reaction-launch')
+      arena.querySelectorAll('.combat-vfx, .combat-feedback-layer, .combat-semantic-cue, .reaction-launch, .combat-hit-cascade, .companion-phantom')
         .forEach(element => element.remove());
       arena.insertAdjacentHTML('beforeend',
         this.battleVfx(frame, previous, group) + this.battleFeedback(frame, previous, group));
+      const board = shell.querySelector<HTMLElement>('.battle-relic-board');
+      const state = this.gameState();
+      if (board && state) board.outerHTML = this.battleRelicBoardMarkup(state, frames, group);
     }
 
     const progress = shell.querySelector<HTMLElement>('.replay-progress i');
@@ -2408,7 +2482,9 @@ class ShanhaiApp {
     const combat = this.view === 'journey' && phase === 'battle';
     const fullMap = this.view === 'journey' && phase === 'map';
     const stage = this.view === 'build' ? this.buildView(state) : this.view === 'karma' ? this.karmaView(state) : this.phaseView(state);
-    return `<div class="game-page phase-${esc(phase)} view-${this.view}" data-phase="${esc(phase)}">
+    const act = Math.floor(asNumber(state.act));
+    const actAttribute = act >= 1 && act <= 5 ? `data-act="${act}"` : '';
+    return `<div class="game-page phase-${esc(phase)} view-${this.view}" data-phase="${esc(phase)}" ${actAttribute} data-blood-vow="${state.bloodVow === true}" data-thunder="${(state as any)._thunderChallenge === true}">
       ${this.topbar(state)}
       ${this.mobileHud(state)}
       <div class="game-layout ${combat ? 'in-combat' : ''} ${fullMap ? 'full-map' : ''} ${this.view === 'build' ? 'view-build' : ''}">
@@ -2472,9 +2548,13 @@ class ShanhaiApp {
     const artifact = this.artifactEntity(stack.id);
     const rarity = entityRarity(artifact);
     const slot = this.equipmentSlotLabel(stack.id);
+    const equipmentIndex = this.equipmentItems().indexOf(stack.id);
+    const awakened = this.artifactAwakeningMarker(artifact, stack, equipmentIndex);
+    const presentationAttributes = this.artifactPresentationAttributes(artifact, stack, equipmentIndex);
+    const awakeningSeal = this.artifactAwakeningSealMarkup(awakened, stack);
     const inscription = stack.inscription ? ` · 铭刻·${INSCRIPTION_COPY[stack.inscription].label}` : '';
     const growth = this.artifactGrowthSummary(stack, Boolean(slot));
-    return `<button class="mini-card ${rarity === 'legendary' ? 'mythic' : rarity === 'rare' ? 'shield' : 'jade'} rarity-${esc(rarity)}" data-action="inspect-artifact" data-id="${esc(stack.id)}" aria-label="${esc(asText(artifact?.name, stack.id))}，${esc(slot)}，叠层 ${formatNumber(stack.stacks)}${inscription}${growth ? `，${growth}` : ''}"><span class="slot-glyph">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : 'jade'))}</span><span class="name">${esc(asText(artifact?.name, stack.id))}</span><span class="rank">${esc(slot)} · ×${formatNumber(stack.stacks)}${esc(inscription)}</span>${growth ? `<small class="artifact-growth-brief">${esc(growth)}</small>` : ''}</button>`;
+    return `<button class="mini-card ${rarity === 'legendary' ? 'mythic' : rarity === 'rare' ? 'shield' : 'jade'} rarity-${esc(rarity)}" data-action="inspect-artifact" data-id="${esc(stack.id)}" ${presentationAttributes} aria-label="${esc(asText(artifact?.name, stack.id))}，${esc(slot)}，叠层 ${formatNumber(stack.stacks)}${inscription}${growth ? `，${growth}` : ''}"><span class="slot-glyph">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : 'jade'))}</span><span class="name">${esc(asText(artifact?.name, stack.id))}</span><span class="rank">${esc(slot)} · ×${formatNumber(stack.stacks)}${esc(inscription)} ${awakeningSeal}</span>${growth ? `<small class="artifact-growth-brief">${esc(growth)}</small>` : ''}</button>`;
   }
 
   private artifactGrowthSummary(stack: ArtifactStack | undefined, equipped: boolean): string {
@@ -2550,6 +2630,11 @@ class ShanhaiApp {
     const equipmentSlot = this.equipmentSlotLabel(artifact.id);
     const resonance = this.resonanceBrief(artifact);
     const state = this.gameState();
+    const owned = state?.artifacts.find((stack) => stack.id === artifact.id);
+    const equipmentIndex = this.equipmentItems(state).indexOf(artifact.id);
+    const awakened = this.artifactAwakeningMarker(artifact, owned, equipmentIndex);
+    const awakeningSeal = this.artifactAwakeningSealMarkup(awakened, owned);
+    const presentationAttributes = this.artifactPresentationAttributes(artifact, owned, equipmentIndex);
     const fusionRecipe = this.fusionRecipe(artifact);
     const fusionStatus = fusionRecipe && state
       ? this.fusionStatus(artifact, state, fusionRecipe.fights)
@@ -2567,8 +2652,8 @@ class ShanhaiApp {
     const growth = artifact.id === DEVOURING_ARTIFACT_ID
       ? this.artifactGrowthSummary(state?.artifacts.find(stack => stack.id === artifact.id), Boolean(equipmentSlot))
       : '';
-    return `<button type="button" class="ability-card rarity-${esc(rarity)} ${stacks ? 'owned' : ''}" data-action="inspect-artifact" data-id="${esc(artifact.id)}">
-      <div class="card-top"><span class="rarity-label rarity-${esc(rarity)}">${esc(rarityLabel(rarity))} · 法宝</span><span class="card-rank">${stacks ? `×${formatNumber(stacks)}` : '未持有'}</span></div>
+    return `<button type="button" class="ability-card rarity-${esc(rarity)} ${stacks ? 'owned' : ''}" data-action="inspect-artifact" data-id="${esc(artifact.id)}" ${presentationAttributes}>
+      <div class="card-top"><span class="rarity-label rarity-${esc(rarity)}">${esc(rarityLabel(rarity))} · 法宝</span>${awakeningSeal}<span class="card-rank">${stacks ? `×${formatNumber(stacks)}` : '未持有'}</span></div>
       <div class="card-heading">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : rarity === 'rare' ? 'shield' : 'jade'))}<h3 class="card-title rarity-${esc(rarity)}">${esc(artifact.name)}</h3></div>
       <p class="ability-overview">${this.textMarkup(overview)}${growth ? `<span class="artifact-growth-brief">${esc(growth)}</span>` : ''}</p>
       <div class="card-foot"><span class="gain">${esc(inventoryStatus)}</span><span>查看详录 ${icon('arrow', 14)}</span></div>
@@ -3207,9 +3292,25 @@ class ShanhaiApp {
         <div class="versus-seal">${sigil('swords', 'gold')}<span>斗法</span></div>
         <div class="preview-contender enemy-side">${characterArt(methodId(enemyLoadout, enemy) || asText(method?.id), asText(enemy?.id))}<div><span class="eyebrow">${esc(profileLabel)}</span><h2><button class="preview-detail-trigger" data-action="battle-details" data-tab="enemy" aria-label="对手战力与招式" title="对手战力与招式">${esc(asText(enemy?.name, enemyLoadout.name || '敌手'))}${icon('eye', 16)}</button></h2><p>${esc(asText(method?.name, '未知功法'))}</p><small class="preview-vital">气血 ${this.textMarkup(`${formatNumber(enemyHp)} / ${formatNumber(enemyStats.max_hp)}`)}</small></div></div>
       </section>
+      ${this.previewBuildBriefMarkup(state)}
       ${trialMarkup}
       ${this.thunderChallengeMarkup(state)}
       ${this.inlineMessage()}<div class="stage-actions ${canChallengeElite ? 'has-elite-challenge' : ''}">${committedEvent ? '<span class="playback-hint">这场机缘已经承诺，战斗不可回避。</span>' : `<button class="button quiet" data-action="back">${icon('arrow', 16)}返回地图</button>`}${canChallengeElite ? `<button class="button danger invite-elite" data-action="invite-elite">${icon('skull', 16)}邀战精英</button>` : ''}<button class="button primary" data-action="fight" data-autofocus>开始斗法 ${icon('sword', 16)}</button></div>`;
+  }
+
+  private previewBuildBriefMarkup(state: RunState): string {
+    const equipmentIds = this.equipmentState(state).slots;
+    const frontId = equipmentIds[0] || '';
+    const tailId = equipmentIds[MAX_EQUIPMENT_SLOTS - 1] || '';
+    const artifactName = (id: string): string => id
+      ? asText(this.artifactEntity(id)?.name, id)
+      : '空位 · 未装备法宝';
+    const companions = listOf<string>(this.game?.player.companions)
+      .filter((id) => typeof id === 'string' && id.length > 0);
+    const companionNames = companions.length
+      ? companions.map((id) => asText(this.methodEntity(id)?.name, id)).join('、')
+      : '暂无护道副功法';
+    return `<section class="v2-preview-build-brief" aria-label="当前构筑摘要"><div class="v2-preview-build-chip"><b>阵首 · 第1格</b><span>${esc(artifactName(frontId))}</span></div><div class="v2-preview-build-chip"><b>阵尾 · 第5格</b><span>${esc(artifactName(tailId))}</span></div><div class="v2-preview-build-chip"><b>护道副功法</b><span>${esc(companionNames)}</span></div></section>`;
   }
 
   private thunderChallengeMarkup(state: RunState): string {
@@ -3223,6 +3324,58 @@ class ShanhaiApp {
         <span class="thunder-challenge-copy"><b>${enabled ? '已启用雷劫邀战' : '启用雷劫邀战'}</b><small id="thunder-challenge-details">敌方基础气血 +25%；开场护盾为最终气血的 15%，并额外获得 20 怒气。</small><small>胜利后基础战斗经验 +50%，另选 1 件稀有或传奇法宝；这是额外选择，不会将普通奖励升为稀有。</small><small>符合品阶的候选耗尽时，额外奖励改为灵石。</small></span>
       </label>
     </fieldset>`;
+  }
+
+  private battleRelicBoardMarkup(
+    state: RunState,
+    frames: readonly BattleFrame[],
+    group?: CombatPresentationGroup,
+  ): string {
+    const equipped = loadoutArtifacts(state.battleInput?.player).slice(0, MAX_EQUIPMENT_SLOTS);
+    const triggers = this.battleFinished ? [] : battleBeatEquipmentTriggers(
+      frames, this.battleCursor, equipped.map(stack => stack.id), group,
+    );
+    const descriptions = triggers.slice(0, 2).map(trigger => {
+      const name = asText(this.artifactEntity(trigger.id)?.name, trigger.id);
+      return trigger.id === 'RL08' && trigger.source.startsWith('RL08-MIRROR-')
+        ? `${name} · 镜映` : `${name} · 发动`;
+    });
+    if (triggers.length > 2) descriptions.push(`另有 ${triggers.length - 2} 器`);
+    const label = descriptions.length ? descriptions.join(' · ') : '本命阵盘';
+    const slots = Array.from({ length: MAX_EQUIPMENT_SLOTS }, (_, index) => {
+      const stack = equipped[index];
+      const artifact = stack ? this.artifactEntity(stack.id) : undefined;
+      const trigger = triggers.find(item => item.id === stack?.id);
+      const name = asText(artifact?.name, stack?.id || '空位');
+      const position = index === 0 ? '阵首' : index === MAX_EQUIPMENT_SLOTS - 1 ? '阵尾' : `第${index + 1}格`;
+      const awakened = this.artifactAwakeningMarker(artifact, stack, stack ? index : -1);
+      const mirrorNeighbor = stack?.id === 'RL08' ? equipped[index + 1] : undefined;
+      const mirrorName = mirrorNeighbor ? asText(this.artifactEntity(mirrorNeighbor.id)?.name, mirrorNeighbor.id) : '';
+      const detail = `${position}：${name}${stack ? `，${formatNumber(stack.stacks)}层` : ''}${awakened ? '，觉醒可触发' : ''}${mirrorName ? `，镜映右侧${mirrorName}的可复制触发` : ''}${trigger ? '，本次发动' : ''}`;
+      return `<span class="battle-relic-slot ${stack ? 'is-filled' : 'is-empty'}" role="img" aria-label="${esc(detail)}" title="${esc(detail)}" data-relic-id="${esc(stack?.id || '')}" data-active="${Boolean(trigger)}" data-mirror-next="${Boolean(mirrorNeighbor)}" ${this.artifactPresentationAttributes(artifact, stack, stack ? index : -1)} style="--trigger-order:${trigger?.order ?? 0}"><small class="battle-relic-index">${index === 0 ? '首' : index === MAX_EQUIPMENT_SLOTS - 1 ? '尾' : index + 1}</small>${stack ? `<span class="battle-relic-icon">${this.artifactMarkup(artifact, icon(this.artifactIcon(artifact), 20))}</span>${awakened ? '<i class="battle-relic-awake">醒</i>' : ''}` : '<span class="battle-relic-empty">·</span>'}</span>`;
+    }).join('');
+    return `<div class="battle-relic-board" role="group" aria-label="本战冻结装备顺序"><span class="battle-relic-label">${esc(label)}</span>${slots}</div>`;
+  }
+
+  private battleSwordOrbitMarkup(fighter: FighterView, side: 'player' | 'enemy'): string {
+    const sword = listOf<FighterSummonSnapshot>(fighter.summons).find(item => item.kind === 'sword');
+    const count = Math.max(0, Math.min(3, Math.floor(asNumber(sword?.count))));
+    if (!count) return '';
+    const swords = Array.from({ length: count }, () => `<span class="orbit-sword">${icon('sword', 18)}</span>`).join('');
+    return `<div class="battle-sword-orbit owner-${side}" data-sword-orbit="${side}" data-count="${count}" aria-hidden="true">${swords}</div>`;
+  }
+
+  private updateBattleSwordOrbits(arena: HTMLElement, frame: BattleFrame): void {
+    for (const side of ['player', 'enemy'] as const) {
+      const existing = arena.querySelector<HTMLElement>(`[data-sword-orbit="${side}"]`);
+      const markup = this.battleSwordOrbitMarkup(frame[side], side);
+      const count = Math.max(0, Math.min(3, Math.floor(asNumber(
+        listOf<FighterSummonSnapshot>(frame[side].summons).find(item => item.kind === 'sword')?.count,
+      ))));
+      if (existing && Number(existing.dataset.count) === count) continue;
+      existing?.remove();
+      if (markup) arena.insertAdjacentHTML('beforeend', markup);
+    }
   }
 
   private battleView(state: RunState): string {
@@ -3250,7 +3403,8 @@ class ShanhaiApp {
     const feedback = this.battleVfx(frame, previous, group) + this.battleFeedback(frame, previous, group);
     return `${this.stageHeading('', this.battleFinished ? (result?.outcome === 'player' ? '此战告捷' : result?.outcome === 'draw' ? '胜负未分' : '此身入劫') : '斗法', '', true)}
       <section class="battle-shell" data-battle-key="${esc(this.battleKey)}" data-paused="${this.battlePaused || Boolean(this.modal)}" style="--beat-duration:${beatDuration}ms">
-        <div class="combat-arena" data-frame-index="${this.battleCursor}" data-frame-kind="${esc(asText(frame.kind))}" data-action-kind="${cue.actionKind}" data-reaction-kind="${esc(asText(battleReactionCue(frame, group)?.kind))}" data-motion-trigger="${this.battleCursor % 2}">${sceneArt('battle')}<span class="arena-vignette" aria-hidden="true"></span><div class="game-battle-actors" aria-hidden="true"><canvas class="game-battle-canvas" data-game-battle></canvas></div>${this.fighterMarkup(frame.player, 'player', frame.actor === 'player' && frame.kind !== 'reaction', frame, cue)}<div class="battle-stage-core"><span class="round-seal">${this.battleFinished ? (result?.outcome === 'player' ? '胜' : result?.outcome === 'draw' ? '平' : '劫') : frame.round}</span><strong data-frame-text>${esc(this.battleFrameSummary(frame, cue, group))}</strong>${sourceId && (!group || this.isCurrentCoreSource(sourceId, sourceOwner)) ? `<small data-frame-source class="${this.isCurrentCoreSource(sourceId, sourceOwner) ? 'core-source' : ''}">${esc(this.sourceLabel(sourceId))}</small>` : ''}<span data-battle-amount>${this.battleAmountMarkup(frame, group)}</span></div>${this.fighterMarkup(frame.enemy, 'enemy', frame.actor === 'enemy' && frame.kind !== 'reaction', frame, cue)}${feedback}</div>
+        <div class="combat-arena" data-frame-index="${this.battleCursor}" data-frame-kind="${esc(asText(frame.kind))}" data-action-kind="${cue.actionKind}" data-reaction-kind="${esc(asText(battleReactionCue(frame, group)?.kind))}" data-motion-trigger="${this.battleCursor % 2}">${sceneArt('battle')}<span class="arena-vignette" aria-hidden="true"></span><div class="game-battle-actors" aria-hidden="true"><canvas class="game-battle-canvas" data-game-battle></canvas></div>${this.fighterMarkup(frame.player, 'player', frame.actor === 'player' && frame.kind !== 'reaction', frame, cue)}<div class="battle-stage-core"><span class="round-seal">${this.battleFinished ? (result?.outcome === 'player' ? '胜' : result?.outcome === 'draw' ? '平' : '劫') : frame.round}</span><strong data-frame-text>${esc(this.battleFrameSummary(frame, cue, group))}</strong>${sourceId && (!group || this.isCurrentCoreSource(sourceId, sourceOwner)) ? `<small data-frame-source class="${this.isCurrentCoreSource(sourceId, sourceOwner) ? 'core-source' : ''}">${esc(this.sourceLabel(sourceId))}</small>` : ''}<span data-battle-amount>${this.battleAmountMarkup(frame, group)}</span></div>${this.fighterMarkup(frame.enemy, 'enemy', frame.actor === 'enemy' && frame.kind !== 'reaction', frame, cue)}${this.battleSwordOrbitMarkup(frame.player, 'player')}${this.battleSwordOrbitMarkup(frame.enemy, 'enemy')}${feedback}</div>
+        ${this.battleRelicBoardMarkup(state, frames, group)}
         <div class="battle-controls"><div class="speeds" role="group" aria-label="战斗速度"><button data-action="battle-speed" data-speed="1" data-focus-key="battle-speed-1" aria-pressed="${this.battleSpeed === 1}" aria-label="一倍速" title="一倍速">1×</button><button data-action="battle-speed" data-speed="2" data-focus-key="battle-speed-2" aria-pressed="${this.battleSpeed === 2}" aria-label="二倍速" title="二倍速">2×</button><button data-action="battle-speed" data-speed="4" data-focus-key="battle-speed-4" aria-pressed="${this.battleSpeed === 4}" aria-label="四倍速" title="四倍速">4×</button><button data-action="battle-pause" data-focus-key="battle-pause" aria-pressed="${this.battlePaused}" aria-label="${this.battlePaused ? '继续播放' : '暂停播放'}" title="${this.battlePaused ? '继续播放' : '暂停播放'}">${this.battlePaused ? '继续' : '暂停'}</button></div>${this.battleControlAction(state)}</div>
         <div class="replay-progress" aria-label="战斗播放进度"><i style="width:${frames.length <= 1 ? 100 : Math.round(this.battleCursor / Math.max(1, frames.length - 1) * 100)}%"></i></div>
         ${this.battleSettlementMarkup()}
@@ -3263,6 +3417,10 @@ class ShanhaiApp {
     cue: ReturnType<typeof battlePresentationCue>,
     group: CombatPresentationGroup | undefined,
   ): string {
+    const frames = this.battleResult()?.frames || [];
+    const highlight = battleHighlights(frames, this.battleCursor, group)[0];
+    if (highlight?.kind === 'phase_gate_break') return '破障 · 天门洞开';
+    if (highlight?.kind === 'phase_gate_open') return '劫门开启 · 击碎护罩';
     const reaction = battleReactionCue(frame, group);
     const reactionLabel = battleReactionLabel(reaction);
     if (reactionLabel && reaction) {
@@ -3270,6 +3428,18 @@ class ShanhaiApp {
     }
     if (group?.interruptedCharges) {
       return `削减敌方蓄势 · ${formatNumber(group.interruptedCharges)}`;
+    }
+    if (highlight) {
+      const source = highlight.sourceId.match(/^(RC\d\d|RR\d\d|RL\d\d)/)?.[1];
+      const name = source ? asText(this.artifactEntity(source)?.name) : '';
+      return name ? `${highlight.label} · ${name}` : highlight.label;
+    }
+    if (group) {
+      const equipment = loadoutArtifacts(this.gameState()?.battleInput?.player).map(stack => stack.id);
+      const trigger = battleBeatEquipmentTriggers(frames, this.battleCursor, equipment, group)[0];
+      if (trigger) return `${asText(this.artifactEntity(trigger.id)?.name, '法宝')} · 发动`;
+      const hits = group.player.hits + group.enemy.hits;
+      if (hits > 1) return `连击 · ${formatNumber(hits)}段`;
     }
     const actor = frame.actor === 'player' ? '我方' : frame.actor === 'enemy' ? '敌方' : '';
     const labels: Record<string, string> = {
@@ -3536,12 +3706,17 @@ class ShanhaiApp {
     const total = damageEntries.reduce((sum, entry) => sum + entry.damage, 0);
     if (total <= 0) return '';
     const top = damageEntries.sort((a, b) => b.damage - a.damage || a.index - b.index).slice(0, 3);
-    return `<div class="battle-damage-ranking" role="group" aria-label="伤害来源排行（含护盾吸收）"><h3>伤害来源 · 含护盾吸收</h3>${top.map(({ item, damage }) => {
+    return `<div class="battle-damage-ranking" role="group" aria-label="伤害来源排行（含护盾吸收）"><h3>伤害来源 · 含护盾吸收</h3>${top.map(({ item, damage }, rank) => {
       const percent = Math.min(100, Math.max(0, damage / total * 100));
       const shownPercent = Math.round(percent);
       const name = this.displayText(item.name, this.sourceLabel(item.id));
       const label = `${name}：伤害（含护盾吸收） ${formatNumber(damage)}，占总计 ${shownPercent}%`;
-      return `<div class="battle-damage-source"><div class="battle-damage-source-copy"><b>${esc(name)}</b><span>伤害（含吸收） ${formatNumber(damage)} · ${shownPercent}%</span></div><div class="battle-damage-meter" role="progressbar" aria-label="${esc(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${shownPercent}" aria-valuetext="${esc(label)}"><i style="width:${percent.toFixed(2)}%"></i></div></div>`;
+      const artifactId = this.artifactIdForSource(item.id);
+      const artifact = artifactId ? this.artifactEntity(artifactId) : undefined;
+      const firstContribution = rank === 0 && artifact?.kind === 'artifact' && damage / total > 0.4
+        ? `<span class="battle-first-contribution-seal" role="img" aria-label="本战首功法宝：${esc(asText(artifact.name, artifactId))}" title="本战首功法宝：${esc(asText(artifact.name, artifactId))}"><span class="battle-first-contribution-art">${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), entityRarity(artifact) === 'legendary' ? 'mythic' : 'jade'))}</span><b>本战首功</b></span>`
+        : '';
+      return `<div class="battle-damage-source"><div class="battle-damage-source-copy"><div class="battle-damage-source-title"><b>${esc(name)}</b>${firstContribution}</div><span>伤害（含吸收） ${formatNumber(damage)} · ${shownPercent}%</span></div><div class="battle-damage-meter" role="progressbar" aria-label="${esc(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${shownPercent}" aria-valuetext="${esc(label)}"><i style="width:${percent.toFixed(2)}%"></i></div></div>`;
     }).join('')}</div>`;
   }
 
@@ -3601,7 +3776,7 @@ class ShanhaiApp {
       }).join('') || '<span class="muted">无战斗状态</span>';
   }
 
-  private fighterCounterItemsMarkup(fighter: FighterView): string {
+  private fighterCounterItemsMarkup(fighter: FighterView, previous?: FighterView): string {
     return listOf<any>(fighter.counters).map((counter) => {
       if (!isRecord(counter)) return '';
       const id = asText(counter.id);
@@ -3611,6 +3786,17 @@ class ShanhaiApp {
       if (!id || !name || !Number.isFinite(value) || !Number.isFinite(max) || max < 0) return '';
       const boundedValue = Math.min(max, Math.max(0, value));
       const progress = `${formatNumber(boundedValue, 1)} / ${formatNumber(max, 1)}`;
+      if (id.endsWith('-TRIAL-CHARGES') && Number.isInteger(max) && max > 0 && max <= 6 &&
+          Number.isInteger(boundedValue)) {
+        const old = listOf<any>(previous?.counters).find(item => item?.id === id);
+        const oldValue = Math.max(0, Math.min(max, asNumber(old?.value, boundedValue)));
+        const pips = Array.from({ length: max }, (_, index) => {
+          const active = index < boundedValue;
+          const broken = !active && index < oldValue;
+          return `<span class="trial-pip" data-active="${active}" data-broken="${broken}"></span>`;
+        }).join('');
+        return `<span class="fighter-counter fighter-trial-counter" data-counter-id="${esc(id)}" title="${esc(`${name} ${progress}`)}" aria-label="${esc(`${name} ${progress}`)}"><b>${esc(name)}</b><span class="fighter-trial-pips" aria-hidden="true">${pips}</span><i>${progress}</i></span>`;
+      }
       return `<span class="fighter-counter" data-counter-id="${esc(id)}" title="${esc(`${name} ${progress}`)}"><b>${esc(name)}</b><i>${progress}</i></span>`;
     }).filter(Boolean).join('');
   }
@@ -3688,6 +3874,7 @@ class ShanhaiApp {
     cue: ReturnType<typeof battlePresentationCue>,
     cursor: number,
     changed: boolean,
+    previous?: FighterView,
   ): void {
     const hp = element.querySelector<HTMLElement>('[data-value="hp"]');
     const shield = element.querySelector<HTMLElement>('[data-value="shield"]');
@@ -3708,8 +3895,8 @@ class ShanhaiApp {
       summons.setAttribute('aria-label', label ? `${fighter.name}飞剑阵 ${label}` : `${fighter.name}飞剑阵`);
     }
     if (counters) {
-      const markup = this.fighterCounterItemsMarkup(fighter);
-      counters.innerHTML = markup;
+      const markup = this.fighterCounterItemsMarkup(fighter, previous);
+      if (counters.innerHTML !== markup) counters.innerHTML = markup;
       counters.hidden = !markup;
     }
     const hpBar = element.querySelector<HTMLElement>('.bar.hp');
@@ -3814,13 +4001,84 @@ class ShanhaiApp {
     }).join('');
   }
 
+  private battleHitCascadeMarkup(group?: CombatPresentationGroup): string {
+    if (!group || this.battleFinished) return '';
+    const frames = this.battleResult()?.frames || [];
+    const impacts = battleImpactSegments(frames, this.battleCursor, group);
+    const duration = combatPresentationDuration(this.battleSpeed, group.player.hits + group.enemy.hits);
+    const offsets = [0, -26, 26, -48, 48, -68];
+    const amount = (value: number) => formatNumber(value, value > 0 && value < 1 ? 1 : 0);
+    return (['player', 'enemy'] as const).map(side => {
+      const hits = impacts.filter(impact => impact.target === side);
+      if (hits.length < 2) return '';
+      // Fit every real hit into this beat, including long volleys. Reuse the
+      // fan lanes after six hits rather than silently dropping later impacts.
+      const delay = Math.min(60 / this.battleSpeed, Math.max(0, duration - 200) / (hits.length - 1));
+      const numbers = hits.map((hit, index) => {
+        const hp = hit.hpDamage > 0 ? `-${amount(hit.hpDamage)}` : '';
+        const shield = hit.shieldAbsorbed > 0 ? `盾-${amount(hit.shieldAbsorbed)}` : '';
+        return `<span class="combat-hit-number ${hit.critical ? 'is-critical' : ''}" data-hit-frame="${hit.frameIndex}" style="--hit-index:${index};--hit-offset:${offsets[index % offsets.length]}px;--hit-delay:${delay}ms;--fx-duration:${duration}ms"><b>${esc(hp || shield)}</b>${hp && shield ? `<small>${esc(shield)}</small>` : ''}</span>`;
+      }).join('');
+      return `<div class="combat-hit-cascade target-${side === 'player' ? 'p' : 'e'}" aria-hidden="true">${numbers}</div>`;
+    }).join('');
+  }
+
+  private battleHighlightMarkup(group?: CombatPresentationGroup): string {
+    const frames = this.battleResult()?.frames || [];
+    const highlights = battleHighlights(frames, this.battleCursor, group).slice(0, 2);
+    const styles = {
+      phase_gate_break: ['phase-break', '破障！', 'sword'],
+      phase_gate_open: ['phase-open', '劫门开启', 'shield'],
+      awakening: ['artifact-awakening', '器魂觉醒', 'star'],
+      fusion: ['fusion', '合炼发动', 'flame'],
+      mirror: ['mirror', '昆仑镜映', 'mirror'],
+    } as const;
+    return highlights.map((highlight, index) => {
+      const [style, label, motif] = styles[highlight.kind];
+      const side = highlight.kind === 'phase_gate_break' || highlight.kind === 'phase_gate_open'
+        ? highlight.target : highlight.owner;
+      const source = highlight.sourceId.match(/^(RC\d\d|RR\d\d|RL\d\d)/)?.[1];
+      const name = source && highlight.kind !== 'mirror' ? asText(this.artifactEntity(source)?.name) : '';
+      return `<div class="combat-semantic-cue combat-highlight-cue ${style} owner-${side}" data-combat-semantic-cue="${highlight.kind}" style="--cue-rank:${index}" role="status"><span>${icon(motif, 15)}<b>${esc(label)}</b>${name ? `<strong>${esc(name)}</strong>` : ''}</span></div>`;
+    }).join('');
+  }
+
+  private battleBreakMarkup(group?: CombatPresentationGroup): string {
+    if (!group) return '';
+    const frames = this.battleResult()?.frames || [];
+    let trialBroken = false;
+    let shieldSide: 'player' | 'enemy' | undefined;
+    for (let index = Math.max(1, group.startIndex); index <= Math.min(this.battleCursor, group.endIndex); index++) {
+      const current = frames[index];
+      const previous = frames[index - 1];
+      if (current.kind === 'status' && current.actor === 'player' && current.target === 'enemy') {
+        trialBroken ||= listOf<any>(current.enemy.counters).some(counter => {
+          if (!asText(counter?.id).endsWith('-TRIAL-CHARGES') || asNumber(counter.value) !== 0) return false;
+          const before = listOf<any>(previous.enemy.counters).find(item => item?.id === counter.id);
+          return asNumber(before?.value) > 0;
+        });
+      }
+      if (!shieldSide && (current.kind === 'damage' || current.kind === 'dot') && current.target &&
+          previous[current.target].shield > 0 && current[current.target].shield <= 0) {
+        shieldSide = current.target;
+      }
+    }
+    if (trialBroken) {
+      return `<div class="combat-semantic-cue trial-break owner-enemy" data-combat-semantic-cue="trial_break" role="status"><span>${icon('sword', 15)}<b>破招！蓄势瓦解</b></span></div>`;
+    }
+    if (!shieldSide || battleHighlights(frames, this.battleCursor, group).some(item => item.kind === 'phase_gate_break')) return '';
+    return `<div class="combat-semantic-cue shield-break owner-${shieldSide}" data-combat-semantic-cue="shield_break" role="status"><span>${icon('shield', 15)}<b>破盾！</b></span></div>`;
+  }
+
   private battleFeedback(
     frame: BattleFrame,
     previous: BattleFrame | undefined,
     group: CombatPresentationGroup | undefined,
   ): string {
-    const reactionMarkup = this.battleReactionMarkup(frame, group);
+    const reactionMarkup = this.battleReactionMarkup(frame, group) +
+      this.battleHighlightMarkup(group) + this.battleBreakMarkup(group);
     if (!previous || !group) return reactionMarkup;
+    const hitCascade = this.battleHitCascadeMarkup(group);
     const duration = combatPresentationDuration(
       this.battleSpeed,
       group.player.hits + group.enemy.hits,
@@ -3878,7 +4136,7 @@ class ShanhaiApp {
         changes.push({ side, kind: 'status-change', text: visibleStatuses.join(' · ') });
       }
     }
-    if (!changes.length) return reactionMarkup;
+    if (!changes.length) return reactionMarkup + hitCascade;
     const sideMarkup = (side: 'p' | 'e') => {
       const messages = changes.filter(item => item.side === side);
       if (!messages.length) return '';
@@ -3888,7 +4146,7 @@ class ShanhaiApp {
           : `<b>${esc(item.text)}</b>`}</span>`,
       ).join('')}</div>`;
     };
-    return `${reactionMarkup}<div class="combat-feedback-layer" aria-hidden="true">${sideMarkup('p')}${sideMarkup('e')}</div>`;
+    return `${reactionMarkup}${hitCascade}<div class="combat-feedback-layer" aria-hidden="true">${sideMarkup('p')}${sideMarkup('e')}</div>`;
   }
 
   private battleReactionMarkup(frame: BattleFrame, group?: CombatPresentationGroup): string {
@@ -3901,7 +4159,7 @@ class ShanhaiApp {
       const icons = Array.from({ length: Math.max(1, Math.min(5, count)) }, (_, index) =>
         `<span class="reaction-launch-sword" style="--launch-index:${index}">${icon('sword', 18)}</span>`,
       ).join('');
-      return `<div class="reaction-launch owner-${reaction.owner}" data-reaction-launch aria-hidden="true">${icons}</div>`;
+      return `<div class="reaction-launch owner-${reaction.owner}" data-reaction-launch aria-hidden="true">${icons}</div><div class="combat-semantic-cue sword-volley owner-${reaction.owner}" data-combat-semantic-cue="sword_volley" role="status"><span>${icon('sword', 15)}<b>飞剑齐射</b></span></div>`;
     }
     if (reaction.kind === 'rage_chain') {
       if (reaction.count !== 2 && reaction.count !== 3) return '';
@@ -3915,8 +4173,19 @@ class ShanhaiApp {
       const sourceMethod = this.methodEntity(companionMethodId);
       const authoredName = isRecord(sourceMethod?.companion) ? sourceMethod.companion.name : undefined;
       const sourceName = asText(authoredName, asText(sourceMethod?.name, this.sourceLabel(reaction.sourceId)));
-      return `<div class="combat-semantic-cue companion-assist owner-${reaction.owner}" data-combat-semantic-cue="companion_assist" role="status"><span>${icon('star', 15)}<b>同伴助战</b><strong>${esc(sourceName)}</strong></span></div>`;
+      const phantom = sourceMethod
+        ? `<div class="companion-phantom owner-${reaction.owner}" data-companion-phantom aria-hidden="true">${characterArt(companionMethodId)}</div>`
+        : '';
+      return `${phantom}<div class="combat-semantic-cue companion-assist owner-${reaction.owner}" data-combat-semantic-cue="companion_assist" role="status"><span>${icon('star', 15)}<b>护道 · 同伴助战</b><strong>${esc(sourceName)}</strong></span></div>`;
     }
+    const others = {
+      guard_counter: ['guard-counter', '架势反击', 'shield'],
+      spring_bloom: ['spring-bloom', '春生回涌', 'gourd'],
+      enemy_charge: ['enemy-charge', '首领蓄势', 'bolt'],
+      enemy_release: ['enemy-release', '首领释招', 'bolt'],
+    } as const;
+    const entry = reaction.kind in others ? others[reaction.kind as keyof typeof others] : undefined;
+    if (entry) return `<div class="combat-semantic-cue ${entry[0]} owner-${reaction.owner}" data-combat-semantic-cue="${reaction.kind}" role="status"><span>${icon(entry[2], 15)}<b>${entry[1]}</b></span></div>`;
     return '';
   }
 
@@ -4148,7 +4417,7 @@ class ShanhaiApp {
 
   private rewardRefineMarkup(state: RunState): string {
     const usage = this.rewardRefineUsage(state);
-    return `<details class="disclosure reward-refine" data-details="reward-refine"><summary>${icon('mirror', 16)}炼宝 · 本幕余 ${usage.remaining} 次</summary><div data-refine-panel>${this.rewardRefinePanelMarkup(state)}</div></details>`;
+    return `<details class="disclosure reward-refine" data-details="reward-refine"><summary class="v2-reward-service-summary"><span class="v2-reward-service-mark">${icon('mirror', 18)}</span><span class="v2-reward-service-copy"><b>炼宝 · 本幕余 ${usage.remaining} 次</b><small>不花灵石 · 确认后放弃本次整份奖励</small></span><span class="v2-reward-service-action"><span class="is-closed">展开</span><span class="is-open">收起</span></span></summary><div data-refine-panel>${this.rewardRefinePanelMarkup(state)}</div></details>`;
   }
 
   private rewardView(state: RunState): string {
@@ -4162,7 +4431,7 @@ class ShanhaiApp {
       ${thunderNormal ? '<p class="thunder-reward-note" role="status">这是本场普通战斗奖励；选择后会进入另一阶段，单独选择雷劫加赏。</p>' : ''}
       ${state.resultText ? `<p class="chapter-aftermath">${esc(state.resultText)}</p>` : ''}
       <div class="reward-grid">${candidates.map((id) => this.rewardCard(id)).join('') || '<p class="empty-note">本节点没有候选法宝。</p>'}</div>
-      ${bonus ? '' : `<details class="disclosure reward-search" data-details="reward-search"><summary>${icon('eye', 16)}寻缘 · ${formatNumber(this.rewardSearchPrice())} 灵石</summary><div data-seek-panel>${this.rewardSearchPanelMarkup(state, this.rewardSearchFamily)}</div></details>
+      ${bonus ? '' : `<details class="disclosure reward-search" data-details="reward-search"><summary class="v2-reward-service-summary"><span class="v2-reward-service-mark">${icon('eye', 18)}</span><span class="v2-reward-service-copy"><b>寻缘 · 支付 ${formatNumber(this.rewardSearchPrice())} 灵石</b><small>免费预览，并更换本次奖励候选</small></span><span class="v2-reward-service-action"><span class="is-closed">展开</span><span class="is-open">收起</span></span></summary><div data-seek-panel>${this.rewardSearchPanelMarkup(state, this.rewardSearchFamily)}</div></details>
       ${this.rewardRefineMarkup(state)}`}
       ${bonus ? '' : `<div class="stage-actions"><button class="button quiet" data-action="reward" data-id="">舍下法宝，领取 ${formatNumber(asNumber(this.rules().economy?.artifact_decline_coins, 4))} 灵石 ${icon('coin', 15)}</button></div>`}${this.inlineMessage()}`;
   }
@@ -4269,7 +4538,12 @@ class ShanhaiApp {
     const artifact = this.artifactEntity(id);
     const rarity = entityRarity(artifact);
     const resonance = this.resonanceBrief(artifact);
-    const owned = listOf<ArtifactStack>(this.gameState()?.artifacts).find((stack) => stack.id === id);
+    const state = this.gameState();
+    const owned = listOf<ArtifactStack>(state?.artifacts).find((stack) => stack.id === id);
+    const equipmentIndex = this.equipmentItems(state).indexOf(id);
+    const awakened = this.artifactAwakeningMarker(artifact, owned, equipmentIndex);
+    const awakeningSeal = this.artifactAwakeningSealMarkup(awakened, owned);
+    const presentationAttributes = this.artifactPresentationAttributes(artifact, owned, equipmentIndex);
     const maxStacks = Math.max(1, asNumber(artifact?.max_stacks, 1));
     const stackText = owned
       ? `叠层 ${formatNumber(owned.stacks)} → ${formatNumber(Math.min(maxStacks, owned.stacks + 1))} / ${formatNumber(maxStacks)}`
@@ -4290,12 +4564,17 @@ class ShanhaiApp {
       : summary);
     const disposition = this.acquisitionDisposition(id);
     const awakening = artifact?.awakening;
-    const awakeningDistance = asNumber(awakening?.at_stacks) - (asNumber(owned?.stacks) + 1);
-    const awakeningText = awakening
-      ? awakeningDistance > 0 ? `距觉醒 ${formatNumber(awakeningDistance)} 层` : `觉醒 · ${asText(awakening.quick)}`
+    const awakeningTarget = Math.max(maxStacks, Math.floor(asNumber(awakening?.at_stacks, maxStacks)));
+    const nextStacks = Math.min(maxStacks, Math.max(0, Math.floor(asNumber(owned?.stacks))) + 1);
+    const awakeningDistance = awakeningTarget - nextStacks;
+    const hasAwakeningOutputs = listOf<any>(awakening?.effects).length > 0 || this.hasStackGatedAwakening(artifact);
+    const awakeningText = awakening && hasAwakeningOutputs
+      ? awakeningDistance > 0
+        ? `收入后还差 ${formatNumber(awakeningDistance)} 层达觉醒判定`
+        : `收入后达觉醒判定 · 装备后可触发${awakening.quick ? `：${asText(awakening.quick)}` : ''}`
       : '';
-    return `<article class="reward-card compact-choice-card rarity-${esc(rarity)}" data-id="${esc(id)}">
-      <div class="reward-card-top"><span class="rarity-chip ${esc(rarity)}">${esc(RARITY_LABEL[rarity] || '普通')}</span><span class="stack-note">${this.textMarkup(stackText)}</span></div>
+    return `<article class="reward-card compact-choice-card rarity-${esc(rarity)}" data-id="${esc(id)}" ${presentationAttributes}>
+      <div class="reward-card-top"><span class="rarity-chip ${esc(rarity)}">${esc(RARITY_LABEL[rarity] || '普通')}</span>${awakeningSeal}<span class="stack-note">${this.textMarkup(stackText)}</span></div>
       <button type="button" class="reward-inspect" data-action="inspect-artifact" data-id="${esc(id)}" title="法宝详录" aria-label="查看${esc(asText(artifact?.name, '未名法宝'))}详录">
         ${this.artifactMarkup(artifact, sigil(this.artifactIcon(artifact), rarity === 'legendary' ? 'mythic' : rarity === 'rare' ? 'gold' : 'jade'))}
         <h2>${esc(asText(artifact?.name, '未名法宝'))}${icon('eye', 14)}</h2>
@@ -4603,7 +4882,8 @@ class ShanhaiApp {
       return '';
     }
     if (!offers.length) return '';
-    return `<details class="disclosure fusion-catalysis" data-details="fusion-catalysis"><summary>炉火催动 · ${offers.length} 项未完成合炼</summary><div class="fusion-ledger-body"><p>本次休整或坊市仅可催动一项。每次支付半份普通法宝标价，须先取得该配方的一场真实胜利并仍持有两种材料。</p>${offers.map(offer => {
+    const availableCount = offers.filter(offer => offer.available).length;
+    return `<details class="disclosure fusion-catalysis" data-details="fusion-catalysis"><summary>炉火催动 · ${availableCount} / ${offers.length} 项配方可催化</summary><div class="fusion-ledger-body"><p>本次休整或坊市仅可催动一项。每次支付半份普通法宝标价，须先取得该配方的一场真实胜利并仍持有两种材料。</p>${offers.map(offer => {
       const materials = listOf<string>(offer.materials).map(id => asText(this.artifactEntity(id)?.name, id)).join('、');
       const reason = offer.reason === 'cannot-pay' ? '灵石不足'
         : offer.reason === 'missing-materials' ? '缺少配方材料'

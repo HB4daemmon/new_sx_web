@@ -16,6 +16,8 @@ const SHANHAI_MODULES = [
   'art-assets.js',
   'artifact-growth.js',
   'battle-comparison.js',
+  'battle-highlights.js',
+  'battle-impact.js',
   'battle-playback.js',
   'battle-presentation.js',
   'battle-insights.js',

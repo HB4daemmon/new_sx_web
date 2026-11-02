@@ -7,8 +7,8 @@ import { pauseNextReplay } from './shanhai-replay-fixture.mjs';
 import { setSetupSeed } from './shanhai-setup-fixture.mjs';
 
 const url = process.env.BROWSER_URL || 'http://localhost:4173/';
-const saveKey = 'suishi-shanhai-run-v1';
-const replayKey = 'suishi-shanhai-replay-v1';
+const saveKey = 'suishi-shanhai-run-v2-overhaul';
+const replayKey = 'suishi-shanhai-replay-v2-overhaul';
 const actionTimeline = {
   basic: {
     action: 'attack',
@@ -552,7 +552,8 @@ function expectedActionKind(frame) {
   return 'none';
 }
 
-const presentationBoundaries = new Set(['action', 'round', 'start', 'end', 'draw', 'summary']);
+const presentationBoundaries = new Set(['action', 'round', 'start', 'end', 'draw', 'summary', 'wait']);
+const startsReaction = frame => frame.kind === 'reaction' && Boolean(frame.cue);
 
 function emptyExpectedSide() {
   return {
@@ -604,9 +605,11 @@ function expectedPresentationAt(frames, cursor) {
   if (!frame || presentationBoundaries.has(frame.kind)) return undefined;
   let runStart = cursor;
   while (runStart > 0) {
+    if (startsReaction(frames[runStart])) break;
     const previous = frames[runStart - 1];
     if (presentationBoundaries.has(previous.kind) || previous.round !== frame.round) break;
     runStart -= 1;
+    if (startsReaction(previous)) break;
   }
   let firstDot = -1;
   for (let index = runStart; index <= cursor; index += 1) {
@@ -615,7 +618,7 @@ function expectedPresentationAt(frames, cursor) {
       break;
     }
   }
-  const startIndex = firstDot >= 0 ? firstDot : runStart;
+  const startIndex = startsReaction(frames[runStart]) ? runStart : firstDot >= 0 ? firstDot : runStart;
   const group = {
     startIndex,
     endIndex: cursor,
@@ -640,7 +643,7 @@ function expectedPresentationStepEnd(frames, startIndex) {
   let end = startIndex;
   for (let index = startIndex + 1; index < frames.length; index += 1) {
     const frame = frames[index];
-    if (presentationBoundaries.has(frame.kind) || frame.round !== first.round) break;
+    if (presentationBoundaries.has(frame.kind) || startsReaction(frame) || frame.round !== first.round) break;
     if (frame.kind === 'dot' && !dot) break;
     if (frame.kind === 'dot') dot = true;
     end = index;
@@ -739,8 +742,9 @@ async function assertFrameContract(page, index, frames, label) {
   assert.equal(Number(actual.frameIndex), index, `${label}: arena data-frame-index 不匹配`);
   assert.equal(actual.frameKind, frame.kind, `${label}: arena data-frame-kind 不匹配`);
   if (group) {
-    assert.equal(actual.summary, group.dot ? '持续伤害' : '交锋结算',
-      `${label}: 分组表现标题与当前可见效果组不一致`);
+    // V2 may surface a real reaction, equipment trigger, phase transition,
+    // or hit count in place of the old generic "交锋结算" heading.
+    assert.ok(actual.summary?.trim(), `${label}: 分组表现缺少当前效果标题`);
   } else if (frame.kind === 'damage') {
     const blocked = ['player', 'enemy'].some(side =>
       expectedFrameMotion(frame, previous, side) === 'block');
@@ -885,15 +889,23 @@ async function motionSamples(page, { frameIndex, float = true }) {
 
 async function assertRageInterpolation(page, snapshot, width) {
   const frames = snapshot.frames;
-  const index = frames.findIndex((frame, cursor) =>
-    cursor > 0 && frame.player.rage !== frames[cursor - 1].player.rage);
-  assert.ok(index > 0, `${width}: 实战没有怒气变化帧`);
-  const group = expectedPresentationAt(frames, index);
-  const cursor = group ? expectedPresentationStepEnd(frames, group.startIndex) : index;
-  const before = group ? group.startIndex - 1 : index - 1;
+  let cursor = -1;
+  let before = -1;
+  for (let index = 1; index < frames.length; index++) {
+    const group = expectedPresentationAt(frames, index);
+    const beatEnd = group ? expectedPresentationStepEnd(frames, group.startIndex) : index;
+    const beatBefore = group ? group.startIndex - 1 : index - 1;
+    // Intermediate gains and spends can cancel in one V2 presentation beat;
+    // choose a beat whose displayed endpoints actually differ.
+    if (beatBefore >= 0 && Math.abs(frames[beatEnd].player.rage - frames[beatBefore].player.rage) >= 5) {
+      cursor = beatEnd;
+      before = beatBefore;
+      break;
+    }
+  }
+  assert.ok(cursor > 0, `${width}: 实战没有可见的怒气变化拍`);
   await setReplayCursor(page, before);
   await waitForFrameIndex(page, cursor);
-  await assertFrameContract(page, cursor, frames, `${width} rage interpolation`);
 
   const transition = await page.waitForFunction(expected => {
     const fill = document.querySelector('.combatant[data-side="player"] .bar.rage > span');
@@ -924,6 +936,7 @@ async function assertRageInterpolation(page, snapshot, width) {
   });
   assert.ok(movement.max - movement.min > 0.5,
     `${width}: 怒气条没有在目标数值间插值 ${JSON.stringify(movement)}`);
+  await assertFrameContract(page, cursor, frames, `${width} rage interpolation`);
 }
 
 async function createRuntimeBattleFixture(page, method, seed, hpRatio = 1) {
@@ -1299,9 +1312,7 @@ function findGroupedMultiHit(frames) {
   for (let cursor = 1; cursor < frames.length; cursor += 1) {
     const group = expectedPresentationAt(frames, cursor);
     if (!group || expectedPresentationStepEnd(frames, group.startIndex) !== cursor) continue;
-    const hits = group.player.hits + group.enemy.hits;
-    const damage = group.player.damage + group.enemy.damage;
-    if (hits > 1 && damage > 0) return group;
+    if (group.enemy.hits > 1 && group.enemy.damage > 0) return group;
   }
   return undefined;
 }
@@ -1513,7 +1524,7 @@ async function assertFixedGroupedMultiHit(page, baseFrame, width) {
     `${width}: 完整组护盾吸收没有等于 raw frame 护盾差额`);
   const fullEnemyText = full.actual.enemy.flat().map(item => item.text);
   const fullPlayerText = full.actual.player.flat().map(item => item.text);
-  assert.ok(fullEnemyText.includes('吸收 12'),
+  assert.ok(fullEnemyText.includes('护盾吸收 12'),
     `${width}: 完整组没有展示精确护盾吸收 ${JSON.stringify(fullEnemyText)}`);
   assert.ok(fullPlayerText.includes('护盾 +4'),
     `${width}: 完整组没有展示精确护盾增长 ${JSON.stringify(fullPlayerText)}`);
@@ -1535,7 +1546,7 @@ async function assertFixedGroupedMultiHit(page, baseFrame, width) {
   const partialEnemyText = partial.actual.enemy.flat().map(item => item.text);
   assert.ok(partialEnemyText.includes('-18 · 2段'),
     `${width}: 部分 cursor 没有只汇总前两段 ${JSON.stringify(partialEnemyText)}`);
-  assert.ok(partialEnemyText.includes('吸收 5'),
+  assert.ok(partialEnemyText.includes('护盾吸收 5'),
     `${width}: 部分 cursor 没有只汇总已发生的护盾吸收 ${JSON.stringify(partialEnemyText)}`);
   assert.equal(partialEnemyText.includes('-31 · 3段'), false,
     `${width}: 部分 cursor 提前包含第三段伤害`);
@@ -1610,7 +1621,7 @@ async function assertFixtureCoverage(page, width) {
   await clickAction(page, 'battle-pause');
   await assertFrameContract(page, readyIndex, shieldSnapshot.frames, '真实怒气就绪 fixture');
   const multiHitSnapshot = await createRuntimeBattleFixture(
-    page, 'RKF03', 'motion-group-RKF03-0');
+    page, 'RKF03', 'motion-group-RKF03-4');
   await assertGroupedRuntimeFeedback(page, multiHitSnapshot, width);
   const dotSnapshot = await createRuntimeBattleFixture(
     page, 'RKF04', 'motion-legal-dot', 1);
@@ -2270,14 +2281,17 @@ async function assertReducedMotion(browser, errors) {
       assert.deepEqual(sample[dotSide], dotCanvas.actual.snapshot[dotSide],
         'reduced-motion DOT canvas 状态仍在变化');
     }
-    const floatSamples = await sampleStableRect(page, '.combat-float', 180);
+    const dotFloatSelector = `.combat-feedback-group[data-side="${dotSide}"] .combat-float.damage.dot`;
+    assert.equal(await page.locator(dotFloatSelector).count(), 1,
+      'reduced-motion 应按真实受击方显示持续伤害');
+    const floatSamples = await sampleStableRect(page, dotFloatSelector, 180);
     for (const [label, samples] of [['combat-float', floatSamples]]) {
       const range = selector => Math.max(...samples.map(item => item[selector])) -
         Math.min(...samples.map(item => item[selector]));
       assert.ok(range('x') <= 0.5 && range('y') <= 0.5,
         `reduced motion ${label} 仍发生位移 ${JSON.stringify({ x: range('x'), y: range('y') })}`);
     }
-    const style = await page.locator('.combat-float').evaluate(element => ({
+    const style = await page.locator(dotFloatSelector).evaluate(element => ({
       animationName: getComputedStyle(element).animationName,
       animationDuration: getComputedStyle(element).animationDuration,
       transform: getComputedStyle(element).transform,
