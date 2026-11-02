@@ -9,6 +9,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const playbackSource = await readFile(path.join(ROOT, 'src/shanhai/battle-playback.ts'), 'utf8');
 const appSource = await readFile(path.join(ROOT, 'src/shanhai/app.ts'), 'utf8');
 const cssSource = await readFile(path.join(ROOT, 'src/shanhai/cartoon.css'), 'utf8');
+const elementalCssSource = await readFile(path.join(ROOT, 'src/shanhai/elemental-vfx.css'), 'utf8');
 const compiled = ts.transpileModule(playbackSource, {
   compilerOptions: {
     module: ts.ModuleKind.ES2022,
@@ -159,8 +160,8 @@ test('UI exposes paid seeking, authored trial details, persistent summons, and r
   assert.match(appSource, /_travelSnapshots/);
   assert.match(appSource, /recentContributionLabel/);
   assert.match(cssSource, /\.game-page \.fighter-summons/);
-  assert.match(cssSource, /\.game-page \.reaction-launch/);
+  assert.match(elementalCssSource, /\.elemental-fx__projectile/);
   assert.match(cssSource, /\.game-page \.reward-search-confirm:disabled/);
-  assert.match(cssSource, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.game-page \.reaction-launch-sword/);
-  assert.match(cssSource, /\.battle-shell\[data-paused="true"\] \.reaction-launch-sword/);
+  assert.match(elementalCssSource, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.elemental-fx/);
+  assert.match(elementalCssSource, /\.battle-shell\[data-paused="true"\] \.elemental-fx/);
 });

@@ -18,6 +18,8 @@ import {
 import type { CombatPresentationGroup } from './battle-playback.js';
 import { battleHighlights } from './battle-highlights.js';
 import { battleBeatEquipmentTriggers, battleImpactSegments } from './battle-impact.js';
+import { battleElementalFxCues } from './battle-elemental-vfx.js';
+import { elementalFxDuration, elementalFxMarkup } from './elemental-vfx-art.js';
 import { ShanhaiGame } from './run.js';
 import { characterJourneys, eventEchoes } from './narrative.js';
 import {
@@ -2166,6 +2168,7 @@ class ShanhaiApp {
     shell.dataset.paused = String(this.battlePaused || Boolean(this.modal));
     shell.style.setProperty('--beat-duration', `${beatDuration}ms`);
     if (!changed) {
+      this.syncElementalVfxDuration(arena, beatDuration);
       this.updateBattleControls(shell);
       if (details && log) this.updateBattleLog(details, log, frames, cursor, false);
       return;
@@ -2218,10 +2221,10 @@ class ShanhaiApp {
     });
     this.updateBattleSwordOrbits(arena, frame);
     if (changed) {
-      arena.querySelectorAll('.combat-vfx, .combat-feedback-layer, .combat-semantic-cue, .reaction-launch, .combat-hit-cascade, .companion-phantom')
+      arena.querySelectorAll('.combat-vfx, .combat-feedback-layer, .combat-semantic-cue, .combat-hit-cascade, .companion-phantom, .elemental-fx')
         .forEach(element => element.remove());
       arena.insertAdjacentHTML('beforeend',
-        this.battleVfx(frame, previous, group) + this.battleFeedback(frame, previous, group));
+        this.battleVfx(frame, previous, group) + this.battleElementalVfx(frames, group) + this.battleFeedback(frame, previous, group));
       const board = shell.querySelector<HTMLElement>('.battle-relic-board');
       const state = this.gameState();
       if (board && state) board.outerHTML = this.battleRelicBoardMarkup(state, frames, group);
@@ -3400,7 +3403,7 @@ class ShanhaiApp {
     } : baseCue;
     const sourceId = frame.source || group?.reaction?.sourceId;
     const sourceOwner = frame.actor || group?.reaction?.owner;
-    const feedback = this.battleVfx(frame, previous, group) + this.battleFeedback(frame, previous, group);
+    const feedback = this.battleVfx(frame, previous, group) + this.battleElementalVfx(frames, group) + this.battleFeedback(frame, previous, group);
     return `${this.stageHeading('', this.battleFinished ? (result?.outcome === 'player' ? '此战告捷' : result?.outcome === 'draw' ? '胜负未分' : '此身入劫') : '斗法', '', true)}
       <section class="battle-shell" data-battle-key="${esc(this.battleKey)}" data-paused="${this.battlePaused || Boolean(this.modal)}" style="--beat-duration:${beatDuration}ms">
         <div class="combat-arena" data-frame-index="${this.battleCursor}" data-frame-kind="${esc(asText(frame.kind))}" data-action-kind="${cue.actionKind}" data-reaction-kind="${esc(asText(battleReactionCue(frame, group)?.kind))}" data-motion-trigger="${this.battleCursor % 2}">${sceneArt('battle')}<span class="arena-vignette" aria-hidden="true"></span><div class="game-battle-actors" aria-hidden="true"><canvas class="game-battle-canvas" data-game-battle></canvas></div>${this.fighterMarkup(frame.player, 'player', frame.actor === 'player' && frame.kind !== 'reaction', frame, cue)}<div class="battle-stage-core"><span class="round-seal">${this.battleFinished ? (result?.outcome === 'player' ? '胜' : result?.outcome === 'draw' ? '平' : '劫') : frame.round}</span><strong data-frame-text>${esc(this.battleFrameSummary(frame, cue, group))}</strong>${sourceId && (!group || this.isCurrentCoreSource(sourceId, sourceOwner)) ? `<small data-frame-source class="${this.isCurrentCoreSource(sourceId, sourceOwner) ? 'core-source' : ''}">${esc(this.sourceLabel(sourceId))}</small>` : ''}<span data-battle-amount>${this.battleAmountMarkup(frame, group)}</span></div>${this.fighterMarkup(frame.enemy, 'enemy', frame.actor === 'enemy' && frame.kind !== 'reaction', frame, cue)}${this.battleSwordOrbitMarkup(frame.player, 'player')}${this.battleSwordOrbitMarkup(frame.enemy, 'enemy')}${feedback}</div>
@@ -3977,6 +3980,43 @@ class ShanhaiApp {
     return '';
   }
 
+  private syncElementalVfxDuration(arena: HTMLElement, duration: number): void {
+    const next = elementalFxDuration(duration);
+    for (const overlay of Array.from(arena.querySelectorAll<HTMLElement>('.elemental-fx'))) {
+      if (parseFloat(overlay.style.getPropertyValue('--fx-duration')) === next) continue;
+      const animations = typeof overlay.getAnimations === 'function'
+        ? overlay.getAnimations({ subtree: true }).map(animation => {
+          const timing = animation.effect?.getTiming();
+          const current = animation.currentTime;
+          const length = timing?.duration;
+          return {
+            animation,
+            progress: typeof current === 'number' && typeof length === 'number' && length > 0
+              ? (current - (timing?.delay ?? 0)) / length : undefined,
+          };
+        }) : [];
+      overlay.style.setProperty('--fx-duration', `${next}ms`);
+      // Force the new CSS timing to resolve before preserving each animation's
+      // relative position. A paused speed change must not restart a projectile.
+      if (animations.length) getComputedStyle(overlay).getPropertyValue('--fx-duration');
+      for (const item of animations) {
+        const timing = item.animation.effect?.getTiming();
+        if (item.progress === undefined || typeof timing?.duration !== 'number') continue;
+        item.animation.currentTime = (timing.delay ?? 0) + item.progress * timing.duration;
+      }
+    }
+  }
+
+  private battleElementalVfx(frames: readonly BattleFrame[], group?: CombatPresentationGroup): string {
+    if (this.battleFinished) return '';
+    const frame = frames[this.battleCursor];
+    if (!frame) return '';
+    const duration = group
+      ? combatPresentationDuration(this.battleSpeed, group.player.hits + group.enemy.hits)
+      : battleBeatDuration(frame, this.battleSpeed);
+    return elementalFxMarkup(battleElementalFxCues(frames, this.battleCursor, group), duration);
+  }
+
   private battleVfx(
     frame: BattleFrame,
     previous: BattleFrame | undefined,
@@ -4153,13 +4193,7 @@ class ShanhaiApp {
     const reaction = battleReactionCue(frame, group);
     if (!reaction) return '';
     if (reaction.kind === 'sword_volley') {
-      const count = listOf<FighterSummonSnapshot>(frame[reaction.owner].summons)
-        .filter((summon) => summon.kind === 'sword')
-        .reduce((total, summon) => Math.max(total, Math.floor(asNumber(summon.count))), 0);
-      const icons = Array.from({ length: Math.max(1, Math.min(5, count)) }, (_, index) =>
-        `<span class="reaction-launch-sword" style="--launch-index:${index}">${icon('sword', 18)}</span>`,
-      ).join('');
-      return `<div class="reaction-launch owner-${reaction.owner}" data-reaction-launch aria-hidden="true">${icons}</div><div class="combat-semantic-cue sword-volley owner-${reaction.owner}" data-combat-semantic-cue="sword_volley" role="status"><span>${icon('sword', 15)}<b>飞剑齐射</b></span></div>`;
+      return `<div class="combat-semantic-cue sword-volley owner-${reaction.owner}" data-combat-semantic-cue="sword_volley" role="status"><span>${icon('sword', 15)}<b>飞剑齐射</b></span></div>`;
     }
     if (reaction.kind === 'rage_chain') {
       if (reaction.count !== 2 && reaction.count !== 3) return '';

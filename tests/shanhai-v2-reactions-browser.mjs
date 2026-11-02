@@ -655,6 +655,10 @@ async function assertBattleFixture(page, viewport, fixture) {
   await waitForApp(page, 'battle');
   if (viewport.width === 1440 && fixture.scenario === 'sword' && fixture.cueIndex > 0) {
     await playFromOpeningToReaction(page, viewport, fixture.cueKind, fixture.cueIndex);
+    const volley = page.locator('.elemental-fx[data-fx-kind="volley"][data-owner="player"][data-target="enemy"]');
+    assert.equal(await volley.count(), 1, 'natural replay must create the real flying-sword effect in place');
+    assert.ok(await volley.locator('.elemental-fx__projectile').count() > 0,
+      'natural replay must show at least one actually resolved flying sword');
   } else {
     await pauseAtCurrentFrame(page, viewport, fixture.cueKind);
   }
@@ -664,10 +668,8 @@ async function assertBattleFixture(page, viewport, fixture) {
       matchMedia('(prefers-reduced-motion: reduce)').matches);
     if (viewport.reducedMotion) assert.equal(reducedMotion, true);
     if (fixture.cueKind === 'sword_volley' && viewport.reducedMotion) {
-      const animation = await page.locator('.reaction-launch-sword').first().evaluate(element =>
-        getComputedStyle(element).animationName);
-      assert.equal(animation, 'none',
-        `${viewport.width}px: reduced-motion did not disable the sword launch`);
+      assert.equal(await page.locator('.elemental-fx[data-fx-kind="volley"]').count(), 0,
+        `${viewport.width}px: an isolated reaction frame must not reveal future sword hits`);
     }
     const methodSource = `${fixture.methodName}·共鸣`;
     const reactionLabel = {

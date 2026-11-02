@@ -86,6 +86,10 @@ export interface BattleFrame {
   source?: string;
   text: string;
   amount?: number;
+  /** Actual status resolved by a DOT frame; never inferred from the active method. */
+  dotStatus?: 'poison' | 'burn';
+  /** Visual provenance of this resolved basic-attack segment. */
+  strikeVisual?: 'sword_pill' | 'converged_blade';
   cue?: {
     kind: 'sword_volley' | 'guard_counter' | 'spring_bloom' | 'enemy_charge' | 'enemy_release' | 'rage_chain' | 'companion_assist' | 'blood_valor';
     owner: Side;

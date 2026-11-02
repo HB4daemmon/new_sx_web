@@ -1835,6 +1835,8 @@ function frame(
   source?: string,
   amount?: number,
   cue?: BattleFrame['cue'],
+  dotStatus?: BattleFrame['dotStatus'],
+  strikeVisual?: BattleFrame['strikeVisual'],
 ): void {
   const frameCue = cue ?? runtime.activeCue;
   runtime.frames.push({
@@ -1846,6 +1848,8 @@ function frame(
     text,
     ...(amount === undefined ? {} : { amount }),
     ...(frameCue ? { cue: { ...frameCue } } : {}),
+    ...(dotStatus ? { dotStatus } : {}),
+    ...(strikeVisual ? { strikeVisual } : {}),
     player: fighterView(runtime.player),
     enemy: fighterView(runtime.enemy),
   });
@@ -2236,6 +2240,7 @@ function directSpec(runtime: BattleRuntime, action: ActionContext, base: ActiveE
   segments: number;
   segmentRatios: number[];
   segmentBonusNoCrits: number[];
+  segmentVisuals: BattleFrame['strikeVisual'][];
   canCrit: boolean;
   effectId: string;
 } {
@@ -2341,6 +2346,7 @@ function directSpec(runtime: BattleRuntime, action: ActionContext, base: ActiveE
   }
   const segmentRatios = Array.from({ length: segments }, () => ratio);
   const segmentBonusNoCrits = Array.from({ length: segments }, () => bonusNoCrit);
+  const segmentVisuals: BattleFrame['strikeVisual'][] = Array.from({ length: segments }, () => undefined);
   if (action.type === 'basic_action') {
     let splitScale = 1;
     for (const mechanic of mechanicsOf(actor, 'basic_split')) {
@@ -2357,6 +2363,7 @@ function directSpec(runtime: BattleRuntime, action: ActionContext, base: ActiveE
       for (let index = 0; index < extraSegments; index++) {
         segmentRatios.push(extraRatio);
         segmentBonusNoCrits.push(extraBonus);
+        segmentVisuals.push(mechanic.id === 'V2-J2-C' ? 'sword_pill' : undefined);
       }
       const effect = buildEffect(actor, mechanic);
       if (effect) mark(runtime, effect);
@@ -2372,11 +2379,12 @@ function directSpec(runtime: BattleRuntime, action: ActionContext, base: ActiveE
       for (let index = 0; index < action.returningBreathSegments; index++) {
         segmentRatios.push(extraRatio);
         segmentBonusNoCrits.push(extraBonus);
+        segmentVisuals.push(undefined);
       }
     }
   }
   segments = segmentRatios.length;
-  return { ratio, bonusNoCrit, segments, segmentRatios, segmentBonusNoCrits, canCrit, effectId };
+  return { ratio, bonusNoCrit, segments, segmentRatios, segmentBonusNoCrits, segmentVisuals, canCrit, effectId };
 }
 
 function chanceValue(runtime: BattleRuntime, action: ActionContext, effect: ActiveEffect, target: Fighter): number {
@@ -2741,6 +2749,8 @@ function dealDamage(
     devourBaselineRaw?: number;
     wealthScaled?: boolean;
     wealthBaselineRaw?: number;
+    dotStatus?: BattleFrame['dotStatus'];
+    strikeVisual?: BattleFrame['strikeVisual'];
   },
 ): HitResult {
   if (!runtime.active || source.hp <= 0 || target.hp <= 0) {
@@ -2986,7 +2996,7 @@ function dealDamage(
     : action?.isEcho && action.actor === source
       ? `${sourceEffect.id}-RAGE-ECHO`
       : sourceEffect.id;
-  frame(runtime, options.kind === 'dot' ? 'dot' : 'damage', `${sideText}造成${kindText} ${Math.round(regularDamage)}`, source.side, target.side, frameSource, regularDamage);
+  frame(runtime, options.kind === 'dot' ? 'dot' : 'damage', `${sideText}造成${kindText} ${Math.round(regularDamage)}`, source.side, target.side, frameSource, regularDamage, undefined, options.dotStatus, options.strikeVisual);
   if (convertedDamage > 0) {
     frame(runtime, 'damage', `${sideText}造成真实伤害 ${Math.round(convertedDamage)}`, source.side, target.side, 'RE037-B', convertedDamage);
   }
@@ -5730,6 +5740,7 @@ function executeActionOnce(runtime: BattleRuntime, actor: Fighter, target: Fight
     spec.bonusNoCrit = bonus;
     spec.segmentRatios = segmentCount > 0 ? [ratio] : [];
     spec.segmentBonusNoCrits = segmentCount > 0 ? [bonus] : [];
+    spec.segmentVisuals = segmentCount > 0 ? ['converged_blade'] : [];
     spec.segments = spec.segmentRatios.length;
     spec.canCrit = false;
   }
@@ -5745,6 +5756,7 @@ function executeActionOnce(runtime: BattleRuntime, actor: Fighter, target: Fight
       canCrit: spec.canCrit,
       base: true,
       criticalBonusRatio: spec.segmentBonusNoCrits[index] ?? spec.bonusNoCrit,
+      strikeVisual: spec.segmentVisuals[index],
     });
     if (hit.effective) action.firstBaseHit ||= true;
     applyActionHitStatus(runtime, action, base, hit);
@@ -5936,6 +5948,7 @@ function resolveDotTick(
     result = dealDamage(runtime, owner, target, 0, {
       sourceEffect: ownerEffect as ActiveEffect,
       kind: 'dot',
+      dotStatus: status,
       canCrit: false,
       rawOverride: n(layer.damage, 0),
     });

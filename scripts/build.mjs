@@ -22,6 +22,7 @@ await cp('build/shanhai', 'dist/shanhai', { recursive: true });
 await copyFile('build/art.js', 'dist/art.js');
 await copyFile('src/shanhai/style.css', 'dist/shanhai/style.css');
 await copyFile('src/shanhai/cartoon.css', 'dist/shanhai/cartoon.css');
+await copyFile('src/shanhai/elemental-vfx.css', 'dist/shanhai/elemental-vfx.css');
 await buildGameArt({ root, destination: path.join(root, 'dist') });
 await mkdir('dist/assets/generated', { recursive: true });
 await copyFile(

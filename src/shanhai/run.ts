@@ -4705,6 +4705,15 @@ export function validateBattleResult(result: BattleResult): void {
     if (!isObject(frame)) {
       throw new Error('Invalid battle frame');
     }
+    if (frame.dotStatus !== undefined &&
+        (frame.kind !== 'dot' || !['poison', 'burn'].includes(frame.dotStatus))) {
+      throw new Error('Invalid battle DOT status');
+    }
+    if (frame.strikeVisual !== undefined &&
+        (frame.kind !== 'damage' || !['sword_pill', 'converged_blade'].includes(frame.strikeVisual) ||
+         typeof frame.source !== 'string' || !/^RKF\d{2}-BASIC-DAMAGE$/.test(frame.source))) {
+      throw new Error('Invalid battle strike visual');
+    }
     for (const side of ['player', 'enemy'] as const) {
       if (frame[side] === undefined) continue;
       if (!isObject(frame[side])) throw new Error('Invalid battle fighter view');

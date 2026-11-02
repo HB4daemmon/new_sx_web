@@ -3781,50 +3781,6 @@ button:disabled {
   color: var(--vermilion);
 }
 
-.game-page .reaction-launch {
-  --flight-x: clamp(36px, 23vw, 210px);
-  position: absolute;
-  z-index: 7;
-  top: 54%;
-  left: 24%;
-  display: flex;
-  gap: 6px;
-  pointer-events: none;
-}
-
-.game-page .reaction-launch.owner-enemy {
-  --flight-x: clamp(-210px, -23vw, -36px);
-  left: 76%;
-  flex-direction: row-reverse;
-}
-
-.game-page .reaction-launch-sword {
-  display: grid;
-  width: 24px;
-  height: 24px;
-  place-items: center;
-  color: var(--gold);
-  filter: drop-shadow(0 1px 1px #fffdf5);
-  animation: sword-volley-launch 320ms ease-out both;
-  animation-delay: calc(var(--launch-index) * 36ms);
-}
-
-.game-page .battle-shell[data-paused="true"] .reaction-launch-sword {
-  animation-play-state: paused;
-}
-
-@keyframes sword-volley-launch {
-  from {
-    opacity: 1;
-    transform: translateX(0) rotate(-18deg);
-  }
-
-  to {
-    opacity: 0;
-    transform: translateX(var(--flight-x)) rotate(26deg);
-  }
-}
-
 .game-page .boss-trial-brief {
   min-width: 0;
   margin: 8px 0;
@@ -4068,9 +4024,6 @@ button:disabled {
     width: 100%;
   }
 
-  .game-page .reaction-launch {
-    top: 56%;
-  }
 }
 
 @media (max-width: 360px) {
@@ -4094,14 +4047,6 @@ button:disabled {
 
   .game-page .reward-search-preview ul {
     grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .game-page .reaction-launch-sword {
-    animation: none;
-    opacity: 1;
-    transform: none;
   }
 }
 
@@ -8018,7 +7963,7 @@ button:disabled {
 }
 
 /* Playback overlays share the canvas coordinate space, including on phones. */
-.game-page .combat-arena > :is(.combat-hit-cascade, .battle-sword-orbit, .companion-phantom, .reaction-launch) {
+.game-page .combat-arena > :is(.combat-hit-cascade, .battle-sword-orbit, .companion-phantom) {
   grid-area: 2 / 1 / 3 / -1;
 }
 
@@ -8167,18 +8112,6 @@ button:disabled {
 
 .game-page .battle-sword-orbit {
   animation: battle-sword-orbit 2.8s ease-in-out infinite alternate;
-}
-
-.game-page .reaction-launch.owner-player {
-  top: var(--player-head-y, 55%);
-  left: var(--player-head-x, 25%);
-  --flight-x: calc(var(--enemy-head-x, 75%) - var(--player-head-x, 25%));
-}
-
-.game-page .reaction-launch.owner-enemy {
-  top: var(--enemy-head-y, 55%);
-  left: var(--enemy-head-x, 75%);
-  --flight-x: calc(var(--player-head-x, 25%) - var(--enemy-head-x, 75%));
 }
 
 .game-page .companion-phantom {

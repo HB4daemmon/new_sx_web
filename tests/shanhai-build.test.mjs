@@ -16,6 +16,7 @@ const SHANHAI_MODULES = [
   'art-assets.js',
   'artifact-growth.js',
   'battle-comparison.js',
+  'battle-elemental-vfx.js',
   'battle-highlights.js',
   'battle-impact.js',
   'battle-playback.js',
@@ -29,6 +30,8 @@ const SHANHAI_MODULES = [
   'event-checks.js',
   'cartoon.css',
   'epitaph.js',
+  'elemental-vfx-art.js',
+  'elemental-vfx.css',
   'game-art.js',
   'localization.js',
   'narrative.js',
@@ -238,7 +241,9 @@ test('index and ESM content URLs remain relative under a GitHub Pages subpath', 
   const stylesheetSources = [...html.matchAll(/<link\s+rel="stylesheet"\s+href="([^"]+)"/g)]
     .map(match => match[1]);
   assert.equal(scriptSource, './shanhai/app.js');
-  assert.deepEqual(stylesheetSources, ['./shanhai/style.css', './shanhai/cartoon.css']);
+  assert.deepEqual(stylesheetSources, [
+    './shanhai/style.css', './shanhai/cartoon.css', './shanhai/elemental-vfx.css',
+  ]);
   assert.equal(new URL(scriptSource, pageUrl).pathname, '/suishi-xiuxian/shanhai/app.js');
   for (const stylesheetSource of stylesheetSources) {
     assert.equal(
