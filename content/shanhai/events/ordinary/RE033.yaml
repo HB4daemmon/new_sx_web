@@ -22,7 +22,7 @@ scene: 通往天门的旧道旁只剩一盏灯，守灯人把归元诀法本与�
 options:
   - id: RE033-A
     label: 付石带走归元诀
-    quick: 付出标价灵石，带走归元诀法本；是否改修由你决定，灵石不足不能选。
+    quick: 付出标价灵石，带走归元诀法本；是否改修由你决定。
     requirements:
       - {type: can_pay}
     costs:
@@ -33,7 +33,7 @@ options:
     story_echo: 你付石带走归元诀法本，沿孤灯照出的石径继续前行，现用功法未换。
   - id: RE033-B
     label: 付石带走返气环
-    quick: 付出标价灵石，带走一层返气环以在怒技后额外回怒；灵石不足或该法宝已满层时不能选。
+    quick: 付出标价灵石，带走一层返气环以在怒技后额外回怒。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC23, count: 1}

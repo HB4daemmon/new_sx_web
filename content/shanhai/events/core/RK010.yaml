@@ -23,7 +23,7 @@ scene: 第二面阵旗在风里轻响，哪吒提醒第一阵留下的伤势与�
 options:
   - id: RK010-enter-second-array
     label: 接第二阵
-    quick: 伤势不重置，再付 12% 基准气血挑战；胜取如意钱，失手至少保留 1 点且无奖。
+    quick: 伤势不重置，再付 12% 基准气血挑战；胜取如意钱，输了留一口气（至少 1 点气血），空手而归。
     requirements:
       - {type: flag, id: RS05-promised, value: true}
     costs:

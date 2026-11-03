@@ -22,7 +22,7 @@ scene: 寒泉把匣门推开后又要合拢，两件回气器物各能带走一�
 options:
   - id: RE017-A
     label: 付高价取蓄气珠
-    quick: 付出高价灵石，带走一层蓄气珠以提升攻击并在攻击命中时回怒；灵石不足或该法宝已满层时不能选。
+    quick: 付出高价灵石，带走一层蓄气珠以提升攻击并在攻击命中时回怒。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RR01, count: 1}
@@ -34,7 +34,7 @@ options:
     story_echo: 你付高价收下蓄气珠，封住寒泉冲开的旧匣，随后沿岸离开。
   - id: RE017-B
     label: 付较低标价取引气符
-    quick: 付出较低标价灵石，带走一层引气符以在普攻后额外回怒；灵石不足或该法宝已满层时不能选。
+    quick: 付出较低标价灵石，带走一层引气符以在普攻后额外回怒。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC20, count: 1}

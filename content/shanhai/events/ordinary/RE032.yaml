@@ -22,7 +22,7 @@ scene: 云阶风声压住身后的来路，试锋者把虎纹佩与厚土环放�
 options:
   - id: RE032-A
     label: 试锋取两层虎纹佩
-    quick: 参加非致死试锋，胜利带走两层虎纹佩；失手至少保留 1 点气血且无奖励，该法宝须能再叠两层否则不能选。
+    quick: 参加非致死试锋，胜利带走两层虎纹佩；输了留一口气（至少 1 点气血），空手而归。
     requirements:
       - {type: capacity, id: RC02, count: 2}
     costs: []
@@ -39,7 +39,7 @@ options:
     story_failure_echo: 你被逼回石线，至少保留 1 点气血，虎纹佩仍留在试锋者手中。
   - id: RE032-B
     label: 试锋取两层厚土环
-    quick: 参加非致死试锋，胜利带走两层厚土环；失手至少保留 1 点气血且无奖励，该法宝须能再叠两层否则不能选。
+    quick: 参加非致死试锋，胜利带走两层厚土环；输了留一口气（至少 1 点气血），空手而归。
     requirements:
       - {type: capacity, id: RC04, count: 2}
     costs: []
@@ -56,7 +56,7 @@ options:
     story_failure_echo: 你被逼回石线，至少保留 1 点气血，厚土环仍留在试锋者手中。
   - id: RE032-C
     label: 付石取雷纹印绕行
-    quick: 付出标价灵石，带走一层雷纹印并避开试锋；灵石不足或该法宝已满层时不能选。
+    quick: 付出标价灵石，带走一层雷纹印并避开试锋。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC10, count: 1}

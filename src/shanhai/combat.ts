@@ -1292,8 +1292,7 @@ function calculateStatsForSide(
   }
   stats.defense *= gambitDefenseMultiplier(compiled.artifacts);
   if (side === 'player' && loadout.permanentRule?.kind === 'shattered_core') {
-    stats.max_hp = 1;
-    stats.attack *= 1.8;
+    stats.max_hp *= SHATTERED_CORE.maxHpMultiplier;
   }
   for (const key of STAT_KEYS) if (!isFiniteNumber(stats[key]) || stats[key] < 0) throw new Error(`Invalid calculated stat ${key}`);
   return stats;
@@ -1422,7 +1421,7 @@ function buildSourceRegistry(runtime: BattleRuntime, fighter: Fighter): void {
   }
   if (fighter.side === 'player' && fighter.loadout.permanentRule) {
     const [id, name] = fighter.loadout.permanentRule.kind === 'shattered_core'
-      ? ['RE037-A', '法则·碎丹化婴']
+      ? ['RE037-A', '法则·碎丹燃血']
       : fighter.loadout.permanentRule.kind === 'blind_sword'
         ? ['RE037-B', '法则·盲眼剑圣']
         : ['RE037-C', '法则·断普连诀'];
@@ -2069,8 +2068,36 @@ function staticRageCap(fighter: Fighter): number {
   return normalizeRageCap(fighter, cap);
 }
 
+/**
+ * 碎丹燃血 (RE037-A): max HP is permanently reduced, attack rises with the
+ * share of *effective* health (HP + shield) that is missing, and direct hits
+ * steal life. Counting shields as health means hiding behind a shield wall
+ * cancels the bonus, so the rule can never become "1 HP behind huge shields".
+ */
+export const SHATTERED_CORE = Object.freeze({
+  maxHpMultiplier: 0.6,
+  attackPerMissing: 0.8,
+  attackBonusCap: 0.6,
+  lifesteal: 0.08,
+});
+
+/** 盲眼剑圣 (RE037-B): crit chance converts into true damage at this multiple of the base hit. */
+export const BLIND_SWORD_TRUE_RATIO = 1.6;
+
+/** 断普连诀 (RE037-C): rage refills before every action, so a rage art fires every round, at reduced power. */
+export const ENDLESS_CHAIN = Object.freeze({ rageDamageMultiplier: 1.1, damageTakenMultiplier: 0.8 });
+
+export function shatteredCoreAttackBonus(hp: number, shield: number, maxHp: number): number {
+  if (!(maxHp > 0)) return 0;
+  const effective = clamp((Math.max(0, hp) + Math.max(0, shield)) / maxHp, 0, 1);
+  return Math.min(SHATTERED_CORE.attackBonusCap, SHATTERED_CORE.attackPerMissing * (1 - effective));
+}
+
 function dynamicStats(runtime: BattleRuntime, fighter: Fighter, target: Fighter, action: ActionContext | null): Stats {
   const stats = { ...fighter.stats };
+  if (fighter.loadout.permanentRule?.kind === 'shattered_core') {
+    stats.attack *= 1 + shatteredCoreAttackBonus(fighter.hp, fighter.shield, fighter.stats.max_hp);
+  }
   const gambitDefense = gambitDefenseMultiplier(fighter.artifacts);
   for (const mechanic of mechanicsOf(fighter, 'carapace')) {
     stats.defense += n(fighter.battleLayers[`carapace:${mechanic.id}`], 0) * gambitDefense;
@@ -2520,9 +2547,10 @@ function outgoingBuildMultiplier(
     } else if (mechanic.kind === 'collection_damage') {
       multiplier *= 1 + n(p.base_bonus, 0) + n(p.per_kind, 0) * journey.artifactKinds;
     } else if (mechanic.kind === 'trophy_damage') {
-      multiplier *= 1 + n(p.base_bonus, 0) +
-        n(p.elite_bonus, 0) * journey.eliteWins +
-        n(p.boss_bonus, 0) * journey.bossWins;
+      multiplier *= 1 + n(p.base_bonus, 0) + Math.min(
+        n(p.trophy_cap, Infinity),
+        n(p.elite_bonus, 0) * journey.eliteWins + n(p.boss_bonus, 0) * journey.bossWins,
+      );
     } else if (mechanic.kind === 'blood_vow') {
       multiplier *= n(p.damage_multiplier, 1);
     } else {
@@ -2782,9 +2810,10 @@ function dealDamage(
   let critical = false;
   if (!options.rawIsResolved) {
     if (!blindSwordSuppressesCrit && options.canCrit && options.kind !== 'dot' && options.kind !== 'reflect') {
-      const chance = clamp(stats.crit_rate, 0, 1);
+      const clearMind = clearMindBonus(runtime, source, options.kind);
+      const chance = clamp(stats.crit_rate + clearMind.critRateAdd, 0, 1);
       critical = runtime.random() < chance;
-      if (critical) raw *= n(rules(runtime.content).combat?.crit_multiplier, 1.5);
+      if (critical) raw *= clearMind.critMultiplier ?? n(rules(runtime.content).combat?.crit_multiplier, 1.5);
     }
     if (options.criticalBonusRatio) raw += stats.attack * options.criticalBonusRatio;
     if (options.echoScale !== false && action?.isEcho && action.actor === source) {
@@ -2792,6 +2821,13 @@ function dealDamage(
     }
     raw *= outgoingBuildMultiplier(runtime, source, target, action, options.kind) *
       gambitDamageMultiplier(source, options.kind);
+    if (source.loadout.permanentRule?.kind === 'endless_chain' && action?.actor === source &&
+        action.type === 'rage_action' && options.kind !== 'dot') {
+      raw *= ENDLESS_CHAIN.rageDamageMultiplier;
+    }
+    if (target.loadout.permanentRule?.kind === 'endless_chain') {
+      raw *= ENDLESS_CHAIN.damageTakenMultiplier;
+    }
     if (options.kind === 'direct') {
       for (const core of source.coreRules) {
         if (core.kind !== 'healing_guard') continue;
@@ -2864,13 +2900,13 @@ function dealDamage(
   const multiplier = options.kind === 'dot' ? 1 : incomingMultiplier(runtime, target, source, options.kind);
   let amount = raw * multiplier;
   let baselineAmount = devourApplied ? devourBaselineRaw * multiplier : amount;
-  let trueAmount = blindSwordConversion ? raw * 3 * convertedCritChance * multiplier : 0;
+  let trueAmount = blindSwordConversion ? raw * BLIND_SWORD_TRUE_RATIO * convertedCritChance * multiplier : 0;
   let baselineTrueAmount = devourApplied
-    ? blindSwordConversion ? devourBaselineRaw * 3 * convertedCritChance * multiplier : 0
+    ? blindSwordConversion ? devourBaselineRaw * BLIND_SWORD_TRUE_RATIO * convertedCritChance * multiplier : 0
     : trueAmount;
   let wealthBaselineAmount = wealthBaselineRawAfterDevour * multiplier;
   let wealthBaselineTrueAmount = blindSwordConversion
-    ? wealthBaselineRawAfterDevour * 3 * convertedCritChance * multiplier
+    ? wealthBaselineRawAfterDevour * BLIND_SWORD_TRUE_RATIO * convertedCritChance * multiplier
     : 0;
   if (options.kind !== 'dot' && options.kind !== 'reflect') {
     const defenseConstant = n(rules(runtime.content).combat?.direct_defense_constant, 100);
@@ -2941,6 +2977,7 @@ function dealDamage(
   amount += trueAmount;
   const absorbed = regularAbsorbed + trueAbsorbed;
   const hpDamage = regularHpDamage + trueHpDamage;
+  resolveCheatDeath(runtime, target);
   const effective = absorbed > 0 || hpDamage > 0;
   const shieldBroken = beforeShield > 0 && target.shield <= 0 && absorbed > 0;
   const baselineRegularDamage = baseline.regularAbsorbed + baseline.regularHpDamage;
@@ -2999,6 +3036,16 @@ function dealDamage(
   frame(runtime, options.kind === 'dot' ? 'dot' : 'damage', `${sideText}造成${kindText} ${Math.round(regularDamage)}`, source.side, target.side, frameSource, regularDamage, undefined, options.dotStatus, options.strikeVisual);
   if (convertedDamage > 0) {
     frame(runtime, 'damage', `${sideText}造成真实伤害 ${Math.round(convertedDamage)}`, source.side, target.side, 'RE037-B', convertedDamage);
+  }
+  if (source.loadout.permanentRule?.kind === 'shattered_core' && options.kind === 'direct' &&
+      !options.outputCopy && source.hp > 0 && hpDamage + absorbed > 0) {
+    const steal = Math.min(source.stats.max_hp - source.hp, (hpDamage + absorbed) * SHATTERED_CORE.lifesteal);
+    if (steal > 0) {
+      source.hp += steal;
+      mark(runtime, 'RE037-A', 1, source.side);
+      addContribution(runtime, 'RE037-A', 'healing', steal, source.side);
+      frame(runtime, 'heal', `${sideText}燃血吸取 ${Math.round(steal)}`, source.side, source.side, 'RE037-A', steal);
+    }
   }
   if (phaseGateTriggered) {
     frame(
@@ -3298,9 +3345,7 @@ function addShield(
   input *= 1 + shieldBonus;
   const copyableInput = input;
   const tailOutputMultiplier = nativeTailOutputMultiplier(fighter, source, outputCopy);
-  const capacity = fighter.loadout.permanentRule?.kind === 'shattered_core'
-    ? fighter.maxShield
-    : fighter.stats.max_hp;
+  const capacity = shieldCapacity(fighter);
   const plannedGain = Math.max(0, Math.min(input, capacity - fighter.shield));
   if ((!outputCopy || isFirstMirrorOutput(runtime, source)) && plannedGain > 0) {
     resolveArtifactOutputCopies(runtime, source, fighter, (copy, mode) => {
@@ -3312,6 +3357,8 @@ function addShield(
   const copyableGain = Math.max(0, Math.min(copyableInput, capacity - fighter.shield));
   const gained = Math.max(0, Math.min(input * tailOutputMultiplier, capacity - fighter.shield));
   fighter.shield += gained;
+  const overflow = input * tailOutputMultiplier - gained;
+  if (!outputCopy && overflow > 0) resolveShieldOverflowStrike(runtime, fighter, overflow);
   if (!outputCopy) chargeShieldCannon(runtime, fighter, gained);
   if (gained > 0 && action?.actor === fighter) recordCombatEvent(runtime, 'shield', fighter);
   if (typeof source !== 'string') {
@@ -3730,6 +3777,7 @@ function applyDot(
       void mode;
     }, 'inscription');
   }
+  if (status === 'burn' && added > 0) resolveBurnDetonation(runtime, owner, target, cap);
   return added + mirroredAdded;
 }
 
@@ -6268,7 +6316,9 @@ function settleRage(runtime: BattleRuntime): void {
     }
     const gains = fighter.pendingGains.reduce((sum, entry) => sum + entry.amount, 0);
     if (gains > 0) {
+      const rageOverflow = Math.max(0, fighter.rage + gains - fighter.rageCap);
       fighter.rage = Math.min(fighter.rageCap, fighter.rage + gains);
+      if (rageOverflow > 0) resolveRageOverflowStrike(runtime, fighter, rageOverflow);
       frame(runtime, 'rage', `${fighter.side === 'player' ? '玩家' : '敌人'}轮尾回怒 ${Math.round(gains)}`, fighter.side, fighter.side, 'RULES-RAGE-SETTLE', gains);
     }
   }
@@ -6439,9 +6489,7 @@ function startBattle(runtime: BattleRuntime): void {
     }
   }
   for (const fighter of [runtime.player, runtime.enemy]) {
-    if (fighter.loadout.permanentRule?.kind !== 'shattered_core') {
-      fighter.maxShield = fighter.stats.max_hp;
-    }
+    fighter.maxShield = shieldCapacity(fighter);
   }
   applyOpening(runtime);
   for (const fighter of [runtime.player, runtime.enemy]) {
@@ -6492,17 +6540,6 @@ function startBattle(runtime: BattleRuntime): void {
     if (fighter.side === 'enemy' && fighter.loadout.thunderChallenge === true) {
       addShield(runtime, fighter, fighter.stats.max_hp * 0.15, 'THUNDER-CHALLENGE', '雷霆挑战开场护盾', 0, false);
     }
-    if (fighter.loadout.permanentRule?.kind === 'shattered_core') {
-      addShield(
-        runtime,
-        fighter,
-        fighter.loadout.permanentRule.originalMaxHp * 2.5,
-        'RE037-A',
-        '碎丹化婴开场护盾',
-        0,
-        false,
-      );
-    }
   }
   for (const fighter of [runtime.player, runtime.enemy]) {
     const swords = resonanceRule(fighter, 'sword_array');
@@ -6514,6 +6551,16 @@ function startBattle(runtime: BattleRuntime): void {
   for (const fighter of [runtime.player, runtime.enemy]) {
     if (fighter.trial) emitEnemyTrialCharge(runtime, fighter);
   }
+}
+
+function refillEndlessChain(runtime: BattleRuntime, fighter: Fighter): void {
+  if (fighter.loadout.permanentRule?.kind !== 'endless_chain' || fighter.hp <= 0) return;
+  const gain = Math.max(0, fighter.rageCap - fighter.rage);
+  if (gain <= 0) return;
+  fighter.rage = fighter.rageCap;
+  mark(runtime, 'RE037-C', 1, fighter.side);
+  addContribution(runtime, 'RE037-C', 'rage', gain, fighter.side);
+  frame(runtime, 'rage', `${fighter.side === 'player' ? '玩家' : '敌人'}断普连诀，怒气充盈 ${Math.round(gain)}`, fighter.side, fighter.side, 'RE037-C', gain);
 }
 
 function chooseAction(fighter: Fighter): { type: LockedActionType; cost: number } {
@@ -6566,9 +6613,7 @@ function createFighter(
     stats,
     hp: clamp(n(loadout.hp, stats.max_hp), 0, stats.max_hp),
     shield: 0,
-    maxShield: loadout.permanentRule?.kind === 'shattered_core'
-      ? loadout.permanentRule.originalMaxHp * 2.5
-      : stats.max_hp,
+    maxShield: stats.max_hp,
     rage: 0,
     rageCap: 100,
     firstStrike: Math.max(0, n(loadout.firstStrike, 0)),
@@ -6611,6 +6656,138 @@ function checkOutcome(runtime: BattleRuntime): 'player' | 'enemy' | 'draw' | und
   runtime.active = false;
   if (playerDead && enemyDead) return 'draw';
   return playerDead ? 'enemy' : 'player';
+}
+
+/* ───────── Signature talents (还可以这样) ───────── */
+
+function signature(fighter: Fighter, id: string): ActiveEffect | undefined {
+  const effect = selectedEffect(fighter, id);
+  return effect && typeof effect.params?.signature === 'string' ? effect : undefined;
+}
+
+/** Shield cap: max HP, or a lowered cap for 盈盾化雷 holders (the excess strikes instead). */
+function shieldCapacity(fighter: Fighter): number {
+  const sig = signature(fighter, 'RKF01-J4-A-OVERFLOW-STRIKE');
+  return fighter.stats.max_hp * (sig ? clamp(n(sig.params?.shield_cap_ratio, 1), 0.1, 1) : 1);
+}
+
+/** 盈盾化雷: shield that would be wasted above the cap strikes the enemy instead. */
+function resolveShieldOverflowStrike(runtime: BattleRuntime, fighter: Fighter, overflow: number): void {
+  const sig = signature(fighter, 'RKF01-J4-A-OVERFLOW-STRIKE');
+  const flag = 'SIG:SHIELD-OVERFLOW-ACTIVE';
+  if (!sig || !runtime.active || fighter.battleFlags.has(flag)) return;
+  const enemy = other(runtime, fighter);
+  if (enemy.hp <= 0) return;
+  fighter.battleFlags.add(flag);
+  try {
+    dealDamage(runtime, fighter, enemy, 0, {
+      sourceEffect: sig,
+      kind: 'derived',
+      canCrit: false,
+      rawOverride: overflow * n(sig.params?.damage_ratio, 1),
+    });
+  } finally {
+    fighter.battleFlags.delete(flag);
+  }
+}
+
+/** 怒溢成锋: rage gained past the cap at round end becomes a sword-qi strike. */
+function resolveRageOverflowStrike(runtime: BattleRuntime, fighter: Fighter, overflow: number): void {
+  const sig = signature(fighter, 'RKF02-J4-A-OVERFLOW-STRIKE');
+  if (!sig || !runtime.active || fighter.hp <= 0) return;
+  const enemy = other(runtime, fighter);
+  if (enemy.hp <= 0) return;
+  dealDamage(runtime, fighter, enemy, overflow * n(sig.params?.attack_ratio_per_rage, 0.025), {
+    sourceEffect: sig,
+    kind: 'derived',
+    canCrit: true,
+  });
+}
+
+/** 生死回春: the first lethal blow of a battle leaves 1 HP and blooms back. */
+function resolveCheatDeath(runtime: BattleRuntime, fighter: Fighter): void {
+  if (fighter.hp > 0) return;
+  const sig = signature(fighter, 'RKF03-J4-B-CHEAT-DEATH');
+  const flag = 'SIG:CHEAT-DEATH-USED';
+  if (!sig || fighter.battleFlags.has(flag)) return;
+  fighter.battleFlags.add(flag);
+  const healed = fighter.stats.max_hp * n(sig.params?.heal_ratio, 0.3);
+  fighter.hp = Math.min(fighter.stats.max_hp, 1 + healed);
+  mark(runtime, sig, 1, fighter.side);
+  addContribution(runtime, sig, 'healing', healed, fighter.side);
+  frame(runtime, 'heal', `${fighter.side === 'player' ? '玩家' : '敌人'}生死回春，免死并回复 ${Math.round(healed)}`, fighter.side, fighter.side, sig.id, healed);
+}
+
+/** 焚身成炎: burn reaching its cap detonates, dealing its remaining value at once. */
+function resolveBurnDetonation(runtime: BattleRuntime, owner: Fighter, target: Fighter, cap: number): void {
+  const sig = signature(owner, 'RKF04-J4-B-DETONATE');
+  if (!sig || !runtime.active || target.hp <= 0 || owner.hp <= 0) return;
+  const layers = getStatusLayers(target, 'burn');
+  if (layers.length < cap) return;
+  const flag = `SIG:DETONATE:${runtime.round}:${owner.actionNumber ?? 0}`;
+  if (owner.battleFlags.has(flag)) return;
+  owner.battleFlags.add(flag);
+  const remaining = layers.reduce((sum, layer) => sum + n(layer.damage, 0) * Math.max(0, int(layer.remaining, 0)), 0);
+  layers.splice(0, layers.length);
+  if (remaining <= 0) return;
+  frame(runtime, 'status', `${owner.side === 'player' ? '玩家' : '敌人'}焚身成炎，引爆 ${cap} 层燃烧`, owner.side, target.side, sig.id, cap);
+  dealDamage(runtime, owner, target, 0, {
+    sourceEffect: sig,
+    kind: 'derived',
+    canCrit: true,
+    rawOverride: remaining * n(sig.params?.damage_multiplier, 1.3),
+  });
+}
+
+/** 剑心通明: at 5+ sword intent, crits are far likelier and hit for 2x. */
+function clearMindBonus(
+  runtime: BattleRuntime,
+  source: Fighter,
+  kind: 'direct' | 'derived' | 'dot' | 'reflect',
+): { critRateAdd: number; critMultiplier?: number } {
+  const sig = signature(source, 'RKF05-J4-C-CLEAR-MIND');
+  if (!sig || (kind !== 'direct' && kind !== 'derived')) return { critRateAdd: 0 };
+  if (statusCount(source, 'sword_intent') < int(sig.params?.min_stacks, 5)) return { critRateAdd: 0 };
+  mark(runtime, sig, 1, source.side);
+  return { critRateAdd: n(sig.params?.crit_rate_add, 0.4), critMultiplier: n(sig.params?.crit_multiplier, 2) };
+}
+
+/**
+ * 天劫 sudden death: from `start_round`, each round end deals true damage equal
+ * to a growing share of each fighter's own max HP, bypassing shields. It is
+ * symmetric and ends heal/shield stalemates in favour of the healthier side.
+ */
+export function tribulationRatio(content: Content, round: number): number {
+  const config = rules(content).combat?.tribulation;
+  if (!config) return 0;
+  const start = int(config.start_round, 0);
+  if (start <= 0 || round < start) return 0;
+  return n(config.base_ratio, 0) + n(config.step_ratio, 0) * (round - start);
+}
+
+function resolveTribulation(runtime: BattleRuntime, round: number): void {
+  const ratio = tribulationRatio(runtime.content, round);
+  if (ratio <= 0) return;
+  // The weaker side (by HP share) is struck first and a kill stops the strike,
+  // so the tribulation always produces a winner; ties strike the enemy first.
+  const share = (fighter: Fighter) => fighter.hp / Math.max(1, fighter.stats.max_hp);
+  const order = share(runtime.player) < share(runtime.enemy)
+    ? [runtime.player, runtime.enemy]
+    : [runtime.enemy, runtime.player];
+  for (const fighter of order) {
+    if (runtime.player.hp <= 0 || runtime.enemy.hp <= 0) break;
+    const amount = Math.min(fighter.hp, fighter.stats.max_hp * ratio);
+    fighter.hp -= amount;
+    frame(
+      runtime,
+      'dot',
+      `天劫落雷，${fighter.side === 'player' ? '玩家' : '敌人'}受到 ${Math.round(amount)} 点真实伤害`,
+      other(runtime, fighter).side,
+      fighter.side,
+      'RULES-TRIBULATION',
+      amount,
+    );
+  }
 }
 
 export function simulateBattle(
@@ -6656,6 +6833,7 @@ export function simulateBattle(
     runtime.round = round;
     expirePhaseGateOpening(runtime);
     prepareEnemyTrialRound(runtime);
+    refillEndlessChain(runtime, runtime.player);
     const pChoice = chooseAction(runtime.player);
     const eChoice = chooseAction(runtime.enemy);
     runtime.player.lockedAction = pChoice.type;
@@ -6702,11 +6880,11 @@ export function simulateBattle(
     processRoundDots(runtime);
     outcome = checkOutcome(runtime);
     if (outcome) break;
+    resolveTribulation(runtime, round);
+    outcome = checkOutcome(runtime);
+    if (outcome) break;
     if (runtime.player.hp > 0) {
       registerRage(runtime, runtime.player, n(rules(content).rage?.round_end, 10), 'RULES-ROUND-END', runtime.player.method.id);
-      if (runtime.player.loadout.permanentRule?.kind === 'endless_chain') {
-        registerRage(runtime, runtime.player, 80, 'RE037-C', 'RE037-C');
-      }
     }
     if (runtime.enemy.hp > 0) registerRage(runtime, runtime.enemy, n(rules(content).rage?.round_end, 10), 'RULES-ROUND-END', runtime.enemy.method.id);
     for (const fighter of [runtime.player, runtime.enemy]) {

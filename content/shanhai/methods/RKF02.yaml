@@ -348,28 +348,20 @@ talents:
   - id: RKF02-J4-A
     tier: 4
     branch: A
-    name: 生生不息
-    quick: 怒技返怒再提高
-    category: cycle
+    name: 怒溢成锋
+    quick: 轮末溢出上限的怒气化为一道剑气
+    category: convert
     effects:
-      - id: RKF02-J4-A-REFUND
-        trigger: action_end
-        operation: rage_gain
+      - id: RKF02-J4-A-OVERFLOW-STRIKE
+        trigger: always
+        operation: modify_effect
         target: self
-        params:
-          action: rage_action
-          mode: add_ratio_to_actual_paid
-          ratio_add: 0.20
-          combines_with: [RKF02-PASSIVE-RAGE-REFUND, RKF02-J2-C-REFUND]
-          percentage_points: true
-          record_at: round_end
-          no_second_refund: true
-          no_extra_action: true
+        params: {signature: rage_overflow_strike, attack_ratio_per_rage: 0.012}
         requires: []
         consumes: []
         replaces: []
-        limit: {scope: action, count: 1}
-        text: 怒技返还怒气的比例再提高20个百分点，按本次消耗怒气计算；返还比例合并后只计算一次。
+        limit: {scope: permanent, count: 1}
+        text: 每轮末结算怒气时，超出怒气上限而作废的每点怒气，按攻击0.012倍对敌方造成一道可暴击的派生伤害。
   - id: RKF02-J4-B
     tier: 4
     branch: B

@@ -31,7 +31,7 @@ options:
     story_echo: 你用清息调养伤口，带着恢复的气力继续朝旧阵前门行去。
   - id: RE028-B
     label: 凝雾封进行医囊
-    quick: 带走一层行医囊留待行旅恢复；不恢复当前气血，须有一层空位否则不能选。
+    quick: 带走一层行医囊留待行旅恢复；不恢复当前气血。
     requirements:
       - {type: capacity, id: RC17, count: 1}
     costs: []

@@ -22,7 +22,7 @@ scene: 余火逼近白线，守场弟子把蛇纹瓶与赤炎珠分别放在两�
 options:
   - id: RE023-A
     label: 参加试场取蛇纹瓶
-    quick: 参加非致死试手，胜利带走两层蛇纹瓶；失手至少保留 1 点气血且无奖励，该法宝须能再叠两层否则不能选。
+    quick: 非致死试手，胜利带走两层蛇纹瓶；输了留一口气（至少 1 点气血），空手而归。
     requirements:
       - {type: capacity, id: RC14, count: 2}
     costs: []
@@ -39,7 +39,7 @@ options:
     story_failure_echo: 你被逼退至白线外，至少保留 1 点气血，蛇纹瓶仍留在试场。
   - id: RE023-B
     label: 参加试场取赤炎珠
-    quick: 参加非致死试手，胜利带走两层赤炎珠；失手至少保留 1 点气血且无奖励，该法宝须能再叠两层否则不能选。
+    quick: 非致死试手，胜利带走两层赤炎珠；输了留一口气（至少 1 点气血），空手而归。
     requirements:
       - {type: capacity, id: RC15, count: 2}
     costs: []
@@ -56,7 +56,7 @@ options:
     story_failure_echo: 你被逼退至白线外，至少保留 1 点气血，赤炎珠仍留在试场。
   - id: RE023-C
     label: 付石绕开试场取厚土
-    quick: 付出标价灵石，带走一层厚土环并避开试手；灵石不足或该法宝已满层时不能选。
+    quick: 付出标价灵石，带走一层厚土环并避开试手。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC04, count: 1}

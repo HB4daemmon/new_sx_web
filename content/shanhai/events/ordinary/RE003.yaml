@@ -22,7 +22,7 @@ scene: 逆流掀开的火灰盖住匣沿，青锋石与玄铁甲压在最深处�
 options:
   - id: RE003-A
     label: 忍灼取出青锋石
-    quick: 损失约75点气血（第二幕约93点），带走两层青锋石；该法宝须能再叠两层且能存活，否则不能选。
+    quick: 损失约75点气血（第二幕约93点），带走两层青锋石。
     requirements:
       - {type: capacity, id: RC01, count: 2}
     costs:
@@ -33,7 +33,7 @@ options:
     story_echo: 灼痛过后，两层青锋石落入你手中；你留着气力继续寻找可走的岸线。
   - id: RE003-B
     label: 忍灼取出玄铁甲
-    quick: 损失约75点气血（第二幕约93点），带走两层玄铁甲；该法宝须能再叠两层且能存活，否则不能选。
+    quick: 损失约75点气血（第二幕约93点），带走两层玄铁甲。
     requirements:
       - {type: capacity, id: RC03, count: 2}
     costs:

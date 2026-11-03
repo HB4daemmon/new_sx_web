@@ -22,7 +22,7 @@ scene: 昆仑前门旁的炉火只够亮一刻，守炉人把云铁分到两只�
 options:
   - id: RE029-A
     label: 付石炼一层虎纹佩
-    quick: 付出标价灵石，带走一层虎纹佩以增强攻击；灵石不足或该法宝已满层时不能选。
+    quick: 付出标价灵石，带走一层虎纹佩以增强攻击。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC02, count: 1}

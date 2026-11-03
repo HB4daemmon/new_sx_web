@@ -412,26 +412,20 @@ talents:
   - id: RKF05-J4-C
     tier: 4
     branch: C
-    name: 剑心不灭
-    quick: 满层剑势增伤
+    name: 剑心通明
+    quick: 剑势三层起暴击率+50%，暴击伤害2.2倍
     category: enhance
     effects:
-      - id: RKF05-J4-C-FULL-EDGE
+      - id: RKF05-J4-C-CLEAR-MIND
         trigger: always
         operation: modify_effect
         target: self
-        params:
-          mode: add_ratio
-          effect_ids: [RKF05-BASIC-DAMAGE, RKF05-RAGE-DAMAGE]
-          damage_ratio_add: 0.25
-          condition: sword_intent_at_or_above_5
-          damage_scope: base_direct_segments
-          excludes: [sword_intent_followup, dot, shield]
-        requires: [sword_intent_at_or_above_5]
+        params: {signature: clear_mind, min_stacks: 3, crit_rate_add: 0.5, crit_multiplier: 2.2}
+        requires: []
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 出手时剑势达到5层，普攻和怒技的直接伤害提高25%；不足5层时不触发，也不提高追剑或护盾效果。
+        text: 自身剑势不少于3层时，直接与派生伤害的暴击率提高50%，暴击伤害倍率由1.5倍提高到2.2倍。
 routes:
   - name: 留势长锋
     summary: 提高剑势上限并用留势长锋关闭内在耗势，以满层直接剑击和剑心增伤取胜；代价是失去每层内在追剑。

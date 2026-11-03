@@ -161,7 +161,7 @@ test('real content validates and preserves the authored entity and talent counts
     'V2-J3-B': { build: 'rage_echo', ratio: 0.45 },
     'V2-J3-C': { build: 'veteran_shield', base_ratio: 0.06, elite_ratio: 0.02, boss_ratio: 0.03 },
     'V2-J4-A': { build: 'wealth_shield', base_shield: 30, shield_per_coin: 0.4 },
-    'V2-J4-B': { build: 'trophy_damage', base_bonus: 0.12, elite_bonus: 0.1, boss_bonus: 0.15 },
+    'V2-J4-B': { build: 'trophy_damage', base_bonus: 0.12, elite_bonus: 0.06, boss_bonus: 0.1, trophy_cap: 0.6 },
   }
   for (const talent of insights) {
     const effect = talent.effects[0]

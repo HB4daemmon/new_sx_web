@@ -22,7 +22,7 @@ scene: 旧桥的白线标出还能站稳的一段，守桥人亮出雷纹印。�
 options:
   - id: RE014-A
     label: 留在线内试雷纹
-    quick: 参加非致死试招，胜利带走两层雷纹印；失手至少保留 1 点气血且无奖励，该法宝须能再叠两层否则不能选。
+    quick: 参加非致死试招，胜利带走两层雷纹印；输了留一口气（至少 1 点气血），空手而归。
     requirements:
       - {type: capacity, id: RC10, count: 2}
     costs: []
@@ -39,7 +39,7 @@ options:
     story_failure_echo: 你被守桥人逼回桥头，至少保留 1 点气血，雷纹印没有到手。
   - id: RE014-B
     label: 付石取铁壁符绕行
-    quick: 付出标价灵石，带走一层铁壁符并避开试招；灵石不足或该法宝已满层时不能选。
+    quick: 付出标价灵石，带走一层铁壁符并避开试招。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC11, count: 1}

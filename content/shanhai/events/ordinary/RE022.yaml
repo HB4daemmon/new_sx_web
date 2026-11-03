@@ -22,7 +22,7 @@ scene: 熔灰压住炉口，炉工把一份未用尽的护行余料放到石沿�
 options:
   - id: RE022-A
     label: 付石留作战盾
-    quick: 付出标价灵石，为下一场战斗准备一层护盾；灵石不足不能选。
+    quick: 付出标价灵石，为下一场战斗准备一层护盾。
     requirements:
       - {type: can_pay}
     costs:

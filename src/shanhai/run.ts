@@ -2252,6 +2252,7 @@ export class ShanhaiGame {
       throw new Error('Frozen thunder challenge input is missing');
     }
     this.state.hp = clamp(battle.playerHp, 0, this.stats.max_hp);
+    if (battle.outcome === 'player') this.applyVictoryRecovery(node.type);
     if (battle.outcome !== 'player') {
       if (thunderChallenge) {
         state.thunderChallenges!.push({
@@ -2411,6 +2412,15 @@ export class ShanhaiGame {
     state._pendingEvent = undefined;
     state._eventSettled = true;
     this.ensureTalentQueue();
+  }
+
+  /** 战后调息: recover a share of *missing* HP after a won map battle. */
+  private applyVictoryRecovery(nodeType: string): void {
+    const table = (this.content.rules as AnyRecord)?.economy?.victory_recovery;
+    const ratio = isObject(table) && finite(table[nodeType]) ? Math.max(0, Math.min(1, table[nodeType])) : 0;
+    const max = this.stats.max_hp;
+    if (ratio <= 0 || this.state.hp <= 0 || this.state.hp >= max) return;
+    this.state.hp = Math.min(max, this.state.hp + (max - this.state.hp) * ratio);
   }
 
   private settleBattleEconomy(type: 'common' | 'elite' | 'boss'): void {
@@ -3036,7 +3046,8 @@ export class ShanhaiGame {
         const originalMaxHp = this.stats.max_hp;
         if (!finite(originalMaxHp) || originalMaxHp <= 0) throw new Error('Invalid original maximum HP');
         this.state.permanentRule = { kind: sacrificeKind, originalMaxHp };
-        this.state.hp = 1;
+        // Max HP is permanently reduced; current HP keeps its value up to the new cap.
+        this.state.hp = Math.min(this.state.hp, this.stats.max_hp);
       } else {
         this.state.permanentRule = { kind: sacrificeKind };
       }
@@ -5073,9 +5084,6 @@ export function validateRunState(content: Content, raw: RunState): void {
   }
   if (state.permanentRule !== undefined && !isPermanentSacrificeRule(state.permanentRule)) {
     throw new Error('Invalid permanent sacrifice rule');
-  }
-  if (state.permanentRule?.kind === 'shattered_core' && state.hp > 1) {
-    throw new Error('Shattered core run exceeds its locked one HP');
   }
   validateTalentDrafts(content, state);
   if (!integer(state.n) || state.n < 0 || state.n > 4 || !finite(state.hp) || state.hp < 0 ||

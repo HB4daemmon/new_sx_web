@@ -1266,7 +1266,7 @@ test('RKF05 J3-B shield uses the action-start sword-intent stack count', () => {
 test('same-scope RKF05 percentage bonuses add once and scale non-crit sword intent', () => {
   const result = simulateBattle(
     content,
-    makeLoadout('RKF05', { 2: 'A', 3: 'A', 4: 'C' }, [], {
+    makeLoadout('RKF05', { 2: 'A', 3: 'A' }, [], {
       attack: 100,
       defense: 0,
       max_hp: 1_000_000_000,
@@ -1291,10 +1291,10 @@ test('same-scope RKF05 percentage bonuses add once and scale non-crit sword inte
   const rageRatio = effectParams('RKF05', 'RKF05-RAGE-DAMAGE').attack_ratio;
   const intentRatio = effectParams('RKF05', 'RKF05-PASSIVE-EDGE').sword_intent_ratio_per_stack;
   const j3Bonus = effectParams('RKF05', 'RKF05-J3-A-RAGE-DAMAGE').damage_ratio_add;
-  const j4Bonus = effectParams('RKF05', 'RKF05-J4-C-FULL-EDGE').damage_ratio_add;
   const intentStacks = rageAction.player.statuses.sword_intent;
   assert.equal(intentStacks, 5);
-  const percentBonus = 1 + j3Bonus + j4Bonus;
+  // RKF05-J4-C is now 剑心通明 (crit-based), covered in shanhai-v2-signature-talents.test.mjs.
+  const percentBonus = 1 + j3Bonus;
   assert.ok(Math.abs(rageDamage.amount -
     (100 * rageRatio * percentBonus + 100 * intentStacks * intentRatio * percentBonus)) < 1e-9);
 });

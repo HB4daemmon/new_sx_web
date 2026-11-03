@@ -90,16 +90,16 @@ const INSCRIPTION_COPY: Record<ArtifactInscription, { label: string; effect: str
 };
 const PERMANENT_RULE_COPY: Record<PermanentSacrificeRule['kind'], { label: string; detail: string }> = {
   shattered_core: {
-    label: '碎丹化婴',
-    detail: '气血上限与当前气血锁为 1；攻击提高 80%；每战以立誓时原气血上限的 250% 获得护盾。',
+    label: '碎丹燃血',
+    detail: '气血上限永久降为 60%；战斗中每缺失 10% 气血（护盾计作气血）攻击提高 8%，最多 +60%；直接伤害吸取 8% 化为气血。',
   },
   blind_sword: {
     label: '盲眼剑圣',
-    detail: '不能暴击；普攻与怒技的直接、派生伤害按原暴击率转为无视防御、仍由护盾吸收的真实伤害。',
+    detail: '不能暴击；普攻与怒技的直接、派生命中附加“基础伤害×1.6×原暴击率”的真实伤害，无视防御、仍由护盾吸收。',
   },
   endless_chain: {
     label: '断普连诀',
-    detail: '禁用普攻；每回合额外获得 80 怒气，达到当下怒气上限才施放怒技。',
+    detail: '禁用普攻；每次出手前怒气补满，回回合合施放怒技；怒技伤害 +10%，受到伤害 -20%。',
   },
 };
 const CONTENT_BASE = './content/';
@@ -151,13 +151,14 @@ const FRAME_KIND_LABEL: Record<string, string> = {
   wait: '蓄气等待',
 };
 const FRAME_SOURCE_LABEL: Record<string, string> = {
-  'RE037-A': '法则·碎丹化婴',
+  'RE037-A': '法则·碎丹燃血',
   'RE037-B': '法则·盲眼剑圣',
   'RE037-C': '法则·断普连诀',
   'RULES-INCOMING-DIRECT': '受击回怒',
   'RULES-ROUND-END': '轮尾回怒',
   'RULES-RAGE-SETTLE': '轮尾回怒',
   'RULES-RAGE-DRAIN': '削怒',
+  'RULES-TRIBULATION': '天劫',
   'RULES-OPENING-RAGE': '开场回怒',
   'RULES-OPENING-DRAIN': '开场削怒',
   'RR01-BASE-HIT-RAGE-GAIN': '法宝回怒',

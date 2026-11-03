@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadContent } from '../tools/content-kit/src/loader.mjs';
 import { contentFromEntities } from '../build/shanhai/content.js';
-import { calculateStats, simulateBattle } from '../build/shanhai/combat.js';
+import { BLIND_SWORD_TRUE_RATIO, ENDLESS_CHAIN, SHATTERED_CORE, calculateStats, shatteredCoreAttackBonus, simulateBattle } from '../build/shanhai/combat.js';
 import { ShanhaiGame, registerCombatWorker } from '../build/shanhai/run.js';
 import { parseRunSave, serializeRun } from '../build/shanhai/persistence.js';
 import { nextCommand } from './shanhai-policy.mjs';
@@ -109,27 +109,42 @@ function selectRule(optionId, seed = optionId) {
   return game;
 }
 
-test('shattered core freezes one HP and grants a battle shield with the saved original-HP capacity', () => {
+test('shattered core burns blood: 60% max HP, attack rises with missing HP+shield, direct hits steal life', () => {
   const plain = loadout('RKF01');
-  const originalMaxHp = calculateStats(content, plain).max_hp;
+  const plainStats = calculateStats(content, plain);
+  const originalMaxHp = plainStats.max_hp;
   const vowed = loadout('RKF01', {
     baseStats: plain.baseStats,
     permanentRule: { kind: 'shattered_core', originalMaxHp },
   });
   const stats = calculateStats(content, vowed);
-  assert.equal(stats.max_hp, 1);
-  assert.equal(stats.attack, 180);
+  close(stats.max_hp, originalMaxHp * SHATTERED_CORE.maxHpMultiplier);
+  assert.equal(stats.attack, plainStats.attack, 'the static attack is unchanged; the bonus is battle-dynamic');
 
-  const result = simulateBattle(content, vowed, dummy(), 'sacrifice-shattered-core', { roundLimit: 1 });
+  // Never the old "1 HP behind a huge shield": no opening shield, shield cap is the (reduced) max HP.
+  const result = simulateBattle(content, vowed, dummy(), 'sacrifice-shattered-core', { roundLimit: 2 });
   const start = result.frames.find(frame => frame.kind === 'start');
-  assert.ok(start);
-  assert.equal(start.player.hp, 1);
-  assert.equal(start.player.maxHp, 1);
-  assert.equal(start.player.maxShield, originalMaxHp * 2.5);
-  assert.equal(start.player.shield, originalMaxHp * 2.5);
-  assert.ok(result.frames.some(frame => frame.kind === 'shield' && frame.source === 'RE037-A'));
-  assert.equal(contribution(result, 'RE037-A').shield, originalMaxHp * 2.5,
-    'the permanent rule owns its actual opening shield contribution');
+  assert.ok(start.player.hp > 1);
+  close(start.player.maxShield, stats.max_hp);
+  assert.equal(start.player.shield, 0);
+  assert.equal(result.frames.some(frame => frame.kind === 'shield' && frame.source === 'RE037-A'), false);
+
+  // Blood rage counts shields as health, and is capped.
+  assert.equal(shatteredCoreAttackBonus(100, 0, 100), 0);
+  close(shatteredCoreAttackBonus(50, 0, 100), 0.5 * SHATTERED_CORE.attackPerMissing);
+  close(shatteredCoreAttackBonus(50, 50, 100), 0, 1e-12);
+  assert.equal(shatteredCoreAttackBonus(1, 0, 100), SHATTERED_CORE.attackBonusCap);
+
+  // A wounded vow-holder hits harder than at full HP, and steals life on direct hits.
+  const hurt = loadout('RKF01', { baseStats: plain.baseStats, hp: stats.max_hp * 0.4, permanentRule: { kind: 'shattered_core', originalMaxHp } });
+  const full = loadout('RKF01', { baseStats: plain.baseStats, hp: stats.max_hp, permanentRule: { kind: 'shattered_core', originalMaxHp } });
+  const hitOf = battle => battle.frames.find(frame => frame.kind === 'damage' && frame.source === 'RKF01-BASIC-DAMAGE');
+  const hurtBattle = simulateBattle(content, hurt, dummy(), 'sacrifice-shattered-rage', { roundLimit: 1 });
+  const fullBattle = simulateBattle(content, full, dummy(), 'sacrifice-shattered-rage', { roundLimit: 1 });
+  close(hitOf(hurtBattle).amount / hitOf(fullBattle).amount, 1 + shatteredCoreAttackBonus(0.4, 0, 1));
+  const steal = hurtBattle.frames.find(frame => frame.kind === 'heal' && frame.source === 'RE037-A');
+  assert.ok(steal, 'direct damage steals life');
+  close(steal.amount, hitOf(hurtBattle).amount * SHATTERED_CORE.lifesteal);
 });
 
 test('blind sword converts basic and derived hits to true damage, and the shield still absorbs it', () => {
@@ -143,7 +158,7 @@ test('blind sword converts basic and derived hits to true damage, and the shield
   assert.ok(converted.length >= 1);
   assert.ok(contribution(result, 'RE037-B').damage > 0,
     'the legal blind-sword source remains in the battle result');
-  close(converted[0].amount, 48);
+  close(converted[0].amount, 48 * BLIND_SWORD_TRUE_RATIO / 3, 1e-6);
   assert.equal(result.frames.some(frame => /暴击/.test(frame.text)), false);
   const shieldCreated = result.frames.find(frame => frame.kind === 'shield' && frame.actor === 'enemy');
   const normalHit = result.frames.find(frame => frame.kind === 'damage' &&
@@ -198,7 +213,7 @@ test('blind sword leaves damage-over-time outside the conversion', () => {
   assert.deepEqual(dots(converted), dots(normal));
 });
 
-test('endless chain waits below the real rage cap, then spends the full cap without basic actions', () => {
+test('endless chain refills rage before every action: a rage art every round, never a basic', () => {
   const player = loadout('RKF01', {
     artifacts: [{ id: 'RL04', stacks: 1 }],
     permanentRule: { kind: 'endless_chain' },
@@ -209,47 +224,38 @@ test('endless chain waits below the real rage cap, then spends the full cap with
     baseStats: { attack: 0, defense: 0, max_hp: 1_000_000, crit_rate: 0, speed: 0 },
   });
   const result = simulateBattle(content, player, rageDrainingEnemy, 'sacrifice-endless-chain', { roundLimit: 3 });
-  const start = result.frames.find(frame => frame.kind === 'start');
-  assert.equal(start.player.rage, 20, 'enemy opening drain places the player below RL04’s 50-point cap');
-  const waits = result.frames.filter(frame => frame.kind === 'wait' && frame.actor === 'player');
-  assert.equal(waits.length, 1);
-  assert.equal(waits[0].player.lockedAction, 'wait');
-  const secondRound = result.frames.find(frame => frame.kind === 'round' && frame.round === 2);
-  assert.ok(secondRound);
-  assert.equal(secondRound.player.rageCap, 50, 'the equipped artifact sets the real rage cap');
-  assert.equal(secondRound.player.lockedAction, 'rage_action');
-  assert.ok(result.frames.some(frame => frame.kind === 'action' && frame.round === 2 && frame.actor === 'player' && /怒技/.test(frame.text)));
-  assert.ok(contribution(result, 'RE037-C').rage > 0,
-    'the actual endless-chain rule remains in the battle result');
+  for (const round of [1, 2, 3]) {
+    const header = result.frames.find(frame => frame.kind === 'round' && frame.round === round);
+    assert.equal(header.player.rage, header.player.rageCap, `round ${round} starts at the real rage cap despite drains`);
+    assert.equal(header.player.lockedAction, 'rage_action');
+    assert.ok(result.frames.some(frame => frame.kind === 'action' && frame.round === round && frame.actor === 'player' && /怒技/.test(frame.text)));
+  }
+  assert.equal(result.frames.some(frame => frame.kind === 'wait' && frame.actor === 'player'), false);
   assert.equal(result.frames.some(frame => frame.kind === 'action' && frame.actor === 'player' && /普攻/.test(frame.text)), false);
+  assert.ok(contribution(result, 'RE037-C').rage > 0, 'the refill is attributed to the permanent rule');
 
+  // Rage arts gain the authored bonus and the vow-holder takes reduced damage.
+  const plain = loadout('RKF01', { artifacts: [{ id: 'RL04', stacks: 1 }] });
   const opened = makeContent(100);
-  const forcedPlayer = loadout('RKF02', {
-    artifacts: [{ id: 'RL04', stacks: 1 }],
-    permanentRule: { kind: 'endless_chain' },
-  });
-  const forcedPlain = loadout('RKF02', { artifacts: [{ id: 'RL04', stacks: 1 }] });
-  const forcedEnemy = dummy();
-  const lawResult = simulateBattle(opened, forcedPlayer, forcedEnemy, 'sacrifice-forced-basic', { roundLimit: 2 });
-  const plainResult = simulateBattle(opened, forcedPlain, forcedEnemy, 'sacrifice-forced-basic', { roundLimit: 2 });
-  assert.equal(
-    plainResult.frames.some(frame => frame.kind === 'action' && frame.round === 2 && frame.actor === 'player' && /普攻/.test(frame.text)),
-    true,
-    'the comparison build receives RKF02 forced basic after its opening rage action',
+  const rageHit = battle => battle.frames.find(frame => frame.kind === 'damage' && frame.source === 'RKF01-RAGE-DAMAGE');
+  const lawRage = rageHit(simulateBattle(opened, player, dummy(), 'endless-bonus', { roundLimit: 1 }));
+  const plainRage = rageHit(simulateBattle(opened, plain, dummy(), 'endless-bonus', { roundLimit: 1 }));
+  close(lawRage.amount / plainRage.amount, ENDLESS_CHAIN.rageDamageMultiplier);
+  const attacker = dummy({ baseStats: { attack: 100, speed: 300 } });
+  const incoming = battle => battle.frames.find(frame => frame.kind === 'damage' && frame.actor === 'enemy');
+  close(
+    incoming(simulateBattle(content, player, attacker, 'endless-guard', { roundLimit: 1 })).amount /
+      incoming(simulateBattle(content, plain, attacker, 'endless-guard', { roundLimit: 1 })).amount,
+    ENDLESS_CHAIN.damageTakenMultiplier,
   );
-  assert.equal(
-    lawResult.frames.some(frame => frame.kind === 'action' && frame.actor === 'player' && /普攻/.test(frame.text)),
-    false,
-    'the permanent rule intercepts the forced basic action',
-  );
-  assert.ok(lawResult.frames.some(frame => frame.kind === 'action' && frame.round === 2 && frame.actor === 'player' && /怒技/.test(frame.text)));
 });
 
 test('RE037 choices persist their source, keep the permanent marker, and reject forged save state', () => {
   const pending = selectRule('RE037-A', 'sacrifice-save-pending');
   const originalMaxHp = pending.state.permanentRule.originalMaxHp;
-  assert.equal(pending.state.hp, 1);
-  assert.equal(pending.stats.max_hp, 1);
+  close(pending.stats.max_hp, originalMaxHp * SHATTERED_CORE.maxHpMultiplier);
+  assert.ok(pending.state.hp > 1 && pending.state.hp <= pending.stats.max_hp + 1e-9,
+    'current HP is clamped to the reduced cap, never locked to 1');
   assert.equal(pending.player.permanentRule.originalMaxHp, originalMaxHp);
 
   const pendingSave = JSON.parse(serializeRun(pending));
@@ -327,4 +333,19 @@ test('each RE037 law maps to one persistent choice and the exit grants none', ()
   const exit = selectRule('RE037-D', 'sacrifice-clean-exit');
   assert.equal(exit.state.permanentRule, undefined);
   assert.match(exit.state.resultText, /没有立誓/);
+});
+
+test('RE037 and UI copy state the live vow numbers', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const app = await readFile(new URL('../src/shanhai/app.ts', import.meta.url), 'utf8');
+  const quick = id => content.byId.RE037.options.find(option => option.id === id).quick;
+  const pct = value => `${Math.round(value * 100)}%`;
+  for (const text of [quick('RE037-A'), app]) {
+    assert.ok(text.includes(pct(SHATTERED_CORE.maxHpMultiplier)));
+    assert.ok(text.includes(`+${pct(SHATTERED_CORE.attackBonusCap)}`));
+    assert.ok(text.includes(`${pct(SHATTERED_CORE.attackPerMissing / 10)}`));
+  }
+  assert.ok(quick('RE037-B').includes(String(BLIND_SWORD_TRUE_RATIO)));
+  assert.ok(quick('RE037-C').includes(`+${pct(ENDLESS_CHAIN.rageDamageMultiplier - 1)}`));
+  assert.ok(quick('RE037-C').includes(`-${pct(1 - ENDLESS_CHAIN.damageTakenMultiplier)}`));
 });

@@ -22,7 +22,7 @@ scene: 炉膛被倒灌的水汽压得忽明忽暗，炉工只来得及照看一�
 options:
   - id: RE002-A
     label: 即时取走玄铁甲
-    quick: 付出标价灵石，立即带走一层玄铁甲以提升防御；灵石不足或该法宝已满层时不能选。
+    quick: 付出标价灵石，立即带走一层玄铁甲以提升防御。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC03, count: 1}

@@ -109,6 +109,9 @@ npm run calibrate
 - `test:v2:ui` 检查 390、430、1440 像素装备与候选页、替换、核心规则文案、
   V1/V2 存储隔离和来源展示。旧版额外美术、固定天赋树与紧凑布局浏览器脚本
   尚未全部迁移至 V2，不能将它们的 V1 报告当成本轮验收。
+- `audit` 用真实战斗逐场记录入场气血、护盾吸收与峰值、损血、回合与击杀者，检出“低血靠盾硬撑”
+  与滚雪球；`AUDIT_VOW=A|B|C|D` 在相同种子下强制三法献祭选择以便对比。输出
+  `verification/shanhai/v2/balance-audit.json`。敌人数值修正记录在 `tools/balance/enemy-tuning.mjs`。
 - `calibrate` 记录固定敌人参考盘与真实节点对局，保留输入哈希、胜负、轮数、净损血、
   最低血线和单轮损耗。输出 `verification/shanhai/v2/calibration-*.json`，不回写内容的实测字段。
 - `SIM_SEEDS=20 node tests/shanhai-v2-multipolicy-simulate.mjs` 对五门开局功法分别运行三种自动策略；

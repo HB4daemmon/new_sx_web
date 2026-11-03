@@ -9,7 +9,7 @@ const METHOD_BRANCHES = Object.freeze({
   RKF01: 'A', RKF02: 'B', RKF03: 'B', RKF04: 'C', RKF05: 'B',
 });
 const RR05_ENEMIES = Object.freeze([
-  'EN-A1-L1', 'EN-A2-B2', 'EN-A2-L1', 'EN-A3-C2', 'EN-A3-L1', 'EN-A4-C4',
+  'EN-A1-L1', 'EN-A2-B2', 'EN-A2-L1', 'EN-A3-C2', 'EN-A3-L1',
 ]);
 
 async function loadGameContent() {
@@ -79,6 +79,11 @@ test('RR05 enemy previews expose its live gambit and each authored combat loop',
   assert.match(content.byId['EN-A3-L1'].preview, /J3-C.*0\.45倍/);
   assert.match(content.byId['EN-A3-L1'].preview, /两层引气符每次普攻另回10怒/);
 
+  // EN-A4-C4 is a normal encounter: its ×1.6 gambit one-shot full-HP players,
+  // so it now carries two 玄铁甲 instead of 镇心玉 and must not advertise the gambit.
+  assert.equal(content.byId['EN-A4-C4'].artifacts.some(artifact => artifact.id === 'RR05'), false);
+  assert.doesNotMatch(content.byId['EN-A4-C4'].preview, /镇心玉/);
+  assert.match(content.byId['EN-A4-C4'].preview, /两层玄铁甲/);
   assert.match(content.byId['EN-A4-C4'].preview, /J1-C提高22%，J4-B再提高30%/);
   assert.match(content.byId['EN-A4-C4'].preview, /J3-A.*每点怒气.*0\.012倍/);
   assert.match(content.byId['EN-A4-C4'].preview, /两层返气环.*合计返10怒/);

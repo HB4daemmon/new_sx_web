@@ -299,6 +299,7 @@ export const SHARED_INSIGHT_BUILD_RULES = Object.freeze({
     base_bonus: numericRange(0, 1),
     elite_bonus: numericRange(0, 1),
     boss_bonus: numericRange(0, 1),
+    trophy_cap: numericRange(0, 5),
   }),
 })
 

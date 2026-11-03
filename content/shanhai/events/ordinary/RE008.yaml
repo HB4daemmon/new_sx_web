@@ -22,7 +22,7 @@ scene: 旧炉里浮起熟悉的法脉投影，边上留着一层玄铁甲。炉�
 options:
   - id: RE008-A
     label: 付石开启功法重选
-    quick: 付出标价灵石后选择另一门已学功法改修；灵石不足或未学适用功法不能选，不回血、不洗点。
+    quick: 付出标价灵石后选择另一门已学功法改修；不回血、不洗点。
     requirements:
       - {type: known_method, id: RKF01}
       - {type: can_pay}
@@ -34,7 +34,7 @@ options:
     story_echo: 你付石请炉影照出旧法，重新择定修行方向，沿着炉边窄路离开。
   - id: RE008-B
     label: 付石取走玄铁甲
-    quick: 付出标价灵石，带走一层玄铁甲以提升防御；灵石不足或该法宝已满层时不能选。
+    quick: 付出标价灵石，带走一层玄铁甲以提升防御。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC03, count: 1}

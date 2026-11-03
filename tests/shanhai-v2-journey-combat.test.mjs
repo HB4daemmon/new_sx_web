@@ -136,7 +136,7 @@ test('hunter historical growth, speed damage, bounty attack, and trophy history 
     } },
     { id: 'TEST-SPEED', tier: 3, kind: 'speed_damage', params: { speed_bonus: 2, max_multiplier: 2.5 } },
     { id: 'TEST-TROPHY', tier: 4, kind: 'trophy_damage', params: {
-      base_bonus: 0.12, elite_bonus: 0.1, boss_bonus: 0.15,
+      base_bonus: 0.12, elite_bonus: 0.1, boss_bonus: 0.15, trophy_cap: 5,
     } },
   ]);
   const player = loadout('RKF08', ['TEST-HUNTER', 'TEST-BOUNTY', 'TEST-SPEED', 'TEST-TROPHY'], [], {

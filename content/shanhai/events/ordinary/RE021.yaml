@@ -22,7 +22,7 @@ scene: 热流沿地表掠过，砂下两件法宝透出不同颜色的光，冷�
 options:
   - id: RE021-A
     label: 付气血取蛇纹瓶
-    quick: 损失约143点气血（第四幕约173点），带走两层蛇纹瓶以增强中毒伤害；该法宝须能再叠两层且能存活，否则不能选。
+    quick: 损失约143点气血（第四幕约173点），带走两层蛇纹瓶以增强中毒伤害。
     requirements:
       - {type: capacity, id: RC14, count: 2}
     costs:
@@ -33,7 +33,7 @@ options:
     story_echo: 你忍着热砂取出两层蛇纹瓶，带着伤口离开仍有热流涌动的砂地。
   - id: RE021-B
     label: 付气血取赤炎珠
-    quick: 损失约143点气血（第四幕约173点），带走两层赤炎珠以增强燃烧伤害；该法宝须能再叠两层且能存活，否则不能选。
+    quick: 损失约143点气血（第四幕约173点），带走两层赤炎珠以增强燃烧伤害。
     requirements:
       - {type: capacity, id: RC15, count: 2}
     costs:

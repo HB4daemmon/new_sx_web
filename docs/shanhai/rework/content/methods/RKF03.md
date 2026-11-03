@@ -56,7 +56,7 @@
 | 3 | B | 回元续脉 | 治疗后短暂减伤 | 强化 |
 | 3 | C | 养气护生 | 有效治疗造盾 | 强化 |
 | 4 | A | 春回大地 | 怒技治疗与溢伤提高 | 强化 |
-| 4 | B | 生死回春 | 重伤时治疗增强 | 强化 |
+| 4 | B | 生死回春 | 每场首次受致命伤免死并回春 | 强化 |
 | 4 | C | 枯荣转锋 | 溢疗转直接伤害 | 转化 |
 
 ## 天赋效果
@@ -122,10 +122,10 @@
 - `RKF03-J4-A-RAGE-HEAL`；枯木回天恢复的气血增加最大气血的1%；超过气血上限的部分仍只触发一种溢疗效果。；操作：修改效果；触发：动作结束；目标：自身；参数：模式=add_input；效果 ID=RKF03-RAGE-HEAL；最大气血倍率增量=0.01；时机=after_damage；overflow_selector_unchanged=是；限制：范围=action；次数=1
 :::
 ::: details 4层B：生死回春
-- 玩家摘要：重伤时治疗增强
+- 玩家摘要：每场首次受致命伤免死并回春
 - 类别：强化
 - 开发标识：`RKF03-J4-B`
-- `RKF03-J4-B-LOW-HEAL`；治疗时若当前气血不高于最大气血的30%，本次治疗量提高30%；超过气血上限的部分仍按所学天赋转化。；操作：修改效果；触发：治疗结算；目标：自身；参数：模式=multiplier；heal_multiplier=1.3；条件=current_hp_ratio_at_or_below_0.30；applies_to=basic_and_rage_heal；overflow_after_multiplier=是；前置：critical_low_current_hp；限制：范围=action；次数=1
+- `RKF03-J4-B-CHEAT-DEATH`；每场战斗首次受到会使气血归零的伤害时，改为保留1点气血并立即回复最大气血30%；天劫真实伤害不触发。；操作：修改效果；触发：始终；目标：自身；参数：signature=cheat_death；heal_ratio=0.3；限制：范围=permanent；次数=1
 :::
 ::: details 4层C：枯荣转锋
 - 玩家摘要：溢疗转直接伤害

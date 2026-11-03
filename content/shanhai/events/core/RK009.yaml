@@ -23,7 +23,7 @@ scene: 山场水声穿过两面阵旗，哪吒把重阵留在前、连阵留在�
 options:
   - id: RK009-enter-first-array
     label: 先接重阵
-    quick: 付 8% 基准气血挑战，胜利留第二阵资格；失手至少保留 1 点气血且无奖。
+    quick: 付 8% 基准气血挑战，胜利留第二阵资格；输了留一口气（至少 1 点气血），空手而归。
     requirements: []
     costs:
       - {type: resource, resource: hp, amount: 0.08, basis: reference_hp, must_survive: true}

@@ -10,6 +10,7 @@
     "test": "npm run build && node --test tests/shanhai-*.test.mjs",
     "test:content": "npm --prefix tools/content-kit test",
     "simulate": "node tests/shanhai-simulate.mjs",
+    "audit": "npm run build && node tests/shanhai-balance-audit.mjs",
     "test:browser": "node tests/shanhai-browser.mjs",
     "test:v2": "npm run build && node --test tests/shanhai-v2-*.test.mjs",
     "test:v2:ui": "node tests/shanhai-v2-ui.mjs",

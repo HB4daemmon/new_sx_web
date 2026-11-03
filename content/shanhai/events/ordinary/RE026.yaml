@@ -22,7 +22,7 @@ scene: 雷骨被余火顶出裂纹，镇心玉和凝气珠分别落在石缝两�
 options:
   - id: RE026-A
     label: 付高价取镇心玉
-    quick: 付出高价灵石，带走镇心玉以提升防御并在战斗中积攒攻击；灵石不足或该法宝已满层时不能选。
+    quick: 付出高价灵石，带走镇心玉以提升防御并在战斗中积攒攻击。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RR05, count: 1}
@@ -34,7 +34,7 @@ options:
     story_echo: 你付高价带走镇心玉，护身之力随行，雷骨留在余火旁。
   - id: RE026-B
     label: 付较低标价取凝气珠
-    quick: 付出较低标价灵石，带走一层凝气珠；攻击提高、怒气上限降低，灵石不足或该法宝已满层时不能选。
+    quick: 付出较低标价灵石，带走一层凝气珠；攻击提高、怒气上限降低。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC19, count: 1}

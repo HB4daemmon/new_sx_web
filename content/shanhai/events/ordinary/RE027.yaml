@@ -22,7 +22,7 @@ scene: 毒火顺着地缝里的热流游走，太阴经压在阵心。阵师划�
 options:
   - id: RE027-A
     label: 入阵问太阴经
-    quick: 参加非致死问阵，胜利取得太阴经；失手至少保留 1 点气血且无奖励。
+    quick: 非致死问阵，胜利取得太阴经；输了留一口气（至少 1 点气血），空手而归。
     requirements: []
     costs: []
     rewards:
@@ -38,7 +38,7 @@ options:
     story_failure_echo: 你被毒火逼回阵外，至少保留 1 点气血，太阴经没有到手。
   - id: RE027-B
     label: 付石绕开问阵取珠
-    quick: 付出标价灵石，带走一层赤炎珠并避开问阵；灵石不足或该法宝已满层时不能选。
+    quick: 付出标价灵石，带走一层赤炎珠并避开问阵。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC15, count: 1}

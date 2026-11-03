@@ -30,7 +30,7 @@ artifacts:
   - {id: RC14, stacks: 2}
   - {id: RC24, stacks: 1}
 stats:
-  attack: 48.4
+  attack: 54.2
   defense: 57.2
   max_hp: 792
   crit_rate: 0.06

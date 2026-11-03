@@ -23,7 +23,7 @@ scene: 潮线退开一瞬，礁石露出锋口；精卫指明回到堤边的路�
 options:
   - id: RK004-clear-reef
     label: 迎潮清礁
-    quick: 参加清礁战，胜利取毒牙钉；战斗伤害随实战变化，失手至少保留 1 点气血且无奖。
+    quick: 参加清礁战，胜利取毒牙钉；战斗伤害随实战变化，输了留一口气（至少 1 点气血），空手而归。
     requirements:
       - {type: flag, id: RS02-promised, value: true}
     costs: []

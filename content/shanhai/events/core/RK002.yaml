@@ -23,7 +23,7 @@ scene: 药棚挨着通往火海的旧路，潮痕已逼到门槛；神农摆出�
 options:
   - id: RK002-enter-trial
     label: 守住药棚
-    quick: 付 12% 基准气血挑战，胜利取长明灯；失手至少保留 1 点气血且无奖。
+    quick: 付 12% 基准气血挑战，胜利取长明灯；输了留一口气（至少 1 点气血），空手而归。
     requirements:
       - {type: flag, id: RS01-promised, value: true}
     costs:

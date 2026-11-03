@@ -45,7 +45,7 @@ options:
       failure_echo: 回身石的映影散去，灵石已付，你沿当前功法继续前行。
   - id: RE025-B
     label: 付石带走返气环
-    quick: 付出标价灵石，带走一层返气环以在怒技后额外回怒；灵石不足或该法宝已满层时不能选。
+    quick: 付出标价灵石，带走一层返气环以在怒技后额外回怒。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC23, count: 1}

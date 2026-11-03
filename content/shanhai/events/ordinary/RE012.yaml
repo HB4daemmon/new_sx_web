@@ -22,7 +22,7 @@ scene: 水流冲开旧河墩，锈锁下两只木匣仍紧扣不动。养气玉�
 options:
   - id: RE012-A
     label: 以气血撬锁取养气玉
-    quick: 损失约78点气血，带走两层养气玉并提高最大气血；该法宝须能再叠两层且能存活，否则不能选。
+    quick: 损失约78点气血，带走两层养气玉并提高最大气血。
     requirements:
       - {type: capacity, id: RC05, count: 2}
     costs:
@@ -33,7 +33,7 @@ options:
     story_echo: 你忍痛撬开木匣取走两层养气玉，河墩上留下被水磨亮的锁片。
   - id: RE012-B
     label: 以气血撬锁取厚土环
-    quick: 损失约78点气血，带走两层厚土环并提升防御；该法宝须能再叠两层且能存活，否则不能选。
+    quick: 损失约78点气血，带走两层厚土环并提升防御。
     requirements:
       - {type: capacity, id: RC04, count: 2}
     costs:

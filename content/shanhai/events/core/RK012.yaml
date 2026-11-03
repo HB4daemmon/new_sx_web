@@ -23,7 +23,7 @@ scene: 风止石前的火根仍在吐息，铁扇公主摆出薪火宝炉与余�
 options:
   - id: RK012-extinguish-fire-root
     label: 除掉火根
-    quick: 付 15% 基准气血挑战，胜利取薪火宝炉；失手至少保留 1 点气血且无奖。
+    quick: 付 15% 基准气血挑战，胜利取薪火宝炉；输了留一口气（至少 1 点气血），空手而归。
     requirements:
       - {type: flag, id: RS06-promised, value: true}
     costs:

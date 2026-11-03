@@ -62,9 +62,11 @@ function makeSacrificeSave(kind, seed) {
   if (kind === 'shattered_core') {
     const start = game.state.battle.frames.find(frame => frame.kind === 'start');
     assert.ok(start);
-    assert.equal(start.player.maxShield, game.state.permanentRule.originalMaxHp * 2.5);
+    assert.equal(start.player.maxShield, start.player.maxHp, 'shield cap is the reduced max HP');
+    assert.equal(start.player.shield, 0, 'no opening shield');
   } else {
-    assert.ok(game.state.battle.frames.some(frame => frame.kind === 'wait' && frame.actor === 'player'));
+    assert.equal(game.state.battle.frames.some(frame => frame.kind === 'wait' && frame.actor === 'player'), false);
+    assert.ok(game.state.battle.frames.some(frame => frame.source === 'RE037-C' && frame.kind === 'rage'));
   }
   return serializeRun(game);
 }
@@ -79,7 +81,7 @@ async function loadSave(page, serialized) {
   await page.locator('.game-page.phase-battle .combatant.side-p').waitFor({ state: 'visible' });
 }
 
-test('RE037 UI shows its lasting rule, shattered-core shield capacity, and endless-chain wait report', async () => {
+test('RE037 UI shows its lasting rule, the burning-blood cap, and the endless-chain refill report', async () => {
   const browser = await chromium.launch({ headless: true, executablePath, args: ['--no-sandbox'] });
   const pageErrors = [];
   const context = await browser.newContext({
@@ -93,28 +95,32 @@ test('RE037 UI shows its lasting rule, shattered-core shield capacity, and endle
   page.on('pageerror', error => pageErrors.push(error.message));
   try {
     const shatteredSave = makeSacrificeSave('shattered_core', 'sacrifice-ui-shattered');
-    const shatteredState = JSON.parse(shatteredSave).state;
-    const expectedShield = shatteredState.permanentRule.originalMaxHp * 2.5;
     await loadSave(page, shatteredSave);
     const shatteredRule = page.locator('.combatant.side-p .permanent-rule-state[data-permanent-rule="shattered_core"]');
     await shatteredRule.waitFor({ state: 'visible' });
-    assert.match(await shatteredRule.innerText(), /攻击提高 80%/);
-    assert.match(await shatteredRule.innerText(), /250%/);
+    assert.match(await shatteredRule.innerText(), /气血上限永久降为 60%/);
+    assert.match(await shatteredRule.innerText(), /最多 \+60%/);
+    assert.match(await shatteredRule.innerText(), /吸取 8%/);
+    // No more "1 HP behind a huge shield": the shield cap equals the (reduced) max HP.
     const shieldValues = (await page.locator('.combatant.side-p .shield-count').innerText())
       .match(/[\d,]+(?:\.\d+)?/g)
       .map(value => Number(value.replaceAll(',', '')));
-    assert.deepEqual(shieldValues, [expectedShield, expectedShield]);
+    const hpMax = Number((await page.locator('.combatant.side-p .fighter-numbers').first().innerText())
+      .match(/\/\s*([\d,]+)/)[1].replaceAll(',', ''));
+    assert.equal(shieldValues[0], 0, 'no opening shield');
+    assert.equal(shieldValues[1], hpMax, 'shield cap is the reduced max HP');
 
     const endlessSave = makeSacrificeSave('endless_chain', 'sacrifice-ui-endless');
     await loadSave(page, endlessSave);
     const endlessRule = page.locator('.combatant.side-p .permanent-rule-state[data-permanent-rule="endless_chain"]');
     await endlessRule.waitFor({ state: 'visible' });
-    assert.match(await endlessRule.innerText(), /额外获得 80 怒气/);
+    assert.match(await endlessRule.innerText(), /怒气补满/);
     await page.locator('[data-action="battle-skip"]').click();
     await page.locator('[data-action="battle-details"][data-tab="log"]').click();
     const log = page.locator('.battle-detail-dialog .battle-log');
     await log.waitFor({ state: 'visible' });
-    assert.match(await log.innerText(), /蓄气等待/);
+    assert.match(await log.innerText(), /断普连诀，怒气充盈|怒气充盈/);
+    assert.doesNotMatch(await log.innerText(), /玩家普攻/);
     assert.deepEqual(pageErrors, []);
   } finally {
     await context.close();

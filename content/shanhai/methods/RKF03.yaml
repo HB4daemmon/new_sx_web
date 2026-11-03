@@ -418,24 +418,19 @@ talents:
     tier: 4
     branch: B
     name: 生死回春
-    quick: 重伤时治疗增强
+    quick: 每场首次受致命伤免死并回春
     category: enhance
     effects:
-      - id: RKF03-J4-B-LOW-HEAL
-        trigger: heal_resolved
+      - id: RKF03-J4-B-CHEAT-DEATH
+        trigger: always
         operation: modify_effect
         target: self
-        params:
-          mode: multiplier
-          heal_multiplier: 1.30
-          condition: current_hp_ratio_at_or_below_0.30
-          applies_to: basic_and_rage_heal
-          overflow_after_multiplier: true
-        requires: [critical_low_current_hp]
+        params: {signature: cheat_death, heal_ratio: 0.3}
+        requires: []
         consumes: []
         replaces: []
-        limit: {scope: action, count: 1}
-        text: 治疗时若当前气血不高于最大气血的30%，本次治疗量提高30%；超过气血上限的部分仍按所学天赋转化。
+        limit: {scope: permanent, count: 1}
+        text: 每场战斗首次受到会使气血归零的伤害时，改为保留1点气血并立即回复最大气血30%；天劫真实伤害不触发。
   - id: RKF03-J4-C
     tier: 4
     branch: C

@@ -22,7 +22,7 @@ scene: 货牌被河风翻到背面，船家不再谈远处市集，只让你选�
 options:
   - id: RE013-A
     label: 付石备好下一战
-    quick: 付出标价灵石，为下一场战斗准备一层护盾；灵石不足不能选。
+    quick: 付出标价灵石，为下一场战斗准备一层护盾。
     requirements:
       - {type: can_pay}
     costs:

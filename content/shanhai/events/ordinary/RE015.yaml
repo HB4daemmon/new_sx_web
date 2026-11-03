@@ -22,7 +22,7 @@ scene: 被水汽冲散的炉火把御火诀残纸烘干，赤炎珠也在余温�
 options:
   - id: RE015-A
     label: 付石带走御火诀
-    quick: 付出标价灵石，取得御火诀法本；是否改修由你决定，灵石不足不能选。
+    quick: 付出标价灵石，取得御火诀法本；是否改修由你决定。
     requirements:
       - {type: can_pay}
     costs:
@@ -33,7 +33,7 @@ options:
     story_echo: 你把御火诀法本收进囊中，现用功法未变，炉边残纸留给后来人。
   - id: RE015-B
     label: 付石收下赤炎珠
-    quick: 付出标价灵石，带走一层赤炎珠以增强燃烧伤害；灵石不足或该法宝已满层时不能选。
+    quick: 付出标价灵石，带走一层赤炎珠以增强燃烧伤害。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC15, count: 1}

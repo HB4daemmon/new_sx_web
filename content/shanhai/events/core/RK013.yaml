@@ -23,7 +23,7 @@ scene: 断桥下的回流水势把人推向岸边，旁侧石台上有琉璃法�
 options:
   - id: RK013-cross-broken-bridge
     label: 踏桥取印
-    quick: 付 15% 基准气血挑战，胜利取琉璃法印；失手至少保留 1 点气血且无奖。
+    quick: 付 15% 基准气血挑战，胜利取琉璃法印；输了留一口气（至少 1 点气血），空手而归。
     requirements: []
     costs:
       - {type: resource, resource: hp, amount: 0.15, basis: reference_hp, must_survive: true}

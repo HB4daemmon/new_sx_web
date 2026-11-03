@@ -101,7 +101,11 @@ function reload(game) {
   return new ShanhaiGame(content, parseRunSave(content, serializeRun(game)));
 }
 
-test('a real event commitment survives saves, excludes its origin, and grants travel items only after delivery', () => {
+test('a real event commitment survives saves, excludes its origin, and grants travel items only after delivery', (t) => {
+  // Isolate travel-item healing from the separate post-victory recovery rule.
+  const victoryRecovery = content.rules.economy.victory_recovery;
+  delete content.rules.economy.victory_recovery;
+  t.after(() => { content.rules.economy.victory_recovery = victoryRecovery; });
   let game = atCommitment();
   assert.equal(game.state.eventCommitments[0].remaining, 3);
   assert.equal(game.state.artifacts.some(item => item.id === 'RC17'), false);

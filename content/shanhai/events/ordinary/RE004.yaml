@@ -22,7 +22,7 @@ scene: 乱石坡上立着一道未刻完的空白印，旁边留着药碗和几�
 options:
   - id: RE004-A
     label: 以修为刻回春瓶
-    quick: 支付下一次完整突破需求的两成修为，立即带走两层回春瓶；该法宝须能再叠两层且修为足够，否则不能选。
+    quick: 支付下一次完整突破需求的两成修为，立即带走两层回春瓶。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC12, count: 2}

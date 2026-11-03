@@ -22,7 +22,7 @@ scene: 火势沿经架下缘爬过，守页人把仅存的养剑诀法本与剑�
 options:
   - id: RE024-A
     label: 付石收下养剑诀
-    quick: 付出标价灵石，带走养剑诀法本；是否改修由你决定，灵石不足不能选。
+    quick: 付出标价灵石，带走养剑诀法本；是否改修由你决定。
     requirements:
       - {type: can_pay}
     costs:
@@ -33,7 +33,7 @@ options:
     story_echo: 你付石收下养剑诀法本，带着未改的现用功法离开渐热的经阁。
   - id: RE024-B
     label: 付石带走剑穗
-    quick: 付出标价灵石，带走一层剑穗以强化普攻；灵石不足或该法宝已满层时不能选。
+    quick: 付出标价灵石，带走一层剑穗以强化普攻。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC09, count: 1}

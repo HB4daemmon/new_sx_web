@@ -24,7 +24,7 @@ scene: 云门一开一合，门后昼夜交替；石碑写明只有学过太阴�
 options:
   - id: RK016-open-day-night
     label: 迎昼夜试炼
-    quick: 学过太阴经，付 15% 基准气血挑战；胜取烛龙真经，失手至少保留 1 点且无奖。
+    quick: 学过太阴经，付 15% 基准气血挑战；胜取烛龙真经，输了留一口气（至少 1 点气血），空手而归。
     requirements:
       - {type: known_method, id: RKF08}
     costs:

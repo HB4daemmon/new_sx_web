@@ -389,26 +389,20 @@ talents:
   - id: RKF01-J4-A
     tier: 4
     branch: A
-    name: 护法无疆
-    quick: 持盾减直接伤害
-    category: enhance
+    name: 盈盾化雷
+    quick: 护盾上限压至一成半，溢出的护盾化为1.5倍雷劲轰向敌人
+    category: convert
     effects:
-      - id: RKF01-J4-A-REDUCE
+      - id: RKF01-J4-A-OVERFLOW-STRIKE
         trigger: always
         operation: modify_effect
         target: self
-        params:
-          mode: incoming_multiplier
-          source: enemy_direct
-          multiplier: 0.82
-          condition: shield_present
-          excludes: [burn, poison, event_damage]
-          shield_still_absorbs: true
-        requires: [shield_present]
+        params: {signature: shield_overflow_strike, shield_cap_ratio: 0.15, damage_ratio: 1.5}
+        requires: []
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 持有护盾时，受到的敌方直接攻击伤害降低18%；燃烧、中毒和事件扣血不受影响，护盾仍照常承受攻击。
+        text: 护盾上限降为最大气血的15%；获得护盾时超出上限的部分不再作废，而是按其1.5倍对敌方造成派生伤害；不可暴击，不会再次触发造盾。
   - id: RKF01-J4-B
     tier: 4
     branch: B

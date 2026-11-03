@@ -31,7 +31,7 @@ options:
     story_echo: 你饮下冷泉压住伤痛，听着火口的轰鸣继续辨认安全路段。
   - id: RE019-B
     label: 封泉成一层长生结
-    quick: 带走一层长生结以提高最大气血；不恢复当前气血，须有一层空位否则不能选。
+    quick: 带走一层长生结以提高最大气血；不恢复当前气血。
     requirements:
       - {type: capacity, id: RC06, count: 1}
     costs: []

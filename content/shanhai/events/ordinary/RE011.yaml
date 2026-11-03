@@ -46,7 +46,7 @@ options:
       failure_echo: 旧铁在炉中裂开，锻造未成，标价灵石已付。
   - id: RE011-B
     label: 付石钉上铁壁符
-    quick: 付出标价灵石，带走一层铁壁符以提升防御并增强护盾；灵石不足或该法宝已满层时不能选。
+    quick: 付出标价灵石，带走一层铁壁符以提升防御并增强护盾。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC11, count: 1}

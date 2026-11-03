@@ -39,7 +39,7 @@ const BUILD_FIELDS: Record<BuildKind, string[]> = {
   rage_echo: ['ratio'],
   veteran_shield: ['base_ratio', 'elite_ratio', 'boss_ratio'],
   wealth_shield: ['base_shield', 'shield_per_coin'],
-  trophy_damage: ['base_bonus', 'elite_bonus', 'boss_bonus'],
+  trophy_damage: ['base_bonus', 'elite_bonus', 'boss_bonus', 'trophy_cap'],
 };
 
 const BUILD_NAMES: Record<BuildKind, string> = {
@@ -257,9 +257,10 @@ export function buildMechanicViews(
         summary = `现有灵石 ${amountText(facts.coins)}，基础开场护盾 ${amountText((p.base_shield as number) + facts.coins * (p.shield_per_coin as number))}`;
         break;
       case 'trophy_damage': {
-        const multiplier = 1 + (p.base_bonus as number) +
-          facts.eliteWins * (p.elite_bonus as number) +
-          facts.bossWins * (p.boss_bonus as number);
+        const multiplier = 1 + (p.base_bonus as number) + Math.min(
+          p.trophy_cap as number,
+          facts.eliteWins * (p.elite_bonus as number) + facts.bossWins * (p.boss_bonus as number),
+        );
         summary = `精英胜 ${facts.eliteWins}、首领胜 ${facts.bossWins}，直伤/衍生倍率 ${multiplierText(multiplier)}`;
         break;
       }

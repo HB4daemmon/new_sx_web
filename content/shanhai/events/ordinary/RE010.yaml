@@ -32,7 +32,7 @@ options:
     story_echo: 你趁药材未受潮煎服，并收起岸边零落的灵石，伤痛缓下来后沿岸继续找路。
   - id: RE010-B
     label: 缝进行医囊
-    quick: 不耗灵石，带走一层行医囊；须有一层空位，否则不能选。
+    quick: 不耗灵石，带走一层行医囊。
     requirements:
       - {type: capacity, id: RC17, count: 1}
     costs: []

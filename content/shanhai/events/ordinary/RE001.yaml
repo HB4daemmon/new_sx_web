@@ -31,7 +31,7 @@ options:
     story_echo: 你趁药草尚未泡坏煎服，压住伤痛后重新辨认逆流方向。
   - id: RE001-B
     label: 封药留待自疗
-    quick: 立即带走一层回春瓶以增强今后的自疗；须有一层空位否则不能选。
+    quick: 立即带走一层回春瓶以增强今后的自疗。
     requirements:
       - {type: capacity, id: RC12, count: 1}
     costs: []

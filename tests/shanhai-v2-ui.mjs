@@ -574,7 +574,12 @@ async function assertV2ReplayAndTalentEffectSources(page) {
     { methodId: '', talentId: 'V2-J1-A' },
   ]);
 
-  await page.locator('[data-action="battle-skip"]').click();
+  // The four-frame fixture can finish playing before this point; skipping is then a no-op.
+  await page.waitForFunction(() =>
+    document.querySelector('[data-action="battle-skip"]') || document.querySelector('.battle-settlement'));
+  const skip = page.locator('[data-action="battle-skip"]');
+  if (await skip.count()) await skip.click().catch(() => {});
+  await page.locator('.battle-settlement').waitFor({ state: 'visible' });
   const legacyValues = await page.evaluate(({ saveKey, buildKey, replayKey }) => ({
     replay: localStorage.getItem('suishi-shanhai-replay-v1'),
     build: localStorage.getItem('suishi-shanhai-build-v1'),

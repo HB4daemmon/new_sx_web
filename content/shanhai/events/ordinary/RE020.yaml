@@ -46,7 +46,7 @@ options:
       failure_echo: 赤铁未能成器便被热流吞没，标价灵石已付。
   - id: RE020-B
     label: 付石炼出厚土环
-    quick: 付出标价灵石，带走一层厚土环以提升防御；灵石不足或该法宝已满层时不能选。
+    quick: 付出标价灵石，带走一层厚土环以提升防御。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC04, count: 1}

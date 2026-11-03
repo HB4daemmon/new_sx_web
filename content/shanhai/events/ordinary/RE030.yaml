@@ -22,7 +22,7 @@ scene: 天门外的石缝闪着血契纹路，石台上没有风。取任一血�
 options:
   - id: RE030-A
     label: 付血取两层养气玉
-    quick: 损失约138点气血，带走两层养气玉并提高最大气血；该法宝须能再叠两层且能存活，否则不能选。
+    quick: 损失约138点气血，带走两层养气玉并提高最大气血。
     requirements:
       - {type: capacity, id: RC05, count: 2}
     costs:
@@ -33,7 +33,7 @@ options:
     story_echo: 你付出气血取下两层养气玉，血契散去，最后的天门仍未跨过。
   - id: RE030-B
     label: 付血取两层长生结
-    quick: 损失约138点气血，带走两层长生结并提高最大气血；该法宝须能再叠两层且能存活，否则不能选。
+    quick: 损失约138点气血，带走两层长生结并提高最大气血。
     requirements:
       - {type: capacity, id: RC06, count: 2}
     costs:

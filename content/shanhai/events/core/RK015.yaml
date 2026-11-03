@@ -24,7 +24,7 @@ scene: 倒悬扶桑把火潮照成金色，石碑写明只有学过御火诀的�
 options:
   - id: RK015-climb-fusang
     label: 登树取真经
-    quick: 学过御火诀，付 15% 基准气血挑战；胜取金乌真经，失手至少保留 1 点且无奖。
+    quick: 学过御火诀，付 15% 基准气血挑战；胜取金乌真经，输了留一口气（至少 1 点气血），空手而归。
     requirements:
       - {type: known_method, id: RKF04}
     costs:

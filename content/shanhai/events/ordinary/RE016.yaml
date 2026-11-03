@@ -22,7 +22,7 @@ scene: 旧河道旁的石面留下数道铁印，旁边的凝气珠随水声微�
 options:
   - id: RE016-A
     label: 付材开启功法重选
-    quick: 付出半份标价灵石和下一次突破需求两成修为，再选择另一门已学功法改修；未学适用功法或资源不足则不能选。
+    quick: 付出半份标价灵石和下一次突破需求两成修为，再选择另一门已学功法改修。
     requirements:
       - {type: known_method, id: RKF02}
       - {type: can_pay}
@@ -35,7 +35,7 @@ options:
     story_echo: 你付出灵石与修为，在旧法印记间重新择定修行方向，再沿河道出发。
   - id: RE016-B
     label: 付石取凝气珠
-    quick: 付出标价灵石，带走一层凝气珠；攻击提高、怒气上限降低，灵石不足或该法宝已满层时不能选。
+    quick: 付出标价灵石，带走一层凝气珠；攻击提高、怒气上限降低。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC19, count: 1}

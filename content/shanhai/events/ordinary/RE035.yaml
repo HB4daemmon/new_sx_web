@@ -22,7 +22,7 @@ scene: 守经人已无法替你走过天门，只将回元佩与调息玉留在�
 options:
   - id: RE035-A
     label: 付高价取回元佩
-    quick: 付出高价灵石，带走回元佩以提升防御并让首次怒技后更易再次聚气；灵石不足或该法宝已满层时不能选。
+    quick: 付出高价灵石，带走回元佩以提升防御并让首次怒技后更易再次聚气。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RR07, count: 1}
@@ -34,7 +34,7 @@ options:
     story_echo: 你付高价收下回元佩，独自登阶时，后续战斗才会显出它的作用。
   - id: RE035-B
     label: 付较低标价取调息玉
-    quick: 付出较低标价灵石，带走一层调息玉以在战斗每轮缓慢回怒；灵石不足或该法宝已满层时不能选。
+    quick: 付出较低标价灵石，带走一层调息玉以在战斗每轮缓慢回怒。
     requirements:
       - {type: can_pay}
       - {type: capacity, id: RC21, count: 1}

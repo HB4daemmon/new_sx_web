@@ -257,19 +257,19 @@ insights:
     tier: 4
     branch: B
     name: 百战封侯
-    quick: 伤害+12%；每次既往精英/首领胜利再加10%/15%
+    quick: 伤害+12%；每胜一场精英/首领再加6%/10%，战功加成至多+60%
     category: enhance
     effects:
       - id: V2-J4-B-BUILD
         trigger: always
         operation: modify_effect
         target: self
-        params: {build: trophy_damage, base_bonus: 0.12, elite_bonus: 0.1, boss_bonus: 0.15}
+        params: {build: trophy_damage, base_bonus: 0.12, elite_bonus: 0.06, boss_bonus: 0.1, trophy_cap: 0.6}
         requires: []
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 自身直接与派生伤害乘以1+0.12+0.1×既往精英战胜场数+0.15×既往首领战胜场数；普通胜场不提供额外倍率。
+        text: 自身直接与派生伤害乘以1+0.12+min(0.6, 0.06×既往精英战胜场数+0.1×既往首领战胜场数)；普通胜场不提供额外倍率，战功加成至多+60%。
   - id: V2-J4-C
     tier: 4
     branch: C
@@ -310,6 +310,12 @@ combat:
   derived_reentry: false
   observation_rounds: 15
   timeout_defeat: false
+  tribulation:
+    # 天劫：拖到第12轮仍未分胜负时，每轮末双方各受自身最大气血一定比例的真实伤害，无视护盾；
+    # 比例逐轮递增，治疗与护盾僵局必然收束，气血比例更高的一方胜出。
+    start_round: 12
+    base_ratio: 0.05
+    step_ratio: 0.05
 rage:
   base_cap: 100
   min_cap: 60
@@ -409,6 +415,8 @@ economy:
   boss_xp_by_act: [120, 160, 200, 240]
   rest_heal_ratio: 0.25
   event_heal_ratio: 0.2
+  # 战后调息：胜利后回复“已损失气血”的一定比例；越伤越多回，但永远回不满。
+  victory_recovery: {C: 0.1, L: 0.15, B: 0.25}
   reference_hp_by_act: [625, 775, 950, 1150]
   references: 每幕使用公开首领前境界参考气血；X*按当前境界读取下一次完整突破需求，满阶后不可折价。
   artifact_decline_coins: 4
