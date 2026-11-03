@@ -390,7 +390,7 @@ talents:
     tier: 4
     branch: A
     name: 盈盾化雷
-    quick: 护盾上限压至一成半，溢出的护盾化为1.5倍雷劲轰向敌人
+    quick: 护盾上限压至气血的15%，溢出部分化为1.5倍雷劲轰向敌人
     category: convert
     effects:
       - id: RKF01-J4-A-OVERFLOW-STRIKE
@@ -472,8 +472,8 @@ talents:
         limit: {scope: action, count: 1}
         text: 护体反震命中敌方后施加1层破甲，持续2轮；此效果不会额外触发一次反震。
 routes:
-  - name: 护法金刚
-    summary: 以防御和护盾维持承伤，持盾减伤并固定盾返；敌方直接攻击被吸收时积压的盾压会在怒技释放，且不耗护盾。
+  - name: 盈盾化雷
+    summary: 以防御与护盾承伤，盾压在怒技时释放；护盾上限压至气血的15%，溢出部分化为1.5倍雷劲反击；代价是再也囤不起厚盾，需要持续造盾才有输出。
     talents: [RKF01-J1-A, RKF01-J2-A, RKF01-J3-A, RKF01-J4-A]
   - name: 降魔武僧
     summary: 强化普攻和怒技，怒后插入强化普攻，再让盾压、攻防兼取的盾返和破甲叠加输出；代价是防御不足时护盾更薄。

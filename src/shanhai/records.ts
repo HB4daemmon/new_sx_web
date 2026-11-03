@@ -9,7 +9,14 @@ export interface PlayerRecords {
   bestHit: number;
   methodWins: Record<string, number>;
   /** Highlights of the run in progress / just finished, keyed by run id. */
-  current?: { runId: string; bestHit: number };
+  current?: {
+    runId: string;
+    bestHit: number;
+    /** All-time best before this run started — the bar a "new record" must clear. */
+    baseline: number;
+    /** The in-battle "new record" pop is shown once per run. */
+    announced: boolean;
+  };
   /** Run ids already counted, so a reload never double-counts a finish. */
   finalized: string[];
 }
@@ -50,7 +57,12 @@ function sanitize(value: unknown): PlayerRecords {
       ? Object.fromEntries(Object.entries(v.methodWins).filter(([, n]) => typeof n === 'number' && n >= 0)) as Record<string, number>
       : {},
     current: v.current && typeof v.current.runId === 'string'
-      ? { runId: v.current.runId, bestHit: num(v.current.bestHit) }
+      ? {
+        runId: v.current.runId,
+        bestHit: num(v.current.bestHit),
+        baseline: num(v.current.baseline),
+        announced: v.current.announced === true,
+      }
       : undefined,
     finalized: Array.isArray(v.finalized) ? v.finalized.filter((id: unknown) => typeof id === 'string').slice(-50) : [],
   };
@@ -72,14 +84,22 @@ export function writeRecords(records: PlayerRecords, storage: Pick<Storage, 'set
   }
 }
 
-/** Records a player strike; returns true when it beats the previous all-time best (and one existed). */
+/**
+ * Records a player strike. Returns true only the first time in a run that a
+ * strike beats the all-time best from earlier runs, so the in-battle pop is a
+ * rare event rather than firing on every growth step (never in a first run).
+ */
 export function recordHit(records: PlayerRecords, runId: string, amount: number): boolean {
   if (!(amount > 0) || !runId) return false;
-  if (records.current?.runId !== runId) records.current = { runId, bestHit: 0 };
-  records.current.bestHit = Math.max(records.current.bestHit, amount);
-  const beat = records.bestHit > 0 && amount > records.bestHit;
+  if (records.current?.runId !== runId) {
+    records.current = { runId, bestHit: 0, baseline: records.bestHit, announced: false };
+  }
+  const current = records.current;
+  current.bestHit = Math.max(current.bestHit, amount);
   records.bestHit = Math.max(records.bestHit, amount);
-  return beat;
+  if (current.announced || !(current.baseline > 0) || amount <= current.baseline) return false;
+  current.announced = true;
+  return true;
 }
 
 /** Counts a finished run once. */
@@ -101,7 +121,8 @@ export function finishRun(records: PlayerRecords, finish: RunFinish): FinishRepo
   return {
     counted: true,
     runBestHit,
-    newBestHit: runBestHit > 0 && runBestHit >= records.bestHit && records.runs > 1,
+    newBestHit: runBestHit > 0 && runBestHit > (records.current?.runId === finish.runId ? records.current.baseline : Infinity) &&
+      (records.current?.baseline ?? 0) > 0,
     newFurthestAct,
     firstWinWithMethod,
     records,

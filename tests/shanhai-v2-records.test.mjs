@@ -27,11 +27,12 @@ test('best hits and furthest act are tracked across runs with honest "new record
   finishRun(records, { runId: 'run-1', won: false, act: 2, method: 'RKF02' });
   assert.equal(recordHit(records, 'run-2', 200), false);
   assert.equal(recordHit(records, 'run-2', 450), true, 'beating the stored best is flagged');
+  assert.equal(recordHit(records, 'run-2', 600), false, 'announced only once per run');
   const report = finishRun(records, { runId: 'run-2', won: false, act: 3, method: 'RKF02' });
   assert.equal(report.newBestHit, true);
   assert.equal(report.newFurthestAct, true);
   assert.equal(report.firstWinWithMethod, false);
-  assert.equal(records.bestHit, 450);
+  assert.equal(records.bestHit, 600);
   assert.equal(records.runs, 2);
   assert.equal(records.wins, 0);
 });
@@ -48,4 +49,15 @@ test('records survive storage round-trips and ignore corrupt data', () => {
   assert.equal(read.bestHit, 0);
   assert.deepEqual(read.finalized, ['ok']);
   assert.deepEqual(readRecords(memoryStorage({ [RECORDS_KEY]: 'not json' })), emptyRecords());
+});
+
+test('a first run never pops "new record", and growth within a run does not spam it', () => {
+  const records = emptyRecords();
+  for (const amount of [50, 80, 120, 300]) assert.equal(recordHit(records, 'first', amount), false);
+  const first = finishRun(records, { runId: 'first', won: false, act: 2, method: 'RKF01' });
+  assert.equal(first.newBestHit, false, 'nothing to beat yet');
+  const pops = [100, 250, 310, 400, 900].map(amount => recordHit(records, 'second', amount));
+  assert.deepEqual(pops, [false, false, true, false, false]);
+  assert.equal(finishRun(records, { runId: 'second', won: false, act: 2, method: 'RKF01' }).newBestHit, true);
+  assert.equal(records.bestHit, 900);
 });

@@ -101,7 +101,7 @@ const PERMANENT_RULE_COPY: Record<PermanentSacrificeRule['kind'], { label: strin
   },
   endless_chain: {
     label: '断普连诀',
-    detail: '禁用普攻；每次出手前怒气补满，回回合合施放怒技；怒技伤害 +10%，受到伤害 -20%。',
+    detail: '禁用普攻；每次出手前怒气补满，每回合施放怒技；怒技伤害 +10%，受到伤害 -20%。',
   },
 };
 const CONTENT_BASE = './content/';
@@ -2184,8 +2184,18 @@ class ShanhaiApp {
     element.className = `ceremony ceremony-${kind}`;
     element.setAttribute('role', 'status');
     element.innerHTML = `<span class="ceremony-rays" aria-hidden="true"></span><span class="ceremony-bolt" aria-hidden="true"></span><div class="ceremony-card"><small>${esc(subtitle)}</small><b>${esc(title)}</b><em>点击继续</em></div>`;
-    const dismiss = () => element.remove();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        dismiss();
+      }
+    };
+    const dismiss = () => {
+      element.remove();
+      document.removeEventListener('keydown', onKey, true);
+    };
     element.addEventListener('click', dismiss);
+    document.addEventListener('keydown', onKey, true);
     host.append(element);
     window.setTimeout(dismiss, kind === 'realm' || kind === 'treasure' ? 2600 : 3400);
   }
@@ -3566,7 +3576,7 @@ class ShanhaiApp {
     if (juice.attacker === 'player' && juice.target === 'enemy' && juice.damage > 0 && runId) {
       const records = readRecords();
       if (recordHit(records, runId, juice.damage)) {
-        markup += `<div class="juice-fx juice-record" aria-hidden="true"><b>新纪录</b><span>最强一击 ${formatNumber(juice.damage)}</span></div>`;
+        markup += `<div class="juice-fx juice-record" aria-hidden="true"><b>新纪录</b><span>最强一招 ${formatNumber(juice.damage)}</span></div>`;
       }
       writeRecords(records);
     }
@@ -5300,7 +5310,7 @@ class ShanhaiApp {
     }
     const { records, runBestHit, newBestHit, newFurthestAct, firstWinWithMethod } = this.endReport;
     const badges = [
-      newBestHit ? '最强一击新纪录' : '',
+      newBestHit ? '最强一招新纪录' : '',
       newFurthestAct ? '走得比以往更远' : '',
       firstWinWithMethod ? `首次以${asText(this.methodEntity(state.method)?.name, '此功法')}通关` : '',
     ].filter(Boolean);
@@ -5308,7 +5318,7 @@ class ShanhaiApp {
     return `<section class="end-records" aria-label="个人纪录">
       ${badges.length ? `<div class="end-badges">${badges.map(badge => `<span class="end-badge">${esc(badge)}</span>`).join('')}</div>` : ''}
       <div class="end-record-grid">
-        <div class="end-record hero"><span>本局最强一击</span><b>${runBestHit > 0 ? formatNumber(runBestHit) : '—'}</b><small>历史最佳 ${records.bestHit > 0 ? formatNumber(records.bestHit) : '暂无'}</small></div>
+        <div class="end-record hero"><span>本局最强一招</span><b>${runBestHit > 0 ? formatNumber(runBestHit) : '—'}</b><small>历史最佳 ${records.bestHit > 0 ? formatNumber(records.bestHit) : '暂无'}</small></div>
         <div class="end-record"><span>总局数</span><b>${formatNumber(records.runs)}</b></div>
         <div class="end-record"><span>通关</span><b>${formatNumber(records.wins)}</b><small>${rate}%</small></div>
         <div class="end-record"><span>最远</span><b>${records.furthestAct >= 5 ? '天门' : `第${formatNumber(records.furthestAct)}幕`}</b></div>
