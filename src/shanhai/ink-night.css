@@ -2160,7 +2160,7 @@ body::before {
 
 .game-page .section-heading {
   position: relative;
-  margin: -16px -18px 14px;
+  margin: 0 0 14px;
   padding: 10px 18px;
   border: 0;
   border-radius: 10px 10px 0 0;
@@ -3059,9 +3059,28 @@ body::before {
   font-size: 30px !important;
 }
 
+/* Headings bleed to the panel edge only inside panels that own that padding. */
+.game-page :is(.build-section, .codex-page > section, .stage-card, .event-card, .shop-grid, .rest-grid) > .section-heading {
+  margin: -16px -18px 14px;
+}
+
 /* ───────── Mobile ───────── */
 
 @media (max-width: 720px) {
+  /* The lasting vow rule collapses to one line; tap (focus) to read it in full. */
+  .game-page .permanent-rule-state:not(.battle-detail-rule) p {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    margin: 0;
+  }
+
+  .game-page .permanent-rule-state:not(.battle-detail-rule):focus p,
+  .game-page .permanent-rule-state:not(.battle-detail-rule):focus-within p {
+    -webkit-line-clamp: unset;
+  }
+
   .landing-page .landing-copy h1 {
     font-size: 64px;
   }

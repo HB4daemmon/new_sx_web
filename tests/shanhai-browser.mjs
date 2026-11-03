@@ -285,8 +285,12 @@ async function forceMaxDraw(page) {
       loadout.hp = 1e12;
     }
     input.roundLimit = 4096;
+    // Two walls that cannot hurt each other used to stall to a 4096-round draw.
+    // 天劫 sudden death now settles every such stalemate, so the fixture asserts
+    // a decisive result produced by the tribulation instead.
     game.state.battle = simulateBattle(content, input.player, input.enemy, input.seed, { roundLimit: input.roundLimit });
-    if (game.state.battle.outcome !== 'draw') throw new Error(`Expected draw fixture, got ${game.state.battle.outcome}`);
+    if (game.state.battle.outcome === 'draw') throw new Error('Stalemate fixture still drew');
+    if (!game.state.battle.frames.some(frame => frame.source === 'RULES-TRIBULATION')) throw new Error('Stalemate was not settled by 天劫');
     saveRun(game);
     localStorage.removeItem(replayKey);
   }, replayKey);
@@ -505,28 +509,21 @@ async function run() {
       await desktop.screenshot({ path: path.join(reportDir, 'battle-desktop.png'), fullPage: true });
     });
 
-    await check('4096-round draw keeps explicit retirement and disables continuation', async () => {
+    await check('an unbreakable stalemate is settled by 天劫 instead of a 4096-round draw', async () => {
       await desktop.goto(url, { waitUntil: 'networkidle' });
       await clearStorage(desktop);
       await desktop.reload({ waitUntil: 'networkidle' });
       await createFixture(desktop, 'battle', 'browser-max-draw');
       await forceMaxDraw(desktop);
-      await desktop.locator('[data-action="battle-skip"]').click();
-      const continueButton = desktop.locator('[data-action="continue-battle"]');
-      assert.equal(await continueButton.isDisabled(), true);
-      assert.match(await continueButton.textContent(), /4096/);
-      assert.equal(await desktop.locator('.round-seal').textContent(), '平');
-      assert.match(await desktop.locator('.battle-settlement > p').textContent(), /收手/);
-      assert.doesNotMatch(await desktop.locator('.battle-settlement > p').textContent(), /继续/);
-      const drawDetail = await openBattleDetail(desktop, 'result', 'maximum draw result');
-      assert.ok(await drawDetail.dialog.locator('[data-action="retire"]').isVisible());
-      assert.equal(await drawDetail.dialog.locator('[data-action="continue-battle"]').isDisabled(), true);
-      await noOverflow(desktop, 'desktop max draw');
-      desktop.once('dialog', dialog => dialog.accept());
-      await drawDetail.dialog.locator('[data-action="retire"]').click();
-      await desktop.locator('.game-page.phase-lost').waitFor();
-      assert.equal(await desktop.locator('.modal-backdrop').count(), 0,
-        'Retiring from the result dialog must close it before showing the ending');
+      const skip = desktop.locator('[data-action="battle-skip"]');
+      if (await skip.count()) await skip.click();
+      await desktop.locator('.battle-settlement').waitFor();
+      assert.notEqual(await desktop.locator('.round-seal').textContent(), '平');
+      assert.equal(await desktop.locator('[data-action="continue-battle"]').count(), 0,
+        'a decisive tribulation result offers no draw continuation');
+      const detail = await openBattleDetail(desktop, 'log', 'tribulation log');
+      assert.match(await detail.dialog.innerText(), /天劫/);
+      await noOverflow(desktop, 'desktop tribulation result');
     });
 
     await check('reward candidates remain frozen after reload', async () => {

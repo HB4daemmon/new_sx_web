@@ -225,6 +225,9 @@ async function setReplayCursor(page, cursor, reload = true) {
       key,
       cursor: Math.max(0, Math.min(length - 1, Math.floor(cursor))),
     }));
+    // The chosen battle speed now persists across reloads; replay fixtures
+    // measure 1× timing, so they reset it explicitly.
+    localStorage.removeItem('suishi-shanhai-battle-speed-v1');
   }, { replayKey, cursor, key: snapshot.key, length: snapshot.frames.length });
   if (reload) {
     await page.reload({ waitUntil: 'domcontentloaded' });

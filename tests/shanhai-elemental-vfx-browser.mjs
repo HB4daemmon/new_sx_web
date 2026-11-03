@@ -208,6 +208,8 @@ async function installRealBattleFixture(page, method, swordPills = false) {
     localStorage.setItem(saveKey, JSON.stringify(record));
     const battleKey = [game.state.id, game.state.act, game.state.step, frames.length].join(':');
     localStorage.setItem(replayKey, JSON.stringify({ key: battleKey, cursor: initialCursor }));
+    // Battle speed persists across reloads; each fixture starts from 1×.
+    localStorage.removeItem('suishi-shanhai-battle-speed-v1');
 
     return {
       method,
@@ -281,6 +283,8 @@ async function showCursor(page, fixture, cursor) {
     const state = record.state;
     const key = [state.id, state.act, state.step, state.battle.frames.length].join(':');
     localStorage.setItem(replayKey, JSON.stringify({ key, cursor }));
+    // Battle speed persists across reloads; each fixture starts from 1×.
+    localStorage.removeItem('suishi-shanhai-battle-speed-v1');
   }, { replayKey, cursor });
   await page.reload({ waitUntil: 'networkidle' });
   await page.waitForFunction(expected =>

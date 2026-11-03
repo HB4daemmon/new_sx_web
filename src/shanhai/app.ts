@@ -2536,7 +2536,7 @@ class ShanhaiApp {
     if (!rule) return '';
     const copy = PERMANENT_RULE_COPY[rule.kind];
     if (!copy) return '';
-    return `<section class="permanent-rule-state ${esc(className)}" data-permanent-rule="${esc(rule.kind)}" aria-label="本局永久法则"><span>永久法则</span><b>${esc(copy.label)}</b><p>${this.textMarkup(copy.detail)}</p></section>`;
+    return `<section class="permanent-rule-state ${esc(className)}" data-permanent-rule="${esc(rule.kind)}" aria-label="本局永久法则" tabindex="0" title="${esc(copy.detail)}"><span>永久法则</span><b>${esc(copy.label)}</b><p>${this.textMarkup(copy.detail)}</p></section>`;
   }
 
   private chapterStrip(state: RunState): string {

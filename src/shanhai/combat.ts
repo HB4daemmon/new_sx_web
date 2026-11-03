@@ -6954,6 +6954,9 @@ export function simulateBattle(
       }
     }
     settleRage(runtime);
+    // Round-end rage can strike (怒溢成锋); a kill there must end the battle.
+    outcome = checkOutcome(runtime);
+    if (outcome) break;
     for (const fighter of [runtime.player, runtime.enemy]) {
       const cap = selectedEffect(fighter, 'RR07-FIRST-RAGE-CAP-REDUCTION');
       if (cap && fighter.battleFlags.has('RR07-PENDING')) {

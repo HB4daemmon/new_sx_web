@@ -170,3 +170,19 @@ test('月蚀夺魄 scales attack with the debuffs on the enemy', () => {
   assert.ok(stacks > 0);
   assert.ok(eclipse.amount > plain.amount * 1.02, `${eclipse.amount} vs ${plain.amount}`);
 });
+
+test('a round-end 怒溢成锋 kill ends the battle as a win, never a 256-round draw', () => {
+  const talents = ['RKF02-J1-B', 'RKF02-J2-A', 'RKF02-J3-A', 'RKF02-J4-A'];
+  let checked = 0;
+  for (let hp = 200; hp <= 3000 && checked < 3; hp += 37) {
+    const enemy = dummy({ max_hp: hp });
+    const result = simulateBattle(content, player('RKF02', talents, { crit_rate: 0 }), enemy, `overflow-kill-${hp}`, { roundLimit: 6 });
+    const killer = [...result.frames].reverse().find(frame => frame.kind === 'damage' && frame.enemy.hp <= 0);
+    if (killer?.source !== 'RKF02-J4-A-OVERFLOW-STRIKE') continue;
+    checked += 1;
+    assert.equal(result.outcome, 'player', `hp ${hp}`);
+    assert.equal(result.frames.some(frame => frame.kind === 'draw'), false);
+    assert.ok(result.rounds < 6);
+  }
+  assert.ok(checked > 0, 'found battles where the round-end strike lands the kill');
+});

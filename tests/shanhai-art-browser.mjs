@@ -245,6 +245,45 @@ async function startRealBattle(page, { method = 'RKF01', seed = 'art-rage-player
   return meta;
 }
 
+// The ink-night theme paints scenes as CSS backgrounds (generated webp art,
+// hashed in assets/generated/ink-night/manifest.json) instead of <img> PNGs.
+async function inspectSceneBackground(page, selector, label) {
+  const element = page.locator(selector).first();
+  await element.waitFor({ state: 'attached' });
+  const result = await element.evaluate(async node => {
+    const rect = node.getBoundingClientRect();
+    const urls = [...getComputedStyle(node).backgroundImage.matchAll(/url\("?([^")]+)"?\)/g)].map(match => match[1]);
+    const source = urls.at(-1) || '';
+    const intersection = {
+      width: Math.max(0, Math.min(rect.right, innerWidth) - Math.max(rect.left, 0)),
+      height: Math.max(0, Math.min(rect.bottom, innerHeight) - Math.max(rect.top, 0)),
+    };
+    if (!source) return { source, rect: { width: rect.width, height: rect.height }, intersection };
+    const image = new Image();
+    image.src = source;
+    try { await image.decode(); } catch { return { source, decoded: false, intersection }; }
+    const canvas = document.createElement('canvas');
+    canvas.width = 48;
+    canvas.height = 48;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    context.drawImage(image, 0, 0, 48, 48);
+    const pixels = context.getImageData(0, 0, 48, 48).data;
+    const colors = new Set();
+    for (let index = 0; index < pixels.length; index += 4) {
+      colors.add(`${pixels[index] >> 4}:${pixels[index + 1] >> 4}:${pixels[index + 2] >> 4}`);
+    }
+    return { source, decoded: true, naturalWidth: image.naturalWidth, intersection, colorBuckets: colors.size,
+      visibility: getComputedStyle(node).visibility, display: getComputedStyle(node).display };
+  });
+  assert.match(result.source || '', /\/assets\/generated\/ink-night\/[a-z0-9-]+\.webp/, `${label}: 场景不是夜色主题图 ${JSON.stringify(result)}`);
+  assert.ok(result.decoded && result.naturalWidth > 0, `${label}: 场景图没有解码 ${JSON.stringify(result)}`);
+  assert.ok(result.display !== 'none' && result.visibility !== 'hidden' &&
+    result.intersection.width > 1 && result.intersection.height > 1,
+  `${label}: 场景没有出现在当前视口 ${JSON.stringify(result)}`);
+  assert.ok(result.colorBuckets > 12, `${label}: 场景图没有实际绘制内容 ${JSON.stringify(result)}`);
+  return result;
+}
+
 async function inspectPngImage(page, selector, label) {
   const image = page.locator(selector).first();
   await image.waitFor({ state: 'visible' });
@@ -430,7 +469,7 @@ async function startAndSeekPage(browser, viewport, label, { reducedMotion = fals
   page.setDefaultTimeout(20000);
   page.on('pageerror', error => errors.push({ label, type: 'pageerror', message: error.message }));
   await openLanding(page, label);
-  await inspectPngImage(page, '.landing-atmosphere .game-scene', `${label} start scene`);
+  await inspectSceneBackground(page, '.landing-page .landing-atmosphere', `${label} start scene`);
   const meta = await startRealBattle(page);
   const initialCursor = meta.rageIndices.player[0] - 1;
   await seekPausedCursor(page, meta, initialCursor);
@@ -692,8 +731,8 @@ async function runViewport(browser, viewport, label, verifyMethods = false) {
   page.on('pageerror', error => errors.push({ label, type: 'pageerror', message: error.message }));
   try {
     await openLanding(page, label);
-    const landingScene = await inspectPngImage(
-      page, '.landing-atmosphere .game-scene', `${label} landing scene`,
+    const landingScene = await inspectSceneBackground(
+      page, '.landing-page .landing-atmosphere', `${label} landing scene`,
     );
     let methods;
     if (verifyMethods) methods = await checkMethodSkins(page);
@@ -703,7 +742,7 @@ async function runViewport(browser, viewport, label, verifyMethods = false) {
 
     const meta = await startRealBattle(page);
     await seekPausedCursor(page, meta, meta.rageIndices.player[0] - 1);
-    await inspectPngImage(page, '.combat-arena .game-scene', `${label} battle scene`);
+    await inspectSceneBackground(page, '.combat-arena > .arena-vignette', `${label} battle scene`);
     const pixels = await inspectBattleCanvas(page, label);
     const screenshot = await capture(page, `${label}-battle-canvas.png`);
     return { context, page, meta, landingScene, methods, pixels, screenshot };
@@ -741,7 +780,7 @@ async function run() {
     });
     await check('1440x900: 五门功法皮肤互异且渲染身高归一', async () => desktop.methods);
     await check('1440x900: PNG 战斗场景与双人 WebGL Canvas 非空', async () => ({
-      scene: await inspectPngImage(desktop.page, '.combat-arena .game-scene', '1440x900 battle'),
+      scene: await inspectSceneBackground(desktop.page, '.combat-arena > .arena-vignette', '1440x900 battle'),
       canvas: desktop.pixels,
     }));
 
@@ -816,7 +855,7 @@ async function run() {
         rageIndices: result.meta.rageIndices,
       });
       await check(`${width}x${height}: PNG 场景与完整双人 Canvas 可见`, async () => ({
-        scene: await inspectPngImage(result.page, '.combat-arena .game-scene', `${width}x${height}`),
+        scene: await inspectSceneBackground(result.page, '.combat-arena > .arena-vignette', `${width}x${height}`),
         canvas: result.pixels,
       }));
       await result.context.close();
@@ -872,7 +911,7 @@ async function run() {
     await resourcePage.route('**/shanhai/animation.js', route => route.abort());
     try {
       await openLanding(resourcePage, 'resource-failure');
-      await inspectPngImage(resourcePage, '.landing-atmosphere .game-scene', 'resource failure start');
+      await inspectSceneBackground(resourcePage, '.landing-page .landing-atmosphere', 'resource failure start');
       await resourcePage.locator('.method-choice[data-id="RKF01"]').click();
       await resourcePage.locator('.hero-card-stage .character-art').waitFor({ state: 'visible' });
       const startFallback = await resourcePage.locator('.hero-card-stage .character-art')
@@ -896,7 +935,7 @@ async function run() {
         resourcePage, resourceMeta, damageCursor, { artReady: false },
       );
       const fallback = await assertFallbackPose(resourcePage, 'animation.js resource failure');
-      await inspectPngImage(resourcePage, '.combat-arena .game-scene', 'resource failure battle');
+      await inspectSceneBackground(resourcePage, '.combat-arena > .arena-vignette', 'resource failure battle');
       await capture(resourcePage, '390x844-resource-failure-fallback.png');
       await resourcePage.setViewportSize({ width: 360, height: 780 });
       await resourcePage.waitForTimeout(80);
@@ -938,7 +977,7 @@ async function run() {
       errors.push({ label: 'webgl-unavailable', type: 'pageerror', message: error.message }));
     try {
       await openLanding(webglPage, 'webgl-unavailable');
-      await inspectPngImage(webglPage, '.landing-atmosphere .game-scene', 'WebGL unavailable start');
+      await inspectSceneBackground(webglPage, '.landing-page .landing-atmosphere', 'WebGL unavailable start');
       await webglPage.locator('.method-choice[data-id="RKF01"]').click();
       const meta = await startRealBattle(webglPage);
       await seekPausedCursor(
@@ -961,7 +1000,7 @@ async function run() {
       } catch (error) {
         fallbackFailure = error;
       }
-      await inspectPngImage(webglPage, '.combat-arena .game-scene', 'WebGL unavailable battle');
+      await inspectSceneBackground(webglPage, '.combat-arena > .arena-vignette', 'WebGL unavailable battle');
       await check('WebGL 被禁用时真实战斗仍可跳过播放', async () => {
         const settled = await assertSkipCleansEffects(webglPage, meta, 'WebGL unavailable');
         await capture(webglPage, '390x844-webgl-unavailable-skip.png');
