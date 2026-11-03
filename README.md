@@ -38,6 +38,11 @@ npm run dev
   敌我保持独立站位，怒技按双方区分青碧与朱金光效。
 - 手机开局默认精简，奖励改为纵向三选一；战报、构筑与贡献默认折叠，
   玩家界面和战报采用中文，完整效果可按需展开。
+- 斗法打击感：按真实伤害占比分级震屏与顿帧，暴击朱砂印、怒技全屏切入与反相闪、连斩竖排计数、
+  血条残影、击倒定格与胜败大印；系统开启“减少动态效果”时自动关闭震屏、顿帧与闪屏。
+- 每幕独立夜色战场（`assets/generated/ink-night/`，gpt-image-2.5 生成，清单记录哈希），
+  书法标题字体为 Zhi Mang Xing 子集（OFL，见 `assets/fonts/`）。
+- 命盘中的装备位可直接拖动调整阵位（鼠标与触屏），拖动按相邻换位命令批量提交，存档与回放规则不变。
 - 确定性种子、逐步自动存档、通关构筑归档与 JSON 导出。
 
 V2 已接通真实流程与多策略难度试算；自动策略不代表真人胜率，构筑趣味仍需真人试玩。
@@ -57,8 +62,10 @@ V2 已接通真实流程与多策略难度试算；自动策略不代表真人�
 | `src/shanhai/route-map.ts` | 冻结的分支地图、可达边与已选路径校验 |
 | `src/shanhai/persistence.ts` | 存档校验、确定性回放重建与通关记录 |
 | `src/shanhai/app.ts`、`style.css`、`cartoon.css` | 浏览器界面与正式手绘主题 |
+| `src/shanhai/ink-night.css` | 「夜渡天劫」深色水墨主题、游戏化外壳与斗法打击感层（最后加载，覆盖前两套样式） |
 | `src/shanhai/art-assets.ts`、`game-art.ts` | 资源映射、静态兜底与共享回放时钟的逐帧动画 |
 | `src/shanhai/battle-presentation.ts` | 回放节奏与动作反馈，不参与战斗结算 |
+| `src/shanhai/battle-juice.ts` | 震屏、顿帧、怒技切入、连斩与击倒判定，仅由帧快照推导，不参与战斗结算 |
 | `src/shanhai/battle-comparison.ts` | 同种子单场法宝移除对照，不改变命途 |
 | `src/shanhai/localization.ts` | 状态、效果来源、卡面术语与错误提示的中文展示 |
 | `src/shanhai/types.ts` | 共享运行时契约 |

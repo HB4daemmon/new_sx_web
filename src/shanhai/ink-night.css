@@ -1,0 +1,2687 @@
+@charset "UTF-8";
+/*
+ * 夜渡天劫 · Ink-Night theme
+ * Loaded after cartoon.css. Re-skins the whole game to a dark ink-wash
+ * xianxia look and adds the battle "game feel" layer (shake, hit-stop,
+ * sparks, rage cut-ins, verdict seals). Presentation only.
+ */
+
+@font-face {
+  font-family: "ShanhaiBrush";
+  src: url("../assets/fonts/zhi-mang-xing-subset.woff2") format("woff2");
+  font-display: swap;
+}
+
+:root,
+.landing-page,
+.game-page,
+.game-page[data-act] {
+  color-scheme: dark;
+  --night-0: #0a0f11;
+  --night-1: #0d1214;
+  --night-2: #16242b;
+  --night-3: #1d3038;
+  --night-4: #27414a;
+  --cream: #efe6d2;
+  --cream-dim: #b9b19c;
+  --gilt: #d9a441;
+  --gilt-bright: #f3cf7a;
+  --cinnabar: #c8322b;
+  --cinnabar-bright: #ff5a3c;
+  --qing: #3fb8a0;
+  --qing-bright: #7ff0d4;
+  --thunder: #8b7cff;
+
+  --ink: var(--cream);
+  --ink-0: var(--night-1);
+  --ink-1: var(--night-2);
+  --ink-2: var(--night-3);
+  --ink-3: var(--night-4);
+  --paper: var(--night-1);
+  --paper-muted: var(--cream-dim);
+  --panel: #142027;
+  --panel-selected: #2a2118;
+  --muted: #8f9a92;
+  --line: #d9a44133;
+  --line-strong: #d9a44180;
+  --jade: var(--qing);
+  --jade-strong: var(--qing-bright);
+  --gold: var(--gilt);
+  --gold-bright: var(--gilt-bright);
+  --vermilion: #ef5b45;
+  --vermilion-soft: #f08a74;
+  --violet: #b4a6ff;
+  --health: var(--qing);
+  --shield: #e2b85a;
+  --shield-text: var(--gilt-bright);
+  --rage-text: #ff7a52;
+  --meter-inset: #070b0c;
+  --disabled-surface: #1a2328;
+  --disabled-text: #6f7a75;
+  --brush: "ShanhaiBrush", "STXingkai", "KaiTi", "Kaiti SC", var(--serif);
+  --display-font: var(--brush);
+  --glow-gold: 0 0 18px #d9a44166, 0 0 2px #f3cf7a;
+  --glow-qing: 0 0 18px #3fb8a066, 0 0 2px #7ff0d4;
+  --glow-cinnabar: 0 0 22px #c8322b88, 0 0 2px #ff5a3c;
+  --panel-bg: linear-gradient(160deg, #18272ff2, #0e171cf2 62%, #121c21f2);
+  --panel-edge: inset 0 0 0 1px #d9a44138, inset 0 1px 0 #f3cf7a22, 0 10px 30px #00000066;
+}
+
+html,
+body {
+  background: var(--night-1);
+  color: var(--cream);
+}
+
+.landing-page,
+.game-page,
+.game-page[data-act] {
+  color: var(--cream);
+  background-color: transparent;
+  background-image: none;
+}
+
+/* Each act keeps a hint of its own night sky */
+.game-page[data-act="1"] { background-image: radial-gradient(ellipse at 85% 0%, #3fb8a022, transparent 45%); }
+.game-page[data-act="2"] { background-image: radial-gradient(ellipse at 85% 0%, #d9a44120, transparent 45%); }
+.game-page[data-act="3"] { background-image: radial-gradient(ellipse at 85% 0%, #c8322b2c, transparent 45%); }
+.game-page[data-act="4"],
+.game-page[data-act="5"] { background-image: radial-gradient(ellipse at 85% 0%, #8b7cff2a, transparent 45%); }
+
+body {
+  background:
+    radial-gradient(1200px 600px at 80% -10%, #1f3a40aa, transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, #2a1612aa, transparent 60%),
+    linear-gradient(180deg, #0d1416, #0a0f11 70%, #0b0d0e);
+  background-attachment: fixed;
+}
+
+#shanhai-app {
+  position: relative;
+  z-index: 1;
+}
+
+::selection {
+  background: #c8322b99;
+  color: #fff;
+}
+
+/* ───────── Typography ───────── */
+
+.game-page h1,
+.landing-page h1,
+.game-page .stage-heading h1,
+.landing-page .setup-title,
+.game-page .map-heading h1 {
+  font-family: var(--brush);
+  font-weight: 400;
+  letter-spacing: .04em;
+  color: var(--cream);
+  text-shadow: 0 2px 0 #000, 0 0 24px #d9a44144;
+}
+
+.game-page .eyebrow,
+.landing-page .eyebrow {
+  color: var(--gilt);
+  letter-spacing: .18em;
+}
+
+.game-page a,
+.landing-page a {
+  color: var(--gilt-bright);
+}
+
+/* ───────── Surfaces: panels, inputs, dialogs ───────── */
+
+.game-page .icon-button,
+.landing-page .icon-button,
+.game-page .fighter-detail-trigger,
+.game-page input,
+.landing-page input,
+.game-page textarea,
+.landing-page textarea,
+.game-page select,
+.landing-page select,
+.landing-page .resume-card,
+.landing-page .name-action,
+.game-page .deck-grid .ability-card,
+.game-page .ability-card,
+.game-page .artifact-entry,
+.game-page .route-card,
+.game-page .reward-card,
+.game-page .talent-card,
+.game-page .shop-item,
+.game-page .rest-choice,
+.game-page .talent-tree-node,
+.game-page .battle-detail-dialog,
+.game-page .dialog,
+.game-page .modal,
+.landing-page .dialog,
+.landing-page .modal,
+.game-page .dialog-close,
+.game-page .modal-close,
+.game-page .battle-detail-body .detail-item,
+.game-page .character-stats > div,
+.game-page .event-option,
+.game-page .filters button,
+.game-page .filters [data-action="build-filter"] {
+  border: 0;
+  border-image: none;
+  border-radius: 6px;
+  color: var(--cream);
+  background: var(--panel-bg);
+  box-shadow: var(--panel-edge);
+}
+
+.game-page input,
+.landing-page input,
+.game-page textarea,
+.game-page select {
+  background: #0a1114;
+  box-shadow: inset 0 0 0 1px #d9a44144, inset 0 2px 8px #000a;
+}
+
+.game-page .icon-button:hover,
+.landing-page .icon-button:hover,
+.game-page .event-option:hover:not(:disabled),
+.game-page .filters button.active,
+.game-page .filters [aria-pressed="true"] {
+  border-image: none;
+  color: var(--gilt-bright);
+  background: linear-gradient(160deg, #2a2a1ff2, #14191af2);
+  box-shadow: inset 0 0 0 1px #d9a441aa, 0 0 18px #d9a44133;
+}
+
+.game-page .panel,
+.game-page .card,
+.game-page details.disclosure,
+.landing-page details.disclosure,
+.game-page .sidebar,
+.game-page .player-rail,
+.game-page .context-rail,
+.game-page .stage-card,
+.game-page .preview-matchup,
+.game-page .route-node-preview,
+.game-page .equipment-board,
+.game-page .battle-relic-board {
+  border-color: #d9a44133;
+  color: var(--cream);
+  background-color: transparent;
+}
+
+.game-page .sidebar,
+.game-page .player-rail {
+  border-radius: 8px;
+  background: linear-gradient(180deg, #121e24e6, #0c1418e6);
+  box-shadow: var(--panel-edge);
+}
+
+/* ───────── Buttons ───────── */
+
+.button,
+.game-page .button,
+.landing-page .button,
+.game-page .battle-controls .speeds button {
+  position: relative;
+  border: 0;
+  border-image: none;
+  border-radius: 4px;
+  color: var(--cream);
+  background: linear-gradient(180deg, #223740, #15232a);
+  box-shadow: inset 0 0 0 1px #3fb8a066, inset 0 1px 0 #7ff0d433, 0 4px 0 #050809, 0 6px 14px #0008;
+  text-shadow: 0 1px 0 #000;
+  transition: transform .08s ease-out, box-shadow .12s, filter .12s;
+}
+
+.button.primary,
+.game-page .button.primary,
+.landing-page .button.primary,
+.game-page .stage-actions .button.primary,
+.game-page .dialog-actions .button.primary,
+.game-page .battle-controls .speeds button[aria-pressed="true"] {
+  border-image: none;
+  color: #fff6e2;
+  background:
+    linear-gradient(180deg, #ffffff22, transparent 45%),
+    linear-gradient(180deg, #d8402f, #9e1f1a 70%, #7d1714);
+  box-shadow: inset 0 0 0 1px #f3cf7aaa, inset 0 -3px 0 #0005, 0 4px 0 #3c0a08, 0 0 22px #c8322b55;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.button:hover:not(:disabled),
+.game-page .button:hover:not(:disabled),
+.landing-page .button:hover:not(:disabled) {
+  filter: brightness(1.15);
+}
+
+.button.primary:hover:not(:disabled),
+.game-page .button.primary:hover:not(:disabled),
+.landing-page .button.primary:hover:not(:disabled) {
+  box-shadow: inset 0 0 0 1px #f3cf7a, inset 0 -3px 0 #0005, 0 4px 0 #3c0a08, 0 0 34px #ff5a3c88;
+}
+
+.button:active:not(:disabled),
+.game-page .button:active:not(:disabled),
+.landing-page .button:active:not(:disabled),
+.game-page .battle-controls .speeds button:active {
+  transform: translateY(3px) scale(.98);
+  box-shadow: inset 0 0 0 1px #f3cf7a88, 0 1px 0 #050809;
+}
+
+.button:disabled,
+.game-page .button:disabled,
+.landing-page .button:disabled {
+  border-image: none;
+  color: var(--disabled-text);
+  background: var(--disabled-surface);
+  box-shadow: inset 0 0 0 1px #ffffff14;
+  filter: none;
+}
+
+.game-page .button.danger,
+.game-page .invite-elite {
+  color: #fff;
+  background: linear-gradient(180deg, #5d2bd0, #2f1680);
+  box-shadow: inset 0 0 0 1px #b4a6ff, 0 4px 0 #120634, 0 0 26px #8b7cff66;
+}
+
+/* ───────── Top bar ───────── */
+
+.game-page .topbar,
+.landing-page .topbar,
+.game-page .game-header {
+  border-bottom: 1px solid #d9a44144;
+  background: linear-gradient(180deg, #0a0f11f2, #0d1517d9);
+  box-shadow: 0 1px 0 #000, 0 8px 24px #0007;
+  backdrop-filter: blur(6px);
+}
+
+.game-page .brand strong,
+.landing-page .brand strong {
+  font-family: var(--brush);
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--cream);
+  text-shadow: 0 0 12px #d9a44155;
+}
+
+.game-page .brand-mark,
+.landing-page .brand-mark,
+.game-page .brand .gold,
+.landing-page .brand .gold {
+  color: var(--gilt);
+}
+
+.game-page .edition-badge,
+.landing-page .edition-badge {
+  border-color: #c8322b;
+  color: #ff8a6b;
+  background: #c8322b22;
+}
+
+.game-page .header-actions,
+.game-page .header-run-summary,
+.game-page .phase-pill {
+  color: var(--cream);
+}
+
+.game-page .bottom-nav,
+.game-page nav[aria-label] button {
+  color: var(--cream-dim);
+}
+
+.game-page nav button[aria-current="page"],
+.game-page nav button[aria-pressed="true"] {
+  color: var(--gilt-bright);
+}
+
+/* ───────── Landing ───────── */
+
+.landing-page {
+  position: relative;
+  min-height: 100svh;
+  background: #070b0c;
+  isolation: isolate;
+}
+
+.landing-page .landing-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, #070b0cf5 0%, #070b0cc0 38%, #070b0c40 70%, #070b0c80 100%),
+    linear-gradient(0deg, #070b0c 0%, #070b0c00 45%),
+    url("../assets/generated/ink-night/title-hero.webp") center / cover no-repeat;
+  animation: ink-slow-pan 40s ease-in-out infinite alternate;
+}
+
+.landing-page .landing-atmosphere > *,
+.landing-page .landing-atmosphere > img.game-scene {
+  display: none;
+}
+
+@keyframes ink-slow-pan {
+  from { background-position: 0 0, 0 0, 60% 50%; }
+  to { background-position: 0 0, 0 0, 40% 46%; }
+}
+
+.landing-page .landing-copy h1 {
+  margin: 0;
+  font-family: var(--brush);
+  font-size: clamp(64px, 10vw, 128px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: .06em;
+  color: #fff3d6;
+  background: linear-gradient(180deg, #fff7e0 10%, #f3cf7a 55%, #b9822b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 4px 0 #000) drop-shadow(0 0 30px #d9a44166);
+  animation: title-ink-in 1.1s cubic-bezier(.2, .8, .2, 1) both;
+}
+
+@keyframes title-ink-in {
+  0% { opacity: 0; letter-spacing: .5em; filter: blur(12px) drop-shadow(0 0 0 #000); }
+  100% { opacity: 1; letter-spacing: .06em; filter: drop-shadow(0 4px 0 #000) drop-shadow(0 0 30px #d9a44166); }
+}
+
+.landing-page .landing-copy .eyebrow {
+  color: var(--gilt);
+  font-size: 13px;
+}
+
+.landing-page .landing-inner {
+  position: relative;
+}
+
+.landing-page .hero-card-stage {
+  filter: drop-shadow(0 0 40px #3fb8a033);
+}
+
+.landing-page .hero-card-stage .hero-back {
+  background: radial-gradient(closest-side, #3fb8a033, transparent 70%);
+}
+
+.landing-page .setup {
+  border-top: 1px solid #d9a44133;
+}
+
+.landing-page .setup-title {
+  font-size: 34px;
+}
+
+.landing-page .field span {
+  color: var(--gilt);
+}
+
+/* Method choices become character cards */
+.landing-page .method-grid {
+  gap: 12px;
+}
+
+.landing-page .method-choice {
+  --method-hue: var(--qing);
+  position: relative;
+  overflow: hidden;
+  min-height: 112px;
+  border: 0;
+  border-image: none;
+  border-radius: 8px;
+  color: var(--cream);
+  background:
+    radial-gradient(120% 90% at 85% 100%, color-mix(in srgb, var(--method-hue) 30%, transparent), transparent 60%),
+    linear-gradient(160deg, #182830, #0c1418);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--method-hue) 45%, transparent), 0 8px 20px #0008;
+  transition: transform .18s cubic-bezier(.2, .8, .2, 1.4), box-shadow .18s;
+}
+
+.landing-page .method-choice:nth-child(1) { --method-hue: #e6b54a; }
+.landing-page .method-choice:nth-child(2) { --method-hue: #4fb3d9; }
+.landing-page .method-choice:nth-child(3) { --method-hue: #4fd18b; }
+.landing-page .method-choice:nth-child(4) { --method-hue: #ff5a3c; }
+.landing-page .method-choice:nth-child(5) { --method-hue: #c9d6e8; }
+
+.landing-page .method-choice::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: conic-gradient(from 0deg, transparent 0 70%, color-mix(in srgb, var(--method-hue) 70%, transparent), transparent 85%);
+  opacity: 0;
+  animation: method-aura 3.2s linear infinite;
+  pointer-events: none;
+}
+
+.landing-page .method-choice.selected,
+.landing-page .method-choice:hover:not(:disabled) {
+  border-image: none;
+  color: #fff;
+  background:
+    radial-gradient(120% 90% at 85% 100%, color-mix(in srgb, var(--method-hue) 55%, transparent), transparent 62%),
+    linear-gradient(160deg, #213640, #0e181c);
+  box-shadow: inset 0 0 0 2px var(--method-hue), 0 0 28px color-mix(in srgb, var(--method-hue) 55%, transparent), 0 10px 24px #000a;
+  transform: translateY(-3px);
+}
+
+.landing-page .method-choice.selected {
+  transform: translateY(-4px) scale(1.03);
+}
+
+.landing-page .method-choice.selected::before {
+  opacity: .5;
+}
+
+@keyframes method-aura {
+  to { transform: rotate(1turn); }
+}
+
+.landing-page .method-choice .method-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.landing-page .method-choice .method-copy b {
+  font-family: var(--brush);
+  font-size: 26px;
+  font-weight: 400;
+  color: #fff;
+  text-shadow: 0 0 14px var(--method-hue), 0 2px 0 #000;
+}
+
+.landing-page .method-choice .method-copy em {
+  color: color-mix(in srgb, var(--method-hue) 70%, #fff);
+  font-style: normal;
+}
+
+.landing-page .method-detail {
+  color: var(--cream-dim);
+}
+
+.landing-page .actions .button.primary {
+  min-width: 240px;
+  min-height: 56px;
+  font-family: var(--brush);
+  font-size: 26px;
+  font-weight: 400;
+  animation: cta-breathe 2.4s ease-in-out infinite;
+}
+
+@keyframes cta-breathe {
+  50% { box-shadow: inset 0 0 0 1px #f3cf7a, inset 0 -3px 0 #0005, 0 4px 0 #3c0a08, 0 0 42px #ff5a3caa; }
+}
+
+/* ───────── Game layout ───────── */
+
+.game-page {
+  background: transparent;
+}
+
+.game-page .main-stage {
+  color: var(--cream);
+}
+
+.game-page .stage-heading {
+  color: var(--cream);
+}
+
+.game-page .stage-heading h1 {
+  font-size: 40px;
+}
+
+.game-page .status-alert,
+.game-page .status-ok,
+.game-page .chapter-stakes,
+.game-page .map-pressure,
+.game-page blockquote {
+  border-color: var(--gilt);
+  color: var(--cream);
+  background: #d9a44112;
+}
+
+.game-page .meter,
+.game-page .bar,
+.game-page .fighter-bars .bar {
+  border: 0;
+  border-image: none;
+  background: var(--meter-inset);
+  box-shadow: inset 0 0 0 1px #d9a44155, inset 0 2px 4px #000;
+}
+
+/* ───────── Map: night scroll ───────── */
+
+.game-page .map-wrap,
+.game-page .map-scroll,
+.game-page .map-scroll .map-wrap {
+  border-radius: 10px;
+  background-color: #0a0f11;
+  background:
+    linear-gradient(180deg, #0a0f11cc, #0a0f1166 30%, #0a0f1199),
+    url("../assets/generated/ink-night/map-scroll.webp") center / cover no-repeat;
+  box-shadow: inset 0 0 0 1px #d9a44133, inset 0 0 80px #000;
+}
+
+.game-page .map-wrap > img.game-scene,
+.game-page .map-scroll img.game-scene,
+.game-page .map-wrap .landscape {
+  display: none;
+}
+
+.game-page .map-lines path,
+.game-page .map-lines line {
+  stroke: #3fb8a088;
+  stroke-width: 2;
+  filter: drop-shadow(0 0 4px #3fb8a0);
+}
+
+.game-page .map-node {
+  color: var(--cream);
+  transition: transform .15s cubic-bezier(.2, .8, .2, 1.5), filter .15s;
+}
+
+.game-page .map-node .node-disc {
+  position: relative;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 40%, #27414acc, #0b1215ee 70%);
+  box-shadow: 0 0 0 2px #d9a44155, 0 0 16px #000;
+}
+
+.game-page .map-node .node-label {
+  color: var(--cream);
+  background: #0a0f11cc;
+  box-shadow: inset 0 0 0 1px #d9a44144;
+  text-shadow: 0 1px 0 #000;
+}
+
+.game-page .map-node.available .node-disc {
+  box-shadow: 0 0 0 2px var(--qing-bright), 0 0 26px #3fb8a0, 0 0 60px #3fb8a066;
+  animation: node-call 1.6s ease-in-out infinite;
+}
+
+.game-page .map-node.available .node-label {
+  color: #071311;
+  background: var(--qing-bright);
+  font-weight: 700;
+}
+
+.game-page .map-node.available:hover {
+  transform: scale(1.12);
+  filter: brightness(1.2);
+}
+
+@keyframes node-call {
+  50% { box-shadow: 0 0 0 3px var(--qing-bright), 0 0 36px #3fb8a0, 0 0 90px #3fb8a099; }
+}
+
+.game-page .map-node.done {
+  filter: saturate(.4) brightness(.8);
+}
+
+.game-page .map-node.done .node-disc {
+  box-shadow: 0 0 0 2px var(--gilt), 0 0 14px #d9a44188;
+}
+
+.game-page .map-node.boss .node-disc {
+  box-shadow: 0 0 0 2px #b4a6ff, 0 0 28px #8b7cff, 0 0 70px #c8322b66;
+  animation: boss-omen 2.4s ease-in-out infinite;
+}
+
+.game-page .map-node.boss .node-label {
+  color: #fff;
+  background: linear-gradient(90deg, #5d2bd0, #c8322b);
+}
+
+@keyframes boss-omen {
+  0%, 100% { filter: drop-shadow(0 0 0 #8b7cff); }
+  48% { filter: drop-shadow(0 0 0 #8b7cff); }
+  50% { filter: drop-shadow(0 -6px 14px #fff) brightness(1.5); }
+  54% { filter: drop-shadow(0 0 0 #8b7cff); }
+}
+
+.game-page .route-segment-step {
+  border-color: #d9a44155;
+  color: var(--cream-dim);
+  background: #0a0f11;
+}
+
+.game-page .route-segment-step.current,
+.game-page .route-segment-step.active {
+  border-color: var(--cinnabar-bright);
+  color: #fff;
+  background: var(--cinnabar);
+}
+
+/* ───────── Preview: versus splash ───────── */
+
+.game-page .preview-matchup {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  background:
+    linear-gradient(105deg, #3fb8a026 0 49.6%, transparent 49.6% 50.4%, #c8322b2e 50.4%),
+    linear-gradient(180deg, #111c21, #0a0f11);
+  box-shadow: inset 0 0 0 1px #d9a44144, 0 20px 40px #000a;
+}
+
+.game-page .preview-contender {
+  border: 0;
+  border-image: none;
+  background: transparent;
+  box-shadow: none;
+  color: var(--cream);
+}
+
+.game-page .preview-contender.player-side {
+  animation: versus-in-left .5s cubic-bezier(.2, .9, .2, 1.2) both;
+}
+
+.game-page .preview-contender.enemy-side {
+  animation: versus-in-right .5s cubic-bezier(.2, .9, .2, 1.2) both;
+}
+
+.game-page .preview-contender .character-art {
+  filter: drop-shadow(0 0 18px #000) drop-shadow(0 0 2px #fff5);
+}
+
+.game-page .preview-contender.enemy-side .character-art {
+  filter: drop-shadow(0 0 18px #c8322b88) drop-shadow(0 0 2px #fff5);
+}
+
+@keyframes versus-in-left {
+  from { opacity: 0; transform: translateX(-80px) skewX(-8deg); }
+}
+
+@keyframes versus-in-right {
+  from { opacity: 0; transform: translateX(80px) skewX(8deg); }
+}
+
+.game-page .versus-seal {
+  z-index: 3;
+  display: grid;
+  width: 76px;
+  height: 76px;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  background: radial-gradient(circle at 40% 35%, #ff5a3c, #9e1f1a 70%);
+  box-shadow: 0 0 0 3px #f3cf7a, 0 0 40px #c8322b, 0 8px 0 #3c0a08;
+  font-family: var(--brush);
+  font-size: 0;
+  transform: rotate(-8deg);
+  animation: seal-slam .55s .35s cubic-bezier(.3, 1.6, .5, 1) both;
+}
+
+.game-page .versus-seal::after {
+  content: "斗";
+  font-size: 52px;
+  line-height: 1;
+  text-shadow: 0 2px 0 #3c0a08;
+}
+
+.game-page .versus-seal > * {
+  display: none;
+}
+
+@keyframes seal-slam {
+  0% { opacity: 0; transform: scale(3.2) rotate(-24deg); }
+  70% { opacity: 1; transform: scale(.9) rotate(-6deg); }
+  100% { transform: scale(1) rotate(-8deg); }
+}
+
+.game-page .preview-vital,
+.game-page .preview-contender h2,
+.game-page .preview-contender h3,
+.game-page .preview-contender strong {
+  color: var(--cream);
+}
+
+.game-page .preview-contender h2,
+.game-page .preview-contender h3 {
+  font-family: var(--brush);
+  font-size: 30px;
+  font-weight: 400;
+}
+
+/* ───────── Battle arena ───────── */
+
+.game-page .battle-shell {
+  color: var(--cream);
+}
+
+.game-page .combat-arena {
+  max-width: 1180px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #070b0c;
+  box-shadow: inset 0 0 0 1px #d9a44144, 0 0 0 1px #000, 0 30px 60px #000c;
+  isolation: isolate;
+  contain: paint;
+}
+
+/* The painted battlefield lives on the (previously hidden) vignette span,
+   promoted to its own layer so per-frame canvas redraws never repaint it. */
+.game-page .combat-arena > .arena-vignette {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+  background-color: #070b0c;
+  background-image:
+    radial-gradient(120% 70% at 50% 110%, #00000000 40%, #000000cc),
+    linear-gradient(180deg, #0a0f11dd 0%, #0a0f1100 26%, #0a0f1100 70%, #0a0f11aa 100%),
+    url("../assets/generated/ink-night/battle-act1.webp");
+  background-position: center, center, center 62%;
+  background-size: cover, cover, cover;
+  will-change: transform;
+}
+
+.game-page .combat-arena[data-scene="RA02"] > .arena-vignette {
+  background-image:
+    radial-gradient(120% 70% at 50% 110%, #00000000 40%, #000000cc),
+    linear-gradient(180deg, #0a0f11dd 0%, #0a0f1100 26%, #0a0f1100 70%, #0a0f11aa 100%),
+    url("../assets/generated/ink-night/battle-act2.webp");
+}
+
+.game-page .combat-arena[data-scene="RA03"] > .arena-vignette {
+  background-image:
+    radial-gradient(120% 70% at 50% 110%, #00000000 40%, #000000cc),
+    linear-gradient(180deg, #0a0f11dd 0%, #0a0f1100 26%, #0a0f1100 70%, #0a0f11aa 100%),
+    url("../assets/generated/ink-night/battle-act3.webp");
+}
+
+.game-page .combat-arena[data-scene="RA04"] > .arena-vignette {
+  background-image:
+    radial-gradient(120% 70% at 50% 110%, #00000000 40%, #000000cc),
+    linear-gradient(180deg, #0a0f11dd 0%, #0a0f1100 26%, #0a0f1100 70%, #0a0f11aa 100%),
+    url("../assets/generated/ink-night/battle-act4.webp");
+}
+
+.game-page .combat-arena[data-scene="RF01"] > .arena-vignette {
+  background-image:
+    radial-gradient(120% 70% at 50% 110%, #00000000 40%, #000000dd),
+    linear-gradient(180deg, #0a0f11ee 0%, #1a0f3355 30%, #0a0f1144 70%, #0a0f11cc 100%),
+    url("../assets/generated/ink-night/battle-final.webp");
+}
+
+.game-page .combat-arena > .game-scene {
+  display: none;
+}
+
+/* The canvas redraws every frame; keep it on its own compositor layer so
+   the painted scene, gradients and HUD behind it are not repainted. */
+.game-page .combat-arena .game-battle-actors {
+  will-change: transform;
+}
+
+/* drifting spirit motes over every battle scene */
+.game-page .combat-arena::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(2px 2px at 12% 30%, #fff8 50%, transparent 51%),
+    radial-gradient(2px 2px at 33% 70%, #7ff0d4aa 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 58% 22%, #f3cf7aaa 50%, transparent 51%),
+    radial-gradient(2px 2px at 76% 58%, #fff6 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 90% 34%, #7ff0d488 50%, transparent 51%),
+    radial-gradient(2px 2px at 46% 46%, #f3cf7a88 50%, transparent 51%);
+  background-size: 100% 100%;
+  animation: motes-rise 14s linear infinite;
+  opacity: .8;
+  will-change: transform;
+}
+
+.game-page .combat-arena[data-scene="RA03"]::before {
+  background-image:
+    radial-gradient(2px 2px at 12% 30%, #ff9a3c 50%, transparent 51%),
+    radial-gradient(2px 2px at 33% 70%, #ff5a3c 50%, transparent 51%),
+    radial-gradient(2.5px 2.5px at 58% 22%, #f3cf7a 50%, transparent 51%),
+    radial-gradient(2px 2px at 76% 58%, #ff7a52 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 90% 34%, #ffb36b 50%, transparent 51%),
+    radial-gradient(2px 2px at 46% 46%, #ff5a3c 50%, transparent 51%);
+}
+
+@keyframes motes-rise {
+  from { transform: translateY(8%); }
+  to { transform: translateY(-8%); }
+}
+
+.game-page .combat-arena[data-scene="RF01"]::after {
+  /* distant tribulation lightning */
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(60% 40% at 50% 0%, #b4a6ff, transparent 70%);
+  opacity: 0;
+  mix-blend-mode: screen;
+  animation: sky-lightning 6.5s infinite;
+}
+
+@keyframes sky-lightning {
+  0%, 90%, 100% { opacity: 0; }
+  91% { opacity: .7; }
+  92% { opacity: .1; }
+  93.5% { opacity: .55; }
+  96% { opacity: 0; }
+}
+
+/* HUD: heavy, fighting-game style bars */
+.game-page .combat-arena .combatant {
+  position: relative;
+  z-index: 5;
+  max-width: 470px;
+  width: 100%;
+  border: 0;
+  border-image: none;
+  border-radius: 8px;
+  padding: 8px 12px 10px;
+  color: var(--cream);
+  background: linear-gradient(180deg, #0a0f11e6, #0a0f11a6);
+  box-shadow: inset 0 0 0 1px #d9a44144, 0 10px 24px #0009;
+}
+
+.game-page .combat-arena .combatant.side-p {
+  justify-self: start;
+  box-shadow: inset 3px 0 0 var(--qing), inset 0 0 0 1px #3fb8a066, 0 10px 24px #0009;
+}
+
+.game-page .combat-arena .combatant.side-e {
+  justify-self: end;
+  box-shadow: inset -3px 0 0 var(--cinnabar), inset 0 0 0 1px #c8322b66, 0 10px 24px #0009;
+}
+
+.game-page .combatant .fighter-identity h2 {
+  font-family: var(--brush);
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1.1;
+  color: #fff;
+  text-shadow: 0 2px 0 #000, 0 0 12px #3fb8a066;
+}
+
+.game-page .combatant.side-e .fighter-identity h2 {
+  text-shadow: 0 2px 0 #000, 0 0 12px #c8322b88;
+}
+
+.game-page .combatant .turn-mark {
+  border: 0;
+  border-radius: 3px;
+  color: #fff;
+  background: var(--cinnabar);
+  box-shadow: 0 0 12px #c8322b;
+  font-weight: 700;
+  animation: turn-pop .25s cubic-bezier(.3, 1.8, .5, 1) both;
+}
+
+@keyframes turn-pop {
+  from { transform: scale(2); opacity: 0; }
+}
+
+.game-page .combatant .fighter-numbers {
+  color: var(--cream-dim);
+}
+
+.game-page .combatant .fighter-numbers b {
+  color: #fff;
+  font-size: 15px;
+}
+
+.game-page .combatant .bar.hp,
+.game-page .combat-arena .combatant .bar.hp {
+  position: relative;
+  height: 16px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #050708;
+  box-shadow: inset 0 0 0 1px #d9a44177, 0 0 0 1px #000, inset 0 3px 6px #000;
+}
+
+.game-page .combatant .bar.hp::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--hp-ghost, 0%);
+  background: linear-gradient(180deg, #fff, #ffd9a8);
+  transition: width 0s;
+}
+
+.game-page .combatant .bar.hp[data-ghost-drain="true"]::before {
+  transition: width .5s cubic-bezier(.4, 0, .2, 1) .38s;
+}
+
+.game-page .combatant .bar.hp .hp-fill {
+  position: relative;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, #ffffff55, transparent 45%, #0003),
+    linear-gradient(90deg, #1d8f78, #3fd6b4);
+  box-shadow: 0 0 10px #3fb8a0aa;
+  transition: width .12s ease-out;
+}
+
+.game-page .combatant.side-e .bar.hp .hp-fill {
+  background:
+    linear-gradient(180deg, #ffffff55, transparent 45%, #0003),
+    linear-gradient(90deg, #ff6a3c, #b81f1a);
+  box-shadow: 0 0 10px #c8322baa;
+}
+
+.game-page .combatant .bar.hp .shield-fill {
+  z-index: 2;
+  background:
+    repeating-linear-gradient(115deg, #fff3 0 4px, transparent 4px 9px),
+    linear-gradient(180deg, #ffe7a3, #d9a441);
+  box-shadow: 0 0 10px #f3cf7a;
+}
+
+.game-page .combatant.low-health .bar.hp {
+  box-shadow: inset 0 0 0 1px #ff5a3c, 0 0 0 1px #000, inset 0 3px 6px #000;
+}
+
+.game-page .combat-arena .combatant.low-health::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: 0 0 22px #ff2a1a, inset 0 0 18px #ff2a1a66;
+  opacity: 0;
+  will-change: opacity;
+  animation: hp-danger .7s ease-in-out infinite alternate;
+}
+
+@keyframes hp-danger {
+  to { opacity: 1; }
+}
+
+.game-page .combatant .bar.rage {
+  height: 7px;
+  border-radius: 2px;
+  background: #050708;
+}
+
+.game-page .combatant .bar.rage span {
+  background: linear-gradient(90deg, #8a1f12, #ff7a2c, #ffd36b);
+  box-shadow: 0 0 8px #ff7a2c;
+}
+
+.game-page .combatant.rage-ready .bar.rage {
+  position: relative;
+  overflow: hidden;
+}
+
+.game-page .combatant.rage-ready .bar.rage span {
+  background: linear-gradient(90deg, #ff7a2c, #ffd36b);
+  box-shadow: 0 0 16px #ffb03c, 0 0 4px #fff;
+}
+
+.game-page .combatant.rage-ready .bar.rage::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 40%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, #fff8, transparent);
+  will-change: transform;
+  animation: rage-ready-flow .7s linear infinite;
+}
+
+.game-page .combatant.rage-ready .fighter-numbers [data-value="rage"] {
+  color: #ffd36b;
+  text-shadow: 0 0 8px #ff7a2c;
+}
+
+@keyframes rage-ready-flow {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(260%); }
+}
+
+/* Stage core: round seal + beat caption */
+.game-page .battle-stage-core {
+  z-index: 6;
+  color: var(--cream);
+}
+
+.game-page .battle-stage-core .round-seal {
+  display: inline-grid;
+  min-width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  color: #fff;
+  background: radial-gradient(circle at 40% 35%, #e0473a, #8e1d18);
+  box-shadow: 0 0 0 2px #f3cf7a, 0 0 18px #c8322b;
+  font-family: var(--brush);
+  font-size: 24px;
+  transform: rotate(-6deg);
+}
+
+.game-page .battle-stage-core strong {
+  font-family: var(--brush);
+  font-size: 24px;
+  font-weight: 400;
+  color: #fff;
+  text-shadow: 0 2px 0 #000, 0 0 12px #000;
+}
+
+.game-page .battle-stage-core small {
+  color: var(--gilt-bright);
+}
+
+.game-page .battle-stage-core small.core-source {
+  color: #ffd36b;
+  text-shadow: 0 0 8px #ff7a2c;
+}
+
+/* Floating numbers: big, outlined, punchy */
+.game-page .combat-float b,
+.game-page .combat-hit-number b {
+  font-family: "Impact", "Arial Black", var(--sans);
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: -.02em;
+  color: #fff;
+  -webkit-text-stroke: 1.5px #000;
+  paint-order: stroke fill;
+  text-shadow: 0 3px 0 #000, 0 0 16px #ff5a3c;
+}
+
+.game-page .combat-float.damage b {
+  font-size: clamp(34px, 4.4vw, 54px);
+}
+
+.game-page .combat-float.damage.crit b,
+.game-page .combat-hit-number.is-critical b {
+  font-size: clamp(44px, 6vw, 72px);
+  color: #ffe08a;
+  text-shadow: 0 3px 0 #5c0b06, 0 0 24px #ff2a1a, 0 0 4px #fff;
+}
+
+.game-page .combat-float.damage.dot b {
+  font-size: 30px;
+  color: #c9a6ff;
+  text-shadow: 0 2px 0 #000, 0 0 14px #8b7cff;
+}
+
+.game-page .combat-float.damage {
+  animation-name: ink-float-punch;
+  animation-timing-function: cubic-bezier(.2, .9, .3, 1);
+}
+
+@keyframes ink-float-punch {
+  0% { opacity: 0; transform: translateY(10px) scale(2.4); }
+  12% { opacity: 1; transform: translateY(0) scale(.9); }
+  20% { transform: translateY(-4px) scale(1.06); }
+  75% { opacity: 1; transform: translateY(-28px) scale(1); }
+  100% { opacity: 0; transform: translateY(-46px) scale(.96); }
+}
+
+.game-page .combat-hit-number b {
+  font-size: clamp(26px, 3.4vw, 40px);
+}
+
+.game-page .combat-float small,
+.game-page .combat-hit-number small {
+  color: #ffd36b;
+  font-weight: 700;
+  text-shadow: 0 1px 0 #000;
+}
+
+.game-page .combat-float.detail b,
+.game-page .combat-float.status-change b {
+  font-family: var(--sans);
+  font-style: normal;
+  font-size: 15px;
+  -webkit-text-stroke: 0;
+  text-shadow: 0 1px 0 #000, 0 0 8px #000;
+}
+
+.game-page .combat-float.detail.heal b {
+  color: #7ff0a4;
+}
+
+.game-page .combat-float.detail.shield b {
+  color: #ffe08a;
+}
+
+.game-page .combat-float.detail.rage b {
+  color: #ff9a5c;
+}
+
+/* Relic board & controls */
+.game-page .battle-relic-board {
+  border-radius: 8px;
+  background: linear-gradient(180deg, #0f191ee6, #0a0f11e6);
+  box-shadow: inset 0 0 0 1px #d9a44144;
+}
+
+.game-page .battle-relic-board [data-triggered="true"],
+.game-page .battle-relic-board .is-triggered,
+.game-page .battle-relic-board .triggered {
+  box-shadow: 0 0 0 2px var(--gilt-bright), 0 0 24px #f3cf7a;
+  animation: relic-fire .45s cubic-bezier(.3, 1.8, .5, 1);
+}
+
+@keyframes relic-fire {
+  from { transform: scale(1.4); filter: brightness(2.2); }
+}
+
+.game-page .replay-progress {
+  background: #050708;
+  box-shadow: inset 0 0 0 1px #d9a44133;
+}
+
+.game-page .replay-progress i {
+  background: linear-gradient(90deg, var(--cinnabar), var(--gilt-bright));
+  box-shadow: 0 0 10px #ff5a3c;
+}
+
+/* ───────── Game feel: shake / hit-stop ───────── */
+
+.game-page .combat-arena.juice-shaking[data-juice-shake="1"] > :is(.game-battle-actors, .battle-stage-core) {
+  animation: juice-shake-1 .18s linear;
+}
+
+.game-page .combat-arena.juice-shaking[data-juice-shake="2"] > :is(.game-battle-actors, .battle-stage-core) {
+  animation: juice-shake-2 .28s linear;
+}
+
+.game-page .combat-arena.juice-shaking[data-juice-shake="3"] > :is(.game-battle-actors, .battle-stage-core) {
+  animation: juice-shake-3 .42s linear;
+}
+
+.game-page .combat-arena.juice-shaking[data-juice-tick="1"][data-juice-shake="1"] > :is(.game-battle-actors, .battle-stage-core) {
+  animation-name: juice-shake-1b;
+}
+
+.game-page .combat-arena.juice-shaking[data-juice-tick="1"][data-juice-shake="2"] > :is(.game-battle-actors, .battle-stage-core) {
+  animation-name: juice-shake-2b;
+}
+
+.game-page .combat-arena.juice-shaking[data-juice-tick="1"][data-juice-shake="3"] > :is(.game-battle-actors, .battle-stage-core) {
+  animation-name: juice-shake-3b;
+}
+
+@keyframes juice-shake-1 {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-4px, 2px); }
+  50% { transform: translate(4px, -2px); }
+  75% { transform: translate(-2px, 1px); }
+}
+
+@keyframes juice-shake-1b {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-4px, 2px); }
+  50% { transform: translate(4px, -2px); }
+  75% { transform: translate(-2px, 1px); }
+}
+
+@keyframes juice-shake-2 {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  12% { transform: translate(-10px, 4px) rotate(-.4deg); }
+  28% { transform: translate(9px, -5px) rotate(.4deg); }
+  44% { transform: translate(-7px, 3px); }
+  60% { transform: translate(5px, -2px); }
+  80% { transform: translate(-2px, 1px); }
+}
+
+@keyframes juice-shake-2b {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  12% { transform: translate(-10px, 4px) rotate(-.4deg); }
+  28% { transform: translate(9px, -5px) rotate(.4deg); }
+  44% { transform: translate(-7px, 3px); }
+  60% { transform: translate(5px, -2px); }
+  80% { transform: translate(-2px, 1px); }
+}
+
+@keyframes juice-shake-3 {
+  0%, 100% { transform: translate(0, 0) scale(1) rotate(0); }
+  8% { transform: translate(-18px, 9px) scale(1.04) rotate(-.9deg); }
+  18% { transform: translate(16px, -10px) scale(1.04) rotate(.8deg); }
+  30% { transform: translate(-13px, 6px) scale(1.03) rotate(-.5deg); }
+  44% { transform: translate(10px, -5px) scale(1.02); }
+  60% { transform: translate(-6px, 3px) scale(1.01); }
+  78% { transform: translate(3px, -1px); }
+}
+
+@keyframes juice-shake-3b {
+  0%, 100% { transform: translate(0, 0) scale(1) rotate(0); }
+  8% { transform: translate(-18px, 9px) scale(1.04) rotate(-.9deg); }
+  18% { transform: translate(16px, -10px) scale(1.04) rotate(.8deg); }
+  30% { transform: translate(-13px, 6px) scale(1.03) rotate(-.5deg); }
+  44% { transform: translate(10px, -5px) scale(1.02); }
+  60% { transform: translate(-6px, 3px) scale(1.01); }
+  78% { transform: translate(3px, -1px); }
+}
+
+/* During hit-stop the actors flash and the scene holds its breath */
+.game-page .combat-arena.juice-hitstop > .game-battle-actors {
+  animation: juice-freeze-flash var(--juice-hold, 80ms) steps(2, jump-none);
+}
+
+.game-page .combat-arena.juice-hitstop[data-juice-tick="1"] > .game-battle-actors {
+  animation-name: juice-freeze-flash-b;
+}
+
+@keyframes juice-freeze-flash {
+  0% { filter: brightness(2.6) contrast(1.4) saturate(.4); }
+  100% { filter: none; }
+}
+
+@keyframes juice-freeze-flash-b {
+  0% { filter: brightness(2.6) contrast(1.4) saturate(.4); }
+  100% { filter: none; }
+}
+
+/* ───────── Game feel: impact sparks & ink splash ───────── */
+
+.game-page .juice-fx {
+  position: absolute;
+  z-index: 8;
+  pointer-events: none;
+}
+
+.game-page .juice-spark {
+  --spark-color: #fff3c4;
+  --spark-glow: #ffb03c;
+  top: 52%;
+  width: calc(150px + 160px * var(--juice-ratio, .2));
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+}
+
+.game-page .juice-spark.target-e { left: 72%; }
+.game-page .juice-spark.target-p { left: 28%; }
+
+.game-page .juice-spark.owner-p {
+  --spark-color: #d9fff4;
+  --spark-glow: #3fd6b4;
+}
+
+.game-page .juice-spark.owner-e {
+  --spark-color: #ffe7b0;
+  --spark-glow: #ff5a3c;
+}
+
+.game-page .juice-spark.is-crit {
+  --spark-color: #fff;
+  --spark-glow: #ff2a1a;
+}
+
+.game-page .juice-spark::before {
+  /* core flash */
+  content: "";
+  position: absolute;
+  inset: 22%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 18%, var(--spark-color) 30%, color-mix(in srgb, var(--spark-glow) 70%, transparent) 50%, transparent 70%);
+  animation: spark-core .32s ease-out both;
+}
+
+.game-page .juice-spark::after {
+  /* ink splash ring */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 6px solid var(--spark-glow);
+  box-shadow: 0 0 24px var(--spark-glow), inset 0 0 24px var(--spark-glow);
+  animation: spark-ring .42s cubic-bezier(.1, .8, .3, 1) both;
+}
+
+.game-page .juice-spark i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 46%;
+  height: 4px;
+  border-radius: 4px;
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, #fff, var(--spark-color) 30%, transparent);
+  box-shadow: 0 0 10px var(--spark-glow);
+  animation: spark-ray .34s cubic-bezier(.1, .9, .3, 1) both;
+}
+
+.game-page .juice-spark i:nth-child(1) { --a: 8deg; }
+.game-page .juice-spark i:nth-child(2) { --a: 52deg; height: 3px; }
+.game-page .juice-spark i:nth-child(3) { --a: 97deg; }
+.game-page .juice-spark i:nth-child(4) { --a: 141deg; height: 2px; }
+.game-page .juice-spark i:nth-child(5) { --a: 188deg; }
+.game-page .juice-spark i:nth-child(6) { --a: 233deg; height: 3px; }
+.game-page .juice-spark i:nth-child(7) { --a: 276deg; }
+.game-page .juice-spark i:nth-child(8) { --a: 320deg; height: 2px; }
+
+@keyframes spark-core {
+  0% { opacity: 1; transform: scale(.2); }
+  40% { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 0; transform: scale(1.4); }
+}
+
+@keyframes spark-ring {
+  0% { opacity: 1; transform: scale(.15); border-width: 14px; }
+  100% { opacity: 0; transform: scale(1.1); border-width: 1px; }
+}
+
+@keyframes spark-ray {
+  0% { opacity: 1; transform: rotate(var(--a)) scaleX(.1); }
+  45% { opacity: 1; transform: rotate(var(--a)) scaleX(1.1); }
+  100% { opacity: 0; transform: rotate(var(--a)) translateX(40%) scaleX(.4); }
+}
+
+.game-page .juice-spark .juice-crit-seal {
+  position: absolute;
+  top: -6%;
+  right: -4%;
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  border-radius: 8px;
+  color: #fff;
+  background: radial-gradient(circle at 40% 35%, #ff5a3c, #8e1d18 72%);
+  box-shadow: 0 0 0 2px #ffe08a, 0 0 30px #ff2a1a;
+  font-family: var(--brush);
+  font-size: 46px;
+  font-weight: 400;
+  line-height: 1;
+  animation: crit-seal .6s cubic-bezier(.3, 1.8, .5, 1) both;
+}
+
+@keyframes crit-seal {
+  0% { opacity: 0; transform: scale(3) rotate(-30deg); }
+  45% { opacity: 1; transform: scale(.92) rotate(-10deg); }
+  80% { opacity: 1; transform: scale(1) rotate(-12deg); }
+  100% { opacity: 0; transform: scale(1.05) rotate(-12deg); }
+}
+
+/* Rage impact: a bolt of heavenly thunder onto the target */
+.game-page .juice-bolt {
+  top: 0;
+  width: 120px;
+  height: 64%;
+  transform: translateX(-50%);
+  background:
+    linear-gradient(90deg, transparent 44%, #fff 48% 52%, transparent 56%),
+    linear-gradient(90deg, transparent 30%, var(--bolt, #7ff0d4) 50%, transparent 70%);
+  -webkit-mask: linear-gradient(180deg, transparent, #000 12%, #000);
+  mask: linear-gradient(180deg, transparent, #000 12%, #000);
+  filter: drop-shadow(0 0 16px var(--bolt, #7ff0d4)) drop-shadow(0 0 40px var(--bolt, #7ff0d4));
+  clip-path: polygon(46% 0, 60% 0, 52% 30%, 66% 30%, 44% 68%, 54% 68%, 38% 100%, 44% 60%, 34% 60%, 48% 34%, 38% 34%);
+  animation: bolt-strike .38s steps(1, end) both;
+}
+
+.game-page .juice-bolt.owner-e { --bolt: #ff7a52; }
+.game-page .juice-bolt.target-e { left: 72%; }
+.game-page .juice-bolt.target-p { left: 28%; }
+
+@keyframes bolt-strike {
+  0% { opacity: 1; }
+  25% { opacity: .2; }
+  40% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Combo counter: vertical calligraphy on the attacker's side */
+.game-page .juice-combo {
+  top: 22%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  writing-mode: vertical-rl;
+  color: #fff;
+  font-family: var(--brush);
+  line-height: 1;
+  animation: combo-in .7s cubic-bezier(.3, 1.6, .5, 1) both;
+}
+
+.game-page .juice-combo.owner-p { left: 4%; }
+.game-page .juice-combo.owner-e { right: 4%; }
+
+.game-page .juice-combo b {
+  font-size: clamp(56px, 7vw, 92px);
+  font-weight: 400;
+  color: #ffe08a;
+  -webkit-text-stroke: 2px #3c0a08;
+  paint-order: stroke fill;
+  text-shadow: 0 0 24px #ff5a3c;
+}
+
+.game-page .juice-combo span {
+  margin-top: 4px;
+  font-size: clamp(30px, 3.6vw, 46px);
+  color: #fff;
+  -webkit-text-stroke: 1.5px #000;
+  paint-order: stroke fill;
+  text-shadow: 0 0 14px #c8322b;
+}
+
+@keyframes combo-in {
+  0% { opacity: 0; transform: translateY(-30px) scale(1.8); }
+  30% { opacity: 1; transform: translateY(0) scale(.95); }
+  80% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: translateY(12px); }
+}
+
+/* Healing / shield surge */
+.game-page .juice-surge {
+  bottom: 14%;
+  width: 220px;
+  height: 260px;
+  transform: translateX(-50%);
+  background: radial-gradient(50% 30% at 50% 100%, #7ff0d4aa, transparent 70%);
+  animation: surge-rise .6s ease-out both;
+}
+
+.game-page .juice-surge.target-p { left: 28%; }
+.game-page .juice-surge.target-e { left: 72%; }
+
+@keyframes surge-rise {
+  from { opacity: 1; transform: translateX(-50%) scaleY(.2); transform-origin: bottom; }
+  to { opacity: 0; transform: translateX(-50%) scaleY(1.2); transform-origin: bottom; }
+}
+
+/* Full-screen flashes */
+.game-page .juice-flash {
+  inset: 0;
+  z-index: 7;
+}
+
+.game-page .juice-flash.flash-crit {
+  background: radial-gradient(circle at 50% 50%, #fff6, #ff2a1a33 60%, transparent);
+  animation: flash-out .22s ease-out both;
+}
+
+.game-page .juice-flash.flash-rage {
+  /* one frame of inverted ink negative, then the storm */
+  backdrop-filter: invert(1) grayscale(1) contrast(1.6);
+  animation: flash-negative .26s steps(1, end) both;
+}
+
+.game-page .juice-flash.flash-ko {
+  background: #fff;
+  animation: flash-out .5s ease-out both;
+}
+
+@keyframes flash-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes flash-negative {
+  0% { opacity: 1; }
+  45% { opacity: 0; }
+  60% { opacity: .8; }
+  100% { opacity: 0; }
+}
+
+/* ───────── Rage cut-in ───────── */
+
+.game-page .juice-cutin {
+  inset: 0;
+  z-index: 9;
+  overflow: hidden;
+  animation: cutin-life .9s linear both;
+}
+
+.game-page .juice-cutin::before {
+  /* the sky darkens */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 80% at 50% 50%, #0008, #000d);
+  animation: cutin-dim .9s ease-out both;
+}
+
+.game-page .juice-cutin-band {
+  position: absolute;
+  top: 30%;
+  left: -10%;
+  width: 120%;
+  height: 40%;
+  transform: skewY(-6deg);
+  background:
+    linear-gradient(90deg, transparent, #000 8% 92%, transparent),
+    #000;
+  box-shadow: 0 -3px 0 var(--cutin, #3fd6b4), 0 3px 0 var(--cutin, #3fd6b4), 0 0 60px var(--cutin, #3fd6b4);
+  animation: cutin-band .9s cubic-bezier(.2, .9, .2, 1) both;
+}
+
+.game-page .juice-cutin.side-e {
+  --cutin: #ff5a3c;
+}
+
+.game-page .juice-cutin.side-p {
+  --cutin: #3fd6b4;
+}
+
+.game-page .juice-cutin-lines {
+  position: absolute;
+  top: 30%;
+  left: -10%;
+  width: 120%;
+  height: 40%;
+  transform: skewY(-6deg);
+  background: repeating-linear-gradient(0deg, transparent 0 9px, color-mix(in srgb, var(--cutin) 50%, transparent) 9px 10px, transparent 10px 23px);
+  -webkit-mask: linear-gradient(90deg, transparent, #000 30% 70%, transparent);
+  mask: linear-gradient(90deg, transparent, #000 30% 70%, transparent);
+  animation: speed-lines .18s linear infinite, cutin-band .9s cubic-bezier(.2, .9, .2, 1) both;
+}
+
+@keyframes speed-lines {
+  to { background-position: 0 23px; }
+}
+
+.game-page .juice-cutin-portrait {
+  position: absolute;
+  top: 22%;
+  width: 34%;
+  height: 56%;
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 0 20px var(--cutin)) drop-shadow(0 0 2px #fff);
+  animation: cutin-portrait-l .9s cubic-bezier(.2, .9, .2, 1) both;
+}
+
+.game-page .juice-cutin.side-p .juice-cutin-portrait { left: 6%; }
+.game-page .juice-cutin.side-e .juice-cutin-portrait {
+  right: 6%;
+  animation-name: cutin-portrait-r;
+}
+
+.game-page .juice-cutin-portrait .character-art {
+  position: relative;
+  display: block;
+  width: min(100%, 360px);
+  height: auto;
+  transform: none;
+}
+
+.game-page .juice-cutin.side-e .juice-cutin-portrait .character-art {
+  transform: scaleX(-1);
+}
+
+.game-page .juice-cutin-name {
+  position: absolute;
+  top: 50%;
+  font-family: var(--brush);
+  font-size: clamp(54px, 8vw, 112px);
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+  color: #fff;
+  -webkit-text-stroke: 2px #000;
+  paint-order: stroke fill;
+  text-shadow: 0 0 30px var(--cutin), 0 0 6px #fff;
+  transform: translateY(-50%);
+  animation: cutin-name .9s cubic-bezier(.2, .9, .2, 1) both;
+}
+
+.game-page .juice-cutin.side-p .juice-cutin-name { right: 8%; }
+.game-page .juice-cutin.side-e .juice-cutin-name { left: 8%; }
+
+.game-page .juice-cutin small {
+  position: absolute;
+  top: calc(50% - clamp(54px, 8vw, 112px) / 2 - 22px);
+  color: var(--cutin);
+  font-weight: 700;
+  letter-spacing: .5em;
+  text-shadow: 0 0 10px var(--cutin);
+  animation: cutin-name .9s cubic-bezier(.2, .9, .2, 1) both;
+}
+
+.game-page .juice-cutin.side-p small { right: 8%; }
+.game-page .juice-cutin.side-e small { left: 8%; }
+
+@keyframes cutin-life {
+  0%, 92% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes cutin-dim {
+  0% { opacity: 0; }
+  15%, 80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes cutin-band {
+  0% { transform: skewY(-6deg) scaleY(0); }
+  14% { transform: skewY(-6deg) scaleY(1.1); }
+  22%, 80% { transform: skewY(-6deg) scaleY(1); }
+  100% { transform: skewY(-6deg) scaleY(0); }
+}
+
+@keyframes cutin-portrait-l {
+  0% { opacity: 0; transform: translateX(-120%); }
+  18% { opacity: 1; transform: translateX(6%); }
+  80% { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(30%); }
+}
+
+@keyframes cutin-portrait-r {
+  0% { opacity: 0; transform: translateX(120%); }
+  18% { opacity: 1; transform: translateX(-6%); }
+  80% { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(-30%); }
+}
+
+@keyframes cutin-name {
+  0%, 12% { opacity: 0; transform: translateY(-50%) scale(2.6); filter: blur(8px); }
+  26% { opacity: 1; transform: translateY(-50%) scale(.94); filter: blur(0); }
+  34%, 80% { opacity: 1; transform: translateY(-50%) scale(1); }
+  100% { opacity: 0; transform: translateY(-50%) scale(1.15); }
+}
+
+/* ───────── Knockout & verdict ───────── */
+
+.game-page .juice-ko {
+  top: 50%;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -50%);
+}
+
+.game-page .juice-ko.ko-e { left: 72%; }
+.game-page .juice-ko.ko-p { left: 28%; }
+
+.game-page .juice-ko b {
+  font-family: var(--brush);
+  font-size: clamp(120px, 16vw, 220px);
+  font-weight: 400;
+  line-height: 1;
+  color: #fff;
+  -webkit-text-stroke: 3px #000;
+  paint-order: stroke fill;
+  text-shadow: 0 0 40px #ff2a1a, 0 0 8px #fff;
+  animation: ko-slash .9s cubic-bezier(.2, 1.4, .4, 1) both;
+}
+
+@keyframes ko-slash {
+  0% { opacity: 0; transform: scale(3) rotate(-20deg); }
+  30% { opacity: 1; transform: scale(.9) rotate(-8deg); }
+  70% { opacity: 1; transform: scale(1) rotate(-8deg); }
+  100% { opacity: 0; transform: scale(1.1) rotate(-8deg); }
+}
+
+.game-page .juice-verdict {
+  position: absolute;
+  z-index: 9;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: clamp(150px, 20vw, 240px);
+  aspect-ratio: 1;
+  place-items: center;
+  transform: translate(-50%, -52%) rotate(-10deg);
+  pointer-events: none;
+  animation: verdict-slam .7s cubic-bezier(.3, 1.6, .5, 1) both;
+}
+
+.game-page .juice-verdict b {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  border-radius: 14px;
+  color: #fff;
+  background: radial-gradient(circle at 40% 35%, #e0473a, #8e1d18 72%);
+  box-shadow: 0 0 0 4px #f3cf7a, inset 0 0 0 10px #8e1d18, inset 0 0 0 12px #f3cf7a88, 0 0 70px #ff2a1a, 0 14px 0 #3c0a08;
+  font-family: var(--brush);
+  font-size: clamp(100px, 13vw, 170px);
+  font-weight: 400;
+  line-height: 1;
+  text-shadow: 0 4px 0 #3c0a08;
+}
+
+.game-page .juice-verdict.verdict-loss b {
+  background: radial-gradient(circle at 40% 35%, #4a4a4a, #151515 72%);
+  box-shadow: 0 0 0 4px #777, inset 0 0 0 10px #151515, inset 0 0 0 12px #7778, 0 0 60px #000, 0 14px 0 #000;
+  color: #ddd;
+}
+
+.game-page .juice-verdict.verdict-draw b {
+  background: radial-gradient(circle at 40% 35%, #3a6a74, #12262b 72%);
+}
+
+.game-page .juice-verdict-burst {
+  position: absolute;
+  inset: -60%;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, #f3cf7a55 0 6deg, transparent 6deg 18deg);
+  -webkit-mask: radial-gradient(circle, #000 20%, transparent 68%);
+  mask: radial-gradient(circle, #000 20%, transparent 68%);
+  animation: verdict-burst 8s linear infinite;
+}
+
+.game-page .juice-verdict.verdict-loss .juice-verdict-burst {
+  display: none;
+}
+
+@keyframes verdict-slam {
+  0% { opacity: 0; transform: translate(-50%, -52%) scale(3.4) rotate(-30deg); }
+  60% { opacity: 1; transform: translate(-50%, -52%) scale(.92) rotate(-8deg); }
+  100% { transform: translate(-50%, -52%) scale(1) rotate(-10deg); }
+}
+
+@keyframes verdict-burst {
+  to { transform: rotate(1turn); }
+}
+
+.game-page .combat-arena:has(.juice-verdict.verdict-loss) > .game-battle-actors,
+.game-page .combat-arena:has(.juice-verdict.verdict-loss) > .arena-vignette {
+  filter: grayscale(.85) brightness(.75);
+  transition: filter 1.2s ease-out;
+}
+
+/* ───────── Reward / talent / event cards ───────── */
+
+.game-page .reward-card,
+.game-page .talent-card,
+.game-page .route-card,
+.game-page .shop-item,
+.game-page .rest-choice {
+  position: relative;
+  transition: transform .18s cubic-bezier(.2, .8, .2, 1.4), box-shadow .18s;
+  animation: card-unfurl .5s cubic-bezier(.2, .9, .2, 1.1) both;
+}
+
+.game-page .reward-card:nth-child(2),
+.game-page .talent-card:nth-child(2) { animation-delay: .08s; }
+.game-page .reward-card:nth-child(3),
+.game-page .talent-card:nth-child(3) { animation-delay: .16s; }
+.game-page .reward-card:nth-child(4),
+.game-page .talent-card:nth-child(4) { animation-delay: .24s; }
+
+@keyframes card-unfurl {
+  from { opacity: 0; transform: translateY(24px) rotateX(40deg); filter: brightness(2); }
+}
+
+.game-page .reward-card:hover,
+.game-page .talent-card:hover,
+.game-page .route-card:hover,
+.game-page .shop-item:hover {
+  transform: translateY(-5px);
+  box-shadow: inset 0 0 0 1px #d9a441cc, 0 0 30px #d9a44144, 0 16px 30px #000a;
+}
+
+.game-page .reward-card.rarity-rare,
+.game-page .route-card.route-recommended {
+  box-shadow: inset 0 0 0 1px #4fb3d9, 0 0 26px #4fb3d955, 0 10px 30px #0009;
+}
+
+.game-page .reward-card.rarity-legendary {
+  box-shadow: inset 0 0 0 2px var(--gilt-bright), 0 0 36px #f3cf7a66, 0 10px 30px #0009;
+}
+
+.game-page .reward-card.rarity-legendary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(115deg, transparent 30%, #fff3 45%, transparent 60%);
+  background-size: 250% 100%;
+  animation: legendary-sheen 2.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes legendary-sheen {
+  from { background-position: 150% 0; }
+  to { background-position: -100% 0; }
+}
+
+.game-page .rarity-chip {
+  color: #0a0f11;
+  background: var(--gilt);
+}
+
+.game-page .reward-card h3,
+.game-page .talent-card h3,
+.game-page .reward-card strong,
+.game-page .event-option strong {
+  color: #fff;
+}
+
+.game-page .talent-tree-node[aria-pressed="true"],
+.game-page .talent-tree-node[data-selected="true"],
+.game-page .talent-tree-node.is-selected {
+  border-image: none;
+  box-shadow: inset 0 0 0 2px var(--gilt-bright), 0 0 22px #f3cf7a66;
+}
+
+.game-page .talent-tree-node[aria-current="step"],
+.game-page .talent-tree-node[data-choice="current"],
+.game-page .talent-tree-node.is-choice {
+  border-image: none;
+  box-shadow: inset 0 0 0 2px var(--qing-bright), 0 0 22px #3fb8a066;
+}
+
+/* Dialogs */
+.game-page .modal-backdrop,
+.landing-page .modal-backdrop,
+.game-page .dialog-backdrop {
+  background: #000b;
+  backdrop-filter: blur(3px);
+}
+
+/* Text tones that were tuned for paper */
+.game-page p,
+.game-page li,
+.game-page dd,
+.game-page dt,
+.game-page summary,
+.landing-page p,
+.landing-page summary {
+  color: inherit;
+}
+
+.game-page small,
+.game-page .muted,
+.landing-page small {
+  color: var(--cream-dim);
+}
+
+.game-page strong,
+.game-page b {
+  color: inherit;
+}
+
+
+/* ───────── Equipment slots: draggable formation ───────── */
+
+.game-page .equipment-slot {
+  border-color: #d9a44144;
+  color: var(--cream);
+  background: linear-gradient(180deg, #142027, #0c1418);
+  box-shadow: inset 0 0 0 1px #d9a44133;
+  transition: transform .15s cubic-bezier(.2, .8, .2, 1.4), box-shadow .15s, opacity .15s;
+}
+
+.game-page .equipment-slot.v2-equipment-slot-front {
+  box-shadow: inset 0 0 0 1px #f3cf7a88, 0 0 16px #d9a44122;
+}
+
+.game-page .equipment-slot.v2-equipment-slot-tail {
+  box-shadow: inset 0 0 0 1px #ff5a3c88, 0 0 16px #c8322b22;
+}
+
+.game-page .equipment-slot-grid[data-equipment-drag="enabled"] .equipment-slot.is-filled {
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.game-page .equipment-slot-grid.is-dragging .equipment-slot {
+  opacity: .82;
+}
+
+.game-page .equipment-slot.is-drag-source {
+  opacity: .3 !important;
+  box-shadow: inset 0 0 0 2px dashed #d9a44166;
+  outline: 2px dashed #d9a44188;
+  outline-offset: -4px;
+}
+
+.game-page .equipment-slot.is-drop-target {
+  opacity: 1 !important;
+  transform: scale(1.05);
+  box-shadow: inset 0 0 0 2px var(--qing-bright), 0 0 26px #3fb8a0aa;
+}
+
+.equipment-drag-ghost {
+  position: fixed;
+  z-index: 1000;
+  margin: 0;
+  pointer-events: none;
+  cursor: grabbing;
+  border-radius: 6px;
+  color: var(--cream);
+  background: linear-gradient(180deg, #22343c, #10191d);
+  box-shadow: inset 0 0 0 2px var(--gilt-bright), 0 0 30px #f3cf7a88, 0 24px 40px #000c;
+  opacity: .95;
+  transition: none;
+}
+
+.game-page .equipment-drag-hint {
+  color: var(--qing-bright);
+}
+
+
+/* ════════════════════════════════════════════════════════════════
+   GAME SHELL — make the whole thing feel like a game, not a web page
+   ════════════════════════════════════════════════════════════════ */
+
+/* No text-selection / tap flashes on chrome; brush cursor; gold scrollbars */
+.landing-page,
+.game-page {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M3 3 L22 12 L13 14 L10 23 Z' fill='%23f3cf7a' stroke='%23000' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M5 5 L13 14' stroke='%23c8322b' stroke-width='1.6'/%3E%3C/svg%3E") 3 3, auto;
+}
+
+.landing-page input,
+.game-page input,
+.game-page textarea,
+.game-page .battle-log,
+.game-page .battle-detail-body {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.landing-page button:not(:disabled),
+.game-page button:not(:disabled),
+.game-page summary,
+.game-page [data-action] {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M3 3 L22 12 L13 14 L10 23 Z' fill='%23ff5a3c' stroke='%23000' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M5 5 L13 14' stroke='%23f3cf7a' stroke-width='1.6'/%3E%3C/svg%3E") 3 3, pointer;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d9a44188 transparent;
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { border-radius: 8px; background: linear-gradient(180deg, #f3cf7a99, #8a5a1a99); }
+
+/* Viewport frame: lacquered corners and a vignette, like a game window */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  will-change: transform;
+  display: block;
+  pointer-events: none;
+  background:
+    radial-gradient(130% 100% at 50% 50%, transparent 62%, #000a 100%),
+    linear-gradient(135deg, #d9a441 0 2px, transparent 2px) 10px 10px / 40px 40px no-repeat,
+    linear-gradient(225deg, #d9a441 0 2px, transparent 2px) calc(100% - 10px) 10px / 40px 40px no-repeat,
+    linear-gradient(45deg, #d9a441 0 2px, transparent 2px) 10px calc(100% - 10px) / 40px 40px no-repeat,
+    linear-gradient(315deg, #d9a441 0 2px, transparent 2px) calc(100% - 10px) calc(100% - 10px) / 40px 40px no-repeat;
+  opacity: .9;
+}
+
+/* ───── HUD header ───── */
+
+.game-page .topbar,
+.landing-page .topbar {
+  min-height: 58px;
+  border-bottom: 0;
+  background:
+    linear-gradient(180deg, #05080af5, #05080ad0 70%, transparent);
+  box-shadow: none;
+}
+
+.game-page .topbar::after,
+.landing-page .topbar::after {
+  /* gilded rule with a centre jewel */
+  content: "";
+  position: absolute;
+  left: 3%;
+  right: 3%;
+  bottom: 4px;
+  height: 7px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 50%, #ff5a3c 0 2.5px, #f3cf7a 3px 3.5px, transparent 4px) center / 14px 7px no-repeat,
+    linear-gradient(90deg, transparent, #d9a44199 15% 46%, transparent 47% 53%, #d9a44199 54% 85%, transparent) center / 100% 1px no-repeat;
+}
+
+.game-page .topbar,
+.landing-page .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.game-page .edition-badge,
+.landing-page .edition-badge {
+  border: 0;
+  border-radius: 2px;
+  padding: 2px 8px;
+  color: #fff;
+  background: linear-gradient(180deg, #c8322b, #7d1714);
+  box-shadow: 0 0 0 1px #f3cf7a88;
+  font-size: 11px;
+  letter-spacing: .1em;
+  transform: rotate(-3deg);
+}
+
+.game-page .nav-button {
+  position: relative;
+  min-height: 44px;
+  padding: 4px 14px;
+  border: 0;
+  border-radius: 6px 6px 0 0;
+  color: var(--cream-dim);
+  background: transparent;
+  font-family: var(--brush);
+  font-size: 20px;
+  letter-spacing: .08em;
+  transition: color .15s, text-shadow .15s;
+}
+
+.game-page .nav-button:hover {
+  color: #fff;
+  text-shadow: 0 0 12px #f3cf7a;
+}
+
+.game-page .nav-button[aria-current="page"],
+.game-page .nav-button[aria-pressed="true"],
+.game-page .nav-button.active {
+  color: var(--gilt-bright);
+  background: radial-gradient(80% 100% at 50% 100%, #d9a44133, transparent 70%);
+  text-shadow: 0 0 14px #d9a441;
+}
+
+.game-page .nav-button[aria-current="page"]::after,
+.game-page .nav-button[aria-pressed="true"]::after,
+.game-page .nav-button.active::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  width: 8px;
+  height: 8px;
+  background: var(--cinnabar-bright);
+  box-shadow: 0 0 10px #ff5a3c;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.game-page .header-run-summary {
+  gap: 8px;
+}
+
+.game-page .header-run-summary .run-hp,
+.game-page .header-run-summary .run-xp,
+.game-page .header-run-summary .run-coins {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 2px 12px 2px 8px;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(180deg, #1c2b31, #0a1013);
+  box-shadow: inset 0 0 0 1px #d9a44166, 0 2px 0 #000;
+  font-family: "Impact", var(--sans);
+  letter-spacing: .02em;
+}
+
+.game-page .header-run-summary .run-hp { box-shadow: inset 0 0 0 1px #3fd6b488, 0 0 12px #3fb8a033, 0 2px 0 #000; }
+.game-page .header-run-summary .run-hp svg { color: #ff5a3c; }
+.game-page .header-run-summary .run-xp svg { color: #b4a6ff; }
+.game-page .header-run-summary .run-coins { box-shadow: inset 0 0 0 1px #f3cf7a, 0 0 12px #d9a44144, 0 2px 0 #000; }
+.game-page .header-run-summary .run-coins svg { color: var(--gilt-bright); }
+
+.game-page .header-run-summary .run-identity {
+  font-family: var(--brush);
+  font-size: 18px;
+  color: #fff;
+}
+
+/* ───── Sections become framed panels with plaque titles ───── */
+
+.game-page .build-section,
+.game-page .codex-page > section,
+.game-page .stage-card,
+.game-page .event-card,
+.game-page .shop-grid,
+.game-page .rest-grid,
+.game-page .player-compact {
+  position: relative;
+  margin-block: 14px;
+  padding: 16px 18px 18px;
+  border: 0;
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, #f3cf7a 0 1.5px, transparent 1.5px) 0 0 / 18px 18px no-repeat,
+    linear-gradient(225deg, #f3cf7a 0 1.5px, transparent 1.5px) 100% 0 / 18px 18px no-repeat,
+    linear-gradient(45deg, #f3cf7a 0 1.5px, transparent 1.5px) 0 100% / 18px 18px no-repeat,
+    linear-gradient(315deg, #f3cf7a 0 1.5px, transparent 1.5px) 100% 100% / 18px 18px no-repeat,
+    linear-gradient(170deg, #142128ee, #0b1215f2);
+  box-shadow: inset 0 0 0 1px #d9a44133, inset 0 0 40px #0008, 0 14px 30px #0009;
+}
+
+.game-page .section-heading {
+  position: relative;
+  margin: -16px -18px 14px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 10px 10px 0 0;
+  background: linear-gradient(90deg, #d9a44126, transparent 70%);
+  box-shadow: inset 0 -1px 0 #d9a44144;
+}
+
+.game-page .section-heading h2,
+.game-page .build-section h2,
+.game-page .stage-card h2 {
+  margin: 0;
+  font-family: var(--brush);
+  font-size: 26px;
+  font-weight: 400;
+  color: #fff;
+  text-shadow: 0 2px 0 #000, 0 0 12px #d9a44166;
+}
+
+.game-page .section-heading h2::before {
+  content: "";
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 10px;
+  vertical-align: middle;
+  background: var(--cinnabar-bright);
+  box-shadow: 0 0 8px #ff5a3c;
+  transform: rotate(45deg) translateY(-2px);
+}
+
+.game-page hr,
+.game-page .divider {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #d9a44166, transparent);
+}
+
+.game-page .filters button,
+.game-page .filters [data-action="build-filter"] {
+  border-radius: 16px;
+  padding-inline: 14px;
+  font-family: var(--brush);
+  font-size: 18px;
+}
+
+/* disclosure rows look like scroll ribbons, not web <details> */
+.game-page details.disclosure > summary,
+.landing-page details.disclosure > summary {
+  list-style: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  color: var(--gilt-bright);
+  background: linear-gradient(90deg, #d9a4411f, transparent);
+}
+
+.game-page details.disclosure > summary::-webkit-details-marker,
+.landing-page details.disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.game-page details.disclosure > summary::before,
+.landing-page details.disclosure > summary::before {
+  content: "◆ ";
+  color: var(--cinnabar-bright);
+}
+
+.game-page details.disclosure[open] > summary::before,
+.landing-page details.disclosure[open] > summary::before {
+  content: "◇ ";
+}
+
+.game-page .text-link,
+.landing-page .text-link {
+  color: var(--gilt-bright);
+  text-decoration: none;
+  border-bottom: 1px dashed #d9a44188;
+}
+
+/* ───── Player rail as a character portrait card ───── */
+
+.game-page .player-compact {
+  overflow: hidden;
+  background:
+    radial-gradient(100% 60% at 20% 0%, #3fb8a033, transparent 70%),
+    linear-gradient(170deg, #142128ee, #0b1215f2);
+}
+
+.game-page .player-compact .player-identity h2,
+.game-page .player-compact .player-identity strong {
+  font-family: var(--brush);
+  font-size: 26px;
+  font-weight: 400;
+  color: #fff;
+}
+
+.game-page .player-compact .bar {
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.game-page .player-compact .bar.hp > * {
+  background: linear-gradient(180deg, #ffffff44, transparent 50%), linear-gradient(90deg, #1d8f78, #3fd6b4);
+  box-shadow: 0 0 8px #3fb8a0;
+}
+
+.game-page .player-compact .bar.xp > * {
+  background: linear-gradient(180deg, #ffffff44, transparent 50%), linear-gradient(90deg, #5d2bd0, #b4a6ff);
+  box-shadow: 0 0 8px #8b7cff;
+}
+
+/* ───── Screen transition: ink wipe ───── */
+
+.game-page .main-stage[data-screen-enter="true"] {
+  animation: screen-ink-in .55s cubic-bezier(.2, .8, .2, 1) both;
+}
+
+@keyframes screen-ink-in {
+  0% {
+    opacity: 0;
+    filter: blur(6px) brightness(1.6);
+    clip-path: circle(0% at 50% 45%);
+  }
+  60% {
+    opacity: 1;
+    filter: none;
+  }
+  100% {
+    clip-path: circle(150% at 50% 45%);
+  }
+}
+
+.game-page .stage-heading h1 {
+  animation: heading-brush .6s .1s cubic-bezier(.2, .8, .2, 1) both;
+}
+
+@keyframes heading-brush {
+  from { opacity: 0; letter-spacing: .4em; filter: blur(4px); }
+}
+
+/* ───── Landing as a character-select screen ───── */
+
+.landing-page {
+  height: 100svh;
+  min-height: 640px;
+  overflow: hidden;
+}
+
+.landing-page .landing-inner {
+  display: grid;
+  width: min(1320px, 100% - 48px);
+  max-width: none;
+  height: calc(100svh - 58px);
+  min-height: 580px;
+  margin: 0 auto;
+  padding: 2vh 0 3vh;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 34%);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    "copy hero"
+    "setup hero";
+  gap: 1vh 32px;
+}
+
+.landing-page .landing-copy {
+  grid-area: copy;
+  align-self: end;
+}
+
+.landing-page .hero-card-stage {
+  grid-area: hero;
+  align-self: stretch;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.landing-page .hero-card-stage::before {
+  /* summoning circle under the hero */
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 2%;
+  width: 92%;
+  aspect-ratio: 3 / 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side, #3fb8a055, transparent 70%),
+    repeating-conic-gradient(from 0deg, #f3cf7a66 0 2deg, transparent 2deg 12deg);
+  -webkit-mask: radial-gradient(closest-side, transparent 55%, #000 58% 66%, transparent 68%, transparent 80%, #000 82% 86%, transparent 88%);
+  mask: radial-gradient(closest-side, transparent 55%, #000 58% 66%, transparent 68%, transparent 80%, #000 82% 86%, transparent 88%);
+  transform: translateX(-50%);
+  animation: summon-spin 18s linear infinite;
+}
+
+@keyframes summon-spin {
+  to { transform: translateX(-50%) rotate(1turn); }
+}
+
+.landing-page .hero-card-stage .character-art {
+  width: min(100%, 440px);
+  bottom: 6%;
+  filter: drop-shadow(0 0 30px #3fb8a066) drop-shadow(0 20px 20px #000);
+  animation: hero-idle 3.2s ease-in-out infinite;
+}
+
+.landing-page .hero-card-stage canvas {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes hero-idle {
+  50% { translate: 0 -8px; }
+}
+
+.landing-page .setup {
+  grid-area: setup;
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.landing-page .setup-top {
+  display: none;
+}
+
+.landing-page .name-field-row {
+  max-width: 420px;
+}
+
+.landing-page .name-input span {
+  font-family: var(--brush);
+  font-size: 18px;
+}
+
+.landing-page .method-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.landing-page .method-choice {
+  display: flex;
+  min-height: 0;
+  height: clamp(150px, 24vh, 230px);
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 4px 10px;
+  border-radius: 10px 10px 4px 4px;
+  clip-path: polygon(0 10px, 10px 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+}
+
+.landing-page .method-choice .method-portrait {
+  position: absolute;
+  inset: 4px 0 30% 0;
+  display: grid;
+  place-items: end center;
+  pointer-events: none;
+  opacity: .78;
+  filter: saturate(.6) brightness(.8);
+  transition: opacity .2s, filter .2s, transform .25s cubic-bezier(.2, .8, .2, 1.4);
+}
+
+.landing-page .method-choice .method-portrait .character-art {
+  width: auto;
+  height: 100%;
+  transform: none;
+}
+
+.landing-page .method-choice.selected .method-portrait,
+.landing-page .method-choice:hover .method-portrait {
+  opacity: 1;
+  filter: none;
+  transform: scale(1.08) translateY(-4px);
+}
+
+.landing-page .method-choice .method-mark {
+  display: none;
+}
+
+.landing-page .method-choice .method-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  width: 100%;
+  padding-top: 18px;
+  background: linear-gradient(0deg, #05080a 30%, transparent);
+}
+
+.landing-page .method-detail {
+  min-height: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #05080a99;
+  box-shadow: inset 0 0 0 1px #d9a44133;
+  font-size: 13px;
+}
+
+.landing-page .actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+}
+
+.landing-page .resume-card {
+  margin-top: 10px;
+  padding: 10px 16px;
+  color: var(--gilt-bright);
+  animation: cta-breathe 2.4s ease-in-out infinite;
+}
+
+@media (max-width: 900px) {
+  .landing-page {
+    height: auto;
+    overflow: visible;
+  }
+
+  .landing-page .landing-inner {
+    height: auto;
+    grid-template-columns: 1fr;
+    grid-template-areas: "copy" "hero" "setup";
+  }
+
+  .landing-page .hero-card-stage {
+    height: 34svh;
+    min-height: 220px;
+  }
+
+  .landing-page .method-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .landing-page .method-choice {
+    height: 128px;
+  }
+
+  .landing-page .method-choice .method-copy b {
+    font-size: 17px;
+  }
+
+  .landing-page .method-choice .method-copy em {
+    font-size: 11px;
+  }
+
+  .landing-page .actions .button.primary {
+    width: 100%;
+  }
+}
+
+
+/* Legacy frames kept transparent borders for bitmap 9-slices; paint our
+   gradients across the whole border box so they don't tile inside. */
+.game-page button,
+.landing-page button,
+.game-page .button,
+.landing-page .button,
+.game-page [class*="card"],
+.game-page .equipment-slot,
+.game-page .event-option,
+.game-page .shop-item,
+.game-page .rest-choice,
+.game-page .dialog,
+.game-page .modal,
+.game-page input,
+.landing-page input {
+  background-origin: border-box;
+}
+
+.landing-page .method-grid > .method-choice,
+.landing-page .method-grid > .method-choice:nth-child(4),
+.landing-page .method-grid > .method-choice:nth-child(5) {
+  grid-column: auto;
+  border-width: 0;
+}
+
+/* Brush calligraphy only where it is large enough to read */
+.game-page .nav-button {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.button.primary,
+.game-page .button.primary,
+.landing-page .button.primary {
+  font-family: var(--serif);
+}
+
+.button,
+.game-page .button,
+.landing-page .button,
+.button.primary,
+.game-page .button.primary,
+.landing-page .button.primary,
+.game-page .stage-actions .button.primary,
+.game-page .dialog-actions .button.primary {
+  border-width: 0;
+  padding-inline: max(18px, 1.2em);
+}
+
+.landing-page .actions .button.primary.small,
+.landing-page .actions .button.primary,
+.game-page .stage-actions .button.primary:not(.small) {
+  min-height: 56px;
+  padding-inline: 40px;
+  font-family: var(--brush);
+  font-size: 28px;
+  font-weight: 400;
+}
+
+
+/* ───── Core & fusion artifacts keep their distinct card faces ───── */
+
+.game-page :is(.reward-card, .shop-item, .equipment-slot-item, .ability-card, .mini-card)[data-core="true"] {
+  box-shadow: inset 3px 0 0 var(--gilt-bright), inset 0 0 0 1px #d9a44177, 0 0 16px #d9a44126;
+}
+
+.game-page :is(.reward-card, .shop-item, .equipment-slot-item, .mini-card, .ability-card)[data-fusion="true"] {
+  border: 2px solid #d7aa59;
+  border-image: none;
+  color: #fff2d4;
+  background: linear-gradient(145deg, #2b1f18, #4a2a22 62%, #1a1512);
+  box-shadow: inset 0 0 0 1px #f3cf7a, inset 0 0 0 3px #8e3d33, 0 0 22px #d9a44155;
+}
+
+.game-page :is(.reward-card, .shop-item, .equipment-slot-item, .mini-card, .ability-card)[data-fusion="true"][data-core="true"] {
+  box-shadow: inset 3px 0 0 var(--gilt-bright), inset 0 0 0 1px #f3cf7a, inset 0 0 0 4px #8e3d33, 0 0 26px #d9a44166;
+}
+
+.game-page .section-heading .equipment-drag-hint {
+  margin-left: 10px;
+}
+
+/* ───────── Mobile ───────── */
+
+@media (max-width: 720px) {
+  .landing-page .landing-copy h1 {
+    font-size: 64px;
+  }
+
+  .landing-page .method-choice {
+    min-height: 84px;
+  }
+
+  .landing-page .method-choice .method-copy b {
+    font-size: 22px;
+  }
+
+  .game-page .combat-arena {
+    border-radius: 0;
+  }
+
+  .game-page .combat-arena .combatant {
+    padding: 6px 8px 8px;
+  }
+
+  .game-page .combatant .fighter-identity h2 {
+    font-size: 20px;
+  }
+
+  .game-page .juice-cutin-portrait {
+    width: 46%;
+  }
+
+  .game-page .juice-cutin-name {
+    font-size: 48px;
+  }
+
+  .game-page .juice-combo b {
+    font-size: 54px;
+  }
+
+  .game-page .stage-heading h1 {
+    font-size: 30px;
+  }
+}
+
+/* ───────── Reduced motion ───────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-page .landing-atmosphere,
+  .landing-page .landing-copy h1,
+  .landing-page .method-choice::before,
+  .landing-page .actions .button.primary,
+  .game-page .combat-arena::before,
+  .game-page .combat-arena::after,
+  .game-page .map-node.available .node-disc,
+  .game-page .map-node.boss .node-disc,
+  .game-page .combat-arena.juice-shaking > *,
+  .game-page .combat-arena.juice-shaking,
+  .game-page .combat-arena.juice-hitstop > .game-battle-actors,
+  .game-page .juice-cutin-lines,
+  .game-page .juice-verdict-burst,
+  .game-page .reward-card,
+  .game-page .talent-card,
+  .game-page .preview-contender,
+  .game-page .main-stage[data-screen-enter="true"],
+  .game-page .stage-heading h1,
+  .landing-page .hero-card-stage::before,
+  .landing-page .hero-card-stage .character-art,
+  .landing-page .resume-card,
+  .game-page .versus-seal,
+  .game-page .combat-arena .combatant.low-health::after,
+  .game-page .combatant.rage-ready .bar.rage::after {
+    animation: none !important;
+  }
+
+  .game-page .juice-flash {
+    display: none;
+  }
+}

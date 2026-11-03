@@ -17,6 +17,7 @@ import {
 } from './battle-playback.js';
 import type { CombatPresentationGroup } from './battle-playback.js';
 import { battleHighlights } from './battle-highlights.js';
+import { battleJuice, hitstopWallMs, type BattleJuice } from './battle-juice.js';
 import { battleBeatEquipmentTriggers, battleImpactSegments } from './battle-impact.js';
 import { battleElementalFxCues } from './battle-elemental-vfx.js';
 import { elementalFxDuration, elementalFxMarkup } from './elemental-vfx-art.js';
@@ -408,6 +409,19 @@ class ShanhaiApp {
   private battleBeatElapsed = 0;
   private battleFloatProgress = 0;
   private lastPlaybackTime: number | null = null;
+  /** Wall-clock time until which hit-stop holds the battle timeline. */
+  private hitstopUntil = 0;
+  private lastScreen = '';
+  private equipmentDrag: {
+    id: string;
+    pointerId: number;
+    startX: number;
+    startY: number;
+    source: HTMLElement;
+    ghost?: HTMLElement;
+    target?: HTMLElement;
+  } | null = null;
+  private equipmentDragClickGuard = 0;
   private readonly gameArt = new GameArt();
   private busy = false;
   private preserveDetails = new Set<string>();
@@ -431,6 +445,14 @@ class ShanhaiApp {
     this.root.addEventListener('input', (event) => this.onInput(event));
     this.root.addEventListener('change', (event) => this.onChange(event));
     this.root.addEventListener('keydown', (event) => this.onKeyDown(event));
+    this.root.addEventListener('pointerdown', (event) => this.onEquipmentDragStart(event));
+    this.root.addEventListener('click', (event) => {
+      // A drag that just ended must not also open the artifact inspector.
+      if (performance.now() < this.equipmentDragClickGuard) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    }, true);
     window.addEventListener('resize', () => {
       const map = this.root.querySelector<HTMLElement>('.map-scroll');
       if (map) {
@@ -1282,9 +1304,9 @@ class ShanhaiApp {
     const equippedIds = equipment.slots.slice(0, MAX_EQUIPMENT_SLOTS);
     const lockedReason = this.equipmentLockReason();
     return `<section class="build-section equipment-section" aria-labelledby="equipment-title">
-      <div class="section-heading"><h2 id="equipment-title">当前装备</h2><span>已装备 ${equippedIds.length} / ${MAX_EQUIPMENT_SLOTS}</span></div>
+      <div class="section-heading"><h2 id="equipment-title">当前装备</h2><span>已装备 ${equippedIds.length} / ${MAX_EQUIPMENT_SLOTS}</span>${equippedIds.length > 1 && !lockedReason ? '<small class="equipment-drag-hint">拖动法宝调整阵位</small>' : ''}</div>
       <details class="equipment-position-guide disclosure v2-equipment-position-rules" data-details="equipment-position-rules"><summary>阵位规则 · 阵首（第1格）属性 ×1.5；阵尾（第5格）自身触发 ×1.25</summary><div class="v2-equipment-position-rule-detail"><p><b>阵首（第1格）</b> 法宝静态属性 ×1.5；可叠层普通法宝觉醒判定 +1 层，不增加真实层数。</p><p><b>阵尾（第5格）</b> 仅该法宝自身触发的伤害、治疗、护盾 ×1.25；镜映与铭刻复制不加成，未满五件时无阵尾。</p></div></details>
-      <div class="equipment-slot-grid">
+      <div class="equipment-slot-grid" data-equipment-drag="${lockedReason ? 'locked' : 'enabled'}">
         ${Array.from({ length: MAX_EQUIPMENT_SLOTS }, (_, index) =>
           this.equipmentSlotMarkup(index, equippedIds[index] || null),
         ).join('')}
@@ -1768,6 +1790,12 @@ class ShanhaiApp {
   private advancePlayback(time: number): void {
     this.rafId = 0;
     if (!this.playbackEligible() || this.battlePaused || this.battleFinished) return;
+    if (time < this.hitstopUntil) {
+      // Hit-stop: freeze the timeline (and the canvas actors) for a beat.
+      this.lastPlaybackTime = time;
+      this.rafId = requestAnimationFrame((next) => this.advancePlayback(next));
+      return;
+    }
     const frames = this.battleResult()?.frames || [];
     const wallDelta = this.lastPlaybackTime === null
       ? 0
@@ -2100,11 +2128,20 @@ class ShanhaiApp {
       return;
     }
     this.replaceRoot(this.renderGame(state));
+    this.markScreenTransition(`${state.phase}:${this.view}`);
     this.syncGameArt();
     this.syncTalentTreeConnectors();
     this.syncModalIsolation();
     if (state.phase === 'battle') this.ensurePlayback();
     this.restoreUiState();
+  }
+
+  /** Plays the ink-wipe entrance only when the player reaches a new screen. */
+  private markScreenTransition(screen: string): void {
+    if (screen === this.lastScreen) return;
+    this.lastScreen = screen;
+    const stage = this.root.querySelector<HTMLElement>('.main-stage');
+    if (stage) stage.dataset.screenEnter = 'true';
   }
 
   private replaceRoot(markup: string): void {
@@ -2228,6 +2265,7 @@ class ShanhaiApp {
       const board = shell.querySelector<HTMLElement>('.battle-relic-board');
       const state = this.gameState();
       if (board && state) board.outerHTML = this.battleRelicBoardMarkup(state, frames, group);
+      this.applyBattleJuice(arena, frames, cursor, group);
     }
 
     const progress = shell.querySelector<HTMLElement>('.replay-progress i');
@@ -2293,6 +2331,8 @@ class ShanhaiApp {
       return;
     }
     if (existing) return;
+    const arena = shell.querySelector<HTMLElement>('.combat-arena');
+    if (arena && !arena.querySelector('.juice-verdict')) arena.insertAdjacentHTML('beforeend', this.juiceVerdictMarkup());
     if (detailActions) detailActions.insertAdjacentHTML('beforebegin', this.battleSettlementMarkup());
     else shell.insertAdjacentHTML('beforeend', this.battleSettlementMarkup());
   }
@@ -3406,13 +3446,79 @@ class ShanhaiApp {
     const feedback = this.battleVfx(frame, previous, group) + this.battleElementalVfx(frames, group) + this.battleFeedback(frame, previous, group);
     return `${this.stageHeading('', this.battleFinished ? (result?.outcome === 'player' ? '此战告捷' : result?.outcome === 'draw' ? '胜负未分' : '此身入劫') : '斗法', '', true)}
       <section class="battle-shell" data-battle-key="${esc(this.battleKey)}" data-paused="${this.battlePaused || Boolean(this.modal)}" style="--beat-duration:${beatDuration}ms">
-        <div class="combat-arena" data-frame-index="${this.battleCursor}" data-frame-kind="${esc(asText(frame.kind))}" data-action-kind="${cue.actionKind}" data-reaction-kind="${esc(asText(battleReactionCue(frame, group)?.kind))}" data-motion-trigger="${this.battleCursor % 2}">${sceneArt('battle')}<span class="arena-vignette" aria-hidden="true"></span><div class="game-battle-actors" aria-hidden="true"><canvas class="game-battle-canvas" data-game-battle></canvas></div>${this.fighterMarkup(frame.player, 'player', frame.actor === 'player' && frame.kind !== 'reaction', frame, cue)}<div class="battle-stage-core"><span class="round-seal">${this.battleFinished ? (result?.outcome === 'player' ? '胜' : result?.outcome === 'draw' ? '平' : '劫') : frame.round}</span><strong data-frame-text>${esc(this.battleFrameSummary(frame, cue, group))}</strong>${sourceId && (!group || this.isCurrentCoreSource(sourceId, sourceOwner)) ? `<small data-frame-source class="${this.isCurrentCoreSource(sourceId, sourceOwner) ? 'core-source' : ''}">${esc(this.sourceLabel(sourceId))}</small>` : ''}<span data-battle-amount>${this.battleAmountMarkup(frame, group)}</span></div>${this.fighterMarkup(frame.enemy, 'enemy', frame.actor === 'enemy' && frame.kind !== 'reaction', frame, cue)}${this.battleSwordOrbitMarkup(frame.player, 'player')}${this.battleSwordOrbitMarkup(frame.enemy, 'enemy')}${feedback}</div>
+        <div class="combat-arena" data-scene="${esc(this.battleSceneId())}" data-frame-index="${this.battleCursor}" data-frame-kind="${esc(asText(frame.kind))}" data-action-kind="${cue.actionKind}" data-reaction-kind="${esc(asText(battleReactionCue(frame, group)?.kind))}" data-motion-trigger="${this.battleCursor % 2}">${sceneArt('battle')}<span class="arena-vignette" aria-hidden="true"></span><div class="game-battle-actors" aria-hidden="true"><canvas class="game-battle-canvas" data-game-battle></canvas></div>${this.fighterMarkup(frame.player, 'player', frame.actor === 'player' && frame.kind !== 'reaction', frame, cue)}<div class="battle-stage-core"><span class="round-seal">${this.battleFinished ? (result?.outcome === 'player' ? '胜' : result?.outcome === 'draw' ? '平' : '劫') : frame.round}</span><strong data-frame-text>${esc(this.battleFrameSummary(frame, cue, group))}</strong>${sourceId && (!group || this.isCurrentCoreSource(sourceId, sourceOwner)) ? `<small data-frame-source class="${this.isCurrentCoreSource(sourceId, sourceOwner) ? 'core-source' : ''}">${esc(this.sourceLabel(sourceId))}</small>` : ''}<span data-battle-amount>${this.battleAmountMarkup(frame, group)}</span></div>${this.fighterMarkup(frame.enemy, 'enemy', frame.actor === 'enemy' && frame.kind !== 'reaction', frame, cue)}${this.battleSwordOrbitMarkup(frame.player, 'player')}${this.battleSwordOrbitMarkup(frame.enemy, 'enemy')}${feedback}${this.juiceVerdictMarkup()}</div>
         ${this.battleRelicBoardMarkup(state, frames, group)}
         <div class="battle-controls"><div class="speeds" role="group" aria-label="战斗速度"><button data-action="battle-speed" data-speed="1" data-focus-key="battle-speed-1" aria-pressed="${this.battleSpeed === 1}" aria-label="一倍速" title="一倍速">1×</button><button data-action="battle-speed" data-speed="2" data-focus-key="battle-speed-2" aria-pressed="${this.battleSpeed === 2}" aria-label="二倍速" title="二倍速">2×</button><button data-action="battle-speed" data-speed="4" data-focus-key="battle-speed-4" aria-pressed="${this.battleSpeed === 4}" aria-label="四倍速" title="四倍速">4×</button><button data-action="battle-pause" data-focus-key="battle-pause" aria-pressed="${this.battlePaused}" aria-label="${this.battlePaused ? '继续播放' : '暂停播放'}" title="${this.battlePaused ? '继续播放' : '暂停播放'}">${this.battlePaused ? '继续' : '暂停'}</button></div>${this.battleControlAction(state)}</div>
         <div class="replay-progress" aria-label="战斗播放进度"><i style="width:${frames.length <= 1 ? 100 : Math.round(this.battleCursor / Math.max(1, frames.length - 1) * 100)}%"></i></div>
         ${this.battleSettlementMarkup()}
         <div class="battle-detail-actions"><button class="button small quiet" data-action="battle-details" data-tab="log" aria-label="打开战报" title="打开战报">${icon('book', 18)}</button>${this.battleFinished ? `<button class="button small quiet" data-action="battle-details" data-tab="result" aria-label="打开战果" title="打开战果">${icon('eye', 18)}</button>` : ''}</div>
       </section>${this.inlineMessage()}`;
+  }
+
+  private battleSceneId(): string {
+    return asText(this.currentAct()?.id, 'RA01');
+  }
+
+  private juiceVerdictMarkup(): string {
+    if (!this.battleFinished) return '';
+    const outcome = this.battleResult()?.outcome;
+    const [mark, kind] = outcome === 'player' ? ['胜', 'win'] : outcome === 'draw' ? ['平', 'draw'] : ['败', 'loss'];
+    return `<div class="juice-verdict verdict-${kind}" aria-hidden="true"><span class="juice-verdict-burst"></span><b>${mark}</b></div>`;
+  }
+
+  private applyBattleJuice(
+    arena: HTMLElement,
+    frames: readonly BattleFrame[],
+    cursor: number,
+    group: CombatPresentationGroup | undefined,
+  ): void {
+    arena.querySelectorAll('.juice-fx').forEach(element => element.remove());
+    const reduced = Boolean(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+    const juice: BattleJuice = battleJuice(frames, cursor, group);
+    const frame = frames[cursor];
+    const sideClass = (side?: 'player' | 'enemy') => side === 'player' ? 'p' : 'e';
+    let markup = '';
+    if (juice.rageCutIn && frame) {
+      const side = juice.rageCutIn;
+      const fighter = frame[side];
+      const portrait = arena.querySelector<HTMLElement>(`.combatant[data-side="${side}"] .fighter-art .character-art`)?.outerHTML || '';
+      const skill = this.actionLabel(fighter.method, 'rage_action');
+      markup += `<div class="juice-fx juice-cutin side-${sideClass(side)}" aria-hidden="true"><span class="juice-cutin-band"></span><span class="juice-cutin-lines"></span><span class="juice-cutin-portrait">${portrait}</span><b class="juice-cutin-name">${esc(skill)}</b><small>${side === 'player' ? '怒技' : '敌 · 怒技'}</small></div>`;
+    }
+    if (juice.target && juice.flash !== 'none') {
+      const target = sideClass(juice.target);
+      markup += `<div class="juice-fx juice-spark target-${target} ${juice.critical ? 'is-crit' : ''} ${juice.rageImpact ? 'is-rage' : ''} owner-${sideClass(juice.attacker)}" style="--juice-ratio:${Math.min(1, juice.ratio).toFixed(3)}" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>${juice.critical ? '<b class="juice-crit-seal">暴</b>' : ''}</div>`;
+      if (juice.rageImpact) markup += `<div class="juice-fx juice-bolt target-${target} owner-${sideClass(juice.attacker)}" aria-hidden="true"></div>`;
+      if (juice.combo >= 2) {
+        const numerals = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+        const count = juice.combo <= 10 ? numerals[juice.combo] : formatNumber(juice.combo);
+        markup += `<div class="juice-fx juice-combo owner-${sideClass(juice.attacker)}" aria-hidden="true"><b>${count}</b><span>连斩</span></div>`;
+      }
+    }
+    if (juice.surge && !juice.target) {
+      markup += `<div class="juice-fx juice-surge target-${sideClass(juice.surge)}" aria-hidden="true"></div>`;
+    }
+    if (!reduced && juice.flash !== 'none' && juice.flash !== 'hit') {
+      markup += `<div class="juice-fx juice-flash flash-${juice.flash}" aria-hidden="true"></div>`;
+    }
+    if (juice.knockout) {
+      markup += `<div class="juice-fx juice-ko ko-${sideClass(juice.knockout)}" aria-hidden="true"><b>${juice.knockout === 'enemy' ? '斩' : '劫'}</b></div>`;
+    }
+    if (markup) arena.insertAdjacentHTML('beforeend', markup);
+    arena.dataset.juiceShake = reduced ? '0' : String(juice.shake);
+    arena.dataset.juiceTarget = juice.target || '';
+    arena.dataset.juiceKo = juice.knockout || '';
+    // Alternate between two identical keyframe copies to restart the
+    // animations each beat without forcing a synchronous layout.
+    const tick = arena.dataset.juiceTick === '1' ? '0' : '1';
+    arena.dataset.juiceTick = tick;
+    arena.classList.toggle('juice-shaking', !reduced && juice.shake > 0);
+    const hold = hitstopWallMs(juice, this.battleSpeed, reduced);
+    arena.classList.toggle('juice-hitstop', hold > 0);
+    if (hold > 0) {
+      this.hitstopUntil = performance.now() + hold;
+      arena.style.setProperty('--juice-hold', `${hold}ms`);
+    }
   }
 
   private battleFrameSummary(
@@ -3859,7 +3965,7 @@ class ShanhaiApp {
       <div class="fighter-identity"><h2>${esc(asText(fighter.name, side === 'player' ? '行者' : '敌手'))}</h2><button type="button" class="fighter-detail-trigger" data-action="battle-details" data-tab="${side}" aria-label="${side === 'player' ? '我方详情' : '敌方详情'}" title="${side === 'player' ? '我方详情' : '敌方详情'}">${icon('eye', 16)}</button>${acting ? `<span class="turn-mark">${turnLabel}</span>` : ''}</div>
       <div class="fighter-bars">
         <div class="fighter-numbers"><span>生命</span><span><b data-value="hp">${formatNumber(resources.hp)}</b> / ${formatNumber(fighter.maxHp)} <span class="shield-count">${icon('shield', 12)} +<b data-value="shield">${formatNumber(resources.shield)}</b> / ${formatNumber(fighter.maxShield)}</span></span></div>
-        <div class="bar hp" role="progressbar" aria-label="${esc(`${fighter.name}气血与护盾`)}" aria-valuemin="0" aria-valuemax="${resources.capacity}" aria-valuenow="${resources.total}" aria-valuetext="气血 ${formatNumber(resources.hp)} / ${formatNumber(fighter.maxHp)}，护盾 ${formatNumber(resources.shield)}"><span class="hp-fill" style="width:${resources.hpPercent}%"></span><span class="shield-fill" style="width:${resources.shieldPercent}%"></span></div>
+        <div class="bar hp" role="progressbar" style="--hp-ghost:${resources.hpPercent}%" aria-label="${esc(`${fighter.name}气血与护盾`)}" aria-valuemin="0" aria-valuemax="${resources.capacity}" aria-valuenow="${resources.total}" aria-valuetext="气血 ${formatNumber(resources.hp)} / ${formatNumber(fighter.maxHp)}，护盾 ${formatNumber(resources.shield)}"><span class="hp-fill" style="width:${resources.hpPercent}%"></span><span class="shield-fill" style="width:${resources.shieldPercent}%"></span></div>
         <div class="fighter-numbers"><span>怒气</span><span data-value="rage">${formatNumber(fighter.rage)} / ${formatNumber(fighter.rageCap)}</span></div>
         <div class="bar rage" role="progressbar" aria-label="${esc(`${fighter.name}怒气`)}" aria-valuemin="0" aria-valuemax="${fighter.rageCap}" aria-valuenow="${fighter.rage}"><span style="width:${pct(fighter.rage, fighter.rageCap)}%"></span></div>
       </div>
@@ -3912,6 +4018,10 @@ class ShanhaiApp {
       const hpFill = hpBar.querySelector<HTMLElement>('.hp-fill');
       const shieldFill = hpBar.querySelector<HTMLElement>('.shield-fill');
       if (hpFill) hpFill.style.width = `${resources.hpPercent}%`;
+      // The ghost trail (a ::before) lags behind losses but snaps up with healing.
+      const ghostWidth = parseFloat(hpBar.style.getPropertyValue('--hp-ghost')) || 0;
+      hpBar.dataset.ghostDrain = String(resources.hpPercent < ghostWidth);
+      hpBar.style.setProperty('--hp-ghost', `${resources.hpPercent}%`);
       if (shieldFill) shieldFill.style.width = `${resources.shieldPercent}%`;
     }
     if (rageBar) {
@@ -5472,6 +5582,118 @@ class ShanhaiApp {
         this.battlePaused = !this.battlePaused;
         this.render();
       }
+    }
+  }
+
+  private onEquipmentDragStart(event: PointerEvent): void {
+    if (event.button !== 0 || this.equipmentDrag) return;
+    const source = (event.target as HTMLElement | null)?.closest<HTMLElement>(
+      '.equipment-slot-grid[data-equipment-drag="enabled"] .equipment-slot.is-filled',
+    );
+    const item = source?.querySelector<HTMLElement>('.equipment-slot-item[data-id]');
+    if (!source || !item || (event.target as HTMLElement).closest('.equipment-order-controls')) return;
+    const id = asText(item.dataset.id);
+    if (!id || this.equipmentItems().length < 2) return;
+    this.equipmentDrag = { id, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, source };
+    const move = (next: PointerEvent) => this.onEquipmentDragMove(next);
+    const end = (next: PointerEvent) => {
+      if (next.pointerId !== this.equipmentDrag?.pointerId) return;
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', end);
+      window.removeEventListener('pointercancel', end);
+      this.onEquipmentDragEnd(next.type === 'pointerup');
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
+  }
+
+  private onEquipmentDragMove(event: PointerEvent): void {
+    const drag = this.equipmentDrag;
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    if (!drag.ghost) {
+      if (Math.hypot(dx, dy) < 8) return;
+      const rect = drag.source.getBoundingClientRect();
+      const ghost = drag.source.cloneNode(true) as HTMLElement;
+      ghost.classList.add('equipment-drag-ghost');
+      ghost.removeAttribute('data-slot');
+      ghost.setAttribute('aria-hidden', 'true');
+      ghost.style.width = `${rect.width}px`;
+      ghost.style.height = `${rect.height}px`;
+      ghost.style.left = `${rect.left}px`;
+      ghost.style.top = `${rect.top}px`;
+      // Mount inside the game root so the slot keeps its themed styles.
+      (this.root.querySelector('.game-page') || document.body).append(ghost);
+      drag.ghost = ghost;
+      drag.source.classList.add('is-drag-source');
+      drag.source.closest('.equipment-slot-grid')?.classList.add('is-dragging');
+    }
+    event.preventDefault();
+    drag.ghost.style.transform = `translate(${dx}px, ${dy}px) rotate(${Math.max(-6, Math.min(6, dx / 30))}deg) scale(1.06)`;
+    drag.ghost.hidden = true;
+    const below = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement | null;
+    drag.ghost.hidden = false;
+    const slot = below?.closest<HTMLElement>('.equipment-slot-grid .equipment-slot') || undefined;
+    if (slot !== drag.target) {
+      drag.target?.classList.remove('is-drop-target');
+      drag.target = slot && slot !== drag.source ? slot : undefined;
+      drag.target?.classList.add('is-drop-target');
+    }
+  }
+
+  private onEquipmentDragEnd(commit: boolean): void {
+    const drag = this.equipmentDrag;
+    this.equipmentDrag = null;
+    if (!drag) return;
+    drag.ghost?.remove();
+    drag.source.classList.remove('is-drag-source');
+    drag.target?.classList.remove('is-drop-target');
+    drag.source.closest('.equipment-slot-grid')?.classList.remove('is-dragging');
+    if (!drag.ghost) return;
+    this.equipmentDragClickGuard = performance.now() + 250;
+    if (!commit || !drag.target) return;
+    const slotNumber = Number(drag.target.dataset.slot);
+    if (!Number.isInteger(slotNumber)) return;
+    this.moveEquipment(drag.id, slotNumber - 1);
+  }
+
+  /** Moves an equipped artifact to `toIndex` as a batch of adjacent swaps. */
+  private moveEquipment(id: string, toIndex: number): void {
+    if (!this.game || this.busy) return;
+    if (!this.canChangeEquipment()) {
+      this.notice = this.equipmentLockReason();
+      this.render();
+      return;
+    }
+    const slots = this.equipmentItems();
+    const from = slots.indexOf(id);
+    const to = Math.max(0, Math.min(slots.length - 1, toIndex));
+    if (from < 0 || from === to) return;
+    const direction = to < from ? 'left' : 'right';
+    this.busy = true;
+    this.error = '';
+    this.notice = '';
+    let moved = 0;
+    try {
+      for (let index = from; index !== to; index += direction === 'left' ? -1 : 1) {
+        this.game.dispatch({ type: 'reorder_equipment', id, direction } as RunCommand);
+        moved += 1;
+      }
+      this.notice = `已将${asText(this.artifactEntity(id)?.name, '法宝')}移至${this.equipmentSlotName(to)}。`;
+      this.acceptDispatchResult();
+    } catch (cause) {
+      // Undo the swaps that already applied so a failed drag is atomic.
+      const back = direction === 'left' ? 'right' : 'left';
+      for (; moved > 0; moved -= 1) {
+        try {
+          this.game.dispatch({ type: 'reorder_equipment', id, direction: back } as RunCommand);
+        } catch {
+          break;
+        }
+      }
+      this.failDispatch(cause);
     }
   }
 

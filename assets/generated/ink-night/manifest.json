@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "approval": {
+    "status": "approved",
+    "reviewedBy": "user",
+    "date": "2026-11-03",
+    "note": "User requested ink-night scene generation with gpt-image-2.5"
+  },
+  "provenance": {
+    "imageModel": "gpt-image-2.5",
+    "generator": "imagegen skill CLI (scripts/image_gen.py generate --quality high --no-augment)",
+    "promptSet": "tools/ui-preview/prompts/ink-night-scenes.jsonl",
+    "processing": "lanczos resize; webp q78"
+  },
+  "assets": [
+    {
+      "id": "battle-act1",
+      "src": "/assets/generated/ink-night/battle-act1.webp",
+      "source": {
+        "sha256": "90549dc4e4b5ea1f82852a0ae51b753f772194dc809cbe3d84cdaa0db88d8179",
+        "dimensions": [
+          1672,
+          941
+        ]
+      },
+      "processed": {
+        "dimensions": [
+          1600,
+          900
+        ],
+        "bytes": 169874,
+        "sha256": "96989e7ef2bf059d1b488972ab54b840ddb9c133c9cdca5a7fb281a49816414c"
+      }
+    },
+    {
+      "id": "battle-act2",
+      "src": "/assets/generated/ink-night/battle-act2.webp",
+      "source": {
+        "sha256": "7497932dbc3b10ca943fc78ffbb1d9cdb6936ceabe9362b5b758d80c3fc5e4db",
+        "dimensions": [
+          1672,
+          941
+        ]
+      },
+      "processed": {
+        "dimensions": [
+          1600,
+          900
+        ],
+        "bytes": 134576,
+        "sha256": "7871da5330496b12884f8c3008039bbb57c0cf69710472942d119a3282c8ccf7"
+      }
+    },
+    {
+      "id": "battle-act3",
+      "src": "/assets/generated/ink-night/battle-act3.webp",
+      "source": {
+        "sha256": "3454a3137c4c20fd971e5c434ebc720c8485c77c77233792aeda850778ac4969",
+        "dimensions": [
+          1672,
+          941
+        ]
+      },
+      "processed": {
+        "dimensions": [
+          1600,
+          900
+        ],
+        "bytes": 151916,
+        "sha256": "17441aa19da0c155247fa662f0166344b9ae6d0c943d4bd9101d39bbd25ca346"
+      }
+    },
+    {
+      "id": "battle-act4",
+      "src": "/assets/generated/ink-night/battle-act4.webp",
+      "source": {
+        "sha256": "f9b31044297862e2224dcc4e18ddfd35164f80310e72918c92ea00d16e058650",
+        "dimensions": [
+          1672,
+          941
+        ]
+      },
+      "processed": {
+        "dimensions": [
+          1600,
+          900
+        ],
+        "bytes": 172388,
+        "sha256": "05a224607f8034258239a487a781de5de23a6eaa1cb0faee60f457375c71158d"
+      }
+    },
+    {
+      "id": "battle-final",
+      "src": "/assets/generated/ink-night/battle-final.webp",
+      "source": {
+        "sha256": "9aadd5dc5e42d7940d758ed6f979c5c1ffa684ed5d412b3829ab59741dfb9b9d",
+        "dimensions": [
+          1672,
+          941
+        ]
+      },
+      "processed": {
+        "dimensions": [
+          1600,
+          900
+        ],
+        "bytes": 233392,
+        "sha256": "9406a7fb9d2b97b8737f7558695946706db1ef3b5ac6d49978d7fe75450010b4"
+      }
+    },
+    {
+      "id": "title-hero",
+      "src": "/assets/generated/ink-night/title-hero.webp",
+      "source": {
+        "sha256": "89c301c221d27dc0d033f94ce26dedb12dbdb502895a41c9e255a61462d1d9e4",
+        "dimensions": [
+          1672,
+          941
+        ]
+      },
+      "processed": {
+        "dimensions": [
+          1920,
+          1081
+        ],
+        "bytes": 154938,
+        "sha256": "0f5dfce57d37817a5568b0de84c99d843ecfc4e3b881a3b999124f8ec010f27b"
+      }
+    },
+    {
+      "id": "map-scroll",
+      "src": "/assets/generated/ink-night/map-scroll.webp",
+      "source": {
+        "sha256": "704e02b494476dfbd2c24a0644dc095d1ef1024418aabdee6497ca8f865cf82e",
+        "dimensions": [
+          1024,
+          1536
+        ]
+      },
+      "processed": {
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "bytes": 75170,
+        "sha256": "de67f573cc0f02d3a066ee528a4a03b5f49c5274a0b3f901eba748032194672f"
+      }
+    }
+  ]
+}

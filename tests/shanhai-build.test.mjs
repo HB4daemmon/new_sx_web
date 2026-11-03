@@ -19,6 +19,7 @@ const SHANHAI_MODULES = [
   'battle-elemental-vfx.js',
   'battle-highlights.js',
   'battle-impact.js',
+  'battle-juice.js',
   'battle-playback.js',
   'battle-presentation.js',
   'battle-insights.js',
@@ -33,6 +34,7 @@ const SHANHAI_MODULES = [
   'elemental-vfx-art.js',
   'elemental-vfx.css',
   'game-art.js',
+  'ink-night.css',
   'localization.js',
   'narrative.js',
   'persistence.js',
@@ -42,6 +44,16 @@ const SHANHAI_MODULES = [
   'types.js',
   'ui-text.js',
   'style.css',
+];
+
+const INK_NIGHT_SCENES = [
+  'battle-act1',
+  'battle-act2',
+  'battle-act3',
+  'battle-act4',
+  'battle-final',
+  'map-scroll',
+  'title-hero',
 ];
 
 async function walkTree(directory, relative = '') {
@@ -165,6 +177,9 @@ test('dist contains only the Shanhai Pages artifact and all 161 manifest entitie
     '.nojekyll',
     'art.js',
     'assets/generated/combat-vfx-atlas.webp',
+    ...INK_NIGHT_SCENES.map(id => `assets/generated/ink-night/${id}.webp`),
+    'assets/fonts/zhi-mang-xing-subset.woff2',
+    'assets/fonts/ZhiMangXing-OFL.txt',
     'assets/frames.json',
     'assets/game-art.json',
     'index.html',
@@ -243,6 +258,7 @@ test('index and ESM content URLs remain relative under a GitHub Pages subpath', 
   assert.equal(scriptSource, './shanhai/app.js');
   assert.deepEqual(stylesheetSources, [
     './shanhai/style.css', './shanhai/cartoon.css', './shanhai/elemental-vfx.css',
+    './shanhai/ink-night.css',
   ]);
   assert.equal(new URL(scriptSource, pageUrl).pathname, '/suishi-xiuxian/shanhai/app.js');
   for (const stylesheetSource of stylesheetSources) {
@@ -343,5 +359,18 @@ test('temporary HTTP server serves public assets and rejects private or traverse
     }
   } finally {
     await stopProcess(child);
+  }
+});
+
+test('ink-night scenes ship byte-identical to their approved manifest', async () => {
+  const { createHash } = await import('node:crypto');
+  const manifest = JSON.parse(await readFile(path.join(ROOT, 'assets/generated/ink-night/manifest.json'), 'utf8'));
+  assert.equal(manifest.approval.status, 'approved');
+  assert.equal(manifest.provenance.imageModel, 'gpt-image-2.5');
+  assert.deepEqual(manifest.assets.map(asset => asset.id).sort(), [...INK_NIGHT_SCENES].sort());
+  for (const asset of manifest.assets) {
+    const output = await readFile(path.join(DIST, asset.src.slice(1)));
+    assert.equal(createHash('sha256').update(output).digest('hex'), asset.processed.sha256, asset.id);
+    assert.equal(output.length, asset.processed.bytes, asset.id);
   }
 });

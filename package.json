@@ -13,6 +13,7 @@
     "test:browser": "node tests/shanhai-browser.mjs",
     "test:v2": "npm run build && node --test tests/shanhai-v2-*.test.mjs",
     "test:v2:ui": "node tests/shanhai-v2-ui.mjs",
+    "test:v2:drag": "node tests/shanhai-v2-equipment-drag-browser.mjs",
     "test:journey": "node tests/shanhai-browser-journey.mjs",
     "test:commitments": "node tests/shanhai-commitment-browser.mjs",
     "test:story": "node tests/shanhai-story-browser.mjs",

@@ -23,12 +23,18 @@ await copyFile('build/art.js', 'dist/art.js');
 await copyFile('src/shanhai/style.css', 'dist/shanhai/style.css');
 await copyFile('src/shanhai/cartoon.css', 'dist/shanhai/cartoon.css');
 await copyFile('src/shanhai/elemental-vfx.css', 'dist/shanhai/elemental-vfx.css');
+await copyFile('src/shanhai/ink-night.css', 'dist/shanhai/ink-night.css');
 await buildGameArt({ root, destination: path.join(root, 'dist') });
 await mkdir('dist/assets/generated', { recursive: true });
 await copyFile(
   'assets/generated/combat-vfx-atlas.webp',
   'dist/assets/generated/combat-vfx-atlas.webp',
 );
+await cp('assets/generated/ink-night', 'dist/assets/generated/ink-night', {
+  recursive: true,
+  filter: source => !source.endsWith('manifest.json'),
+});
+await cp('assets/fonts', 'dist/assets/fonts', { recursive: true });
 await copyFile('index.html', 'dist/index.html');
 await writeFile('dist/.nojekyll', '');
 
