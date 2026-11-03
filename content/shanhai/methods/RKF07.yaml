@@ -269,20 +269,20 @@ talents:
   - id: RKF07-J4-A
     tier: 4
     branch: A
-    name: 万雷归宗
-    quick: 连雷概率再次提高
+    name: 雷引千钧
+    quick: 每三次连雷，必召一道天雷
     category: enhance
     effects:
-      - id: RKF07-J4-A-MODIFY
+      - id: RKF07-J4-A-HEAVEN-BOLT
         trigger: always
-        operation: modify_chance
+        operation: modify_effect
         target: self
-        params: {effect_ids: [RKF07-BASIC-CHAIN, RKF07-RAGE-CHAIN], field: params.chance, mode: add, value: 0.18, cap: 1}
+        params: {signature: heaven_bolt, every: 3, attack_ratio: 1.8}
         requires: []
         consumes: []
         replaces: []
         limit: {scope: permanent, count: 1}
-        text: 连雷概率再提高18个百分点，最高为100%；仍只由基础雷击触发判定。
+        text: 本场每累计三次造成伤害的连雷，立即追加一道天雷，按攻击1.8倍造成可暴击的派生伤害；天雷本身不计入连雷次数。
   - id: RKF07-J4-B
     tier: 4
     branch: B

@@ -314,20 +314,20 @@ talents:
   - id: RKF08-J4-C
     tier: 4
     branch: C
-    name: 月沉无伤
-    quick: 减益敌人时提高防御
+    name: 月蚀夺魄
+    quick: 敌身减益越多，你越强
     category: enhance
     effects:
-      - id: RKF08-J4-C-DEFENSE
+      - id: RKF08-J4-C-ECLIPSE
         trigger: always
-        operation: modify_stat
+        operation: modify_effect
         target: self
-        params: {stat: defense, mode: add, amount: 12, duration: conditional_battle, condition: {enemy_has_actual_debuff: true}, dynamic: true}
-        requires: [enemy_has_actual_debuff]
+        params: {signature: eclipse_siphon, per_stack: 0.06, cap: 0.6}
+        requires: []
         consumes: []
         replaces: []
-        limit: {scope: battle, count: 1}
-        text: 敌方处于虚弱或破甲状态时，防御提高12；两种状态都消失后，加成也会消失。
+        limit: {scope: permanent, count: 1}
+        text: 敌方身上每有1层虚弱或破甲，你的攻击提高6%，最多提高60%；随减益增减实时变化。
 routes:
   - name: 寒月压制
     summary: 以普攻压制并让每种不同减益引动月印和削怒请求；代价是削怒受公共抗性和每轮上限约束。

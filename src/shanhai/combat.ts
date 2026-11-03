@@ -2098,6 +2098,11 @@ function dynamicStats(runtime: BattleRuntime, fighter: Fighter, target: Fighter,
   if (fighter.loadout.permanentRule?.kind === 'shattered_core') {
     stats.attack *= 1 + shatteredCoreAttackBonus(fighter.hp, fighter.shield, fighter.stats.max_hp);
   }
+  const eclipse = signature(fighter, 'RKF08-J4-C-ECLIPSE');
+  if (eclipse && target) {
+    const debuffs = statusCount(target, 'weakness') + statusCount(target, 'armor_break');
+    stats.attack *= 1 + Math.min(n(eclipse.params?.cap, 0.48), debuffs * n(eclipse.params?.per_stack, 0.04));
+  }
   const gambitDefense = gambitDefenseMultiplier(fighter.artifacts);
   for (const mechanic of mechanicsOf(fighter, 'carapace')) {
     stats.defense += n(fighter.battleLayers[`carapace:${mechanic.id}`], 0) * gambitDefense;
@@ -2809,6 +2814,12 @@ function dealDamage(
   let wealthApplied = options.wealthScaled === true;
   let critical = false;
   if (!options.rawIsResolved) {
+    const solar = options.kind === 'dot' && options.dotStatus === 'burn' ? signature(source, 'RKF09-J4-C-SOLAR-CRIT') : undefined;
+    if (solar && runtime.random() < clamp(stats.crit_rate, 0, 1)) {
+      critical = true;
+      raw *= n(solar.params?.crit_multiplier, 2);
+      mark(runtime, solar, 1, source.side);
+    }
     if (!blindSwordSuppressesCrit && options.canCrit && options.kind !== 'dot' && options.kind !== 'reflect') {
       const clearMind = clearMindBonus(runtime, source, options.kind);
       const chance = clamp(stats.crit_rate + clearMind.critRateAdd, 0, 1);
@@ -2979,6 +2990,10 @@ function dealDamage(
   const hpDamage = regularHpDamage + trueHpDamage;
   resolveCheatDeath(runtime, target);
   const effective = absorbed > 0 || hpDamage > 0;
+  if (effective) {
+    resolvePoisonBacklash(runtime, source, target, options.kind);
+    resolveHeavenBolt(runtime, source, target, typeof sourceEffect === 'string' ? sourceEffect : sourceEffect.id);
+  }
   const shieldBroken = beforeShield > 0 && target.shield <= 0 && absorbed > 0;
   const baselineRegularDamage = baseline.regularAbsorbed + baseline.regularHpDamage;
   const baselineConvertedDamage = baseline.trueAbsorbed + baseline.trueHpDamage;
@@ -3027,7 +3042,7 @@ function dealDamage(
     addContribution(runtime, target.method.id, 'absorbed', absorbed, target.side);
   }
   const sideText = source.side === 'player' ? '玩家' : '敌人';
-  const kindText = options.kind === 'dot' ? '持续伤害' : options.kind === 'reflect' ? '盾返' : critical ? '暴击' : '伤害';
+  const kindText = options.kind === 'dot' ? (critical ? '暴击灼烧' : '持续伤害') : options.kind === 'reflect' ? '盾返' : critical ? '暴击' : '伤害';
   const frameSource = typeof sourceEffect === 'string'
     ? sourceEffect
     : action?.isEcho && action.actor === source
@@ -5182,6 +5197,7 @@ function resolveActionEnd(runtime: BattleRuntime, action: ActionContext): void {
       if (action.phaseChanged) recordCombatEvent(runtime, 'phase', actor);
       mark(runtime, effect);
       frame(runtime, 'phase', `${actor.side === 'player' ? '玩家' : '敌人'}相位转为${actor.phase === 'day' ? '白昼' : '长夜'}`, actor.side, actor.side, effect.id);
+      if (action.phaseChanged) resolveDragonBreath(runtime, actor, action.target);
       continue;
     }
   }
@@ -6663,6 +6679,42 @@ function checkOutcome(runtime: BattleRuntime): 'player' | 'enemy' | 'draw' | und
 function signature(fighter: Fighter, id: string): ActiveEffect | undefined {
   const effect = selectedEffect(fighter, id);
   return effect && typeof effect.params?.signature === 'string' ? effect : undefined;
+}
+
+/** 蛊毒反噬: a poisoned attacker is bitten by its own poison, once per action. */
+function resolvePoisonBacklash(runtime: BattleRuntime, attacker: Fighter, defender: Fighter, kind: string): void {
+  if (kind !== 'direct' || attacker.hp <= 0 || attacker === defender) return;
+  const sig = signature(defender, 'RKF06-J4-C-BACKLASH');
+  const action = runtime.currentAction;
+  if (!sig || !runtime.active || action?.actor !== attacker) return;
+  const flag = `SIG:BACKLASH:${runtime.round}:${attacker.actionNumber ?? 0}`;
+  if (defender.battleFlags.has(flag)) return;
+  const perTick = getStatusLayers(attacker, 'poison').reduce((sum, layer) => sum + n(layer.damage, 0), 0);
+  if (perTick <= 0) return;
+  defender.battleFlags.add(flag);
+  dealDamage(runtime, defender, attacker, 0, {
+    sourceEffect: sig, kind: 'derived', canCrit: false, rawOverride: perTick * n(sig.params?.ratio, 0.6),
+  });
+}
+
+/** 雷引千钧: every Nth damaging chain lightning calls down a heavenly bolt. */
+function resolveHeavenBolt(runtime: BattleRuntime, source: Fighter, target: Fighter, sourceId: string): void {
+  if (sourceId !== 'RKF07-BASIC-CHAIN' && sourceId !== 'RKF07-RAGE-CHAIN') return;
+  const sig = signature(source, 'RKF07-J4-A-HEAVEN-BOLT');
+  if (!sig || !runtime.active || target.hp <= 0) return;
+  const key = 'SIG:HEAVEN-BOLT-COUNT';
+  const count = n(source.battleLayers[key], 0) + 1;
+  const every = Math.max(1, int(sig.params?.every, 3));
+  source.battleLayers[key] = count % every;
+  if (count < every) return;
+  dealDamage(runtime, source, target, n(sig.params?.attack_ratio, 1.2), { sourceEffect: sig, kind: 'derived', canCrit: true });
+}
+
+/** 昼夜同天: each real day/night turn breathes dragon fire. */
+function resolveDragonBreath(runtime: BattleRuntime, actor: Fighter, target: Fighter): void {
+  const sig = signature(actor, 'RKF10-J4-C-DRAGON-BREATH');
+  if (!sig || !runtime.active || target.hp <= 0 || actor.hp <= 0) return;
+  dealDamage(runtime, actor, target, n(sig.params?.attack_ratio, 0.8), { sourceEffect: sig, kind: 'derived', canCrit: true });
 }
 
 /** Shield cap: max HP, or a lowered cap for 盈盾化雷 holders (the excess strikes instead). */

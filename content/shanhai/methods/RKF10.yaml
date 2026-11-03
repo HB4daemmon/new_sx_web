@@ -402,20 +402,20 @@ talents:
   - id: RKF10-J4-C
     tier: 4
     branch: C
-    name: 晨昏快转
-    quick: 每次换相额外回怒
-    category: cycle
+    name: 昼夜同天
+    quick: 每次昼夜换相，吐出一口龙息
+    category: convert
     effects:
-      - id: RKF10-J4-C-RAGE
-        trigger: action_end
-        operation: rage_gain
+      - id: RKF10-J4-C-DRAGON-BREATH
+        trigger: always
+        operation: modify_effect
         target: self
-        params: {amount: 12, source: talent, condition: {phase_changed: true}, once_per_action: true, additive_to_public_sources: true, record_at: round_end, no_extra_action: true}
-        requires: [phase_changed]
+        params: {signature: dragon_breath, attack_ratio: 0.8}
+        requires: []
         consumes: []
         replaces: []
-        limit: {scope: action, count: 1}
-        text: 每次普攻或怒技完成并使昼夜轮替时，额外获得12点怒气。
+        limit: {scope: permanent, count: 1}
+        text: 自身每次实际在白昼与长夜之间换相时，立即按攻击0.8倍对敌方造成一次可暴击的派生伤害。
 routes:
   - name: 白昼重壁
     summary: 强化白昼护盾并用已有护盾换取一次受控的龙息伤害；代价是输出转换只在白昼且必须先有护盾。

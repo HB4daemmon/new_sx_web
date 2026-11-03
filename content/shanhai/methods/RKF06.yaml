@@ -327,20 +327,20 @@ talents:
   - id: RKF06-J4-C
     tier: 4
     branch: C
-    name: 毒尽护生
-    quick: 毒敌在场时护盾更厚
-    category: enhance
+    name: 蛊毒反噬
+    quick: 中毒的敌人每次出手，都被自身毒素反噬
+    category: convert
     effects:
-      - id: RKF06-J4-C-SHIELD
-        trigger: action_end
-        operation: shield
+      - id: RKF06-J4-C-BACKLASH
+        trigger: always
+        operation: modify_effect
         target: self
-        params: {defense_ratio: 0.28, max_hp_ratio: 0.04, condition: {enemy_status: poison, min_stacks: 1}, max_per_action: 1}
-        requires: [enemy_has_poison]
+        params: {signature: poison_backlash, ratio: 0.35}
+        requires: []
         consumes: []
         replaces: []
-        limit: {scope: action, count: 1}
-        text: 普攻或怒技结束时，若敌方带有中毒，获得防御0.28倍加最大气血0.04倍的护盾。
+        limit: {scope: permanent, count: 1}
+        text: 敌方带中毒时对你发动主动直接攻击，每次行动一次，按其身上全部中毒层每轮伤害总和的35%对其造成派生伤害；不可暴击。
 routes:
   - name: 叠毒蚀骨
     summary: 迅速堆高毒层并提高每层中毒伤害；代价是需要时间让中毒反复造成伤害。

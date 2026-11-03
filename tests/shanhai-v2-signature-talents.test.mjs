@@ -30,13 +30,18 @@ function dummy(baseStats = {}) {
 
 const sources = (result, id) => result.frames.filter(frame => frame.source === id);
 
-test('every starter method has exactly one authored rule-bending signature talent', () => {
+test('every method has exactly one authored rule-bending signature talent', () => {
   const expected = {
     RKF01: ['RKF01-J4-A', 'shield_overflow_strike'],
     RKF02: ['RKF02-J4-A', 'rage_overflow_strike'],
     RKF03: ['RKF03-J4-B', 'cheat_death'],
     RKF04: ['RKF04-J4-B', 'burn_detonate'],
     RKF05: ['RKF05-J4-C', 'clear_mind'],
+    RKF06: ['RKF06-J4-C', 'poison_backlash'],
+    RKF07: ['RKF07-J4-A', 'heaven_bolt'],
+    RKF08: ['RKF08-J4-C', 'eclipse_siphon'],
+    RKF09: ['RKF09-J4-C', 'solar_crit'],
+    RKF10: ['RKF10-J4-C', 'dragon_breath'],
   };
   for (const [method, [talentId, kind]] of Object.entries(expected)) {
     const talents = content.byId[method].talents.filter(talent =>
@@ -138,4 +143,30 @@ test('战后调息 recovers a share of missing HP after a won map battle, never 
   const ratio = content.rules.economy.victory_recovery.C;
   assert.ok(Math.abs(game.state.hp - (max * 0.5 + max * 0.5 * ratio)) < 1e-6);
   assert.ok(game.state.hp < max);
+});
+
+test('advanced signatures fire in real battles', () => {
+  const enemy = enemyOf('EN-A3-L2');
+  const fired = (method, talent, effectId, predicate = frame => frame.source === effectId) => {
+    let count = 0;
+    for (let seed = 0; seed < 6; seed += 1) {
+      const result = simulateBattle(content, player(method, [`${method}-J1-A`, `${method}-J2-A`, `${method}-J3-A`, talent]), enemy, `adv-${seed}`);
+      count += result.frames.filter(predicate).length;
+    }
+    return count;
+  };
+  assert.ok(fired('RKF06', 'RKF06-J4-C', 'RKF06-J4-C-BACKLASH') > 0, '蛊毒反噬');
+  assert.ok(fired('RKF07', 'RKF07-J4-A', 'RKF07-J4-A-HEAVEN-BOLT') > 0, '雷引千钧');
+  assert.ok(fired('RKF09', 'RKF09-J4-C', '', frame => frame.kind === 'dot' && frame.actor === 'player' && /暴击灼烧/.test(frame.text)) > 0, '金乌普照');
+  assert.ok(fired('RKF10', 'RKF10-J4-C', 'RKF10-J4-C-DRAGON-BREATH') > 0, '昼夜同天');
+});
+
+test('月蚀夺魄 scales attack with the debuffs on the enemy', () => {
+  const firstBasicAfterDebuff = talents => simulateBattle(content, player('RKF08', talents, { crit_rate: 0 }), dummy(), 'eclipse', { roundLimit: 2 })
+    .frames.filter(frame => frame.kind === 'damage' && frame.source === 'RKF08-BASIC-DAMAGE')[1];
+  const plain = firstBasicAfterDebuff(['RKF08-J1-A', 'RKF08-J2-A', 'RKF08-J3-A', 'RKF08-J4-B']);
+  const eclipse = firstBasicAfterDebuff(['RKF08-J1-A', 'RKF08-J2-A', 'RKF08-J3-A', 'RKF08-J4-C']);
+  const stacks = (plain.enemy.statuses.weakness ?? 0) + (plain.enemy.statuses.armor_break ?? 0);
+  assert.ok(stacks > 0);
+  assert.ok(eclipse.amount > plain.amount * 1.02, `${eclipse.amount} vs ${plain.amount}`);
 });

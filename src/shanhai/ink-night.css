@@ -2607,6 +2607,458 @@ body::before {
   margin-left: 10px;
 }
 
+
+/* ════════════════════════════════════════════════════════════════
+   PEAK MOMENTS — ceremonies, records, breakthrough cards
+   ════════════════════════════════════════════════════════════════ */
+
+/* Brush lettering only where it is big enough to read; small CTAs stay crisp serif. */
+.game-page .stage-actions .button.primary,
+.game-page .reward-card .button.primary,
+.game-page .talent-candidate .button.primary,
+.game-page .compact-choice-actions .button.primary {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .14em;
+}
+
+.game-page .stage-actions .button.primary:not(.small) {
+  min-height: 52px;
+  padding-inline: 36px;
+  font-size: 18px;
+}
+
+/* Breakthrough candidates: dark talismans that ignite on hover */
+.game-page .talent-candidate {
+  position: relative;
+  overflow: hidden;
+  border: 0;
+  border-image: none;
+  border-radius: 10px;
+  color: var(--cream);
+  background:
+    radial-gradient(120% 70% at 50% 0%, #8b7cff2e, transparent 60%),
+    linear-gradient(170deg, #182630, #0b1216);
+  box-shadow: inset 0 0 0 1px #b4a6ff55, 0 12px 30px #000a;
+  animation: card-unfurl .55s cubic-bezier(.2, .9, .2, 1.1) both;
+  transition: transform .2s cubic-bezier(.2, .8, .2, 1.4), box-shadow .2s;
+}
+
+.game-page .talent-candidate:nth-child(2) { animation-delay: .1s; }
+.game-page .talent-candidate:nth-child(3) { animation-delay: .2s; }
+.game-page .talent-candidate:nth-child(4) { animation-delay: .3s; }
+
+.game-page .talent-candidate.is-shared {
+  background:
+    radial-gradient(120% 70% at 50% 0%, #d9a4412e, transparent 60%),
+    linear-gradient(170deg, #1f2219, #0e1210);
+  box-shadow: inset 0 0 0 1px #d9a44177, 0 12px 30px #000a;
+}
+
+.game-page .talent-candidate:hover {
+  transform: translateY(-6px);
+  box-shadow: inset 0 0 0 2px #b4a6ff, 0 0 36px #8b7cff66, 0 18px 36px #000c;
+}
+
+.game-page .talent-candidate.is-shared:hover {
+  box-shadow: inset 0 0 0 2px var(--gilt-bright), 0 0 36px #d9a44166, 0 18px 36px #000c;
+}
+
+.game-page .talent-candidate *,
+.game-page .talent-candidate-head span {
+  color: inherit;
+  background-color: transparent;
+}
+
+.game-page .talent-candidate .talent-candidate-head > span,
+.game-page .talent-candidate.is-shared .talent-candidate-head > span {
+  border: 0;
+  color: #0a0f11;
+  background: var(--gilt);
+  box-shadow: none;
+}
+
+.game-page .talent-candidate h3 {
+  font-family: var(--brush);
+  font-size: 26px;
+  font-weight: 400;
+  color: #fff;
+  text-shadow: 0 0 14px #8b7cff;
+}
+
+.game-page .talent-method-summary {
+  color: var(--cream-dim);
+}
+
+/* Live build snapshots inside talent cards / dialogs read as dark inlays */
+.game-page .talent-candidate > .talent-build-current,
+.game-page .talent-candidate.is-shared .talent-build-current,
+.game-page .talent-dialog .talent-build-current,
+.game-page .talent-ledger .talent-build-current {
+  border: 0;
+  border-radius: 6px;
+  color: var(--cream);
+  background: #05080acc;
+  box-shadow: inset 0 0 0 1px #d9a44144;
+  font-family: var(--sans);
+}
+
+.game-page .talent-build-current * {
+  color: inherit;
+  font-family: var(--sans);
+}
+
+.game-page .talent-build-current b,
+.game-page .talent-build-current strong {
+  color: var(--gilt-bright);
+}
+
+/* Act transition: the old paper landscape becomes a night horizon */
+.game-page .transition-scene {
+  position: relative;
+  min-height: 220px;
+  overflow: hidden;
+  border-radius: 12px;
+  background:
+    linear-gradient(0deg, #0a0f11 0%, #0a0f1100 55%),
+    url("../assets/generated/ink-night/title-hero.webp") center 40% / cover no-repeat;
+  box-shadow: inset 0 0 0 1px #d9a44144, 0 20px 40px #000a;
+}
+
+.game-page .transition-scene > svg,
+.game-page .transition-scene > .landscape {
+  display: none;
+}
+
+.game-page .transition-scene > div,
+.game-page.phase-transition .transition-scene > div {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 18px 24px;
+  border: 0;
+  background: linear-gradient(0deg, #05080af0, #05080a00);
+  color: var(--cream);
+  font-size: 16px;
+  text-shadow: 0 2px 6px #000;
+}
+
+.game-page .chapter-passage {
+  color: var(--cream);
+  font-size: 15px;
+  line-height: 1.9;
+}
+
+/* End screen */
+@keyframes end-seal-slam {
+  /* Grows from small so the page never widens mid-animation. */
+  0% { opacity: 0; transform: scale(.6); filter: blur(8px) brightness(2); }
+  60% { opacity: 1; transform: scale(1.06); filter: none; }
+  100% { transform: scale(1); }
+}
+
+.game-page .end-seal {
+  position: relative;
+  max-width: none;
+  border: 0;
+  white-space: nowrap;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  margin: 18px auto 8px;
+  animation: end-seal-slam .8s cubic-bezier(.3, 1.6, .5, 1) both;
+}
+
+.game-page .end-seal b {
+  font-family: var(--brush);
+  font-size: clamp(52px, 7vw, 96px);
+  font-weight: 400;
+  line-height: 1.1;
+  color: #fff3d6;
+  background: linear-gradient(180deg, #fff7e0 10%, #f3cf7a 55%, #b9822b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 4px 0 #000) drop-shadow(0 0 30px #d9a44188);
+}
+
+.game-page .end-seal.loss b {
+  background: linear-gradient(180deg, #e8e8e8, #8a8a8a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 4px 0 #000) drop-shadow(0 0 24px #c8322b66);
+}
+
+.game-page .end-seal small {
+  color: var(--cream-dim);
+  letter-spacing: .3em;
+}
+
+.game-page .end-seal svg {
+  width: 72px;
+  height: 72px;
+  filter: drop-shadow(0 0 20px #f3cf7a);
+}
+
+.game-page .end-records {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.game-page .end-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.game-page .end-badge {
+  padding: 4px 14px;
+  border-radius: 3px;
+  color: #fff;
+  background: linear-gradient(180deg, #e0473a, #8e1d18);
+  box-shadow: 0 0 0 1px #f3cf7a, 0 0 18px #ff5a3c88;
+  font-weight: 700;
+  letter-spacing: .12em;
+  animation: crit-seal-stay .7s .5s cubic-bezier(.3, 1.8, .5, 1) both;
+}
+
+@keyframes crit-seal-stay {
+  from { opacity: 0; transform: scale(.5) rotate(-12deg); }
+}
+
+.game-page .end-record-grid {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+  gap: 10px;
+}
+
+.game-page .end-record {
+  display: grid;
+  gap: 2px;
+  align-content: center;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: linear-gradient(170deg, #142128ee, #0b1215f2);
+  box-shadow: inset 0 0 0 1px #d9a44133;
+  text-align: center;
+}
+
+.game-page .end-record span { color: var(--cream-dim); font-size: 13px; }
+.game-page .end-record b { font-family: "Impact", var(--sans); font-size: 26px; color: #fff; }
+.game-page .end-record small { color: var(--gilt); font-size: 12px; }
+
+.game-page .end-record.hero {
+  background:
+    radial-gradient(120% 90% at 50% 100%, #c8322b44, transparent 70%),
+    linear-gradient(170deg, #2a1a17, #120c0b);
+  box-shadow: inset 0 0 0 1px #ff5a3c88, 0 0 24px #c8322b33;
+}
+
+.game-page .end-record.hero b {
+  font-size: 40px;
+  color: #ffe08a;
+  text-shadow: 0 0 18px #ff5a3c;
+}
+
+.game-page .stage-actions.end-actions .button.primary.end-again:not(.small) {
+  min-width: 260px;
+  min-height: 60px;
+  font-family: var(--brush);
+  font-size: 30px;
+  font-weight: 400;
+  animation: cta-breathe 2.4s ease-in-out infinite;
+}
+
+@media (max-width: 720px) {
+  .game-page .end-record-grid { grid-template-columns: repeat(2, 1fr); }
+  .game-page .end-record.hero { grid-column: 1 / -1; }
+}
+
+/* New-record floater in battle */
+.game-page .juice-record {
+  top: 14%;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  transform: translateX(-50%);
+  animation: record-pop 1.6s cubic-bezier(.3, 1.6, .5, 1) both;
+}
+
+.game-page .juice-record b {
+  padding: 2px 14px;
+  border-radius: 3px;
+  color: #fff;
+  background: linear-gradient(180deg, #e0473a, #8e1d18);
+  box-shadow: 0 0 0 1px #f3cf7a, 0 0 22px #ff5a3c;
+  font-family: var(--brush);
+  font-size: 30px;
+  font-weight: 400;
+}
+
+.game-page .juice-record span {
+  margin-top: 4px;
+  color: #ffe08a;
+  font-weight: 700;
+  text-shadow: 0 2px 0 #000, 0 0 10px #ff5a3c;
+}
+
+@keyframes record-pop {
+  0% { opacity: 0; transform: translateX(-50%) scale(2.2); }
+  15% { opacity: 1; transform: translateX(-50%) scale(.95); }
+  25%, 80% { opacity: 1; transform: translateX(-50%) scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-16px); }
+}
+
+/* Ceremonies: realm breakthrough, legendary treasure, victory, defeat */
+.ceremony {
+  position: fixed;
+  z-index: 60;
+  inset: 0;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  background: radial-gradient(circle at 50% 45%, #0a0f11cc, #000000ee 70%);
+  animation: ceremony-life 3.4s ease-out both;
+}
+
+.ceremony-realm,
+.ceremony-treasure {
+  animation-duration: 2.6s;
+}
+
+@keyframes ceremony-life {
+  0% { opacity: 0; }
+  8%, 82% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.ceremony-rays {
+  position: absolute;
+  width: 160vmax;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, #f3cf7a33 0 5deg, transparent 5deg 15deg);
+  -webkit-mask: radial-gradient(circle, #000 8%, transparent 45%);
+  mask: radial-gradient(circle, #000 8%, transparent 45%);
+  animation: verdict-burst 10s linear infinite;
+}
+
+.ceremony-realm .ceremony-rays { background: repeating-conic-gradient(from 0deg, #b4a6ff40 0 5deg, transparent 5deg 15deg); }
+.ceremony-defeat .ceremony-rays { display: none; }
+
+.ceremony-bolt {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 180px;
+  height: 52%;
+  transform: translateX(-50%);
+  background:
+    linear-gradient(90deg, transparent 44%, #fff 48% 52%, transparent 56%),
+    linear-gradient(90deg, transparent 30%, #b4a6ff 50%, transparent 70%);
+  clip-path: polygon(46% 0, 60% 0, 52% 30%, 66% 30%, 44% 68%, 54% 68%, 38% 100%, 44% 60%, 34% 60%, 48% 34%, 38% 34%);
+  filter: drop-shadow(0 0 30px #b4a6ff) drop-shadow(0 0 60px #8b7cff);
+  opacity: 0;
+  animation: bolt-strike .5s .15s steps(1, end) both;
+}
+
+.ceremony-victory .ceremony-bolt,
+.ceremony-defeat .ceremony-bolt,
+.ceremony-treasure .ceremony-bolt { display: none; }
+
+.ceremony-card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+  animation: ceremony-slam .7s .2s cubic-bezier(.3, 1.6, .5, 1) both;
+}
+
+.ceremony-card small {
+  color: var(--gilt-bright);
+  font-size: 16px;
+  letter-spacing: .6em;
+  text-shadow: 0 0 12px #d9a441;
+}
+
+.ceremony-realm .ceremony-card small { color: #d6ceff; text-shadow: 0 0 12px #8b7cff; }
+
+.ceremony-card b {
+  font-family: var(--brush);
+  font-size: clamp(88px, 15vw, 200px);
+  font-weight: 400;
+  line-height: 1.05;
+  color: #fff3d6;
+  background: linear-gradient(180deg, #ffffff 10%, #f3cf7a 60%, #b9822b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 6px 0 #000) drop-shadow(0 0 40px #d9a441aa);
+}
+
+.ceremony-realm .ceremony-card b {
+  background: linear-gradient(180deg, #ffffff 10%, #d6ceff 55%, #7a6be0);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 6px 0 #000) drop-shadow(0 0 44px #8b7cffcc);
+}
+
+.ceremony-defeat .ceremony-card b {
+  background: linear-gradient(180deg, #f0f0f0, #7a7a7a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 6px 0 #000) drop-shadow(0 0 30px #c8322b88);
+}
+
+.ceremony-card em {
+  margin-top: 18px;
+  color: var(--cream-dim);
+  font-size: 13px;
+  font-style: normal;
+  letter-spacing: .3em;
+  opacity: .7;
+}
+
+@keyframes ceremony-slam {
+  0% { opacity: 0; transform: scale(2.8); filter: blur(10px); }
+  60% { opacity: 1; transform: scale(.95); filter: none; }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ceremony, .ceremony-card, .ceremony-rays, .ceremony-bolt,
+  .game-page .juice-record, .game-page .end-seal, .game-page .end-badge,
+  .game-page .end-actions .end-again, .game-page .talent-candidate {
+    animation: none !important;
+  }
+  .ceremony-bolt { display: none; }
+}
+
+
+/* style.css forces every in-game button to 13px with !important (a legacy
+   compact-UI rule). Primary calls to action must read at a glance, so they
+   alone override it; map nodes, chips and filters keep the compact size. */
+.game-page .button.primary:not(.small),
+.landing-page .button.primary:not(.small) {
+  font-size: 16px !important;
+}
+
+.game-page .stage-actions .button.primary:not(.small) {
+  font-size: 18px !important;
+}
+
+.landing-page .actions .button.primary {
+  font-size: 28px !important;
+}
+
+.game-page .stage-actions.end-actions .button.primary.end-again:not(.small) {
+  font-size: 30px !important;
+}
+
 /* ───────── Mobile ───────── */
 
 @media (max-width: 720px) {

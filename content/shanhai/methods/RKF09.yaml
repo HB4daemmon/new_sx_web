@@ -314,20 +314,20 @@ talents:
   - id: RKF09-J4-C
     tier: 4
     branch: C
-    name: 日轮护世
-    quick: 怒技后护盾更厚
+    name: 金乌普照
+    quick: 燃烧也能暴击，暴击两倍灼伤
     category: enhance
     effects:
-      - id: RKF09-J4-C-SHIELD
-        trigger: action_end
-        operation: shield
+      - id: RKF09-J4-C-SOLAR-CRIT
+        trigger: always
+        operation: modify_effect
         target: self
-        params: {defense_ratio: 0.26, max_hp_ratio: 0.06, condition: {last_action: rage}, max_per_action: 1}
-        requires: [rage_action_completed]
+        params: {signature: solar_crit, crit_multiplier: 2.0}
+        requires: []
         consumes: []
         replaces: []
-        limit: {scope: action, count: 1}
-        text: 怒技结束后，获得防御0.26倍加最大气血0.06倍的护盾。
+        limit: {scope: permanent, count: 1}
+        text: 你施加的燃烧持续伤害可按你的暴击率暴击，燃烧暴击伤害为2倍。
 routes:
   - name: 多段爆发
     summary: 增加怒技基础段数和概率追加段，集中提高怒技伤害；代价是多段攻击每段都要单独命中，额外段只有50%概率出现。

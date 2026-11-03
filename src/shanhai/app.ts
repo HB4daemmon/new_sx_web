@@ -18,6 +18,8 @@ import {
 import type { CombatPresentationGroup } from './battle-playback.js';
 import { battleHighlights } from './battle-highlights.js';
 import { battleJuice, hitstopWallMs, type BattleJuice } from './battle-juice.js';
+import { playSfx, setSfxEnabled, sfxEnabled, unlockSfx } from './sfx.js';
+import { finishRun, readRecords, recordHit, writeRecords, type FinishReport } from './records.js';
 import { battleBeatEquipmentTriggers, battleImpactSegments } from './battle-impact.js';
 import { battleElementalFxCues } from './battle-elemental-vfx.js';
 import { elementalFxDuration, elementalFxMarkup } from './elemental-vfx-art.js';
@@ -103,6 +105,16 @@ const PERMANENT_RULE_COPY: Record<PermanentSacrificeRule['kind'], { label: strin
   },
 };
 const CONTENT_BASE = './content/';
+const BATTLE_SPEED_KEY = 'suishi-shanhai-battle-speed-v1';
+
+function readBattleSpeed(): number {
+  try {
+    const value = Number(localStorage.getItem(BATTLE_SPEED_KEY));
+    return [1, 2, 4].includes(value) ? value : 1;
+  } catch {
+    return 1;
+  }
+}
 const NODE_META: Record<string, { label: string; icon: string; tone: string }> = {
   C: { label: '普通战', icon: 'sword', tone: 'jade' },
   E: { label: '事件', icon: 'eye', tone: 'jade' },
@@ -395,7 +407,7 @@ class ShanhaiApp {
   private rewardSearchFamily: ArtifactRewardFamily = 'sword';
   private loading = true;
   private battleCursor = 0;
-  private battleSpeed = 1;
+  private battleSpeed = readBattleSpeed();
   private battlePaused = false;
   private battleFinished = false;
   private battleKey = '';
@@ -447,6 +459,11 @@ class ShanhaiApp {
     this.root.addEventListener('change', (event) => this.onChange(event));
     this.root.addEventListener('keydown', (event) => this.onKeyDown(event));
     this.root.addEventListener('pointerdown', (event) => this.onEquipmentDragStart(event));
+    this.root.addEventListener('pointerdown', () => unlockSfx(), true);
+    this.root.addEventListener('keydown', () => unlockSfx(), true);
+    this.root.addEventListener('click', (event) => {
+      if ((event.target as HTMLElement | null)?.closest('button:not(:disabled), .map-node')) playSfx('click');
+    }, true);
     this.root.addEventListener('click', (event) => {
       // A drag that just ended must not also open the artifact inspector.
       if (performance.now() < this.equipmentDragClickGuard) {
@@ -604,6 +621,7 @@ class ShanhaiApp {
     this.error = '';
     this.notice = '';
     const beforePhase = this.game.state.phase;
+    const beforeRealm = asNumber(this.game.state.n, 0);
     const equipmentBefore = this.equippedArtifacts().map((stack) => ({ ...stack }));
     const commitmentStatuses = this.game.state.eventCommitments?.map(record => record.status) ?? [];
     const acquiredId = command.type === 'reward' && command.id
@@ -642,6 +660,7 @@ class ShanhaiApp {
       }
       if (this.game.state.phase !== beforePhase) this.scrollToStageTop = true;
       this.acceptDispatchResult();
+      this.celebrateTransition(beforePhase, beforeRealm, acquiredId);
     } catch (cause) {
       this.failDispatch(cause);
     }
@@ -2137,6 +2156,40 @@ class ShanhaiApp {
     this.restoreUiState();
   }
 
+  /** Full-screen ceremonies for the run's peak moments (presentation only). */
+  private celebrateTransition(beforePhase: string, beforeRealm: number, acquiredId: string): void {
+    const state = this.gameState();
+    if (!state) return;
+    const realm = asNumber(state.n, 0);
+    if (state.phase === 'won' && beforePhase !== 'won') {
+      this.showCeremony('victory', '渡劫功成', `${asText(state.name, '行者')} · 天门已开`);
+      playSfx('victory');
+    } else if (state.phase === 'lost' && beforePhase !== 'lost') {
+      this.showCeremony('defeat', '身陨', '此身虽灭，命途可再续');
+      playSfx('defeat');
+    } else if (realm > beforeRealm) {
+      this.showCeremony('realm', this.realmName(realm), '境界突破');
+      playSfx('breakthrough');
+    } else if (acquiredId) {
+      const rarity = entityRarity(this.artifactEntity(acquiredId));
+      if (rarity === 'legendary') this.showCeremony('treasure', asText(this.artifactEntity(acquiredId)?.name, '传奇法宝'), '传奇法宝入囊');
+      playSfx('reward');
+    }
+  }
+
+  private showCeremony(kind: 'realm' | 'victory' | 'defeat' | 'treasure', title: string, subtitle: string): void {
+    const host = this.root.querySelector<HTMLElement>('.game-page') ?? this.root;
+    host.querySelector('.ceremony')?.remove();
+    const element = document.createElement('div');
+    element.className = `ceremony ceremony-${kind}`;
+    element.setAttribute('role', 'status');
+    element.innerHTML = `<span class="ceremony-rays" aria-hidden="true"></span><span class="ceremony-bolt" aria-hidden="true"></span><div class="ceremony-card"><small>${esc(subtitle)}</small><b>${esc(title)}</b><em>点击继续</em></div>`;
+    const dismiss = () => element.remove();
+    element.addEventListener('click', dismiss);
+    host.append(element);
+    window.setTimeout(dismiss, kind === 'realm' || kind === 'treasure' ? 2600 : 3400);
+  }
+
   /** Plays the ink-wipe entrance only when the player reaches a new screen. */
   private markScreenTransition(screen: string): void {
     if (screen === this.lastScreen) return;
@@ -3504,6 +3557,18 @@ class ShanhaiApp {
     }
     if (juice.knockout) {
       markup += `<div class="juice-fx juice-ko ko-${sideClass(juice.knockout)}" aria-hidden="true"><b>${juice.knockout === 'enemy' ? '斩' : '劫'}</b></div>`;
+    }
+    if (juice.rageCutIn) playSfx('rage');
+    else if (juice.knockout) playSfx('ko');
+    else if (juice.target && juice.flash !== 'none') playSfx(juice.critical ? 'crit' : juice.shake >= 2 ? 'heavy' : 'hit', 0.6 + juice.ratio * 2);
+    else if (juice.surge) playSfx('heal');
+    const runId = asText(this.gameState()?.id);
+    if (juice.attacker === 'player' && juice.target === 'enemy' && juice.damage > 0 && runId) {
+      const records = readRecords();
+      if (recordHit(records, runId, juice.damage)) {
+        markup += `<div class="juice-fx juice-record" aria-hidden="true"><b>新纪录</b><span>最强一击 ${formatNumber(juice.damage)}</span></div>`;
+      }
+      writeRecords(records);
     }
     if (markup) arena.insertAdjacentHTML('beforeend', markup);
     arena.dataset.juiceShake = reduced ? '0' : String(juice.shake);
@@ -5216,11 +5281,39 @@ class ShanhaiApp {
     const artifacts = listOf<ArtifactStack>(state.artifacts);
     return `${this.stageHeading('行旅归档', asText(state.name, '无名行者'))}
       <p class="end-result-text">${this.textMarkup(state.resultText, win ? '终战已毕。' : '失败不会抹去此行的选择。')}</p>
-      <section class="end-seal ${win ? 'win' : 'loss'}">${sigil(win ? 'sun' : 'moon', win ? 'gold' : 'fire')}<b>${win ? '通关' : '退场'}</b></section>
+      <section class="end-seal ${win ? 'win' : 'loss'}">${sigil(win ? 'sun' : 'moon', win ? 'gold' : 'fire')}<b>${win ? '渡劫功成' : '身陨道消'}</b><small>${win ? '天门已开，此局通关' : `止步第 ${formatNumber(state.act)} 幕`}</small></section>
+      ${this.endRecordsMarkup(state)}
       <div class="end-summary"><div><span>行过节点</span><b>${state.history.length}</b></div><div><span>修为</span><b>${formatNumber(state.xp)}</b></div><div><span>灵石</span><b>${formatNumber(state.coins)}</b></div><div><span>法宝</span><b>${artifacts.reduce((total, item) => total + asNumber(item.stacks, 1), 0)}</b></div></div>
       ${state.history.length ? `<details class="disclosure end-epilogue" data-details="end-epilogue"><summary>此行因缘</summary>${this.characterJourneyMarkup(state)}${this.storyEchoMarkup(state)}</details>` : ''}
       ${win ? this.winningEpitaphMarkup(state) : ''}
-      ${result ? `<div class="stage-actions"><button class="button quiet" data-action="battle-details" data-tab="result" aria-label="查看最终斗法战果">${icon('eye', 16)}最终斗法战果</button></div>` : ''}<div class="stage-actions"><button class="button primary" data-action="export">${icon('arrow', 16)}导出命途记录</button><button class="button quiet" data-action="archives">查看通关构筑</button><button class="button quiet" data-action="new-run">重新起笔</button></div>${this.inlineMessage()}`;
+      ${result ? `<div class="stage-actions"><button class="button quiet" data-action="battle-details" data-tab="result" aria-label="查看最终斗法战果">${icon('eye', 16)}最终斗法战果</button></div>` : ''}<div class="stage-actions end-actions"><button class="button primary end-again" data-action="new-run" data-autofocus>${icon('arrow', 16)}再入山海</button><button class="button quiet" data-action="archives">查看通关构筑</button><button class="button quiet" data-action="export">导出命途记录</button></div>${this.inlineMessage()}`;
+  }
+
+  private endReport: FinishReport | null = null;
+
+  private endRecordsMarkup(state: RunState): string {
+    if (!this.endReport || this.endReport.records.finalized.at(-1) !== state.id) {
+      const records = readRecords();
+      const report = finishRun(records, { runId: state.id, won: state.phase === 'won', act: asNumber(state.act, 1), method: state.method });
+      if (report.counted) writeRecords(records);
+      this.endReport = report;
+    }
+    const { records, runBestHit, newBestHit, newFurthestAct, firstWinWithMethod } = this.endReport;
+    const badges = [
+      newBestHit ? '最强一击新纪录' : '',
+      newFurthestAct ? '走得比以往更远' : '',
+      firstWinWithMethod ? `首次以${asText(this.methodEntity(state.method)?.name, '此功法')}通关` : '',
+    ].filter(Boolean);
+    const rate = records.runs ? Math.round(records.wins / records.runs * 100) : 0;
+    return `<section class="end-records" aria-label="个人纪录">
+      ${badges.length ? `<div class="end-badges">${badges.map(badge => `<span class="end-badge">${esc(badge)}</span>`).join('')}</div>` : ''}
+      <div class="end-record-grid">
+        <div class="end-record hero"><span>本局最强一击</span><b>${runBestHit > 0 ? formatNumber(runBestHit) : '—'}</b><small>历史最佳 ${records.bestHit > 0 ? formatNumber(records.bestHit) : '暂无'}</small></div>
+        <div class="end-record"><span>总局数</span><b>${formatNumber(records.runs)}</b></div>
+        <div class="end-record"><span>通关</span><b>${formatNumber(records.wins)}</b><small>${rate}%</small></div>
+        <div class="end-record"><span>最远</span><b>${records.furthestAct >= 5 ? '天门' : `第${formatNumber(records.furthestAct)}幕`}</b></div>
+      </div>
+    </section>`;
   }
 
   private winningEpitaphMarkup(state: RunState): string {
@@ -5287,7 +5380,7 @@ class ShanhaiApp {
       return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow talent-reset-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">坊市 · 洗髓丹</p><h2 id="dialog-title">重选已悟天赋？</h2><p>购买后会为当前功法重新开启天赋选择，不会清除其他功法的天赋。</p>${state.bloodVow ? '<p>断生之誓不会解除；不再选中断生入魔时，战斗增益也不再生效。</p>' : ''}<div class="talent-reset-summary"><span>当前功法</span><b>${esc(asText(method?.name, state.method))}</b><span>已悟天赋</span><b>${selected.map((talent) => esc(asText(talent.name, talent.id))).join('、') || '无'}</b><span>花费</span><b>${this.textMarkup(`${formatNumber(item.price)} 灵石`)}</b></div><div class="dialog-actions"><button class="button quiet" data-action="talent-reset-cancel" data-autofocus>取消</button><button class="button primary" data-action="confirm-talent-reset">购买并重选</button></div></section></div>`;
     }
     if (this.modal === 'settings') {
-      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow settings-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">静室</p><h2 id="dialog-title">设置</h2><div class="setting-row"><span>战报显示</span><button class="button small" data-action="battle-log-mode" aria-pressed="${this.detailedLog}">${this.detailedLog ? '详细' : '简明'}</button></div><div class="setting-row"><span>通关构筑</span><button class="button small" data-action="archives">${icon('book', 16)}查看归档</button></div><div class="setting-row"><span>命途存档</span><div class="row"><button class="button small" data-action="export" ${state ? '' : 'disabled'}>${icon('arrow', 16)}导出</button><button class="button small" data-action="restart" aria-label="重开">${icon('mirror', 16)}重开</button></div></div><details class="disclosure" data-details="chapter-progress"><summary>幕次行程</summary>${state ? this.chapterStrip(state) : ''}</details><div class="setting-row"><span>帮助</span><button class="button small" data-action="help">查看</button></div><div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
+      return `<div class="modal-backdrop" data-action="modal-backdrop"><section class="dialog modal narrow settings-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><button class="icon-button dialog-close modal-close" data-action="modal-close" aria-label="关闭">${icon('close', 18)}</button><p class="eyebrow">静室</p><h2 id="dialog-title">设置</h2><div class="setting-row"><span>音效</span><button class="button small" data-action="toggle-sfx" aria-pressed="${sfxEnabled()}">${sfxEnabled() ? '开' : '关'}</button></div><div class="setting-row"><span>战报显示</span><button class="button small" data-action="battle-log-mode" aria-pressed="${this.detailedLog}">${this.detailedLog ? '详细' : '简明'}</button></div><div class="setting-row"><span>通关构筑</span><button class="button small" data-action="archives">${icon('book', 16)}查看归档</button></div><div class="setting-row"><span>命途存档</span><div class="row"><button class="button small" data-action="export" ${state ? '' : 'disabled'}>${icon('arrow', 16)}导出</button><button class="button small" data-action="restart" aria-label="重开">${icon('mirror', 16)}重开</button></div></div><details class="disclosure" data-details="chapter-progress"><summary>幕次行程</summary>${state ? this.chapterStrip(state) : ''}</details><div class="setting-row"><span>帮助</span><button class="button small" data-action="help">查看</button></div><div class="dialog-actions"><button class="button primary" data-action="modal-close" data-autofocus>返回</button></div></section></div>`;
     }
     if (this.modal === 'character' && state) {
       const method = this.methodEntity(state.method);
@@ -5968,6 +6061,11 @@ class ShanhaiApp {
         break;
       case 'battle-speed':
         this.battleSpeed = asNumber(target.dataset.speed, 1);
+        try {
+          localStorage.setItem(BATTLE_SPEED_KEY, String(this.battleSpeed));
+        } catch {
+          // The chosen speed still applies for this session.
+        }
         this.render();
         break;
       case 'battle-pause':
@@ -6259,6 +6357,12 @@ class ShanhaiApp {
         break;
       case 'new-run':
         this.requestRestart('setup', target);
+        break;
+      case 'toggle-sfx':
+        setSfxEnabled(!sfxEnabled());
+        unlockSfx();
+        playSfx('click');
+        this.render();
         break;
       case 'export':
         this.exportRun();
