@@ -194,7 +194,7 @@ button.chip:hover { border-color: var(--gold); color: var(--gold); }
 
 /* ===== Panel screens ===== */
 .panel-scr { position: absolute; left: 50%; top: 96px; bottom: 24px; transform: translateX(-50%); width: 1100px; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 14px; }
-.stage.port .panel-scr { width: 680px; top: 160px; }
+.stage.port .panel-scr { width: 680px; top: 214px; bottom: 30px; } .stage.port .panel-scr.reward, .stage.port .panel-scr.shop { top: 214px; bottom: 30px; }
 .big-title { font-size: 52px; margin: 0; line-height: 1; text-shadow: 0 0 30px rgba(226,69,47,.4); }
 .reward-gold { font: 700 26px var(--num); color: var(--gold); }
 .reward-block { display: flex; flex-direction: column; align-items: center; gap: 8px; }
@@ -504,3 +504,9 @@ b.qi { color: var(--shui); } b.mu { color: var(--ver); }
 
 .battle-scr .relic-hint { display: none; }
 .map-legend .legend-tip { width: 100%; text-align: center; color: rgba(239,228,207,.45); }
+
+.stage.port .btn.seal { font-size: 38px; padding: 16px 52px; }
+.stage.port .btn.seal.big { font-size: 46px; }
+.stage.port .cards.talents .card { width: 216px; }
+.stage.port .break-realm { top: 140px; } .stage.port .break-sub { font-size: 22px; } .stage.port .break-note { font-size: 22px; }
+.stage.port .controls .cast-btn { font-size: 52px; padding: 0; }
