@@ -1,7 +1,7 @@
 import { ACT_ATK, ACT_HP, ENEMY, HEAT_ATK, HEAT_HP, RANK_ATK, RANK_HP } from './enemies.js';
 import { GEN } from './elements.js';
 import { next, shuffle, int } from './rng.js';
-import { PATTERNS } from './patterns.js';
+import { COMBOS } from './patterns.js';
 import { pactRank } from './pacts.js';
 import { computeCast, defenseScale, has, relicFlag } from './score.js';
 export const MAX_CAST = 5;
@@ -99,7 +99,7 @@ export function enemyAttack(run, battle, move = battle.enemy.intent) {
     return Math.round((scaleAtk(run, battle, move.atk) + battle.enemy.atkBonus) * (battle.enemy.charged ? 2 : 1) * (battle.stacks.calm ? 0.8 : 1));
 }
 export function discardTiles(run, battle, uids) {
-    if (battle.outcome !== 'fighting' || battle.discardsLeft <= 0 || !uids.length || uids.length > MAX_CAST)
+    if (battle.outcome !== 'fighting' || battle.discardsLeft <= 0 || !uids.length)
         return [];
     const chosen = battle.hand.filter(tile => uids.includes(tile.uid));
     if (!chosen.length)
@@ -272,7 +272,7 @@ export function cast(run, battle, uids, rageWanted) {
         enemyTurn(run, battle, enemyEvents);
     return { result, events, enemyEvents, turnEnded };
 }
-const patternTier = (id) => PATTERNS[id].tier * 100 + PATTERNS[id].mult;
+const patternTier = (id) => COMBOS[id].tier * 100 + COMBOS[id].intent;
 function enemyTurn(run, battle, events) {
     const enemy = battle.enemy;
     const def = ENEMY[enemy.id];
@@ -372,6 +372,9 @@ function enemyTurn(run, battle, events) {
     battle.stacks.discarded = 0;
     battle.castsThisTurn = 0;
     battle.freeCastUsed = false;
+    // Every turn starts on a fresh hand: unplayed tiles go to the discard pile.
+    battle.discard.push(...battle.hand);
+    battle.hand = [];
     const drawn = drawTo(run, battle);
     events.push({ k: 'draw', count: drawn });
 }

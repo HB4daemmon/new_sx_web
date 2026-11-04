@@ -3,7 +3,7 @@
 import { GEN } from '../../build/v3/core/elements.js';
 import { previewCast, canRage, enemyAttack } from '../../build/v3/core/battle.js';
 import * as R from '../../build/v3/core/run.js';
-import { PATTERNS } from '../../build/v3/core/patterns.js';
+import { COMBOS } from '../../build/v3/core/patterns.js';
 import { RELIC } from '../../build/v3/core/content.js';
 
 function subsets(list, max) {
@@ -17,12 +17,16 @@ function subsets(list, max) {
   return out;
 }
 
-const cycle = ['mu', 'huo', 'tu', 'jin', 'shui'];
+const SHENG = ['mu', 'huo', 'tu', 'jin', 'shui'];
+const KE = ['mu', 'tu', 'shui', 'huo', 'jin'];
+/** As-is plus every rotation of the 相生 and 相克 cycles (groups same elements, high values first). */
 function orderings(tiles) {
   const out = [tiles];
-  for (let start = 0; start < 5; start += 1) {
-    const rank = el => (cycle.indexOf(el) - start + 5) % 5;
-    out.push([...tiles].sort((a, b) => (a.el === 'zhuo' ? 9 : rank(a.el)) - (b.el === 'zhuo' ? 9 : rank(b.el))));
+  for (const cycle of [SHENG, KE]) {
+    for (let start = 0; start < 5; start += 1) {
+      const rank = el => (el === 'zhuo' ? 9 : (cycle.indexOf(el) - start + 5) % 5);
+      out.push([...tiles].sort((a, b) => rank(a.el) - rank(b.el) || b.v - a.v));
+    }
   }
   return out;
 }
@@ -32,7 +36,7 @@ export function bestCast(run, battle, rage) {
   const casual = process.env.BOT === 'casual';
   for (const set of subsets(battle.hand, 5)) {
     if (casual && set.length < 3 && battle.hand.length > 4) continue;
-    for (const order of casual ? orderings(set).slice(0, 2) : orderings(set)) {
+    for (const order of casual ? orderings(set).slice(0, 3) : orderings(set)) {
       const r = previewCast(run, battle, order.map(t => t.uid), rage);
       if (r && (!best || r.damage > best.r.damage)) best = { r, uids: order.map(t => t.uid) };
     }
@@ -49,7 +53,7 @@ export function playBattle(run) {
     const battle = run.battle;
     let best = bestCast(run, battle, false);
     const casual = process.env.BOT === 'casual';
-    if (battle.discardsLeft > 0 && PATTERNS[best.r.pattern].tier < (casual ? 1 : 3) && best.r.damage < battle.enemy.hp) {
+    if (battle.discardsLeft > 0 && COMBOS[best.r.pattern].tier < (casual ? 1 : 3) && best.r.damage < battle.enemy.hp) {
       const keep = new Set(best.uids);
       const toss = battle.hand.filter(t => !keep.has(t.uid) || t.el === 'zhuo').sort((a, b) => a.v - b.v).slice(0, 5).map(t => t.uid);
       const tossAll = toss.length ? toss : battle.hand.slice().sort((a, b) => a.v - b.v).slice(0, 3).map(t => t.uid);
@@ -59,10 +63,10 @@ export function playBattle(run) {
     let rage = false;
     if (canRage(battle)) {
       const rb = bestCast(run, battle, true);
-      if (PATTERNS[rb.r.pattern].tier >= 3 || rb.r.damage >= battle.enemy.hp || battle.player.hp < enemyAttack(run, battle) * 2) { best = rb; rage = true; }
+      if (COMBOS[rb.r.pattern].tier >= 3 || rb.r.damage >= battle.enemy.hp || battle.player.hp < enemyAttack(run, battle) * 2) { best = rb; rage = true; }
     }
     const out = R.castTiles(run, best.uids, rage);
-    if (out) CASTS.push({ act: start.act, dmg: out.result.damage, rage });
+    if (out) CASTS.push({ act: start.act, dmg: out.result.damage, rage, combo: out.result.pattern, sh: out.result.analysis.links.filter(l => l === 'sheng').length, ke: out.result.analysis.links.filter(l => l === 'ke').length, sets: out.result.analysis.sets.length });
   }
   FIGHTS.push({ ...start, casts: run.stats.casts - start.casts, lost: start.hp - run.battle.player.hp, maxHp: run.maxHp, won: run.battle.outcome === 'won' });
   R.concludeBattle(run);
@@ -96,7 +100,7 @@ export function playRun(run, log = () => {}) {
           if (!ok) s.relicPicked = true;
         }
         if (!s.picked && s.options.length) {
-          const idx = s.options.findIndex(o => o.type === 'pattern' && PATTERNS[o.pattern].tier >= 3);
+          const idx = s.options.findIndex(o => o.type === 'pattern');
           R.takeReward(run, 'main', idx >= 0 ? idx : 0);
         }
         R.leaveReward(run);

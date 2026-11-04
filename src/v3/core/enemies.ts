@@ -19,9 +19,9 @@ export interface EnemyDef {
 }
 
 /** Per-act multipliers: authored numbers are act-1 scale. */
-export const ACT_HP = [0, 1, 2.6, 6.5, 11, 15];
+export const ACT_HP = [0, 0.75, 2.4, 7, 14, 22];
 /** Enemy HP by rank (authored HP × act × rank). */
-export const RANK_HP = { fight: 11, elite: 7, boss: 3.1 } as const;
+export const RANK_HP = { fight: 24, elite: 16, boss: 8.5 } as const;
 export const ACT_ATK = [0, 1.3, 1.9, 2.6, 3.3, 4.0];
 export const RANK_ATK = { fight: 1.3, elite: 1.1, boss: 0.9 } as const;
 export const HEAT_HP = 0.15;

@@ -5,7 +5,7 @@
  */
 import { METHODS } from '../core/content.js';
 import { PACTS, pactMultiplier } from '../core/pacts.js';
-import { PATTERNS } from '../core/patterns.js';
+import { COMBOS } from '../core/patterns.js';
 import { seedFrom, sample, pick } from '../core/rng.js';
 import type { CastResult } from '../core/score.js';
 import type { BattleState, RunState } from '../core/types.js';
@@ -69,11 +69,14 @@ const pat = (id: string) => (c: AchCtx) => castIs(c, x => x.result.pattern === i
 
 export const ACHIEVEMENTS: AchDef[] = [
   { id: 'first', name: '初试锋芒', desc: '赢下第一场战斗', reward: 5, check: c => winIs(c, () => true) },
-  { id: 'p-sheng3', name: '三生', desc: '打出「三生」', reward: 5, check: pat('sheng3') },
-  { id: 'p-mantang', name: '满堂', desc: '打出「满堂」', reward: 8, check: pat('mantang') },
-  { id: 'p-sheng4', name: '四生', desc: '打出「四生」', reward: 12, check: pat('sheng4') },
-  { id: 'p-lunzhuan', name: '五行轮转', desc: '打出「五行轮转」', reward: 20, check: pat('lunzhuan') },
-  { id: 'p-wulei', name: '五雷正法', desc: '打出「五雷正法」', reward: 25, check: pat('wulei') },
+  { id: 'p-sheng3', name: '三生', desc: '一招里连出三枚相生', reward: 5, check: c => castIs(c, x => x.result.chain.length >= 3) },
+  { id: 'p-mantang', name: '满堂', desc: '打出「满堂」（三才 + 双元）', reward: 8, check: pat('mantang') },
+  { id: 'p-sheng4', name: '五行逆乱', desc: '五枚符全部相克', reward: 15, check: pat('nixing') },
+  { id: 'p-lunzhuan', name: '五行轮转', desc: '五枚符全部相生', reward: 15, check: pat('lunzhuan') },
+  { id: 'p-wulei', name: '五雷正法', desc: '五枚同元', reward: 25, check: pat('wulei') },
+  { id: 'p-sixiang', name: '四象', desc: '四枚同元', reward: 12, check: pat('sixiang') },
+  { id: 'resonance', name: '共鸣', desc: '一招里触发元素共鸣（三枚以上同元）', reward: 5, check: c => castIs(c, x => x.result.analysis.sets.some(st => st.size >= 3)) },
+  { id: 'mud', name: '出淤泥', desc: '带着浊符打出一万以上的一招', reward: 20, check: c => castIs(c, x => x.total >= 1e4 && x.result.tiles.some(t => t.el === 'zhuo')) },
   { id: 'h4', name: '万钧', desc: '一招伤害破一万', reward: 10, check: hit(1e4) },
   { id: 'h5', name: '十万钧', desc: '一招伤害破十万', reward: 20, check: hit(1e5) },
   { id: 'h6', name: '百万钧', desc: '一招伤害破百万', reward: 40, check: hit(1e6) },
@@ -161,4 +164,4 @@ export function dailySetup(key: string) {
   return { seed: `daily-${key}`, method, pacts };
 }
 
-export const patternName = (id: string) => PATTERNS[id as keyof typeof PATTERNS]?.name ?? id;
+export const patternName = (id: string) => COMBOS[id as keyof typeof COMBOS]?.name ?? id;

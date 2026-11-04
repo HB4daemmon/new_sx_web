@@ -1,7 +1,7 @@
 import { ACT_ATK, ACT_HP, ENEMY, HEAT_ATK, HEAT_HP, RANK_ATK, RANK_HP } from './enemies.js';
 import { GEN, type El } from './elements.js';
 import { next, shuffle, int, type Rng } from './rng.js';
-import { PATTERNS } from './patterns.js';
+import { COMBOS } from './patterns.js';
 import { pactRank } from './pacts.js';
 import { computeCast, defenseScale, has, relicFlag, type CastResult } from './score.js';
 import type { BattleState, EnemyState, Move, NodeKind, RunState, Tile } from './types.js';
@@ -114,7 +114,7 @@ export function enemyAttack(run: RunState, battle: BattleState, move: Move = bat
 }
 
 export function discardTiles(run: RunState, battle: BattleState, uids: number[]): BEvent[] {
-  if (battle.outcome !== 'fighting' || battle.discardsLeft <= 0 || !uids.length || uids.length > MAX_CAST) return [];
+  if (battle.outcome !== 'fighting' || battle.discardsLeft <= 0 || !uids.length) return [];
   const chosen = battle.hand.filter(tile => uids.includes(tile.uid));
   if (!chosen.length) return [];
   battle.hand = battle.hand.filter(tile => !uids.includes(tile.uid));
@@ -276,7 +276,7 @@ export function cast(run: RunState, battle: BattleState, uids: number[], rageWan
   return { result, events, enemyEvents, turnEnded };
 }
 
-const patternTier = (id: keyof typeof PATTERNS) => PATTERNS[id].tier * 100 + PATTERNS[id].mult;
+const patternTier = (id: keyof typeof COMBOS) => COMBOS[id].tier * 100 + COMBOS[id].intent;
 
 function enemyTurn(run: RunState, battle: BattleState, events: BEvent[]) {
   const enemy = battle.enemy;
@@ -343,6 +343,9 @@ function enemyTurn(run: RunState, battle: BattleState, events: BEvent[]) {
   battle.stacks.discarded = 0;
   battle.castsThisTurn = 0;
   battle.freeCastUsed = false;
+  // Every turn starts on a fresh hand: unplayed tiles go to the discard pile.
+  battle.discard.push(...battle.hand);
+  battle.hand = [];
   const drawn = drawTo(run, battle);
   events.push({ k: 'draw', count: drawn });
 }

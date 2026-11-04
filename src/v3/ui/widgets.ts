@@ -43,10 +43,11 @@ export function optionCard(run: RunState, option: RewardOption) {
       const lv = run.patternLv[option.pattern];
       const now = patternValue(option.pattern, lv);
       const next = patternValue(option.pattern, lv + 1);
+      void now; void next;
       return h('div.card-pattern', null, h('div.pattern-seal', null, PATTERNS[option.pattern].name),
         h('div.card-title', null, `心法 · ${PATTERNS[option.pattern].name} ${lv + 1}重`),
         h('div.card-desc', null, PATTERNS[option.pattern].hint),
-        h('div.card-desc.num', null, `${now.qi} 气 × ${now.mult} 倍 → `, h('b', null, `${next.qi} × ${next.mult}`)));
+        h('div.card-desc.num', null, patternText(option.pattern, lv), ' → ', h('b', null, patternText(option.pattern, lv + 1))));
     }
     case 'talent': {
       const def = TALENT[option.talent];
@@ -87,12 +88,21 @@ export function wuxingWheel(enemyEl?: El) {
 export function patternTable(run: RunState | null, highlight?: PatternId) {
   return h('div.pattern-table', null, ...[...PATTERN_ORDER].reverse().map(id => {
     const lv = run?.patternLv[id] ?? 1;
-    const v = patternValue(id, lv);
     return h(`div.pattern-row${id === highlight ? '.hl' : ''}`, null,
       h('span.pr-name', null, PATTERNS[id].name, lv > 1 ? h('small', null, ` ${lv}重`) : null),
       h('span.pr-hint', null, PATTERNS[id].hint),
-      h('span.pr-val', null, h('b.qi', null, String(v.qi)), ' × ', h('b.mu', null, String(v.mult))));
+      h('span.pr-val', null, patternText(id, lv)));
   }));
+}
+
+/** What one level of a 诀 gives, in words. */
+export function patternText(id: PatternId, level: number): string {
+  const v = patternValue(id, level);
+  const r = (n: number) => String(Math.round(n * 100) / 100);
+  if (id === 'sheng') return `传气 ${Math.round(v.qi * 100)}% · 每链 +${r(v.mult)}倍`;
+  if (id === 'ke') return `每克 ×${r(v.mult)}`;
+  if (id === 'wuxing') return `+${r(v.mult)} 倍`;
+  return `+${v.qi} 气 · +${r(v.mult)} 倍`;
 }
 
 export const GEN_TEXT = `相生：${(['mu', 'huo', 'tu', 'jin', 'shui'] as El[]).map(e => EL_NAME[e]).join('→')}→${EL_NAME[GEN.shui]}`;

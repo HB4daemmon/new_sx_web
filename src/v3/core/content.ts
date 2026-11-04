@@ -1,12 +1,14 @@
 import { counterOf, type El } from './elements.js';
-import type { BattleState, PatternId, RunState, Tile } from './types.js';
+import type { BattleState, ComboId, RunState, Tile } from './types.js';
+import type { Analysis } from './patterns.js';
 
 export interface ScoreCtx {
   run: RunState;
   battle: BattleState;
   tiles: Tile[];
   els: (El | null)[];
-  pattern: PatternId;
+  pattern: ComboId;
+  a: Analysis;
   qi: number;
   mult: number;
   rage: boolean;
@@ -38,7 +40,8 @@ export interface RelicDef {
 export type RelicFlag =
   | 'critPct' | 'startQi' | 'qiPerCast' | 'turnShield' | 'afterHeal' | 'afterGold'
   | 'burnDouble' | 'critX' | 'ignoreArmor' | 'rageX' | 'leiX' | 'overhealQi' | 'shieldQi' | 'drumQi'
-  | 'swordCap' | 'burnTwice' | 'shieldBolt' | 'rageKeep' | 'springKeep' | 'dayNight';
+  | 'swordCap' | 'burnTwice' | 'shieldBolt' | 'rageKeep' | 'springKeep' | 'dayNight'
+  | 'flowX' | 'keX' | 'linkMult' | 'resonance';
 
 const count = (ctx: ScoreCtx, el: El) => ctx.els.filter(e => e === el).length;
 const missing = (ctx: ScoreCtx) => 1 - ctx.battle.player.hp / ctx.battle.player.maxHp;
@@ -52,7 +55,11 @@ export const RELICS: RelicDef[] = [
   { id: 'qingmu', name: '青木簪', glyph: '簪', rarity: 'common', desc: '每枚木符 倍率 +1', score: c => (count(c, 'mu') ? { mult: count(c, 'mu') } : null) },
   { id: 'houtu', name: '厚土环', glyph: '岳', rarity: 'common', desc: '每枚土符 倍率再 +1', score: c => (count(c, 'tu') ? { mult: count(c, 'tu') } : null) },
   { id: 'chiyan', name: '赤炎珠', glyph: '炎', rarity: 'common', desc: '火符施加的灼烧翻倍', flags: { burnDouble: 1 } },
-  { id: 'shuangyu', name: '双鱼佩', glyph: '鱼', rarity: 'common', desc: '双元、两仪 ×2.5', score: c => (c.pattern === 'dui' || c.pattern === 'liangyi' ? { x: 2.5 } : null) },
+  { id: 'shuangyu', name: '双鱼佩', glyph: '鱼', rarity: 'common', desc: '本招有两组同元时 ×2', score: c => (c.a.sets.length >= 2 ? { x: 2 } : null) },
+  { id: 'xiangsheng', name: '相生环', glyph: '环', rarity: 'common', desc: '每一次相生 倍率再 +1', flags: { linkMult: 1 } },
+  { id: 'nilin', name: '逆鳞', glyph: '鳞', rarity: 'rare', desc: '本招有两次以上相克时 ×2', score: c => (c.a.links.filter(l => l === 'ke').length >= 2 ? { x: 2 } : null) },
+  { id: 'wunilian', name: '污泥莲', glyph: '莲', rarity: 'rare', desc: '本招每带一枚浊符 ×1.7 —— 出淤泥而不染', score: c => { const n = c.tiles.filter(t => t.el === 'zhuo').length; return n ? { x: 1.7 ** n } : null; } },
+  { id: 'wusefan', name: '五色幡', glyph: '幡', rarity: 'rare', desc: '元素共鸣的效果再翻倍', flags: { resonance: 1 } },
   { id: 'mingmu', name: '明目珠', glyph: '目', rarity: 'common', desc: '暴击率 +20%', flags: { critPct: 20 } },
   { id: 'xianji', name: '先机符', glyph: '先', rarity: 'common', desc: '开战剑意 +50', flags: { startQi: 50 } },
   { id: 'yinqi', name: '引气符', glyph: '引', rarity: 'common', desc: '每次出招剑意 +10', flags: { qiPerCast: 10 } },
@@ -80,12 +87,14 @@ export const RELICS: RelicDef[] = [
   { id: 'xinhuo', name: '薪火宝炉', glyph: '炉', rarity: 'legend', desc: '敌方每 3 层灼烧 倍率 +1', score: c => { const n = Math.floor(c.battle.enemy.burn / 3); return n ? { mult: n } : null; } },
   { id: 'qiming', name: '启明玉', glyph: '启', rarity: 'legend', desc: '开战剑意全满', flags: { startQi: 100 } },
   { id: 'tianji', name: '天机落雷箓', glyph: '箓', rarity: 'legend', desc: '雷符 ×2（原为 ×1.5）', flags: { leiX: 1 } },
-  { id: 'hetu', name: '河图', glyph: '图', rarity: 'legend', desc: '五行轮转、五行俱全 ×3', score: c => (c.pattern === 'lunzhuan' || c.pattern === 'wuxing' ? { x: 3 } : null) },
+  { id: 'hetu', name: '河图', glyph: '图', rarity: 'legend', desc: '相生传气翻倍（后一枚接过前一枚两倍的气）', flags: { flowX: 1 } },
+  { id: 'luoshu', name: '洛书', glyph: '书', rarity: 'legend', desc: '每次相克的倍率再 +0.4', flags: { keX: 2 } },
+  { id: 'wuyue', name: '五岳真形图', glyph: '岳', rarity: 'legend', desc: '四象、五雷 ×3', score: c => (c.a.sets[0]?.size >= 4 ? { x: 3 } : null) },
   { id: 'fantian', name: '翻天印', glyph: '印', rarity: 'legend', desc: '出满五枚符时 ×2', score: c => (c.tiles.length >= 5 ? { x: 2 } : null) },
   // —— 道树解锁：新器一 ——
   { id: 'zhaodan', name: '照胆镜', glyph: '照', rarity: 'common', unlock: 'relics1', desc: '每枚克制敌人的符再 +6 气', score: c => { const n = c.els.filter(e => e && e === counterOf(c.battle.enemy.el)).length; return n ? { qi: 6 * n } : null; } },
   { id: 'liuhe', name: '六合钱', glyph: '六', rarity: 'common', unlock: 'relics1', desc: '恰好出四枚符时 ×1.8', score: c => (c.tiles.length === 4 ? { x: 1.8 } : null) },
-  { id: 'qiankun', name: '乾坤圈', glyph: '圈', rarity: 'common', unlock: 'relics1', desc: '双元、三才、四象、五雷 倍率 +4', score: c => (['dui', 'sancai', 'sixiang', 'wulei'].includes(c.pattern) ? { mult: 4 } : null) },
+  { id: 'qiankun', name: '乾坤圈', glyph: '圈', rarity: 'common', unlock: 'relics1', desc: '每一组同元 倍率 +3', score: c => (c.a.sets.length ? { mult: 3 * c.a.sets.length } : null) },
   { id: 'baoyuan', name: '百宝囊', glyph: '囊', rarity: 'common', unlock: 'relics1', desc: '每持有一件法宝 +8 气', score: c => ({ qi: 8 * c.run.relics.length }) },
   // —— 新器二 ——
   { id: 'taiji', name: '太极图', glyph: '极', rarity: 'rare', unlock: 'relics2', desc: '每枚灵符 ×1.5', score: c => { const n = c.tiles.filter(t => t.mod === 'ling').length; return n ? { x: 1.5 ** n } : null; } },

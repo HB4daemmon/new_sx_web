@@ -9,9 +9,12 @@ export interface Tile {
   mod?: TileMod;
 }
 
-export type PatternId =
-  | 'san' | 'dui' | 'liangyi' | 'sancai' | 'sheng3' | 'mantang'
-  | 'wuxing' | 'sixiang' | 'sheng4' | 'lunzhuan' | 'wulei';
+/** Upgradeable 诀 (心法). */
+export type PatternId = 'dui' | 'sancai' | 'sixiang' | 'wulei' | 'sheng' | 'ke' | 'wuxing';
+/** The named shape of a cast. */
+export type ComboId =
+  | 'san' | 'dui' | 'sheng3' | 'ke3' | 'liangyi' | 'sancai' | 'sheng4' | 'ke4'
+  | 'wuxing' | 'mantang' | 'sixiang' | 'lunzhuan' | 'nixing' | 'wulei';
 
 export interface Move {
   name: string;
@@ -101,7 +104,7 @@ export type Screen =
   | { name: 'shop'; items: ShopItem[]; removePrice: number; removed: boolean }
   | { name: 'event'; event: string; resolved?: string }
   | { name: 'rest'; done?: boolean }
-  | { name: 'pick-tile'; purpose: 'remove' | 'upgrade' | 'reforge' | 'fuse'; count: number; then: Screen; title: string }
+  | { name: 'pick-tile'; purpose: 'remove' | 'upgrade' | 'reforge' | 'fuse'; count: number; then: Screen; title: string; price?: number }
   | { name: 'won' }
   | { name: 'lost' };
 
@@ -128,7 +131,7 @@ export interface RunState {
   realm: number;
   screen: Screen;
   battle: BattleState | null;
-  stats: { bestHit: number; kills: number; casts: number; turns: number; biggestPattern: PatternId | null; floors: number; paid?: number; achPaid?: number };
+  stats: { bestHit: number; kills: number; casts: number; turns: number; biggestPattern: ComboId | null; floors: number; paid?: number; achPaid?: number };
   log: string[];
   /** The two 因缘 threads planned for this run: [act1→act3, act2→act4]. */
   plan: string[];

@@ -2,7 +2,7 @@ import { METHOD, METHODS, MOD_NAME, REALMS, RELIC, TALENT, VOW } from '../core/c
 import { EL_NAME } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
 import { EVENT } from '../core/events.js';
-import { PATTERNS } from '../core/patterns.js';
+import { COMBOS, PATTERNS } from '../core/patterns.js';
 import * as R from '../core/run.js';
 import type { MapNode, RewardOption, RunState, Screen } from '../core/types.js';
 import { ACT_STORY, BOND, BONDS, ENDING, ENDINGS, LORE } from '../core/story.js';
@@ -213,12 +213,12 @@ export function showHelp(first = false) {
     h('div.help-cols', null,
       h('div.help-col', null,
         h('ol.help-steps', null,
-          h('li', null, h('b', null, '选符：'), '从手中点选 1–5 枚符，', h('em', null, '点选的顺序就是出招顺序'), '。'),
-          h('li', null, h('b', null, '成诀：'), '同元素凑成双元、三才、四象……；按 ', h('em', null, '木→火→土→金→水'), ' 的相生顺序连出则成「三生」「四生」，五枚一周即「五行轮转」。'),
-          h('li', null, h('b', null, '伤害 = 气 × 倍'), '：诀式给基础气与倍率，每枚符加上它的点数，法宝自左向右再加、再乘。'),
-          h('li', null, h('b', null, '克制：'), '用克制敌人元素的符，点数翻倍；被敌人克制的符减半。'),
-          h('li', null, h('b', null, '剑意：'), '出招积攒剑意，满了可开「怒技」，本招 ×3。'),
-          h('li', null, h('b', null, '天劫：'), '战斗拖到第 8 回合，天雷会劈向双方，越劈越狠。'),
+          h('li', null, h('b', null, '选符：'), '点选 1–5 枚符出招，', h('em', null, '点选的顺序就是出招顺序'), '。每回合手牌全部刷新；「换符」不选符时整手全换。'),
+          h('li', null, h('b', null, '同元成组（可叠加）：'), '两枚同元为双元、三枚三才、四枚四象、五枚五雷；三才 + 双元同时计分，并称「满堂」再 ×1.5。三枚以上同元触发', h('em', null, '共鸣'), '（金必暴、火灼烧 ×3、水护盾 ×3、木回复 ×3、土镇 ×2）。'),
+          h('li', null, h('b', null, '相生（传气）：'), '按 ', h('em', null, '木→火→土→金→水'), ' 相邻，后一枚接过前一枚的气，越往后越大；', h('em', null, '链尾'), '那枚符的元素效果被放大。'),
+          h('li', null, h('b', null, '相克（乘倍）：'), '按 ', h('em', null, '木→土→水→火→金'), ' 相邻，每一次相克倍率 ×1.3。同一手五行，排成相生是加气，排成相克是乘倍。'),
+          h('li', null, h('b', null, '伤害 = 气 × 倍'), '：法宝自左向右再加、再乘。克制敌人元素的符点数翻倍，被克的减半。'),
+          h('li', null, h('b', null, '剑意 / 天劫：'), '剑意满可开怒技（本招 ×3）；拖到第 8 回合天雷劈向双方。'),
         ),
         h('div.help-els', null, ...(['jin', 'mu', 'shui', 'huo', 'tu'] as const).map(el => h('div.help-el', null, tileView({ el, v: 5 }, { small: true }), h('span', null, { jin: '锐：暴击率 +12%', mu: '生：回复气血', shui: '护：获得护盾', huo: '焚：施加灼烧', tu: '镇：倍率 +0.5' }[el]))))),
       h('div.help-col', null, wuxingWheel(), patternTable(app.run))),
@@ -296,6 +296,7 @@ function rewardScreen(run: RunState, s: Extract<Screen, { name: 'reward' }>) {
       h('div.cards', null, ...s.relicOptions.map((o, i) => cardButton(run, o, () => pickRelic(i), s.relicPicked)))) : null,
     s.options.length ? h('div.reward-block', null, h('h3', null, s.picked ? '已取' : '择其一'),
       h('div.cards', null, ...s.options.map((o, i) => cardButton(run, o, () => pickMain(i), s.picked)))) : null,
+    !s.picked && s.options.length ? h('button.btn.ink.purge-btn', { type: 'button', 'data-action': 'purge', onclick: () => act(r => R.rewardPurge(r)) }, '净符 · 不取奖励，移除一枚符', h('small', null, `符袋 ${run.bag.length} 枚，越精越容易成诀`)) : null,
     h('button.btn.seal.continue', { type: 'button', 'data-action': 'continue', onclick: () => act(r => R.leaveReward(r)) }, s.next === 'breakthrough' ? '突 破' : (s.picked && s.relicPicked) || !s.options.length ? '继 续' : '跳 过'));
 }
 
@@ -339,7 +340,7 @@ function shopScreen(run: RunState, s: Extract<Screen, { name: 'shop' }>) {
     h('h1.brush.big-title', null, '坊 市'),
     h('div.shop-grid', null, ...s.items.map((item, i) => cardButton(run, item.option, () => buy(i), false, item.price, item.sold))),
     h('div.shop-foot', null,
-      h('button.btn.ink', { type: 'button', disabled: s.removed || run.gold < s.removePrice || undefined, onclick: () => act(r => R.startRemove(r)) }, `净符 · 移除一枚符 ◆${s.removePrice}`),
+      h('button.btn.ink', { type: 'button', 'data-action': 'purge', disabled: run.gold < s.removePrice || undefined, onclick: () => act(r => R.startRemove(r)) }, `净符 · 移除一枚符 ◆${s.removePrice}`, h('small', null, `符袋 ${run.bag.length} 枚`)),
       h('button.btn.seal', { type: 'button', 'data-action': 'leave', onclick: () => act(r => R.leaveShop(r)) }, '离 开')));
 }
 
@@ -375,6 +376,7 @@ function restScreen(run: RunState, s: Extract<Screen, { name: 'rest' }>) {
     h('div.rest-options', null,
       h('button.event-opt', { type: 'button', 'data-option': 'heal', onclick: () => act(r => R.restChoose(r, 'heal'), 'heal') }, h('b', null, '调息'), h('span', null, `回复 ${Math.round(run.maxHp * 0.4)} 气血（${run.hp}/${run.maxHp}）`)),
       h('button.event-opt', { type: 'button', 'data-option': 'forge', onclick: () => act(r => R.restChoose(r, 'forge')) }, h('b', null, '炼符'), h('span', null, '一枚符点数 +3，并附上一道符纹')),
+      h('button.event-opt', { type: 'button', 'data-option': 'purge', onclick: () => act(r => R.restChoose(r, 'purge')) }, h('b', null, '净符'), h('span', null, `移除至多两枚符（符袋现有 ${run.bag.length} 枚）`)),
       h('div.event-opt.insight', null, h('b', null, '参悟'), h('span', null, '选一种诀式 +1 重'),
         h('div.insight-row', null, ...insights.map(id => h('button.chip', { type: 'button', onclick: () => act(r => R.restChoose(r, 'insight', id), 'reward') }, `${PATTERNS[id].name} ${run.patternLv[id] + 1}重`))))));
 }
@@ -432,7 +434,7 @@ function endScreen(run: RunState) {
       won && run.ending && !run.endless ? h('div.ending-text.inline', null, ...ENDING[run.ending].text.map((t, i) => h('p', { style: { animationDelay: `${0.6 + i * 0.8}s` } }, t))) : null,
       h('div.end-stats', null,
         stat('最强一招', fmt(run.stats.bestHit), report?.newBest ? '新纪录' : ''),
-        stat('最高诀式', run.stats.biggestPattern ? PATTERNS[run.stats.biggestPattern].name : '—'),
+        stat('最高诀式', run.stats.biggestPattern ? COMBOS[run.stats.biggestPattern]?.name ?? '—' : '—'),
         stat('斩敌', String(run.stats.kills)),
         stat('劫数', String(run.heat))),
       report?.unlockedMethod ? h('div.unlock', null, `解锁功法：${METHOD[report.unlockedMethod].name}`) : null,

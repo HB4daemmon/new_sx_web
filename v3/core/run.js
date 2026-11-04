@@ -3,7 +3,7 @@ import { METHOD, RELIC, RELICS, RELIC_PRICE, TALENT, TALENTS, VOW } from './cont
 import { ELEMENTS } from './elements.js';
 import { ENEMIES, ENEMY } from './enemies.js';
 import { EVENTS, EVENT } from './events.js';
-import { PATTERN_ORDER, PATTERNS } from './patterns.js';
+import { COMBOS, migrateLevels, PATTERN_ORDER } from './patterns.js';
 import { BONDS, BOSS_STORY, ENDING } from './story.js';
 import { cleanPacts, pactHeat, pactRank } from './pacts.js';
 import { SIGNATURE } from './content.js';
@@ -43,7 +43,7 @@ function applyStartPerks(run) {
     if (unlocked(run, 'ling1'))
         addTile(run, { el: pick(run.rng, ELEMENTS), v: 4, mod: 'ling' });
     if (unlocked(run, 'pattern1')) {
-        run.patternLv.sheng3 += 1;
+        run.patternLv.sheng += 1;
         run.patternLv.dui += 1;
     }
     if (unlocked(run, 'slot1'))
@@ -302,7 +302,7 @@ export function randomTile(run, quality = 0) {
 }
 export function rewardOptions(run, n) {
     const out = [];
-    const patterns = sample(run.rng, PATTERN_ORDER.filter(id => id !== 'san'), 2, id => 6 - Math.abs(PATTERNS[id].tier - 3));
+    const patterns = sample(run.rng, PATTERN_ORDER, 2, id => (id === 'wulei' ? 1 : 3));
     out.push({ type: 'tile', tile: randomTile(run) });
     out.push({ type: 'pattern', pattern: patterns[0] });
     out.push(chance(run.rng, 0.5) ? { type: 'tile', tile: randomTile(run, 1) } : { type: 'pattern', pattern: patterns[1] });
@@ -457,7 +457,7 @@ function makeShop(run) {
     const options = [
         ...relicChoices(run, 3, 'shop'),
         { type: 'tile', tile: randomTile(run, 1) }, { type: 'tile', tile: randomTile(run, 1) }, { type: 'tile', tile: randomTile(run, 2) },
-        ...sample(run.rng, PATTERN_ORDER.filter(id => id !== 'san'), 2).map(pattern => ({ type: 'pattern', pattern })),
+        ...sample(run.rng, PATTERN_ORDER, 2).map(pattern => ({ type: 'pattern', pattern })),
         { type: 'heal', amount: Math.round(run.maxHp * 0.35) },
     ];
     const items = options.map(option => ({ option, price: optionPrice(run, option), sold: false }));
@@ -478,9 +478,16 @@ export function buy(run, index, replaceSlot) {
 }
 export function startRemove(run) {
     const screen = run.screen;
-    if (screen.name !== 'shop' || screen.removed || run.gold < screen.removePrice)
+    if (screen.name !== 'shop' || run.gold < screen.removePrice)
         return;
-    run.screen = { name: 'pick-tile', purpose: 'remove', count: 1, then: { ...screen, removed: true }, title: `净符 · 花费 ${screen.removePrice} 灵石移除一枚符` };
+    run.screen = { name: 'pick-tile', purpose: 'remove', count: 1, then: { ...screen }, title: `净符 · 花费 ${screen.removePrice} 灵石移除一枚符（可反复购买，每次 +20）`, price: screen.removePrice };
+}
+/** Instead of taking the main reward, purge one tile from the bag. */
+export function rewardPurge(run) {
+    const screen = run.screen;
+    if (screen.name !== 'reward' || screen.picked)
+        return;
+    run.screen = { name: 'pick-tile', purpose: 'remove', count: 1, then: { ...screen, picked: true }, title: '净符 · 舍下这次奖励，移除一枚符' };
 }
 export function leaveShop(run) { if (run.screen.name === 'shop')
     run.screen = { name: 'map' }; }
@@ -494,6 +501,8 @@ export function restChoose(run, choice, pattern) {
     }
     if (choice === 'forge')
         run.screen = { name: 'pick-tile', purpose: 'upgrade', count: 1, then: { name: 'rest', done: true }, title: '炼符 · 选一枚符：点数 +3，并附上一道符纹' };
+    if (choice === 'purge')
+        run.screen = { name: 'pick-tile', purpose: 'remove', count: 2, then: { name: 'rest', done: true }, title: '净符 · 选至多两枚符永久移除' };
     if (choice === 'insight' && pattern) {
         run.patternLv[pattern] += 1;
         run.screen = { name: 'rest', done: true };
@@ -502,7 +511,7 @@ export function restChoose(run, choice, pattern) {
 export const restHeal = (run) => (unlocked(run, 'rest1') ? 0.55 : 0.4);
 export function insightChoices(run) {
     const seed = { state: seedFrom(`${run.seed}:${run.at}`) };
-    return sample(seed, PATTERN_ORDER.filter(id => id !== 'san'), 3);
+    return sample(seed, PATTERN_ORDER, 3);
 }
 export function leaveRest(run) { if (run.screen.name === 'rest')
     run.screen = { name: 'map' }; }
@@ -517,9 +526,12 @@ export function pickTiles(run, uids) {
     if (tiles.length !== uids.length)
         return false;
     if (screen.purpose === 'remove') {
-        if (screen.then.name === 'shop') {
-            run.gold -= screen.then.removePrice;
+        if (screen.then.name === 'shop' && screen.price) {
+            if (run.gold < screen.price)
+                return false;
+            run.gold -= screen.price;
             run.log.push('removed');
+            screen.then.removePrice = screen.price + 20;
         }
         run.bag = run.bag.filter(t => !uids.includes(t.uid));
     }
@@ -547,8 +559,8 @@ export function cancelPick(run) {
     const screen = run.screen;
     if (screen.name !== 'pick-tile')
         return;
-    if (screen.then.name === 'shop')
-        run.screen = { ...screen.then, removed: false };
+    if (screen.then.name === 'reward' && screen.purpose === 'remove')
+        run.screen = { ...screen.then, picked: false };
     else
         run.screen = screen.then;
 }
@@ -600,6 +612,9 @@ export function deserialize(text) {
         run.deeds ??= [];
         run.ending ??= null;
         run.pacts ??= {};
+        run.patternLv = migrateLevels(run.patternLv);
+        if (run.stats.biggestPattern && !(run.stats.biggestPattern in COMBOS))
+            run.stats.biggestPattern = null;
         run.unlocks ??= [];
         run.endless ??= 0;
         run.daily ??= null;

@@ -2,7 +2,7 @@ import { canRage, enemyAttack, MAX_CAST, previewCast, swordDamage, tribulationSt
 import { METHOD, RELIC } from '../core/content.js';
 import { counterOf, EL_NAME, KE } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
-import { PATTERNS } from '../core/patterns.js';
+import { COMBOS, PATTERNS, SET_BY_SIZE } from '../core/patterns.js';
 import { BOND, BOSS_STORY, LORE } from '../core/story.js';
 import * as R from '../core/run.js';
 import { anim, burst, centerOf, comet, EL_COLOR, flash, floatText, hitstop, isSkipping, lightning, reducedMotion, ring, setSkipping, shake, wait } from './fx.js';
@@ -35,7 +35,7 @@ export function mountBattle(container) {
         app.meta.seen.push(enemy.id);
     root = h(`div.scr.battle-scr.rank-${enemy.rank}`, null, h('img.bg', { src: art(ACTS[r.act - 1].bg), alt: '' }), h('div.arena-shade'), h('div.hero-wrap', null, h('img.hero-art', { src: art(`hero-${r.method}`), alt: METHOD[r.method].name }), h('div.hero-shield'), h('div.hero-status'), h('div.hero-bar')), h('div.enemy-wrap', null, h('div.enemy-intent'), h('img.enemy-art', { src: art(enemy.art), alt: enemy.name }), h('div.enemy-status')), h('div.enemy-plate', null, h('div.enemy-name', null, h('span.e-el'), h('b', null, enemy.name), h('small', null, enemy.title)), h('div.enemy-bar'), enemy.traitText ? h('div.enemy-trait', null, enemy.traitText) : null, LORE[enemy.id] ? h('div.enemy-lore', null, LORE[enemy.id]) : null), h('div.wheel-slot'), h('div.turn-tag'), h('div.score-panel', null, h('div.sp-pattern', null, '　'), h('div.sp-row', null, h('div.sp-box.sp-qi', null, h('small', null, '气'), h('b', null, '0')), h('span.sp-x', null, '×'), h('div.sp-box.sp-mult', null, h('small', null, '倍'), h('b', null, '0'))), h('div.sp-dmg')), h('div.lane'), h('div.hand-area', null, h('div.preview-line'), h('div.hand')), h('div.controls', null, h('button.qi-gauge', { type: 'button', 'data-action': 'rage', title: '剑意满时可开怒技（本招 ×3）· 快捷键 R', onclick: () => toggleRage() }, h('div.qi-fill'), h('span.qi-text')), h('button.btn.seal.cast-btn', { type: 'button', 'data-action': 'cast', onclick: () => void doCast() }, h('span.cast-main', null, '出招'), h('small.cast-sub')), h('button.btn.ink.discard-btn', { type: 'button', 'data-action': 'discard', onclick: () => void doDiscard() }, '换符', h('small.discard-left'))), h('div.pile-dock', null, h('button.pile-btn', { type: 'button', onclick: () => showBag(r), title: '查看符袋' }, h('span.pile-draw'), h('small', null, '待抽')), h('button.pile-btn.sort', { type: 'button', title: '整理手牌', onclick: () => { sortMode = sortMode === 'el' ? 'v' : 'el'; renderHand(); } }, '理'), h('button.pile-btn', { type: 'button', title: '诀谱', onclick: () => showHelp() }, '谱')), hud(r, { battle: true }));
     container.appendChild(root);
-    root.addEventListener('pointerdown', () => { if (busy)
+    root.addEventListener('pointerdown', () => { if (busy && !cinematic)
         setSkipping(true); });
     keyHandler = onKey;
     window.addEventListener('keydown', keyHandler);
@@ -279,7 +279,8 @@ function refreshControls() {
     gauge.classList.toggle('on', rageOn && canRage(b));
     $('.qi-text', root).textContent = canRage(b) ? (rageOn ? '怒技·开' : '怒技') : `剑意 ${Math.floor(disp.qi)}`;
     $('.discard-left', root).textContent = r.vow === 'juenian' ? '绝念' : `余 ${b.discardsLeft}`;
-    $('.discard-btn', root).disabled = busy || b.discardsLeft <= 0 || !selected.length;
+    $('.discard-btn', root).disabled = busy || b.discardsLeft <= 0;
+    $('.discard-btn', root).firstChild.textContent = selected.length ? '换符' : '全换';
     $('.cast-btn', root).disabled = busy || !selected.length;
     $('.pile-draw', root).textContent = String(b.draw.length);
     root.classList.toggle('busy', busy);
@@ -358,8 +359,11 @@ function refreshPreview() {
     const res = previewCast(r, b, selected, rageOn);
     if (!res)
         return;
+    $$('.tile.ke-link', root).forEach(el => el.classList.remove('ke-link'));
     for (const i of res.chain)
         $(`.hand .tile[data-uid="${selected[i]}"]`, root)?.classList.add('chain');
+    for (const i of res.keIdx)
+        $(`.hand .tile[data-uid="${selected[i]}"]`, root)?.classList.add('ke-link');
     const effects = [];
     if (res.shield)
         effects.push(`盾+${res.shield}`);
@@ -370,14 +374,20 @@ function refreshPreview() {
     if (res.critChance > 5)
         effects.push(`暴击 ${Math.round(res.critChance)}%`);
     const lethal = res.damage >= b.enemy.hp + (b.enemy.armor || 0);
-    line.replaceChildren(...nn(h('b.pv-pattern', null, PATTERNS[res.pattern].name), h('span.pv-calc', null, h('b.qi', null, fmt(res.qi)), ' × ', h('b.mu', null, fmt1(res.mult)), ' = ', h('b.pv-dmg', null, fmt(res.damage))), effects.length ? h('span.pv-fx', null, effects.join(' · ')) : null, lethal ? h('span.pv-kill', null, '斩！') : null));
+    const parts = res.analysis.sets.map(st => `${PATTERNS[SET_BY_SIZE[st.size]].name}·${EL_NAME[st.el]}`);
+    const sh = res.analysis.links.filter(l => l === 'sheng').length, ke = res.analysis.links.filter(l => l === 'ke').length;
+    if (sh)
+        parts.push(`生×${sh}`);
+    if (ke)
+        parts.push(`克×${ke}`);
+    line.replaceChildren(...nn(h('b.pv-pattern', null, COMBOS[res.pattern].name), parts.length ? h('span.pv-parts', null, parts.join(' + ')) : null, h('span.pv-calc', null, h('b.qi', null, fmt(res.qi)), ' × ', h('b.mu', null, fmt1(res.mult)), ' = ', h('b.pv-dmg', null, fmt(res.damage))), effects.length ? h('span.pv-fx', null, effects.join(' · ')) : null, lethal ? h('span.pv-kill', null, '斩！') : null));
     setScore(res);
     refreshControls();
 }
 function setScore(res) {
     const panel = $('.score-panel', root);
     panel.classList.toggle('preview', !!res);
-    $('.sp-pattern', panel).textContent = res ? PATTERNS[res.pattern].name : '　';
+    $('.sp-pattern', panel).textContent = res ? COMBOS[res.pattern].name : '　';
     $('.sp-qi b', panel).textContent = res ? fmt(res.qi) : '0';
     $('.sp-mult b', panel).textContent = res ? fmt1(res.mult) : '0';
     $('.sp-dmg', panel).textContent = '';
@@ -386,7 +396,7 @@ function onKey(e) {
     if (!root || overlayOpen() || e.metaKey || e.ctrlKey || e.altKey)
         return;
     if (busy) {
-        if (e.key === ' ' || e.key === 'Enter') {
+        if ((e.key === ' ' || e.key === 'Enter') && !cinematic) {
             setSkipping(true);
             e.preventDefault();
         }
@@ -415,8 +425,11 @@ function onKey(e) {
 // —— Discard ——
 async function doDiscard() {
     const b = battle();
-    if (busy || !selected.length || b.discardsLeft <= 0)
+    if (busy || b.discardsLeft <= 0)
         return;
+    // Nothing selected: swap the whole hand.
+    if (!selected.length)
+        selected = b.hand.map(t => t.uid);
     busy = true;
     refreshControls();
     const leaving = selected.map(uid => $(`.hand .tile[data-uid="${uid}"]`, root));
@@ -524,7 +537,13 @@ async function playCast(out, tileEls, from) {
     await Promise.all(clones.map((el, i) => anim(el, [{ transform: 'none', opacity: 1 }, { transform: `translate(${mid.x - slots[i].x}px, 0) scale(.3)`, opacity: 0 }], 160, { fill: 'forwards' })));
     const color = EL_COLOR[res.els.find(Boolean) ?? 'jin'];
     playSfx('slash', 1.3);
-    await comet(mid, target, color, 200, res.rage ? 64 : 34);
+    if (res.rage) {
+        setSkipping(false);
+        await real(120);
+    }
+    await comet(mid, target, res.rage ? '#ff8a3a' : color, res.rage ? 320 : 200, res.rage ? 90 : 34);
+    if (res.rage)
+        rageImpact = true;
     panel.classList.remove('live');
 }
 function dmgTier(n) { return n >= 100000 ? 4 : n >= 10000 ? 3 : n >= 1000 ? 2 : n >= 100 ? 1 : 0; }
@@ -542,18 +561,18 @@ async function playStep(step, res, clones, qiB, multB, index) {
         case 'pattern': {
             const p = $('.sp-pattern', root);
             p.textContent = step.label;
-            p.className = `sp-pattern tier-${PATTERNS[res.pattern].tier}`;
+            p.className = `sp-pattern tier-${COMBOS[res.pattern].tier}`;
             setVals();
             playSfx('stamp');
-            if (PATTERNS[res.pattern].tier >= 5) {
+            if (COMBOS[res.pattern].tier >= 4) {
                 shake(2);
                 flash('rgba(255,220,150,.25)', 220);
             }
             for (const i of res.chain)
                 clones[i]?.classList.add('chain');
+            for (const i of res.keIdx)
+                clones[i]?.classList.add('ke-link');
             await anim(p, [{ transform: 'scale(2.4) rotate(-6deg)', opacity: 0 }, { transform: 'scale(.92)', opacity: 1, offset: 0.6 }, { transform: 'scale(1)' }], 300);
-            if (res.chain.length)
-                await chainLinks(clones, res.chain);
             pop(qiB);
             pop(multB);
             await wait(120);
@@ -565,6 +584,20 @@ async function playStep(step, res, clones, qiB, multB, index) {
                 return;
             const c = centerOf(el);
             const tile = res.tiles[step.index];
+            if (step.link && clones[step.index - 1]) {
+                const from = centerOf(clones[step.index - 1]);
+                if (step.link === 'sheng') {
+                    await comet({ x: from.x, y: from.y - 30 }, { x: c.x, y: c.y - 30 }, '#ffe7a1', 150, 22);
+                    floatText((from.x + c.x) / 2, c.y - 96, '生', 'ft-link sheng', 20, 600);
+                    playSfx('mult', 4 + index);
+                }
+                else {
+                    floatText((from.x + c.x) / 2, c.y - 96, '克', 'ft-link ke', 20, 600);
+                    burst((from.x + c.x) / 2, c.y - 20, '#ff3b2f', 14, 0.7);
+                    playSfx('xmult');
+                    shake(1);
+                }
+            }
             anim(el, [{ transform: 'translateY(0)' }, { transform: 'translateY(-26px) scale(1.12)' }, { transform: 'translateY(0)' }], 200);
             floatText(c.x, c.y - 70, step.label, `ft-tile el-text-${tile.el}`, 40, 700);
             if (step.tag)
@@ -594,6 +627,11 @@ async function playStep(step, res, clones, qiB, multB, index) {
         case 'relic':
         case 'bonus': {
             let c = centerOf($('.score-panel', root));
+            if (step.k === 'bonus' && step.index !== undefined && clones[step.index]) {
+                c = centerOf(clones[step.index]);
+                c.y -= 120;
+                ring(c.x, c.y + 120, '#ffe7a1', 70);
+            }
             if (step.k === 'relic') {
                 const el = $(`.hud .relic[data-slot="${step.index}"]`, root);
                 if (el) {
@@ -617,8 +655,12 @@ async function playStep(step, res, clones, qiB, multB, index) {
         case 'rage': {
             await rageCutIn();
             setVals();
-            pop(multB, true);
+            const c = centerOf(multB);
+            floatText(c.x, c.y - 70, step.label, 'ft-rage', 30, 1200);
+            multB.parentElement?.animate([{ transform: 'scale(2.2)', filter: 'brightness(3)' }, { transform: 'scale(1)', filter: 'none' }], { duration: 520, easing: 'cubic-bezier(.2,.9,.3,1.3)' });
+            playSfx('xmult');
             shake(3);
+            await real(450);
             return;
         }
         case 'crit': {
@@ -647,15 +689,43 @@ async function chainLinks(clones, chain) {
         await wait(70);
     }
 }
+/** The 怒技 cut-in runs on real time: speed settings and tap-to-skip never rush it. */
+let cinematic = false;
+const real = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 async function rageCutIn() {
     const r = run();
     const m = METHOD[r.method];
+    cinematic = true;
+    setSkipping(false);
     playSfx('rage');
-    const cut = h('div.cutin', null, h('img', { src: art(`hero-${r.method}`), alt: '' }), h('div.cutin-text.brush', null, '怒', h('small', null, `${m.title} · 剑诀`)));
+    const dim = h('div.cutin-dim');
+    root.appendChild(dim);
+    dim.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, fill: 'forwards' });
+    await real(260);
+    const hero = h('img.cutin-hero', { src: art(`hero-${r.method}`), alt: '' });
+    const word = h('div.cutin-text.brush', null, '怒');
+    const sub = h('div.cutin-sub.brush', null, `${m.title} · 剑诀`);
+    const cut = h('div.cutin', null, hero, word, sub);
     root.appendChild(cut);
-    flash('rgba(255,255,255,.5)', 180);
-    await anim(cut, [{ clipPath: 'inset(45% 0 45% 0)', opacity: 0 }, { clipPath: 'inset(20% 0 20% 0)', opacity: 1, offset: 0.25 }, { clipPath: 'inset(20% 0 20% 0)', opacity: 1, offset: 0.8 }, { clipPath: 'inset(50% 0 50% 0)', opacity: 0 }], 900);
+    cut.animate([{ clipPath: 'inset(50% 0 50% 0)' }, { clipPath: 'inset(16% 0 16% 0)' }], { duration: 220, easing: 'cubic-bezier(.2,.9,.3,1)', fill: 'forwards' });
+    hero.animate([{ transform: 'translateX(-60%) scale(1.1)', opacity: 0 }, { transform: 'translateX(0) scale(1)', opacity: 1 }], { duration: 420, easing: 'cubic-bezier(.2,.9,.3,1)', fill: 'forwards' });
+    await real(380);
+    word.animate([{ transform: 'scale(3.2) rotate(-12deg)', opacity: 0 }, { transform: 'scale(.92) rotate(-4deg)', opacity: 1, offset: 0.7 }, { transform: 'scale(1) rotate(-4deg)', opacity: 1 }], { duration: 300, easing: 'cubic-bezier(.3,0,.4,1)', fill: 'forwards' });
+    await real(220);
+    playSfx('ko');
+    flash('rgba(255,255,255,.7)', 200);
+    shake(4);
+    const c = centerOf(word);
+    burst(c.x, c.y, '#ffb347', 70, 2);
+    ring(c.x, c.y, '#ff6a3d', 260);
+    sub.animate([{ opacity: 0, transform: 'translateY(20px)' }, { opacity: 1, transform: 'none' }], { duration: 300, fill: 'forwards' });
+    await real(700);
+    cut.animate([{ clipPath: 'inset(16% 0 16% 0)', opacity: 1 }, { clipPath: 'inset(50% 0 50% 0)', opacity: 0 }], { duration: 260, fill: 'forwards' });
+    dim.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 400, fill: 'forwards' });
+    await real(260);
     cut.remove();
+    setTimeout(() => dim.remove(), 400);
+    cinematic = false;
 }
 // —— Battle events ——
 async function playEvents(events, side) {
@@ -846,7 +916,11 @@ async function playEvent(ev, side) {
         case 'lose': return;
     }
 }
+let rageImpact = false;
 async function hitEnemy(amount, blocked, src, crit) {
+    const rageHit = rageImpact && src === 'cast';
+    if (rageHit)
+        rageImpact = false;
     const enemyArt = $('.enemy-art', root);
     const c = centerOf(enemyArt);
     const ratio = (amount + blocked) / Math.max(1, disp.emax);
@@ -859,7 +933,11 @@ async function hitEnemy(amount, blocked, src, crit) {
     const big = src === 'cast' || src === 'detonate';
     const level = !big ? 1 : ratio >= 0.5 ? 4 : ratio >= 0.25 ? 3 : ratio >= 0.1 ? 2 : 1;
     enemyArt.classList.add('hurt');
-    if (big)
+    if (rageHit) {
+        flash('rgba(255,140,60,.6)', 260);
+        await real(260);
+    }
+    else if (big)
         await hitstop(40 + Math.min(220, ratio * 420));
     shake(level);
     if (level >= 3)

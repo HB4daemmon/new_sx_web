@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { detectPatterns } from '../../build/v3/core/patterns.js';
+import { analyze, assignments, migrateLevels } from '../../build/v3/core/patterns.js';
 import { computeCast } from '../../build/v3/core/score.js';
 import { startBattle, cast, discardTiles, enemyAttack } from '../../build/v3/core/battle.js';
 import * as R from '../../build/v3/core/run.js';
@@ -10,7 +10,7 @@ import { METHODS, RELICS } from '../../build/v3/core/content.js';
 import { playRun } from './bot.mjs';
 
 const T = (el, v = 3, mod) => ({ uid: Math.floor(Math.random() * 1e9), el, v, ...(mod ? { mod } : {}) });
-const ids = tiles => detectPatterns(tiles).map(m => m.id).sort();
+const combo = (els, opts) => analyze(els, opts).combo;
 
 function fresh(method = 'yangjian', enemy = 'shiyuan') {
   const run = R.createRun({ seed: 't', method });
@@ -20,34 +20,45 @@ function fresh(method = 'yangjian', enemy = 'shiyuan') {
   return { run, battle };
 }
 
-test('patterns: counts, chains in cast order, wildcards and curse tiles', () => {
-  assert.ok(ids([T('jin'), T('jin')]).includes('dui'));
-  assert.ok(ids([T('jin'), T('jin'), T('jin'), T('mu'), T('mu')]).includes('mantang'));
-  assert.ok(ids([T('mu'), T('huo'), T('tu')]).includes('sheng3'), '木→火→土 is a chain');
-  assert.ok(!ids([T('tu'), T('huo'), T('mu')]).includes('sheng3'), 'order matters');
-  assert.ok(detectPatterns([T('tu'), T('huo'), T('mu')], { reverse: true }).some(m => m.id === 'sheng3'), '逆转五行 allows reverse');
-  assert.ok(ids([T('shui'), T('mu'), T('huo'), T('tu'), T('jin')]).includes('lunzhuan'), 'chain wraps 水→木');
-  assert.ok(ids([T('mu'), T('huo', 3, 'ling'), T('tu')]).includes('sheng3'));
-  assert.ok(ids([T('mu'), T('jin', 3, 'ling'), T('tu')]).includes('sheng3'), '灵符 counts as the missing element');
-  assert.ok(ids([T('jin'), T('jin', 3, 'ling'), T('jin'), T('jin'), T('jin')]).includes('wulei'));
-  assert.ok(!ids([T('mu'), { uid: 1, el: 'zhuo', v: 0 }, T('huo'), T('tu')]).includes('sheng3'), '浊符 breaks a chain');
-  assert.ok(ids([T('mu'), T('huo'), T('tu'), T('jin'), T('shui')]).includes('wuxing'));
+test('analysis: sets stack, order makes 相生 / 相克 links, names follow', () => {
+  const full = analyze(['jin', 'jin', 'jin', 'mu', 'mu']);
+  assert.deepEqual(full.sets.map(s => s.size), [3, 2], '三才 and 双元 both count');
+  assert.equal(full.combo, 'mantang');
+  assert.deepEqual(analyze(['mu', 'huo', 'tu']).links, ['sheng', 'sheng']);
+  assert.deepEqual(analyze(['tu', 'huo', 'mu']).links, [null, null], 'reverse order is not 相生');
+  assert.deepEqual(analyze(['tu', 'huo', 'mu'], { reverse: true }).links, ['sheng', 'sheng'], '逆转五行');
+  assert.deepEqual(analyze(['mu', 'tu', 'shui', 'huo', 'jin']).links, ['ke', 'ke', 'ke', 'ke']);
+  assert.equal(combo(['mu', 'tu', 'shui', 'huo', 'jin']), 'nixing');
+  assert.equal(combo(['shui', 'mu', 'huo', 'tu', 'jin']), 'lunzhuan');
+  assert.equal(combo(['jin', 'mu', 'shui', 'tu', 'huo']), 'wuxing');
+  assert.equal(combo(['jin', 'jin', 'jin', 'jin', 'jin']), 'wulei');
+  assert.deepEqual(analyze(['mu', null, 'huo']).links, [null, null], '浊符 breaks links');
+  assert.equal(assignments([T('mu'), T('huo', 3, 'ling')]).length, 5, '灵符 tries every element');
+  assert.deepEqual(migrateLevels({ sheng3: 3, lunzhuan: 2, mantang: 2 }).sheng, 3);
 });
 
-test('scoring: qi × mult, counter element doubles, the best pattern is chosen', () => {
+test('scoring: sets add up, 相生 passes qi forward, 相克 multiplies', () => {
   const { run, battle } = fresh('yangjian', 'shiyuan'); // 石鼋 is 土: 木 counters it, 水 is weak to it
   const pair = computeCast(run, battle, [T('jin', 4), T('jin', 4)], false);
   assert.equal(pair.pattern, 'dui');
-  assert.equal(pair.qi, 10 + 4 + 4);
-  assert.equal(pair.mult, 2);
-  assert.equal(pair.damage, 36);
-  const counter = computeCast(run, battle, [T('mu', 4), T('mu', 4)], false);
-  assert.equal(counter.qi, 10 + 8 + 8, '木克土: points doubled');
-  const weak = computeCast(run, battle, [T('shui', 4), T('shui', 4)], false);
-  assert.equal(weak.qi, 10 + 2 + 2, '土克水: points halved');
-  const chain = computeCast(run, battle, [T('mu', 1), T('huo', 1), T('tu', 1)], false);
-  assert.equal(chain.pattern, 'sheng3');
-  assert.deepEqual(chain.chain, [0, 1, 2]);
+  assert.equal(pair.qi, 10 + 8);
+  assert.equal(pair.mult, 1 + 2);
+  const fullHouse = computeCast(run, battle, [T('jin', 1), T('jin', 1), T('jin', 1), T('huo', 1), T('huo', 1)], false);
+  assert.equal(fullHouse.qi, 5 + 25 + 10, '三才 + 双元 both add qi');
+  assert.equal(fullHouse.mult, (1 + 3 + 2) * 1.5, '…and 倍, then 满堂 ×1.5');
+  assert.equal(computeCast(run, battle, [T('mu', 4), T('mu', 4)], false).qi, 10 + 8 + 8, '木克土: points doubled');
+  assert.equal(computeCast(run, battle, [T('shui', 4), T('shui', 4)], false).qi, 10 + 2 + 2, '土克水: points halved');
+  // 火→土→金 (no counter/weak vs 土 enemy for 火 and 金): qi flows 2 → 2+2 → 2+4.
+  const chain = computeCast(run, battle, [T('huo', 2), T('jin', 2), T('tu', 2)], false);
+  const flowed = computeCast(run, battle, [T('jin', 2), T('huo', 2)], false);
+  void flowed;
+  const sheng = computeCast(run, battle, [T('huo', 2), T('tu', 2)], false);
+  assert.equal(sheng.analysis.links[0], 'sheng');
+  assert.equal(sheng.qi, 2 + 4, 'the second tile receives the first tile\'s qi');
+  assert.ok(chain.steps.length > 0);
+  const ke = computeCast(run, battle, [T('huo', 2), T('jin', 2)], false);
+  assert.equal(ke.analysis.links[0], 'ke');
+  assert.ok(Math.abs(ke.mult - 1.3) < 1e-9, '相克 multiplies');
 });
 
 test('scoring: relic order matters (+倍 before ×倍) and 昆仑镜 mirrors its right neighbour', () => {
