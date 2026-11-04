@@ -1,4 +1,4 @@
-import { RELIC, RELICS, VOW } from './content.js';
+import { RELIC, RELICS, TALENTS, VOW } from './content.js';
 import { ELEMENTS, EL_NAME, type El } from './elements.js';
 import { PATTERNS, PATTERN_ORDER } from './patterns.js';
 import { chance, pick, sample } from './rng.js';
@@ -12,7 +12,7 @@ export interface EventOption {
   can?: (run: RunState) => boolean;
   apply: (run: RunState) => string | Screen;
 }
-export interface EventDef { id: string; title: string; glyph: string; text: string; once?: boolean; bond?: string; options: EventOption[] }
+export interface EventDef { id: string; title: string; glyph: string; text: string; once?: boolean; bond?: string; unlock?: string; options: EventOption[] }
 
 const leave: EventOption = { label: '离开', desc: '不节外生枝', apply: () => '你收起心神，继续赶路。' };
 const healPct = (run: RunState, pct: number) => { const h = Math.round(run.maxHp * pct); run.hp = Math.min(run.maxHp, run.hp + h); return h; };
@@ -171,6 +171,39 @@ export const EVENTS: EventDef[] = [
     ],
   },
 ];
+
+// —— 道树「奇遇新卷」解锁 ——
+EVENTS.push(
+  { id: 'fusang', unlock: 'events2', title: '扶桑', glyph: '桑',
+    text: '十个太阳歇过脚的扶桑树倒悬在崖边，枝头还挂着一点没散的日火。爬上去会被烫伤，但树顶有东西在发光。',
+    options: [
+      { label: '攀上树顶', desc: '失去 18% 气血；从三件灵品以上的法宝中选一件', apply: run => { run.hp = Math.max(1, run.hp - Math.round(run.maxHp * 0.18)); return { name: 'reward', gold: 0, options: [], relicOptions: R.relicChoices(run, 3, 'boss'), picked: true, relicPicked: false, next: 'map' }; } },
+      { label: '在树下取火', desc: '获得两枚 雷火6', apply: run => { R.addTile(run, { el: 'huo', v: 6, mod: 'lei' }); R.addTile(run, { el: 'huo', v: 6, mod: 'lei' }); return '你接住两缕落下的日火，化成了雷火符。'; } },
+    ] },
+  { id: 'yaochi', unlock: 'events2', title: '瑶池', glyph: '池',
+    text: '西王母的瑶池边没有人。池水照出你身上每一件法宝，也照出你学过的每一式诀。池边石刻：「以器换道」。',
+    options: [
+      { label: '投一件法宝入池', desc: '失去最右侧的法宝；所有诀式 +1 重', can: run => run.relics.length > 0, apply: run => { const lost = RELIC[run.relics.pop()!]; for (const id of PATTERN_ORDER) run.patternLv[id] += 1; return `「${lost.name}」沉进池底。池水一亮，你学过的每一式都深了一层。`; } },
+      leave,
+    ] },
+  { id: 'kuafu', unlock: 'events2', title: '夸父之杖', glyph: '杖',
+    text: '一根桃木杖插在干涸的河床上。追日的巨人倒在这里，杖上还留着他没走完的路。',
+    options: [
+      { label: '拔起木杖', desc: '气血上限 -20；立即领悟一道随机天赋', apply: run => {
+        run.maxHp = Math.max(30, run.maxHp - 20); run.hp = Math.min(run.hp, run.maxHp);
+        const pool = TALENTS.filter(t => !run.talents.includes(t.id) && t.id !== 'dongtian');
+        const t = pick(run.rng, pool); R.gainTalent(run, t.id);
+        return `杖一离地，你身上多了一条不属于自己的路：「${t.name}」——${t.desc}。`;
+      } },
+      leave,
+    ] },
+  { id: 'nvwa', unlock: 'events2', title: '补天石', glyph: '娲',
+    text: '女娲补天剩下的一块五色石。它能把两样东西熔成一样，熔出来的会比原来的加起来更亮。',
+    options: [
+      { label: '熔符', desc: '选两枚符熔成一枚：点数相加的晶符', apply: () => ({ name: 'pick-tile', purpose: 'fuse', count: 2, then: { name: 'event', event: 'nvwa', resolved: '两枚符在五色石上化开，凝成了一枚晶符。' }, title: '补天石 · 选两枚符熔为一枚（元素取第一枚）' }) },
+      { label: '收起石头', desc: '获得一枚 灵土7', apply: run => { R.addTile(run, { el: 'tu', v: 7, mod: 'ling' }); return '五色石在你手里变成了一枚灵符。'; } },
+    ] },
+);
 
 // —— 因缘：每条线两次相遇。初遇立约有代价；再遇守约（终战相助）或收下厚礼（线就此了结）。——
 const hurt = (run: RunState, pct: number) => { const d = Math.round(run.maxHp * pct); run.hp = Math.max(1, run.hp - d); return d; };

@@ -8,8 +8,8 @@ import { renderScreen } from './screens.js';
 import { playSfx, setSfxEnabled, unlockSfx } from './sfx.js';
 
 export type View = 'title' | 'select' | 'run' | 'end';
-export const app: { run: RunState | null; meta: Meta; view: View; endReport: import('./meta.js').EndReport | null } = {
-  run: null, meta: readMeta(), view: 'title', endReport: null,
+export const app: { run: RunState | null; meta: Meta; view: View; endReport: import('./meta.js').EndReport | null; settlement: import('./progression.js').Settlement | null } = {
+  run: null, meta: readMeta(), view: 'title', endReport: null, settlement: null,
 };
 
 let stage: HTMLElement;

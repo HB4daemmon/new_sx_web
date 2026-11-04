@@ -2,6 +2,7 @@ import { ACT_ATK, ACT_HP, ENEMY, HEAT_ATK, HEAT_HP, RANK_ATK, RANK_HP } from './
 import { GEN, type El } from './elements.js';
 import { next, shuffle, int, type Rng } from './rng.js';
 import { PATTERNS } from './patterns.js';
+import { pactRank } from './pacts.js';
 import { computeCast, defenseScale, has, relicFlag, type CastResult } from './score.js';
 import type { BattleState, EnemyState, Move, NodeKind, RunState, Tile } from './types.js';
 
@@ -28,20 +29,32 @@ export type BEvent =
   | { k: 'lose' };
 
 export const MAX_CAST = 5;
-export const handSize = (run: RunState) => 7 + (has(run, 'yiqi') ? 1 : 0) + (run.vow === 'juenian' ? 2 : 0);
+export const handSize = (run: RunState) => 7 + (has(run, 'yiqi') ? 1 : 0) + (run.vow === 'juenian' ? 2 : 0) - (pactRank(run, 'narrow') ? 1 : 0);
 export const discardsPerTurn = (run: RunState) => (run.vow === 'juenian' ? 0 : 2 + (has(run, 'douzhuan') ? 1 : 0));
-export const tribulationStart = (run: RunState) => (has(run, 'yinjie') ? 5 : 8);
+export const tribulationStart = (run: RunState) => (has(run, 'yinjie') ? 5 : 8) - (pactRank(run, 'short') ? 2 : 0);
 export const swordDamage = (run: RunState) => 4 + run.realm * 4;
 
 const actOf = (run: RunState) => Math.min(5, run.act);
+/** Runs started before 天劫契 used a flat 劫数. */
+const legacyHeat = (run: RunState) => run.heat > 0 && !Object.keys(run.pacts ?? {}).length;
+/** Enemy HP / damage multipliers from 天劫契 (or legacy 劫数) and 无尽劫 depth. */
+export function enemyHpScale(run: RunState) {
+  const pact = legacyHeat(run) ? 1 + HEAT_HP * run.heat : 1 + 0.15 * pactRank(run, 'cloud');
+  return pact * (run.endless ? 1.75 ** run.endless : 1);
+}
+export function enemyAtkScale(run: RunState, rank: string) {
+  const pact = legacyHeat(run) ? 1 + HEAT_ATK * run.heat : 1 + 0.1 * pactRank(run, 'thunder');
+  return pact * (rank === 'boss' && pactRank(run, 'awake') ? 1.3 : 1) * (run.endless ? 1.15 ** run.endless : 1);
+}
 function scaleAtk(run: RunState, battle: BattleState, base: number) {
   const rank = ENEMY[battle.enemyId].rank;
-  return Math.round(base * ACT_ATK[actOf(run)] * RANK_ATK[rank] * (1 + HEAT_ATK * run.heat));
+  return Math.round(base * ACT_ATK[actOf(run)] * RANK_ATK[rank] * enemyAtkScale(run, rank));
 }
+const swordCap = (run: RunState) => 15 + relicFlag(run, 'swordCap');
 
 export function startBattle(run: RunState, enemyId: string, kind: NodeKind): BattleState {
   const def = ENEMY[enemyId];
-  const hp = Math.round(def.hp * ACT_HP[actOf(run)] * RANK_HP[def.rank] * (1 + HEAT_HP * run.heat));
+  const hp = Math.round(def.hp * ACT_HP[actOf(run)] * RANK_HP[def.rank] * enemyHpScale(run));
   const enemy: EnemyState = {
     id: def.id, el: def.el, hp, maxHp: hp, shield: 0, burn: 0, armor: 0, atkBonus: 0,
     charged: false, moveIndex: 0, phase: 1, revived: false, intent: def.moves[0],
@@ -54,7 +67,9 @@ export function startBattle(run: RunState, enemyId: string, kind: NodeKind): Bat
     castCount: 0, swords: 0, spring: 0, stacks: {}, outcome: 'fighting', bestHit: 0,
   };
   if (has(run, 'jinshen')) battle.player.shield += 20 * Math.max(1, run.realm);
-  if (def.act === 5 && def.rank === 'boss') applyAssists(run, battle);
+  if (def.act === 5 && def.rank === 'boss' && !run.endless) applyAssists(run, battle);
+  if (run.unlocks?.includes('discard1')) battle.discardsLeft += 1;
+  battle.stacks.startHp = battle.player.hp;
   turnStartShield(run, battle);
   drawTo(run, battle);
   return battle;
@@ -105,6 +120,7 @@ export function discardTiles(run: RunState, battle: BattleState, uids: number[])
   battle.hand = battle.hand.filter(tile => !uids.includes(tile.uid));
   battle.discard.push(...chosen);
   battle.discardsLeft -= 1;
+  battle.stacks.discarded = 1;
   return [{ k: 'draw', count: drawTo(run, battle) }];
 }
 
@@ -147,7 +163,8 @@ function checkEnemy(run: RunState, battle: BattleState, events: BEvent[]) {
     if (battle.outcome === 'fighting') { battle.outcome = 'won'; events.push({ k: 'win' }); }
     return;
   }
-  if (def.phase2 && def.trait !== 'revive' && enemy.phase === 1 && enemy.hp <= enemy.maxHp / 2) enterPhase2(run, battle, events);
+  const threshold = pactRank(run, 'awake') ? 0.75 : 0.5;
+  if (def.phase2 && def.trait !== 'revive' && enemy.phase === 1 && enemy.hp <= enemy.maxHp * threshold) enterPhase2(run, battle, events);
 }
 
 function enterPhase2(run: RunState, battle: BattleState, events: BEvent[]) {
@@ -198,12 +215,12 @@ export function cast(run: RunState, battle: BattleState, uids: number[], rageWan
   // Consumed one-shot bonuses.
   battle.stacks.overheal = 0;
   battle.stacks.drum = 0;
-  if (run.method === 'huichun') battle.spring = Math.floor(battle.spring / 2);
+  if (run.method === 'huichun' && !relicFlag(run, 'springKeep')) battle.spring = Math.floor(battle.spring / 2);
 
   let total = damageEnemy(run, battle, result.damage, 'cast', events, result.crit);
 
   if (run.method === 'yangjian') {
-    const forged = Math.min(15 - battle.swords, result.swords);
+    const forged = Math.min(swordCap(run) - battle.swords, result.swords);
     battle.swords += Math.max(0, forged);
     if (battle.swords > 0) {
       events.push({ k: 'swords', count: battle.swords, forged: Math.max(0, forged) });
@@ -237,7 +254,8 @@ export function cast(run: RunState, battle: BattleState, uids: number[], rageWan
     battle.enemy.burn += result.burn;
     events.push({ k: 'burn', to: 'enemy', amount: result.burn });
   }
-  battle.qi = Math.min(100, (rage ? 0 : battle.qi) + result.intentGain);
+  battle.qi = Math.min(100, (rage ? relicFlag(run, 'rageKeep') : battle.qi) + result.intentGain);
+  if (rage) battle.stacks.rages = (battle.stacks.rages ?? 0) + 1;
   if (rage && run.method === 'benlei') {
     battle.stacks.thunder = (battle.stacks.thunder ?? 0) + 3;
     events.push({ k: 'thunder', total: battle.stacks.thunder });
@@ -266,6 +284,7 @@ function enemyTurn(run: RunState, battle: BattleState, events: BEvent[]) {
   enemy.armor = 0;
   if (enemy.burn > 0) {
     damageEnemy(run, battle, enemy.burn, 'burn', events);
+    if (relicFlag(run, 'burnTwice') && battle.outcome === 'fighting') damageEnemy(run, battle, enemy.burn, 'burn', events);
     if (run.method !== 'yuhuo') enemy.burn = Math.floor(enemy.burn * 0.6);
     if (battle.outcome !== 'fighting') return;
   }
@@ -278,7 +297,7 @@ function enemyTurn(run: RunState, battle: BattleState, events: BEvent[]) {
     if (battle.outcome !== 'fighting') return;
   }
   if (move.charge) { enemy.charged = true; events.push({ k: 'charge' }); }
-  if (move.armor) { enemy.armor += Math.round(move.armor * ACT_HP[actOf(run)] * RANK_HP[def.rank] * (1 + HEAT_HP * run.heat)); events.push({ k: 'armor', amount: enemy.armor }); }
+  if (move.armor) { enemy.armor += Math.round(move.armor * ACT_HP[actOf(run)] * RANK_HP[def.rank] * enemyHpScale(run)); events.push({ k: 'armor', amount: enemy.armor }); }
   if (move.burn) { battle.player.burn += Math.round(move.burn * ACT_ATK[actOf(run)]); events.push({ k: 'burn', to: 'player', amount: Math.round(move.burn * ACT_ATK[actOf(run)]) }); }
   if (move.curse && battle.stacks.noCurse) events.push({ k: 'curse', n: 0 });
   else if (move.curse) {
@@ -321,6 +340,7 @@ function enemyTurn(run: RunState, battle: BattleState, events: BEvent[]) {
     if (battle.outcome !== 'fighting') return;
   }
   battle.discardsLeft = discardsPerTurn(run);
+  battle.stacks.discarded = 0;
   battle.castsThisTurn = 0;
   battle.freeCastUsed = false;
   const drawn = drawTo(run, battle);

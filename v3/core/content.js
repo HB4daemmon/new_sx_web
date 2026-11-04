@@ -1,3 +1,4 @@
+import { counterOf } from './elements.js';
 const count = (ctx, el) => ctx.els.filter(e => e === el).length;
 const missing = (ctx) => 1 - ctx.battle.player.hp / ctx.battle.player.maxHp;
 export const RELICS = [
@@ -39,7 +40,30 @@ export const RELICS = [
     { id: 'tianji', name: '天机落雷箓', glyph: '箓', rarity: 'legend', desc: '雷符 ×2（原为 ×1.5）', flags: { leiX: 1 } },
     { id: 'hetu', name: '河图', glyph: '图', rarity: 'legend', desc: '五行轮转、五行俱全 ×3', score: c => (c.pattern === 'lunzhuan' || c.pattern === 'wuxing' ? { x: 3 } : null) },
     { id: 'fantian', name: '翻天印', glyph: '印', rarity: 'legend', desc: '出满五枚符时 ×2', score: c => (c.tiles.length >= 5 ? { x: 2 } : null) },
+    // —— 道树解锁：新器一 ——
+    { id: 'zhaodan', name: '照胆镜', glyph: '照', rarity: 'common', unlock: 'relics1', desc: '每枚克制敌人的符再 +6 气', score: c => { const n = c.els.filter(e => e && e === counterOf(c.battle.enemy.el)).length; return n ? { qi: 6 * n } : null; } },
+    { id: 'liuhe', name: '六合钱', glyph: '六', rarity: 'common', unlock: 'relics1', desc: '恰好出四枚符时 ×1.8', score: c => (c.tiles.length === 4 ? { x: 1.8 } : null) },
+    { id: 'qiankun', name: '乾坤圈', glyph: '圈', rarity: 'common', unlock: 'relics1', desc: '双元、三才、四象、五雷 倍率 +4', score: c => (['dui', 'sancai', 'sixiang', 'wulei'].includes(c.pattern) ? { mult: 4 } : null) },
+    { id: 'baoyuan', name: '百宝囊', glyph: '囊', rarity: 'common', unlock: 'relics1', desc: '每持有一件法宝 +8 气', score: c => ({ qi: 8 * c.run.relics.length }) },
+    // —— 新器二 ——
+    { id: 'taiji', name: '太极图', glyph: '极', rarity: 'rare', unlock: 'relics2', desc: '每枚灵符 ×1.5', score: c => { const n = c.tiles.filter(t => t.mod === 'ling').length; return n ? { x: 1.5 ** n } : null; } },
+    { id: 'fenghuo', name: '风火轮', glyph: '轮', rarity: 'rare', unlock: 'relics2', desc: '每场战斗第一回合 ×3', score: c => (c.battle.turn === 1 ? { x: 3 } : null) },
+    { id: 'huntian', name: '混天绫', glyph: '绫', rarity: 'rare', unlock: 'relics2', desc: '敌人带着护甲时 ×2', score: c => (c.battle.enemy.armor > 0 ? { x: 2 } : null) },
+    { id: 'bagua', name: '八卦炉', glyph: '卦', rarity: 'rare', unlock: 'relics2', desc: '每枚火符或金符 ×1.15', score: c => { const n = c.els.filter(e => e === 'huo' || e === 'jin').length; return n ? { x: 1.15 ** n } : null; } },
+    // —— 新器三 ——
+    { id: 'qibao', name: '七宝妙树', glyph: '树', rarity: 'rare', unlock: 'relics3', desc: '本招木符回复量的 4 倍计入气', score: c => { const v = c.tiles.reduce((s, t, i) => s + (c.els[i] === 'mu' ? t.v : 0), 0); return v ? { qi: v * 4 } : null; } },
+    { id: 'dinghai', name: '定海神针', glyph: '针', rarity: 'legend', unlock: 'relics3', desc: '本回合没有换过符时 ×2.5', score: c => (!c.battle.stacks.discarded ? { x: 2.5 } : null) },
+    { id: 'zhanxian', name: '斩仙飞刀', glyph: '刀', rarity: 'legend', unlock: 'relics3', desc: '敌人气血低于 35% 时 ×3', score: c => (c.battle.enemy.hp < c.battle.enemy.maxHp * 0.35 ? { x: 3 } : null) },
+    { id: 'jiulong', name: '九龙神火罩', glyph: '罩', rarity: 'legend', unlock: 'relics3', desc: '敌方每 5 层灼烧 ×1.1（至多 ×4）', score: c => { const n = Math.floor(c.battle.enemy.burn / 5); return n ? { x: Math.min(4, 1.1 ** n) } : null; } },
+    // —— 本命法宝（功法道行 2 解锁，只为本门出现）——
+    { id: 'wanjianxia', name: '万剑匣', glyph: '匣', rarity: 'legend', method: 'yangjian', desc: '飞剑上限 +10；每柄飞剑使出招倍率 +0.4', flags: { swordCap: 10 }, score: c => (c.battle.swords ? { mult: 0.4 * c.battle.swords } : null) },
+    { id: 'zhurongzhong', name: '祝融火种', glyph: '种', rarity: 'legend', method: 'yuhuo', desc: '灼烧在敌方回合造成两次伤害', flags: { burnTwice: 1 } },
+    { id: 'buhuai', name: '不坏金身', glyph: '身', rarity: 'legend', method: 'jingang', desc: '盈盾化雷：当前护盾计入气的比例由 30% 提升到 70%', flags: { shieldBolt: 1 } },
+    { id: 'leigonggu', name: '雷公鼓', glyph: '鼓', rarity: 'legend', method: 'benlei', desc: '怒技之后剑意保留 50', flags: { rageKeep: 50 } },
+    { id: 'qingdilu', name: '青帝露', glyph: '露', rarity: 'legend', method: 'huichun', desc: '春华出招后不再减半', flags: { springKeep: 1 } },
+    { id: 'zhuyinmu', name: '烛阴目', glyph: '目', rarity: 'legend', method: 'zhulong', desc: '昼夜加成由 ×3 提升到 ×5', flags: { dayNight: 1 } },
 ];
+export const SIGNATURE = Object.fromEntries(RELICS.filter(r => r.method).map(r => [r.method, r.id]));
 export const RELIC = Object.fromEntries(RELICS.map(r => [r.id, r]));
 export const RELIC_PRICE = { common: 55, rare: 95, legend: 160 };
 export const METHODS = [

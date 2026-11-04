@@ -10,6 +10,9 @@ import { burst, EL_COLOR, ring, shake, flash } from './fx.js';
 import { fmt, h } from './h.js';
 import { app, act, closeOverlays, go, portrait, render, save, showOverlay, stageSize, toast } from './main.js';
 import { recordRunEnd } from './meta.js';
+import { ACH, ACHIEVEMENTS, buyNode, canBuy, checkAchievements, dailySetup, MASTERY_PERKS, MASTERY_XP, masteryLevel, nextGoal, runUnlocks, settle, todayKey, TREE, type AchDef, type Settlement } from './progression.js';
+import { PACTS, pactHeat, pactMultiplier } from '../core/pacts.js';
+import { RELICS, SIGNATURE } from '../core/content.js';
 import { playSfx, setSfxEnabled } from './sfx.js';
 import { setSpeed } from './fx.js';
 import { bar, elLabel, optionCard, patternTable, relicView, tileView, wuxingWheel, GEN_TEXT } from './widgets.js';
@@ -47,8 +50,9 @@ function titleScreen() {
       saved ? h('button.btn.seal.big', { type: 'button', onclick: () => { app.view = 'run'; playSfx('click'); render(); } },
         '续 行', h('small', null, `${METHOD[saved.method].name} · ${ACTS[saved.act - 1].name}`)) : null,
       h('button.btn.seal.big' + (saved ? '.ghost' : ''), { type: 'button', 'data-action': 'new-run', onclick: () => { playSfx('click'); go('select'); } }, saved ? '另起一局' : '入 山 海'),
+      h('button.btn.ink.daily-btn', { type: 'button', 'data-action': 'daily', onclick: () => startDaily() }, `每日一劫 · ${todayKey().slice(5)}`, app.meta.daily[todayKey()] ? h('small', null, dailyText(app.meta.daily[todayKey()])) : h('small', null, '今日未渡')),
+      h('button.btn.ink.hub-btn', { type: 'button', 'data-action': 'hub', onclick: () => showHub() }, '洞 天', h('small', null, `道果 ${fmt(app.meta.daoguo)}${goalHint()}`)),
       h('button.btn.ink', { type: 'button', onclick: () => showHelp() }, '诀谱 · 怎么玩'),
-      h('button.btn.ink', { type: 'button', 'data-action': 'codex', onclick: () => showCodex() }, '山海图鉴 · 结局'),
       app.meta.runs ? h('div.title-records', null,
         `已入山海 ${app.meta.runs} 次 · 渡劫 ${app.meta.wins} 次`, h('br'),
         app.meta.bestHit ? `最强一招 ${fmt(app.meta.bestHit)}（${METHOD[app.meta.bestHitMethod ?? '']?.name ?? ''}）` : '') : null),
@@ -57,12 +61,10 @@ function titleScreen() {
 
 // —— Method select ——
 let pickedMethod = 'yangjian';
-let pickedHeat = 0;
 function selectScreen() {
   const meta = app.meta;
   const locked = (id: string) => !!METHOD[id].locked && !meta.unlocked.includes(id);
   if (locked(pickedMethod)) pickedMethod = 'yangjian';
-  pickedHeat = Math.min(pickedHeat, meta.maxHeat);
   const m = METHOD[pickedMethod];
   const cards = METHODS.map(def => h(`button.method-card.el-${def.el}${def.id === pickedMethod ? '.on' : ''}${locked(def.id) ? '.locked' : ''}`, {
     type: 'button', 'data-method': def.id, disabled: locked(def.id) || undefined,
@@ -79,13 +81,13 @@ function selectScreen() {
         h('div.md-blurb', null, m.blurb),
         h('ul.md-passive', null, ...m.passive.map(p => h('li', null, p))),
         h('div.md-stats', null, `气血 ${m.hp} · 起手多带 `, ...m.extra.map(t => h('span.mini-tile', { class: `el-${t.el}` }, `${t.mod ? MOD_NAME[t.mod] : ''}${elLabel(t.el)}${t.v}`))),
-        meta.maxHeat > 0 ? h('div.heat-row', null, h('span', null, '劫数'),
-          ...Array.from({ length: meta.maxHeat + 1 }, (_, i) => h(`button.heat-pip${i === pickedHeat ? '.on' : ''}`, { type: 'button', title: i ? `劫数 ${i}：敌方气血 +${i * 15}%、伤害 +${i * 8}%` : '无劫', onclick: () => { pickedHeat = i; render(); } }, String(i)))) : null,
+        masteryBlock(m.id),
+        h('button.btn.ink.pact-btn', { type: 'button', 'data-action': 'pacts', onclick: () => showPacts() }, `天劫契 · 劫数 ${pactHeat(meta.lastPacts)}`, h('small', null, `道果 ×${pactMultiplier(pactHeat(meta.lastPacts)).toFixed(2)} · 点此加减条款`)),
         h('button.btn.seal.big.go', { type: 'button', 'data-action': 'start', onclick: () => startRun() }, '起 程'))));
 }
 
 function startRun() {
-  app.run = R.createRun({ method: pickedMethod, heat: pickedHeat });
+  app.run = R.createRun({ method: pickedMethod, pacts: app.meta.lastPacts, unlocks: runUnlocks(app.meta, pickedMethod) });
   app.view = 'run';
   playSfx('breakthrough');
   save();
@@ -112,7 +114,8 @@ export function hud(run: RunState, opts: { battle?: boolean } = {}) {
     h('div.hud-right', null,
       bondChips(run),
       h('span.gold', { title: '灵石' }, h('i', null, '◆'), fmt(run.gold)),
-      h('span.act-tag', null, `${ACTS[run.act - 1].name}`),
+      h('span.act-tag', null, run.endless ? `无尽 · ${run.endless}` : `${ACTS[run.act - 1].name}`),
+      run.heat ? h('span.act-tag.heat-tag', { title: '天劫契劫数' }, `劫 ${run.heat}`) : null,
       h('button.icon-btn', { type: 'button', title: '符袋', 'data-action': 'bag', onclick: () => showBag(run) }, '袋', h('small', null, String(run.bag.length))),
       h('button.icon-btn', { type: 'button', title: '诀谱', onclick: () => showHelp() }, '谱'),
       settingsButton()));
@@ -227,7 +230,7 @@ const NODE_GLYPH: Record<string, string> = { fight: '斗', elite: '煞', event: 
 const NODE_NAME: Record<string, string> = { fight: '斗法', elite: '精英', event: '奇遇', shop: '坊市', rest: '洞府', boss: '首领' };
 
 function nodePos(node: MapNode, run: RunState) {
-  const rows = run.act === 5 ? 2 : 6;
+  const rows = Math.max(...run.map.map(n => n.row)) + 1;
   const { w, h: H } = stageSize;
   if (portrait) {
     const top = 440, bottom = H - 120;
@@ -269,7 +272,9 @@ function mapScreen(run: RunState) {
   });
   const a = ACTS[run.act - 1];
   return h('div.map', null,
-    h('div.map-title', null, h('span.act-no', null, run.act === 5 ? '终幕' : `第${'一二三四'[run.act - 1]}幕`), h('span.brush', null, a.name), h('small', null, ACT_STORY[run.act]?.goal ?? a.sub)),
+    run.endless
+      ? h('div.map-title', null, h('span.act-no', null, '无尽天劫'), h('span.brush', null, `第 ${run.endless} 层`), h('small', null, `敌方气血 ×${(1.75 ** run.endless).toFixed(1)} · 最深 ${app.meta.endlessBest} 层`))
+      : h('div.map-title', null, h('span.act-no', null, run.act === 5 ? '终幕' : `第${'一二三四'[run.act - 1]}幕`), h('span.brush', null, a.name), h('small', null, ACT_STORY[run.act]?.goal ?? a.sub)),
     h('div.map-lines', { html: `<svg viewBox="0 0 ${size.w} ${size.h}" width="100%" height="100%">${lines}</svg>` }),
     ...nodes,
     h('div.map-legend', null, ...Object.keys(NODE_GLYPH).map(k => h('span', null, h('i', { class: `k-${k}` }, NODE_GLYPH[k]), NODE_NAME[k])),
@@ -396,34 +401,179 @@ function pickTileScreen(run: RunState, s: Extract<Screen, { name: 'pick-tile' }>
 export function finishRun(run: RunState) {
   if (run.log.includes('finished')) return;
   run.log.push('finished');
-  app.endReport = recordRunEnd(app.meta, { won: run.screen.name === 'won', method: run.method, heat: run.heat, bestHit: run.stats.bestHit, ending: run.ending });
+  const won = run.screen.name === 'won' || !!run.ending;
+  app.endReport = recordRunEnd(app.meta, { won, method: run.method, heat: run.heat, bestHit: run.stats.bestHit, ending: run.ending, endless: run.endless, daily: run.daily, act: run.act });
+  announce(checkAchievements(app.meta, { kind: 'end', run, won, meta: app.meta }));
+  app.settlement = settle(app.meta, run, !!app.endReport.newEnding);
   save();
+}
+
+/** In-run 悟道 pop-ups. */
+export function announce(list: AchDef[]) {
+  list.forEach((a, i) => setTimeout(() => { playSfx('reward'); toast(`悟道 · ${a.name}　+${a.reward} 道果`, 'ach'); }, i * 900));
 }
 
 function endScreen(run: RunState) {
   finishRun(run);
   const won = run.screen.name === 'won';
   const report = app.endReport;
-  setTimeout(() => { playSfx(won ? 'victory' : 'defeat'); if (won) { const c = document.querySelector('.end-seal'); if (c) { const r = c.getBoundingClientRect(); void r; } burst(portrait ? 360 : 640, portrait ? 420 : 260, '#f6d36b', 80, 2); ring(portrait ? 360 : 640, portrait ? 420 : 260, '#ffdf8a', 240); } }, 200);
+  const st = app.settlement;
+  setTimeout(() => { playSfx(won ? 'victory' : 'defeat'); if (won) { burst(portrait ? 360 : 400, portrait ? 300 : 200, '#f6d36b', 80, 2); ring(portrait ? 360 : 400, portrait ? 300 : 200, '#ffdf8a', 240); } }, 200);
+  const title = won ? (run.ending ? ENDING[run.ending].name : '渡劫') : run.endless ? `劫·${run.endless}` : '道消';
+  const sub = run.endless ? `无尽天劫 · 第 ${run.endless} 层${run.endless >= app.meta.endlessBest ? '（最深）' : ''}`
+    : won ? (report?.newEnding ? `新结局 · ${app.meta.endings.length}/${ENDINGS.length}` : `结局 ${app.meta.endings.length}/${ENDINGS.length}`)
+      : `止步${ACTS[run.act - 1].name}。山海还在，再来。`;
+  const gotThisRun = run.log.filter(l => l.startsWith('ach:')).map(l => ACH[l.slice(4)]).filter(Boolean);
   return h(`div.scr.end-scr${won ? '.won' : '.lost'}`, null,
     h('img.bg.dim', { src: art(won ? 'bg-title' : ACTS[Math.min(4, run.act - 1)].bg), alt: '' }),
-    h('div.end-seal.brush', null, won ? (run.ending ? ENDING[run.ending].name : '渡劫') : '道消'),
-    h('div.end-sub', null, won ? (report?.newEnding ? `新结局 · ${app.meta.endings.length}/${ENDINGS.length}` : `结局 ${app.meta.endings.length}/${ENDINGS.length}`) : `止步${ACTS[run.act - 1].name}。山海还在，再来。`),
-    won && run.ending ? h('div.ending-text.inline', null, ...ENDING[run.ending].text.map((t, i) => h('p', { style: { animationDelay: `${0.6 + i * 0.8}s` } }, t))) : null,
-    h('button.btn.ink.small', { type: 'button', 'data-action': 'deeds', onclick: () => showDeeds(run) }, won ? '回看此行' : '此行行迹'),
-    h('div.end-stats', null,
-      stat('最强一招', fmt(run.stats.bestHit), report?.newBest ? '新纪录' : ''),
-      stat('最高诀式', run.stats.biggestPattern ? PATTERNS[run.stats.biggestPattern].name : '—'),
-      stat('斩敌', String(run.stats.kills)),
-      stat('境界', REALMS[run.realm]),
-      stat('劫数', String(run.heat))),
-    report?.unlockedMethod ? h('div.unlock', null, `解锁功法：${METHOD[report.unlockedMethod].name}`) : null,
-    report?.unlockedHeat ? h('div.unlock', null, `解锁劫数 ${report.unlockedHeat}`) : null,
-    h('div.end-build', null, ...run.relics.map(id => relicView(id, { small: true })), ...run.talents.map(id => h('span.chip', null, TALENT[id].name))),
+    h('div.end-left', null,
+      h('div.end-seal.brush', null, title),
+      h('div.end-sub', null, sub),
+      won && run.ending && !run.endless ? h('div.ending-text.inline', null, ...ENDING[run.ending].text.map((t, i) => h('p', { style: { animationDelay: `${0.6 + i * 0.8}s` } }, t))) : null,
+      h('div.end-stats', null,
+        stat('最强一招', fmt(run.stats.bestHit), report?.newBest ? '新纪录' : ''),
+        stat('最高诀式', run.stats.biggestPattern ? PATTERNS[run.stats.biggestPattern].name : '—'),
+        stat('斩敌', String(run.stats.kills)),
+        stat('劫数', String(run.heat))),
+      report?.unlockedMethod ? h('div.unlock', null, `解锁功法：${METHOD[report.unlockedMethod].name}`) : null,
+      h('button.btn.ink.small', { type: 'button', 'data-action': 'deeds', onclick: () => showDeeds(run) }, won ? '回看此行' : '此行行迹')),
+    st ? settlementPanel(st, gotThisRun) : null,
     h('div.end-actions', null,
-      h('button.btn.seal.big', { type: 'button', 'data-action': 'again', onclick: () => { app.run = null; save(); go('select'); } }, '再入山海'),
-      h('button.btn.ink', { type: 'button', onclick: () => { app.run = null; save(); go('title'); } }, '回到标题')));
+      won && !run.endless ? h('button.btn.seal.endless-btn', { type: 'button', 'data-action': 'endless', onclick: () => { if (R.enterEndless(run)) { app.settlement = null; playSfx('thunder'); save(); render(); } } }, '入无尽天劫', h('small', null, app.meta.endlessBest ? `最深 ${app.meta.endlessBest} 层` : '层层翻倍，只为更大的数字')) : null,
+      h('button.btn.seal.big', { type: 'button', 'data-action': 'again', onclick: () => { app.run = null; app.settlement = null; save(); go('select'); } }, '再入山海'),
+      h('button.btn.ink', { type: 'button', onclick: () => { app.run = null; app.settlement = null; save(); go('title'); } }, '回到标题')));
 }
+
+function settlementPanel(st: Settlement, got: AchDef[]) {
+  const lv0 = masteryLevel(st.xpBefore), lv1 = masteryLevel(st.xpAfter);
+  const next = MASTERY_XP[lv1] ?? null;
+  const prev = MASTERY_XP[lv1 - 1] ?? 0;
+  const pct = next ? Math.min(100, (100 * (st.xpAfter - prev)) / (next - prev)) : 100;
+  const goal = nextGoal(app.meta);
+  const totalEl = h('b.settle-total', null, '0');
+  const panel = h('div.settle', null,
+    h('h3.brush', null, '道 果'),
+    h('div.settle-lines', null, ...st.lines.map(([label, n], i) => h('div.settle-line', { style: { animationDelay: `${0.3 + i * 0.25}s` } }, h('span', null, label), h('b', null, `+${n}`)))),
+    st.multiplier > 1 ? h('div.settle-line.mult', { style: { animationDelay: `${0.3 + st.lines.length * 0.25}s` } }, h('span', null, '天劫契'), h('b', null, `×${st.multiplier.toFixed(2)}`)) : null,
+    got.length ? h('div.settle-line.ach', { style: { animationDelay: `${0.5 + st.lines.length * 0.25}s` } }, h('span', null, `悟道 ${got.map(a => a.name).join('、')}`), h('b', null, `+${st.achievements}`)) : null,
+    h('div.settle-sum', null, h('span', null, '此行得'), totalEl, h('span', null, `道果 · 共 ${fmt(app.meta.daoguo)}`)),
+    h('div.mastery-row', null,
+      h('span', null, `${METHOD[st.method].name} · 道行 ${lv1}`),
+      h('div.mastery-bar', null, h('div.mastery-fill', { style: { width: `${pct}%` } })),
+      h('small', null, lv1 > lv0 ? `突破！${MASTERY_PERKS[lv1 - 1]}` : next ? `距道行 ${lv1 + 1}（${MASTERY_PERKS[lv1]}）还差 ${fmt(next - st.xpAfter)}` : '道行圆满')),
+    goal ? h(`div.goal-row${app.meta.daoguo >= goal.cost ? '.ready' : ''}`, null, app.meta.daoguo >= goal.cost ? `可在洞天解锁「${goal.name}」` : `距解锁「${goal.name}」还差 ${fmt(goal.cost - app.meta.daoguo)} 道果`, h('small', null, goal.desc)) : null,
+    h('button.btn.ink.small', { type: 'button', onclick: () => showHub() }, '去洞天'));
+  const target = st.total + st.achievements;
+  setTimeout(async () => {
+    for (let i = 1; i <= 20; i += 1) { totalEl.textContent = `+${Math.round((target * i) / 20)}`; if (i % 4 === 0) playSfx('tick', i); await new Promise(r => setTimeout(r, 40)); }
+    if (lv1 > lv0) { playSfx('breakthrough'); toast(`${METHOD[st.method].name} 道行突破 · ${lv1}`, 'ach'); }
+  }, 600 + st.lines.length * 250);
+  return panel;
+}
+
+function dailyText(r: { act: number; won: boolean; endless: number; bestHit: number }) {
+  return r.won ? `已渡劫${r.endless ? ` · 无尽 ${r.endless}` : ''} · ${fmt(r.bestHit)}` : `止步第${r.act}幕 · ${fmt(r.bestHit)}`;
+}
+function goalHint() {
+  const g = nextGoal(app.meta);
+  return g ? (app.meta.daoguo >= g.cost ? ' · 可解锁' : ` · 下一解锁 ${g.cost}`) : '';
+}
+
+function startDaily() {
+  const key = todayKey();
+  const d = dailySetup(key);
+  const close = showOverlay(h('div.daily', null,
+    h('h2.brush', null, '每 日 一 劫'),
+    h('p', null, `${key} · 所有人同一张地图、同一副起手。`),
+    h('div.daily-row', null, h('img', { src: art(`hero-${d.method}`), alt: '' }), h('div', null,
+      h('b.brush', null, METHOD[d.method].name),
+      h('p', null, '今日天劫契：', ...Object.keys(d.pacts).map(id => h('span.chip', null, `${PACTS.find(p => p.id === id)!.name}：${PACTS.find(p => p.id === id)!.desc(1)}`))),
+      h('p.dim', null, '每日一劫不带道树与道行加成；结算额外 +15 道果。'),
+      app.meta.daily[key] ? h('p', null, `今日最好：${dailyText(app.meta.daily[key])}`) : null)),
+    h('button.btn.seal.big', { type: 'button', 'data-action': 'daily-start', onclick: () => {
+      close();
+      app.run = R.createRun({ seed: d.seed, method: d.method, pacts: d.pacts, daily: key });
+      app.view = 'run';
+      playSfx('breakthrough');
+      save();
+      render();
+    } }, '渡 今 日 劫')));
+}
+
+function masteryBlock(method: string) {
+  const xp = app.meta.mastery[method] ?? 0;
+  const lv = masteryLevel(xp);
+  const next = MASTERY_XP[lv];
+  return h('div.md-mastery', null,
+    h('span.mastery-lv', null, `道行 ${lv}`),
+    h('div.mastery-bar', null, h('div.mastery-fill', { style: { width: `${next ? Math.min(100, (100 * (xp - MASTERY_XP[lv - 1])) / (next - MASTERY_XP[lv - 1])) : 100}%` } })),
+    h('small', null, next ? `下一重：${MASTERY_PERKS[lv]}${lv === 1 && SIGNATURE[method] ? `（${RELIC[SIGNATURE[method]].name}）` : ''}` : '道行圆满'));
+}
+
+function showPacts() {
+  const meta = app.meta;
+  const body = h('div.pacts');
+  const draw = () => {
+    const heat = pactHeat(meta.lastPacts);
+    body.replaceChildren(
+      h('h2.brush', null, '天 劫 契'),
+      h('p.dim', null, '自己给自己加劫。劫数越高，道果越多；劫数 3、6、10 渡劫各有悟道。'),
+      h('div.pact-head', null, h('b', null, `劫数 ${heat}`), h('span', null, `道果 ×${pactMultiplier(heat).toFixed(2)}`)),
+      h('div.pact-list', null, ...PACTS.map(p => {
+        const rank = meta.lastPacts[p.id] ?? 0;
+        const set = (r: number) => { if (r <= 0) delete meta.lastPacts[p.id]; else meta.lastPacts[p.id] = r; playSfx('select'); save(); draw(); };
+        return h(`div.pact-row${rank ? '.on' : ''}`, null,
+          h('div.pact-name', null, h('b', null, p.name), h('small', null, `每级 +${p.cost} 劫数`)),
+          h('div.pact-desc', null, rank ? p.desc(rank) : p.desc(1)),
+          h('div.pact-ctrl', null,
+            h('button.pact-pip', { type: 'button', disabled: !rank || undefined, onclick: () => set(rank - 1) }, '−'),
+            h('span', null, `${rank}/${p.max}`),
+            h('button.pact-pip', { type: 'button', disabled: rank >= p.max || undefined, 'data-pact': p.id, onclick: () => set(rank + 1) }, '+')));
+      })),
+      h('button.btn.seal', { type: 'button', onclick: () => { close(); render(); } }, '立 契'));
+  };
+  const close = showOverlay(body, { onClose: () => render() });
+  draw();
+}
+
+let hubTab: '道树' | '悟道' | '道行' | '图鉴' = '道树';
+export function showHub() {
+  const meta = app.meta;
+  const body = h('div.hub');
+  const draw = () => {
+    const tabs = h('div.hub-tabs', null, ...(['道树', '悟道', '道行', '图鉴'] as const).map(t => h(`button.hub-tab${t === hubTab ? '.on' : ''}`, { type: 'button', onclick: () => { hubTab = t; draw(); } }, t)));
+    let content: HTMLElement;
+    if (hubTab === '道树') {
+      content = h('div.tree', null, ...(['器', '符', '路'] as const).map(branch => h('div.tree-col', null, h('h3.brush', null, { 器: '器 · 法宝', 符: '符 · 起手', 路: '路 · 旅途' }[branch]),
+        ...TREE.filter(n => n.branch === branch).map(n => {
+          const owned = meta.unlocks.includes(n.id);
+          const ok = canBuy(meta, n.id);
+          const locked = n.requires && !meta.unlocks.includes(n.requires);
+          return h(`button.tree-node${owned ? '.owned' : ok ? '.can' : locked ? '.locked' : ''}`, { type: 'button', 'data-node': n.id, disabled: owned || !ok || undefined, onclick: () => { if (buyNode(meta, n.id)) { playSfx('breakthrough'); save(); draw(); } } },
+            h('b', null, n.name), h('span', null, n.desc), h('small', null, owned ? '已悟' : `◈ ${n.cost}`));
+        }))));
+    } else if (hubTab === '悟道') {
+      content = h('div.ach-grid', null, ...ACHIEVEMENTS.map(a => h(`div.ach${meta.achievements.includes(a.id) ? '.got' : ''}`, null, h('b', null, a.name), h('span', null, a.desc), h('small', null, `◈ ${a.reward}`))));
+    } else if (hubTab === '道行') {
+      content = h('div.mastery-grid', null, ...METHODS.map(m => {
+        const xp = meta.mastery[m.id] ?? 0;
+        const lv = masteryLevel(xp);
+        return h('div.mastery-card', null, h('img', { src: art(`hero-${m.id}`), alt: '' }), h('div', null, h('b.brush', null, m.name), masteryBlock(m.id),
+          h('ol', null, ...MASTERY_PERKS.slice(1).map((perk, i) => h(`li${lv >= i + 2 ? '.done' : ''}`, null, i === 0 && SIGNATURE[m.id] ? `${perk}：${RELIC[SIGNATURE[m.id]].name}——${RELIC[SIGNATURE[m.id]].desc}` : perk))),
+          meta.heatWon[m.id] !== undefined ? h('small', null, `最高渡劫劫数 ${meta.heatWon[m.id]}`) : null));
+      }));
+    } else {
+      content = codexBody();
+    }
+    body.replaceChildren(
+      h('div.hub-head', null, h('h2.brush', null, '洞 天'), h('span.daoguo', null, `◈ 道果 ${fmt(meta.daoguo)}`),
+        h('span.hub-stats', null, `悟道 ${meta.achievements.length}/${ACHIEVEMENTS.length} · 结局 ${meta.endings.length}/${ENDINGS.length} · 无尽最深 ${meta.endlessBest} 层 · 法宝 ${RELICS.filter(r => !r.unlock || meta.unlocks.includes(r.unlock)).length}/${RELICS.length}`)),
+      tabs, content);
+  };
+  showOverlay(body, { onClose: () => render() });
+  draw();
+}
+
 const stat = (label: string, value: string, badge = '') => h('div.stat', null, h('small', null, label), h('b', null, value), badge ? h('span.badge', null, badge) : null);
 
 // —— Story ——
@@ -477,17 +627,17 @@ function showDeeds(run: RunState) {
     }))));
 }
 
-export function showCodex() {
+export function showCodex() { showOverlay(h('div.codex', null, h('h2.brush', null, '山 海 图 鉴'), codexBody())); }
+function codexBody() {
   const seen = new Set(app.meta.seen);
   const enemies = Object.values(ENEMY);
-  showOverlay(h('div.codex', null,
-    h('h2.brush', null, '山 海 图 鉴'),
+  return h('div.codex-body', null,
     h('div.codex-endings', null, ...ENDINGS.map(e => h(`div.codex-ending${app.meta.endings.includes(e.id) ? '.got' : ''}`, null, h('b.brush', null, app.meta.endings.includes(e.id) ? e.name : '？'), h('small', null, app.meta.endings.includes(e.id) ? e.choice : '尚未见到的结局')))),
     h('div.codex-grid', null, ...enemies.map(e => {
       const known = seen.has(e.id);
       return h(`div.codex-card${known ? '' : '.unknown'}`, { title: known ? `${e.name}：${LORE[e.id] ?? ''}` : '尚未遇见' },
         h('img', { src: art(e.art), alt: '' }), h('b', null, known ? e.name : '？？'), h('small', null, known ? LORE[e.id] ?? e.title : `${ACTS[e.act - 1].name}`));
-    }))));
+    })));
 }
 
 export { toast, EL_COLOR, GEN_TEXT };

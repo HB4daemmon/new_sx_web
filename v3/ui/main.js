@@ -6,7 +6,7 @@ import { readMeta, writeMeta } from './meta.js';
 import { renderScreen } from './screens.js';
 import { playSfx, setSfxEnabled, unlockSfx } from './sfx.js';
 export const app = {
-    run: null, meta: readMeta(), view: 'title', endReport: null,
+    run: null, meta: readMeta(), view: 'title', endReport: null, settlement: null,
 };
 let stage;
 let screenRoot;

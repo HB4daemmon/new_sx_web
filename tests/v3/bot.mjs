@@ -80,7 +80,7 @@ function chooseNode(run) {
 
 export function playRun(run, log = () => {}) {
   let steps = 0;
-  while (!['won', 'lost'].includes(run.screen.name) && steps++ < 2000) {
+  while (!['won', 'lost'].includes(run.screen.name) && steps++ < 4000) {
     const s = run.screen;
     switch (s.name) {
       case 'map': {
@@ -104,7 +104,7 @@ export function playRun(run, log = () => {}) {
       }
       case 'breakthrough': R.chooseBreakthrough(run, 0); break;
       case 'story': R.leaveStory(run); break;
-      case 'ending': R.chooseEnding(run, R.endingAvailable(run, 'pillar') ? 'pillar' : 'return'); break;
+      case 'ending': R.chooseEnding(run, R.endingAvailable(run, 'pillar') ? 'pillar' : 'return'); if (process.env.ENDLESS) R.enterEndless(run); break;
       case 'shop': {
         s.items.forEach((item, i) => { if (!item.sold && run.gold >= item.price && (item.option.type === 'relic' ? run.relics.length < run.relicSlots : item.option.type === 'pattern')) R.buy(run, i); });
         R.leaveShop(run);

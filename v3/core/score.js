@@ -1,6 +1,7 @@
 import { RELIC } from './content.js';
 import { counterOf, KE } from './elements.js';
 import { detectPatterns, patternValue, PATTERNS } from './patterns.js';
+import { pactRank } from './pacts.js';
 export const has = (run, id) => run.talents.includes(id);
 export const relicFlag = (run, flag) => run.relics.reduce((sum, id) => sum + (RELIC[id]?.flags?.[flag] ?? 0), 0);
 export const defenseScale = (run) => 1 + 0.5 * run.realm;
@@ -49,7 +50,7 @@ function tileStage(run, battle, tiles, match) {
         if (run.method === 'zhulong' && el) {
             const day = isDay(battle);
             if ((day && (el === 'jin' || el === 'huo')) || (!day && (el === 'shui' || el === 'mu'))) {
-                tq *= 3;
+                tq *= relicFlag(run, 'dayNight') ? 5 : 3;
                 tag = day ? '昼' : '夜';
             }
         }
@@ -119,7 +120,7 @@ export function computeCast(run, battle, tiles, rage, roll) {
     const castIndex = battle.castCount + 1;
     // Method & persistent battle bonuses.
     if (run.method === 'jingang' && battle.player.shield > 0) {
-        const add = Math.round(battle.player.shield * 0.3);
+        const add = Math.round(battle.player.shield * (relicFlag(run, 'shieldBolt') ? 0.7 : 0.3));
         if (add)
             push('bonus', `盈盾化雷 +${add} 气`, { qi: add });
     }
@@ -159,8 +160,9 @@ export function computeCast(run, battle, tiles, rage, roll) {
         push('bonus', '血祭 ×1.6', { x: 1.6 });
     if (run.vow === 'suidan')
         push('bonus', '碎丹燃血 ×1.6', { x: 1.6 });
+    const rageX = (pactRank(run, 'dull') ? 2 : 3) + relicFlag(run, 'rageX');
     if (rage)
-        push('rage', `怒技 ×${3 + relicFlag(run, 'rageX')}`, { x: 3 + relicFlag(run, 'rageX') });
+        push('rage', `怒技 ×${rageX}`, { x: rageX });
     const critChance = Math.min(100, stage.critChance);
     const crit = roll !== undefined && roll * 100 < critChance;
     if (crit)

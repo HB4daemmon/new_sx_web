@@ -2,6 +2,7 @@ import { RELIC, type ScoreCtx, type Bump } from './content.js';
 import { counterOf, KE, type El } from './elements.js';
 import { detectPatterns, patternValue, PATTERNS, type PatternMatch } from './patterns.js';
 import type { BattleState, PatternId, RunState, Tile } from './types.js';
+import { pactRank } from './pacts.js';
 
 export type StepKind = 'pattern' | 'tile' | 'bonus' | 'relic' | 'rage' | 'crit';
 export interface Step {
@@ -82,7 +83,7 @@ function tileStage(run: RunState, battle: BattleState, tiles: Tile[], match: Pat
     else if (el && el === weak) { tq *= 0.5; tag = '被克'; }
     if (run.method === 'zhulong' && el) {
       const day = isDay(battle);
-      if ((day && (el === 'jin' || el === 'huo')) || (!day && (el === 'shui' || el === 'mu'))) { tq *= 3; tag = day ? '昼' : '夜'; }
+      if ((day && (el === 'jin' || el === 'huo')) || (!day && (el === 'shui' || el === 'mu'))) { tq *= relicFlag(run, 'dayNight') ? 5 : 3; tag = day ? '昼' : '夜'; }
     }
     tq = Math.round(tq);
     let dMult = 0;
@@ -127,7 +128,7 @@ export function computeCast(run: RunState, battle: BattleState, tiles: Tile[], r
 
   // Method & persistent battle bonuses.
   if (run.method === 'jingang' && battle.player.shield > 0) {
-    const add = Math.round(battle.player.shield * 0.3);
+    const add = Math.round(battle.player.shield * (relicFlag(run, 'shieldBolt') ? 0.7 : 0.3));
     if (add) push('bonus', `盈盾化雷 +${add} 气`, { qi: add });
   }
   if (run.method === 'huichun' && battle.spring > 0) push('bonus', `春华 +${Math.round(battle.spring)} 气`, { qi: Math.round(battle.spring) });
@@ -157,7 +158,8 @@ export function computeCast(run: RunState, battle: BattleState, tiles: Tile[], r
 
   if (has(run, 'xueji')) push('bonus', '血祭 ×1.6', { x: 1.6 });
   if (run.vow === 'suidan') push('bonus', '碎丹燃血 ×1.6', { x: 1.6 });
-  if (rage) push('rage', `怒技 ×${3 + relicFlag(run, 'rageX')}`, { x: 3 + relicFlag(run, 'rageX') });
+  const rageX = (pactRank(run, 'dull') ? 2 : 3) + relicFlag(run, 'rageX');
+  if (rage) push('rage', `怒技 ×${rageX}`, { x: rageX });
 
   const critChance = Math.min(100, stage.critChance);
   const crit = roll !== undefined && roll * 100 < critChance;

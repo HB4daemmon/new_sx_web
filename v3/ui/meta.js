@@ -1,5 +1,7 @@
 export const META_KEY = 'shanhai-v3-meta';
-const DEFAULT = { runs: 0, wins: 0, bestHit: 0, bestHitMethod: null, unlocked: [], heatWon: {}, maxHeat: 0, seen: [], sound: true, speed: 1, tutorialDone: false, endings: [] };
+const DEFAULT = { runs: 0, wins: 0, bestHit: 0, bestHitMethod: null, unlocked: [], heatWon: {}, maxHeat: 0, seen: [], sound: true, speed: 1, tutorialDone: false, endings: [], daoguo: 0, unlocks: [], achievements: [], mastery: {}, endlessBest: 0, daily: {}, lastPacts: {} };
+const strs = (x) => (Array.isArray(x) ? x.filter((v) => typeof v === 'string') : []);
+const nums = (x) => (x && typeof x === 'object' ? Object.fromEntries(Object.entries(x).filter(([, v]) => typeof v === 'number' && Number.isFinite(v) && v >= 0)) : {});
 export function readMeta(storage = globalThis.localStorage) {
     try {
         const raw = JSON.parse(storage?.getItem(META_KEY) ?? 'null');
@@ -11,12 +13,19 @@ export function readMeta(storage = globalThis.localStorage) {
             bestHitMethod: typeof raw.bestHitMethod === 'string' ? raw.bestHitMethod : null,
             unlocked: Array.isArray(raw.unlocked) ? raw.unlocked.filter((x) => typeof x === 'string') : [],
             heatWon: raw.heatWon && typeof raw.heatWon === 'object' ? Object.fromEntries(Object.entries(raw.heatWon).filter(([, v]) => typeof v === 'number')) : {},
-            maxHeat: Math.min(10, n(raw.maxHeat)),
+            maxHeat: Math.min(30, n(raw.maxHeat)),
             seen: Array.isArray(raw.seen) ? raw.seen.filter((x) => typeof x === 'string') : [],
             sound: raw.sound !== false,
             speed: raw.speed === 2 ? 2 : 1,
             tutorialDone: raw.tutorialDone === true,
             endings: Array.isArray(raw.endings) ? raw.endings.filter((x) => typeof x === 'string') : [],
+            daoguo: n(raw.daoguo),
+            unlocks: strs(raw.unlocks),
+            achievements: strs(raw.achievements),
+            mastery: nums(raw.mastery),
+            endlessBest: n(raw.endlessBest),
+            daily: raw.daily && typeof raw.daily === 'object' ? Object.fromEntries(Object.entries(raw.daily).filter(([, v]) => v && typeof v === 'object').slice(-60)) : {},
+            lastPacts: nums(raw.lastPacts),
         };
     }
     catch {
@@ -38,6 +47,15 @@ export function recordRunEnd(meta, end) {
     }
     let unlockedMethod = null;
     let unlockedHeat = null;
+    if (end.endless)
+        meta.endlessBest = Math.max(meta.endlessBest, end.endless);
+    if (end.daily) {
+        const prev = meta.daily[end.daily];
+        const score = (r) => (r.won ? 10 : 0) + r.act + r.endless;
+        const cur = { act: end.act ?? 0, won: end.won, bestHit: end.bestHit, endless: end.endless ?? 0 };
+        if (!prev || score(cur) > score(prev) || (score(cur) === score(prev) && cur.bestHit > prev.bestHit))
+            meta.daily[end.daily] = cur;
+    }
     let newEnding = false;
     if (end.won && end.ending && !meta.endings.includes(end.ending)) {
         meta.endings.push(end.ending);
@@ -50,7 +68,7 @@ export function recordRunEnd(meta, end) {
             unlockedMethod = 'zhulong';
         }
         meta.heatWon[end.method] = Math.max(meta.heatWon[end.method] ?? -1, end.heat);
-        if (end.heat >= meta.maxHeat && meta.maxHeat < 10) {
+        if (end.heat >= meta.maxHeat && meta.maxHeat < 30) {
             meta.maxHeat = end.heat + 1;
             unlockedHeat = meta.maxHeat;
         }

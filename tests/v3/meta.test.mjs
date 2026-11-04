@@ -23,7 +23,7 @@ test('meta: survives corrupt storage', () => {
   assert.equal(readMeta(store({ [META_KEY]: 'garbage' })).runs, 0);
   const odd = readMeta(store({ [META_KEY]: '{"runs":-1,"maxHeat":99,"unlocked":[1,"zhulong"],"speed":2}' }));
   assert.equal(odd.runs, 0);
-  assert.equal(odd.maxHeat, 10);
+  assert.equal(odd.maxHeat, 30);
   assert.deepEqual(odd.unlocked, ['zhulong']);
   assert.equal(odd.speed, 2);
   const s = store();

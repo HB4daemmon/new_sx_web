@@ -5,29 +5,50 @@ import { ENEMIES, ENEMY } from './enemies.js';
 import { EVENTS, EVENT } from './events.js';
 import { PATTERN_ORDER, PATTERNS } from './patterns.js';
 import { BONDS, BOSS_STORY, ENDING } from './story.js';
+import { cleanPacts, pactHeat, pactRank } from './pacts.js';
+import { SIGNATURE } from './content.js';
 import { chance, int, next, pick, sample, seedFrom } from './rng.js';
 import type { MapNode, NodeKind, PatternId, RewardOption, RunState, Screen, ShopItem, Tile, TileMod } from './types.js';
 
 export const SAVE_KEY = 'shanhai-v3-run';
 export const MAX_RELIC_SLOTS = 8;
 
-export function createRun(opts: { seed?: string; method: string; heat?: number }): RunState {
+export interface RunOptions { seed?: string; method: string; pacts?: Record<string, number>; unlocks?: string[]; daily?: string | null }
+
+export function createRun(opts: RunOptions): RunState {
   const seed = opts.seed ?? Math.random().toString(36).slice(2, 10);
   const method = METHOD[opts.method] ?? METHOD.yangjian;
+  const pacts = cleanPacts(opts.pacts);
   const run: RunState = {
-    version: 3, seed, rng: { state: seedFrom(seed) }, method: method.id, heat: opts.heat ?? 0,
+    version: 3, seed, rng: { state: seedFrom(seed) }, method: method.id, heat: pactHeat(pacts),
     act: 1, map: [], at: null, visited: [], hp: method.hp, maxHp: method.hp, gold: 30,
     bag: [], nextUid: 1, relics: [], relicSlots: 5,
     patternLv: Object.fromEntries(PATTERN_ORDER.map(id => [id, 1])) as Record<PatternId, number>,
     talents: [], vow: null, realm: 0, screen: { name: 'story', act: 1 }, battle: null,
     stats: { bestHit: 0, kills: 0, casts: 0, turns: 0, biggestPattern: null, floors: 0 }, log: [],
     plan: [], bonds: {}, deeds: [], ending: null,
+    pacts, unlocks: [...new Set(opts.unlocks ?? [])], endless: 0, daily: opts.daily ?? null,
   };
-  run.plan = sample(run.rng, BONDS, 2).map(b => b.id);
+  run.plan = pactRank(run, 'lone') ? [] : sample(run.rng, BONDS, 2).map(b => b.id);
   for (const el of ELEMENTS) for (let v = 1; v <= 5; v += 1) addTile(run, { el, v });
   for (const tile of method.extra) addTile(run, tile);
+  applyStartPerks(run);
   run.map = generateMap(run, 1);
   return run;
+}
+
+export const unlocked = (run: RunState, id: string) => run.unlocks?.includes(id) ?? false;
+export const mastery = (run: RunState, level: number) => unlocked(run, `m:${run.method}:${level}`);
+
+/** 道树 and 道行 perks, plus the 浊世 clause. All decided before the first node. */
+function applyStartPerks(run: RunState) {
+  if (unlocked(run, 'gold1')) run.gold += 30;
+  if (unlocked(run, 'ling1')) addTile(run, { el: pick(run.rng, ELEMENTS), v: 4, mod: 'ling' });
+  if (unlocked(run, 'pattern1')) { run.patternLv.sheng3 += 1; run.patternLv.dui += 1; }
+  if (unlocked(run, 'slot1')) run.relicSlots += 1;
+  if (mastery(run, 3)) addTile(run, { el: METHOD[run.method].el, v: 5, mod: 'ling' });
+  if (mastery(run, 4) && SIGNATURE[run.method]) run.relics.push(SIGNATURE[run.method]);
+  for (let i = 0; i < 2 * pactRank(run, 'murk'); i += 1) addTile(run, { el: 'zhuo', v: 0 });
 }
 
 export function addTile(run: RunState, tile: Omit<Tile, 'uid'>): Tile {
@@ -47,6 +68,7 @@ export function generateMap(run: RunState, act: number): MapNode[] {
     nodes.push({ id: id(1, 1), row: 1, col: 1, kind: 'boss', next: [], enemy: 'tianjie' });
     return nodes;
   }
+  if (act > 5) return endlessMap(run, act);
   const pool = ENEMIES.filter(e => e.act === act && e.rank === 'fight').map(e => e.id);
   const elite = ENEMIES.find(e => e.act === act && e.rank === 'elite')!.id;
   const boss = ENEMIES.find(e => e.act === act && e.rank === 'boss')!.id;
@@ -68,7 +90,7 @@ export function generateMap(run: RunState, act: number): MapNode[] {
       const node: MapNode = { id: id(row, col), row, col, kind, next: [] };
       if (kind === 'fight') node.enemy = pick(rng, pool);
       if (kind === 'elite') node.enemy = elite;
-      if (kind === 'event') node.event = pick(rng, EVENTS.filter(e => !e.once || !run.log.includes(`event:${e.id}`))).id;
+      if (kind === 'event') node.event = pick(rng, EVENTS.filter(e => (!e.once || !run.log.includes(`event:${e.id}`)) && (!e.unlock || unlocked(run, e.unlock)))).id;
       nodes.push(node);
     }
   }
@@ -77,12 +99,16 @@ export function generateMap(run: RunState, act: number): MapNode[] {
     const candidate = nodes.find(n => n.row === 3 && n.kind === 'fight') ?? nodes.find(n => (n.row === 2 || n.row === 3) && n.kind !== 'shop');
     if (candidate) { candidate.kind = 'elite'; candidate.enemy = elite; delete candidate.event; }
   }
+  if (pactRank(run, 'elite')) {
+    const extra = nodes.find(n => n.row === 1 && n.kind === 'fight') ?? nodes.find(n => n.row === 1 && n.kind !== 'shop');
+    if (extra) { extra.kind = 'elite'; extra.enemy = elite; delete extra.event; }
+  }
   // 因缘: the planned thread's meeting sits on row 2 — reachable, but a path can skip it.
   const thread = act <= 2 ? run.plan?.[act - 1] : run.plan?.[act - 3];
   const meet = !thread ? null : act <= 2 ? `bond-${thread}-1` : run.bonds?.[thread] === 'kept' ? `bond-${thread}-2` : null;
   if (meet) {
-    const node = pick(rng, nodes.filter(n => n.row === 2 && n.kind !== 'elite'));
-    if (node) { node.kind = 'event'; node.event = meet; delete node.enemy; }
+    const spots = sample(rng, nodes.filter(n => n.row === 2 && n.kind !== 'elite'), unlocked(run, 'guide') ? 2 : 1);
+    for (const node of spots) { node.kind = 'event'; node.event = meet; delete node.enemy; }
   }
   nodes.push({ id: id(5, 1), row: 5, col: 1, kind: 'boss', next: [], enemy: boss });
   for (const node of nodes) {
@@ -96,6 +122,32 @@ export function generateMap(run: RunState, act: number): MapNode[] {
     node.next = [...targets];
   }
   return nodes;
+}
+
+/** 无尽劫: elite → (rest | shop | event) → a random boss, deeper each layer. */
+function endlessMap(run: RunState, act: number): MapNode[] {
+  const rng = run.rng;
+  const id = (row: number, col: number) => `${act}-${row}-${col}`;
+  const elites = ENEMIES.filter(e => e.rank === 'elite').map(e => e.id);
+  const bosses = ENEMIES.filter(e => e.rank === 'boss').map(e => e.id);
+  const mid: NodeKind[] = ['rest', 'shop', 'event'];
+  return [
+    { id: id(0, 1), row: 0, col: 1, kind: 'elite', enemy: pick(rng, elites), next: mid.map((_, i) => id(1, i)) },
+    ...mid.map((kind, i): MapNode => ({ id: id(1, i), row: 1, col: i, kind, next: [id(2, 1)], ...(kind === 'event' ? { event: pick(rng, EVENTS.filter(e => !e.once)).id } : {}) })),
+    { id: id(2, 1), row: 2, col: 1, kind: 'boss', enemy: pick(rng, bosses), next: [] },
+  ];
+}
+
+export function enterEndless(run: RunState) {
+  if (run.screen.name !== 'won') return false;
+  run.endless = 1;
+  run.log = run.log.filter(l => l !== 'finished');
+  run.at = null;
+  run.map = generateMap(run, 5 + run.endless);
+  run.hp = run.maxHp;
+  run.screen = { name: 'map' };
+  run.deeds.push('渡劫之后，你没有停下，走进了无尽天劫。');
+  return true;
 }
 
 export const nodeById = (run: RunState, id: string) => run.map.find(node => node.id === id);
@@ -161,14 +213,15 @@ export function concludeBattle(run: RunState) {
   const kind = battle.kind;
   const enemyId = battle.enemyId;
   run.battle = null;
-  if (kind === 'boss') run.deeds.push(BOSS_DEED[enemyId] ?? `你击败了${ENEMY[enemyId].name}。`);
-  if (kind === 'boss' && run.act === 5) { run.screen = { name: 'ending' }; return; }
+  if (kind === 'boss') { run.log.push(`boss:${enemyId}`); if (!run.endless) run.deeds.push(BOSS_DEED[enemyId] ?? `你击败了${ENEMY[enemyId].name}。`); }
+  if (kind === 'boss' && run.act === 5 && !run.endless) { run.screen = { name: 'ending' }; return; }
   const extraGold = RELICS.filter(r => run.relics.includes(r.id)).reduce((s, r) => s + (r.flags?.afterGold ?? 0), 0);
   const gold = (kind === 'boss' ? 60 : kind === 'elite' ? 30 : int(run.rng, 12, 18)) + extraGold;
   run.gold += gold;
   const options = rewardOptions(run, 3);
-  const relicOptions = kind === 'fight' ? (chance(run.rng, 0.12) ? relicChoices(run, 1, kind) : []) : relicChoices(run, 3, kind);
-  run.screen = { name: 'reward', gold, options, relicOptions, picked: false, relicPicked: relicOptions.length === 0, next: kind === 'boss' ? 'breakthrough' : 'map', story: kind === 'boss' ? BOSS_STORY[enemyId]?.after : undefined };
+  const relicOptions = kind === 'fight' ? (chance(run.rng, 0.12) ? relicChoices(run, 1, kind) : []) : relicChoices(run, 3 + (unlocked(run, 'boss1') ? 1 : 0), kind);
+  const next = kind !== 'boss' ? 'map' : run.endless ? 'endless' : 'breakthrough';
+  run.screen = { name: 'reward', gold, options, relicOptions, picked: false, relicPicked: relicOptions.length === 0, next, story: kind === 'boss' && !run.endless ? BOSS_STORY[enemyId]?.after : undefined };
 }
 
 const BOSS_DEED: Record<string, string> = {
@@ -221,8 +274,16 @@ function rarityWeights(kind: NodeKind | 'shop'): Record<Rarity, number> {
 
 export function relicChoices(run: RunState, n: number, kind: NodeKind | 'shop'): RewardOption[] {
   const weights = rarityWeights(kind);
-  const pool = RELICS.filter(r => !run.relics.includes(r.id));
-  return sample(run.rng, pool, n, r => weights[r.rarity]).map(r => ({ type: 'relic', relic: r.id }));
+  const pool = RELICS.filter(r => !run.relics.includes(r.id) && relicAvailable(run, r.id));
+  return sample(run.rng, pool, n, r => (r.method ? 4 : 1) * weights[r.rarity]).map(r => ({ type: 'relic', relic: r.id }));
+}
+
+/** 道树 gates new relics; 本命法宝 only appear for their method after 道行 2. */
+export function relicAvailable(run: RunState, id: string) {
+  const def = RELIC[id];
+  if (!def) return false;
+  if (def.method) return def.method === run.method && mastery(run, 2);
+  return !def.unlock || unlocked(run, def.unlock);
 }
 
 export function applyOption(run: RunState, option: RewardOption, replaceSlot?: number): boolean {
@@ -284,6 +345,13 @@ export function takeReward(run: RunState, group: 'main' | 'relic', index: number
 export function leaveReward(run: RunState) {
   const screen = run.screen;
   if (screen.name !== 'reward') return;
+  if (screen.next === 'endless') {
+    run.endless += 1;
+    run.at = null;
+    run.map = generateMap(run, 5 + run.endless);
+    run.screen = { name: 'map' };
+    return;
+  }
   if (screen.next === 'breakthrough') {
     run.realm += 1;
     run.maxHp += 25;
@@ -313,10 +381,10 @@ export function advanceAct(run: RunState) {
 export function optionPrice(run: RunState, option: RewardOption): number {
   const discount = 1;
   switch (option.type) {
-    case 'relic': return Math.round(RELIC_PRICE[RELIC[option.relic].rarity] * discount);
-    case 'tile': return 30 + (option.tile.mod ? 15 : 0) + option.tile.v * 2;
-    case 'pattern': return 45;
-    case 'heal': return 30;
+    case 'relic': return Math.round(RELIC_PRICE[RELIC[option.relic].rarity] * discount * (pactRank(run, 'miser') ? 1.3 : 1));
+    case 'tile': return Math.round((30 + (option.tile.mod ? 15 : 0) + option.tile.v * 2) * (pactRank(run, 'miser') ? 1.3 : 1));
+    case 'pattern': return Math.round(45 * (pactRank(run, 'miser') ? 1.3 : 1));
+    case 'heal': return Math.round(30 * (pactRank(run, 'miser') ? 1.3 : 1));
     default: return 0;
   }
 }
@@ -354,10 +422,12 @@ export function leaveShop(run: RunState) { if (run.screen.name === 'shop') run.s
 // —— Rest ——
 export function restChoose(run: RunState, choice: 'heal' | 'forge' | 'insight', pattern?: PatternId) {
   if (run.screen.name !== 'rest' || run.screen.done) return;
-  if (choice === 'heal') { run.hp = Math.min(run.maxHp, run.hp + Math.round(run.maxHp * 0.4)); run.screen = { name: 'rest', done: true }; }
+  if (choice === 'heal') { run.hp = Math.min(run.maxHp, run.hp + Math.round(run.maxHp * restHeal(run))); run.screen = { name: 'rest', done: true }; }
   if (choice === 'forge') run.screen = { name: 'pick-tile', purpose: 'upgrade', count: 1, then: { name: 'rest', done: true }, title: '炼符 · 选一枚符：点数 +3，并附上一道符纹' };
   if (choice === 'insight' && pattern) { run.patternLv[pattern] += 1; run.screen = { name: 'rest', done: true }; }
 }
+
+export const restHeal = (run: RunState) => (unlocked(run, 'rest1') ? 0.55 : 0.4);
 
 export function insightChoices(run: RunState): PatternId[] {
   const seed = { state: seedFrom(`${run.seed}:${run.at}`) };
@@ -379,6 +449,12 @@ export function pickTiles(run: RunState, uids: number[]): boolean {
   }
   if (screen.purpose === 'upgrade') for (const tile of tiles) { tile.v = Math.min(12, tile.v + 3); if (!tile.mod && tile.el !== 'zhuo') tile.mod = pick(run.rng, MODS); }
   if (screen.purpose === 'reforge') for (const tile of tiles) if (tile.el !== 'zhuo') tile.mod = 'zhong';
+  if (screen.purpose === 'fuse') {
+    if (tiles.length !== 2) return false;
+    run.bag = run.bag.filter(t => !uids.includes(t.uid));
+    const el = tiles[0].el === 'zhuo' ? tiles[1].el : tiles[0].el;
+    addTile(run, el === 'zhuo' ? { el, v: 0 } : { el, v: Math.min(18, tiles[0].v + tiles[1].v), mod: 'jing' });
+  }
   run.screen = screen.then;
   return true;
 }
@@ -424,6 +500,10 @@ export function deserialize(text: string | null): RunState | null {
     run.bonds ??= {};
     run.deeds ??= [];
     run.ending ??= null;
+    run.pacts ??= {};
+    run.unlocks ??= [];
+    run.endless ??= 0;
+    run.daily ??= null;
     return run;
   } catch { return null; }
 }

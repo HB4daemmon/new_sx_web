@@ -590,3 +590,80 @@ b.qi { color: var(--shui); } b.mu { color: var(--ver); }
 .codex-card b { font-family: var(--brush); font-weight: 400; font-size: 20px; } .codex-card small { font-size: 11px; line-height: 1.4; color: var(--dim); }
 .codex-card.unknown img { filter: brightness(0); opacity: .5; }
 .stage.port .codex-card small { font-size: 15px; } .stage.port .codex-card b { font-size: 26px; }
+
+/* ===== 局外成长 ===== */
+.daily-btn small, .hub-btn small, .pact-btn small { display: block; }
+.hub-btn { border-color: rgba(242,197,92,.6); }
+.hub-btn small { color: var(--gold); }
+.toast.ach { box-shadow: inset 0 0 0 2px var(--gold), 0 0 30px rgba(242,197,92,.5); color: #ffe39a; font-weight: 700; }
+.heat-tag { color: #c8b8ff; border-color: rgba(168,85,247,.6); }
+.md-mastery { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: center; font-size: 14px; }
+.md-mastery small { grid-column: 1 / -1; color: var(--dim); }
+.mastery-lv { color: var(--gold); font-weight: 700; }
+.mastery-bar { height: 10px; border-radius: 5px; background: rgba(0,0,0,.6); box-shadow: inset 0 0 0 1px rgba(239,228,207,.25); overflow: hidden; min-width: 120px; }
+.mastery-fill { height: 100%; background: linear-gradient(90deg, #b8862b, #ffd77a); transition: width 1.2s cubic-bezier(.2,.8,.2,1); }
+.pact-btn { align-self: flex-start; border-color: rgba(168,85,247,.55); }
+.pact-btn small { color: #c8b8ff; }
+.stage.port .md-mastery { font-size: 20px; } .stage.port .pact-btn { align-self: stretch; }
+
+.pacts { width: 720px; max-width: 100%; display: flex; flex-direction: column; gap: 10px; }
+.pacts .btn { align-self: center; }
+.pact-head { display: flex; justify-content: center; gap: 24px; font-size: 22px; } .pact-head b { color: #c8b8ff; } .pact-head span { color: var(--gold); }
+.pact-list { display: flex; flex-direction: column; gap: 6px; }
+.pact-row { display: grid; grid-template-columns: 130px 1fr auto; gap: 12px; align-items: center; padding: 8px 14px; border-radius: 6px; background: rgba(0,0,0,.35); box-shadow: inset 0 0 0 1px rgba(239,228,207,.15); }
+.pact-row.on { box-shadow: inset 0 0 0 2px #a855f7; background: rgba(60,20,90,.35); }
+.pact-name b { display: block; font-size: 18px; } .pact-name small { color: var(--dim); font-size: 12px; }
+.pact-desc { font-size: 15px; color: var(--paper); }
+.pact-ctrl { display: flex; align-items: center; gap: 8px; font: 700 16px var(--num); }
+.pact-pip { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(239,228,207,.4); font-size: 20px; }
+.pact-pip:disabled { opacity: .3; }
+.stage.port .pact-row { grid-template-columns: 1fr auto; } .stage.port .pact-desc { grid-column: 1 / -1; grid-row: 2; font-size: 20px; } .stage.port .pact-name b { font-size: 24px; } .stage.port .pact-pip { width: 48px; height: 48px; }
+
+.daily { width: 620px; max-width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.daily-row { display: flex; gap: 16px; align-items: center; text-align: left; } .daily-row img { width: 140px; height: 190px; object-fit: contain; } .daily-row b { font-size: 36px; font-weight: 400; }
+.stage.port .daily p { font-size: 22px; }
+
+.hub { width: 1120px; max-width: 100%; }
+.hub-head { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; } .hub-head h2 { margin: 0 !important; }
+.daoguo { font: 700 26px var(--num); color: var(--gold); } .hub-stats { font-size: 13px; color: var(--dim); }
+.hub-tabs { display: flex; gap: 6px; margin: 14px 0; }
+.hub-tab { padding: 8px 22px; border-radius: 4px; font-family: var(--brush); font-size: 24px; background: rgba(0,0,0,.4); box-shadow: inset 0 0 0 1px rgba(239,228,207,.2); }
+.hub-tab.on { background: var(--ver2); box-shadow: inset 0 0 0 1px #ffb3a6; }
+.tree { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.tree-col { display: flex; flex-direction: column; gap: 10px; align-items: stretch; } .tree-col h3 { margin: 0; text-align: center; font-size: 26px; font-weight: 400; color: var(--gold); }
+.tree-node { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 8px; text-align: left; background: rgba(0,0,0,.45); box-shadow: inset 0 0 0 1px rgba(239,228,207,.2); }
+.tree-node + .tree-node::before { content: ''; position: absolute; left: 50%; top: -11px; width: 2px; height: 10px; background: rgba(239,228,207,.3); }
+.tree-node b { font-size: 17px; } .tree-node span { font-size: 13px; color: var(--dim); line-height: 1.5; } .tree-node small { font: 700 15px var(--num); color: var(--gold); }
+.tree-node.owned { box-shadow: inset 0 0 0 2px var(--mu); background: rgba(20,60,40,.4); } .tree-node.owned small { color: var(--mu); }
+.tree-node.can { box-shadow: inset 0 0 0 2px var(--gold), 0 0 18px rgba(242,197,92,.35); animation: nodePulse 1.6s ease-in-out infinite; }
+.tree-node.can:hover { transform: translateY(-2px); }
+.tree-node.locked { opacity: .45; }
+.ach-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.ach { padding: 8px 10px; border-radius: 6px; background: rgba(0,0,0,.35); display: flex; flex-direction: column; gap: 2px; opacity: .55; }
+.ach.got { opacity: 1; box-shadow: inset 0 0 0 1px var(--gold); } .ach b { font-size: 15px; } .ach span { font-size: 12px; color: var(--dim); } .ach small { font: 700 13px var(--num); color: var(--gold); }
+.mastery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.mastery-card { display: flex; gap: 10px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,.35); } .mastery-card img { width: 80px; height: 120px; object-fit: contain; flex: none; }
+.mastery-card b { font-size: 26px; font-weight: 400; } .mastery-card ol { margin: 6px 0 0; padding-left: 18px; font-size: 12px; color: var(--dim); line-height: 1.5; } .mastery-card li.done { color: var(--mu); }
+.stage.port .tree, .stage.port .mastery-grid { grid-template-columns: 1fr; } .stage.port .ach-grid { grid-template-columns: 1fr 1fr; }
+.stage.port .tree-node b, .stage.port .ach b { font-size: 22px; } .stage.port .tree-node span, .stage.port .ach span, .stage.port .mastery-card ol { font-size: 18px; } .stage.port .hub-stats { font-size: 18px; }
+
+/* End screen with settlement */
+.end-scr { flex-direction: row; flex-wrap: wrap; align-content: center; gap: 24px 40px; padding: 30px 40px; }
+.end-left { display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 640px; }
+.end-actions { width: 100%; justify-content: center; }
+.settle { width: 400px; padding: 18px 22px; border-radius: 10px; background: rgba(6,8,12,.88); box-shadow: inset 0 0 0 1px rgba(242,197,92,.5); display: flex; flex-direction: column; gap: 6px; }
+.settle h3 { margin: 0; text-align: center; font-size: 34px; font-weight: 400; color: var(--gold); }
+.settle-line { display: flex; justify-content: space-between; font-size: 15px; opacity: 0; animation: lineIn .5s ease forwards; }
+.settle-line b { font-family: var(--num); color: var(--gold); } .settle-line.mult b { color: #c8b8ff; } .settle-line.ach b { color: #ffe39a; }
+.settle-sum { display: flex; align-items: baseline; justify-content: center; gap: 10px; margin: 6px 0; padding-top: 8px; border-top: 1px solid rgba(239,228,207,.2); font-size: 14px; color: var(--dim); }
+.settle-total { font: 700 44px var(--num); color: #ffe39a; text-shadow: 0 0 20px rgba(242,197,92,.6); }
+.mastery-row { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: center; font-size: 14px; } .mastery-row small { grid-column: 1 / -1; color: var(--dim); }
+.goal-row { font-size: 14px; padding: 8px 10px; border-radius: 6px; background: rgba(0,0,0,.4); display: flex; flex-direction: column; } .goal-row small { color: var(--dim); }
+.goal-row.ready { box-shadow: inset 0 0 0 1px var(--gold); color: var(--gold); }
+.settle .btn { align-self: center; }
+.endless-btn { background: linear-gradient(160deg, #7b2bd8, #3b1270) !important; box-shadow: inset 0 0 0 3px rgba(220,190,255,.35), 0 6px 0 #22093f, 0 0 30px rgba(168,85,247,.5) !important; font-size: 26px !important; }
+.end-scr .end-seal { font-size: 110px; } .end-scr .ending-text.inline p { font-size: 15px; }
+.stage.port .end-scr { flex-direction: column; flex-wrap: nowrap; justify-content: center; padding: 24px; gap: 16px; }
+.stage.port .settle { width: 100%; } .stage.port .settle-line, .stage.port .mastery-row, .stage.port .goal-row { font-size: 20px; } .stage.port .end-scr .ending-text.inline p { font-size: 19px; }
+.stage.port .end-actions { flex-wrap: wrap; }
+.settle-line { gap: 10px; } .settle-line span { flex: 1; min-width: 0; } .settle-line b { flex: none; }

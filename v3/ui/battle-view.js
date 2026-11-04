@@ -8,7 +8,8 @@ import * as R from '../core/run.js';
 import { anim, burst, centerOf, comet, EL_COLOR, flash, floatText, hitstop, isSkipping, lightning, reducedMotion, ring, setSkipping, shake, wait } from './fx.js';
 import { $, $$, fmt, fmt1, h } from './h.js';
 import { app, overlayOpen, render, save, toast } from './main.js';
-import { art, hud, showBag, showHelp } from './screens.js';
+import { announce, art, hud, showBag, showHelp } from './screens.js';
+import { checkAchievements } from './progression.js';
 import { playSfx } from './sfx.js';
 import { bar, tileView, wuxingWheel } from './widgets.js';
 let root = null;
@@ -444,6 +445,8 @@ async function doCast() {
     busy = true;
     selected = [];
     rageOn = false;
+    const dealt = out.events.reduce((sum, e) => sum + (e.k === 'hit' && e.to === 'enemy' ? e.amount : 0), 0);
+    const achieved = checkAchievements(app.meta, { kind: 'cast', run: r, battle: r.battle, result: out.result, total: dealt, killed: r.battle.outcome === 'won' });
     save();
     refreshControls();
     $('.preview-line', root).replaceChildren();
@@ -457,6 +460,7 @@ async function doCast() {
         console.error(err);
     }
     setSkipping(false);
+    announce(achieved);
     if (!root)
         return;
     const b = run().battle;
@@ -954,6 +958,7 @@ async function endSequence() {
     }
     setSkipping(false);
     busy = false;
+    announce(checkAchievements(app.meta, { kind: 'battle', run: run(), battle: b }));
     R.concludeBattle(run());
     if (run().stats.bestHit > app.meta.bestHit) { /* recorded at run end */ }
     save();

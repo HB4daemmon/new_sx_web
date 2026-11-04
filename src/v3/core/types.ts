@@ -94,14 +94,14 @@ export interface ShopItem { option: RewardOption; price: number; sold: boolean }
 export type Screen =
   | { name: 'map' }
   | { name: 'battle' }
-  | { name: 'reward'; gold: number; options: RewardOption[]; relicOptions: RewardOption[]; picked: boolean; relicPicked: boolean; next: 'map' | 'breakthrough'; story?: string }
+  | { name: 'reward'; gold: number; options: RewardOption[]; relicOptions: RewardOption[]; picked: boolean; relicPicked: boolean; next: 'map' | 'breakthrough' | 'endless'; story?: string }
   | { name: 'story'; act: number }
   | { name: 'ending' }
   | { name: 'breakthrough'; options: RewardOption[] }
   | { name: 'shop'; items: ShopItem[]; removePrice: number; removed: boolean }
   | { name: 'event'; event: string; resolved?: string }
   | { name: 'rest'; done?: boolean }
-  | { name: 'pick-tile'; purpose: 'remove' | 'upgrade' | 'reforge'; count: number; then: Screen; title: string }
+  | { name: 'pick-tile'; purpose: 'remove' | 'upgrade' | 'reforge' | 'fuse'; count: number; then: Screen; title: string }
   | { name: 'won' }
   | { name: 'lost' };
 
@@ -128,7 +128,7 @@ export interface RunState {
   realm: number;
   screen: Screen;
   battle: BattleState | null;
-  stats: { bestHit: number; kills: number; casts: number; turns: number; biggestPattern: PatternId | null; floors: number };
+  stats: { bestHit: number; kills: number; casts: number; turns: number; biggestPattern: PatternId | null; floors: number; paid?: number; achPaid?: number };
   log: string[];
   /** The two 因缘 threads planned for this run: [act1→act3, act2→act4]. */
   plan: string[];
@@ -136,4 +136,11 @@ export interface RunState {
   /** 行迹: one line per meaningful thing that actually happened. */
   deeds: string[];
   ending: string | null;
+  /** 天劫契 clauses (id → rank). */
+  pacts: Record<string, number>;
+  /** 道树 unlocks and 道行 perks active for this run, copied from the profile at start. */
+  unlocks: string[];
+  /** 无尽劫 layer after the ending (0 = not entered). */
+  endless: number;
+  daily: string | null;
 }
