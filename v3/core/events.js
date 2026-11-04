@@ -178,4 +178,89 @@ export const EVENTS = [
         ],
     },
 ];
-export const EVENT = Object.fromEntries(EVENTS.map(e => [e.id, e]));
+// —— 因缘：每条线两次相遇。初遇立约有代价；再遇守约（终战相助）或收下厚礼（线就此了结）。——
+const hurt = (run, pct) => { const d = Math.round(run.maxHp * pct); run.hp = Math.max(1, run.hp - d); return d; };
+const bond = (run, id, state, deed) => { run.bonds[id] = state; run.deeds.push(deed); };
+const relicOffer = (run, preferred) => {
+    const own = new Set(run.relics);
+    const pool = preferred.filter(id => !own.has(id));
+    const options = pool.length ? pool.slice(0, 2).map(relic => ({ type: 'relic', relic })) : R.relicChoices(run, 2, 'boss');
+    return { name: 'reward', gold: 0, options: [], relicOptions: options, picked: true, relicPicked: false, next: 'map' };
+};
+export const BOND_EVENTS = [
+    { id: 'bond-jingwei-1', bond: 'jingwei', title: '精卫', glyph: '卫',
+        text: '一只小鸟衔着石子，一次又一次投进逆潮里。潮水每涨一寸，她就多衔一块。一个浪头打过来，眼看要把她拍进水里。',
+        options: [
+            { label: '替她挡浪', desc: '失去 12% 气血；与精卫约好在火海再见', apply: run => { const d = hurt(run, 0.12); bond(run, 'jingwei', 'kept', '你在潮口替精卫挡了一个浪头，约好火海再见。'); return `浪砸在你背上（-${d}）。精卫落在你肩头，啄了啄你的耳朵，往火海的方向飞走了。`; } },
+            { label: '收下她的石子', desc: '获得一枚 晶土6', apply: run => { R.addTile(run, { el: 'tu', v: 6, mod: 'jing' }); bond(run, 'jingwei', 'declined', '你收下了精卫的一颗石子。'); return '石子在你手心化成一枚晶土符。精卫继续衔她的石头，没有再看你。'; } },
+        ] },
+    { id: 'bond-jingwei-2', bond: 'jingwei', title: '精卫的堤', glyph: '卫',
+        text: '火海边上横着一道石堤，每一颗石子都带着潮口的盐。堤还差最后一段，精卫站在堤头冲你叫了一声。',
+        options: [
+            { label: '陪她把堤垒完', desc: '失去 15% 气血；移除符袋中所有浊符。精卫会在终战相助', apply: run => { const d = hurt(run, 0.15); const n = run.bag.filter(t => t.el === 'zhuo').length; run.bag = run.bag.filter(t => t.el !== 'zhuo'); bond(run, 'jingwei', 'done', '你陪精卫在火海边垒完了最后一段堤。'); return `你搬石头搬到手掌起泡（-${d}）。堤垒成的那一刻，${n ? `${n} 枚浊符被潮气冲散了` : '你觉得心里干净了很多'}。精卫说：「上山的时候，叫我。」`; } },
+            { label: '收下谢礼', desc: '从两件法宝中选一件；此线就此了结', apply: run => { bond(run, 'jingwei', 'declined', '精卫把堤里最亮的一颗石子送给了你，然后继续一个人垒堤。'); return relicOffer(run, ['chaoxi', 'wuse']); } },
+        ] },
+    { id: 'bond-houyi-1', bond: 'houyi', title: '后羿', glyph: '羿',
+        text: '断桥头有个人在磨箭，箭头对着天。「九个太阳我射下来了，」他说，「这回天上要掉下来的东西，我想先备一支好箭。缺块铁。」',
+        options: [
+            { label: '替他买铁', desc: '花费 30 灵石；与后羿约好在昆仑再见', can: run => run.gold >= 30, apply: run => { run.gold -= 30; bond(run, 'houyi', 'kept', '你在断桥替后羿买了一块箭铁。'); return '后羿掂了掂铁块：「昆仑见。到时候你往上走，我往上射。」'; } },
+            { label: '向他讨教', desc: '获得一枚 重金7', apply: run => { R.addTile(run, { el: 'jin', v: 7, mod: 'zhong' }); bond(run, 'houyi', 'declined', '后羿教了你一招握箭的手法。'); return '他教你怎么握箭。你把那股劲收进了一枚重金符里。'; } },
+        ] },
+    { id: 'bond-houyi-2', bond: 'houyi', title: '风口试射', glyph: '羿',
+        text: '昆仑的风口，后羿的箭已经磨好了。他要你站到靶子旁边——风太乱，得有人替他报风向。',
+        options: [
+            { label: '站到靶边', desc: '失去 15% 气血；「双元」「两仪」各 +1。后羿会在终战相助', apply: run => { const d = hurt(run, 0.15); run.patternLv.dui += 1; run.patternLv.liangyi += 1; bond(run, 'houyi', 'done', '你在昆仑风口替后羿报了一整天的风向。'); return `一支箭擦着你的耳朵过去（-${d}）。后羿收了弓：「准了。你上天门的时候，抬头看。」你对成双的东西忽然敏锐了许多。`; } },
+            { label: '收下他的箭', desc: '从两件法宝中选一件；此线就此了结', apply: run => { bond(run, 'houyi', 'declined', '后羿把一支箭送给了你，自己留在了风口。'); return relicOffer(run, ['yinlei', 'mingmu']); } },
+        ] },
+    { id: 'bond-yu-1', bond: 'yu', title: '禹', glyph: '禹',
+        text: '一个满腿泥的人在逆潮边挖沟。「堵是堵不住的，」他头也不抬，「得给水留条路。你身上的力气，借我一点？」',
+        options: [
+            { label: '借他力气', desc: '气血上限 -8；与禹约好在火海再见', apply: run => { run.maxHp = Math.max(20, run.maxHp - 8); run.hp = Math.min(run.hp, run.maxHp); bond(run, 'yu', 'kept', '你在潮口帮禹挖了一段引水沟。'); return '你挖到天黑，腰再也直不起来。禹拍拍你：「火海那边还有一段。到时候再借。」'; } },
+            { label: '各走各路', desc: '+35 灵石（他塞给你的路费）', apply: run => { run.gold += 35; bond(run, 'yu', 'declined', '禹塞给你一点路费，继续一个人挖沟。'); return '他塞给你一把灵石：「路上用。」然后接着挖。'; } },
+        ] },
+    { id: 'bond-yu-2', bond: 'yu', title: '分水', glyph: '禹',
+        text: '火海里，禹的沟已经挖到了火口边上。只差最后一锹，就能把热流引开——但那一锹得有人站在火口里挖。',
+        options: [
+            { label: '站进火口', desc: '失去 15% 气血；「三生」「四生」「五行轮转」各 +1。禹会在终战相助', apply: run => { const d = hurt(run, 0.15); run.patternLv.sheng3 += 1; run.patternLv.sheng4 += 1; run.patternLv.lunzhuan += 1; bond(run, 'yu', 'done', '你站在火口里挖下了禹的最后一锹。'); return `火燎掉了你的眉毛（-${d}）。热流一分为九，顺着沟走了。你忽然明白：疏导，就是相生。`; } },
+            { label: '借他的息壤', desc: '气血全满，气血上限 +12；此线就此了结', apply: run => { run.maxHp += 12; run.hp = run.maxHp; bond(run, 'yu', 'declined', '禹把一捧息壤给了你，自己跳进了火口。'); return '一捧息壤敷在身上，伤全好了。禹自己跳进了火口。'; } },
+        ] },
+    { id: 'bond-shennong-1', bond: 'shennong', title: '神农', glyph: '农',
+        text: '潮线上一个老人在搬药篓。他尝一口草，脸就绿一阵。「水往上走，药都泡坏了。帮我雇两个挑夫，把药挑到山上去？」',
+        options: [
+            { label: '替他雇挑夫', desc: '花费 25 灵石；与神农约好在火海再见', can: run => run.gold >= 25, apply: run => { run.gold -= 25; bond(run, 'shennong', 'kept', '你在潮口替神农雇了挑夫，把药挑上了山。'); return '神农把一包药塞进你怀里：「现在别吃。火海见。」'; } },
+            { label: '讨一口药', desc: '回复 30% 气血', apply: run => { healPct(run, 0.3); bond(run, 'shennong', 'declined', '你吃了神农一口药。'); return '药很苦，伤却好了大半。神农背起药篓走了。'; } },
+        ] },
+    { id: 'bond-shennong-2', bond: 'shennong', title: '药棚', glyph: '农',
+        text: '火海的风口搭着一座药棚。神农正在熬一锅能治劫伤的药，缺一个人试药。',
+        options: [
+            { label: '替他试药', desc: '失去 15% 气血；气血上限 +15。神农会在终战相助', apply: run => { const d = hurt(run, 0.15); run.maxHp += 15; bond(run, 'shennong', 'done', '你在火海药棚替神农试了一锅劫药。'); return `你吐了三回（-${d}），筋骨却硬了一圈（上限 +15）。神农把药方折好：「天门上见。」`; } },
+            { label: '收下药囊', desc: '从两件法宝中选一件；此线就此了结', apply: run => { bond(run, 'shennong', 'declined', '神农把一只药囊送给了你。'); return relicOffer(run, ['changming', 'yuye']); } },
+        ] },
+    { id: 'bond-nezha-1', bond: 'nezha', title: '哪吒', glyph: '吒',
+        text: '断桥上一个踩着火轮的少年拦住你：「听说有人要上天门？先接我一枪！」',
+        options: [
+            { label: '接他一枪', desc: '失去 12% 气血；与哪吒约好在昆仑再打一场', apply: run => { const d = hurt(run, 0.12); bond(run, 'nezha', 'kept', '你在断桥硬接了哪吒一枪。'); return `枪尖撞在你胸口（-${d}）。你没退。哪吒眼睛一亮：「好！昆仑再打一场！」`; } },
+            { label: '让他过去', desc: '获得一枚 雷火6', apply: run => { R.addTile(run, { el: 'huo', v: 6, mod: 'lei' }); bond(run, 'nezha', 'declined', '你给哪吒让了路，他甩下一团雷火。'); return '哪吒哼了一声，丢下一团雷火就飞走了。'; } },
+        ] },
+    { id: 'bond-nezha-2', bond: 'nezha', title: '再接一阵', glyph: '吒',
+        text: '昆仑山道上，哪吒把火尖枪插在地上：「上回没打完。这回我用三头六臂。」',
+        options: [
+            { label: '奉陪到底', desc: '失去 20% 气血；剑意相关天赋「剑意通明」。哪吒会在终战相助', apply: run => { const d = hurt(run, 0.2); R.gainTalent(run, 'tongming'); bond(run, 'nezha', 'done', '你在昆仑山道和哪吒打到天亮。'); return `你们打到天亮（-${d}），谁也没赢。哪吒大笑：「天门上的那个，算我一份！」你的剑意更快了。`; } },
+            { label: '认输', desc: '从两件法宝中选一件；此线就此了结', apply: run => { bond(run, 'nezha', 'declined', '你向哪吒认了输，他把一件宝贝丢给了你。'); return relicOffer(run, ['leiwen', 'qiming']); } },
+        ] },
+    { id: 'bond-tieshan-1', bond: 'tieshan', title: '铁扇公主', glyph: '扇',
+        text: '断桥上游热风扑面，一个持扇的女子拦在风口：「前面是火海，没有我的风你过不去。借风，要付钱。」',
+        options: [
+            { label: '付钱借风', desc: '花费 30 灵石；与铁扇约好在昆仑还扇', can: run => run.gold >= 30, apply: run => { run.gold -= 30; bond(run, 'tieshan', 'kept', '你在断桥向铁扇公主借了一阵风。'); return '她轻轻一扇，热风倒卷回火海。「扇子借你的风，到昆仑来还。」'; } },
+            { label: '硬闯热风', desc: '失去 8% 气血，获得一枚 灵火5', apply: run => { hurt(run, 0.08); R.addTile(run, { el: 'huo', v: 5, mod: 'ling' }); bond(run, 'tieshan', 'declined', '你没有借铁扇的风，硬闯过了热风。'); return '你被燎得够呛，却从热风里抓住了一缕灵火。'; } },
+        ] },
+    { id: 'bond-tieshan-2', bond: 'tieshan', title: '还扇', glyph: '扇',
+        text: '昆仑脚下，铁扇公主等着你还她的风。「天门上那团火是偷来的，」她说，「我想把它扇回去。你帮我扛着扇子上山。」',
+        options: [
+            { label: '扛扇上山', desc: '失去 15% 气血；符袋中所有火符点数 +2。铁扇会在终战相助', apply: run => { const d = hurt(run, 0.15); for (const t of run.bag)
+                    if (t.el === 'huo')
+                        t.v += 2; bond(run, 'tieshan', 'done', '你替铁扇公主把芭蕉扇扛上了昆仑。'); return `扇子重得像一座山（-${d}）。扛到半路，你的火符都烫手了。`; } },
+            { label: '收下扇骨', desc: '从两件法宝中选一件；此线就此了结', apply: run => { bond(run, 'tieshan', 'declined', '铁扇公主拆下一根扇骨送了你。'); return relicOffer(run, ['xinhuo', 'chiyan']); } },
+        ] },
+];
+export const EVENT = Object.fromEntries([...EVENTS, ...BOND_EVENTS].map(e => [e.id, e]));

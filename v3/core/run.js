@@ -4,6 +4,7 @@ import { ELEMENTS } from './elements.js';
 import { ENEMIES, ENEMY } from './enemies.js';
 import { EVENTS, EVENT } from './events.js';
 import { PATTERN_ORDER, PATTERNS } from './patterns.js';
+import { BONDS, BOSS_STORY, ENDING } from './story.js';
 import { chance, int, next, pick, sample, seedFrom } from './rng.js';
 export const SAVE_KEY = 'shanhai-v3-run';
 export const MAX_RELIC_SLOTS = 8;
@@ -15,9 +16,11 @@ export function createRun(opts) {
         act: 1, map: [], at: null, visited: [], hp: method.hp, maxHp: method.hp, gold: 30,
         bag: [], nextUid: 1, relics: [], relicSlots: 5,
         patternLv: Object.fromEntries(PATTERN_ORDER.map(id => [id, 1])),
-        talents: [], vow: null, realm: 0, screen: { name: 'map' }, battle: null,
+        talents: [], vow: null, realm: 0, screen: { name: 'story', act: 1 }, battle: null,
         stats: { bestHit: 0, kills: 0, casts: 0, turns: 0, biggestPattern: null, floors: 0 }, log: [],
+        plan: [], bonds: {}, deeds: [], ending: null,
     };
+    run.plan = sample(run.rng, BONDS, 2).map(b => b.id);
     for (const el of ELEMENTS)
         for (let v = 1; v <= 5; v += 1)
             addTile(run, { el, v });
@@ -87,6 +90,17 @@ export function generateMap(run, act) {
             candidate.kind = 'elite';
             candidate.enemy = elite;
             delete candidate.event;
+        }
+    }
+    // 因缘: the planned thread's meeting sits on row 2 — reachable, but a path can skip it.
+    const thread = act <= 2 ? run.plan?.[act - 1] : run.plan?.[act - 3];
+    const meet = !thread ? null : act <= 2 ? `bond-${thread}-1` : run.bonds?.[thread] === 'kept' ? `bond-${thread}-2` : null;
+    if (meet) {
+        const node = pick(rng, nodes.filter(n => n.row === 2 && n.kind !== 'elite'));
+        if (node) {
+            node.kind = 'event';
+            node.event = meet;
+            delete node.enemy;
         }
     }
     nodes.push({ id: id(5, 1), row: 5, col: 1, kind: 'boss', next: [], enemy: boss });
@@ -177,9 +191,12 @@ export function concludeBattle(run) {
     if (heal)
         run.hp = Math.min(run.maxHp, run.hp + heal);
     const kind = battle.kind;
+    const enemyId = battle.enemyId;
     run.battle = null;
+    if (kind === 'boss')
+        run.deeds.push(BOSS_DEED[enemyId] ?? `你击败了${ENEMY[enemyId].name}。`);
     if (kind === 'boss' && run.act === 5) {
-        run.screen = { name: 'won' };
+        run.screen = { name: 'ending' };
         return;
     }
     const extraGold = RELICS.filter(r => run.relics.includes(r.id)).reduce((s, r) => s + (r.flags?.afterGold ?? 0), 0);
@@ -187,8 +204,29 @@ export function concludeBattle(run) {
     run.gold += gold;
     const options = rewardOptions(run, 3);
     const relicOptions = kind === 'fight' ? (chance(run.rng, 0.12) ? relicChoices(run, 1, kind) : []) : relicChoices(run, 3, kind);
-    run.screen = { name: 'reward', gold, options, relicOptions, picked: false, relicPicked: relicOptions.length === 0, next: kind === 'boss' ? 'breakthrough' : 'map' };
+    run.screen = { name: 'reward', gold, options, relicOptions, picked: false, relicPicked: relicOptions.length === 0, next: kind === 'boss' ? 'breakthrough' : 'map', story: kind === 'boss' ? BOSS_STORY[enemyId]?.after : undefined };
 }
+const BOSS_DEED = {
+    gonggong: '你在潮口击退了共工的遗影，知道了水是被叫上山的。',
+    xiangliu: '你在断桥斩了相柳，发现推着河倒流的是火。',
+    xingtian: '你在火海两次击倒刑天，听他说了山顶的劫。',
+    zhulong: '你让烛龙闭上了眼，天门在黑暗里打开。',
+    tianjie: '你在天门渡过了渡厄真人炼了三百年的劫。',
+};
+export function endingAvailable(run, id) {
+    const def = ENDING[id];
+    return !!def && (!def.requires || def.requires(run));
+}
+export function chooseEnding(run, id) {
+    if (run.screen.name !== 'ending' || !endingAvailable(run, id))
+        return false;
+    run.ending = id;
+    run.deeds.push(`你选择了「${ENDING[id].name}」。`);
+    run.screen = { name: 'won' };
+    return true;
+}
+export function leaveStory(run) { if (run.screen.name === 'story')
+    run.screen = { name: 'map' }; }
 // —— Rewards ——
 const MODS = ['lei', 'zhong', 'ling', 'jing'];
 export function randomTile(run, quality = 0) {
@@ -321,7 +359,7 @@ export function advanceAct(run) {
     run.act += 1;
     run.at = null;
     run.map = generateMap(run, run.act);
-    run.screen = { name: 'map' };
+    run.screen = { name: 'story', act: run.act };
 }
 // —— Shop ——
 export function optionPrice(run, option) {
@@ -446,6 +484,7 @@ export function applyVow(run, id) {
     if (!VOW[id] || run.vow)
         return;
     run.vow = id;
+    run.deeds.push(`你在断生碑前立誓「${VOW[id].name}」。`);
     if (id === 'suidan') {
         run.maxHp = Math.round(run.maxHp * 0.6);
         run.hp = Math.min(run.hp, run.maxHp);
@@ -466,6 +505,11 @@ export function deserialize(text) {
         const run = JSON.parse(text);
         if (run?.version !== 3 || !Array.isArray(run.bag) || !run.screen)
             return null;
+        // Runs saved before the story update.
+        run.plan ??= [];
+        run.bonds ??= {};
+        run.deeds ??= [];
+        run.ending ??= null;
         return run;
     }
     catch {

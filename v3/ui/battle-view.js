@@ -3,6 +3,7 @@ import { METHOD, RELIC } from '../core/content.js';
 import { counterOf, EL_NAME, KE } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
 import { PATTERNS } from '../core/patterns.js';
+import { BOND, BOSS_STORY, LORE } from '../core/story.js';
 import * as R from '../core/run.js';
 import { anim, burst, centerOf, comet, EL_COLOR, flash, floatText, hitstop, isSkipping, lightning, reducedMotion, ring, setSkipping, shake, wait } from './fx.js';
 import { $, $$, fmt, fmt1, h } from './h.js';
@@ -31,7 +32,7 @@ export function mountBattle(container) {
     const enemy = ENEMY[b.enemyId];
     if (!app.meta.seen.includes(enemy.id))
         app.meta.seen.push(enemy.id);
-    root = h(`div.scr.battle-scr.rank-${enemy.rank}`, null, h('img.bg', { src: art(ACTS[r.act - 1].bg), alt: '' }), h('div.arena-shade'), h('div.hero-wrap', null, h('img.hero-art', { src: art(`hero-${r.method}`), alt: METHOD[r.method].name }), h('div.hero-shield'), h('div.hero-status'), h('div.hero-bar')), h('div.enemy-wrap', null, h('div.enemy-intent'), h('img.enemy-art', { src: art(enemy.art), alt: enemy.name }), h('div.enemy-status')), h('div.enemy-plate', null, h('div.enemy-name', null, h('span.e-el'), h('b', null, enemy.name), h('small', null, enemy.title)), h('div.enemy-bar'), enemy.traitText ? h('div.enemy-trait', null, enemy.traitText) : null), h('div.wheel-slot'), h('div.turn-tag'), h('div.score-panel', null, h('div.sp-pattern', null, '　'), h('div.sp-row', null, h('div.sp-box.sp-qi', null, h('small', null, '气'), h('b', null, '0')), h('span.sp-x', null, '×'), h('div.sp-box.sp-mult', null, h('small', null, '倍'), h('b', null, '0'))), h('div.sp-dmg')), h('div.lane'), h('div.hand-area', null, h('div.preview-line'), h('div.hand')), h('div.controls', null, h('button.qi-gauge', { type: 'button', 'data-action': 'rage', title: '剑意满时可开怒技（本招 ×3）· 快捷键 R', onclick: () => toggleRage() }, h('div.qi-fill'), h('span.qi-text')), h('button.btn.seal.cast-btn', { type: 'button', 'data-action': 'cast', onclick: () => void doCast() }, h('span.cast-main', null, '出招'), h('small.cast-sub')), h('button.btn.ink.discard-btn', { type: 'button', 'data-action': 'discard', onclick: () => void doDiscard() }, '换符', h('small.discard-left'))), h('div.pile-dock', null, h('button.pile-btn', { type: 'button', onclick: () => showBag(r), title: '查看符袋' }, h('span.pile-draw'), h('small', null, '待抽')), h('button.pile-btn.sort', { type: 'button', title: '整理手牌', onclick: () => { sortMode = sortMode === 'el' ? 'v' : 'el'; renderHand(); } }, '理'), h('button.pile-btn', { type: 'button', title: '诀谱', onclick: () => showHelp() }, '谱')), hud(r, { battle: true }));
+    root = h(`div.scr.battle-scr.rank-${enemy.rank}`, null, h('img.bg', { src: art(ACTS[r.act - 1].bg), alt: '' }), h('div.arena-shade'), h('div.hero-wrap', null, h('img.hero-art', { src: art(`hero-${r.method}`), alt: METHOD[r.method].name }), h('div.hero-shield'), h('div.hero-status'), h('div.hero-bar')), h('div.enemy-wrap', null, h('div.enemy-intent'), h('img.enemy-art', { src: art(enemy.art), alt: enemy.name }), h('div.enemy-status')), h('div.enemy-plate', null, h('div.enemy-name', null, h('span.e-el'), h('b', null, enemy.name), h('small', null, enemy.title)), h('div.enemy-bar'), enemy.traitText ? h('div.enemy-trait', null, enemy.traitText) : null, LORE[enemy.id] ? h('div.enemy-lore', null, LORE[enemy.id]) : null), h('div.wheel-slot'), h('div.turn-tag'), h('div.score-panel', null, h('div.sp-pattern', null, '　'), h('div.sp-row', null, h('div.sp-box.sp-qi', null, h('small', null, '气'), h('b', null, '0')), h('span.sp-x', null, '×'), h('div.sp-box.sp-mult', null, h('small', null, '倍'), h('b', null, '0'))), h('div.sp-dmg')), h('div.lane'), h('div.hand-area', null, h('div.preview-line'), h('div.hand')), h('div.controls', null, h('button.qi-gauge', { type: 'button', 'data-action': 'rage', title: '剑意满时可开怒技（本招 ×3）· 快捷键 R', onclick: () => toggleRage() }, h('div.qi-fill'), h('span.qi-text')), h('button.btn.seal.cast-btn', { type: 'button', 'data-action': 'cast', onclick: () => void doCast() }, h('span.cast-main', null, '出招'), h('small.cast-sub')), h('button.btn.ink.discard-btn', { type: 'button', 'data-action': 'discard', onclick: () => void doDiscard() }, '换符', h('small.discard-left'))), h('div.pile-dock', null, h('button.pile-btn', { type: 'button', onclick: () => showBag(r), title: '查看符袋' }, h('span.pile-draw'), h('small', null, '待抽')), h('button.pile-btn.sort', { type: 'button', title: '整理手牌', onclick: () => { sortMode = sortMode === 'el' ? 'v' : 'el'; renderHand(); } }, '理'), h('button.pile-btn', { type: 'button', title: '诀谱', onclick: () => showHelp() }, '谱')), hud(r, { battle: true }));
     container.appendChild(root);
     root.addEventListener('pointerdown', () => { if (busy)
         setSkipping(true); });
@@ -49,13 +50,100 @@ export function unmountBattle() {
     setSkipping(false);
 }
 async function intro() {
-    const enemy = ENEMY[battle().enemyId];
+    const b = battle();
+    const enemy = ENEMY[b.enemyId];
     const art = $('.enemy-art', root);
     void anim(art, [{ transform: 'translateX(120px) scale(.9)', opacity: 0, filter: 'brightness(4)' }, { transform: 'none', opacity: 1, filter: 'none' }], 520);
+    const fresh = b.turn === 1 && b.castCount === 0;
+    if (enemy.rank === 'boss' && fresh && BOSS_STORY[enemy.id]) {
+        busy = true;
+        refreshControls();
+        await dialogue(enemy.name, BOSS_STORY[enemy.id].before);
+        busy = false;
+        refreshControls();
+    }
     if (enemy.rank !== 'fight') {
         playSfx('stamp');
         banner(enemy.rank === 'boss' ? enemy.name : `精英 · ${enemy.name}`, enemy.title, enemy.rank);
     }
+    if (fresh && b.assists?.length) {
+        busy = true;
+        refreshControls();
+        await wait(900);
+        for (const id of b.assists)
+            await assist(id);
+        syncDisp();
+        refreshAll();
+        busy = false;
+        refreshControls();
+    }
+}
+/** Tap-through dialogue box; resolves when every line has been read. */
+function dialogue(speaker, lines) {
+    return new Promise(resolve => {
+        let i = 0;
+        const text = h('p.dlg-text');
+        const box = h('div.dialogue', null, h('div.dlg-name.brush', null, speaker), text, h('small.dlg-more', null, '点击继续 ▸'));
+        const show = () => { text.textContent = lines[i]; anim(text, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], 260); };
+        const next = (e) => {
+            e?.stopPropagation();
+            i += 1;
+            if (i >= lines.length) {
+                window.removeEventListener('keydown', key, true);
+                box.remove();
+                resolve();
+                return;
+            }
+            playSfx('click');
+            show();
+        };
+        const key = (e) => { if (['Enter', ' ', 'Escape'].includes(e.key)) {
+            e.preventDefault();
+            e.stopPropagation();
+            next();
+        } };
+        box.addEventListener('click', next);
+        window.addEventListener('keydown', key, true);
+        root.appendChild(box);
+        show();
+    });
+}
+async function assist(id) {
+    const def = BOND[id];
+    if (!def)
+        return;
+    playSfx('reward');
+    const card = h('div.assist-card', null, h('div.assist-glyph.brush', null, def.glyph), h('div.assist-body', null, h('b', null, `因缘 · ${def.name}`), h('p', null, def.assistLine), h('small', null, def.assist)));
+    root.appendChild(card);
+    await anim(card, [{ opacity: 0, transform: 'translate(-50%, 30px)' }, { opacity: 1, transform: 'translate(-50%, 0)' }], 320, { fill: 'forwards' });
+    const e = centerOf($('.enemy-art', root)), p = centerOf($('.hero-art', root));
+    if (id === 'houyi') {
+        await comet({ x: p.x, y: p.y - 80 }, e, '#f6d36b', 260, 30);
+        flash();
+        shake(3);
+        burst(e.x, e.y, '#fff4d6', 40, 1.4);
+        playSfx('heavy');
+    }
+    if (id === 'tieshan') {
+        burst(e.x, e.y, '#ff5a2c', 60, 1.2, 'ember');
+        playSfx('burn');
+    }
+    if (id === 'shennong') {
+        ring(p.x, p.y, '#4fdc8e', 140);
+        ring(p.x, p.y, '#45c9f5', 170);
+        playSfx('heal');
+    }
+    if (id === 'nezha') {
+        burst(p.x, p.y, '#c86cff', 40, 1, 'ember');
+        playSfx('rage');
+    }
+    if (id === 'jingwei' || id === 'yu') {
+        ring(e.x, e.y, '#45c9f5', 180);
+        playSfx('shield');
+    }
+    await wait(1500);
+    await anim(card, [{ opacity: 1 }, { opacity: 0 }], 260, { fill: 'forwards' });
+    card.remove();
 }
 function syncDisp() {
     const b = battle();
@@ -674,7 +762,9 @@ async function playEvent(ev, side) {
             const to = centerOf($('.pile-btn', root));
             playSfx('curse');
             await Promise.all(Array.from({ length: ev.n }, (_, i) => wait(i * 90).then(() => comet(from, to, '#8a7f95', 380, 30))));
-            toast(`${ev.n} 枚浊符混入你的符袋`, 'bad');
+            if (!ev.n)
+                ring(from.x, from.y, '#45c9f5', 160);
+            toast(ev.n ? `${ev.n} 枚浊符混入你的符袋` : '精卫的石子填住了劫云——浊符没有落下', ev.n ? 'bad' : '');
             return;
         }
         case 'charge': {

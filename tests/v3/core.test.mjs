@@ -191,3 +191,62 @@ test('relics: full slots require a replacement and every relic has a description
   for (const r of RELICS) assert.ok(r.desc && r.name && r.glyph, r.id);
   assert.ok(Object.values(ENEMY).every(e => e.moves.length >= 3));
 });
+
+import { BONDS, ENDINGS, BOSS_STORY, LORE, ACT_STORY } from '../../build/v3/core/story.js';
+import { EVENT } from '../../build/v3/core/events.js';
+
+test('story: every run opens on the act scroll and plans two 因缘 threads', () => {
+  const run = R.createRun({ seed: 'story', method: 'yangjian' });
+  assert.deepEqual(run.screen, { name: 'story', act: 1 });
+  assert.equal(run.plan.length, 2);
+  assert.notEqual(run.plan[0], run.plan[1]);
+  assert.ok(run.map.some(n => n.event === `bond-${run.plan[0]}-1` && n.row === 2), 'first meeting sits on the act 1 map');
+  R.leaveStory(run);
+  assert.equal(run.screen.name, 'map');
+  for (let act = 1; act <= 5; act += 1) assert.ok(ACT_STORY[act].prelude.length && ACT_STORY[act].goal);
+  for (const id of ['gonggong', 'xiangliu', 'xingtian', 'zhulong', 'tianjie']) assert.ok(BOSS_STORY[id].before.length && BOSS_STORY[id].after);
+  for (const e of Object.values(ENEMY)) assert.ok(LORE[e.id], `lore for ${e.id}`);
+});
+
+test('story: a kept promise brings the second meeting; a declined one never does', () => {
+  for (const b of BONDS) {
+    for (const keep of [true, false]) {
+      const run = R.createRun({ seed: `bond-${b.id}`, method: 'yuhuo' });
+      run.plan = [b.id, BONDS.find(x => x.id !== b.id).id];
+      run.gold = 100;
+      run.screen = { name: 'event', event: `bond-${b.id}-1` };
+      R.chooseEvent(run, keep ? 0 : 1);
+      assert.equal(run.bonds[b.id], keep ? 'kept' : 'declined', b.id);
+      assert.ok(run.deeds.length === 1);
+      const act3 = R.generateMap(run, 3);
+      assert.equal(act3.some(n => n.event === `bond-${b.id}-2`), keep, `${b.id} second meeting only when kept`);
+      if (keep) {
+        run.screen = { name: 'event', event: `bond-${b.id}-2` };
+        R.chooseEvent(run, 0);
+        assert.equal(run.bonds[b.id], 'done');
+        assert.ok(run.hp >= 1);
+      }
+    }
+  }
+  for (const id of Object.keys(EVENT).filter(k => k.startsWith('bond-'))) assert.ok(EVENT[id].bond);
+});
+
+test('story: completed threads help in the final battle; 补天 needs two of them', () => {
+  const run = R.createRun({ seed: 'final', method: 'yangjian' });
+  run.act = 5;
+  const plain = startBattle(run, 'tianjie', 'boss');
+  run.bonds = { houyi: 'done', jingwei: 'done', yu: 'kept' };
+  const helped = startBattle(run, 'tianjie', 'boss');
+  assert.deepEqual(helped.assists.sort(), ['houyi', 'jingwei']);
+  assert.ok(helped.enemy.hp < plain.enemy.hp, '后羿 first arrow');
+  assert.equal(helped.stacks.noCurse, 1, '精卫 blocks curses');
+  run.screen = { name: 'ending' };
+  assert.equal(R.endingAvailable(run, 'pillar'), true);
+  run.bonds = { houyi: 'done' };
+  assert.equal(R.endingAvailable(run, 'pillar'), false);
+  assert.equal(R.chooseEnding(run, 'pillar'), false);
+  assert.equal(R.chooseEnding(run, 'return'), true);
+  assert.equal(run.screen.name, 'won');
+  assert.equal(run.ending, 'return');
+  assert.equal(ENDINGS.length, 3);
+});

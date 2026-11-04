@@ -56,6 +56,11 @@ for (const [label, viewport] of [['landscape', { width: 1366, height: 768 }], ['
   await page.click('[data-method="jingang"]');
   await inStage(page, `${label} select`);
   await page.click('[data-action="start"]');
+  // Act 1 opens on the story scroll; tap once to reveal everything, then set off.
+  await page.waitForSelector('.story-scr');
+  await inStage(page, `${label} story`);
+  await page.click('.story-card');
+  await page.click('.story-go');
   await page.waitForSelector('.map-node.reach');
   await inStage(page, `${label} map`);
   await page.locator('.map-node.reach').first().click();

@@ -5,6 +5,7 @@ import { EVENT } from '../core/events.js';
 import { PATTERNS } from '../core/patterns.js';
 import * as R from '../core/run.js';
 import type { MapNode, RewardOption, RunState, Screen } from '../core/types.js';
+import { ACT_STORY, BOND, BONDS, ENDING, ENDINGS, LORE } from '../core/story.js';
 import { burst, EL_COLOR, ring, shake, flash } from './fx.js';
 import { fmt, h } from './h.js';
 import { app, act, closeOverlays, go, portrait, render, save, showOverlay, stageSize, toast } from './main.js';
@@ -29,6 +30,8 @@ export function renderScreen(): HTMLElement {
     case 'rest': return withHud(run, restScreen(run, s));
     case 'pick-tile': return withHud(run, pickTileScreen(run, s));
     case 'won': case 'lost': return endScreen(run);
+    case 'story': return storyScreen(run, s.act);
+    case 'ending': return endingChoiceScreen(run);
     default: return h('div');
   }
 }
@@ -45,6 +48,7 @@ function titleScreen() {
         '续 行', h('small', null, `${METHOD[saved.method].name} · ${ACTS[saved.act - 1].name}`)) : null,
       h('button.btn.seal.big' + (saved ? '.ghost' : ''), { type: 'button', 'data-action': 'new-run', onclick: () => { playSfx('click'); go('select'); } }, saved ? '另起一局' : '入 山 海'),
       h('button.btn.ink', { type: 'button', onclick: () => showHelp() }, '诀谱 · 怎么玩'),
+      h('button.btn.ink', { type: 'button', 'data-action': 'codex', onclick: () => showCodex() }, '山海图鉴 · 结局'),
       app.meta.runs ? h('div.title-records', null,
         `已入山海 ${app.meta.runs} 次 · 渡劫 ${app.meta.wins} 次`, h('br'),
         app.meta.bestHit ? `最强一招 ${fmt(app.meta.bestHit)}（${METHOD[app.meta.bestHitMethod ?? '']?.name ?? ''}）` : '') : null),
@@ -106,6 +110,7 @@ export function hud(run: RunState, opts: { battle?: boolean } = {}) {
       opts.battle ? null : bar('hp', hp, run.maxHp)),
     h('div.hud-mid', null, relicRow(run)),
     h('div.hud-right', null,
+      bondChips(run),
       h('span.gold', { title: '灵石' }, h('i', null, '◆'), fmt(run.gold)),
       h('span.act-tag', null, `${ACTS[run.act - 1].name}`),
       h('button.icon-btn', { type: 'button', title: '符袋', 'data-action': 'bag', onclick: () => showBag(run) }, '袋', h('small', null, String(run.bag.length))),
@@ -248,21 +253,23 @@ function mapScreen(run: RunState) {
     const p = nodePos(node, run);
     const enemy = node.enemy ? ENEMY[node.enemy] : null;
     const isReach = reach.has(node.id);
-    const btn = h(`button.map-node.k-${node.kind}${isReach ? '.reach' : ''}${visited.has(node.id) ? '.done' : ''}${node.id === run.at ? '.here' : ''}`, {
+    const bondEvent = node.event?.startsWith('bond-') ? EVENT[node.event] : null;
+    const btn = h(`button.map-node.k-${node.kind}${bondEvent ? '.k-bond' : ''}${isReach ? '.reach' : ''}${visited.has(node.id) ? '.done' : ''}${node.id === run.at ? '.here' : ''}`, {
       type: 'button', 'data-node': node.id, 'data-kind': node.kind, disabled: !isReach || undefined,
       style: { left: `${p.x}px`, top: `${p.y}px` },
-      title: `${NODE_NAME[node.kind]}${enemy ? ` · ${enemy.name}（${EL_NAME[enemy.el]}）` : ''}`,
+      title: bondEvent ? `因缘 · ${BOND[bondEvent.bond!].name}` : `${NODE_NAME[node.kind]}${enemy ? ` · ${enemy.name}（${EL_NAME[enemy.el]}）` : ''}`,
       onclick: () => act(r => R.enterNode(r, node.id), node.kind === 'boss' ? 'stamp' : 'click'),
     },
     node.kind === 'boss' && enemy ? h('img.node-art', { src: art(enemy.art), alt: '' }) : null,
-    h('span.node-glyph', null, NODE_GLYPH[node.kind]),
+    h('span.node-glyph', null, node.event?.startsWith('bond-') ? '缘' : NODE_GLYPH[node.kind]),
     enemy && node.kind !== 'boss' ? h('span.node-el', { class: `el-${enemy.el}` }, EL_NAME[enemy.el]) : null,
-    node.kind === 'boss' && enemy ? h('span.node-label', null, enemy.name) : null);
+    node.kind === 'boss' && enemy ? h('span.node-label', null, enemy.name) : null,
+    bondEvent ? h('span.node-label.bond-label', null, BOND[bondEvent.bond!].name) : null);
     return btn;
   });
   const a = ACTS[run.act - 1];
   return h('div.map', null,
-    h('div.map-title', null, h('span.act-no', null, run.act === 5 ? '终幕' : `第${'一二三四'[run.act - 1]}幕`), h('span.brush', null, a.name), h('small', null, a.sub)),
+    h('div.map-title', null, h('span.act-no', null, run.act === 5 ? '终幕' : `第${'一二三四'[run.act - 1]}幕`), h('span.brush', null, a.name), h('small', null, ACT_STORY[run.act]?.goal ?? a.sub)),
     h('div.map-lines', { html: `<svg viewBox="0 0 ${size.w} ${size.h}" width="100%" height="100%">${lines}</svg>` }),
     ...nodes,
     h('div.map-legend', null, ...Object.keys(NODE_GLYPH).map(k => h('span', null, h('i', { class: `k-${k}` }, NODE_GLYPH[k]), NODE_NAME[k])),
@@ -278,6 +285,7 @@ function rewardScreen(run: RunState, s: Extract<Screen, { name: 'reward' }>) {
   };
   return h('div.panel-scr.reward', null,
     h('h1.brush.big-title', null, '斩 获'),
+    s.story ? h('p.story-quote', null, s.story) : null,
     s.gold ? h('div.reward-gold', null, h('i', null, '◆'), ` +${s.gold} 灵石`) : null,
     s.relicOptions.length ? h('div.reward-block', null, h('h3', null, s.relicPicked ? '法宝已取' : '择一件法宝'),
       h('div.cards', null, ...s.relicOptions.map((o, i) => cardButton(run, o, () => pickRelic(i), s.relicPicked)))) : null,
@@ -333,12 +341,15 @@ function shopScreen(run: RunState, s: Extract<Screen, { name: 'shop' }>) {
 // —— Event ——
 function eventScreen(run: RunState, s: Extract<Screen, { name: 'event' }>) {
   const def = EVENT[s.event];
-  return h('div.panel-scr.event', null,
+  return h(`div.panel-scr.event${def.bond ? '.bond-event' : ''}`, null,
+    def.bond ? h('div.bond-kicker', null, s.event.endsWith('-2') ? '因缘 · 再遇' : '因缘 · 初遇') : null,
     h('div.event-glyph.brush', null, def.glyph),
     h('h1.brush', null, def.title),
     h('p.event-text', null, def.text),
     s.resolved !== undefined
-      ? h('div.event-result', null, h('p', null, s.resolved), h('button.btn.seal', { type: 'button', 'data-action': 'continue', onclick: () => act(r => R.leaveEvent(r)) }, '继 续'))
+      ? h('div.event-result', null, h('p', null, s.resolved),
+        def.bond && run.bonds[def.bond] === 'kept' ? h('p.bond-note', null, `与${BOND[def.bond].name}有约。后面的路上，还会再见。`) : null,
+        def.bond && run.bonds[def.bond] === 'done' ? h('p.bond-note', null, `${BOND[def.bond].name}将在天门相助：${BOND[def.bond].assist}`) : null, h('button.btn.seal', { type: 'button', 'data-action': 'continue', onclick: () => act(r => R.leaveEvent(r)) }, '继 续'))
       : h('div.event-options', null, ...def.options.map((o, i) => {
         const can = !o.can || o.can(run);
         return h('button.event-opt', { type: 'button', disabled: !can || undefined, 'data-option': i, onclick: () => act(r => R.chooseEvent(r, i), 'stamp') }, h('b', null, o.label), h('span', null, o.desc));
@@ -385,7 +396,7 @@ function pickTileScreen(run: RunState, s: Extract<Screen, { name: 'pick-tile' }>
 export function finishRun(run: RunState) {
   if (run.log.includes('finished')) return;
   run.log.push('finished');
-  app.endReport = recordRunEnd(app.meta, { won: run.screen.name === 'won', method: run.method, heat: run.heat, bestHit: run.stats.bestHit });
+  app.endReport = recordRunEnd(app.meta, { won: run.screen.name === 'won', method: run.method, heat: run.heat, bestHit: run.stats.bestHit, ending: run.ending });
   save();
 }
 
@@ -396,8 +407,10 @@ function endScreen(run: RunState) {
   setTimeout(() => { playSfx(won ? 'victory' : 'defeat'); if (won) { const c = document.querySelector('.end-seal'); if (c) { const r = c.getBoundingClientRect(); void r; } burst(portrait ? 360 : 640, portrait ? 420 : 260, '#f6d36b', 80, 2); ring(portrait ? 360 : 640, portrait ? 420 : 260, '#ffdf8a', 240); } }, 200);
   return h(`div.scr.end-scr${won ? '.won' : '.lost'}`, null,
     h('img.bg.dim', { src: art(won ? 'bg-title' : ACTS[Math.min(4, run.act - 1)].bg), alt: '' }),
-    h('div.end-seal.brush', null, won ? '渡劫' : '道消'),
-    h('div.end-sub', null, won ? `${METHOD[run.method].name}，飞升。` : `止步${ACTS[run.act - 1].name}。山海还在，再来。`),
+    h('div.end-seal.brush', null, won ? (run.ending ? ENDING[run.ending].name : '渡劫') : '道消'),
+    h('div.end-sub', null, won ? (report?.newEnding ? `新结局 · ${app.meta.endings.length}/${ENDINGS.length}` : `结局 ${app.meta.endings.length}/${ENDINGS.length}`) : `止步${ACTS[run.act - 1].name}。山海还在，再来。`),
+    won && run.ending ? h('div.ending-text.inline', null, ...ENDING[run.ending].text.map((t, i) => h('p', { style: { animationDelay: `${0.6 + i * 0.8}s` } }, t))) : null,
+    h('button.btn.ink.small', { type: 'button', 'data-action': 'deeds', onclick: () => showDeeds(run) }, won ? '回看此行' : '此行行迹'),
     h('div.end-stats', null,
       stat('最强一招', fmt(run.stats.bestHit), report?.newBest ? '新纪录' : ''),
       stat('最高诀式', run.stats.biggestPattern ? PATTERNS[run.stats.biggestPattern].name : '—'),
@@ -412,5 +425,69 @@ function endScreen(run: RunState) {
       h('button.btn.ink', { type: 'button', onclick: () => { app.run = null; save(); go('title'); } }, '回到标题')));
 }
 const stat = (label: string, value: string, badge = '') => h('div.stat', null, h('small', null, label), h('b', null, value), badge ? h('span.badge', null, badge) : null);
+
+// —— Story ——
+function bondChips(run: RunState) {
+  const live = Object.entries(run.bonds ?? {}).filter(([, st]) => st === 'kept' || st === 'done');
+  if (!live.length) return null;
+  return h('span.bond-chips', null, ...live.map(([id, st]) => h(`span.bond-chip.${st}`, { title: `${BOND[id].name}：${st === 'done' ? `守约 · 终战相助（${BOND[id].assist}）` : '有约在身，后面还会再见'}` }, BOND[id].glyph)));
+}
+
+function storyScreen(run: RunState, actNo: number) {
+  const story = ACT_STORY[actNo];
+  const lines = story.prelude.map((line, i) => h('p.story-line', { style: { animationDelay: `${0.35 + i * 0.9}s` } }, line));
+  const go = h('button.btn.seal.big.story-go', { type: 'button', 'data-action': 'continue', style: { animationDelay: `${0.5 + story.prelude.length * 0.9}s` }, onclick: () => act(r => R.leaveStory(r), 'stamp') }, actNo === 5 ? '入 天 门' : '启 程');
+  const scr = h('div.scr.story-scr', { onclick: (e: Event) => { if (e.target !== go) scr.classList.add('instant'); } },
+    h('img.bg', { src: art(ACTS[actNo - 1].bg), alt: '' }),
+    h('div.story-shade'),
+    h('div.story-card', null,
+      h('div.story-act', null, story.title.split(' · ')[0]),
+      h('h1.brush.story-title', null, story.title.split(' · ')[1] ?? story.title),
+      ...lines,
+      h('p.story-goal', { style: { animationDelay: `${0.35 + story.prelude.length * 0.9}s` } }, '此行：', story.goal),
+      actNo === 1 && run.plan.length ? h('p.story-hint', { style: { animationDelay: `${0.35 + story.prelude.length * 0.9}s` } }, '山海路上会遇见一些人。答应过的事，到最后都会回来找你。') : null,
+      go));
+  return scr;
+}
+
+function endingChoiceScreen(run: RunState) {
+  const done = BONDS.filter(b => run.bonds[b.id] === 'done');
+  return h('div.scr.ending-scr', null,
+    h('img.bg.dim', { src: art('bg-final'), alt: '' }),
+    h('div.jie-seed'),
+    h('div.ending-head', null, h('h1.brush', null, '劫 种'), h('p', null, '三百年的海与雷，缩成一粒滚烫的种子，在你掌心里跳。'),
+      done.length ? h('p.dim', null, `${done.map(b => b.name).join('、')}站在你身后。`) : null),
+    h('div.ending-choices', null, ...ENDINGS.map(e => {
+      const ok = R.endingAvailable(run, e.id);
+      return h(`button.ending-opt${ok ? '' : '.locked'}`, { type: 'button', disabled: !ok || undefined, 'data-ending': e.id, onclick: () => act(r => R.chooseEnding(r, e.id), 'breakthrough') },
+        h('b.brush', null, ok ? e.name : '？'), h('span', null, ok ? e.choice : '……'), h('small', null, ok ? e.desc : e.lockedHint ?? ''));
+    })));
+}
+
+function showDeeds(run: RunState) {
+  const ending = run.ending ? ENDING[run.ending] : null;
+  showOverlay(h('div.deeds', null,
+    ending ? h('h2.brush', null, ending.name) : h('h2.brush', null, '行 迹'),
+    ending ? h('div.ending-text', null, ...ending.text.map(t => h('p', null, t))) : null,
+    h('h3', null, '此行'),
+    run.deeds.length ? h('ol.deed-list', null, ...run.deeds.map(d => h('li', null, d))) : h('p.dim', null, '这一路什么也没有留下。'),
+    h('div.deed-bonds', null, ...run.plan.map(id => {
+      const st = run.bonds[id];
+      return h('span.chip', null, `${BOND[id].name}：${st === 'done' ? '守约' : st === 'kept' ? '有约未践' : st === 'declined' ? '缘尽' : '未曾相遇'}`);
+    }))));
+}
+
+export function showCodex() {
+  const seen = new Set(app.meta.seen);
+  const enemies = Object.values(ENEMY);
+  showOverlay(h('div.codex', null,
+    h('h2.brush', null, '山 海 图 鉴'),
+    h('div.codex-endings', null, ...ENDINGS.map(e => h(`div.codex-ending${app.meta.endings.includes(e.id) ? '.got' : ''}`, null, h('b.brush', null, app.meta.endings.includes(e.id) ? e.name : '？'), h('small', null, app.meta.endings.includes(e.id) ? e.choice : '尚未见到的结局')))),
+    h('div.codex-grid', null, ...enemies.map(e => {
+      const known = seen.has(e.id);
+      return h(`div.codex-card${known ? '' : '.unknown'}`, { title: known ? `${e.name}：${LORE[e.id] ?? ''}` : '尚未遇见' },
+        h('img', { src: art(e.art), alt: '' }), h('b', null, known ? e.name : '？？'), h('small', null, known ? LORE[e.id] ?? e.title : `${ACTS[e.act - 1].name}`));
+    }))));
+}
 
 export { toast, EL_COLOR, GEN_TEXT };

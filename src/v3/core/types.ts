@@ -66,6 +66,8 @@ export interface BattleState {
   stacks: Record<string, number>; // per-battle growth counters
   outcome: 'fighting' | 'won' | 'lost';
   bestHit: number;
+  /** 因缘 that came to help in this battle (final only). */
+  assists?: string[];
 }
 
 export type NodeKind = 'fight' | 'elite' | 'event' | 'shop' | 'rest' | 'boss';
@@ -92,7 +94,9 @@ export interface ShopItem { option: RewardOption; price: number; sold: boolean }
 export type Screen =
   | { name: 'map' }
   | { name: 'battle' }
-  | { name: 'reward'; gold: number; options: RewardOption[]; relicOptions: RewardOption[]; picked: boolean; relicPicked: boolean; next: 'map' | 'breakthrough' }
+  | { name: 'reward'; gold: number; options: RewardOption[]; relicOptions: RewardOption[]; picked: boolean; relicPicked: boolean; next: 'map' | 'breakthrough'; story?: string }
+  | { name: 'story'; act: number }
+  | { name: 'ending' }
   | { name: 'breakthrough'; options: RewardOption[] }
   | { name: 'shop'; items: ShopItem[]; removePrice: number; removed: boolean }
   | { name: 'event'; event: string; resolved?: string }
@@ -126,4 +130,10 @@ export interface RunState {
   battle: BattleState | null;
   stats: { bestHit: number; kills: number; casts: number; turns: number; biggestPattern: PatternId | null; floors: number };
   log: string[];
+  /** The two 因缘 threads planned for this run: [act1→act3, act2→act4]. */
+  plan: string[];
+  bonds: Record<string, 'kept' | 'declined' | 'done'>;
+  /** 行迹: one line per meaningful thing that actually happened. */
+  deeds: string[];
+  ending: string | null;
 }

@@ -12,9 +12,10 @@ export interface Meta {
   sound: boolean;
   speed: 1 | 2;
   tutorialDone: boolean;
+  endings: string[];
 }
 export const META_KEY = 'shanhai-v3-meta';
-const DEFAULT: Meta = { runs: 0, wins: 0, bestHit: 0, bestHitMethod: null, unlocked: [], heatWon: {}, maxHeat: 0, seen: [], sound: true, speed: 1, tutorialDone: false };
+const DEFAULT: Meta = { runs: 0, wins: 0, bestHit: 0, bestHitMethod: null, unlocked: [], heatWon: {}, maxHeat: 0, seen: [], sound: true, speed: 1, tutorialDone: false, endings: [] };
 
 export function readMeta(storage: Pick<Storage, 'getItem'> | undefined = globalThis.localStorage): Meta {
   try {
@@ -31,6 +32,7 @@ export function readMeta(storage: Pick<Storage, 'getItem'> | undefined = globalT
       sound: raw.sound !== false,
       speed: raw.speed === 2 ? 2 : 1,
       tutorialDone: raw.tutorialDone === true,
+      endings: Array.isArray(raw.endings) ? raw.endings.filter((x: unknown) => typeof x === 'string') : [],
     };
   } catch {
     return { ...DEFAULT };
@@ -41,8 +43,8 @@ export function writeMeta(meta: Meta, storage: Pick<Storage, 'setItem'> | undefi
   try { storage?.setItem(META_KEY, JSON.stringify(meta)); } catch { /* storage unavailable */ }
 }
 
-export interface RunEnd { won: boolean; method: string; heat: number; bestHit: number }
-export interface EndReport { newBest: boolean; unlockedMethod: string | null; unlockedHeat: number | null }
+export interface RunEnd { won: boolean; method: string; heat: number; bestHit: number; ending?: string | null }
+export interface EndReport { newBest: boolean; unlockedMethod: string | null; unlockedHeat: number | null; newEnding: boolean }
 
 export function recordRunEnd(meta: Meta, end: RunEnd): EndReport {
   meta.runs += 1;
@@ -50,11 +52,13 @@ export function recordRunEnd(meta: Meta, end: RunEnd): EndReport {
   if (end.bestHit > meta.bestHit) { meta.bestHit = end.bestHit; meta.bestHitMethod = end.method; }
   let unlockedMethod: string | null = null;
   let unlockedHeat: number | null = null;
+  let newEnding = false;
+  if (end.won && end.ending && !meta.endings.includes(end.ending)) { meta.endings.push(end.ending); newEnding = true; }
   if (end.won) {
     meta.wins += 1;
     if (!meta.unlocked.includes('zhulong')) { meta.unlocked.push('zhulong'); unlockedMethod = 'zhulong'; }
     meta.heatWon[end.method] = Math.max(meta.heatWon[end.method] ?? -1, end.heat);
     if (end.heat >= meta.maxHeat && meta.maxHeat < 10) { meta.maxHeat = end.heat + 1; unlockedHeat = meta.maxHeat; }
   }
-  return { newBest, unlockedMethod, unlockedHeat };
+  return { newBest, unlockedMethod, unlockedHeat, newEnding };
 }

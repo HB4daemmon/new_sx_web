@@ -29,9 +29,34 @@ export function startBattle(run, enemyId, kind) {
     };
     if (has(run, 'jinshen'))
         battle.player.shield += 20 * Math.max(1, run.realm);
+    if (def.act === 5 && def.rank === 'boss')
+        applyAssists(run, battle);
     turnStartShield(run, battle);
     drawTo(run, battle);
     return battle;
+}
+/** 因缘相助: completed threads show up for the final tribulation. */
+function applyAssists(run, battle) {
+    const done = Object.entries(run.bonds ?? {}).filter(([, s]) => s === 'done').map(([id]) => id);
+    battle.assists = done;
+    for (const id of done) {
+        if (id === 'jingwei')
+            battle.stacks.noCurse = 1;
+        if (id === 'yu')
+            battle.stacks.calm = 1;
+        if (id === 'houyi')
+            battle.enemy.hp = Math.round(battle.enemy.hp * 0.85);
+        if (id === 'shennong') {
+            battle.player.hp = battle.player.maxHp;
+            battle.player.shield += Math.round(battle.player.maxHp / 2);
+        }
+        if (id === 'nezha') {
+            battle.qi = 100;
+            battle.discardsLeft = discardsPerTurn(run) + 1;
+        }
+        if (id === 'tieshan')
+            battle.enemy.burn += Math.round(battle.enemy.maxHp * 0.03);
+    }
 }
 function turnStartShield(run, battle) {
     const plate = relicFlag(run, 'turnShield');
@@ -55,7 +80,7 @@ function drawTo(run, battle) {
 export function enemyAttack(run, battle, move = battle.enemy.intent) {
     if (!move.atk)
         return 0;
-    return Math.round((scaleAtk(run, battle, move.atk) + battle.enemy.atkBonus) * (battle.enemy.charged ? 2 : 1));
+    return Math.round((scaleAtk(run, battle, move.atk) + battle.enemy.atkBonus) * (battle.enemy.charged ? 2 : 1) * (battle.stacks.calm ? 0.8 : 1));
 }
 export function discardTiles(run, battle, uids) {
     if (battle.outcome !== 'fighting' || battle.discardsLeft <= 0 || !uids.length || uids.length > MAX_CAST)
@@ -261,7 +286,9 @@ function enemyTurn(run, battle, events) {
         battle.player.burn += Math.round(move.burn * ACT_ATK[actOf(run)]);
         events.push({ k: 'burn', to: 'player', amount: Math.round(move.burn * ACT_ATK[actOf(run)]) });
     }
-    if (move.curse) {
+    if (move.curse && battle.stacks.noCurse)
+        events.push({ k: 'curse', n: 0 });
+    else if (move.curse) {
         for (let i = 0; i < move.curse; i += 1) {
             const tile = { uid: -(battle.castCount * 10 + i + 1) - battle.turn * 1000, el: 'zhuo', v: 0 };
             battle.draw.splice(int(run.rng, 0, battle.draw.length), 0, tile);

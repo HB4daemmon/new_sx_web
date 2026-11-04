@@ -72,6 +72,7 @@ function chooseNode(run) {
   const options = R.reachable(run);
   const score = n => {
     const low = run.hp < run.maxHp * 0.45;
+    if (n.event?.startsWith('bond-')) return 20;
     return ({ rest: low ? 10 : 2, shop: run.gold >= 90 ? 6 : 1, event: 4, fight: low ? 1 : 5, elite: low ? 0 : 6, boss: 9 })[n.kind];
   };
   return options.sort((a, b) => score(b) - score(a))[0];
@@ -102,6 +103,8 @@ export function playRun(run, log = () => {}) {
         break;
       }
       case 'breakthrough': R.chooseBreakthrough(run, 0); break;
+      case 'story': R.leaveStory(run); break;
+      case 'ending': R.chooseEnding(run, R.endingAvailable(run, 'pillar') ? 'pillar' : 'return'); break;
       case 'shop': {
         s.items.forEach((item, i) => { if (!item.sold && run.gold >= item.price && (item.option.type === 'relic' ? run.relics.length < run.relicSlots : item.option.type === 'pattern')) R.buy(run, i); });
         R.leaveShop(run);

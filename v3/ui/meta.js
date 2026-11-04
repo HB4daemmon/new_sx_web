@@ -1,5 +1,5 @@
 export const META_KEY = 'shanhai-v3-meta';
-const DEFAULT = { runs: 0, wins: 0, bestHit: 0, bestHitMethod: null, unlocked: [], heatWon: {}, maxHeat: 0, seen: [], sound: true, speed: 1, tutorialDone: false };
+const DEFAULT = { runs: 0, wins: 0, bestHit: 0, bestHitMethod: null, unlocked: [], heatWon: {}, maxHeat: 0, seen: [], sound: true, speed: 1, tutorialDone: false, endings: [] };
 export function readMeta(storage = globalThis.localStorage) {
     try {
         const raw = JSON.parse(storage?.getItem(META_KEY) ?? 'null');
@@ -16,6 +16,7 @@ export function readMeta(storage = globalThis.localStorage) {
             sound: raw.sound !== false,
             speed: raw.speed === 2 ? 2 : 1,
             tutorialDone: raw.tutorialDone === true,
+            endings: Array.isArray(raw.endings) ? raw.endings.filter((x) => typeof x === 'string') : [],
         };
     }
     catch {
@@ -37,6 +38,11 @@ export function recordRunEnd(meta, end) {
     }
     let unlockedMethod = null;
     let unlockedHeat = null;
+    let newEnding = false;
+    if (end.won && end.ending && !meta.endings.includes(end.ending)) {
+        meta.endings.push(end.ending);
+        newEnding = true;
+    }
     if (end.won) {
         meta.wins += 1;
         if (!meta.unlocked.includes('zhulong')) {
@@ -49,5 +55,5 @@ export function recordRunEnd(meta, end) {
             unlockedHeat = meta.maxHeat;
         }
     }
-    return { newBest, unlockedMethod, unlockedHeat };
+    return { newBest, unlockedMethod, unlockedHeat, newEnding };
 }
