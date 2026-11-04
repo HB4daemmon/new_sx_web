@@ -1,0 +1,209 @@
+{
+ "schemaVersion": 1,
+ "provenance": {
+  "imageModel": "gpt-image-2.5",
+  "generator": "imagegen skill CLI (generate --quality high --no-augment)",
+  "prompts": "tools/v3-art/prompts.jsonl",
+  "processing": "black background keyed by border-connected flood fill, cropped, WebP"
+ },
+ "assets": [
+  {
+   "id": "a1-boss",
+   "file": "assets/v3/a1-boss.webp",
+   "sourceSha256": "4473a3024332f9e7646b735c8c79c239696280d1e17b16b7e617169c9c4ad156",
+   "bytes": 204328
+  },
+  {
+   "id": "a1-chi",
+   "file": "assets/v3/a1-chi.webp",
+   "sourceSha256": "82c97e0b80b704b4e0c264ff18b84a13687b213c0d508b1216c38ec5adf8e6c7",
+   "bytes": 120416
+  },
+  {
+   "id": "a1-elite",
+   "file": "assets/v3/a1-elite.webp",
+   "sourceSha256": "28f3a3e45bf59b2d306028b2397cde7aba26aa734f42552d34f36e53f48399c8",
+   "bytes": 164954
+  },
+  {
+   "id": "a1-otter",
+   "file": "assets/v3/a1-otter.webp",
+   "sourceSha256": "96365e49acc7ec7407f677e9e6bd0f9a2ce359af2eb04282f22cf3667013c042",
+   "bytes": 99552
+  },
+  {
+   "id": "a1-turtle",
+   "file": "assets/v3/a1-turtle.webp",
+   "sourceSha256": "0197cf89f4d61833bc1041aadfe84ac6a107ee6036676eb54666a38862b07685",
+   "bytes": 175856
+  },
+  {
+   "id": "a2-bird",
+   "file": "assets/v3/a2-bird.webp",
+   "sourceSha256": "3725426156904d6e7980c40c8aa4a5cc3f5ac275806cff4ea67f6e3ea35a5d8f",
+   "bytes": 138196
+  },
+  {
+   "id": "a2-boss",
+   "file": "assets/v3/a2-boss.webp",
+   "sourceSha256": "e174e7df9bfaa4ff32d8bbe711c4386dd17e7806e80de9bbbedd1bbe95df4ed7",
+   "bytes": 179492
+  },
+  {
+   "id": "a2-elite",
+   "file": "assets/v3/a2-elite.webp",
+   "sourceSha256": "91785b53262371fb095fede677597e6c6af473498c6e4789eefc854bcb6241ee",
+   "bytes": 211536
+  },
+  {
+   "id": "a2-shark",
+   "file": "assets/v3/a2-shark.webp",
+   "sourceSha256": "b16cc925c3f8c478970bc5d143841a4c4c6ee4c6ab80b3e8490579b3dd22c25f",
+   "bytes": 147610
+  },
+  {
+   "id": "a2-snake",
+   "file": "assets/v3/a2-snake.webp",
+   "sourceSha256": "084548e569f96a622cf4531e9270218a14b5c41db0aa94121683667c4c327e1e",
+   "bytes": 183784
+  },
+  {
+   "id": "a3-beetle",
+   "file": "assets/v3/a3-beetle.webp",
+   "sourceSha256": "4e0cb59334dd69ebd55cd3231bdddf7d2a508f7ed03f8db6f9bcee8c3d2a30ec",
+   "bytes": 127242
+  },
+  {
+   "id": "a3-bifang",
+   "file": "assets/v3/a3-bifang.webp",
+   "sourceSha256": "eb168469bba9378da2f3ea88615a7a43d35a0f4d225b6fa8d9f1915d6f86ad9a",
+   "bytes": 144028
+  },
+  {
+   "id": "a3-boss",
+   "file": "assets/v3/a3-boss.webp",
+   "sourceSha256": "9a40d0956e7ba47e200396f1af490e157fd0d8af67753e822b150fc75ce1e8d5",
+   "bytes": 129242
+  },
+  {
+   "id": "a3-elite",
+   "file": "assets/v3/a3-elite.webp",
+   "sourceSha256": "8d44e247a40386a3400289bb69ef2e199176adc235f837702c2663cfaca0f1f7",
+   "bytes": 162744
+  },
+  {
+   "id": "a3-sand",
+   "file": "assets/v3/a3-sand.webp",
+   "sourceSha256": "d7dced330c97e148f9f4ce96a8e0c336307b3dc641b0a84922cf858d5644e5b9",
+   "bytes": 196998
+  },
+  {
+   "id": "a4-boss",
+   "file": "assets/v3/a4-boss.webp",
+   "sourceSha256": "c5bcce9c225fccc225ce760acdda2887678d0b5c358dd37a731a594f58813557",
+   "bytes": 131330
+  },
+  {
+   "id": "a4-elite",
+   "file": "assets/v3/a4-elite.webp",
+   "sourceSha256": "761355916533d87177bf79bdd36d2a9de72f24d447d9d81de7a0f1d568240240",
+   "bytes": 139122
+  },
+  {
+   "id": "a4-kaiming",
+   "file": "assets/v3/a4-kaiming.webp",
+   "sourceSha256": "dd3ab715b76a9ec3b4217439b1803fe1619874ceeaebde728df6fd22c1b882cf",
+   "bytes": 195424
+  },
+  {
+   "id": "a4-luwu",
+   "file": "assets/v3/a4-luwu.webp",
+   "sourceSha256": "ec0ee4d7c61f8445515dcb8d531e4ae2fa4fd902acfb98c00d0b261f2e7ca78c",
+   "bytes": 107892
+  },
+  {
+   "id": "a4-sun",
+   "file": "assets/v3/a4-sun.webp",
+   "sourceSha256": "4b134e8a08c6e93ba03931ccc10e40559c97378a7cdaf1e04bc46ecbc4497f21",
+   "bytes": 116676
+  },
+  {
+   "id": "bg-act1",
+   "file": "assets/v3/bg-act1.webp",
+   "sourceSha256": "ac86f08645380c55107789d19a79c9d66e6fc6381e7018b7c28010f217a90cff",
+   "bytes": 28262
+  },
+  {
+   "id": "bg-act2",
+   "file": "assets/v3/bg-act2.webp",
+   "sourceSha256": "05c541c6f80af60ff9096020224ea1657983c35bd5e3eeaea3b83707bb0da316",
+   "bytes": 25484
+  },
+  {
+   "id": "bg-act3",
+   "file": "assets/v3/bg-act3.webp",
+   "sourceSha256": "385e45963b2a90eae8bcba266d54ca19c9169f652a4d45fbb1410fbc3f490fdc",
+   "bytes": 25692
+  },
+  {
+   "id": "bg-act4",
+   "file": "assets/v3/bg-act4.webp",
+   "sourceSha256": "fdb1d4a890bf52c903e5e3e17be0ed0f3ef6dd8f711e6f14d4a2569cae2ead8b",
+   "bytes": 31860
+  },
+  {
+   "id": "bg-final",
+   "file": "assets/v3/bg-final.webp",
+   "sourceSha256": "50accaa06135c4df613776515da11830ecd3da3b38d48999297f7a87ed3b4549",
+   "bytes": 38674
+  },
+  {
+   "id": "bg-title",
+   "file": "assets/v3/bg-title.webp",
+   "sourceSha256": "e1a9dcccc287da4ca15982eda487369aa003d6ebd65daecfb0077ca4cc8923db",
+   "bytes": 24538
+  },
+  {
+   "id": "final-boss",
+   "file": "assets/v3/final-boss.webp",
+   "sourceSha256": "e64f03f75fffb023d7650b9302181447b463655d5e6f21afdd6598b9f0dcbb4b",
+   "bytes": 189212
+  },
+  {
+   "id": "hero-benlei",
+   "file": "assets/v3/hero-benlei.webp",
+   "sourceSha256": "85f0a953335d36dfb0fe8e9c870b9c00771df737d718325f4292dbde3d9f59bf",
+   "bytes": 122594
+  },
+  {
+   "id": "hero-huichun",
+   "file": "assets/v3/hero-huichun.webp",
+   "sourceSha256": "78525634e6e2db148b9d31b02ab2d281904da58422ac56d1bbc11e5dddbdd0c3",
+   "bytes": 136926
+  },
+  {
+   "id": "hero-jingang",
+   "file": "assets/v3/hero-jingang.webp",
+   "sourceSha256": "7f64cfc217879880cbbbb9b0ccf74e10bf4a192aaf2ee642830ec3b6536eb5db",
+   "bytes": 99798
+  },
+  {
+   "id": "hero-yangjian",
+   "file": "assets/v3/hero-yangjian.webp",
+   "sourceSha256": "b658250a33fe15dc7b4b49abfacd04092cbeeb4fba78889b8d57f54aa3af4ba9",
+   "bytes": 116750
+  },
+  {
+   "id": "hero-yuhuo",
+   "file": "assets/v3/hero-yuhuo.webp",
+   "sourceSha256": "a29025a45464f6be03f513e0bf93ac03417f186a6d10a254b27a1258db97ba21",
+   "bytes": 141632
+  },
+  {
+   "id": "hero-zhulong",
+   "file": "assets/v3/hero-zhulong.webp",
+   "sourceSha256": "b85bc721bce407764e510069862627342ff7e173ed2b7fa5d0628240b98517b1",
+   "bytes": 145654
+  }
+ ]
+}

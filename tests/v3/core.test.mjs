@@ -1,0 +1,193 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { detectPatterns } from '../../build/v3/core/patterns.js';
+import { computeCast } from '../../build/v3/core/score.js';
+import { startBattle, cast, discardTiles, enemyAttack } from '../../build/v3/core/battle.js';
+import * as R from '../../build/v3/core/run.js';
+import { ENEMY } from '../../build/v3/core/enemies.js';
+import { EVENTS } from '../../build/v3/core/events.js';
+import { METHODS, RELICS } from '../../build/v3/core/content.js';
+import { playRun } from './bot.mjs';
+
+const T = (el, v = 3, mod) => ({ uid: Math.floor(Math.random() * 1e9), el, v, ...(mod ? { mod } : {}) });
+const ids = tiles => detectPatterns(tiles).map(m => m.id).sort();
+
+function fresh(method = 'yangjian', enemy = 'shiyuan') {
+  const run = R.createRun({ seed: 't', method });
+  const battle = startBattle(run, enemy, 'fight');
+  run.battle = battle;
+  run.screen = { name: 'battle' };
+  return { run, battle };
+}
+
+test('patterns: counts, chains in cast order, wildcards and curse tiles', () => {
+  assert.ok(ids([T('jin'), T('jin')]).includes('dui'));
+  assert.ok(ids([T('jin'), T('jin'), T('jin'), T('mu'), T('mu')]).includes('mantang'));
+  assert.ok(ids([T('mu'), T('huo'), T('tu')]).includes('sheng3'), '木→火→土 is a chain');
+  assert.ok(!ids([T('tu'), T('huo'), T('mu')]).includes('sheng3'), 'order matters');
+  assert.ok(detectPatterns([T('tu'), T('huo'), T('mu')], { reverse: true }).some(m => m.id === 'sheng3'), '逆转五行 allows reverse');
+  assert.ok(ids([T('shui'), T('mu'), T('huo'), T('tu'), T('jin')]).includes('lunzhuan'), 'chain wraps 水→木');
+  assert.ok(ids([T('mu'), T('huo', 3, 'ling'), T('tu')]).includes('sheng3'));
+  assert.ok(ids([T('mu'), T('jin', 3, 'ling'), T('tu')]).includes('sheng3'), '灵符 counts as the missing element');
+  assert.ok(ids([T('jin'), T('jin', 3, 'ling'), T('jin'), T('jin'), T('jin')]).includes('wulei'));
+  assert.ok(!ids([T('mu'), { uid: 1, el: 'zhuo', v: 0 }, T('huo'), T('tu')]).includes('sheng3'), '浊符 breaks a chain');
+  assert.ok(ids([T('mu'), T('huo'), T('tu'), T('jin'), T('shui')]).includes('wuxing'));
+});
+
+test('scoring: qi × mult, counter element doubles, the best pattern is chosen', () => {
+  const { run, battle } = fresh('yangjian', 'shiyuan'); // 石鼋 is 土: 木 counters it, 水 is weak to it
+  const pair = computeCast(run, battle, [T('jin', 4), T('jin', 4)], false);
+  assert.equal(pair.pattern, 'dui');
+  assert.equal(pair.qi, 10 + 4 + 4);
+  assert.equal(pair.mult, 2);
+  assert.equal(pair.damage, 36);
+  const counter = computeCast(run, battle, [T('mu', 4), T('mu', 4)], false);
+  assert.equal(counter.qi, 10 + 8 + 8, '木克土: points doubled');
+  const weak = computeCast(run, battle, [T('shui', 4), T('shui', 4)], false);
+  assert.equal(weak.qi, 10 + 2 + 2, '土克水: points halved');
+  const chain = computeCast(run, battle, [T('mu', 1), T('huo', 1), T('tu', 1)], false);
+  assert.equal(chain.pattern, 'sheng3');
+  assert.deepEqual(chain.chain, [0, 1, 2]);
+});
+
+test('scoring: relic order matters (+倍 before ×倍) and 昆仑镜 mirrors its right neighbour', () => {
+  const { run, battle } = fresh();
+  const tiles = [T('jin', 2), T('jin', 2)];
+  run.relics = ['huwen', 'taotie'];
+  const good = computeCast(run, battle, tiles, false).damage;
+  run.relics = ['taotie', 'huwen'];
+  const bad = computeCast(run, battle, tiles, false).damage;
+  assert.ok(good > bad, `${good} > ${bad}`);
+  run.relics = ['qingfeng'];
+  const one = computeCast(run, battle, tiles, false).qi;
+  run.relics = ['kunlun', 'qingfeng'];
+  const mirrored = computeCast(run, battle, tiles, false).qi;
+  assert.equal(mirrored - one, 15, 'mirror fires the neighbour again');
+  run.relics = ['qingfeng', 'kunlun'];
+  assert.equal(computeCast(run, battle, tiles, false).qi, one, 'nothing to the right: no effect');
+});
+
+test('scoring: 怒技 ×3 and crits only on a real roll', () => {
+  const { run, battle } = fresh();
+  const tiles = [T('jin', 5), T('jin', 5), T('jin', 5)];
+  const base = computeCast(run, battle, tiles, false);
+  const rage = computeCast(run, battle, tiles, true);
+  assert.equal(Math.round(rage.mult / base.mult), 3);
+  assert.equal(base.crit, false, 'preview never crits');
+  const crit = computeCast(run, battle, tiles, false, 0);
+  assert.ok(crit.crit && crit.damage === base.damage * 2);
+});
+
+test('battle: armor absorbs, curses stay in the battle, discards are limited', () => {
+  const { run, battle } = fresh('yangjian', 'hebo');
+  const bagSize = run.bag.length;
+  battle.enemy.armor = 50;
+  battle.hand = [T('jin', 1), T('mu', 1), T('jin', 1), T('shui', 1), T('tu', 1), T('huo', 1), T('jin', 1)];
+  const hp = battle.enemy.hp;
+  const out = cast(run, battle, [battle.hand[0].uid], false);
+  const hit = out.events.find(e => e.k === 'hit' && e.to === 'enemy' && e.src === 'cast');
+  assert.equal(hit.blocked, Math.min(50, out.result.damage));
+  assert.ok(battle.enemy.hp <= hp);
+  // 河伯 opens with a curse.
+  assert.ok(out.enemyEvents.some(e => e.k === 'curse'));
+  assert.ok([...battle.draw, ...battle.hand, ...battle.discard].some(t => t.el === 'zhuo'));
+  assert.equal(run.bag.length, bagSize, 'curse tiles never enter the permanent bag');
+  battle.discardsLeft = 1;
+  assert.equal(discardTiles(run, battle, [battle.hand[0].uid]).length, 1);
+  assert.equal(discardTiles(run, battle, [battle.hand[0].uid]).length, 0);
+});
+
+test('battle: bosses change phase at half HP, 刑天 revives once, 天劫 ends stalling', () => {
+  const { run, battle } = fresh('yangjian', 'gonggong');
+  battle.enemy.hp = Math.floor(battle.enemy.maxHp / 2) + 1;
+  battle.hand = [T('jin', 9), T('jin', 9), T('jin', 9), T('jin', 9), T('jin', 9)];
+  battle.enemy.armor = 0;
+  const out = cast(run, battle, battle.hand.map(t => t.uid), false);
+  if (battle.outcome === 'fighting') assert.ok(out.events.some(e => e.k === 'phase') || battle.enemy.phase === 2);
+
+  const x = fresh('yangjian', 'xingtian');
+  x.battle.enemy.hp = 1;
+  x.battle.hand = [T('jin', 9)];
+  const out2 = cast(x.run, x.battle, [x.battle.hand[0].uid], false);
+  assert.ok(out2.events.some(e => e.k === 'revive'));
+  assert.equal(x.battle.outcome, 'fighting');
+  assert.ok(x.battle.enemy.hp > 0);
+
+  // A player who only casts single 浊 tiles still sees the fight end by 天劫.
+  const s = fresh('jingang', 'shiyuan');
+  let turns = 0;
+  while (s.battle.outcome === 'fighting' && turns++ < 60) {
+    s.battle.hand = [{ uid: 9000 + turns, el: 'zhuo', v: 0 }, ...s.battle.hand.filter(t => t.el !== 'zhuo')];
+    cast(s.run, s.battle, [9000 + turns], false);
+  }
+  assert.notEqual(s.battle.outcome, 'fighting');
+  assert.ok(turns < 40, `ended after ${turns} turns`);
+});
+
+test('enemy attack values scale with act, rank and charge', () => {
+  const { run, battle } = fresh('yangjian', 'leita');
+  const base = enemyAttack(run, battle, { name: 'x', atk: 10 });
+  battle.enemy.charged = true;
+  assert.equal(enemyAttack(run, battle, { name: 'x', atk: 10 }), base * 2);
+  run.act = 3;
+  battle.enemy.charged = false;
+  assert.ok(enemyAttack(run, battle, { name: 'x', atk: 10 }) > base);
+});
+
+test('maps: three lanes, every node reachable, one boss at the end', () => {
+  for (let act = 1; act <= 4; act += 1) {
+    const run = R.createRun({ seed: `map-${act}`, method: 'yangjian' });
+    const map = R.generateMap(run, act);
+    const boss = map.filter(n => n.kind === 'boss');
+    assert.equal(boss.length, 1);
+    const seen = new Set(map.filter(n => n.row === 0).map(n => n.id));
+    for (const node of [...map].sort((a, b) => a.row - b.row)) if (seen.has(node.id)) node.next.forEach(id => seen.add(id));
+    assert.equal(seen.size, map.length, `act ${act}: all nodes reachable`);
+    assert.ok(map.some(n => n.kind === 'elite'), 'an elite every act');
+    assert.ok(map.filter(n => n.row === 4).some(n => n.kind === 'rest'), 'a rest before the boss');
+  }
+});
+
+test('full runs: every method plays to an end without errors, deterministically', () => {
+  for (const m of METHODS) {
+    const a = playRun(R.createRun({ seed: 'full', method: m.id }));
+    const b = playRun(R.createRun({ seed: 'full', method: m.id }));
+    assert.ok(['won', 'lost'].includes(a.screen.name), `${m.id} ended`);
+    assert.equal(a.stats.bestHit, b.stats.bestHit, `${m.id} deterministic`);
+    assert.equal(a.act, b.act);
+    assert.ok(Number.isFinite(a.stats.bestHit) && a.stats.bestHit > 0);
+  }
+});
+
+test('save round-trip keeps a run playable', () => {
+  const run = R.createRun({ seed: 'save', method: 'yuhuo' });
+  R.enterNode(run, R.reachable(run)[0].id);
+  const copy = R.deserialize(R.serialize(run));
+  assert.deepEqual(copy, run);
+  assert.equal(R.deserialize('{"version":2}'), null);
+  assert.equal(R.deserialize('nope'), null);
+});
+
+test('every event option resolves without throwing', () => {
+  for (const ev of EVENTS) {
+    ev.options.forEach((option, i) => {
+      const run = R.createRun({ seed: `ev-${ev.id}-${i}`, method: 'huichun' });
+      run.gold = 200;
+      run.relics = ['qingfeng', 'huwen'];
+      run.screen = { name: 'event', event: ev.id };
+      if (option.can && !option.can(run)) return;
+      R.chooseEvent(run, i);
+      assert.ok(run.screen.name === 'event' ? typeof run.screen.resolved === 'string' : ['pick-tile', 'reward'].includes(run.screen.name), `${ev.id}#${i}`);
+    });
+  }
+});
+
+test('relics: full slots require a replacement and every relic has a description', () => {
+  const run = R.createRun({ seed: 'slots', method: 'yangjian' });
+  run.relics = ['qingfeng', 'huwen', 'jiansui', 'chaoxi', 'qingmu'];
+  assert.equal(R.gainRelic(run, 'taotie'), false);
+  assert.equal(R.gainRelic(run, 'taotie', 0), true);
+  assert.equal(run.relics[0], 'taotie');
+  for (const r of RELICS) assert.ok(r.desc && r.name && r.glyph, r.id);
+  assert.ok(Object.values(ENEMY).every(e => e.moves.length >= 3));
+});

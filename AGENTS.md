@@ -1,5 +1,12 @@
 # 仓库协作说明
 
+## V3 分支
+
+- `v3` 分支的游戏入口是 V3（`src/v3/`，设计见 `V3_DESIGN.md`）。`npm run build` 只构建 V3，
+  `npm test` 跑 V3 单元测试，`npm run test:browser` 跑 V3 端到端；V2 用 `npm run build:v2`、`npm run test:v2:all`。
+- V3 内容在 `src/v3/core/content.ts`、`enemies.ts`、`events.ts`，不经 YAML 内容库。
+- 本分支的提交推送到远端 `v3`，不合入 `main`，除非用户另有要求。
+
 ## 提交与远端同步
 
 - 用户已授权：除非当轮另有说明，每轮实际改动完成并通过相应验收后，都应提交并更新远端 `main`。

@@ -3,15 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Data-driven Shanhai cultivation auto-battler roguelite",
+  "description": "山海劫 · 五行剑诀 — xianxia roguelite of five-element combos (V3)",
   "scripts": {
     "dev": "node scripts/serve.mjs",
-    "build": "node scripts/build.mjs",
-    "test": "npm run build && node --test tests/shanhai-*.test.mjs",
+    "build": "node scripts/build-v3.mjs",
+    "test": "npm run build && node --test tests/v3/*.test.mjs",
     "test:content": "npm --prefix tools/content-kit test",
     "simulate": "node tests/shanhai-simulate.mjs",
     "audit": "npm run build && node tests/shanhai-balance-audit.mjs",
-    "test:browser": "node tests/shanhai-browser.mjs",
+    "test:browser": "node tests/v3/browser.mjs",
     "test:v2": "npm run build && node --test tests/shanhai-v2-*.test.mjs",
     "test:v2:ui": "node tests/shanhai-v2-ui.mjs",
     "test:v2:drag": "node tests/shanhai-v2-equipment-drag-browser.mjs",
@@ -24,7 +24,10 @@
     "test:ui": "node tests/shanhai-mature-ui.mjs",
     "test:restart": "node tests/shanhai-restart-browser.mjs",
     "calibrate": "node tests/shanhai-calibrate.mjs",
-    "balance": "node tests/shanhai-difficulty.mjs"
+    "balance": "node tests/shanhai-difficulty.mjs",
+    "build:v2": "node scripts/build.mjs",
+    "test:v2:all": "npm run build:v2 && node --test tests/shanhai-*.test.mjs",
+    "sim": "npm run build && node tests/v3/sim.mjs"
   },
   "devDependencies": {
     "typescript": "5.9.2"
