@@ -6,6 +6,9 @@
   `npm test` 跑 V3 单元测试，`npm run test:browser` 跑 V3 端到端；V2 用 `npm run build:v2`、`npm run test:v2:all`。
 - V3 内容在 `src/v3/core/content.ts`、`enemies.ts`、`events.ts`，不经 YAML 内容库。
 - 本分支的提交推送到远端 `v3`，不合入 `main`，除非用户另有要求。
+- GitHub Pages 直接发布 `v3` 分支根目录（`CNAME` 为 demo.exrx.de，`.nojekyll` 关闭 Jekyll）。
+  因此 `npm run build` 会把编译产物同步到根目录 `v3/` 并一同提交；不要手改 `v3/`，
+  `npm test` 会检查它与最新构建一致。
 
 ## 提交与远端同步
 

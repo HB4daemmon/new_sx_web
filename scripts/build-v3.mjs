@@ -18,4 +18,8 @@ await copyFile('assets/fonts/zhi-mang-xing-v3.woff2', 'dist/assets/fonts/zhi-man
 await copyFile('assets/fonts/ZhiMangXing-OFL.txt', 'dist/assets/fonts/ZhiMangXing-OFL.txt');
 await copyFile('index.html', 'dist/index.html');
 await writeFile('dist/.nojekyll', '');
+// GitHub Pages serves this branch as-is, so the compiled game is also committed at
+// the repo root (v3/), next to index.html and assets/. Never edit v3/ by hand.
+await rm('v3', { recursive: true, force: true });
+await cp('dist/v3', 'v3', { recursive: true });
 console.log('山海劫 V3 build OK: dist/index.html');
