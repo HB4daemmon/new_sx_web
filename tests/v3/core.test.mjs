@@ -78,12 +78,12 @@ test('scoring: relic order matters (+倍 before ×倍) and 昆仑镜 mirrors its
   assert.equal(computeCast(run, battle, tiles, false).qi, one, 'nothing to the right: no effect');
 });
 
-test('scoring: 怒技 ×3 and crits only on a real roll', () => {
-  const { run, battle } = fresh();
+test('scoring: 怒技 multiplies and crits only on a real roll', () => {
+  const { run, battle } = fresh('yuhuo');
   const tiles = [T('jin', 5), T('jin', 5), T('jin', 5)];
   const base = computeCast(run, battle, tiles, false);
   const rage = computeCast(run, battle, tiles, true);
-  assert.equal(Math.round(rage.mult / base.mult), 3);
+  assert.equal(Math.round(rage.mult / base.mult), 2, '焚天 ×2');
   assert.equal(base.crit, false, 'preview never crits');
   const crit = computeCast(run, battle, tiles, false, 0);
   assert.ok(crit.crit && crit.damage === base.damage * 2);
@@ -260,4 +260,45 @@ test('story: completed threads help in the final battle; 补天 needs two of the
   assert.equal(run.screen.name, 'won');
   assert.equal(run.ending, 'return');
   assert.equal(ENDINGS.length, 3);
+});
+
+import { SPECIALS, RAGES } from '../../build/v3/core/content.js';
+import { canRage } from '../../build/v3/core/battle.js';
+
+test('本门符: every method starts with two and every 怒技 seeds two more into the draw pile', () => {
+  for (const m of METHODS) {
+    const sp = Object.values(SPECIALS).find(x => x.method === m.id);
+    assert.ok(sp && RAGES[m.id], `${m.id} has a tile and a 怒技`);
+    const { run, battle } = fresh(m.id, 'gonggong');
+    assert.equal(run.bag.filter(t => t.sp === sp.id).length, 2);
+    battle.qi = 100;
+    battle.hand = [T('jin', 3), T('jin', 3)];
+    const before = battle.draw.filter(t => t.sp === sp.id).length + battle.discard.filter(t => t.sp === sp.id).length;
+    const out = cast(run, battle, battle.hand.map(t => t.uid), true);
+    assert.ok(out.result.steps.some(s => s.k === 'rage' && s.label.startsWith(RAGES[m.id].name)), `${m.id} 怒技 name`);
+    const after = [...battle.draw, ...battle.discard, ...battle.hand].filter(t => t.sp === sp.id).length;
+    assert.ok(after >= before + 2, `${m.id} seeded`);
+    assert.ok(run.bag.every(t => t.uid > 0), 'seeded tiles stay out of the permanent bag');
+  }
+});
+
+test('本门符 effects and method 怒技 differ', () => {
+  const a = fresh('benlei', 'gonggong');
+  a.battle.qi = 60;
+  assert.equal(canRage(a.battle), true, '奔雷 only needs 60');
+  const lead = computeCast(a.run, a.battle, [{ uid: 1, el: 'jin', v: 4, sp: 'leiyin' }], false);
+  const plain = computeCast(a.run, a.battle, [T('jin', 4)], false);
+  assert.equal(lead.intentGain - plain.intentGain, 25, '雷引符 +25 剑意');
+  const j = fresh('jingang', 'gonggong');
+  j.battle.player.shield = 200;
+  const tiles = [T('jin', 3), T('jin', 3)];
+  const noRage = computeCast(j.run, j.battle, tiles, false), rage = computeCast(j.run, j.battle, tiles, true);
+  assert.ok(rage.qi >= noRage.qi + 200, '金刚伏魔 turns the whole shield into qi');
+  const y = fresh('yangjian', 'gonggong');
+  y.battle.swords = 12;
+  const sw = computeCast(y.run, y.battle, tiles, true);
+  assert.ok(sw.steps.some(s => s.k === 'rage' && s.x >= 4), '万剑归宗 scales with swords');
+  const z = fresh('zhulong', 'gonggong');
+  const zz = computeCast(z.run, z.battle, [{ uid: 2, el: 'huo', v: 3, sp: 'zhuyin' }], false);
+  assert.ok(zz.qi >= 3 * 2, '烛阴符 doubles');
 });

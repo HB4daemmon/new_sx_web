@@ -1,4 +1,4 @@
-import { RELIC } from './content.js';
+import { RAGES, RELIC } from './content.js';
 import { counterOf, KE } from './elements.js';
 import { EL_NAME } from './elements.js';
 import { analyze, assignments, COMBOS, patternValue, PATTERNS, SET_BY_SIZE } from './patterns.js';
@@ -26,7 +26,7 @@ function bumpLabel(bump) {
 export const round1 = (n) => Math.round(n * 10) / 10;
 const lv = (run, id) => patternValue(id, run.patternLv[id] ?? 1);
 /** Scores one element assignment: sets → tiles in order (生 passes qi, 克 multiplies) → 五行 → 共鸣 → 链尾. */
-function stage(run, battle, tiles, els) {
+function stage(run, battle, tiles, els, rage = false) {
     const a = analyze(els, { reverse: has(run, 'nisheng') });
     let qi = 0;
     let mult = 1;
@@ -55,7 +55,7 @@ function stage(run, battle, tiles, els) {
     const flowShare = sheng.qi * (relicFlag(run, 'flowX') ? 2 : 1);
     const tileQi = [];
     let critChance = 5 + relicFlag(run, 'critPct');
-    let heal = 0, shield = 0, burn = 0, swords = 0;
+    let heal = 0, shield = 0, burn = 0, swords = 0, intent = 0;
     const resonant = new Set(a.sets.filter(st => st.size >= 3).map(st => st.el));
     const res = relicFlag(run, 'resonance') ? 2 : 1;
     tiles.forEach((tile, index) => {
@@ -72,11 +72,14 @@ function stage(run, battle, tiles, els) {
         }
         if (run.method === 'zhulong' && el) {
             const day = isDay(battle);
-            if ((day && (el === 'jin' || el === 'huo')) || (!day && (el === 'shui' || el === 'mu'))) {
+            // 烛照九阴: during the 怒技 every element shines.
+            if (rage || (day && (el === 'jin' || el === 'huo')) || (!day && (el === 'shui' || el === 'mu'))) {
                 tq *= relicFlag(run, 'dayNight') ? 5 : 3;
                 tag = day ? '昼' : '夜';
             }
         }
+        if (tile.sp === 'zhuyin')
+            tq *= 2;
         const link = index > 0 ? a.links[index - 1] : null;
         let flow = 0;
         if (link === 'sheng')
@@ -90,18 +93,27 @@ function stage(run, battle, tiles, els) {
             critChance += 12;
             fx.crit = 12;
             if (run.method === 'yangjian')
-                swords += 1;
+                swords += tile.sp === 'jian' ? 2 : 1;
         }
         if (el === 'mu') {
-            const h = Math.round(tile.v * dScale * (run.method === 'huichun' ? 2 : 1) * (resonant.has('mu') ? 3 * res : 1));
+            const h = Math.round(tile.v * dScale * (run.method === 'huichun' ? 1.5 : 1) * (tile.sp === 'chunya' ? 2 : 1) * (resonant.has('mu') ? 3 * res : 1));
             heal += h;
             fx.heal = h;
         }
         if (el === 'shui') {
-            const sh = Math.round(tile.v * 2 * dScale * (resonant.has('shui') ? 3 * res : 1));
+            const sh = Math.round(tile.v * 2 * dScale * (tile.sp === 'jingang' ? 3 : 1) * (resonant.has('shui') ? 3 * res : 1));
             shield += sh;
             fx.shield = sh;
         }
+        if (tile.sp === 'jingang' && battle.player.shield > 0)
+            tq += Math.round(battle.player.shield * 0.1);
+        if (tile.sp === 'huozhong' && battle.enemy.burn > 0) {
+            const b = Math.round(battle.enemy.burn / 2);
+            burn += b;
+            fx.burn = (fx.burn ?? 0) + b;
+        }
+        if (tile.sp === 'leiyin')
+            intent += 25;
         if (el === 'huo') {
             const b = tile.v * (relicFlag(run, 'burnDouble') ? 2 : 1) * (run.method === 'yuhuo' ? 2 : 1) * (resonant.has('huo') ? 3 * res : 1);
             burn += b;
@@ -177,7 +189,7 @@ function stage(run, battle, tiles, els) {
             push({ k: 'bonus', label: `链尾·土 +${m}倍`, index: i, dMult: m });
         }
     }
-    return { qi, mult, steps, critChance, heal, shield, burn, swords, a };
+    return { qi, mult, steps, critChance, heal, shield, burn, swords, a, intent };
 }
 /**
  * Scores a cast. Pure apart from the optional crit `roll` (0..1); without a roll
@@ -186,7 +198,7 @@ function stage(run, battle, tiles, els) {
 export function computeCast(run, battle, tiles, rage, roll) {
     let best = null;
     for (const els of assignments(tiles)) {
-        const r = finish(run, battle, tiles, stage(run, battle, tiles, els), rage, roll);
+        const r = finish(run, battle, tiles, stage(run, battle, tiles, els, rage), rage, roll);
         if (!best || r.damage > best.damage)
             best = r;
     }
@@ -244,9 +256,32 @@ function finish(run, battle, tiles, st, rage, roll) {
         push('bonus', '血祭 ×1.6', { x: 1.6 });
     if (run.vow === 'suidan')
         push('bonus', '碎丹燃血 ×1.6', { x: 1.6 });
-    const rageX = (pactRank(run, 'dull') ? 2 : 3) + relicFlag(run, 'rageX');
-    if (rage)
-        push('rage', `怒技 ×${rageX}`, { x: rageX });
+    let rageHeal = 0;
+    if (rage) {
+        const dull = pactRank(run, 'dull') ? 1 : 0;
+        const extra = relicFlag(run, 'rageX') - dull;
+        const def = RAGES[run.method];
+        let x = 3;
+        if (run.method === 'yangjian')
+            x = Math.max(2, 1 + 0.25 * Math.min(battle.swords + stage.swords, 15 + relicFlag(run, 'swordCap')));
+        if (run.method === 'yuhuo')
+            x = 2;
+        if (run.method === 'jingang') {
+            x = 2.5;
+            if (battle.player.shield > 0)
+                push('bonus', `金刚伏魔 护盾化气 +${Math.round(battle.player.shield)}`, { qi: Math.round(battle.player.shield) });
+        }
+        if (run.method === 'benlei')
+            x = 2.5;
+        if (run.method === 'huichun') {
+            x = 2;
+            if (battle.spring > 0)
+                push('bonus', `春雷 春华×3 +${Math.round(battle.spring * 3)}`, { qi: Math.round(battle.spring * 3) });
+            rageHeal = Math.round(battle.player.maxHp * 0.2);
+        }
+        x = Math.max(1.5, round1(x + extra));
+        push('rage', `${def?.name ?? '怒技'} ×${x}`, { x });
+    }
     // 污泥莲 and friends see the finished qi/mult; crit is decided last.
     const critChance = Math.min(100, stage.critChance);
     const crit = roll !== undefined && roll * 100 < critChance;
@@ -256,7 +291,7 @@ function finish(run, battle, tiles, st, rage, roll) {
     return {
         tiles, pattern: match.combo, chain: match.shengIdx, keIdx: match.keIdx, analysis: match, els: match.els, steps,
         qi, mult, critChance, crit, damage: Math.floor(qi * mult),
-        heal: stage.heal, shield: stage.shield, burn: stage.burn, swords: stage.swords,
-        intentGain: Math.round(gain), rage,
+        heal: stage.heal + rageHeal, shield: stage.shield, burn: stage.burn, swords: stage.swords,
+        intentGain: Math.round(gain + stage.intent), rage,
     };
 }

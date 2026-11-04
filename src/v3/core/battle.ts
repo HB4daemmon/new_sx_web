@@ -4,6 +4,7 @@ import { next, shuffle, int, type Rng } from './rng.js';
 import { COMBOS } from './patterns.js';
 import { pactRank } from './pacts.js';
 import { computeCast, defenseScale, has, relicFlag, type CastResult } from './score.js';
+import { SPECIALS } from './content.js';
 import type { BattleState, EnemyState, Move, NodeKind, RunState, Tile } from './types.js';
 
 export type BEvent =
@@ -23,6 +24,7 @@ export type BEvent =
   | { k: 'element'; el: El }
   | { k: 'swords'; count: number; forged: number }
   | { k: 'thunder'; total: number }
+  | { k: 'seed'; sp: string; n: number }
   | { k: 'turn'; turn: number }
   | { k: 'draw'; count: number }
   | { k: 'win' }
@@ -33,6 +35,10 @@ export const handSize = (run: RunState) => 7 + (has(run, 'yiqi') ? 1 : 0) + (run
 export const discardsPerTurn = (run: RunState) => (run.vow === 'juenian' ? 0 : 2 + (has(run, 'douzhuan') ? 1 : 0));
 export const tribulationStart = (run: RunState) => (has(run, 'yinjie') ? 5 : 8) - (pactRank(run, 'short') ? 2 : 0);
 export const swordDamage = (run: RunState) => 4 + run.realm * 4;
+/** Burn on enemies grows with realm so it keeps up with act HP. */
+export const burnPower = (run: RunState) => 1 + run.realm;
+/** One sword's share of a volley: a flat bite plus 5% of the cast that launched it. */
+const swordVolley = (run: RunState, swords: number, castDamage: number) => Math.round(swords * (swordDamage(run) + castDamage * 0.1));
 
 const actOf = (run: RunState) => Math.min(5, run.act);
 /** Runs started before 天劫契 used a flat 劫数. */
@@ -70,6 +76,8 @@ export function startBattle(run: RunState, enemyId: string, kind: NodeKind): Bat
   if (def.act === 5 && def.rank === 'boss' && !run.endless) applyAssists(run, battle);
   if (run.unlocks?.includes('discard1')) battle.discardsLeft += 1;
   battle.stacks.startHp = battle.player.hp;
+  if (run.method === 'benlei') battle.stacks.rageCost = 60;
+  if (run.method === 'yangjian') battle.swords = Math.min(swordCap(run), run.swordsKept ?? 0);
   turnStartShield(run, battle);
   drawTo(run, battle);
   return battle;
@@ -124,7 +132,9 @@ export function discardTiles(run: RunState, battle: BattleState, uids: number[])
   return [{ k: 'draw', count: drawTo(run, battle) }];
 }
 
-export const canRage = (battle: BattleState) => battle.qi >= 100;
+/** 剑意 needed for a 怒技 (奔雷诀 only needs 60). */
+export const rageCost = (battle: BattleState) => battle.stacks.rageCost || 100;
+export const canRage = (battle: BattleState) => battle.qi >= rageCost(battle);
 
 export function previewCast(run: RunState, battle: BattleState, uids: number[], rage: boolean): CastResult | null {
   const tiles = uids.map(uid => battle.hand.find(tile => tile.uid === uid)).filter(Boolean) as Tile[];
@@ -225,12 +235,12 @@ export function cast(run: RunState, battle: BattleState, uids: number[], rageWan
     if (battle.swords > 0) {
       events.push({ k: 'swords', count: battle.swords, forged: Math.max(0, forged) });
       for (let volley = 0; volley < (rage ? 3 : 1) && battle.outcome === 'fighting'; volley += 1) {
-        total += damageEnemy(run, battle, battle.swords * swordDamage(run), 'sword', events);
+        total += damageEnemy(run, battle, swordVolley(run, battle.swords, result.damage), 'sword', events);
       }
     }
   }
   if (run.method === 'yuhuo' && rage && battle.enemy.burn > 0 && battle.outcome === 'fighting') {
-    total += damageEnemy(run, battle, battle.enemy.burn * 8, 'detonate', events);
+    total += damageEnemy(run, battle, battle.enemy.burn * 8 * burnPower(run), 'detonate', events);
   }
 
   // Tile effects.
@@ -250,11 +260,25 @@ export function cast(run: RunState, battle: BattleState, uids: number[], rageWan
     battle.player.shield = Math.min(battle.player.maxHp * (run.method === 'jingang' ? 1 : 2), battle.player.shield + result.shield);
     events.push({ k: 'shield', to: 'player', amount: result.shield });
   }
+  // 御火诀: a cast with fire in it leaves 20% of its damage behind as burn.
+  if (run.method === 'yuhuo' && result.els.includes('huo') && battle.outcome === 'fighting') result.burn += Math.round((result.damage * 0.25) / burnPower(run));
   if (result.burn > 0 && battle.outcome === 'fighting') {
     battle.enemy.burn += result.burn;
     events.push({ k: 'burn', to: 'enemy', amount: result.burn });
   }
-  battle.qi = Math.min(100, (rage ? relicFlag(run, 'rageKeep') : battle.qi) + result.intentGain);
+  battle.qi = Math.min(100, (rage ? Math.max(relicFlag(run, 'rageKeep'), battle.qi - rageCost(battle)) : battle.qi) + result.intentGain);
+  if (rage && run.method === 'jingang') battle.player.shield = 0;
+  // Every 怒技 seeds two of the method's own tiles into the draw pile for this battle.
+  if (rage) {
+    const sp = Object.values(SPECIALS).find(x => x.method === run.method);
+    if (sp) {
+      for (let i = 0; i < 2; i += 1) {
+        battle.stacks.spSeq = (battle.stacks.spSeq ?? 0) + 1;
+        battle.draw.splice(int(run.rng, 0, battle.draw.length), 0, { uid: -900000 - battle.stacks.spSeq, el: sp.el, v: sp.v + run.realm, sp: sp.id });
+      }
+      events.push({ k: 'seed', sp: sp.id, n: 2 });
+    }
+  }
   if (rage) battle.stacks.rages = (battle.stacks.rages ?? 0) + 1;
   if (rage && run.method === 'benlei') {
     battle.stacks.thunder = (battle.stacks.thunder ?? 0) + 3;
@@ -283,8 +307,8 @@ function enemyTurn(run: RunState, battle: BattleState, events: BEvent[]) {
   const def = ENEMY[enemy.id];
   enemy.armor = 0;
   if (enemy.burn > 0) {
-    damageEnemy(run, battle, enemy.burn, 'burn', events);
-    if (relicFlag(run, 'burnTwice') && battle.outcome === 'fighting') damageEnemy(run, battle, enemy.burn, 'burn', events);
+    damageEnemy(run, battle, enemy.burn * burnPower(run), 'burn', events);
+    if (relicFlag(run, 'burnTwice') && battle.outcome === 'fighting') damageEnemy(run, battle, enemy.burn * burnPower(run), 'burn', events);
     if (run.method !== 'yuhuo') enemy.burn = Math.floor(enemy.burn * 0.6);
     if (battle.outcome !== 'fighting') return;
   }

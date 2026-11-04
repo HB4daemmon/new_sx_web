@@ -6,7 +6,7 @@ import { EVENTS, EVENT } from './events.js';
 import { COMBOS, migrateLevels, PATTERN_ORDER } from './patterns.js';
 import { BONDS, BOSS_STORY, ENDING } from './story.js';
 import { cleanPacts, pactHeat, pactRank } from './pacts.js';
-import { SIGNATURE } from './content.js';
+import { SIGNATURE, SPECIALS } from './content.js';
 import { chance, int, next, pick, sample, seedFrom } from './rng.js';
 export const SAVE_KEY = 'shanhai-v3-run';
 export const MAX_RELIC_SLOTS = 8;
@@ -30,6 +30,10 @@ export function createRun(opts) {
             addTile(run, { el, v });
     for (const tile of method.extra)
         addTile(run, tile);
+    const sp = Object.values(SPECIALS).find(x => x.method === method.id);
+    if (sp)
+        for (let i = 0; i < 2; i += 1)
+            addTile(run, { el: sp.el, v: sp.v, sp: sp.id });
     applyStartPerks(run);
     run.map = generateMap(run, 1);
     return run;
@@ -247,6 +251,8 @@ export function concludeBattle(run) {
         return;
     }
     run.stats.kills += 1;
+    if (run.method === 'yangjian')
+        run.swordsKept = Math.floor(battle.swords / 2);
     run.hp = Math.max(1, Math.min(run.maxHp, battle.player.hp));
     const heal = RELICS.filter(r => run.relics.includes(r.id)).reduce((s, r) => s + (r.flags?.afterHeal ?? 0), 0);
     if (heal)
@@ -302,6 +308,9 @@ export function randomTile(run, quality = 0) {
 }
 export function rewardOptions(run, n) {
     const out = [];
+    const sp = Object.values(SPECIALS).find(x => x.method === run.method);
+    if (sp && chance(run.rng, 0.25))
+        out.push({ type: 'tile', tile: { el: sp.el, v: sp.v + Math.min(4, run.act - 1), sp: sp.id } });
     const patterns = sample(run.rng, PATTERN_ORDER, 2, id => (id === 'wulei' ? 1 : 3));
     out.push({ type: 'tile', tile: randomTile(run) });
     out.push({ type: 'pattern', pattern: patterns[0] });

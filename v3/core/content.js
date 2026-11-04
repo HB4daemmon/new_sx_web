@@ -72,41 +72,59 @@ export const RELICS = [
 export const SIGNATURE = Object.fromEntries(RELICS.filter(r => r.method).map(r => [r.method, r.id]));
 export const RELIC = Object.fromEntries(RELICS.map(r => [r.id, r]));
 export const RELIC_PRICE = { common: 55, rare: 95, legend: 160 };
+/** 本门符: start with two; every 怒技 adds two more to the draw pile for the rest of the battle. */
+export const SPECIALS = {
+    jian: { id: 'jian', name: '剑符', glyph: '剑', method: 'yangjian', el: 'jin', v: 5, desc: '金。一次铸两柄飞剑' },
+    huozhong: { id: 'huozhong', name: '火种', glyph: '种', method: 'yuhuo', el: 'huo', v: 4, desc: '火。引燃：敌人现有灼烧的一半再加一遍' },
+    jingang: { id: 'jingang', name: '金刚符', glyph: '刚', method: 'jingang', el: 'shui', v: 4, desc: '水。护盾 ×3，并把现有护盾的 10% 计入气' },
+    leiyin: { id: 'leiyin', name: '雷引符', glyph: '引', method: 'benlei', el: 'jin', v: 4, desc: '金。打出时剑意 +25' },
+    chunya: { id: 'chunya', name: '春芽', glyph: '芽', method: 'huichun', el: 'mu', v: 4, desc: '木。回复翻倍；满血时溢出全部化为春华' },
+    zhuyin: { id: 'zhuyin', name: '烛阴符', glyph: '烛', method: 'zhulong', el: 'huo', v: 4, desc: '可当火或水，点数翻倍' },
+};
+/** Each method's own 怒技 (replaces the plain ×3). */
+export const RAGES = {
+    yangjian: { name: '万剑归宗', desc: '本招 ×(1 + 0.25×飞剑数)，至少 ×2；飞剑齐射三轮' },
+    yuhuo: { name: '焚天', desc: '本招 ×2，随后引爆灼烧：灼烧层数×8 的伤害（灼烧不消失）' },
+    jingang: { name: '金刚伏魔', desc: '把全部护盾化为气，本招 ×2.5（护盾清空）' },
+    benlei: { name: '奔雷', desc: '只需 60 剑意；本招 ×2.5，此后本场倍率永久 +3' },
+    huichun: { name: '春雷', desc: '春华 ×3 计入气，本招 ×2，并回复 20% 气血' },
+    zhulong: { name: '烛照九阴', desc: '本招 ×3，且昼夜加成对所有元素生效' },
+};
 export const METHODS = [
     {
-        id: 'yangjian', name: '养剑诀', title: '万剑', el: 'jin', art: 'hero-yangjian', hp: 70,
+        id: 'yangjian', name: '养剑诀', title: '万剑', el: 'jin', art: 'hero-yangjian', hp: 85, difficulty: 1,
         blurb: '每一枚金符都是一柄剑。剑越多，每一招后的齐射越狠。',
-        passive: ['每打出一枚金符，铸一柄飞剑（本场留存，上限 15）', '每次出招后，所有飞剑齐射，每柄造成 4 + 境界×4 伤害', '怒技时，飞剑齐射三轮'],
+        passive: ['每打出一枚金符，铸一柄飞剑（上限 15）；战后飞剑养回剑匣，下一战带着一半出阵', '每次出招后，所有飞剑齐射：每柄造成 4 + 境界×4，再加本招伤害的 10%', '本门符「剑符」：一次铸两柄', '怒技「万剑归宗」：飞剑越多倍率越高，齐射三轮'],
         extra: [{ el: 'jin', v: 3 }, { el: 'jin', v: 4 }],
     },
     {
-        id: 'yuhuo', name: '御火诀', title: '焚天', el: 'huo', art: 'hero-yuhuo', hp: 70,
+        id: 'yuhuo', name: '御火诀', title: '焚天', el: 'huo', art: 'hero-yuhuo', hp: 85, difficulty: 2,
         blurb: '火只会越烧越旺。攒够了，一个怒技把它全部点爆。',
-        passive: ['火符施加的灼烧翻倍', '敌方身上的灼烧不再衰减', '怒技时引爆灼烧：立即造成 灼烧层数×8 的伤害'],
+        passive: ['火符施加的灼烧翻倍；带火符的一招，伤害的 25% 留作灼烧', '敌方身上的灼烧不再衰减（灼烧每层伤害随境界提升）', '本门符「火种」：把敌人现有灼烧的一半再加一遍', '怒技「焚天」：×2，并引爆灼烧（层数×8，不消失）'],
         extra: [{ el: 'huo', v: 3 }, { el: 'huo', v: 4 }],
     },
     {
-        id: 'jingang', name: '金刚功', title: '护法', el: 'shui', art: 'hero-jingang', hp: 90,
+        id: 'jingang', name: '金刚功', title: '护法', el: 'shui', art: 'hero-jingang', hp: 85, difficulty: 1,
         blurb: '盾不会散，只会越叠越厚——然后砸到敌人脸上。',
-        passive: ['护盾不会在回合开始时消散（上限为气血上限）', '每次出招，当前护盾的 30% 计入气'],
+        passive: ['护盾不会在回合开始时消散（上限为气血上限）', '每次出招，当前护盾的 30% 计入气', '本门符「金刚符」：护盾 ×3', '怒技「金刚伏魔」：全部护盾化为气，×2.5'],
         extra: [{ el: 'shui', v: 3 }, { el: 'tu', v: 3 }],
     },
     {
-        id: 'benlei', name: '奔雷诀', title: '连雷', el: 'jin', art: 'hero-benlei', hp: 75,
+        id: 'benlei', name: '奔雷诀', title: '连雷', el: 'jin', art: 'hero-benlei', hp: 75, difficulty: 3,
         blurb: '怒技一个接一个。每打出一次怒技，后面的每一招都更响。',
-        passive: ['剑意获取 ×2', '每次怒技后，本场倍率永久 +3'],
+        passive: ['剑意获取 ×2', '本门符「雷引符」：打出时剑意 +25', '怒技「奔雷」：只需 60 剑意，×2.5，此后本场倍率永久 +3'],
         extra: [{ el: 'jin', v: 2, mod: 'lei' }],
     },
     {
-        id: 'huichun', name: '回春功', title: '春华', el: 'mu', art: 'hero-huichun', hp: 100,
+        id: 'huichun', name: '回春功', title: '春华', el: 'mu', art: 'hero-huichun', hp: 85, difficulty: 1,
         blurb: '满血之后的每一口治疗都不会浪费，全部化作春华开成杀招。',
-        passive: ['木符回复量 ×2', '溢出的治疗积为春华', '每次出招，春华全部计入气，随后减半'],
+        passive: ['木符回复量 ×1.5，溢出的治疗积为春华', '每次出招，春华全部计入气，随后减半', '本门符「春芽」：回复再翻倍', '怒技「春雷」：春华 ×3 计入气，×2，回复 20% 气血'],
         extra: [{ el: 'mu', v: 3 }, { el: 'mu', v: 4 }],
     },
     {
-        id: 'zhulong', name: '烛龙真经', title: '昼夜', el: 'huo', art: 'hero-zhulong', hp: 80,
+        id: 'zhulong', name: '烛龙真经', title: '昼夜', el: 'huo', art: 'hero-zhulong', hp: 80, difficulty: 3,
         blurb: '睁目为昼，闭目为夜。跟着天色出符，气翻三倍。',
-        passive: ['奇数回合为昼：金、火符气 ×3', '偶数回合为夜：水、木符气 ×3', '土符始终额外 倍率 +1'],
+        passive: ['奇数回合为昼：金、火符气 ×3；偶数回合为夜：水、木符气 ×3', '土符始终额外 倍率 +1', '本门符「烛阴符」：可当火或水，点数翻倍', '怒技「烛照九阴」：×3，昼夜加成对所有元素生效'],
         extra: [{ el: 'tu', v: 4 }],
         locked: '任意功法渡劫成功一次后解锁',
     },

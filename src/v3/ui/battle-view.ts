@@ -1,5 +1,5 @@
-import { canRage, enemyAttack, MAX_CAST, previewCast, swordDamage, tribulationStart, type BEvent, type CastOutcome } from '../core/battle.js';
-import { METHOD, RELIC } from '../core/content.js';
+import { canRage, rageCost, enemyAttack, MAX_CAST, previewCast, swordDamage, tribulationStart, type BEvent, type CastOutcome } from '../core/battle.js';
+import { METHOD, RAGES, RELIC, SPECIALS } from '../core/content.js';
 import { counterOf, EL_NAME, KE, type El } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
 import { COMBOS, PATTERNS, SET_BY_SIZE } from '../core/patterns.js';
@@ -63,7 +63,7 @@ export function mountBattle(container: HTMLElement) {
     h('div.lane'),
     h('div.hand-area', null, h('div.preview-line'), h('div.hand')),
     h('div.controls', null,
-      h('button.qi-gauge', { type: 'button', 'data-action': 'rage', title: '剑意满时可开怒技（本招 ×3）· 快捷键 R', onclick: () => toggleRage() }, h('div.qi-fill'), h('span.qi-text')),
+      h('button.qi-gauge', { type: 'button', 'data-action': 'rage', title: `怒技「${RAGES[r.method]?.name ?? '怒技'}」：${RAGES[r.method]?.desc ?? '本招 ×3'}\n剑意攒够即可开启 · 快捷键 R`, onclick: () => toggleRage() }, h('div.qi-fill'), h('div.qi-mark'), h('span.qi-text')),
       h('button.btn.seal.cast-btn', { type: 'button', 'data-action': 'cast', onclick: () => void doCast() }, h('span.cast-main', null, '出招'), h('small.cast-sub')),
       h('button.btn.ink.discard-btn', { type: 'button', 'data-action': 'discard', onclick: () => void doDiscard() }, '换符', h('small.discard-left'))),
     h('div.pile-dock', null,
@@ -202,14 +202,14 @@ function refreshStatus() {
   const es = $('.enemy-status', root!)!;
   es.replaceChildren(...nn(
     disp.armor > 0 ? h('span.st.st-armor', { title: '护甲：先抵挡你下一招的伤害' }, '甲 ', fmt(disp.armor)) : null,
-    disp.eburn > 0 ? h('span.st.st-burn', { title: '灼烧：敌方回合开始时受到等量伤害' }, '焰 ', fmt(disp.eburn)) : null,
+    disp.eburn > 0 ? h('span.st.st-burn', { title: `灼烧：敌方回合开始时受到 层数×${1 + run().realm} 伤害` }, '焰 ', fmt(disp.eburn)) : null,
     battle().enemy.charged ? h('span.st.st-charge', { title: '蓄势：下一次攻击伤害翻倍' }, '蓄势') : null,
     battle().enemy.atkBonus > 0 ? h('span.st.st-buff', { title: '战意：攻击伤害提高' }, '怒 +', String(battle().enemy.atkBonus)) : null));
   const hs = $('.hero-status', root!)!;
   const b = battle();
   hs.replaceChildren(...nn(
     disp.pburn > 0 ? h('span.st.st-burn', null, '焰 ', String(disp.pburn)) : null,
-    b.swords > 0 ? h('span.st.st-sword', { title: `飞剑：每次出招后齐射，每柄 ${swordDamage(run())} 伤害` }, '剑 ×', String(b.swords)) : null,
+    b.swords > 0 ? h('span.st.st-sword', { title: `飞剑：每次出招后齐射，每柄 ${swordDamage(run())} + 本招伤害的 10%` }, '剑 ×', String(b.swords)) : null,
     b.spring > 0 ? h('span.st.st-spring', { title: '春华：下一招计入气' }, '春 ', fmt(b.spring)) : null,
     b.stacks.thunder ? h('span.st.st-thunder', { title: '雷引：本场倍率永久提高' }, '雷 +', String(b.stacks.thunder)) : null));
   const plate = $('.e-el', root!)!;
@@ -274,7 +274,9 @@ function refreshControls() {
   const gauge = $('.qi-gauge', root!)!;
   gauge.classList.toggle('full', canRage(b));
   gauge.classList.toggle('on', rageOn && canRage(b));
-  $('.qi-text', root!)!.textContent = canRage(b) ? (rageOn ? '怒技·开' : '怒技') : `剑意 ${Math.floor(disp.qi)}`;
+  const rageName = RAGES[r.method]?.name ?? '怒技';
+  $('.qi-text', root!)!.textContent = canRage(b) ? (rageOn ? `${rageName}·开` : rageName) : `剑意 ${Math.floor(disp.qi)}/${rageCost(b)}`;
+  $('.qi-mark', root!)!.style.setProperty('--mark', `${rageCost(b)}%`);
   $('.discard-left', root!)!.textContent = r.vow === 'juenian' ? '绝念' : `余 ${b.discardsLeft}`;
   ($('.discard-btn', root!) as HTMLButtonElement).disabled = busy || b.discardsLeft <= 0;
   $('.discard-btn', root!)!.firstChild!.textContent = selected.length ? '换符' : '全换';
@@ -324,7 +326,7 @@ function toggleTile(uid: number) {
 }
 
 function toggleRage() {
-  if (busy || !canRage(battle())) { if (!canRage(battle())) toast('剑意未满'); return; }
+  if (busy || !canRage(battle())) { if (!canRage(battle())) toast(`剑意未满（需 ${rageCost(battle())}）`); return; }
   rageOn = !rageOn;
   playSfx(rageOn ? 'rage' : 'click');
   refreshControls();
@@ -637,7 +639,7 @@ async function rageCutIn() {
   await real(260);
   const hero = h('img.cutin-hero', { src: art(`hero-${r.method}`), alt: '' });
   const word = h('div.cutin-text.brush', null, '怒');
-  const sub = h('div.cutin-sub.brush', null, `${m.title} · 剑诀`);
+  const sub = h('div.cutin-sub.brush', null, RAGES[r.method]?.name ?? `${m.title} · 剑诀`);
   const cut = h('div.cutin', null, hero, word, sub);
   root!.appendChild(cut);
   cut.animate([{ clipPath: 'inset(50% 0 50% 0)' }, { clipPath: 'inset(16% 0 16% 0)' }], { duration: 220, easing: 'cubic-bezier(.2,.9,.3,1)', fill: 'forwards' });
@@ -824,6 +826,13 @@ async function playEvent(ev: BEvent, side: 'player' | 'enemy') {
       refreshAll();
       const t = $('.turn-tag', root!)!;
       anim(t, [{ transform: 'scale(1.4)' }, { transform: 'scale(1)' }], 260);
+      return;
+    }
+    case 'seed': {
+      const sp = SPECIALS[ev.sp as keyof typeof SPECIALS];
+      const from = centerOf(heroArt), to = centerOf($('.pile-btn', root!));
+      await Promise.all(Array.from({ length: ev.n }, (_, i) => wait(i * 120).then(() => comet(from, to, EL_COLOR[sp.el], 360, 30))));
+      toast(`${ev.n} 枚本门符「${sp.name}」化入待抽符堆`, 'ach');
       return;
     }
     case 'draw': return;

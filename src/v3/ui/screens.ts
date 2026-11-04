@@ -12,7 +12,7 @@ import { app, act, closeOverlays, go, portrait, render, save, showOverlay, stage
 import { recordRunEnd } from './meta.js';
 import { ACH, ACHIEVEMENTS, buyNode, canBuy, checkAchievements, dailySetup, MASTERY_PERKS, MASTERY_XP, masteryLevel, nextGoal, runUnlocks, settle, todayKey, TREE, type AchDef, type Settlement } from './progression.js';
 import { PACTS, pactHeat, pactMultiplier } from '../core/pacts.js';
-import { RELICS, SIGNATURE } from '../core/content.js';
+import { RAGES, RELICS, SIGNATURE, SPECIALS } from '../core/content.js';
 import { playSfx, setSfxEnabled } from './sfx.js';
 import { setSpeed } from './fx.js';
 import { bar, elLabel, optionCard, patternTable, relicView, tileView, wuxingWheel, GEN_TEXT } from './widgets.js';
@@ -77,9 +77,12 @@ function selectScreen() {
     h('div.method-detail', null,
       h('img.md-art', { src: art(`hero-${m.id}`), alt: m.name }),
       h('div.md-body', null,
-        h('div.md-name', null, m.name, h('span', null, ` · ${m.title}`)),
+        h('div.md-name', null, m.name, h('span', null, ` · ${m.title}`), h('span.md-diff', { title: '上手难度' }, ['', '上手', '进阶', '精通'][m.difficulty] + ' ' + '★'.repeat(m.difficulty))),
         h('div.md-blurb', null, m.blurb),
         h('ul.md-passive', null, ...m.passive.map(p => h('li', null, p))),
+        h('div.md-kit', null,
+          ...Object.values(SPECIALS).filter(x => x.method === m.id).map(x => h('div.kit-item', null, tileView({ el: x.el, v: x.v, sp: x.id }, { small: true }), h('span', null, h('b', null, x.name), x.desc))),
+          RAGES[m.id] ? h('div.kit-item.rage', null, h('span.kit-rage.brush', null, '怒'), h('span', null, h('b', null, RAGES[m.id].name), RAGES[m.id].desc)) : null),
         h('div.md-stats', null, `气血 ${m.hp} · 起手多带 `, ...m.extra.map(t => h('span.mini-tile', { class: `el-${t.el}` }, `${t.mod ? MOD_NAME[t.mod] : ''}${elLabel(t.el)}${t.v}`))),
         masteryBlock(m.id),
         h('button.btn.ink.pact-btn', { type: 'button', 'data-action': 'pacts', onclick: () => showPacts() }, `天劫契 · 劫数 ${pactHeat(meta.lastPacts)}`, h('small', null, `道果 ×${pactMultiplier(pactHeat(meta.lastPacts)).toFixed(2)} · 点此加减条款`)),

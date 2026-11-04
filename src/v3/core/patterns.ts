@@ -106,15 +106,11 @@ export function analyze(els: (El | null)[], opts: AnalyzeOptions = {}): Analysis
 /** Every element assignment for the cast (灵符 may be any element; 浊符 is none). */
 export function assignments(tiles: Tile[]): (El | null)[][] {
   const base = tiles.map(t => (t.el === 'zhuo' ? null : t.el));
-  const wild = tiles.map((t, i) => (t.mod === 'ling' && t.el !== 'zhuo' ? i : -1)).filter(i => i >= 0);
-  const out: (El | null)[][] = [];
-  const total = ELEMENTS.length ** wild.length;
-  for (let code = 0; code < total; code += 1) {
-    const els = [...base];
-    let c = code;
-    for (const index of wild) { els[index] = ELEMENTS[c % 5]; c = Math.floor(c / 5); }
-    out.push(els);
-  }
+  // 灵符 may be any element; 烛阴符 may be 火 or 水.
+  const choices = tiles.map(t => (t.el === 'zhuo' ? null : t.mod === 'ling' ? ELEMENTS : t.sp === 'zhuyin' ? (['huo', 'shui'] as El[]) : null));
+  const wild = choices.map((c, i) => (c ? i : -1)).filter(i => i >= 0);
+  let out: (El | null)[][] = [base];
+  for (const index of wild) out = out.flatMap(els => choices[index]!.map(el => { const next = [...els]; next[index] = el; return next; }));
   return out;
 }
 

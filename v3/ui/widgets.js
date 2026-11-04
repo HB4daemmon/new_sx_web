@@ -1,13 +1,14 @@
-import { MOD_DESC, MOD_NAME, RELIC, TALENT } from '../core/content.js';
+import { MOD_DESC, MOD_NAME, RELIC, SPECIALS, TALENT } from '../core/content.js';
 import { counterOf, EL_EFFECT, EL_NAME, GEN, KE } from '../core/elements.js';
 import { PATTERNS, PATTERN_ORDER, patternValue } from '../core/patterns.js';
 import { fmt, h } from './h.js';
 export const elLabel = (el) => (el === 'zhuo' ? '浊' : EL_NAME[el]);
 export function tileView(tile, opts = {}) {
-    const tip = tile.el === 'zhuo' ? '浊符：没有元素，0 点，会打断相生链' : `${EL_NAME[tile.el]}${tile.v}　${EL_EFFECT[tile.el]}${tile.mod ? `\n${MOD_DESC[tile.mod]}` : ''}`;
-    return h(`button.tile.el-${tile.el}${tile.mod ? `.mod-${tile.mod}` : ''}${opts.small ? '.small' : ''}`, {
+    const sp = tile.sp ? SPECIALS[tile.sp] : null;
+    const tip = tile.el === 'zhuo' ? '浊符：没有元素，0 点，会打断相生链' : `${sp ? `本门符「${sp.name}」：${sp.desc}\n` : ''}${EL_NAME[tile.el]}${tile.v}　${EL_EFFECT[tile.el]}${tile.mod ? `\n${MOD_DESC[tile.mod]}` : ''}`;
+    return h(`button.tile.el-${tile.el}${tile.mod ? `.mod-${tile.mod}` : ''}${sp ? `.sp.sp-${sp.id}` : ''}${opts.small ? '.small' : ''}`, {
         type: 'button', 'data-uid': tile.uid, title: opts.title ?? tip, onclick: opts.onclick, 'aria-label': tip,
-    }, h('span.tile-band'), h('span.tile-glyph', null, elLabel(tile.el)), h('span.tile-v', null, String(tile.v)), tile.mod ? h('span.tile-mod', null, MOD_NAME[tile.mod]) : null, opts.order ? h('span.tile-order', null, String(opts.order)) : null);
+    }, h('span.tile-band'), h('span.tile-glyph', null, elLabel(tile.el)), h('span.tile-v', null, String(tile.v)), tile.mod ? h('span.tile-mod', null, MOD_NAME[tile.mod]) : null, sp ? h('span.tile-sp', null, sp.glyph) : null, opts.order ? h('span.tile-order', null, String(opts.order)) : null);
 }
 export function relicView(id, opts = {}) {
     const def = RELIC[id];
@@ -23,7 +24,7 @@ export function relicCard(def) {
 export function optionCard(run, option) {
     switch (option.type) {
         case 'relic': return relicCard(RELIC[option.relic]);
-        case 'tile': return h('div.card-tile', null, tileView(option.tile), h('div.card-title', null, `新符 · ${option.tile.mod ? MOD_NAME[option.tile.mod] : ''}${elLabel(option.tile.el)}${option.tile.v}`), h('div.card-desc', null, option.tile.el === 'zhuo' ? '' : EL_EFFECT[option.tile.el]), option.tile.mod ? h('div.card-desc.dim', null, MOD_DESC[option.tile.mod]) : null);
+        case 'tile': return h('div.card-tile', null, tileView(option.tile), h('div.card-title', null, option.tile.sp ? `本门符 · ${SPECIALS[option.tile.sp].name}${option.tile.v}` : `新符 · ${option.tile.mod ? MOD_NAME[option.tile.mod] : ''}${elLabel(option.tile.el)}${option.tile.v}`), option.tile.sp ? h('div.card-desc', null, SPECIALS[option.tile.sp].desc) : null, h('div.card-desc', null, option.tile.el === 'zhuo' ? '' : EL_EFFECT[option.tile.el]), option.tile.mod ? h('div.card-desc.dim', null, MOD_DESC[option.tile.mod]) : null);
         case 'pattern': {
             const lv = run.patternLv[option.pattern];
             const now = patternValue(option.pattern, lv);

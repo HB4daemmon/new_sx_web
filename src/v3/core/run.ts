@@ -6,7 +6,7 @@ import { EVENTS, EVENT } from './events.js';
 import { COMBOS, migrateLevels, PATTERN_ORDER } from './patterns.js';
 import { BONDS, BOSS_STORY, ENDING } from './story.js';
 import { cleanPacts, pactHeat, pactRank } from './pacts.js';
-import { SIGNATURE } from './content.js';
+import { SIGNATURE, SPECIALS } from './content.js';
 import { chance, int, next, pick, sample, seedFrom } from './rng.js';
 import type { MapNode, NodeKind, PatternId, RewardOption, RunState, Screen, ShopItem, Tile, TileMod } from './types.js';
 
@@ -32,6 +32,8 @@ export function createRun(opts: RunOptions): RunState {
   run.plan = pactRank(run, 'lone') ? [] : sample(run.rng, BONDS, 2).map(b => b.id);
   for (const el of ELEMENTS) for (let v = 1; v <= 5; v += 1) addTile(run, { el, v });
   for (const tile of method.extra) addTile(run, tile);
+  const sp = Object.values(SPECIALS).find(x => x.method === method.id);
+  if (sp) for (let i = 0; i < 2; i += 1) addTile(run, { el: sp.el, v: sp.v, sp: sp.id });
   applyStartPerks(run);
   run.map = generateMap(run, 1);
   return run;
@@ -207,6 +209,7 @@ export function concludeBattle(run: RunState) {
   if (!battle || battle.outcome === 'fighting') return;
   if (battle.outcome === 'lost') { run.hp = 0; run.screen = { name: 'lost' }; return; }
   run.stats.kills += 1;
+  if (run.method === 'yangjian') run.swordsKept = Math.floor(battle.swords / 2);
   run.hp = Math.max(1, Math.min(run.maxHp, battle.player.hp));
   const heal = RELICS.filter(r => run.relics.includes(r.id)).reduce((s, r) => s + (r.flags?.afterHeal ?? 0), 0);
   if (heal) run.hp = Math.min(run.maxHp, run.hp + heal);
@@ -258,6 +261,8 @@ export function randomTile(run: RunState, quality = 0): Omit<Tile, 'uid'> {
 
 export function rewardOptions(run: RunState, n: number): RewardOption[] {
   const out: RewardOption[] = [];
+  const sp = Object.values(SPECIALS).find(x => x.method === run.method);
+  if (sp && chance(run.rng, 0.25)) out.push({ type: 'tile', tile: { el: sp.el, v: sp.v + Math.min(4, run.act - 1), sp: sp.id } });
   const patterns = sample(run.rng, PATTERN_ORDER, 2, id => (id === 'wulei' ? 1 : 3));
   out.push({ type: 'tile', tile: randomTile(run) });
   out.push({ type: 'pattern', pattern: patterns[0] });

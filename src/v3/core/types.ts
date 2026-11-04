@@ -1,12 +1,15 @@
 import type { El } from './elements.js';
 
 export type TileMod = 'lei' | 'zhong' | 'ling' | 'jing';
+/** 本门符: each method's own buff tile. */
+export type SpId = 'jian' | 'huozhong' | 'jingang' | 'leiyin' | 'chunya' | 'zhuyin';
 export interface Tile {
   uid: number;
   /** 'zhuo' = 浊符, a curse tile with no element. */
   el: El | 'zhuo';
   v: number;
   mod?: TileMod;
+  sp?: SpId;
 }
 
 /** Upgradeable 诀 (心法). */
@@ -146,4 +149,6 @@ export interface RunState {
   /** 无尽劫 layer after the ending (0 = not entered). */
   endless: number;
   daily: string | null;
+  /** 养剑诀: swords carried between battles. */
+  swordsKept?: number;
 }
