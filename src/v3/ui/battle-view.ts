@@ -312,9 +312,27 @@ function renderHand(dealIn = false, newUids: number[] = []) {
     }
     return el;
   }));
+  fitHand();
   if (dealIn) for (let i = 0; i < tiles.length; i += 1) setTimeout(() => playSfx('draw'), i * 45);
   refreshPreview();
 }
+
+/** Big hands (talents, events, vows) first shrink the tiles down to HAND_MIN_ZOOM; past that the row scrolls sideways. */
+const HAND_MIN_ZOOM = 0.72;
+function fitHand() {
+  const hand = root && $('.hand', root);
+  const first = hand?.firstElementChild as HTMLElement | null;
+  if (!hand || !first) return;
+  hand.style.setProperty('--hand-zoom', '1');
+  const n = hand.childElementCount;
+  const gap = parseFloat(getComputedStyle(hand).columnGap) || 0;
+  const room = hand.parentElement!.clientWidth - 8;
+  // Only the tiles zoom; the gaps between them stay fixed.
+  const zoom = Math.max(HAND_MIN_ZOOM, Math.min(1, (room - (n - 1) * gap) / (n * first.offsetWidth)));
+  hand.style.setProperty('--hand-zoom', zoom.toFixed(3));
+  hand.classList.toggle('scroll', n * first.offsetWidth * zoom + (n - 1) * gap > room + 1);
+}
+window.addEventListener('resize', () => requestAnimationFrame(fitHand));
 
 function toggleTile(uid: number) {
   if (busy) return;

@@ -16,6 +16,8 @@ async function inStage(page, label) {
       const r = el.getBoundingClientRect();
       if (!r.width || getComputedStyle(el).visibility === 'hidden') continue;
       if (el.closest('.overlay, .lane, .fx-canvas')) continue;
+      // Inside a scroll area the player can swipe to it (test:screens checks that properly).
+      if (el.closest('.panel-body, .md-body, .hand.scroll')) continue;
       if (r.left < stage.left - 2 || r.right > stage.right + 2 || r.top < stage.top - 2 || r.bottom > stage.bottom + 2) bad.push(`${el.className} ${Math.round(r.left)},${Math.round(r.top)},${Math.round(r.right)},${Math.round(r.bottom)}`);
     }
     return { bad, scrollW: document.documentElement.scrollWidth, w: innerWidth };

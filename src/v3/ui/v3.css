@@ -377,7 +377,10 @@ b.qi { color: var(--shui); } b.mu { color: var(--ver); }
 .lane-tile.chain { box-shadow: inset 0 0 0 3px #fff3c4, 0 6px 0 #6f5d43, 0 0 26px rgba(255,236,170,.7); }
 .lane-tile.chain-lit { box-shadow: inset 0 0 0 3px #fff, 0 6px 0 #6f5d43, 0 0 40px #ffe7a1; }
 .hand-area { left: 96px; right: 350px; bottom: 16px; height: 190px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
-.hand { display: flex; gap: 6px; justify-content: center; align-items: flex-end; height: 140px; padding-top: 22px; }
+.hand { display: flex; gap: 6px; justify-content: center; align-items: flex-end; height: 140px; padding-top: 22px; max-width: 100%; box-sizing: content-box; }
+.hand .tile { zoom: var(--hand-zoom, 1); }
+/* Still too many tiles at the smallest size: swipe the row sideways. Extra top room keeps the lifted (selected) tiles visible. */
+.hand.scroll { justify-content: flex-start; overflow-x: auto; overflow-y: hidden; touch-action: pan-x; overscroll-behavior-x: contain; scrollbar-width: thin; padding: 46px 6px 4px; margin-top: -24px; }
 .preview-line { display: flex; gap: 12px; align-items: baseline; font-size: 16px; min-height: 30px; padding: 2px 16px; border-radius: 999px; background: rgba(0,0,0,.55); margin-bottom: 4px; white-space: nowrap; }
 .pv-pattern { font-family: var(--brush); font-weight: 400; font-size: 24px; color: var(--gold); }
 .pv-calc { font: 700 18px var(--num); } .pv-dmg { font-size: 22px; color: #fff; }
