@@ -14,8 +14,8 @@ await mkdir('dist/assets/fonts', { recursive: true });
 await cp('build/v3', 'dist/v3', { recursive: true });
 await copyFile('src/v3/ui/v3.css', 'dist/v3/v3.css');
 await cp('assets/v3', 'dist/assets/v3', { recursive: true, filter: source => !source.endsWith('manifest.json') });
-await copyFile('assets/fonts/zhi-mang-xing-v3.woff2', 'dist/assets/fonts/zhi-mang-xing-v3.woff2');
-await copyFile('assets/fonts/ZhiMangXing-OFL.txt', 'dist/assets/fonts/ZhiMangXing-OFL.txt');
+await copyFile('assets/fonts/lxgw-wenkai-v3.woff2', 'dist/assets/fonts/lxgw-wenkai-v3.woff2');
+await copyFile('assets/fonts/LXGWWenKai-OFL.txt', 'dist/assets/fonts/LXGWWenKai-OFL.txt');
 await copyFile('index.html', 'dist/index.html');
 await writeFile('dist/.nojekyll', '');
 // GitHub Pages serves this branch as-is, so the compiled game is also committed at

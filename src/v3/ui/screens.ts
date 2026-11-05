@@ -85,8 +85,9 @@ function selectScreen() {
           RAGES[m.id] ? h('div.kit-item.rage', null, h('span.kit-rage.brush', null, '怒'), h('span', null, h('b', null, RAGES[m.id].name), RAGES[m.id].desc)) : null),
         h('div.md-stats', null, `气血 ${m.hp} · 起手多带 `, ...m.extra.map(t => h('span.mini-tile', { class: `el-${t.el}` }, `${t.mod ? MOD_NAME[t.mod] : ''}${elLabel(t.el)}${t.v}`))),
         masteryBlock(m.id),
-        h('button.btn.ink.pact-btn', { type: 'button', 'data-action': 'pacts', onclick: () => showPacts() }, `天劫契 · 劫数 ${pactHeat(meta.lastPacts)}`, h('small', null, `道果 ×${pactMultiplier(pactHeat(meta.lastPacts)).toFixed(2)} · 点此加减条款`)),
-        h('button.btn.seal.big.go', { type: 'button', 'data-action': 'start', onclick: () => startRun() }, '起 程'))));
+        h('button.btn.ink.pact-btn', { type: 'button', 'data-action': 'pacts', onclick: () => showPacts() }, `天劫契 · 劫数 ${pactHeat(meta.lastPacts)}`, h('small', null, `道果 ×${pactMultiplier(pactHeat(meta.lastPacts)).toFixed(2)} · 点此加减条款`)))),
+    // Outside the scrolling detail column: always at the bottom of the screen, never over the text.
+    h('button.btn.seal.big.go.select-go', { type: 'button', 'data-action': 'start', onclick: () => startRun() }, '起 程'));
 }
 
 function startRun() {
@@ -291,7 +292,7 @@ function rewardScreen(run: RunState, s: Extract<Screen, { name: 'reward' }>) {
     if (run.relics.length >= run.relicSlots) return chooseReplace(run, s.relicOptions[i], slot => act(r => R.takeReward(r, 'relic', i, slot), 'reward'));
     act(r => R.takeReward(r, 'relic', i), 'reward');
   };
-  return h('div.panel-scr.reward', null,
+  return h('div.panel-scr.reward', null, h('div.panel-body', null,
     h('h1.brush.big-title', null, '斩 获'),
     s.story ? h('p.story-quote', null, s.story) : null,
     s.gold ? h('div.reward-gold', null, h('i', null, '◆'), ` +${s.gold} 灵石`) : null,
@@ -299,7 +300,7 @@ function rewardScreen(run: RunState, s: Extract<Screen, { name: 'reward' }>) {
       h('div.cards', null, ...s.relicOptions.map((o, i) => cardButton(run, o, () => pickRelic(i), s.relicPicked)))) : null,
     s.options.length ? h('div.reward-block', null, h('h3', null, s.picked ? '已取' : '择其一'),
       h('div.cards', null, ...s.options.map((o, i) => cardButton(run, o, () => pickMain(i), s.picked)))) : null,
-    !s.picked && s.options.length ? h('button.btn.ink.purge-btn', { type: 'button', 'data-action': 'purge', onclick: () => act(r => R.rewardPurge(r)) }, '净符 · 不取奖励，移除一枚符', h('small', null, `符袋 ${run.bag.length} 枚，越精越容易成诀`)) : null,
+    !s.picked && s.options.length ? h('button.btn.ink.purge-btn', { type: 'button', 'data-action': 'purge', onclick: () => act(r => R.rewardPurge(r)) }, '净符 · 不取奖励，移除一枚符', h('small', null, `符袋 ${run.bag.length} 枚，越精越容易成诀`)) : null),
     h('button.btn.seal.continue', { type: 'button', 'data-action': 'continue', onclick: () => act(r => R.leaveReward(r)) }, s.next === 'breakthrough' ? '突 破' : (s.picked && s.relicPicked) || !s.options.length ? '继 续' : '跳 过'));
 }
 
@@ -340,8 +341,9 @@ function shopScreen(run: RunState, s: Extract<Screen, { name: 'shop' }>) {
     act(r => R.buy(r, i), 'reward');
   };
   return h('div.panel-scr.shop', null,
-    h('h1.brush.big-title', null, '坊 市'),
-    h('div.shop-grid', null, ...s.items.map((item, i) => cardButton(run, item.option, () => buy(i), false, item.price, item.sold))),
+    h('div.panel-body', null,
+      h('h1.brush.big-title', null, '坊 市'),
+      h('div.shop-grid', null, ...s.items.map((item, i) => cardButton(run, item.option, () => buy(i), false, item.price, item.sold)))),
     h('div.shop-foot', null,
       h('button.btn.ink', { type: 'button', 'data-action': 'purge', disabled: run.gold < s.removePrice || undefined, onclick: () => act(r => R.startRemove(r)) }, `净符 · 移除一枚符 ◆${s.removePrice}`, h('small', null, `符袋 ${run.bag.length} 枚`)),
       h('button.btn.seal', { type: 'button', 'data-action': 'leave', onclick: () => act(r => R.leaveShop(r)) }, '离 开')));

@@ -1,11 +1,11 @@
-@font-face { font-family: 'ZhiMang'; src: url('../assets/fonts/zhi-mang-xing-v3.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'WenKai'; src: url('../assets/fonts/lxgw-wenkai-v3.woff2') format('woff2'); font-weight: 400 700; font-display: swap; }
 :root {
   --ink: #0b0d10; --ink2: #151a20; --ink3: #232a33; --paper: #efe4cf; --paper2: #d9c9a8; --dim: rgba(239,228,207,.62);
   --ver: #e2452f; --ver2: #b8301f; --gold: #f2c55c;
   --jin: #f6d36b; --mu: #4fdc8e; --shui: #45c9f5; --huo: #ff5a2c; --tu: #e0a14e; --zhuo: #8a7f95;
   --sans: "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Source Han Sans SC", "Microsoft YaHei", system-ui, sans-serif;
   --num: "DIN Condensed", "Bahnschrift", "Arial Narrow", "Roboto Condensed", Impact, var(--sans);
-  --brush: 'ZhiMang', "STXingkai", "Xingkai SC", "KaiTi", var(--sans);
+  --brush: 'WenKai', "Kaiti SC", "STKaiti", "KaiTi", var(--sans);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: #050607; color: var(--paper); font-family: var(--sans); -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
@@ -150,7 +150,8 @@ button.chip:hover { border-color: var(--gold); color: var(--gold); }
 .md-blurb { font-size: 18px; line-height: 1.6; color: var(--paper); }
 .md-passive { margin: 0; padding: 0 0 0 20px; font-size: 15px; line-height: 1.7; color: var(--dim); }
 .md-stats { font-size: 14px; color: var(--dim); }
-.md-body .go { align-self: flex-start; margin-top: auto; position: sticky; bottom: 0; z-index: 1; }
+/* 起程 sits below the detail column (not inside its scroll area): bottom-right in landscape, full width in portrait. */
+.select-go { position: absolute; left: 890px; right: 30px; bottom: 30px; z-index: 3; }
 .heat-row { display: flex; gap: 6px; align-items: center; font-size: 14px; }
 .heat-pip { width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(239,228,207,.4); font: 700 15px var(--num); }
 .heat-pip.on { background: var(--ver); border-color: var(--ver); }
@@ -158,10 +159,10 @@ button.chip:hover { border-color: var(--gold); color: var(--gold); }
 .stage.port .method-card { height: 150px; }
 .stage.port .method-card .mc-name { font-size: 18px; bottom: 18px; } .stage.port .method-card .mc-title { font-size: 10px; letter-spacing: .1em; }
 .stage.port .method-card img { inset: 4px 0 40px; height: calc(100% - 44px); }
-.stage.port .method-detail { left: 20px; right: 20px; top: 260px; flex-direction: column; align-items: center; }
+.stage.port .method-detail { left: 20px; right: 20px; top: 260px; bottom: 140px; flex-direction: column; align-items: center; }
 .stage.port .md-art { width: 100%; height: 300px; flex: none; }
 .stage.port .md-body { width: 100%; padding-bottom: 12px; }
-.stage.port .md-body .go { align-self: stretch; }
+.stage.port .select-go { left: 20px; right: 20px; bottom: 28px; }
 
 /* ===== Map ===== */
 .map { position: absolute; inset: 0; z-index: 1; }
@@ -198,7 +199,11 @@ button.chip:hover { border-color: var(--gold); color: var(--gold); }
 /* Long panels (big rewards, full shops) scroll inside themselves; the exit buttons stay pinned at the bottom. */
 .panel-scr { overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scroll-padding-bottom: 100px; touch-action: pan-y; scrollbar-width: thin; padding: 10px 0 6px; box-sizing: border-box; }
 .panel-scr > * { flex: none; }
-.panel-scr > .continue, .panel-scr > .shop-foot { position: sticky; bottom: 0; z-index: 3; }
+/* Reward and shop: the content scrolls in .panel-body; the exit buttons sit below it, never over the cards. */
+.panel-scr.reward, .panel-scr.shop { overflow: hidden; }
+.panel-body { flex: 1 1 auto !important; min-height: 0; width: 100%; display: flex; flex-direction: column; align-items: center; gap: inherit; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; touch-action: pan-y; scrollbar-width: thin; padding-top: 10px; }
+.panel-body > * { flex: none; }
+.panel-scr > .continue, .panel-scr > .shop-foot { margin-top: 0; }
 .stage.port .panel-scr { width: 680px; top: 214px; bottom: 30px; } .stage.port .panel-scr.reward, .stage.port .panel-scr.shop { top: 214px; bottom: 30px; }
 .big-title { font-size: 52px; margin: 0; line-height: 1; text-shadow: 0 0 30px rgba(226,69,47,.4); }
 .reward-gold { font: 700 26px var(--num); color: var(--gold); }
@@ -695,3 +700,4 @@ b.qi { color: var(--shui); } b.mu { color: var(--ver); }
 .md-diff { margin-left: 12px; font-family: var(--sans); font-size: 15px !important; color: var(--gold) !important; letter-spacing: .05em; }
 .select-scr .md-body { gap: 8px; } .select-scr .md-blurb { font-size: 16px; line-height: 1.5; } .select-scr .md-passive { line-height: 1.45; } .select-scr .kit-item { font-size: 13px; }
 .stage.land .select-scr .method-detail { bottom: 16px; }
+.stage.land .select-scr .md-body { margin-bottom: 104px; } .stage.land .select-go { bottom: 20px; }

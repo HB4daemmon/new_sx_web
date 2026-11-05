@@ -62,9 +62,12 @@ for (const [label, viewport] of [['landscape', { width: 1366, height: 768 }], ['
       const r = go.getBoundingClientRect();
       const s = document.querySelector('#stage').getBoundingClientRect();
       const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-      return { ok: !!el && go.contains(el) && r.bottom <= s.bottom + 1 && r.top >= s.top - 1 };
+      const body = document.querySelector('.md-body').getBoundingClientRect();
+      const floats = body.bottom > r.top + 1 && body.right > r.left && body.left < r.right;
+      return { ok: !!el && go.contains(el) && r.bottom <= s.bottom + 1 && r.top >= s.top - 1, floats };
     });
     if (!hit.ok) problems.push(`${label} select ${id}: start button not visible`);
+    if (hit.floats) problems.push(`${label} select ${id}: start button floats over the method text`);
   }
   await page.click('[data-method="jingang"]');
   await inStage(page, `${label} select`);
