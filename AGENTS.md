@@ -3,7 +3,8 @@
 ## V3 分支
 
 - `v3` 分支的游戏入口是 V3（`src/v3/`，设计见 `V3_DESIGN.md`）。`npm run build` 只构建 V3，
-  `npm test` 跑 V3 单元测试，`npm run test:browser` 跑 V3 端到端；V2 用 `npm run build:v2`、`npm run test:v2:all`。
+  `npm test` 跑 V3 单元测试，`npm run test:browser` 跑 V3 端到端，
+  `npm run test:screens` 在多种视口下检查各界面按钮可达（约 5 分钟）；V2 用 `npm run build:v2`、`npm run test:v2:all`。
 - V3 内容在 `src/v3/core/content.ts`、`enemies.ts`、`events.ts`，不经 YAML 内容库。
 - 本分支的提交推送到远端 `v3`，不合入 `main`，除非用户另有要求。
 - GitHub Pages 直接发布 `v3` 分支根目录（`CNAME` 为 demo.exrx.de，`.nojekyll` 关闭 Jekyll）。

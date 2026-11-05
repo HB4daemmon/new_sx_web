@@ -12,6 +12,7 @@
     "simulate": "node tests/shanhai-simulate.mjs",
     "audit": "npm run build && node tests/shanhai-balance-audit.mjs",
     "test:browser": "node tests/v3/browser.mjs",
+    "test:screens": "node tests/v3/screens.mjs",
     "test:v2": "npm run build && node --test tests/shanhai-v2-*.test.mjs",
     "test:v2:ui": "node tests/shanhai-v2-ui.mjs",
     "test:v2:drag": "node tests/shanhai-v2-equipment-drag-browser.mjs",
