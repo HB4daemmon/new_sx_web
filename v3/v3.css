@@ -1,11 +1,12 @@
-@font-face { font-family: 'WenKai'; src: url('../assets/fonts/lxgw-wenkai-v3.woff2') format('woff2'); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: 'MaShanZheng'; src: url('../assets/fonts/ma-shan-zheng-v3.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'BrushFallback'; src: url('../assets/fonts/brush-fallback-v3.woff2') format('woff2'); font-display: swap; }
 :root {
   --ink: #0b0d10; --ink2: #151a20; --ink3: #232a33; --paper: #efe4cf; --paper2: #d9c9a8; --dim: rgba(239,228,207,.62);
   --ver: #e2452f; --ver2: #b8301f; --gold: #f2c55c;
   --jin: #f6d36b; --mu: #4fdc8e; --shui: #45c9f5; --huo: #ff5a2c; --tu: #e0a14e; --zhuo: #8a7f95;
   --sans: "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Source Han Sans SC", "Microsoft YaHei", system-ui, sans-serif;
   --num: "DIN Condensed", "Bahnschrift", "Arial Narrow", "Roboto Condensed", Impact, var(--sans);
-  --brush: 'WenKai', "Kaiti SC", "STKaiti", "KaiTi", var(--sans);
+  --brush: 'MaShanZheng', 'BrushFallback', "Kaiti SC", "STKaiti", "KaiTi", var(--sans);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: #050607; color: var(--paper); font-family: var(--sans); -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; touch-action: manipulation; }

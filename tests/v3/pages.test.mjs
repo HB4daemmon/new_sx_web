@@ -21,6 +21,7 @@ test('committed v3/ matches the fresh build and index.html points at it', async 
   const html = await readFile('index.html', 'utf8');
   assert.match(html, /src="\.\/v3\/ui\/main\.js"/);
   assert.match(html, /href="\.\/v3\/v3\.css"/);
-  await readFile('assets/fonts/lxgw-wenkai-v3.woff2');
+  await readFile('assets/fonts/ma-shan-zheng-v3.woff2');
+  await readFile('assets/fonts/brush-fallback-v3.woff2');
   await readFile('assets/v3/bg-title.webp');
 });
