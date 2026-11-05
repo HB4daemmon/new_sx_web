@@ -42,17 +42,30 @@ async function playBattle(page, label) {
   throw new Error(`${label}: battle did not finish`);
 }
 
-for (const [label, viewport] of [['landscape', { width: 1366, height: 768 }], ['portrait', { width: 390, height: 844 }], ['wide-phone', { width: 844, height: 390 }]]) {
+for (const [label, viewport] of [['landscape', { width: 1366, height: 768 }], ['portrait', { width: 390, height: 844 }], ['phone-browser', { width: 360, height: 640 }], ['wide-phone', { width: 844, height: 390 }]]) {
   const page = await browser.newPage({ viewport });
   const errors = [];
   page.on('pageerror', e => errors.push(String(e)));
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
   await page.goto(BASE);
-  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('shanhai-v3-meta', JSON.stringify({ speed: 2, sound: false, tutorialDone: true })); });
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('shanhai-v3-meta', JSON.stringify({ speed: 2, sound: false, tutorialDone: true, unlocked: ['yuhuo', 'jingang', 'benlei', 'huichun', 'zhulong'] })); });
   await page.reload();
   await page.waitForSelector('[data-action="new-run"]');
   await inStage(page, `${label} title`);
   await page.click('[data-action="new-run"]');
+  // Every method's start button must be tappable in place (no hidden overflow blocking the flow).
+  for (const id of await page.$$eval('.method-card:not(:disabled)', els => els.map(e => e.dataset.method))) {
+    await page.click(`[data-method="${id}"]`);
+    await page.waitForTimeout(350);
+    const hit = await page.evaluate(() => {
+      const go = document.querySelector('[data-action="start"]');
+      const r = go.getBoundingClientRect();
+      const s = document.querySelector('#stage').getBoundingClientRect();
+      const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return { ok: !!el && go.contains(el) && r.bottom <= s.bottom + 1 && r.top >= s.top - 1 };
+    });
+    if (!hit.ok) problems.push(`${label} select ${id}: start button not visible`);
+  }
   await page.click('[data-method="jingang"]');
   await inStage(page, `${label} select`);
   await page.click('[data-action="start"]');

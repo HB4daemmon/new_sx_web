@@ -144,12 +144,13 @@ button.chip:hover { border-color: var(--gold); color: var(--gold); }
 .method-card.locked img { filter: brightness(0) contrast(.5); opacity: .6; }
 .method-detail { position: absolute; left: 580px; right: 30px; top: 100px; bottom: 30px; z-index: 2; display: flex; gap: 10px; }
 .md-art { width: 300px; height: 100%; object-fit: contain; object-position: bottom; filter: drop-shadow(0 0 30px rgba(0,0,0,.8)); }
-.md-body { flex: 1; display: flex; flex-direction: column; gap: 12px; padding-top: 10px; }
+.md-body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; padding-top: 10px; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.md-body > * { flex: none; }
 .md-name { font-family: var(--brush); font-size: 54px; line-height: 1; } .md-name span { font-size: 28px; color: var(--ver); }
 .md-blurb { font-size: 18px; line-height: 1.6; color: var(--paper); }
 .md-passive { margin: 0; padding: 0 0 0 20px; font-size: 15px; line-height: 1.7; color: var(--dim); }
 .md-stats { font-size: 14px; color: var(--dim); }
-.md-body .go { align-self: flex-start; margin-top: auto; }
+.md-body .go { align-self: flex-start; margin-top: auto; position: sticky; bottom: 0; z-index: 1; }
 .heat-row { display: flex; gap: 6px; align-items: center; font-size: 14px; }
 .heat-pip { width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(239,228,207,.4); font: 700 15px var(--num); }
 .heat-pip.on { background: var(--ver); border-color: var(--ver); }
@@ -158,8 +159,8 @@ button.chip:hover { border-color: var(--gold); color: var(--gold); }
 .stage.port .method-card .mc-name { font-size: 18px; bottom: 18px; } .stage.port .method-card .mc-title { font-size: 10px; letter-spacing: .1em; }
 .stage.port .method-card img { inset: 4px 0 40px; height: calc(100% - 44px); }
 .stage.port .method-detail { left: 20px; right: 20px; top: 260px; flex-direction: column; align-items: center; }
-.stage.port .md-art { width: 100%; height: 420px; }
-.stage.port .md-body { width: 100%; }
+.stage.port .md-art { width: 100%; height: 300px; flex: none; }
+.stage.port .md-body { width: 100%; padding-bottom: 12px; }
 .stage.port .md-body .go { align-self: stretch; }
 
 /* ===== Map ===== */
