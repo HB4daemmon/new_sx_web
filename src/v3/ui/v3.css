@@ -705,3 +705,36 @@ b.qi { color: var(--shui); } b.mu { color: var(--ver); }
 .select-scr .md-body { gap: 8px; } .select-scr .md-blurb { font-size: 16px; line-height: 1.5; } .select-scr .md-passive { line-height: 1.45; } .select-scr .kit-item { font-size: 13px; }
 .stage.land .select-scr .method-detail { bottom: 16px; }
 .stage.land .select-scr .md-body { margin-bottom: 104px; } .stage.land .select-go { bottom: 20px; }
+
+/* ===== 复盘、此行打法、契合与路线风险 ===== */
+.play-style { font-size: 14px; color: var(--dim); letter-spacing: .05em; }
+.play-style b { color: var(--gold); font-weight: 700; }
+.fit-tag { position: absolute; top: -10px; right: -6px; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 700; color: #1b1406; background: var(--gold); box-shadow: 0 2px 8px rgba(0,0,0,.5); z-index: 2; }
+.reroll-btn small, .panel-scr .btn.seal small { display: block; font-family: var(--sans); font-size: 12px; opacity: .8; letter-spacing: 0; }
+.node-threat { position: absolute; left: -10px; bottom: -8px; padding: 0 5px; border-radius: 8px; font: 700 12px/18px var(--num); color: var(--paper); background: rgba(0,0,0,.75); box-shadow: inset 0 0 0 1px rgba(239,228,207,.3); white-space: nowrap; }
+.node-threat.warn { color: #ffd77a; box-shadow: inset 0 0 0 1px rgba(255,215,122,.6); }
+.node-threat.danger { color: #fff; background: var(--ver2); box-shadow: 0 0 10px rgba(226,69,47,.7); }
+.node-loot { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); padding: 0 6px; border-radius: 8px; font-size: 11px; line-height: 16px; color: #1b1406; background: var(--gold); white-space: nowrap; }
+.stage.port .node-threat { font-size: 16px; line-height: 22px; left: -14px; } .stage.port .node-loot { font-size: 15px; line-height: 20px; top: -16px; }
+.review { width: 400px; max-height: 470px; overflow-y: auto; overscroll-behavior: contain; padding: 16px 20px; border-radius: 10px; background: rgba(6,8,12,.88); box-shadow: inset 0 0 0 1px rgba(239,228,207,.25); display: flex; flex-direction: column; gap: 10px; }
+.review h3 { margin: 0; font-size: 28px; text-align: center; }
+.near-miss { font-size: 17px; line-height: 1.5; text-align: center; color: var(--paper); }
+.near-miss b { display: block; font-family: var(--brush); font-size: 30px; color: var(--ver); }
+.near-miss small { display: block; color: var(--dim); font-size: 13px; }
+.review-route { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 13px; }
+.route-chip { display: inline-flex; align-items: baseline; gap: 3px; padding: 1px 7px; border-radius: 10px; background: rgba(255,255,255,.08); font-family: var(--brush); font-size: 16px; }
+.route-chip small { font: 700 12px var(--num); color: var(--dim); }
+.route-chip.k-elite { box-shadow: inset 0 0 0 1px var(--ver); } .route-chip.lost { background: var(--ver2); } .route-chip.lost small { color: #fff; }
+.finding { padding: 8px 10px; border-left: 3px solid var(--ver); background: rgba(255,255,255,.04); border-radius: 0 6px 6px 0; }
+.finding b { font-size: 16px; color: var(--paper); }
+.finding p { margin: 3px 0 0; font-size: 13px; line-height: 1.55; color: var(--dim); }
+.finding p.try { color: var(--paper2, #e6d6b3); } .finding p.try span { color: var(--gold); font-weight: 700; }
+.stage.port .review { width: 100%; max-height: none; } .stage.port .near-miss { font-size: 22px; } .stage.port .near-miss small, .stage.port .finding p, .stage.port .review-route { font-size: 18px; } .stage.port .finding b { font-size: 21px; } .stage.port .play-style { font-size: 19px; }
+/* The end screen can now be taller than the stage (复盘 + 道果): let it scroll. */
+.end-scr { overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
+.stage.port .end-scr { justify-content: flex-start; }
+.end-right { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.stage.land .end-scr.lost .end-seal { font-size: 76px; padding: 4px 28px; }
+.stage.land .end-scr.lost .end-left { gap: 8px; }
+.stage.land .end-scr.lost .review { width: 100%; max-height: 300px; box-sizing: border-box; }
+.stage.port .end-right { width: 100%; }

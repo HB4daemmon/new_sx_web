@@ -1,7 +1,7 @@
 import { ACT_ATK, ACT_HP, ENEMY, HEAT_ATK, HEAT_HP, RANK_ATK, RANK_HP } from './enemies.js';
 import { GEN, type El } from './elements.js';
 import { next, shuffle, int, type Rng } from './rng.js';
-import { COMBOS } from './patterns.js';
+import { COMBOS, SET_BY_SIZE } from './patterns.js';
 import { pactRank } from './pacts.js';
 import { computeCast, defenseScale, has, relicFlag, type CastResult } from './score.js';
 import { SPECIALS } from './content.js';
@@ -202,6 +202,10 @@ function damagePlayer(run: RunState, battle: BattleState, amount: number, src: '
   const dealt = amount - blocked;
   player.hp -= dealt;
   if (src === 'blood') player.hp = Math.max(1, player.hp);
+  // For the 复盘: where the damage came from, and what shields soaked.
+  const key = src === 'tribulation' ? 'tkTrib' : src === 'enemy' ? 'tkEnemy' : src === 'burn' ? 'tkBurn' : 'tkBlood';
+  battle.stacks[key] = (battle.stacks[key] ?? 0) + Math.max(0, dealt);
+  battle.stacks.tkBlocked = (battle.stacks.tkBlocked ?? 0) + blocked;
   events.push({ k: 'hit', to: 'player', amount: dealt, blocked, src, hitIndex });
   if (player.hp <= 0) { player.hp = 0; battle.outcome = 'lost'; events.push({ k: 'lose' }); }
 }
@@ -284,6 +288,7 @@ export function cast(run: RunState, battle: BattleState, uids: number[], rageWan
     battle.stacks.thunder = (battle.stacks.thunder ?? 0) + 3;
     events.push({ k: 'thunder', total: battle.stacks.thunder });
   }
+  recordUse(run, result);
   battle.bestHit = Math.max(battle.bestHit, total);
   run.stats.bestHit = Math.max(run.stats.bestHit, total);
   const tierBest = run.stats.biggestPattern;
@@ -301,6 +306,28 @@ export function cast(run: RunState, battle: BattleState, uids: number[], rageWan
 }
 
 const patternTier = (id: keyof typeof COMBOS) => COMBOS[id].tier * 100 + COMBOS[id].intent;
+
+/** Counts which 诀 and elements actually carried the run (shown as 此行打法 and on rewards). */
+function recordUse(run: RunState, result: CastResult) {
+  const use = (run.stats.use ??= {});
+  const a = result.analysis;
+  for (const set of a.sets) { const id = SET_BY_SIZE[Math.min(5, set.size)]; if (id) use[id] = (use[id] ?? 0) + 1; }
+  if (a.links.includes('sheng')) use.sheng = (use.sheng ?? 0) + 1;
+  if (a.links.includes('ke')) use.ke = (use.ke ?? 0) + 1;
+  if (a.distinct === 5) use.wuxing = (use.wuxing ?? 0) + 1;
+  const elUse = (run.stats.elUse ??= {});
+  for (const el of result.els) if (el) elUse[el] = (elUse[el] ?? 0) + 1;
+}
+
+/** The enemy's heaviest single turn at this point of the run (charge doubles the next blow). For the map's risk labels. */
+export function enemyThreat(run: RunState, enemyId: string) {
+  const def = ENEMY[enemyId];
+  if (!def) return 0;
+  const moves = [...def.moves, ...(def.phase2?.moves ?? [])];
+  const charge = moves.some(m => m.charge) ? 2 : 1;
+  const top = Math.max(0, ...moves.map(m => (m.atk ?? 0) * (m.hits ?? 1)));
+  return Math.round(top * charge * ACT_ATK[actOf(run)] * RANK_ATK[def.rank] * enemyAtkScale(run, def.rank));
+}
 
 function enemyTurn(run: RunState, battle: BattleState, events: BEvent[]) {
   const enemy = battle.enemy;

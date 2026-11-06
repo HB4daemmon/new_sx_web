@@ -3,6 +3,8 @@ import { EL_NAME } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
 import { EVENT } from '../core/events.js';
 import { COMBOS, PATTERNS } from '../core/patterns.js';
+import { enemyThreat } from '../core/battle.js';
+import { favouriteElement, favouritePatterns, playStyle, reviewRun } from '../core/review.js';
 import * as R from '../core/run.js';
 import type { MapNode, RewardOption, RunState, Screen } from '../core/types.js';
 import { ACT_STORY, BOND, BONDS, ENDING, ENDINGS, LORE } from '../core/story.js';
@@ -237,13 +239,19 @@ function nodePos(node: MapNode, run: RunState) {
   const rows = Math.max(...run.map.map(n => n.row)) + 1;
   const { w, h: H } = stageSize;
   if (portrait) {
-    const top = 440, bottom = H - 120;
+    const top = 440, bottom = H - 142;
     const step = (bottom - top) / (rows - 1);
     return { x: 140 + node.col * 220, y: bottom - node.row * step };
   }
   const left = 150, right = w - 170;
   const step = (right - left) / (rows - 1);
   return { x: left + node.row * step, y: 230 + node.col * 170 };
+}
+
+function threatTag(run: RunState, enemyId: string) {
+  const threat = enemyThreat(run, enemyId);
+  const level = threat >= run.hp * 0.4 ? '.danger' : threat >= run.hp * 0.2 ? '.warn' : '';
+  return h(`span.node-threat${level}`, { title: `最重一击约 ${threat}（你现有 ${run.hp} 气血）` }, `⚔${fmt(threat)}`);
 }
 
 function mapScreen(run: RunState) {
@@ -271,7 +279,10 @@ function mapScreen(run: RunState) {
     h('span.node-glyph', null, node.event?.startsWith('bond-') ? '缘' : NODE_GLYPH[node.kind]),
     enemy && node.kind !== 'boss' ? h('span.node-el', { class: `el-${enemy.el}` }, EL_NAME[enemy.el]) : null,
     node.kind === 'boss' && enemy ? h('span.node-label', null, enemy.name) : null,
-    bondEvent ? h('span.node-label.bond-label', null, BOND[bondEvent.bond!].name) : null);
+    bondEvent ? h('span.node-label.bond-label', null, BOND[bondEvent.bond!].name) : null,
+    // Route risk at a glance: the enemy's heaviest turn (red when it would take 40% of your current HP), and what an elite pays.
+    enemy && !visited.has(node.id) ? threatTag(run, node.enemy!) : null,
+    node.kind === 'elite' && !visited.has(node.id) ? h('span.node-loot', null, '法宝') : null);
     return btn;
   });
   const a = ACTS[run.act - 1];
@@ -282,7 +293,7 @@ function mapScreen(run: RunState) {
     h('div.map-lines', { html: `<svg viewBox="0 0 ${size.w} ${size.h}" width="100%" height="100%">${lines}</svg>` }),
     ...nodes,
     h('div.map-legend', null, ...Object.keys(NODE_GLYPH).map(k => h('span', null, h('i', { class: `k-${k}` }, NODE_GLYPH[k]), NODE_NAME[k])),
-      run.relics.length > 1 ? h('span.legend-tip', null, '法宝自左向右触发 · 拖动可换位：先加倍率、再乘倍率') : null));
+      h('span.legend-tip', null, run.relics.length > 1 ? '⚔ 敌人最重一击（红＝伤你四成以上）· 法宝自左向右触发，可拖动换位' : '⚔ 敌人最重一击（红＝伤你四成以上）')));
 }
 
 // —— Reward ——
@@ -292,16 +303,27 @@ function rewardScreen(run: RunState, s: Extract<Screen, { name: 'reward' }>) {
     if (run.relics.length >= run.relicSlots) return chooseReplace(run, s.relicOptions[i], slot => act(r => R.takeReward(r, 'relic', i, slot), 'reward'));
     act(r => R.takeReward(r, 'relic', i), 'reward');
   };
+  const style = playStyle(run);
   return h('div.panel-scr.reward', null, h('div.panel-body', null,
     h('h1.brush.big-title', null, '斩 获'),
     s.story ? h('p.story-quote', null, s.story) : null,
+    style ? h('div.play-style', null, '此行打法 · ', h('b', null, style)) : null,
     s.gold ? h('div.reward-gold', null, h('i', null, '◆'), ` +${s.gold} 灵石`) : null,
     s.relicOptions.length ? h('div.reward-block', null, h('h3', null, s.relicPicked ? '法宝已取' : '择一件法宝'),
       h('div.cards', null, ...s.relicOptions.map((o, i) => cardButton(run, o, () => pickRelic(i), s.relicPicked)))) : null,
     s.options.length ? h('div.reward-block', null, h('h3', null, s.picked ? '已取' : '择其一'),
-      h('div.cards', null, ...s.options.map((o, i) => cardButton(run, o, () => pickMain(i), s.picked)))) : null,
+      h('div.cards', null, ...s.options.map((o, i) => cardButton(run, o, () => pickMain(i), s.picked))),
+      !s.picked && !s.rerolled ? h('button.btn.ink.reroll-btn', { type: 'button', 'data-action': 'reroll', disabled: run.gold < R.rerollPrice(run) || undefined, onclick: () => act(r => R.rerollReward(r), 'reward') }, `换一批 ◆${R.rerollPrice(run)}`, h('small', null, '每次奖励限一次')) : null) : null,
     !s.picked && s.options.length ? h('button.btn.ink.purge-btn', { type: 'button', 'data-action': 'purge', onclick: () => act(r => R.rewardPurge(r)) }, '净符 · 不取奖励，移除一枚符', h('small', null, `符袋 ${run.bag.length} 枚，越精越容易成诀`)) : null),
-    h('button.btn.seal.continue', { type: 'button', 'data-action': 'continue', onclick: () => act(r => R.leaveReward(r)) }, s.next === 'breakthrough' ? '突 破' : (s.picked && s.relicPicked) || !s.options.length ? '继 续' : '跳 过'));
+    h('button.btn.seal.continue', { type: 'button', 'data-action': 'continue', onclick: () => act(r => R.leaveReward(r)) }, s.next === 'breakthrough' ? '突 破' : s.picked || !s.options.length ? '继 续' : '不 取', !s.picked && s.options.length ? h('small', null, `不取奖励，得 ${R.skipGold(run)} 灵石`) : null));
+}
+
+/** 契合: does this option feed what the player has actually been casting? */
+function fitTag(run: RunState, option: RewardOption) {
+  if (option.type === 'pattern' && favouritePatterns(run).includes(option.pattern)) return h('span.fit-tag', null, '常用诀');
+  if (option.type === 'tile' && option.tile.sp) return h('span.fit-tag', null, '本门');
+  if (option.type === 'tile' && option.tile.el !== 'zhuo' && option.tile.el === favouriteElement(run)) return h('span.fit-tag', null, `常用${EL_NAME[option.tile.el]}`);
+  return null;
 }
 
 function cardButton(run: RunState, option: RewardOption, onpick: () => void, done: boolean, price?: number, sold?: boolean) {
@@ -312,7 +334,7 @@ function cardButton(run: RunState, option: RewardOption, onpick: () => void, don
       el.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.08) translateY(-12px)' }, { transform: 'scale(1)' }], { duration: 260 });
       onpick();
     },
-  }, optionCard(run, option), price !== undefined ? h('div.price', null, sold ? '已售' : `◆ ${price}`) : null);
+  }, optionCard(run, option), price !== undefined ? h('div.price', null, sold ? '已售' : `◆ ${price}`) : null, fitTag(run, option));
   return btn;
 }
 
@@ -346,6 +368,7 @@ function shopScreen(run: RunState, s: Extract<Screen, { name: 'shop' }>) {
       h('div.shop-grid', null, ...s.items.map((item, i) => cardButton(run, item.option, () => buy(i), false, item.price, item.sold)))),
     h('div.shop-foot', null,
       h('button.btn.ink', { type: 'button', 'data-action': 'purge', disabled: run.gold < s.removePrice || undefined, onclick: () => act(r => R.startRemove(r)) }, `净符 · 移除一枚符 ◆${s.removePrice}`, h('small', null, `符袋 ${run.bag.length} 枚`)),
+      !s.restocked ? h('button.btn.ink', { type: 'button', 'data-action': 'restock', disabled: run.gold < R.restockPrice(run) || undefined, onclick: () => act(r => R.restockShop(r), 'reward') }, `补货 ◆${R.restockPrice(run)}`, h('small', null, '没卖出的全部换新，限一次')) : null,
       h('button.btn.seal', { type: 'button', 'data-action': 'leave', onclick: () => act(r => R.leaveShop(r)) }, '离 开')));
 }
 
@@ -442,13 +465,36 @@ function endScreen(run: RunState) {
         stat('最高诀式', run.stats.biggestPattern ? COMBOS[run.stats.biggestPattern]?.name ?? '—' : '—'),
         stat('斩敌', String(run.stats.kills)),
         stat('劫数', String(run.heat))),
+      playStyle(run) ? h('div.play-style', null, '此行打法 · ', h('b', null, playStyle(run)!)) : null,
       report?.unlockedMethod ? h('div.unlock', null, `解锁功法：${METHOD[report.unlockedMethod].name}`) : null,
-      h('button.btn.ink.small', { type: 'button', 'data-action': 'deeds', onclick: () => showDeeds(run) }, won ? '回看此行' : '此行行迹')),
+      h('button.btn.ink.small', { type: 'button', 'data-action': 'deeds', onclick: () => showDeeds(run) }, won ? '回看此行' : '此行行迹'),
+      won ? null : reviewPanel(run)),
+    h('div.end-right', null,
     st ? settlementPanel(st, gotThisRun) : null,
     h('div.end-actions', null,
       won && !run.endless ? h('button.btn.seal.endless-btn', { type: 'button', 'data-action': 'endless', onclick: () => { if (R.enterEndless(run)) { app.settlement = null; playSfx('thunder'); save(); render(); } } }, '入无尽天劫', h('small', null, app.meta.endlessBest ? `最深 ${app.meta.endlessBest} 层` : '层层翻倍，只为更大的数字')) : null,
       h('button.btn.seal.big', { type: 'button', 'data-action': 'again', onclick: () => { app.run = null; app.settlement = null; save(); go('select'); } }, '再入山海'),
-      h('button.btn.ink', { type: 'button', onclick: () => { app.run = null; app.settlement = null; save(); go('title'); } }, '回到标题')));
+      h('button.btn.ink', { type: 'button', onclick: () => { app.run = null; app.settlement = null; save(); go('title'); } }, '回到标题'))));
+}
+
+/** 复盘: how close it was, where it went wrong, and what to try next run. */
+function reviewPanel(run: RunState) {
+  const r = reviewRun(run);
+  if (!r.last && !r.findings.length) return null;
+  const last = r.last;
+  const name = last ? ENEMY[last.enemy]?.name ?? '敌人' : '';
+  const near = r.nearMiss;
+  const actFights = (run.journal ?? []).filter(f => last && f.act === last.act);
+  return h('div.review', null,
+    h('h3.brush', null, '复 盘'),
+    last && near ? h(`div.near-miss${near.pct <= 0.2 ? '.close' : ''}`, null,
+      near.pct <= 0.2 ? h('b', null, '差一点！') : null,
+      `${name}还剩 ${fmt(near.left)} 气血（${Math.max(1, Math.round(near.pct * 100))}%）`,
+      near.casts ? h('small', null, `按这场的平均输出，再 ${near.casts} 招就能斩下`) : null) : null,
+    actFights.length > 1 ? h('div.review-route', null, h('span.dim', null, '这一幕：'),
+      ...actFights.map(f => h(`span.route-chip.k-${f.kind}${f.won ? '' : '.lost'}`, { title: ENEMY[f.enemy]?.name ?? '' },
+        NODE_GLYPH[f.kind], h('small', null, f.won ? `−${Math.max(0, f.hpIn - f.hpOut)}` : '✕')))) : null,
+    ...r.findings.map(f => h('div.finding', null, h('b', null, f.title), h('p', null, f.detail), h('p.try', null, h('span', null, '下一局 '), f.tryNext))));
 }
 
 function settlementPanel(st: Settlement, got: AchDef[]) {

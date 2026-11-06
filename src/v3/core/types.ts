@@ -76,6 +76,14 @@ export interface BattleState {
   assists?: string[];
 }
 
+export interface FightRecord {
+  act: number; enemy: string; kind: NodeKind; won: boolean;
+  hpIn: number; hpOut: number; maxHp: number; turns: number; casts: number; best: number;
+  /** Damage the player took, by source, and how much shields soaked. */
+  taken: { enemy: number; burn: number; trib: number; blood: number }; blocked: number;
+  enemyMax: number; enemyLeft: number;
+}
+
 export type NodeKind = 'fight' | 'elite' | 'event' | 'shop' | 'rest' | 'boss';
 export interface MapNode {
   id: string;
@@ -100,11 +108,11 @@ export interface ShopItem { option: RewardOption; price: number; sold: boolean }
 export type Screen =
   | { name: 'map' }
   | { name: 'battle' }
-  | { name: 'reward'; gold: number; options: RewardOption[]; relicOptions: RewardOption[]; picked: boolean; relicPicked: boolean; next: 'map' | 'breakthrough' | 'endless'; story?: string }
+  | { name: 'reward'; gold: number; options: RewardOption[]; relicOptions: RewardOption[]; picked: boolean; relicPicked: boolean; next: 'map' | 'breakthrough' | 'endless'; story?: string; rerolled?: boolean }
   | { name: 'story'; act: number }
   | { name: 'ending' }
   | { name: 'breakthrough'; options: RewardOption[] }
-  | { name: 'shop'; items: ShopItem[]; removePrice: number; removed: boolean }
+  | { name: 'shop'; items: ShopItem[]; removePrice: number; removed: boolean; restocked?: boolean }
   | { name: 'event'; event: string; resolved?: string }
   | { name: 'rest'; done?: boolean }
   | { name: 'pick-tile'; purpose: 'remove' | 'upgrade' | 'reforge' | 'fuse'; count: number; then: Screen; title: string; price?: number }
@@ -134,7 +142,15 @@ export interface RunState {
   realm: number;
   screen: Screen;
   battle: BattleState | null;
-  stats: { bestHit: number; kills: number; casts: number; turns: number; biggestPattern: ComboId | null; floors: number; paid?: number; achPaid?: number };
+  stats: {
+    bestHit: number; kills: number; casts: number; turns: number; biggestPattern: ComboId | null; floors: number; paid?: number; achPaid?: number;
+    /** How often each 诀 / element went into a cast: the run's "build" as actually played. */
+    use?: Partial<Record<PatternId, number>>; elUse?: Partial<Record<El, number>>;
+    /** Rewards left on the table (not purged), and paid rerolls. */
+    skips?: number; rerolls?: number;
+  };
+  /** One line per battle, for the 复盘 on the end screen. */
+  journal?: FightRecord[];
   log: string[];
   /** The two 因缘 threads planned for this run: [act1→act3, act2→act4]. */
   plan: string[];

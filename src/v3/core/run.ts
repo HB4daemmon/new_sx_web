@@ -8,7 +8,7 @@ import { BONDS, BOSS_STORY, ENDING } from './story.js';
 import { cleanPacts, pactHeat, pactRank } from './pacts.js';
 import { SIGNATURE, SPECIALS } from './content.js';
 import { chance, int, next, pick, sample, seedFrom } from './rng.js';
-import type { MapNode, NodeKind, PatternId, RewardOption, RunState, Screen, ShopItem, Tile, TileMod } from './types.js';
+import type { BattleState, MapNode, NodeKind, PatternId, RewardOption, RunState, Screen, ShopItem, Tile, TileMod } from './types.js';
 
 export const SAVE_KEY = 'shanhai-v3-run';
 export const MAX_RELIC_SLOTS = 8;
@@ -207,6 +207,7 @@ function syncAfterBattleStep(run: RunState) {
 export function concludeBattle(run: RunState) {
   const battle = run.battle;
   if (!battle || battle.outcome === 'fighting') return;
+  journal(run, battle);
   if (battle.outcome === 'lost') { run.hp = 0; run.screen = { name: 'lost' }; return; }
   run.stats.kills += 1;
   if (run.method === 'yangjian') run.swordsKept = Math.floor(battle.swords / 2);
@@ -225,6 +226,17 @@ export function concludeBattle(run: RunState) {
   const relicOptions = kind === 'fight' ? (chance(run.rng, 0.12) ? relicChoices(run, 1, kind) : []) : relicChoices(run, 3 + (unlocked(run, 'boss1') ? 1 : 0), kind);
   const next = kind !== 'boss' ? 'map' : run.endless ? 'endless' : 'breakthrough';
   run.screen = { name: 'reward', gold, options, relicOptions, picked: false, relicPicked: relicOptions.length === 0, next, story: kind === 'boss' && !run.endless ? BOSS_STORY[enemyId]?.after : undefined };
+}
+
+function journal(run: RunState, battle: BattleState) {
+  const s = battle.stacks;
+  (run.journal ??= []).push({
+    act: run.act, enemy: battle.enemyId, kind: battle.kind, won: battle.outcome === 'won',
+    hpIn: s.startHp ?? run.hp, hpOut: Math.max(0, battle.player.hp), maxHp: battle.player.maxHp,
+    turns: battle.turn, casts: battle.castCount, best: battle.bestHit,
+    taken: { enemy: s.tkEnemy ?? 0, burn: s.tkBurn ?? 0, trib: s.tkTrib ?? 0, blood: s.tkBlood ?? 0 }, blocked: s.tkBlocked ?? 0,
+    enemyMax: battle.enemy.maxHp, enemyLeft: Math.max(0, battle.enemy.hp),
+  });
 }
 
 const BOSS_DEED: Record<string, string> = {
@@ -347,9 +359,29 @@ export function takeReward(run: RunState, group: 'main' | 'relic', index: number
   return true;
 }
 
+/** 换一批: pay to see three different main rewards, once per reward screen. */
+export const rerollPrice = (run: RunState) => 10 + 5 * Math.min(5, run.act);
+export function rerollReward(run: RunState): boolean {
+  const screen = run.screen;
+  if (screen.name !== 'reward' || screen.picked || screen.rerolled || !screen.options.length || run.gold < rerollPrice(run)) return false;
+  run.gold -= rerollPrice(run);
+  screen.options = rewardOptions(run, 3);
+  screen.rerolled = true;
+  run.stats.rerolls = (run.stats.rerolls ?? 0) + 1;
+  return true;
+}
+
+/** 不取: leaving the main reward untouched keeps the bag lean and pays a little. */
+export const skipGold = (run: RunState) => 6 + 2 * Math.min(5, run.act);
+
 export function leaveReward(run: RunState) {
   const screen = run.screen;
   if (screen.name !== 'reward') return;
+  if (!screen.picked && screen.options.length) {
+    run.gold += skipGold(run);
+    run.stats.skips = (run.stats.skips ?? 0) + 1;
+    screen.picked = true;
+  }
   if (screen.next === 'endless') {
     run.endless += 1;
     run.at = null;
@@ -413,6 +445,18 @@ export function buy(run: RunState, index: number, replaceSlot?: number): boolean
   if (!applyOption(run, item.option, replaceSlot)) return false;
   run.gold -= item.price;
   item.sold = true;
+  return true;
+}
+
+/** 补货: once per shop, pay to replace everything still on the shelf. */
+export const restockPrice = (run: RunState) => Math.round(25 * (pactRank(run, 'miser') ? 1.3 : 1));
+export function restockShop(run: RunState): boolean {
+  const screen = run.screen;
+  if (screen.name !== 'shop' || screen.restocked || run.gold < restockPrice(run)) return false;
+  run.gold -= restockPrice(run);
+  const fresh = makeShop(run) as Extract<Screen, { name: 'shop' }>;
+  screen.items = screen.items.map((item, i) => (item.sold ? item : fresh.items[i]));
+  screen.restocked = true;
   return true;
 }
 
