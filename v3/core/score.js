@@ -58,7 +58,7 @@ function stage(run, battle, tiles, els, vals, rage = false) {
             const day = isDay(battle);
             // 烛照九阴: during the 怒技 every element shines.
             if (rage || (day && (el === 'jin' || el === 'huo')) || (!day && (el === 'shui' || el === 'mu'))) {
-                tq *= relicFlag(run, 'dayNight') ? 5 : 3;
+                tq *= relicFlag(run, 'dayNight') ? 5 : 3.5;
                 tag = day ? '昼' : '夜';
             }
         }
@@ -310,7 +310,7 @@ function finish(run, battle, tiles, st, rage, roll) {
     const castIndex = battle.castCount + 1;
     // Method & persistent battle bonuses.
     if (run.method === 'jingang' && battle.player.shield > 0) {
-        const add = Math.round(battle.player.shield * (relicFlag(run, 'shieldBolt') ? 0.8 : 0.4));
+        const add = Math.round(battle.player.shield * (relicFlag(run, 'shieldBolt') ? 0.7 : 0.3));
         if (add)
             push('bonus', `盈盾化雷 +${add} 气`, { qi: add });
     }

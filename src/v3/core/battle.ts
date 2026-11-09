@@ -166,7 +166,7 @@ function turnStartShield(run: RunState, battle: BattleState) {
   const plate = relicFlag(run, 'turnShield');
   if (plate) battle.player.shield += Math.round(plate * defenseScale(run));
   // 金刚功·护体: a tenth of max HP as shield every turn.
-  if (run.method === 'jingang') battle.player.shield = Math.min(shieldCap(run, battle), battle.player.shield + Math.round(battle.player.maxHp * (run.talents.includes('budong') ? 0.2 : 0.1)));
+  if (run.method === 'jingang') battle.player.shield = Math.min(shieldCap(run, battle), battle.player.shield + Math.round(battle.player.maxHp * (run.talents.includes('budong') ? 0.15 : 0)));
   // 回灵: a little HP back every turn.
   if (run.talents.includes('huiling')) battle.player.hp = Math.min(battle.player.maxHp, battle.player.hp + Math.round(battle.player.maxHp * 0.06));
 }
@@ -358,7 +358,7 @@ export function cast(run: RunState, battle: BattleState, uids: number[], rageWan
     events.push({ k: 'shield', to: 'player', amount: result.shield });
   }
   // 御火诀: a cast with fire in it leaves 20% of its damage behind as burn.
-  if (run.method === 'yuhuo' && result.els.includes('huo') && battle.outcome === 'fighting') result.burn += Math.round((result.damage * 0.35) / burnPower(run));
+  if (run.method === 'yuhuo' && result.els.includes('huo') && battle.outcome === 'fighting') result.burn += Math.round((result.damage * 0.45) / burnPower(run));
   if (result.burn > 0 && battle.outcome === 'fighting') {
     battle.enemy.burn += result.burn;
     events.push({ k: 'burn', to: 'enemy', amount: result.burn });

@@ -94,7 +94,7 @@ function stage(run: RunState, battle: BattleState, tiles: Tile[], els: (El | nul
     if (run.method === 'zhulong' && el) {
       const day = isDay(battle);
       // 烛照九阴: during the 怒技 every element shines.
-      if (rage || (day && (el === 'jin' || el === 'huo')) || (!day && (el === 'shui' || el === 'mu'))) { tq *= relicFlag(run, 'dayNight') ? 5 : 3; tag = day ? '昼' : '夜'; }
+      if (rage || (day && (el === 'jin' || el === 'huo')) || (!day && (el === 'shui' || el === 'mu'))) { tq *= relicFlag(run, 'dayNight') ? 5 : 3.5; tag = day ? '昼' : '夜'; }
     }
     if (tile.sp === 'zhuyin') tq *= 2;
     if (tiles.length === 1 && has(run, 'guzhu')) { tq *= 3; tag = tag ?? '孤'; }
@@ -267,7 +267,7 @@ function finish(run: RunState, battle: BattleState, tiles: Tile[], st: Stage, ra
 
   // Method & persistent battle bonuses.
   if (run.method === 'jingang' && battle.player.shield > 0) {
-    const add = Math.round(battle.player.shield * (relicFlag(run, 'shieldBolt') ? 0.8 : 0.4));
+    const add = Math.round(battle.player.shield * (relicFlag(run, 'shieldBolt') ? 0.7 : 0.3));
     if (add) push('bonus', `盈盾化雷 +${add} 气`, { qi: add });
   }
   if (run.method === 'huichun' && battle.spring > 0) push('bonus', `春华 +${Math.round(battle.spring)} 气`, { qi: Math.round(battle.spring) });

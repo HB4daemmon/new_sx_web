@@ -134,10 +134,10 @@ export const RELICS: RelicDef[] = [
   // —— 本命法宝（功法道行 2 解锁，只为本门出现）——
   { id: 'wanjianxia', name: '万剑匣', glyph: '匣', rarity: 'legend', method: 'yangjian', desc: '飞剑上限 +10；每柄飞剑使出招倍率 +0.4', flags: { swordCap: 10 }, score: c => (c.battle.swords ? { mult: 0.4 * c.battle.swords } : null) },
   { id: 'zhurongzhong', name: '祝融火种', glyph: '种', rarity: 'legend', method: 'yuhuo', desc: '灼烧在敌方回合造成两次伤害', flags: { burnTwice: 1 } },
-  { id: 'buhuai', name: '不坏金身', glyph: '身', rarity: 'legend', method: 'jingang', desc: '盈盾化雷：当前护盾计入气的比例由 40% 提升到 80%', flags: { shieldBolt: 1 } },
+  { id: 'buhuai', name: '不坏金身', glyph: '身', rarity: 'legend', method: 'jingang', desc: '盈盾化雷：当前护盾计入气的比例由 30% 提升到 70%', flags: { shieldBolt: 1 } },
   { id: 'leigonggu', name: '雷公鼓', glyph: '鼓', rarity: 'legend', method: 'benlei', desc: '怒技之后剑意保留 50', flags: { rageKeep: 50 } },
   { id: 'qingdilu', name: '青帝露', glyph: '露', rarity: 'legend', method: 'huichun', desc: '春华出招后不再减半', flags: { springKeep: 1 } },
-  { id: 'zhuyinmu', name: '烛阴目', glyph: '目', rarity: 'legend', method: 'zhulong', desc: '昼夜加成由 ×3 提升到 ×5', flags: { dayNight: 1 } },
+  { id: 'zhuyinmu', name: '烛阴目', glyph: '目', rarity: 'legend', method: 'zhulong', desc: '昼夜加成由 ×3.5 提升到 ×5', flags: { dayNight: 1 } },
 ];
 export const SIGNATURE: Record<string, string> = Object.fromEntries(RELICS.filter(r => r.method).map(r => [r.method!, r.id]));
 export const RELIC: Record<string, RelicDef> = Object.fromEntries(RELICS.map(r => [r.id, r]));
@@ -191,13 +191,13 @@ export const METHODS: MethodDef[] = [
   {
     id: 'yuhuo', name: '御火诀', title: '焚天', el: 'huo', art: 'hero-yuhuo', hp: 85, difficulty: 2,
     blurb: '火只会越烧越旺。攒够了，一个怒技把它全部点爆。',
-    passive: ['火符施加的灼烧翻倍；带火符的一招，伤害的 35% 留作灼烧', '敌方身上的灼烧不再衰减（灼烧每层伤害随境界提升）', '本门符「火种」：把敌人现有灼烧的一半再加一遍', '怒技「焚天」：×2，并引爆灼烧（层数×8，不消失）'],
+    passive: ['火符施加的灼烧翻倍；带火符的一招，伤害的 45% 留作灼烧', '敌方身上的灼烧不再衰减（灼烧每层伤害随境界提升）', '本门符「火种」：把敌人现有灼烧的一半再加一遍', '怒技「焚天」：×2，并引爆灼烧（层数×8，不消失）'],
     extra: [{ el: 'huo', v: 3 }, { el: 'huo', v: 4 }],
   },
   {
     id: 'jingang', name: '金刚功', title: '护法', el: 'shui', art: 'hero-jingang', hp: 85, difficulty: 1,
     blurb: '盾不会散，只会越叠越厚——然后砸到敌人脸上。',
-    passive: ['护盾不会在回合开始时消散（上限为气血上限）；每回合开始另得气血上限 10% 的护盾', '每次出招，当前护盾的 40% 计入气', '本门符「金刚符」：护盾 ×3', '怒技「金刚伏魔」：全部护盾化为气，×2.5'],
+    passive: ['护盾不会在回合开始时消散（上限为气血上限）', '每次出招，当前护盾的 30% 计入气', '本门符「金刚符」：护盾 ×3', '怒技「金刚伏魔」：全部护盾化为气，×2.5'],
     extra: [{ el: 'shui', v: 3 }, { el: 'tu', v: 3 }],
   },
   {
@@ -215,7 +215,7 @@ export const METHODS: MethodDef[] = [
   {
     id: 'zhulong', name: '烛龙真经', title: '昼夜', el: 'huo', art: 'hero-zhulong', hp: 85, difficulty: 3,
     blurb: '睁目为昼，闭目为夜。跟着天色出符，气翻三倍。',
-    passive: ['奇数回合为昼：金、火符气 ×3；偶数回合为夜：水、木符气 ×3', '土符始终额外 倍率 +1', '本门符「烛阴符」：可当火或水，点数翻倍', '怒技「烛照九阴」：×3，昼夜加成对所有元素生效'],
+    passive: ['奇数回合为昼：金、火符气 ×3.5；偶数回合为夜：水、木符气 ×3.5', '土符始终额外 倍率 +1', '本门符「烛阴符」：可当火或水，点数翻倍', '怒技「烛照九阴」：×3，昼夜加成对所有元素生效'],
     extra: [{ el: 'tu', v: 4 }],
     locked: '任意功法渡劫成功一次后解锁',
   },
@@ -279,7 +279,7 @@ export const TALENTS: TalentDef[] = [
   // 本门守御：每门功法一条自己的活路。
   T('jianmu', '剑幕', 'rare', '守御', '每柄飞剑使受到的伤害 −3%（减伤上限 60%）', false, 'yangjian'),
   T('fenshen', '焚身', 'rare', '守御', '敌人身上的灼烧达其当前气血的 10% 时，受到它的伤害 −35%（减伤上限 60%）', false, 'yuhuo'),
-  T('budong', '不动明王', 'legend', '守御', '护盾上限变为气血上限 ×2；每回合护体由 10% 提升到 20%；有护盾时受到的伤害 −30%（减伤上限 60%）；金刚不坏至多 15 番', false, 'jingang'),
+  T('budong', '不动明王', 'legend', '守御', '护盾上限变为气血上限 ×2；每回合开始获得气血上限 15% 的护盾；有护盾时受到的伤害 −30%（减伤上限 60%）；金刚不坏至多 15 番', false, 'jingang'),
   T('leidun', '雷遁', 'rare', '守御', '开怒技的那一回合，敌人的攻击全部闪开；本场每开过一次怒技，闪避 +10%（闪避上限 40%）', false, 'benlei'),
   T('kumu', '枯木逢春', 'legend', '守御', '每场一次：气血归零时以一半气血复苏', false, 'huichun'),
   T('shijie', '以身饲劫', 'legend', '守御', '无尽天劫中，天劫劈敌的累计上限由六成提到八成五（配「引劫为用」最好）', false, 'jingang,huichun'),
