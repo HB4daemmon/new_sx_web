@@ -9,30 +9,34 @@ import json, os, re, sys
 
 HERE = os.path.dirname(__file__)
 
+# Readable over ornate: big shapes, few colours, little texture, strong silhouette —
+# the qualities card-battler and roguelike art tends to share. No style names a specific game.
+CLEAN = 'simple clean shapes, minimal detail, no intricate ornament, no busy patterns, no excessive texture, lots of negative space'
+
 STYLES = {
-    'ink': {
-        'name': '水墨写意',
-        'figure': 'Expressive Chinese xieyi ink-wash painting, bold wet brushstrokes with ink bleeds, dry-brush texture and splashes, painted in pale rice-paper-white and silver-grey ink tones with a single {accent} wash accent, loose yet confident, strong readable silhouette',
-        'bg': 'Chinese xieyi ink-wash landscape at night, wide cinematic composition, wet ink bleeds and mist, very dark and low contrast with a mostly empty dark center for game UI, {scene}, a faint {accent} wash glow, rice-paper texture, no people, no creatures, no text, no border',
+    'cel': {
+        'name': '墨线平涂',
+        'figure': 'Bold graphic cel-shaded illustration, thick confident black ink outlines, flat colour with two or three tone hard shading, very limited palette of deep charcoal, warm cream and {accent}, comic-book poster look, ' + CLEAN + ', strong readable silhouette',
+        'bg': 'Bold graphic cel-shaded landscape at night, flat colour layers with hard edges, very limited dark palette with {accent} accents, dark and low contrast with a mostly empty dark center for game UI, {scene}, ' + CLEAN + ', no people, no creatures, no text, no border',
     },
-    'gongbi': {
-        'name': '工笔重彩',
-        'figure': 'Chinese gongbi fine-line painting with heavy mineral pigments, delicate even ink outlines, azurite blue, malachite green, cinnabar red and gold-leaf details, ornate patterned robes and scales, {accent} highlights, rich but clean, strong readable silhouette',
-        'bg': 'Chinese blue-green gongbi landscape painting at dusk, wide cinematic composition, azurite and malachite mountains with gold-leaf outlines, darkened and low contrast with a mostly empty dark center for game UI, {scene}, {accent} highlights, silk texture, no people, no creatures, no text, no border',
+    'painted': {
+        'name': '手绘卡牌',
+        'figure': 'Clean painterly digital card illustration, soft visible brushwork, simple chunky forms, muted desaturated palette with a single {accent} accent, gentle rim light, ' + CLEAN + ', strong readable silhouette',
+        'bg': 'Clean painterly digital landscape at dusk, soft brushwork, simple large shapes, muted desaturated palette with {accent} accents, dark and low contrast with a mostly empty dark center for game UI, {scene}, ' + CLEAN + ', no people, no creatures, no text, no border',
     },
-    'dunhuang': {
-        'name': '敦煌壁画',
-        'figure': 'Dunhuang cave mural painting style, flowing celestial ribbons, earthy ochre, lapis-lazuli blue and malachite green, faded vermilion, weathered plaster texture with fine cracks, {accent} accents, graceful mural linework, strong readable silhouette',
-        'bg': 'Dunhuang cave mural landscape, wide cinematic composition, faded mineral colours on weathered plaster, darkened and low contrast with a mostly empty dark center for game UI, {scene}, {accent} accents, no people, no creatures, no text, no border',
+    'woodcut': {
+        'name': '木刻版画',
+        'figure': 'High-contrast woodcut linocut print, heavy black ink and bone-white paper, bold carved strokes and sparse hatching, one single {accent} accent colour only, stark and graphic, ' + CLEAN + ', strong readable silhouette',
+        'bg': 'High-contrast woodcut linocut landscape print at night, heavy black ink with sparse carved highlights, one single {accent} accent colour, dark with a mostly empty dark center for game UI, {scene}, ' + CLEAN + ', no people, no creatures, no text, no border',
     },
-    'guochao': {
-        'name': '国潮插画',
-        'figure': 'Modern Chinese guochao illustration, bold flat vector shapes, crisp clean linework, vibrant saturated colours with auspicious cloud and wave patterns, {accent} as the key colour, poster-like and punchy, strong readable silhouette',
-        'bg': 'Modern Chinese guochao landscape illustration at night, wide cinematic composition, flat layered shapes with auspicious cloud patterns, dark and low contrast with a mostly empty dark center for game UI, {scene}, {accent} highlights, no people, no creatures, no text, no border',
+    'pixel': {
+        'name': '像素',
+        'figure': 'Crisp retro 32-bit pixel art sprite, clean pixel outlines, limited 16-colour palette with {accent} as the key colour, flat pixel shading, no anti-aliasing blur, ' + CLEAN + ', strong readable silhouette',
+        'bg': 'Crisp retro pixel art landscape at night, limited 16-colour palette, layered parallax shapes with {accent} accents, dark and low contrast with a mostly empty dark center for game UI, {scene}, ' + CLEAN + ', no people, no creatures, no text, no border',
     },
 }
 
-FIGURE_TAIL = '{subject}, centered with generous empty margin, {pose}, isolated on a pure solid black background (#000000), no ground, no text, no seal, no border, no frame, {role}'
+FIGURE_TAIL = '{subject}, centered with generous empty margin, {pose}, isolated on a pure solid black background (#000000), no glow, no halo, no bloom around the figure, no ground, no text, no seal, no border, no frame, {role}'
 
 
 def parse(row):
@@ -52,13 +56,26 @@ def parse(row):
     return {'kind': 'enemy', 'subject': subject, 'pose': pose, 'accent': accent, 'role': 'game enemy art, mythological Shan Hai Jing creature'}
 
 
+# Pixel sprites kept glowing halos (which survive the black key); spell it out harder there.
+PIXEL_NO_GLOW = ('no glow, no halo, no bloom around the figure',
+                 'hard-edged sprite with absolutely no glow, no aura, no light bloom and no soft gradient around it; the background stays '
+                 'pure flat black #000000 right up to the sprite outline; fire and lightning drawn as solid pixel shapes')
+# A few subjects read as a blob of fire in some styles: describe the body instead.
+SUBJECT_OVERRIDE = {
+    ('pixel', 'a1-chi'): 'single full-body hornless red dragon-lizard 火螭 with a short spiky flame mane along its back only, its scaly body clearly visible',
+}
+
+
 def build(style, row):
     s = STYLES[style]
     info = parse(row)
     if info['kind'] == 'bg':
         prompt = s['bg'].format(scene=info['scene'], accent=info['accent'])
     else:
+        info['subject'] = SUBJECT_OVERRIDE.get((style, row['id']), info['subject'])
         prompt = s['figure'].format(accent=info['accent']) + ', ' + FIGURE_TAIL.format(**info)
+        if style == 'pixel':
+            prompt = prompt.replace(*PIXEL_NO_GLOW)
     return {'id': row['id'], 'size': row['size'], 'prompt': prompt}
 
 

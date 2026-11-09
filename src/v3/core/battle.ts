@@ -123,6 +123,17 @@ function turnStartShield(run: RunState, battle: BattleState) {
 
 function drawTo(run: RunState, battle: BattleState): number {
   let drawn = 0;
+  // 本命符匣: the bag's biggest tile always comes to hand (if it is not already there or spent this turn).
+  if (run.relics.includes('benming') && battle.hand.length < handSize(run)) {
+    const top = [...battle.draw, ...battle.discard].filter(t => t.el !== 'zhuo').sort((a, b) => b.v - a.v)[0];
+    const inHand = battle.hand.some(t => t.el !== 'zhuo' && t.v >= (top?.v ?? 0));
+    if (top && !inHand) {
+      battle.draw = battle.draw.filter(t => t !== top);
+      battle.discard = battle.discard.filter(t => t !== top);
+      battle.hand.push(top);
+      drawn += 1;
+    }
+  }
   while (battle.hand.length < handSize(run)) {
     if (!battle.draw.length) {
       if (!battle.discard.length) break;
@@ -295,6 +306,12 @@ export function cast(run: RunState, battle: BattleState, uids: number[], rageWan
   if (rage && run.method === 'benlei') {
     battle.stacks.thunder = (battle.stacks.thunder ?? 0) + 3;
     events.push({ k: 'thunder', total: battle.stacks.thunder });
+  }
+  // 淬火砧: a lone tile grows for good (the bag copy and this battle's copy).
+  if (tiles.length === 1 && run.relics.includes('cuihuo') && tiles[0].el !== 'zhuo') {
+    tiles[0].v += 2;
+    const own = run.bag.find(t => t.uid === tiles[0].uid);
+    if (own) own.v += 2;
   }
   recordUse(run, result);
   battle.bestHit = Math.max(battle.bestHit, total);

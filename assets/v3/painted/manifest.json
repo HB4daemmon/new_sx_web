@@ -1,0 +1,209 @@
+{
+ "schemaVersion": 1,
+ "provenance": {
+  "imageModel": "gpt-image-2.6",
+  "generator": "imagegen skill CLI (generate --quality high --no-augment)",
+  "prompts": "tools/v3-art/styles.py (painted)",
+  "processing": "black background keyed by border-connected flood fill, cropped, WebP"
+ },
+ "assets": [
+  {
+   "id": "a1-boss",
+   "file": "assets/v3/painted/a1-boss.webp",
+   "sourceSha256": "bff0c61ff58e5e65a2f103a81ebcb8e9bdff4dfc97e171a0dbed6eae2e7be669",
+   "bytes": 66420
+  },
+  {
+   "id": "a1-chi",
+   "file": "assets/v3/painted/a1-chi.webp",
+   "sourceSha256": "c15e0b63fa0b83e9fa4205248d68eeccfc82337cfd56e46c0d6053304d644d6b",
+   "bytes": 59248
+  },
+  {
+   "id": "a1-elite",
+   "file": "assets/v3/painted/a1-elite.webp",
+   "sourceSha256": "533ebfc7dc8c8155f145b50c86ad7421632c35a8f15a98694247a80559113325",
+   "bytes": 49872
+  },
+  {
+   "id": "a1-otter",
+   "file": "assets/v3/painted/a1-otter.webp",
+   "sourceSha256": "88340ae95723776d0bd21199821387a9b7b3c05d09c0bcab0678259014e9045f",
+   "bytes": 42476
+  },
+  {
+   "id": "a1-turtle",
+   "file": "assets/v3/painted/a1-turtle.webp",
+   "sourceSha256": "fd2f68446306496e21c30b2ec9d7e845554fd8119c9822a14bcfdbe2b038c6b3",
+   "bytes": 35630
+  },
+  {
+   "id": "a2-bird",
+   "file": "assets/v3/painted/a2-bird.webp",
+   "sourceSha256": "56d20d5756ff0994e0e32757b01390736aa4436e6e7bc6284c6fd6bfc2c5bbae",
+   "bytes": 57478
+  },
+  {
+   "id": "a2-boss",
+   "file": "assets/v3/painted/a2-boss.webp",
+   "sourceSha256": "cc2a25638f3096ab1b6e0d50bf84c0ac8eb480ce46bebd7ac218e1cd9d4d6b4d",
+   "bytes": 55150
+  },
+  {
+   "id": "a2-elite",
+   "file": "assets/v3/painted/a2-elite.webp",
+   "sourceSha256": "938f86f955cefecc0253d8048c477080177f61a868561d0c8401a5cf02614a5d",
+   "bytes": 48484
+  },
+  {
+   "id": "a2-shark",
+   "file": "assets/v3/painted/a2-shark.webp",
+   "sourceSha256": "048eedf0c33ce8b81c194502af80a3177d0f33510efb08454f8b46cc5d4124db",
+   "bytes": 62242
+  },
+  {
+   "id": "a2-snake",
+   "file": "assets/v3/painted/a2-snake.webp",
+   "sourceSha256": "9aeaf37c1a03a6324847618514a46027efde08ca23f509ebce2163e5e4b51535",
+   "bytes": 48378
+  },
+  {
+   "id": "a3-beetle",
+   "file": "assets/v3/painted/a3-beetle.webp",
+   "sourceSha256": "524502e989968090dc20780cb33fb1eb3c72d7e78b740e5aa097bb3df9d09970",
+   "bytes": 47498
+  },
+  {
+   "id": "a3-bifang",
+   "file": "assets/v3/painted/a3-bifang.webp",
+   "sourceSha256": "35ab3a5a8eefaf07d705943453e526dd9ea90cbe88bb805303f0611df5ebaea7",
+   "bytes": 68322
+  },
+  {
+   "id": "a3-boss",
+   "file": "assets/v3/painted/a3-boss.webp",
+   "sourceSha256": "a1afe9c80b45279741b17c5feddbf6409dac9f5648e835bd5655ba01b253a28b",
+   "bytes": 45806
+  },
+  {
+   "id": "a3-elite",
+   "file": "assets/v3/painted/a3-elite.webp",
+   "sourceSha256": "5c9f4748731fc38adf29642b02a12b17f2f1e643f7e1e80ebe8727eded0e71e4",
+   "bytes": 63584
+  },
+  {
+   "id": "a3-sand",
+   "file": "assets/v3/painted/a3-sand.webp",
+   "sourceSha256": "b366d587a7a97af79cc6a95a4648f1cc5cc327ac608ee35a111df8b74e148a5f",
+   "bytes": 75700
+  },
+  {
+   "id": "a4-boss",
+   "file": "assets/v3/painted/a4-boss.webp",
+   "sourceSha256": "34d5a6c979fc22efe2ca38bad6e6c2c006fb593ccf3905e58d40ceff46a4a06b",
+   "bytes": 47458
+  },
+  {
+   "id": "a4-elite",
+   "file": "assets/v3/painted/a4-elite.webp",
+   "sourceSha256": "d0949139fd85e8a02cf2c01ee67037ad5b68416c513ebe498610c4e735e233af",
+   "bytes": 54478
+  },
+  {
+   "id": "a4-kaiming",
+   "file": "assets/v3/painted/a4-kaiming.webp",
+   "sourceSha256": "780cf2a8d62096a8d8d471b01cfec2552483db27161d93e136e7ba48e4f78dba",
+   "bytes": 41166
+  },
+  {
+   "id": "a4-luwu",
+   "file": "assets/v3/painted/a4-luwu.webp",
+   "sourceSha256": "923e2dc3db27adda0d5af59563b2fd3bc2dd1792a0f5b74883f8736a4a99ef70",
+   "bytes": 57836
+  },
+  {
+   "id": "a4-sun",
+   "file": "assets/v3/painted/a4-sun.webp",
+   "sourceSha256": "30d805716ffe3bec3f0343bdbfbb7cab22991a2366df5ffa552896f92c13fab5",
+   "bytes": 67156
+  },
+  {
+   "id": "bg-act1",
+   "file": "assets/v3/painted/bg-act1.webp",
+   "sourceSha256": "8ede4e1bb91ef08892de778e31a2acf6f5d53ab211a33b30dcaede140599f528",
+   "bytes": 18988
+  },
+  {
+   "id": "bg-act2",
+   "file": "assets/v3/painted/bg-act2.webp",
+   "sourceSha256": "857e3fa70e285872ac140cf88dbbd855d1ba3a941d3be705a0225581dfa92fe7",
+   "bytes": 15632
+  },
+  {
+   "id": "bg-act3",
+   "file": "assets/v3/painted/bg-act3.webp",
+   "sourceSha256": "ff97b8727b5c7a9f69dea6ddff4a5c3147baeb4ccaef39c7674f5cffc0152ac5",
+   "bytes": 16922
+  },
+  {
+   "id": "bg-act4",
+   "file": "assets/v3/painted/bg-act4.webp",
+   "sourceSha256": "5d88355bb57da3aeae2179ec6bf553cc43cf0c4cef9ea90c4d457978362ca7eb",
+   "bytes": 17724
+  },
+  {
+   "id": "bg-final",
+   "file": "assets/v3/painted/bg-final.webp",
+   "sourceSha256": "ba24518292ee2862c68a3feb659d14b9994e515a7448d67ceb36413f15d6de2c",
+   "bytes": 16200
+  },
+  {
+   "id": "bg-title",
+   "file": "assets/v3/painted/bg-title.webp",
+   "sourceSha256": "c06a462be9e27c69dae06cb67a464d1ae4ba91dddbed048a40cc11a14a1385c8",
+   "bytes": 14780
+  },
+  {
+   "id": "final-boss",
+   "file": "assets/v3/painted/final-boss.webp",
+   "sourceSha256": "ff0b53c1a23e2b911df21d01bf94c72432e74f02d5d20e2bdfd77c61f7af7fbf",
+   "bytes": 76032
+  },
+  {
+   "id": "hero-benlei",
+   "file": "assets/v3/painted/hero-benlei.webp",
+   "sourceSha256": "5311faf61e4e88184c8d0ca0eeb7598ef8fa378ebdc1a0060916d6ad83d760a1",
+   "bytes": 57468
+  },
+  {
+   "id": "hero-huichun",
+   "file": "assets/v3/painted/hero-huichun.webp",
+   "sourceSha256": "14b343d1bb0ad9559bb5e3ea1d918a0406c9604b2536d648b249f33c325e7c0f",
+   "bytes": 59070
+  },
+  {
+   "id": "hero-jingang",
+   "file": "assets/v3/painted/hero-jingang.webp",
+   "sourceSha256": "a5ba15e0ddb3d4be00b067185193699b2d2bd5183ad7d0f84504291c8076d0a1",
+   "bytes": 43908
+  },
+  {
+   "id": "hero-yangjian",
+   "file": "assets/v3/painted/hero-yangjian.webp",
+   "sourceSha256": "97c339af4a552999023c1e13d719a91d22935ba881d33f14a0c2aec9fd09ad4c",
+   "bytes": 57212
+  },
+  {
+   "id": "hero-yuhuo",
+   "file": "assets/v3/painted/hero-yuhuo.webp",
+   "sourceSha256": "3af6720649855870c83c7d80c7ac46ae7fd52e1a9e0eacf121def87739bff2d6",
+   "bytes": 72862
+  },
+  {
+   "id": "hero-zhulong",
+   "file": "assets/v3/painted/hero-zhulong.webp",
+   "sourceSha256": "c439f08ab041119431df17032d6c007f502f2efb345cab8d25b33ced472556c8",
+   "bytes": 58340
+  }
+ ]
+}

@@ -371,3 +371,46 @@ test('役之器 and talents: 命运轮盘, 天机签, 三清铃, 空灵根, 慧�
   const wb = startBattle(wheel, 'shiyuan', 'fight');
   assert.ok(wb.stacks.wheel >= 1 && wb.stacks.wheel <= 5, 'the wheel is spun at the start of the fight');
 });
+
+test('单骑流: 淬火砧 grows the lone tile for good, 本命符匣 always deals it, 孤注 / 孤峰剑 / 熔符', () => {
+  const { run, battle } = fresh('yangjian', 'shiyuan');
+  run.relics = ['cuihuo'];
+  const big = run.bag[0];
+  const copy = { ...big };
+  battle.hand = [copy, T('jin', 1), T('jin', 1), T('jin', 1)];
+  const before = big.v;
+  cast(run, battle, [copy.uid], false);
+  assert.equal(big.v, before + 2, '淬火砧: the bag tile itself grew');
+  // 孤注: a lone tile's points ×3
+  const g = fresh('yangjian', 'shiyuan');
+  const plain = computeCast(g.run, g.battle, [T('huo', 6)], false).qi;
+  g.run.talents = ['guzhu'];
+  assert.equal(computeCast(g.run, g.battle, [T('huo', 6)], false).qi, plain * 3);
+  // 孤峰剑: every 10 points of a lone tile is +1 番
+  g.run.talents = []; g.run.relics = ['gufeng'];
+  assert.equal(computeCast(g.run, g.battle, [T('huo', 25)], false).mult, 1 + 2);
+  // 本命符匣: the biggest tile in the bag is always in the opening hand
+  const b = R.createRun({ seed: 'bm', method: 'yangjian' });
+  b.relics = ['benming'];
+  b.bag[3].v = 40;
+  for (let i = 0; i < 5; i += 1) {
+    const bb = startBattle(b, 'shiyuan', 'fight');
+    assert.ok(bb.hand.some(t => t.v === 40), 'the 40 is in hand');
+  }
+  // 温养玉: +2 to the bag's biggest tile after a win
+  const w = fresh('yangjian', 'shiyuan');
+  w.run.relics = ['wenyang'];
+  const topBefore = Math.max(...w.run.bag.map(t => t.v));
+  w.battle.outcome = 'won';
+  R.concludeBattle(w.run);
+  assert.equal(Math.max(...w.run.bag.map(t => t.v)), topBefore + 2);
+  // 熔符 at the 洞府: two tiles become one with the summed value, no cap
+  const f = R.createRun({ seed: 'fuse', method: 'yangjian' });
+  f.screen = { name: 'rest' };
+  R.restChoose(f, 'fuse');
+  f.bag[0].v = 15; f.bag[1].v = 14;
+  const n = f.bag.length;
+  R.pickTiles(f, [f.bag[0].uid, f.bag[1].uid]);
+  assert.equal(f.bag.length, n - 1);
+  assert.ok(f.bag.some(t => t.v === 29 && t.mod === 'bao'));
+});

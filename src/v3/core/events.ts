@@ -17,7 +17,7 @@ export interface EventDef { id: string; title: string; glyph: string; text: stri
 const leave: EventOption = { label: '离开', desc: '不节外生枝', apply: () => '你收起心神，继续赶路。' };
 const healPct = (run: RunState, pct: number) => { const h = Math.round(run.maxHp * pct); run.hp = Math.min(run.maxHp, run.hp + h); return h; };
 const curse = (run: RunState, n: number) => { for (let i = 0; i < n; i += 1) R.addTile(run, { el: 'zhuo', v: 0 }); };
-const tileText = (t: Omit<Tile, 'uid'>) => `${t.mod ? ({ ling: '灵', huan: '幻', bao: '宝', lei: '雷' } as const)[t.mod] : ''}${EL_NAME[t.el as El] ?? '浊'}${t.v}`;
+const tileText = (t: Omit<Tile, 'uid'>) => `${t.mod ? ({ ling: '灵', huan: '幻', bao: '宝', lei: '倍' } as const)[t.mod] : ''}${EL_NAME[t.el as El] ?? '浊'}${t.v}`;
 
 export const EVENTS: EventDef[] = [
   {
@@ -89,14 +89,14 @@ export const EVENTS: EventDef[] = [
     text: '万剑插地，剑意未散。在这里放下的东西，不会再跟你走。',
     options: [
       { label: '葬符', desc: '移除至多两枚符', apply: () => ({ name: 'pick-tile', purpose: 'remove', count: 2, then: { name: 'event', event: 'tomb', resolved: '符纸在剑意中化为飞灰。符袋轻了。' }, title: '剑冢 · 选至多两枚符永久移除' }) },
-      { label: '拔剑', desc: '获得一枚 雷金7', apply: run => { R.addTile(run, { el: 'jin', v: 7, mod: 'lei' }); return '剑出冢鸣，化作一枚雷金符。'; } },
+      { label: '拔剑', desc: '获得一枚 倍金7', apply: run => { R.addTile(run, { el: 'jin', v: 7, mod: 'lei' }); return '剑出冢鸣，化作一枚倍金符。'; } },
     ],
   },
   {
     id: 'thunder', title: '雷劫遗迹', glyph: '雷',
     text: '焦黑的山顶，前人渡劫的雷意还残留在石头里。伸手去握，会疼。',
     options: [
-      { label: '握雷', desc: '失去 12% 气血上限的气血，获得两枚随机雷符', apply: run => {
+      { label: '握雷', desc: '失去 12% 气血上限的气血，获得两枚随机倍符', apply: run => {
         run.hp = Math.max(1, run.hp - Math.round(run.maxHp * 0.12));
         const made = [0, 1].map(() => { const tile = { el: pick(run.rng, ELEMENTS), v: 5 + Math.min(3, run.act - 1), mod: 'lei' as const }; R.addTile(run, tile); return tileText(tile); });
         return `雷意入体。获得 ${made.join('、')}。`;
@@ -232,7 +232,7 @@ export const BOND_EVENTS: EventDef[] = [
     text: '断桥头有个人在磨箭，箭头对着天。「九个太阳我射下来了，」他说，「这回天上要掉下来的东西，我想先备一支好箭。缺块铁。」',
     options: [
       { label: '替他买铁', desc: '花费 30 灵石；与后羿约好在昆仑再见', can: run => run.gold >= 30, apply: run => { run.gold -= 30; bond(run, 'houyi', 'kept', '你在断桥替后羿买了一块箭铁。'); return '后羿掂了掂铁块：「昆仑见。到时候你往上走，我往上射。」'; } },
-      { label: '向他讨教', desc: '获得一枚 雷金7', apply: run => { R.addTile(run, { el: 'jin', v: 7, mod: 'lei' }); bond(run, 'houyi', 'declined', '后羿教了你一招握箭的手法。'); return '他教你怎么握箭。你把那股劲收进了一枚重金符里。'; } },
+      { label: '向他讨教', desc: '获得一枚 倍金7', apply: run => { R.addTile(run, { el: 'jin', v: 7, mod: 'lei' }); bond(run, 'houyi', 'declined', '后羿教了你一招握箭的手法。'); return '他教你怎么握箭。你把那股劲收进了一枚重金符里。'; } },
     ] },
   { id: 'bond-houyi-2', bond: 'houyi', title: '风口试射', glyph: '羿',
     text: '昆仑的风口，后羿的箭已经磨好了。他要你站到靶子旁边——风太乱，得有人替他报风向。',

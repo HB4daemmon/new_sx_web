@@ -1,0 +1,209 @@
+{
+ "schemaVersion": 1,
+ "provenance": {
+  "imageModel": "gpt-image-2.6",
+  "generator": "imagegen skill CLI (generate --quality high --no-augment)",
+  "prompts": "tools/v3-art/styles.py (woodcut)",
+  "processing": "black background keyed by border-connected flood fill, cropped, WebP"
+ },
+ "assets": [
+  {
+   "id": "a1-boss",
+   "file": "assets/v3/woodcut/a1-boss.webp",
+   "sourceSha256": "edee677a5145d9ccdf1c99d5f26024561f6b0b4ef46732999e1c1fe53062bc29",
+   "bytes": 175658
+  },
+  {
+   "id": "a1-chi",
+   "file": "assets/v3/woodcut/a1-chi.webp",
+   "sourceSha256": "30b1be067fc8a2c051a1ebea9ef4a21f27d23cb86145e49356983b4c0d0c9e38",
+   "bytes": 104004
+  },
+  {
+   "id": "a1-elite",
+   "file": "assets/v3/woodcut/a1-elite.webp",
+   "sourceSha256": "1514626a24526cd4853528832eb03250e15fa9892967d6e6ee7cce51a99192aa",
+   "bytes": 155736
+  },
+  {
+   "id": "a1-otter",
+   "file": "assets/v3/woodcut/a1-otter.webp",
+   "sourceSha256": "27dea6457c04d03079a4186dc4d4e234248e914986eb167db4d62659442ea776",
+   "bytes": 88622
+  },
+  {
+   "id": "a1-turtle",
+   "file": "assets/v3/woodcut/a1-turtle.webp",
+   "sourceSha256": "6caf262429c07362120d3e59615da4799387999fbb91209b3d67414a63a26d22",
+   "bytes": 147526
+  },
+  {
+   "id": "a2-bird",
+   "file": "assets/v3/woodcut/a2-bird.webp",
+   "sourceSha256": "5f047a0289dad4790fd05504b062d6fa01c3c6c18a71569e50f7b4ecabab8e9e",
+   "bytes": 110200
+  },
+  {
+   "id": "a2-boss",
+   "file": "assets/v3/woodcut/a2-boss.webp",
+   "sourceSha256": "ef2e332e4f5ecd4536c30302c49bb2133600ef5c9bb95581b8a6b44297456c71",
+   "bytes": 128806
+  },
+  {
+   "id": "a2-elite",
+   "file": "assets/v3/woodcut/a2-elite.webp",
+   "sourceSha256": "ab7bb9d161d1aa4a72ea303bc43beb6cf3b19e0641dd810238aba3726f52ea9f",
+   "bytes": 167118
+  },
+  {
+   "id": "a2-shark",
+   "file": "assets/v3/woodcut/a2-shark.webp",
+   "sourceSha256": "00303f7c8cc56d67054fbdbee360678ce121bc01111a87df2db491e3115c9e0c",
+   "bytes": 99104
+  },
+  {
+   "id": "a2-snake",
+   "file": "assets/v3/woodcut/a2-snake.webp",
+   "sourceSha256": "e07680bb8ca22ef56019fdab40af924b32a2eeec3a6ad322e263a44c3909fa74",
+   "bytes": 150398
+  },
+  {
+   "id": "a3-beetle",
+   "file": "assets/v3/woodcut/a3-beetle.webp",
+   "sourceSha256": "30f0fd5606e87c9d7d19cc1774f308ee330a47b9e77d24bfaad33839d6e18c3a",
+   "bytes": 110948
+  },
+  {
+   "id": "a3-bifang",
+   "file": "assets/v3/woodcut/a3-bifang.webp",
+   "sourceSha256": "5dfdd839553fbee2d204b21b451b8563253be0d28abb053c55ada20b276f8c5c",
+   "bytes": 107674
+  },
+  {
+   "id": "a3-boss",
+   "file": "assets/v3/woodcut/a3-boss.webp",
+   "sourceSha256": "2f2a5e6c5a9882fb94c5bde91e6efb5464830ad6659f5345fa94a7f788477d3f",
+   "bytes": 108054
+  },
+  {
+   "id": "a3-elite",
+   "file": "assets/v3/woodcut/a3-elite.webp",
+   "sourceSha256": "8c51461b9c6e393873da044e4fc544f199a2bddc5896f0460869d45e816512a3",
+   "bytes": 177012
+  },
+  {
+   "id": "a3-sand",
+   "file": "assets/v3/woodcut/a3-sand.webp",
+   "sourceSha256": "8ce9a6c34a350c0759ab4698704ec3ca0ea3af7dd7de78b0b1668e447f96fe8b",
+   "bytes": 141058
+  },
+  {
+   "id": "a4-boss",
+   "file": "assets/v3/woodcut/a4-boss.webp",
+   "sourceSha256": "748a2fbdc8c963130e2df74ab75505bc5332c0f9a26f31679b39ba527766ca5e",
+   "bytes": 115678
+  },
+  {
+   "id": "a4-elite",
+   "file": "assets/v3/woodcut/a4-elite.webp",
+   "sourceSha256": "f341f3d88ac3114f54eb7e61eb470f2cc63b7236a57beb85daa1fc92e6d7cf19",
+   "bytes": 134340
+  },
+  {
+   "id": "a4-kaiming",
+   "file": "assets/v3/woodcut/a4-kaiming.webp",
+   "sourceSha256": "addf7aa1ae131ca96754a14d9a392532b7a1a7a0e5b91a70b75200d5656dce4f",
+   "bytes": 152358
+  },
+  {
+   "id": "a4-luwu",
+   "file": "assets/v3/woodcut/a4-luwu.webp",
+   "sourceSha256": "c268bf891e53856e227f4bb3939fff335c002e522641bdb532979195e7b3ee9a",
+   "bytes": 107406
+  },
+  {
+   "id": "a4-sun",
+   "file": "assets/v3/woodcut/a4-sun.webp",
+   "sourceSha256": "c5c4138a5a78425af7ce4f24acd348a3fc8d996e8aa2b57ded402464c344df82",
+   "bytes": 96022
+  },
+  {
+   "id": "bg-act1",
+   "file": "assets/v3/woodcut/bg-act1.webp",
+   "sourceSha256": "cdf5575e0d34a43b8c0c5213a44e418726eea914f2f8710369fdf2057e2f357c",
+   "bytes": 53364
+  },
+  {
+   "id": "bg-act2",
+   "file": "assets/v3/woodcut/bg-act2.webp",
+   "sourceSha256": "35be863ae5174c63486d3c797e0a47319329df24538ef33bb73d8930b11aa95b",
+   "bytes": 52394
+  },
+  {
+   "id": "bg-act3",
+   "file": "assets/v3/woodcut/bg-act3.webp",
+   "sourceSha256": "6815b24e8c6b89554a278081d6374c4364922ce5c6819e140ba3d8f34a4bec81",
+   "bytes": 40526
+  },
+  {
+   "id": "bg-act4",
+   "file": "assets/v3/woodcut/bg-act4.webp",
+   "sourceSha256": "4a85bce9482912d217c2b0698e0f1518753b581fdc83f1a548257c1a8e1e61a1",
+   "bytes": 45884
+  },
+  {
+   "id": "bg-final",
+   "file": "assets/v3/woodcut/bg-final.webp",
+   "sourceSha256": "04aac338e31ff6c40a2884fbada8b5a97e5a8225368d89d507130a8a632e4a84",
+   "bytes": 41192
+  },
+  {
+   "id": "bg-title",
+   "file": "assets/v3/woodcut/bg-title.webp",
+   "sourceSha256": "c075303ac9f7160379e7ee3437fb1d9d6e34184142ff570670e0aff1d34fdc37",
+   "bytes": 31504
+  },
+  {
+   "id": "final-boss",
+   "file": "assets/v3/woodcut/final-boss.webp",
+   "sourceSha256": "0c39afe1a749ac4007dbdf52f5564a083797208e20831ac3fcc8b2dc0b02dfe5",
+   "bytes": 177188
+  },
+  {
+   "id": "hero-benlei",
+   "file": "assets/v3/woodcut/hero-benlei.webp",
+   "sourceSha256": "71e64b413c5d596820354b9471d45b2994b9e7e445e571bbb09eb67ac9e53f1e",
+   "bytes": 134674
+  },
+  {
+   "id": "hero-huichun",
+   "file": "assets/v3/woodcut/hero-huichun.webp",
+   "sourceSha256": "244bead822d529d4d0acfe5a7f07f35c72086514bc9e044fe3c7a6ee35f237ee",
+   "bytes": 136396
+  },
+  {
+   "id": "hero-jingang",
+   "file": "assets/v3/woodcut/hero-jingang.webp",
+   "sourceSha256": "ce17a0d95312031cc093e8d838aca301aeeff77489ecf57990f939f3afaf5959",
+   "bytes": 62778
+  },
+  {
+   "id": "hero-yangjian",
+   "file": "assets/v3/woodcut/hero-yangjian.webp",
+   "sourceSha256": "65f674c5998a446c3876008d0f0ec0666f952ca91c6b91ff2d07ab83302b8e64",
+   "bytes": 100600
+  },
+  {
+   "id": "hero-yuhuo",
+   "file": "assets/v3/woodcut/hero-yuhuo.webp",
+   "sourceSha256": "e82540b34979fb3cb40068ccb4a616420b09b41d228be6c1f104d5858a860c0d",
+   "bytes": 123102
+  },
+  {
+   "id": "hero-zhulong",
+   "file": "assets/v3/woodcut/hero-zhulong.webp",
+   "sourceSha256": "c442da2e06d0e8a5c17f8a0e7b59a592d0130a58ce88a029ed9f88015b6ccb30",
+   "bytes": 134034
+  }
+ ]
+}

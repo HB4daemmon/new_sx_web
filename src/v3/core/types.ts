@@ -1,6 +1,6 @@
 import type { El } from './elements.js';
 
-/** 灵：当任意元素 · 幻：当任意点数 1–5 · 宝：+1 番 · 雷：伤害 ×1.5 */
+/** 灵：当任意元素 · 幻：当任意点数 1–5 · 宝：+1 番 · 倍（id 'lei'）：伤害 ×1.5 */
 export type TileMod = 'ling' | 'huan' | 'bao' | 'lei';
 /** 本门符: each method's own buff tile. */
 export type SpId = 'jian' | 'huozhong' | 'jingang' | 'leiyin' | 'chunya' | 'zhuyin';

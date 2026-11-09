@@ -1084,7 +1084,7 @@ function showYakuInfo(id, res) {
         : `天成：倍率直接 ${def.fan} 番，不再与其他役相加`), path ? h('p.dim', null, `「${path.name}」路（${path.alias}）只算最高的一个役；不同路的番相加。`) : null, h('div.info-list', null, ...siblings.map(y => h(`div.info-row${y === id ? '.on' : ''}`, null, h('b', null, YAKU[y].name), h('small', null, YAKU[y].alias), h('span', null, YAKU[y].desc), h('i', null, `${YAKU[y].fan}番`)))));
 }
 function showModInfo(mod) {
-    infoCard(h('h3.brush', null, `${{ ling: '灵', huan: '幻', bao: '宝', lei: '雷' }[mod] ?? ''}符`), h('p', null, MOD_DESC[mod] ?? ''));
+    infoCard(h('h3.brush', null, `${{ ling: '灵', huan: '幻', bao: '宝', lei: '倍' }[mod] ?? ''}符`), h('p', null, MOD_DESC[mod] ?? ''));
 }
 function showDeweiInfo() {
     infoCard(h('h3.brush', null, '得位', h('small', null, '　宝牌')), h('p', null, `点数合该元素的河图数，每张 +1 番（另带 ${QI_PER_FAN} 气），与各路的役叠加。`), h('div.info-list', null, ...Object.entries(HETU).map(([el, n]) => h('div.info-row', null, h('b', { class: `el-text-${el}` }, EL_NAME[el]), h('span', null, `${n} 或 ${n + 5}`)))));

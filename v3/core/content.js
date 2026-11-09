@@ -42,7 +42,7 @@ export const RELICS = [
     { id: 'taotie', name: '饕餮鼎', glyph: '鼎', rarity: 'legend', desc: '每件其他法宝 ×0.3（四件即 ×2.2）', score: c => { const n = c.run.relics.length - 1; return n > 0 ? { x: 1 + 0.3 * n } : null; } },
     { id: 'xinhuo', name: '薪火宝炉', glyph: '炉', rarity: 'legend', desc: '敌方每 3 层灼烧 倍率 +1', score: c => { const n = Math.floor(c.battle.enemy.burn / 3); return n ? { mult: n } : null; } },
     { id: 'qiming', name: '启明玉', glyph: '启', rarity: 'legend', desc: '开战剑意全满', flags: { startQi: 100 } },
-    { id: 'tianji', name: '天机落雷箓', glyph: '箓', rarity: 'legend', desc: '雷符 ×2（原为 ×1.5）', flags: { leiX: 1 } },
+    { id: 'tianji', name: '天机落雷箓', glyph: '箓', rarity: 'legend', desc: '倍符 ×2（原为 ×1.5）', flags: { leiX: 1 } },
     { id: 'hetu', name: '河图', glyph: '图', rarity: 'legend', desc: '每张得位（宝牌）再 +2 番', score: c => (c.a.dewei ? { mult: 2 * c.a.dewei } : null) },
     { id: 'luoshu', name: '洛书', glyph: '书', rarity: 'legend', desc: '成洛书（凑 15）时 ×2.5', score: c => (c.a.yaku.some(y => y.id === 'luoshu') ? { x: 2.5 } : null) },
     { id: 'wuyue', name: '五岳真形图', glyph: '岳', rarity: 'legend', desc: '四象、五雷 ×3', score: c => (c.a.sets[0]?.size >= 4 ? { x: 3 } : null) },
@@ -71,6 +71,11 @@ export const RELICS = [
     { id: 'wufang', name: '五方旗', glyph: '旗', rarity: 'rare', desc: '成五行俱全时 ×2', score: c => (c.a.yaku.some(y => y.id === 'wuxing') ? { x: 2 } : null) },
     { id: 'jubao', name: '聚宝盆', glyph: '盆', rarity: 'rare', desc: '每张宝符、每张得位再 +1 番', score: c => { const n = c.tiles.filter(t => t.mod === 'bao').length + c.a.dewei; return n ? { mult: n } : null; } },
     { id: 'yiyuan', name: '一元印', glyph: '元', rarity: 'legend', desc: '成五雷、四象双生时 ×2', score: c => (c.a.yaku.some(y => y.id === 'wulei' || y.id === 'sixiang2') ? { x: 2 } : null) },
+    // —— 单骑之器：把一张符养大，单张打出 ——
+    { id: 'cuihuo', name: '淬火砧', glyph: '砧', rarity: 'rare', desc: '每次只出一张符，这张符永久 +2 点' },
+    { id: 'wenyang', name: '温养玉', glyph: '温', rarity: 'common', desc: '每场胜后，符袋里点数最高的符 +2 点' },
+    { id: 'benming', name: '本命符匣', glyph: '本', rarity: 'rare', desc: '每回合开局，符袋里点数最高的那张必定在手里' },
+    { id: 'gufeng', name: '孤峰剑', glyph: '峰', rarity: 'legend', desc: '只出一张时，这张符每 10 点 +1 番', score: c => (c.tiles.length === 1 && c.tiles[0].v >= 10 ? { mult: Math.floor(c.tiles[0].v / 10) } : null) },
     // —— 本命法宝（功法道行 2 解锁，只为本门出现）——
     { id: 'wanjianxia', name: '万剑匣', glyph: '匣', rarity: 'legend', method: 'yangjian', desc: '飞剑上限 +10；每柄飞剑使出招倍率 +0.4', flags: { swordCap: 10 }, score: c => (c.battle.swords ? { mult: 0.4 * c.battle.swords } : null) },
     { id: 'zhurongzhong', name: '祝融火种', glyph: '种', rarity: 'legend', method: 'yuhuo', desc: '灼烧在敌方回合造成两次伤害', flags: { burnTwice: 1 } },
@@ -142,6 +147,7 @@ export const METHODS = [
 export const METHOD = Object.fromEntries(METHODS.map(m => [m.id, m]));
 export const TALENTS = [
     { id: 'yiqi', name: '一气化三清', desc: '手中符数上限 +1' },
+    { id: 'guzhu', name: '孤注', desc: '只出一张符时，它的点数 ×3 计入气' },
     { id: 'kongling', name: '空灵根', desc: '每回合手里随机一张符化为灵符（当任意元素，当回合有效）' },
     { id: 'huiyan', name: '慧眼', desc: '得位放宽：点数与河图数相差 1 也算得位' },
     { id: 'douzhuan', name: '斗转星移', desc: '每回合换符次数 +1' },
@@ -156,7 +162,7 @@ export const TALENTS = [
     { id: 'wanfa', name: '万法归宗', desc: '所有心法 +1 重', once: true },
     { id: 'poyang', name: '破妄', desc: '克制加成由 ×2 提升为 ×3' },
     { id: 'changsheng', name: '长生', desc: '气血上限 +40 并回满', once: true },
-    { id: 'leiyin', name: '雷引', desc: '每枚雷符额外暴击率 +25%' },
+    { id: 'leiyin', name: '倍引', desc: '每枚倍符额外暴击率 +25%' },
 ];
 export const TALENT = Object.fromEntries(TALENTS.map(t => [t.id, t]));
 export const REALMS = ['炼气', '筑基', '金丹', '元婴', '化神', '渡劫'];
@@ -166,10 +172,10 @@ export const VOWS = [
     { id: 'gujian', name: '孤剑', desc: '法宝栏位 -2（多出的法宝散去）；所有心法 +2 重' },
 ];
 export const VOW = Object.fromEntries(VOWS.map(v => [v.id, v]));
-export const MOD_NAME = { ling: '灵', huan: '幻', bao: '宝', lei: '雷' };
+export const MOD_NAME = { ling: '灵', huan: '幻', bao: '宝', lei: '倍' };
 export const MOD_DESC = {
-    ling: '灵符：当任意元素（百搭花色）',
-    huan: '幻符：当任意点数 1–5（百搭点数）',
-    bao: '宝符：自己就是宝牌，+1 番',
-    lei: '雷符：本招伤害 ×1.5',
+    ling: '高级符纹 · 灵：当任意元素（百搭花色），并同时算进每一组同元',
+    huan: '高级符纹 · 幻：当任意点数 1–5（百搭点数），并同时算进每一组同数',
+    bao: '普通符纹 · 宝：自己就是宝牌，+1 番',
+    lei: '普通符纹 · 倍：本招伤害 ×1.5',
 };

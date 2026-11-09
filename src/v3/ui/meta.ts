@@ -30,10 +30,10 @@ export const META_KEY = 'shanhai-v3-meta';
 /** 可切换的画风（都由 tools/v3-art 生成）。 */
 export const ART_SETS = [
   { id: '', name: '剪纸' },
-  { id: 'ink', name: '水墨' },
-  { id: 'gongbi', name: '工笔' },
-  { id: 'dunhuang', name: '敦煌' },
-  { id: 'guochao', name: '国潮' },
+  { id: 'cel', name: '墨线' },
+  { id: 'painted', name: '手绘' },
+  { id: 'woodcut', name: '木刻' },
+  { id: 'pixel', name: '像素' },
 ];
 
 const DEFAULT: Meta = { runs: 0, wins: 0, bestHit: 0, bestHitMethod: null, unlocked: [], heatWon: {}, maxHeat: 0, seen: [], sound: true, speed: 1, tutorialDone: false, endings: [], daoguo: 0, unlocks: [], achievements: [], mastery: {}, endlessBest: 0, daily: {}, lastPacts: {}, artSet: '' };

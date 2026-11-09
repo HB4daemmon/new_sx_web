@@ -255,6 +255,11 @@ export function concludeBattle(run) {
     if (run.method === 'yangjian')
         run.swordsKept = Math.floor(battle.swords / 2);
     run.hp = Math.max(1, Math.min(run.maxHp, battle.player.hp));
+    if (run.relics.includes('wenyang')) {
+        const top = run.bag.filter(t => t.el !== 'zhuo').sort((a, b) => b.v - a.v)[0];
+        if (top)
+            top.v += 2;
+    }
     const heal = RELICS.filter(r => run.relics.includes(r.id)).reduce((s, r) => s + (r.flags?.afterHeal ?? 0), 0);
     if (heal)
         run.hp = Math.min(run.maxHp, run.hp + heal);
@@ -310,11 +315,16 @@ export function chooseEnding(run, id) {
 export function leaveStory(run) { if (run.screen.name === 'story')
     run.screen = { name: 'map' }; }
 // —— Rewards ——
-const MODS = ['ling', 'huan', 'bao', 'lei'];
+/** 普通符纹（宝、倍）常见，高级符纹（灵、幻）少见；品质越高，高级的比例越高。 */
+export const RARE_MODS = ['ling', 'huan'];
+function pickMod(run, quality = 0) {
+    const rare = 0.2 + 0.1 * Math.max(0, quality);
+    return chance(run.rng, rare) ? pick(run.rng, RARE_MODS) : pick(run.rng, ['bao', 'lei']);
+}
 export function randomTile(run, quality = 0) {
     const el = pick(run.rng, ELEMENTS);
     const v = Math.min(9, int(run.rng, 3, 5) + Math.min(4, run.act - 1) + quality);
-    const mod = chance(run.rng, 0.6 + quality * 0.1) ? pick(run.rng, MODS) : undefined;
+    const mod = chance(run.rng, 0.6 + quality * 0.1) ? pickMod(run, quality) : undefined;
     return mod ? { el, v, mod } : { el, v };
 }
 export function rewardOptions(run, n) {
@@ -486,7 +496,7 @@ export function optionPrice(run, option) {
     const discount = 1;
     switch (option.type) {
         case 'relic': return Math.round(RELIC_PRICE[RELIC[option.relic].rarity] * discount * (pactRank(run, 'miser') ? 1.3 : 1));
-        case 'tile': return Math.round((30 + (option.tile.mod ? 15 : 0) + option.tile.v * 2) * (pactRank(run, 'miser') ? 1.3 : 1));
+        case 'tile': return Math.round((30 + (option.tile.mod ? (RARE_MODS.includes(option.tile.mod) ? 35 : 15) : 0) + option.tile.v * 2) * (pactRank(run, 'miser') ? 1.3 : 1));
         case 'pattern': return Math.round(45 * (pactRank(run, 'miser') ? 1.3 : 1));
         case 'heal': return Math.round(30 * (pactRank(run, 'miser') ? 1.3 : 1));
         default: return 0;
@@ -554,6 +564,8 @@ export function restChoose(run, choice, pattern) {
         run.screen = { name: 'pick-tile', purpose: 'upgrade', count: 1, then: { name: 'rest', done: true }, title: '炼符 · 选一枚符：点数 +3，并附上一道符纹' };
     if (choice === 'purge')
         run.screen = { name: 'pick-tile', purpose: 'remove', count: 2, then: { name: 'rest', done: true }, title: '净符 · 选至多两枚符永久移除' };
+    if (choice === 'fuse')
+        run.screen = { name: 'pick-tile', purpose: 'fuse', count: 2, then: { name: 'rest', done: true }, title: '熔符 · 选两枚符熔成一枚：点数相加，元素取第一枚，并成宝符' };
     if (choice === 'insight' && pattern) {
         run.patternLv[pattern] += 1;
         run.screen = { name: 'rest', done: true };
@@ -588,9 +600,9 @@ export function pickTiles(run, uids) {
     }
     if (screen.purpose === 'upgrade')
         for (const tile of tiles) {
-            tile.v = Math.min(12, tile.v + 3);
+            tile.v += 3;
             if (!tile.mod && tile.el !== 'zhuo')
-                tile.mod = pick(run.rng, MODS);
+                tile.mod = pickMod(run, 1);
         }
     if (screen.purpose === 'reforge')
         for (const tile of tiles)
@@ -601,7 +613,7 @@ export function pickTiles(run, uids) {
             return false;
         run.bag = run.bag.filter(t => !uids.includes(t.uid));
         const el = tiles[0].el === 'zhuo' ? tiles[1].el : tiles[0].el;
-        addTile(run, el === 'zhuo' ? { el, v: 0 } : { el, v: Math.min(18, tiles[0].v + tiles[1].v), mod: 'bao' });
+        addTile(run, el === 'zhuo' ? { el, v: 0 } : { el, v: tiles[0].v + tiles[1].v, mod: 'bao' });
     }
     run.screen = screen.then;
     return true;

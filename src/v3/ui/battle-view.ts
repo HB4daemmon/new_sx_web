@@ -992,7 +992,7 @@ function showYakuInfo(id: YakuId, res?: CastResult) {
 }
 
 function showModInfo(mod: string) {
-  infoCard(h('h3.brush', null, `${{ ling: '灵', huan: '幻', bao: '宝', lei: '雷' }[mod] ?? ''}符`), h('p', null, MOD_DESC[mod] ?? ''));
+  infoCard(h('h3.brush', null, `${{ ling: '灵', huan: '幻', bao: '宝', lei: '倍' }[mod] ?? ''}符`), h('p', null, MOD_DESC[mod] ?? ''));
 }
 
 function showDeweiInfo() {

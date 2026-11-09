@@ -414,6 +414,7 @@ function restScreen(run: RunState, s: Extract<Screen, { name: 'rest' }>) {
     h('div.rest-options', null,
       h('button.event-opt', { type: 'button', 'data-option': 'heal', onclick: () => act(r => R.restChoose(r, 'heal'), 'heal') }, h('b', null, '调息'), h('span', null, `回复 ${Math.round(run.maxHp * 0.4)} 气血（${run.hp}/${run.maxHp}）`)),
       h('button.event-opt', { type: 'button', 'data-option': 'forge', onclick: () => act(r => R.restChoose(r, 'forge')) }, h('b', null, '炼符'), h('span', null, '一枚符点数 +3，并附上一道符纹')),
+      h('button.event-opt', { type: 'button', 'data-option': 'fuse', disabled: run.bag.filter(t => t.el !== 'zhuo').length < 2 || undefined, onclick: () => act(r => R.restChoose(r, 'fuse')) }, h('b', null, '熔符'), h('span', null, '两枚符熔成一枚：点数相加（单骑流的根本）')),
       h('button.event-opt', { type: 'button', 'data-option': 'purge', onclick: () => act(r => R.restChoose(r, 'purge')) }, h('b', null, '净符'), h('span', null, `移除至多两枚符（符袋现有 ${run.bag.length} 枚）`)),
       h('div.event-opt.insight', null, h('b', null, '参悟'), h('span', null, '选一路心法 +1 重'),
         h('div.insight-row', null, ...insights.map(id => h('button.chip', { type: 'button', onclick: () => act(r => R.restChoose(r, 'insight', id), 'reward') }, `${PATTERNS[id].name} ${run.patternLv[id] + 1}重`))))));

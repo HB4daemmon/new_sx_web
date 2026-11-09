@@ -16,7 +16,7 @@ export interface Step {
   x?: number;
   index?: number;
   relic?: string;
-  tag?: '克' | '被克' | '昼' | '夜';
+  tag?: '克' | '被克' | '昼' | '夜' | '孤';
   fx?: { el: El | null; heal?: number; shield?: number; burn?: number; crit?: number };
 }
 
@@ -66,7 +66,7 @@ export const round1 = (n: number) => Math.round(n * 10) / 10;
 
 interface Stage { qi: number; mult: number; steps: Step[]; critChance: number; heal: number; shield: number; burn: number; swords: number; a: Analysis; intent: number; comboIntent: number; yaku: YakuHit[]; fan: number }
 
-/** Scores one reading of the cast (elements and values fixed): 点数成气 → 各路役番 → 得位 → 共鸣 → 雷符乘区. Order of tiles never matters. */
+/** Scores one reading of the cast (elements and values fixed): 点数成气 → 各路役番 → 得位 → 共鸣 → 倍符乘区. Order of tiles never matters. */
 function stage(run: RunState, battle: BattleState, tiles: Tile[], els: (El | null)[], vals: number[], rage = false): Stage {
   const a = analyze(els, vals, battle.enemy.el, { ling: tiles.map(t => t.mod === 'ling'), huan: tiles.map(t => t.mod === 'huan'), loose: has(run, 'huiyan') });
   let qi = 0;
@@ -96,6 +96,7 @@ function stage(run: RunState, battle: BattleState, tiles: Tile[], els: (El | nul
       if (rage || (day && (el === 'jin' || el === 'huo')) || (!day && (el === 'shui' || el === 'mu'))) { tq *= relicFlag(run, 'dayNight') ? 5 : 3; tag = day ? '昼' : '夜'; }
     }
     if (tile.sp === 'zhuyin') tq *= 2;
+    if (tiles.length === 1 && has(run, 'guzhu')) { tq *= 3; tag = tag ?? '孤'; }
     tq = Math.round(tq);
     let dFan = 0;
     const fx: Step['fx'] = { el };
@@ -152,13 +153,13 @@ function stage(run: RunState, battle: BattleState, tiles: Tile[], els: (El | nul
   if (resonant.has('shui')) push({ k: 'bonus', label: `共鸣·水 护盾 ×${3 * res}` });
   if (resonant.has('huo')) push({ k: 'bonus', label: `共鸣·火 灼烧 ×${3 * res}` });
   if (resonant.has('tu')) push({ k: 'bonus', label: `共鸣·土 镇 ×${2 * res}` });
-  // 4 —— 雷符：乘区。
+  // 4 —— 倍符：乘区。
   tiles.forEach((tile, index) => {
     if (tile.mod !== 'lei') return;
     const lx = relicFlag(run, 'leiX') ? 2 : 1.5;
     x *= lx;
     if (has(run, 'leiyin')) critChance += 25;
-    push({ k: 'bonus', label: `雷符 ×${lx}`, x: lx, index });
+    push({ k: 'bonus', label: `倍符 ×${lx}`, x: lx, index });
   });
   const comboIntent = a.tian ? 50 : Math.min(50, 8 + 3 * yakuFan);
   return { qi, mult: mult(), steps, critChance, heal, shield, burn, swords, a, intent, comboIntent, yaku, fan: yakuFan };

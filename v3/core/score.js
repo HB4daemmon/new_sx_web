@@ -23,7 +23,7 @@ function bumpLabel(bump) {
     return bump.text ?? parts.join(' ');
 }
 export const round1 = (n) => Math.round(n * 10) / 10;
-/** Scores one reading of the cast (elements and values fixed): 点数成气 → 各路役番 → 得位 → 共鸣 → 雷符乘区. Order of tiles never matters. */
+/** Scores one reading of the cast (elements and values fixed): 点数成气 → 各路役番 → 得位 → 共鸣 → 倍符乘区. Order of tiles never matters. */
 function stage(run, battle, tiles, els, vals, rage = false) {
     const a = analyze(els, vals, battle.enemy.el, { ling: tiles.map(t => t.mod === 'ling'), huan: tiles.map(t => t.mod === 'huan'), loose: has(run, 'huiyan') });
     let qi = 0;
@@ -63,6 +63,10 @@ function stage(run, battle, tiles, els, vals, rage = false) {
         }
         if (tile.sp === 'zhuyin')
             tq *= 2;
+        if (tiles.length === 1 && has(run, 'guzhu')) {
+            tq *= 3;
+            tag = tag ?? '孤';
+        }
         tq = Math.round(tq);
         let dFan = 0;
         const fx = { el };
@@ -152,7 +156,7 @@ function stage(run, battle, tiles, els, vals, rage = false) {
         push({ k: 'bonus', label: `共鸣·火 灼烧 ×${3 * res}` });
     if (resonant.has('tu'))
         push({ k: 'bonus', label: `共鸣·土 镇 ×${2 * res}` });
-    // 4 —— 雷符：乘区。
+    // 4 —— 倍符：乘区。
     tiles.forEach((tile, index) => {
         if (tile.mod !== 'lei')
             return;
@@ -160,7 +164,7 @@ function stage(run, battle, tiles, els, vals, rage = false) {
         x *= lx;
         if (has(run, 'leiyin'))
             critChance += 25;
-        push({ k: 'bonus', label: `雷符 ×${lx}`, x: lx, index });
+        push({ k: 'bonus', label: `倍符 ×${lx}`, x: lx, index });
     });
     const comboIntent = a.tian ? 50 : Math.min(50, 8 + 3 * yakuFan);
     return { qi, mult: mult(), steps, critChance, heal, shield, burn, swords, a, intent, comboIntent, yaku, fan: yakuFan };
