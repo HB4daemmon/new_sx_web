@@ -28,8 +28,8 @@ export const PATTERN_ORDER: PatternId[] = ['yuan', 'shu', 'lian', 'wuxing', 'pod
 /** 心法 n 重：这一路成役时 +(n−1) 番。 */
 export const patternValue = (_id: PatternId, level: number) => ({ fan: Math.max(0, level - 1) });
 
-export interface YakuDef { id: YakuId; path: PatternId | 'tian'; name: string; alias: string; fan: number; desc: string }
-const Y = (id: YakuId, path: YakuDef['path'], name: string, alias: string, fan: number, desc: string): YakuDef => ({ id, path, name, alias, fan, desc });
+export interface YakuDef { id: YakuId; path: PatternId | 'tian' | 'ben'; name: string; alias: string; fan: number; desc: string; method?: string }
+const Y = (id: YakuId, path: YakuDef['path'], name: string, alias: string, fan: number, desc: string, method?: string): YakuDef => ({ id, path, name, alias, fan, desc, ...(method ? { method } : {}) });
 export const YAKU: Record<YakuId, YakuDef> = {
   shuangyuan: Y('shuangyuan', 'yuan', '双元', '两张同花', 1, '两张同元素'),
   liangyi: Y('liangyi', 'yuan', '两仪', '两组同花', 2, '两组各两张同元素'),
@@ -60,6 +60,19 @@ export const YAKU: Record<YakuId, YakuDef> = {
   jiutian: Y('jiutian', 'tian', '九天雷动', '同花顺', 30, '天成：五张同元素且点数连号'),
   shengsheng: Y('shengsheng', 'tian', '生生不息', '天和', 40, '天成：木1 火2 土3 金4 水5'),
   wuqi: Y('wuqi', 'tian', '五气朝元', '五色同刻', 30, '天成：五种元素各一张，点数相同'),
+  // 本门役：每门功法自己的一路，看的是战况而不只是牌面；同样只算最高的一个，不受心法加成。
+  jianzhen: Y('jianzhen', 'ben', '剑阵', '本门', 1, '本招有两张以上金符，且已有 5 柄以上飞剑', 'yangjian'),
+  wanjian: Y('wanjian', 'ben', '万剑朝宗', '本门', 3, '本招有三张以上金符，且已有 10 柄以上飞剑', 'yangjian'),
+  liaoyuan: Y('liaoyuan', 'ben', '燎原', '本门', 3, '本招带火符，且敌人的灼烧已达其当前气血的 5%', 'yuhuo'),
+  fenyuan: Y('fenyuan', 'ben', '焚原', '本门', 6, '本招带火符，且敌人的灼烧已达其当前气血的 20%', 'yuhuo'),
+  jinshen: Y('jinshen', 'ben', '金身', '本门', 3, '出招时护盾已达气血上限的 25%', 'jingang'),
+  buhuai: Y('buhuai', 'ben', '金刚不坏', '本门', 6, '出招时护盾已达气血上限的 60%：护盾每有上限的 10% 算 1 番（6–10 番）', 'jingang'),
+  leiming: Y('leiming', 'ben', '雷鸣', '本门', 3, '本招带倍符或雷引符', 'benlei'),
+  lianlei: Y('lianlei', 'ben', '连雷', '本门', 6, '开怒技出招，且本场已经开过怒技', 'benlei'),
+  chunman: Y('chunman', 'ben', '春满', '本门', 1, '满血时出招', 'huichun'),
+  wanmu: Y('wanmu', 'ben', '万木回春', '本门', 3, '出招时春华已达气血上限的一半', 'huichun'),
+  zhouye: Y('zhouye', 'ben', '昼夜交辉', '本门', 5, '本招同时带昼元素（金、火）和夜元素（水、木）；烛阴符两边都算', 'zhulong'),
+  riyue: Y('riyue', 'ben', '日月同天', '本门', 7, '本招昼元素、夜元素各两张以上', 'zhulong'),
 };
 export const YAKU_ORDER = Object.keys(YAKU) as YakuId[];
 

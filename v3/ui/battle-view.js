@@ -1,4 +1,4 @@
-import { canRage, rageCost, enemyAttack, MAX_CAST, previewCast, swordDamage, tribulationStart } from '../core/battle.js';
+import { canRage, rageCost, enemyAttack, endlessLimit, MAX_CAST, previewCast, swordDamage, tribulationStart } from '../core/battle.js';
 import { METHOD, RAGES, RELIC, SPECIALS } from '../core/content.js';
 import { counterOf, EL_NAME, KE } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
@@ -214,7 +214,7 @@ function refreshStatus() {
     es.replaceChildren(...nn(disp.armor > 0 ? h('span.st.st-armor', { title: '护甲：先抵挡你下一招的伤害' }, '甲 ', fmt(disp.armor)) : null, disp.eburn > 0 ? h('span.st.st-burn', { title: `灼烧：敌方回合开始时受到 层数×${1 + run().realm} 伤害` }, '焰 ', fmt(disp.eburn)) : null, battle().enemy.charged ? h('span.st.st-charge', { title: '蓄势：下一次攻击伤害翻倍' }, '蓄势') : null, battle().enemy.atkBonus > 0 ? h('span.st.st-buff', { title: '战意：攻击伤害提高' }, '怒 +', String(battle().enemy.atkBonus)) : null));
     const hs = $('.hero-status', root);
     const b = battle();
-    hs.replaceChildren(...nn(disp.pburn > 0 ? h('span.st.st-burn', null, '焰 ', String(disp.pburn)) : null, b.swords > 0 ? h('span.st.st-sword', { title: `飞剑：每次出招后齐射，每柄 ${swordDamage(run())} + 本招伤害的 10%` }, '剑 ×', String(b.swords)) : null, b.spring > 0 ? h('span.st.st-spring', { title: '春华：下一招计入气' }, '春 ', fmt(b.spring)) : null, b.stacks.thunder ? h('span.st.st-thunder', { title: '雷引：本场倍率永久提高' }, '雷 +', String(b.stacks.thunder)) : null, run().fate === 'xingxiu' && b.stacks.star !== undefined ? h('span.st.st-star', { title: '星宿命：本场这一路的番 ×2' }, '宿·', ...[b.stacks.star, b.stacks.star2].filter(x => x !== undefined).map(x => PATTERNS[PATTERN_ORDER[x]].name).join('、')) : null, b.stacks.wheel ? h('span.st.st-wheel', { title: `命运轮盘：本回合转出 ${b.stacks.wheel}，本招有几张 ${b.stacks.wheel} 点的符，番就 ×几` }, '轮 ', String(b.stacks.wheel)) : null, b.stacks.omen !== undefined && run().relics.includes('tianjiqian') ? h('span.st.st-omen', { title: `天机签：本回合「吉」为${EL_NAME[['mu', 'huo', 'tu', 'jin', 'shui'][b.stacks.omen]]}，每张 +1 番` }, '吉·', EL_NAME[['mu', 'huo', 'tu', 'jin', 'shui'][b.stacks.omen]]) : null));
+    hs.replaceChildren(...nn(disp.pburn > 0 ? h('span.st.st-burn', null, '焰 ', String(disp.pburn)) : null, b.swords > 0 ? h('span.st.st-sword', { title: `飞剑：每次出招后齐射，每柄 ${swordDamage(run())} + 本招伤害的 6%` }, '剑 ×', String(b.swords)) : null, b.spring > 0 ? h('span.st.st-spring', { title: '春华：下一招计入气' }, '春 ', fmt(b.spring)) : null, b.stacks.thunder ? h('span.st.st-thunder', { title: '雷引：本场倍率永久提高' }, '雷 +', String(b.stacks.thunder)) : null, run().fate === 'xingxiu' && b.stacks.star !== undefined ? h('span.st.st-star', { title: '星宿命：本场这一路的番 ×2' }, '宿·', ...[b.stacks.star, b.stacks.star2].filter(x => x !== undefined).map(x => PATTERNS[PATTERN_ORDER[x]].name).join('、')) : null, b.stacks.wheel ? h('span.st.st-wheel', { title: `命运轮盘：本回合转出 ${b.stacks.wheel}，本招有几张 ${b.stacks.wheel} 点的符，番就 ×几` }, '轮 ', String(b.stacks.wheel)) : null, b.stacks.omen !== undefined && run().relics.includes('tianjiqian') ? h('span.st.st-omen', { title: `天机签：本回合「吉」为${EL_NAME[['mu', 'huo', 'tu', 'jin', 'shui'][b.stacks.omen]]}，每张 +1 番` }, '吉·', EL_NAME[['mu', 'huo', 'tu', 'jin', 'shui'][b.stacks.omen]]) : null));
     const plate = $('.e-el', root);
     plate.className = `e-el el-${disp.el}`;
     plate.textContent = EL_NAME[disp.el];
@@ -277,7 +277,10 @@ function refreshTurn() {
     const b = battle();
     const start = tribulationStart(run());
     const left = start - b.turn;
-    $('.turn-tag', root).replaceChildren(h('b', null, `第 ${b.turn} 回合`), left > 0 ? h('small', null, `天劫 ${left} 回合后`) : h('small.tribulation', null, `天劫 · ${b.turn - start + 1} 重`));
+    // 无尽·限时斩敌: the countdown is the whole fight.
+    const limit = run().endless ? endlessLimit(run()) - b.turn : null;
+    $('.turn-tag', root).replaceChildren(h('b', null, `第 ${b.turn} 回合`), limit !== null && left <= 0 ? h('small.tribulation', null, limit > 0 ? `限时 · 余 ${limit + 1} 回合` : '限时 · 最后一回合')
+        : left > 0 ? h('small', null, `天劫 ${left} 回合后`) : h('small.tribulation', null, `天劫 · ${b.turn - start + 1} 重`));
 }
 function refreshControls() {
     const b = battle();
@@ -417,7 +420,7 @@ function setScore(res) {
 /** Tappable 役 chips: what this cast scores, each opens its rule. */
 function yakuChips(res) {
     const chip = (label, fan, onclick, cls = '') => h(`button.yk-chip${cls}`, { type: 'button', onclick: (e) => { e.stopPropagation(); onclick(); } }, label, h('i', null, `${fan}番`));
-    const out = res.yaku.map(y => chip(YAKU[y.id].name, y.fan, () => showYakuInfo(y.id, res), YAKU[y.id].path === 'tian' ? '.tian' : ''));
+    const out = res.yaku.map(y => chip(YAKU[y.id].name, y.fan, () => showYakuInfo(y.id, res), YAKU[y.id].path === 'tian' ? '.tian' : YAKU[y.id].path === 'ben' ? '.ben' : ''));
     const bao = res.tiles.filter(t => t.mod === 'bao').length;
     if (!res.analysis.tian && bao)
         out.push(chip('宝符', bao, () => showModInfo('bao')));
@@ -1077,10 +1080,15 @@ function infoCard(...children) {
 function showYakuInfo(id, res) {
     const def = YAKU[id];
     const r = run();
+    const got = res?.yaku.find(y => y.id === id);
+    if (def.path === 'ben') {
+        const own = YAKU_ORDER.filter(y => YAKU[y].method === def.method);
+        infoCard(h('h3.brush', null, def.name, h('small', null, `　${METHOD[def.method]?.name ?? ''} · 本门役`)), h('p', null, def.desc), h('p.info-num', null, `${def.fan} 番${got ? `　→ 本招 ${got.fan} 番，另带 ${got.fan * QI_PER_FAN} 气` : ''}`), h('p.dim', null, '本门役是功法自己的一路：看战况而不只看牌面，与其他各路的番相加；同样只算最高的一个，不受心法加成。'), h('div.info-list', null, ...own.map(y => h(`div.info-row.ben${y === id ? '.on' : ''}`, null, h('b', null, YAKU[y].name), h('span', null, YAKU[y].desc), h('i', null, `${YAKU[y].fan}番`)))));
+        return;
+    }
     const path = def.path === 'tian' ? null : PATTERNS[def.path];
     const lv = path ? r.patternLv[path.id] ?? 1 : 1;
     const siblings = YAKU_ORDER.filter(y => YAKU[y].path === def.path);
-    const got = res?.yaku.find(y => y.id === id);
     infoCard(h('h3.brush', null, def.name, h('small', null, `　${def.alias}`)), h('p', null, def.desc), h('p.info-num', null, path
         ? `${def.fan} 番${lv > 1 ? ` ＋ 心法「${path.name}」${lv}重 ${lv - 1} 番` : ''}${got ? `　→ 本招 ${got.fan} 番，另带 ${got.fan * QI_PER_FAN} 气` : ''}`
         : `天成：倍率直接 ${def.fan} 番，不再与其他役相加`), path ? h('p.dim', null, `「${path.name}」路（${path.alias}）只算最高的一个役；不同路的番相加。`) : null, h('div.info-list', null, ...siblings.map(y => h(`div.info-row${y === id ? '.on' : ''}`, null, h('b', null, YAKU[y].name), h('small', null, YAKU[y].alias), h('span', null, YAKU[y].desc), h('i', null, `${YAKU[y].fan}番`)))));
@@ -1098,7 +1106,7 @@ function showEnemyInfo() {
     const e = b.enemy;
     const moves = e.phase === 2 && def.phase2 ? def.phase2.moves : def.moves;
     const counter = counterOf(e.el), weak = KE[e.el];
-    infoCard(h('h3.brush', null, def.name, h('small', null, `　${def.title}`)), LORE[b.enemyId] ? h('p.dim', null, LORE[b.enemyId]) : null, h('p.info-num', null, `气血 ${fmt(e.hp)} / ${fmt(e.maxHp)}`, e.armor ? `　护甲 ${fmt(e.armor)}` : '', e.burn ? `　灼烧 ${fmt(e.burn)}` : ''), h('div.info-sec', null, h('b', null, '这一回合：'), intentTitle(e.intent).replace(/\n/g, '；')), h('div.info-list', null, ...moves.map((m, i) => h(`div.info-row${i === e.moveIndex ? '.on' : ''}`, null, h('b', null, m.name), h('span', null, intentTitle(m).split('\n').slice(1).join('；') || '—')))), h('p.dim', null, '招式按顺序循环，亮起的是这一回合。'), h('div.info-sec', null, h('b', null, `属${EL_NAME[e.el]}：`), `${EL_NAME[counter]}符克它，点数 ×2；三张以上成「破阵」。${EL_NAME[weak]}符被它克，点数 ×0.5。`), e.charged ? h('div.info-sec', null, h('b', null, '蓄势：'), '下一次攻击翻倍。') : null, e.atkBonus ? h('div.info-sec', null, h('b', null, '战意：'), `攻击 +${e.atkBonus}。`) : null, def.traitText ? h('div.info-sec', null, h('b', null, '特性：'), def.traitText) : null, h('div.info-sec', null, h('b', null, '天劫：'), `第 ${tribulationStart(r)} 回合起天雷劈向双方，一重比一重狠。`));
+    infoCard(h('h3.brush', null, def.name, h('small', null, `　${def.title}`)), LORE[b.enemyId] ? h('p.dim', null, LORE[b.enemyId]) : null, h('p.info-num', null, `气血 ${fmt(e.hp)} / ${fmt(e.maxHp)}`, e.armor ? `　护甲 ${fmt(e.armor)}` : '', e.burn ? `　灼烧 ${fmt(e.burn)}` : ''), h('div.info-sec', null, h('b', null, '这一回合：'), intentTitle(e.intent).replace(/\n/g, '；')), h('div.info-list', null, ...moves.map((m, i) => h(`div.info-row${i === e.moveIndex ? '.on' : ''}`, null, h('b', null, m.name), h('span', null, intentTitle(m).split('\n').slice(1).join('；') || '—')))), h('p.dim', null, '招式按顺序循环，亮起的是这一回合。'), h('div.info-sec', null, h('b', null, `属${EL_NAME[e.el]}：`), `${EL_NAME[counter]}符克它，点数 ×2；三张以上成「破阵」。${EL_NAME[weak]}符被它克，点数 ×0.5。`), e.charged ? h('div.info-sec', null, h('b', null, '蓄势：'), '下一次攻击翻倍。') : null, e.atkBonus ? h('div.info-sec', null, h('b', null, '战意：'), `攻击 +${e.atkBonus}。`) : null, def.traitText ? h('div.info-sec', null, h('b', null, '特性：'), def.traitText) : null, h('div.info-sec', null, h('b', null, '天劫：'), `第 ${tribulationStart(r)} 回合起天雷劈向双方，一重比一重狠。`), r.endless ? h('div.info-sec', null, h('b', null, '限时斩敌：'), `无尽天劫中，第 ${endlessLimit(r)} 回合结束时还没斩敌，天劫转而落到你身上（渡劫失败）。天劫劈敌的伤害按本幕寻常敌人算，不随层数变大。`) : null);
 }
 /** Self: HP, shield and every running counter, with what each does. */
 function showSelfInfo() {
@@ -1113,7 +1121,7 @@ function showSelfInfo() {
     if (b.player.burn)
         rows.push(['灼烧', `${b.player.burn}：回合开始时受到伤害，之后减半`]);
     if (b.swords)
-        rows.push(['飞剑', `${b.swords} 柄：每次出招后齐射，每柄 ${swordDamage(r)} + 本招伤害的 10%`]);
+        rows.push(['飞剑', `${b.swords} 柄：每次出招后齐射，每柄 ${swordDamage(r)} + 本招伤害的 6%`]);
     if (b.spring)
         rows.push(['春华', `${fmt(b.spring)}：下一招计入气`]);
     if (b.stacks.thunder)

@@ -2,8 +2,8 @@ import { METHOD, METHODS, MOD_NAME, REALMS, RELIC, TALENT, VOW } from '../core/c
 import { EL_NAME } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
 import { EVENT } from '../core/events.js';
-import { COMBOS, PATTERNS, QI_PER_FAN } from '../core/patterns.js';
-import { enemyThreat } from '../core/battle.js';
+import { COMBOS, PATTERNS, QI_PER_FAN, YAKU, YAKU_ORDER } from '../core/patterns.js';
+import { endlessHpScale, endlessLimit, enemyThreat } from '../core/battle.js';
 import { favouriteElement, favouritePatterns, playStyle, reviewRun } from '../core/review.js';
 import * as R from '../core/run.js';
 import { ACT_STORY, BOND, BONDS, ENDING, ENDINGS, LORE } from '../core/story.js';
@@ -75,7 +75,7 @@ function selectScreen() {
 /** Everything about a 功法 in one place: passives, 本门符, 怒技, starting tiles, HP. */
 function showMethodInfo(id) {
     const m = METHOD[id];
-    const close = showOverlay(h('div.info-card', null, h('h3.brush', null, m.name, h('small', null, `　${m.title} · ${['', '上手', '进阶', '精通'][m.difficulty]}`)), h('p', null, m.blurb), h('div.info-list', null, ...m.passive.map(p => h('div.info-row.wide', null, h('span', null, p)))), ...Object.values(SPECIALS).filter(x => x.method === id).map(x => h('div.info-sec', null, h('b', null, `本门符「${x.name}」：`), x.desc)), RAGES[id] ? h('div.info-sec', null, h('b', null, `怒技「${RAGES[id].name}」：`), RAGES[id].desc) : null, h('div.info-sec', null, h('b', null, '起手：'), `气血 ${m.hp}，多带 `, m.extra.map(t => `${t.mod ? MOD_NAME[t.mod] : ''}${EL_NAME[t.el] ?? '浊'}${t.v}`).join('、')), h('button.btn.ink.small', { type: 'button', onclick: () => close() }, '知道了')));
+    const close = showOverlay(h('div.info-card', null, h('h3.brush', null, m.name, h('small', null, `　${m.title} · ${['', '上手', '进阶', '精通'][m.difficulty]}`)), h('p', null, m.blurb), h('div.info-list', null, ...m.passive.map(p => h('div.info-row.wide', null, h('span', null, p)))), ...Object.values(SPECIALS).filter(x => x.method === id).map(x => h('div.info-sec', null, h('b', null, `本门符「${x.name}」：`), x.desc)), RAGES[id] ? h('div.info-sec', null, h('b', null, `怒技「${RAGES[id].name}」：`), RAGES[id].desc) : null, h('div.info-sec', null, h('b', null, '本门役：'), YAKU_ORDER.filter(y => YAKU[y].method === id).map(y => `「${YAKU[y].name}」${YAKU[y].fan}番，${YAKU[y].desc}`).join('；')), h('div.info-sec', null, h('b', null, '起手：'), `气血 ${m.hp}，多带 `, m.extra.map(t => `${t.mod ? MOD_NAME[t.mod] : ''}${EL_NAME[t.el] ?? '浊'}${t.v}`).join('、')), h('button.btn.ink.small', { type: 'button', onclick: () => close() }, '知道了')));
 }
 function startRun() {
     const open = FATES.filter(f => !f.unlock || app.meta.unlocks.includes(f.unlock));
@@ -207,7 +207,7 @@ export function showBag(run) {
     showOverlay(h('div.bag', null, h('h2.brush', null, `符 袋 · ${run.bag.length}`), ...groups));
 }
 export function showHelp(first = false) {
-    const close = showOverlay(h('div.help', null, h('h2.brush', null, '诀 谱'), h('div.help-cols', null, h('div.help-col', null, h('ol.help-steps', null, h('li', null, h('b', null, '把符当牌：'), '元素是花色，点数是牌面。点选 1–5 张出招，', h('em', null, '怎么排都一样'), '。每回合手牌全部刷新；「换符」不选符时整手全换。不会出就点「荐」。'), h('li', null, h('b', null, '成役：'), '同元素（同花）、同点数（对子、三条、葫芦）、连号（顺子）、五种元素齐、带克制敌人的符、两张凑 10 或三张凑 15，都能成役。', h('em', null, '每一路只算最高的役，不同路的番相加'), '，番数就是倍率。'), h('li', null, h('b', null, '伤害 = 气 × 番'), `：气是点数之和，每番另带 ${QI_PER_FAN} 气；`, '克制敌人的符点数 ×2，被克的 ×0.5。法宝自左向右再加、再乘。'), h('li', null, h('b', null, '得位与天成：'), '点数合河图数的符每张 +1 番（宝牌）；同花顺、五色同刻这类极难的牌是「天成」，直接给大倍率。'), h('li', null, h('b', null, '元素效果：'), '三张以上同元素触发', h('em', null, '共鸣'), '。护盾在挨打前生效，回复在挨打后生效。'), h('li', null, h('b', null, '剑意 / 天劫：'), '剑意满可开怒技（本招 ×3）；拖到第 8 回合天雷劈向双方。')), h('div.help-more', null, h('h4', null, '符纹'), ...['ling', 'huan', 'bao', 'lei'].map(k => h('p', null, MOD_DESC[k])), h('h4', null, '坊市与洞府'), h('p', null, '净符：移除一张符（坊市可反复买，每次 +20 灵石）。补货：坊市没卖出的全部换新，每个坊市一次。'), h('p', null, '三张归一：三张同元素、同点数的符合成一张，点数 ×2、保留最好的符纹；洞府免费，坊市 35 灵石一次。'), h('p', null, '炼符：一张符 +3 点并附符纹。熔符：两张熔成一张，点数相加。参悟：一路心法 +1 重。')), h('div.help-els', null, ...['jin', 'mu', 'shui', 'huo', 'tu'].map(el => h('div.help-el', null, tileView({ el, v: 5 }, { small: true }), h('span', null, { jin: '锐：暴击率 +12%', mu: '生：挨打后回复气血', shui: '护：获得护盾', huo: '焚：施加灼烧', tu: '镇：+0.5 番' }[el]))))), h('div.help-col', null, wuxingWheel(), patternTable(app.run))), first ? h('button.btn.seal', { type: 'button', onclick: () => { app.meta.tutorialDone = true; save(); close(); } }, '明白了，出发') : null), { onClose: () => { app.meta.tutorialDone = true; save(); } });
+    const close = showOverlay(h('div.help', null, h('h2.brush', null, '诀 谱'), h('div.help-cols', null, h('div.help-col', null, h('ol.help-steps', null, h('li', null, h('b', null, '把符当牌：'), '元素是花色，点数是牌面。点选 1–5 张出招，', h('em', null, '怎么排都一样'), '。每回合手牌全部刷新；「换符」不选符时整手全换。不会出就点「荐」。'), h('li', null, h('b', null, '成役：'), '同元素（同花）、同点数（对子、三条、葫芦）、连号（顺子）、五种元素齐、带克制敌人的符、两张凑 10 或三张凑 15，都能成役。', h('em', null, '每一路只算最高的役，不同路的番相加'), '，番数就是倍率。'), h('li', null, h('b', null, '伤害 = 气 × 番'), `：气是点数之和，每番另带 ${QI_PER_FAN} 气；`, '克制敌人的符点数 ×2，被克的 ×0.5。法宝自左向右再加、再乘。'), h('li', null, h('b', null, '得位与天成：'), '点数合河图数的符每张 +1 番（宝牌）；同花顺、五色同刻这类极难的牌是「天成」，直接给大倍率。'), h('li', null, h('b', null, '元素效果：'), '三张以上同元素触发', h('em', null, '共鸣'), '。护盾在挨打前生效，回复在挨打后生效。'), h('li', null, h('b', null, '剑意 / 天劫：'), '剑意满可开怒技（本招 ×3）；拖到第 8 回合天雷劈向双方。无尽天劫限时斩敌：第 10 回合结束前不斩敌，渡劫失败。'), h('li', null, h('b', null, '本门役：'), '每门功法自己的一路役，看战况（飞剑、灼烧、护盾、怒技、春华、昼夜）而不只看牌面，番数与各路相加。点「功法详情」或诀谱查看。')), h('div.help-more', null, h('h4', null, '符纹'), ...['ling', 'huan', 'bao', 'lei'].map(k => h('p', null, MOD_DESC[k])), h('h4', null, '坊市与洞府'), h('p', null, '净符：移除一张符（坊市可反复买，每次 +20 灵石）。补货：坊市没卖出的全部换新，每个坊市一次。'), h('p', null, '三张归一：三张同元素、同点数的符合成一张，点数 ×2、保留最好的符纹；洞府免费，坊市 35 灵石一次。'), h('p', null, '炼符：一张符 +3 点并附符纹。熔符：两张熔成一张，点数相加。参悟：一路心法 +1 重。')), h('div.help-els', null, ...['jin', 'mu', 'shui', 'huo', 'tu'].map(el => h('div.help-el', null, tileView({ el, v: 5 }, { small: true }), h('span', null, { jin: '锐：暴击率 +12%', mu: '生：挨打后回复气血', shui: '护：获得护盾', huo: '焚：施加灼烧', tu: '镇：+0.5 番' }[el]))))), h('div.help-col', null, wuxingWheel(), patternTable(app.run))), first ? h('button.btn.seal', { type: 'button', onclick: () => { app.meta.tutorialDone = true; save(); close(); } }, '明白了，出发') : null), { onClose: () => { app.meta.tutorialDone = true; save(); } });
 }
 // —— Map ——
 const NODE_GLYPH = { fight: '斗', elite: '煞', event: '奇', shop: '市', rest: '憩', boss: '首' };
@@ -269,7 +269,7 @@ function mapScreen(run) {
     });
     const a = ACTS[run.act - 1];
     return h('div.map', null, run.endless
-        ? h('div.map-title', null, h('span.act-no', null, '无尽天劫'), h('span.brush', null, `第 ${run.endless} 层`), h('small', null, `敌方气血 ×${(1.75 ** run.endless).toFixed(1)} · 最深 ${app.meta.endlessBest} 层`))
+        ? h('div.map-title', null, h('span.act-no', null, '无尽天劫'), h('span.brush', null, `第 ${run.endless} 层`), h('small', null, `敌方气血 ×${endlessHpScale(run).toFixed(1)} · 限 ${endlessLimit(run)} 回合斩敌 · 最深 ${app.meta.endlessBest} 层`))
         : h('div.map-title', null, h('span.act-no', null, run.act === 5 ? '终幕' : `第${'一二三四'[run.act - 1]}幕`), h('span.brush', null, a.name), h('small', null, ACT_STORY[run.act]?.goal ?? a.sub)), h('div.map-lines', { html: `<svg viewBox="0 0 ${size.w} ${size.h}" width="100%" height="100%">${lines}</svg>` }), ...nodes, R.reshapeLeft(run) > 0 ? h(`button.btn.ink.reshape-btn${reshapeMode ? '.on' : ''}`, { type: 'button', 'data-action': 'reshape', onclick: () => { reshapeMode = !reshapeMode; render(); } }, reshapeMode ? '点一个节点改换（再点取消）' : `天眼 · 改换节点（剩 ${R.reshapeLeft(run)}）`) : null, h('div.map-legend', null, ...Object.keys(NODE_GLYPH).map(k => h('span', null, h('i', { class: `k-${k}` }, NODE_GLYPH[k]), NODE_NAME[k])), h('span.legend-tip', null, run.relics.length > 1 ? '⚔ 敌人最重一击（红＝伤你四成以上）· 法宝自左向右触发，可拖动换位' : '⚔ 敌人最重一击（红＝伤你四成以上）')));
 }
 // —— Reward ——
@@ -393,7 +393,7 @@ function endScreen(run) {
             playSfx('thunder');
             save();
             render();
-        } } }, '入无尽天劫', h('small', null, app.meta.endlessBest ? `最深 ${app.meta.endlessBest} 层` : '层层翻倍，只为更大的数字')) : null, h('button.btn.seal.big', { type: 'button', 'data-action': 'again', onclick: () => { app.run = null; app.settlement = null; save(); go('select'); } }, '再入山海'), h('button.btn.ink', { type: 'button', onclick: () => { app.run = null; app.settlement = null; save(); go('title'); } }, '回到标题'))));
+        } } }, '入无尽天劫', h('small', null, app.meta.endlessBest ? `最深 ${app.meta.endlessBest} 层` : '层层翻倍，限时斩敌')) : null, h('button.btn.seal.big', { type: 'button', 'data-action': 'again', onclick: () => { app.run = null; app.settlement = null; save(); go('select'); } }, '再入山海'), h('button.btn.ink', { type: 'button', onclick: () => { app.run = null; app.settlement = null; save(); go('title'); } }, '回到标题'))));
 }
 /** 复盘: how close it was, where it went wrong, and what to try next run. */
 function reviewPanel(run) {

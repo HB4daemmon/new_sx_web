@@ -143,3 +143,65 @@ test('命格: every 命格 is selectable; the rules they rewrite', () => {
   assert.equal(tf.run.screen.name, 'reward');
   assert.equal(tf.run.screen.devoured, true);
 });
+
+test('本门役: each method has its own 路 that reads the fight', async () => {
+  const { YAKU } = await import('../../build/v3/core/patterns.js');
+  const own = m => Object.values(YAKU).filter(y => y.method === m).length;
+  for (const m of ['yangjian', 'yuhuo', 'jingang', 'benlei', 'huichun', 'zhulong']) assert.equal(own(m), 2, m);
+  const mk = (method, enemy = 'shiyuan') => { const run = R.createRun({ seed: 'bm', method }); const battle = startBattle(run, enemy, 'fight'); run.battle = battle; return { run, battle }; };
+  const ids = (c, tiles, rage = false) => computeCast(c.run, c.battle, tiles, rage).yaku.map(y => y.id);
+  // 养剑诀: 剑阵 needs swords already out.
+  const y = mk('yangjian');
+  y.battle.swords = 0;
+  assert.ok(!ids(y, [T('jin', 2), T('jin', 5)]).includes('jianzhen'));
+  y.battle.swords = 6;
+  assert.ok(ids(y, [T('jin', 2), T('jin', 5)]).includes('jianzhen'));
+  y.battle.swords = 12;
+  assert.ok(ids(y, [T('jin', 2), T('jin', 5), T('jin', 1)]).includes('wanjian'));
+  // 御火诀: burn against the foe's current HP.
+  const f = mk('yuhuo');
+  f.battle.enemy.burn = Math.ceil(f.battle.enemy.hp * 0.25);
+  assert.ok(ids(f, [T('huo', 2)]).includes('fenyuan'));
+  assert.ok(!ids(f, [T('jin', 2)]).some(id => id === 'fenyuan' || id === 'liaoyuan'), 'needs a 火 tile');
+  // 金刚功: 金刚不坏 grows with the shield.
+  const j = mk('jingang');
+  j.battle.player.shield = j.battle.player.maxHp;
+  const hit = computeCast(j.run, j.battle, [T('jin', 2)], false).yaku.find(h => h.id === 'buhuai');
+  assert.equal(hit.fan, 10);
+  j.battle.player.shield = Math.ceil(j.battle.player.maxHp * 0.3);
+  assert.ok(ids(j, [T('jin', 2)]).includes('jinshen'));
+  // 烛龙真经: day and night elements together.
+  const z = mk('zhulong');
+  assert.ok(ids(z, [T('huo', 2), T('shui', 3)]).includes('zhouye'));
+  assert.ok(ids(z, [T('huo', 2), T('jin', 3), T('shui', 1), T('mu', 4)]).includes('riyue'));
+  assert.ok(!ids(z, [T('huo', 2), T('jin', 3)]).some(id => id === 'zhouye' || id === 'riyue'));
+  // 回春功: full HP.
+  const h = mk('huichun');
+  h.battle.player.hp = h.battle.player.maxHp;
+  assert.ok(ids(h, [T('mu', 2)]).includes('chunman'));
+  h.battle.spring = h.battle.player.maxHp;
+  assert.ok(ids(h, [T('mu', 2)]).includes('wanmu'));
+  // Not another method's.
+  assert.ok(!ids(mk('yangjian'), [T('huo', 2), T('shui', 3)]).includes('zhouye'));
+});
+
+test('天劫 hits by the act yardstick; 无尽 has a hard turn limit', async () => {
+  const { endlessLimit } = await import('../../build/v3/core/battle.js');
+  const run = R.createRun({ seed: 'el', method: 'jingang' });
+  run.endless = 2;
+  run.act = 7;
+  const battle = startBattle(run, 'gonggong', 'boss');
+  run.battle = battle;
+  assert.ok(battle.stacks.tribBase < battle.enemy.maxHp / 2, 'tribulation ignores 无尽 HP growth');
+  assert.equal(endlessLimit(run), tribulationStart(run) + 2);
+  battle.enemy.intent = { name: 'idle' };
+  battle.turn = endlessLimit(run) - 1;
+  battle.player.hp = battle.player.maxHp;
+  battle.player.shield = 9999;
+  const small = () => [...battle.hand].sort((a, b) => a.v - b.v)[0].uid;
+  cast(run, battle, [small()], false);
+  assert.equal(battle.outcome, 'fighting', 'one turn before the limit you are still standing');
+  battle.enemy.intent = { name: 'idle' };
+  cast(run, battle, [small()], false);
+  assert.equal(battle.outcome, 'lost', 'past the limit the tribulation takes you, shield or not');
+});

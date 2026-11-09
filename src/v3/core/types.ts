@@ -23,7 +23,8 @@ export type YakuId =
   | 'sanhua' | 'wuxing'
   | 'pozhan' | 'pozhen' | 'pojun'
   | 'shiquan' | 'luoshu'
-  | 'jiutian' | 'shengsheng' | 'wuqi';
+  | 'jiutian' | 'shengsheng' | 'wuqi'
+  | 'jianzhen' | 'wanjian' | 'liaoyuan' | 'fenyuan' | 'jinshen' | 'buhuai' | 'leiming' | 'lianlei' | 'chunman' | 'wanmu' | 'zhouye' | 'riyue';
 /** The named shape of a cast: its headline 役, or 散 (no 役). */
 export type ComboId = YakuId | 'san';
 

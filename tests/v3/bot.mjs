@@ -34,6 +34,7 @@ export function playBattle(run) {
       const rb = bestCast(run, battle, true);
       if (fanTier(rb.r.fan, !!rb.r.analysis.tian) >= 3 || rb.r.damage >= battle.enemy.hp || battle.player.hp < enemyAttack(run, battle) * 2) { best = rb; rage = true; }
     }
+    globalThis.__probe?.(run, battle, best.r, rage);
     const out = R.castTiles(run, best.uids, rage);
     if (out) CASTS.push({ act: start.act, dmg: out.result.damage, rage, combo: out.result.pattern, fan: out.result.fan, yaku: out.result.yaku.map(y => y.id) });
   }

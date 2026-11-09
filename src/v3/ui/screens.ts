@@ -2,8 +2,8 @@ import { METHOD, METHODS, MOD_NAME, REALMS, RELIC, TALENT, VOW } from '../core/c
 import { EL_NAME, type El } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
 import { EVENT } from '../core/events.js';
-import { COMBOS, PATTERNS, QI_PER_FAN } from '../core/patterns.js';
-import { enemyThreat } from '../core/battle.js';
+import { COMBOS, PATTERNS, QI_PER_FAN, YAKU, YAKU_ORDER } from '../core/patterns.js';
+import { endlessHpScale, endlessLimit, enemyThreat } from '../core/battle.js';
 import { favouriteElement, favouritePatterns, playStyle, reviewRun } from '../core/review.js';
 import * as R from '../core/run.js';
 import type { MapNode, RewardOption, RunState, Screen } from '../core/types.js';
@@ -110,6 +110,7 @@ function showMethodInfo(id: string) {
     h('div.info-list', null, ...m.passive.map(p => h('div.info-row.wide', null, h('span', null, p)))),
     ...Object.values(SPECIALS).filter(x => x.method === id).map(x => h('div.info-sec', null, h('b', null, `本门符「${x.name}」：`), x.desc)),
     RAGES[id] ? h('div.info-sec', null, h('b', null, `怒技「${RAGES[id].name}」：`), RAGES[id].desc) : null,
+    h('div.info-sec', null, h('b', null, '本门役：'), YAKU_ORDER.filter(y => YAKU[y].method === id).map(y => `「${YAKU[y].name}」${YAKU[y].fan}番，${YAKU[y].desc}`).join('；')),
     h('div.info-sec', null, h('b', null, '起手：'), `气血 ${m.hp}，多带 `, m.extra.map(t => `${t.mod ? MOD_NAME[t.mod] : ''}${EL_NAME[t.el as El] ?? '浊'}${t.v}`).join('、')),
     h('button.btn.ink.small', { type: 'button', onclick: () => close() }, '知道了')));
 }
@@ -284,7 +285,8 @@ export function showHelp(first = false) {
           h('li', null, h('b', null, '伤害 = 气 × 番'), `：气是点数之和，每番另带 ${QI_PER_FAN} 气；`, '克制敌人的符点数 ×2，被克的 ×0.5。法宝自左向右再加、再乘。'),
           h('li', null, h('b', null, '得位与天成：'), '点数合河图数的符每张 +1 番（宝牌）；同花顺、五色同刻这类极难的牌是「天成」，直接给大倍率。'),
           h('li', null, h('b', null, '元素效果：'), '三张以上同元素触发', h('em', null, '共鸣'), '。护盾在挨打前生效，回复在挨打后生效。'),
-          h('li', null, h('b', null, '剑意 / 天劫：'), '剑意满可开怒技（本招 ×3）；拖到第 8 回合天雷劈向双方。'),
+          h('li', null, h('b', null, '剑意 / 天劫：'), '剑意满可开怒技（本招 ×3）；拖到第 8 回合天雷劈向双方。无尽天劫限时斩敌：第 10 回合结束前不斩敌，渡劫失败。'),
+          h('li', null, h('b', null, '本门役：'), '每门功法自己的一路役，看战况（飞剑、灼烧、护盾、怒技、春华、昼夜）而不只看牌面，番数与各路相加。点「功法详情」或诀谱查看。'),
         ),
         h('div.help-more', null,
           h('h4', null, '符纹'), ...(['ling', 'huan', 'bao', 'lei'] as const).map(k => h('p', null, MOD_DESC[k])),
@@ -368,7 +370,7 @@ function mapScreen(run: RunState) {
   const a = ACTS[run.act - 1];
   return h('div.map', null,
     run.endless
-      ? h('div.map-title', null, h('span.act-no', null, '无尽天劫'), h('span.brush', null, `第 ${run.endless} 层`), h('small', null, `敌方气血 ×${(1.75 ** run.endless).toFixed(1)} · 最深 ${app.meta.endlessBest} 层`))
+      ? h('div.map-title', null, h('span.act-no', null, '无尽天劫'), h('span.brush', null, `第 ${run.endless} 层`), h('small', null, `敌方气血 ×${endlessHpScale(run).toFixed(1)} · 限 ${endlessLimit(run)} 回合斩敌 · 最深 ${app.meta.endlessBest} 层`))
       : h('div.map-title', null, h('span.act-no', null, run.act === 5 ? '终幕' : `第${'一二三四'[run.act - 1]}幕`), h('span.brush', null, a.name), h('small', null, ACT_STORY[run.act]?.goal ?? a.sub)),
     h('div.map-lines', { html: `<svg viewBox="0 0 ${size.w} ${size.h}" width="100%" height="100%">${lines}</svg>` }),
     ...nodes,
@@ -563,7 +565,7 @@ function endScreen(run: RunState) {
     h('div.end-right', null,
     st ? settlementPanel(st, gotThisRun) : null,
     h('div.end-actions', null,
-      won && !run.endless ? h('button.btn.seal.endless-btn', { type: 'button', 'data-action': 'endless', onclick: () => { if (R.enterEndless(run)) { app.settlement = null; playSfx('thunder'); save(); render(); } } }, '入无尽天劫', h('small', null, app.meta.endlessBest ? `最深 ${app.meta.endlessBest} 层` : '层层翻倍，只为更大的数字')) : null,
+      won && !run.endless ? h('button.btn.seal.endless-btn', { type: 'button', 'data-action': 'endless', onclick: () => { if (R.enterEndless(run)) { app.settlement = null; playSfx('thunder'); save(); render(); } } }, '入无尽天劫', h('small', null, app.meta.endlessBest ? `最深 ${app.meta.endlessBest} 层` : '层层翻倍，限时斩敌')) : null,
       h('button.btn.seal.big', { type: 'button', 'data-action': 'again', onclick: () => { app.run = null; app.settlement = null; save(); go('select'); } }, '再入山海'),
       h('button.btn.ink', { type: 'button', onclick: () => { app.run = null; app.settlement = null; save(); go('title'); } }, '回到标题'))));
 }

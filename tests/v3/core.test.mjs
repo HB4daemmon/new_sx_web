@@ -299,8 +299,10 @@ test('本门符 effects and method 怒技 differ', () => {
   a.battle.qi = 60;
   assert.equal(canRage(a.battle), true, '奔雷 only needs 60');
   const lead = computeCast(a.run, a.battle, [{ uid: 1, el: 'jin', v: 4, sp: 'leiyin' }], false);
-  const plain = computeCast(a.run, a.battle, [T('jin', 4)], false);
+  // A 倍符 also earns 本门役「雷鸣」, so the only difference left is the +25.
+  const plain = computeCast(a.run, a.battle, [{ uid: 2, el: 'jin', v: 4, mod: 'lei' }], false);
   assert.equal(lead.intentGain - plain.intentGain, 25, '雷引符 +25 剑意');
+  assert.ok(lead.yaku.some(y => y.id === 'leiming') && plain.yaku.some(y => y.id === 'leiming'));
   const j = fresh('jingang', 'gonggong');
   j.battle.player.shield = 200;
   const tiles = [T('jin', 3), T('jin', 3)];

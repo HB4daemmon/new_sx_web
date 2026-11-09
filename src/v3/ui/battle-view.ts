@@ -1,4 +1,4 @@
-import { canRage, rageCost, enemyAttack, MAX_CAST, previewCast, swordDamage, tribulationStart, type BEvent, type CastOutcome } from '../core/battle.js';
+import { canRage, rageCost, enemyAttack, endlessLimit, MAX_CAST, previewCast, swordDamage, tribulationStart, type BEvent, type CastOutcome } from '../core/battle.js';
 import { METHOD, RAGES, RELIC, SPECIALS } from '../core/content.js';
 import { counterOf, EL_NAME, KE, type El } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
@@ -214,7 +214,7 @@ function refreshStatus() {
   const b = battle();
   hs.replaceChildren(...nn(
     disp.pburn > 0 ? h('span.st.st-burn', null, '焰 ', String(disp.pburn)) : null,
-    b.swords > 0 ? h('span.st.st-sword', { title: `飞剑：每次出招后齐射，每柄 ${swordDamage(run())} + 本招伤害的 10%` }, '剑 ×', String(b.swords)) : null,
+    b.swords > 0 ? h('span.st.st-sword', { title: `飞剑：每次出招后齐射，每柄 ${swordDamage(run())} + 本招伤害的 6%` }, '剑 ×', String(b.swords)) : null,
     b.spring > 0 ? h('span.st.st-spring', { title: '春华：下一招计入气' }, '春 ', fmt(b.spring)) : null,
     b.stacks.thunder ? h('span.st.st-thunder', { title: '雷引：本场倍率永久提高' }, '雷 +', String(b.stacks.thunder)) : null,
     run().fate === 'xingxiu' && b.stacks.star !== undefined ? h('span.st.st-star', { title: '星宿命：本场这一路的番 ×2' }, '宿·', ...[b.stacks.star, b.stacks.star2].filter(x => x !== undefined).map(x => PATTERNS[PATTERN_ORDER[x!]].name).join('、')) : null,
@@ -269,8 +269,11 @@ function refreshTurn() {
   const b = battle();
   const start = tribulationStart(run());
   const left = start - b.turn;
+  // 无尽·限时斩敌: the countdown is the whole fight.
+  const limit = run().endless ? endlessLimit(run()) - b.turn : null;
   $('.turn-tag', root!)!.replaceChildren(h('b', null, `第 ${b.turn} 回合`),
-    left > 0 ? h('small', null, `天劫 ${left} 回合后`) : h('small.tribulation', null, `天劫 · ${b.turn - start + 1} 重`));
+    limit !== null && left <= 0 ? h('small.tribulation', null, limit > 0 ? `限时 · 余 ${limit + 1} 回合` : '限时 · 最后一回合')
+      : left > 0 ? h('small', null, `天劫 ${left} 回合后`) : h('small.tribulation', null, `天劫 · ${b.turn - start + 1} 重`));
 }
 
 function refreshControls() {
@@ -400,7 +403,7 @@ function setScore(res: CastResult | null) {
 /** Tappable 役 chips: what this cast scores, each opens its rule. */
 function yakuChips(res: CastResult): HTMLElement[] {
   const chip = (label: string, fan: number, onclick: () => void, cls = '') => h(`button.yk-chip${cls}`, { type: 'button', onclick: (e: Event) => { e.stopPropagation(); onclick(); } }, label, h('i', null, `${fan}番`));
-  const out = res.yaku.map(y => chip(YAKU[y.id].name, y.fan, () => showYakuInfo(y.id, res), YAKU[y.id].path === 'tian' ? '.tian' : ''));
+  const out = res.yaku.map(y => chip(YAKU[y.id].name, y.fan, () => showYakuInfo(y.id, res), YAKU[y.id].path === 'tian' ? '.tian' : YAKU[y.id].path === 'ben' ? '.ben' : ''));
   const bao = res.tiles.filter(t => t.mod === 'bao').length;
   if (!res.analysis.tian && bao) out.push(chip('宝符', bao, () => showModInfo('bao')));
   if (!res.analysis.tian && res.analysis.dewei) out.push(chip('得位', res.analysis.dewei, () => showDeweiInfo()));
@@ -978,10 +981,20 @@ function infoCard(...children: (HTMLElement | string | null)[]) {
 function showYakuInfo(id: YakuId, res?: CastResult) {
   const def = YAKU[id];
   const r = run();
+  const got = res?.yaku.find(y => y.id === id);
+  if (def.path === 'ben') {
+    const own = YAKU_ORDER.filter(y => YAKU[y].method === def.method);
+    infoCard(
+      h('h3.brush', null, def.name, h('small', null, `　${METHOD[def.method!]?.name ?? ''} · 本门役`)),
+      h('p', null, def.desc),
+      h('p.info-num', null, `${def.fan} 番${got ? `　→ 本招 ${got.fan} 番，另带 ${got.fan * QI_PER_FAN} 气` : ''}`),
+      h('p.dim', null, '本门役是功法自己的一路：看战况而不只看牌面，与其他各路的番相加；同样只算最高的一个，不受心法加成。'),
+      h('div.info-list', null, ...own.map(y => h(`div.info-row.ben${y === id ? '.on' : ''}`, null, h('b', null, YAKU[y].name), h('span', null, YAKU[y].desc), h('i', null, `${YAKU[y].fan}番`)))));
+    return;
+  }
   const path = def.path === 'tian' ? null : PATTERNS[def.path];
   const lv = path ? r.patternLv[path.id] ?? 1 : 1;
   const siblings = YAKU_ORDER.filter(y => YAKU[y].path === def.path);
-  const got = res?.yaku.find(y => y.id === id);
   infoCard(
     h('h3.brush', null, def.name, h('small', null, `　${def.alias}`)),
     h('p', null, def.desc),
@@ -1020,7 +1033,8 @@ function showEnemyInfo() {
     e.charged ? h('div.info-sec', null, h('b', null, '蓄势：'), '下一次攻击翻倍。') : null,
     e.atkBonus ? h('div.info-sec', null, h('b', null, '战意：'), `攻击 +${e.atkBonus}。`) : null,
     def.traitText ? h('div.info-sec', null, h('b', null, '特性：'), def.traitText) : null,
-    h('div.info-sec', null, h('b', null, '天劫：'), `第 ${tribulationStart(r)} 回合起天雷劈向双方，一重比一重狠。`));
+    h('div.info-sec', null, h('b', null, '天劫：'), `第 ${tribulationStart(r)} 回合起天雷劈向双方，一重比一重狠。`),
+    r.endless ? h('div.info-sec', null, h('b', null, '限时斩敌：'), `无尽天劫中，第 ${endlessLimit(r)} 回合结束时还没斩敌，天劫转而落到你身上（渡劫失败）。天劫劈敌的伤害按本幕寻常敌人算，不随层数变大。`) : null);
 }
 
 /** Self: HP, shield and every running counter, with what each does. */
@@ -1034,7 +1048,7 @@ function showSelfInfo() {
     ['换符', r.vow === 'juenian' ? '绝念：不能换符' : `本回合还能换 ${b.discardsLeft} 次`],
   ];
   if (b.player.burn) rows.push(['灼烧', `${b.player.burn}：回合开始时受到伤害，之后减半`]);
-  if (b.swords) rows.push(['飞剑', `${b.swords} 柄：每次出招后齐射，每柄 ${swordDamage(r)} + 本招伤害的 10%`]);
+  if (b.swords) rows.push(['飞剑', `${b.swords} 柄：每次出招后齐射，每柄 ${swordDamage(r)} + 本招伤害的 6%`]);
   if (b.spring) rows.push(['春华', `${fmt(b.spring)}：下一招计入气`]);
   if (b.stacks.thunder) rows.push(['雷引', `本场倍率永久 +${b.stacks.thunder}`]);
   if (b.stacks.pendingHeal) rows.push(['待回复', `${b.stacks.pendingHeal}：敌人出手后回复`]);

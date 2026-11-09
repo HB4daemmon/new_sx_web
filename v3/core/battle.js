@@ -8,23 +8,27 @@ import { SPECIALS } from './content.js';
 export const MAX_CAST = 5;
 export const handSize = (run) => 7 + (has(run, 'yiqi') ? 1 : 0) + (run.vow === 'juenian' ? 2 : 0) - (pactRank(run, 'narrow') ? 1 : 0);
 export const discardsPerTurn = (run) => (run.vow === 'juenian' ? 0 : 2 + (has(run, 'douzhuan') ? 1 : 0));
+/** 无尽天劫·限时斩敌: the last turn you get before the tribulation takes you instead. */
+export const endlessLimit = (run) => tribulationStart(run) + 2;
 export const tribulationStart = (run) => Math.max(3, (has(run, 'yinjie') ? 5 : 8) - (pactRank(run, 'short') ? 2 : 0) - (run.fate === 'yingjie' ? 2 : 0));
 export const swordDamage = (run) => 4 + run.realm * 4;
 /** Burn on enemies grows with realm so it keeps up with act HP. */
 export const burnPower = (run) => 1 + run.realm;
 /** One sword's share of a volley: a flat bite plus 5% of the cast that launched it. */
-const swordVolley = (run, swords, castDamage) => Math.round(swords * (swordDamage(run) + castDamage * 0.1));
+const swordVolley = (run, swords, castDamage) => Math.round(swords * (swordDamage(run) + castDamage * 0.06));
 const actOf = (run) => Math.min(5, run.act);
 /** Runs started before 天劫契 used a flat 劫数. */
 const legacyHeat = (run) => run.heat > 0 && !Object.keys(run.pacts ?? {}).length;
 /** Enemy HP / damage multipliers from 天劫契 (or legacy 劫数) and 无尽劫 depth. */
 export function enemyHpScale(run) {
     const pact = legacyHeat(run) ? 1 + HEAT_HP * run.heat : 1 + 0.15 * pactRank(run, 'cloud');
-    return pact * (run.endless ? 1.75 ** run.endless : 1);
+    return pact * endlessHpScale(run);
 }
+export const ENDLESS_HP = 1.6;
+export const endlessHpScale = (run) => (run.endless ? ENDLESS_HP ** run.endless : 1);
 export function enemyAtkScale(run, rank) {
     const pact = legacyHeat(run) ? 1 + HEAT_ATK * run.heat : 1 + 0.1 * pactRank(run, 'thunder');
-    return pact * (rank === 'boss' && pactRank(run, 'awake') ? 1.3 : 1) * (run.endless ? 1.15 ** run.endless : 1);
+    return pact * (rank === 'boss' && pactRank(run, 'awake') ? 1.3 : 1) * (run.endless ? 1.1 ** run.endless : 1);
 }
 function scaleAtk(run, battle, base) {
     const rank = ENEMY[battle.enemyId].rank;
@@ -52,6 +56,8 @@ export function startBattle(run, enemyId, kind) {
     if (run.unlocks?.includes('discard1'))
         battle.discardsLeft += 1;
     battle.stacks.startHp = battle.player.hp;
+    // 天劫 strikes by the act's yardstick, not by 无尽's swollen HP: deep layers must be cut down by hand.
+    battle.stacks.tribBase = Math.round(hp / endlessHpScale(run));
     if (run.method === 'benlei')
         battle.stacks.rageCost = 60;
     if (run.method === 'yangjian')
@@ -147,6 +153,9 @@ function turnStartShield(run, battle) {
     const plate = relicFlag(run, 'turnShield');
     if (plate)
         battle.player.shield += Math.round(plate * defenseScale(run));
+    // 金刚功·护体: a tenth of max HP as shield every turn.
+    if (run.method === 'jingang')
+        battle.player.shield = Math.min(battle.player.maxHp, battle.player.shield + Math.round(battle.player.maxHp * 0.1));
 }
 function drawTo(run, battle) {
     let drawn = 0;
@@ -226,7 +235,7 @@ function checkEnemy(run, battle, events) {
     if (enemy.hp <= 0) {
         if (def.trait === 'revive' && !enemy.revived && def.phase2) {
             enemy.revived = true;
-            enemy.hp = Math.round(enemy.maxHp * 0.4);
+            enemy.hp = Math.round(enemy.maxHp * 0.3);
             enemy.burn = 0;
             enterPhase2(run, battle, events);
             events.push({ k: 'revive', hp: enemy.hp });
@@ -328,12 +337,12 @@ export function cast(run, battle, uids, rageWanted) {
     if (result.heal > 0)
         battle.stacks.pendingHeal = (battle.stacks.pendingHeal ?? 0) + result.heal;
     if (result.shield > 0) {
-        battle.player.shield = Math.min(battle.player.maxHp * (run.method === 'jingang' ? 1 : 2), battle.player.shield + result.shield);
+        battle.player.shield = Math.min(battle.player.maxHp * (run.method === 'jingang' ? 1 : 1.5), battle.player.shield + result.shield);
         events.push({ k: 'shield', to: 'player', amount: result.shield });
     }
     // 御火诀: a cast with fire in it leaves 20% of its damage behind as burn.
     if (run.method === 'yuhuo' && result.els.includes('huo') && battle.outcome === 'fighting')
-        result.burn += Math.round((result.damage * 0.25) / burnPower(run));
+        result.burn += Math.round((result.damage * 0.35) / burnPower(run));
     if (result.burn > 0 && battle.outcome === 'fighting') {
         battle.enemy.burn += result.burn;
         events.push({ k: 'burn', to: 'enemy', amount: result.burn });
@@ -355,7 +364,7 @@ export function cast(run, battle, uids, rageWanted) {
     if (rage)
         battle.stacks.rages = (battle.stacks.rages ?? 0) + 1;
     if (rage && run.method === 'benlei') {
-        battle.stacks.thunder = (battle.stacks.thunder ?? 0) + 3;
+        battle.stacks.thunder = (battle.stacks.thunder ?? 0) + 4;
         events.push({ k: 'thunder', total: battle.stacks.thunder });
     }
     // 淬火砧: a lone tile grows for good (the bag copy and this battle's copy).
@@ -430,7 +439,7 @@ function recordUse(run, result) {
     const use = (run.stats.use ??= {});
     for (const hit of result.yaku) {
         const path = YAKU[hit.id].path;
-        if (path !== 'tian')
+        if (path !== 'tian' && path !== 'ben')
             use[path] = (use[path] ?? 0) + 1;
     }
     const elUse = (run.stats.elUse ??= {});
@@ -512,7 +521,7 @@ function enemyTurn(run, battle, events) {
     if (battle.turn >= start) {
         const level = battle.turn - start + 1;
         events.push({ k: 'tribulation', level });
-        damageEnemy(run, battle, Math.round(enemy.maxHp * 0.07 * level * (run.fate === 'yingjie' && run.realm >= 2 ? 2 : 1)), 'tribulation', events);
+        damageEnemy(run, battle, Math.round((battle.stacks.tribBase ?? enemy.maxHp) * 0.07 * level * (run.fate === 'yingjie' && run.realm >= 2 ? 2 : 1)), 'tribulation', events);
         if (!has(run, 'yinjie') && battle.outcome === 'fighting') {
             const bolt = Math.round(battle.player.maxHp * 0.05 * level);
             // 应劫命: the bolt meant for you becomes a shield.
@@ -525,6 +534,15 @@ function enemyTurn(run, battle, events) {
         }
         if (battle.outcome !== 'fighting')
             return;
+        // 无尽·限时斩敌: past the limit the tribulation takes you instead of the foe.
+        if (run.endless && battle.turn >= endlessLimit(run)) {
+            battle.stacks.tkTrib = (battle.stacks.tkTrib ?? 0) + battle.player.hp;
+            events.push({ k: 'hit', to: 'player', amount: battle.player.hp, blocked: 0, src: 'tribulation' });
+            battle.player.hp = 0;
+            battle.outcome = 'lost';
+            events.push({ k: 'lose' });
+            return;
+        }
     }
     // The cast's 回复 lands now that the enemy has struck.
     settleHeal(run, battle, events);

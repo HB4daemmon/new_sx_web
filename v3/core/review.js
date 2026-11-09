@@ -54,8 +54,10 @@ export function reviewRun(run) {
         if (last.turns >= trib && last.taken.trib > 0) {
             findings.push({
                 id: 'slow', weight: 3 + last.taken.trib / Math.max(1, taken),
-                title: '拖进了天劫',
-                detail: `与${name}打到第 ${last.turns} 回合，天劫从第 ${trib} 回合起两边都劈，你因此掉了 ${last.taken.trib} 气血。`,
+                title: run.endless ? '没能限时斩敌' : '拖进了天劫',
+                detail: run.endless
+                    ? `无尽天劫限时斩敌：与${name}打到第 ${last.turns} 回合还没斩敌，天劫落到了你身上。`
+                    : `与${name}打到第 ${last.turns} 回合，天劫从第 ${trib} 回合起两边都劈，你因此掉了 ${last.taken.trib} 气血。`,
                 tryNext: '输出要在天劫前结束战斗：把心法升重集中到最常成役的一路上，少拿分散的新符。',
             });
         }

@@ -83,7 +83,7 @@ function stage(run, battle, tiles, els, vals, rage = false) {
                 swords += tile.sp === 'jian' ? 2 : 1;
         }
         if (el === 'mu') {
-            const h = Math.round(tile.v * dScale * (run.method === 'huichun' ? 1.5 : 1) * (tile.sp === 'chunya' ? 2 : 1) * (resonant.has('mu') ? 3 * res : 1));
+            const h = Math.round(tile.v * dScale * 1 * (tile.sp === 'chunya' ? 2 : 1) * (resonant.has('mu') ? 3 * res : 1));
             heal += h;
             fx.heal = h;
         }
@@ -161,6 +161,15 @@ function stage(run, battle, tiles, els, vals, rage = false) {
             fan += hit.fan;
             push({ k: 'bonus', label: `星宿·${PATTERNS[path].name} 再 ${hit.fan}番`, dQi: QI_PER_FAN * hit.fan, dMult: hit.fan });
         }
+        // 本门役: the method's own 路 — reads the fight, not just the tiles.
+        const ben = benmenYaku(run, battle, tiles, els, rage);
+        if (ben) {
+            yaku.push(ben);
+            yakuFan += ben.fan;
+            qi += QI_PER_FAN * ben.fan;
+            fan += ben.fan;
+            push({ k: 'bonus', label: `本门·${YAKU[ben.id].name} ${ben.fan}番`, dQi: QI_PER_FAN * ben.fan, dMult: ben.fan });
+        }
         // 偏枯命 化境 / 守拙命 化境.
         if (awake(run, 'pianku') && els.filter(e => e === run.fateEl).length >= 3) {
             yakuFan += 3;
@@ -222,6 +231,60 @@ function stage(run, battle, tiles, els, vals, rage = false) {
     const comboIntent = a.tian ? 50 : Math.min(50, 8 + 3 * yakuFan);
     return { qi, mult: mult(), steps, critChance, heal, shield, burn, swords, a, intent, comboIntent, yaku, fan: yakuFan };
 }
+/** The best 本门役 this cast earns for the run's method (null if none). */
+export function benmenYaku(run, battle, tiles, els, rage) {
+    const n = (...want) => els.filter(e => e && want.includes(e)).length;
+    const hit = (id) => ({ id, fan: YAKU[id].fan });
+    const p = battle.player, e = battle.enemy;
+    switch (run.method) {
+        case 'yangjian':
+            if (n('jin') >= 3 && battle.swords >= 10)
+                return hit('wanjian');
+            if (n('jin') >= 2 && battle.swords >= 5)
+                return hit('jianzhen');
+            return null;
+        case 'yuhuo':
+            if (!n('huo') || e.burn <= 0)
+                return null;
+            if (e.burn >= e.hp * 0.2)
+                return hit('fenyuan');
+            if (e.burn >= e.hp * 0.05)
+                return hit('liaoyuan');
+            return null;
+        case 'jingang':
+            if (p.shield >= p.maxHp * 0.6)
+                return { id: 'buhuai', fan: Math.min(10, Math.floor((p.shield / p.maxHp) * 10)) };
+            if (p.shield >= p.maxHp * 0.25)
+                return hit('jinshen');
+            return null;
+        case 'benlei':
+            if (rage && battle.stacks.thunder)
+                return hit('lianlei');
+            if (tiles.some(t => t.mod === 'lei' || t.sp === 'leiyin'))
+                return hit('leiming');
+            return null;
+        case 'huichun':
+            if (battle.spring >= p.maxHp / 2)
+                return hit('wanmu');
+            if (p.hp >= p.maxHp)
+                return hit('chunman');
+            return null;
+        case 'zhulong': {
+            // 烛阴符 counts on both sides.
+            const zhuyin = tiles.filter(t => t.sp === 'zhuyin').length;
+            const side = (want) => tiles.filter((t, i) => t.sp !== 'zhuyin' && els[i] && want.includes(els[i])).length + zhuyin;
+            const day = side(['jin', 'huo']), night = side(['shui', 'mu']);
+            if (tiles.length < 2)
+                return null;
+            if (day >= 2 && night >= 2)
+                return hit('riyue');
+            if (day && night)
+                return hit('zhouye');
+            return null;
+        }
+    }
+    return null;
+}
 /**
  * Scores a cast. Pure apart from the optional crit `roll` (0..1); without a roll
  * the result is a preview and never crits. 灵符 take whichever element scores best.
@@ -247,7 +310,7 @@ function finish(run, battle, tiles, st, rage, roll) {
     const castIndex = battle.castCount + 1;
     // Method & persistent battle bonuses.
     if (run.method === 'jingang' && battle.player.shield > 0) {
-        const add = Math.round(battle.player.shield * (relicFlag(run, 'shieldBolt') ? 0.7 : 0.3));
+        const add = Math.round(battle.player.shield * (relicFlag(run, 'shieldBolt') ? 0.8 : 0.4));
         if (add)
             push('bonus', `盈盾化雷 +${add} 气`, { qi: add });
     }

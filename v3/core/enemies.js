@@ -1,5 +1,5 @@
 /** Per-act multipliers: authored numbers are act-1 scale. */
-export const ACT_HP = [0, 0.75, 2.4, 7, 14, 22];
+export const ACT_HP = [0, 0.75, 2.5, 7.8, 17, 27];
 /** Enemy HP by rank (authored HP × act × rank). */
 export const RANK_HP = { fight: 28.5, elite: 19, boss: 10.2 };
 export const ACT_ATK = [0, 1.3, 1.9, 2.6, 3.3, 4.0];
@@ -45,7 +45,7 @@ export const ENEMIES = [
     { id: 'xingtian', name: '刑天', title: '猛志固常在', el: 'jin', act: 3, rank: 'boss', hp: 1050, art: 'a3-boss',
         trait: 'revive', traitText: '首次被击倒时以乳为目、以脐为口，复起一次',
         moves: [{ name: '干戚', atk: 13 }, { name: '战意', buff: 3, armor: 20 }, { name: '舞干戚', atk: 5, hits: 3 }, { name: '怒吼', charge: true }],
-        phase2: { name: '无首之怒', text: '刑天断首不死——以乳为目，以脐为口，操干戚以舞！', buff: 3,
+        phase2: { name: '无首之怒', text: '刑天断首不死——以乳为目，以脐为口，操干戚以舞！', buff: 2,
             moves: [{ name: '无首之怒', atk: 9, hits: 2 }, { name: '战意', buff: 4 }, { name: '怒吼', charge: true }, { name: '断首一击', atk: 18 }] } },
     // —— 第四幕 昆仑 ——
     { id: 'luwu', name: '陆吾', title: '司天之九部', el: 'tu', act: 4, rank: 'fight', hp: 200, art: 'a4-luwu',
