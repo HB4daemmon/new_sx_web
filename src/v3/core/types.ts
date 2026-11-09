@@ -120,7 +120,7 @@ export type Screen =
   | { name: 'reward'; gold: number; options: RewardOption[]; relicOptions: RewardOption[]; picked: boolean; relicPicked: boolean; next: 'map' | 'breakthrough' | 'endless'; story?: string; rerolled?: boolean; devoured?: boolean }
   | { name: 'story'; act: number }
   | { name: 'ending' }
-  | { name: 'breakthrough'; options: RewardOption[] }
+  | { name: 'breakthrough'; options: RewardOption[]; endless?: boolean }
   | { name: 'shop'; items: ShopItem[]; removePrice: number; removed: boolean; restocked?: boolean; merged?: boolean }
   | { name: 'event'; event: string; resolved?: string }
   | { name: 'rest'; done?: boolean; used?: number }

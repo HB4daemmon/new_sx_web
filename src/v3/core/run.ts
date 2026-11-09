@@ -429,10 +429,9 @@ export function leaveReward(run: RunState) {
     screen.picked = true;
   }
   if (screen.next === 'endless') {
-    run.endless += 1;
-    run.at = null;
-    run.map = generateMap(run, 5 + run.endless);
-    run.screen = { name: 'map' };
+    // 劫后悟道: every second layer cleared offers one more 天赋.
+    if (run.endless % 2 === 0) { run.screen = { name: 'breakthrough', options: talentChoices(run, 4).map(id => ({ type: 'talent', talent: id })), endless: true }; return; }
+    nextEndless(run);
     return;
   }
   if (screen.next === 'breakthrough') {
@@ -449,7 +448,7 @@ export function leaveReward(run: RunState) {
 /** 突破三选一：每个选项按本幕的档位比例抽档（凡/灵/仙），不重复；第二幕起至少一个灵档以上。 */
 export function talentChoices(run: RunState, act: number): string[] {
   const odds = TALENT_TIER_ODDS[Math.max(1, Math.min(4, act))];
-  const pool = TALENTS.filter(t => !run.talents.includes(t.id) && !(t.id === 'dongtian' && run.relicSlots >= MAX_RELIC_SLOTS));
+  const pool = TALENTS.filter(t => !run.talents.includes(t.id) && (!t.method || t.method.split(',').includes(run.method)) && !(t.id === 'dongtian' && run.relicSlots >= MAX_RELIC_SLOTS));
   const order: TalentTier[] = ['common', 'rare', 'legend'];
   const out: string[] = [];
   for (let i = 0; i < 3; i += 1) {
@@ -477,7 +476,15 @@ export function chooseBreakthrough(run: RunState, index: number) {
   const screen = run.screen;
   if (screen.name !== 'breakthrough' || !screen.options[index]) return;
   applyOption(run, screen.options[index]);
-  advanceAct(run);
+  if (screen.endless) nextEndless(run);
+  else advanceAct(run);
+}
+
+function nextEndless(run: RunState) {
+  run.endless += 1;
+  run.at = null;
+  run.map = generateMap(run, 5 + run.endless);
+  run.screen = { name: 'map' };
 }
 
 export function advanceAct(run: RunState) {

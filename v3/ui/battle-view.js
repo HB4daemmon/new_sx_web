@@ -1,5 +1,5 @@
-import { canRage, rageCost, enemyAttack, endlessLimit, MAX_CAST, previewCast, swordDamage, tribulationStart } from '../core/battle.js';
-import { METHOD, RAGES, RELIC, SPECIALS } from '../core/content.js';
+import { canRage, rageCost, defense, enemyAttack, endlessLimit, MAX_CAST, previewCast, swordDamage, tribulationStart } from '../core/battle.js';
+import { DODGE_CAP, METHOD, RAGES, REDUCE_CAP, RELIC, SPECIALS } from '../core/content.js';
 import { counterOf, EL_NAME, KE } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
 import { fanTier, PATTERNS, PATTERN_ORDER, QI_PER_FAN, YAKU, YAKU_ORDER, HETU } from '../core/patterns.js';
@@ -896,6 +896,22 @@ async function playEvent(ev, side) {
             refreshIntent();
             return;
         }
+        case 'dodge': {
+            const c = centerOf(heroArt);
+            floatText(c.x + (ev.hitIndex ?? 0) * 30, c.y - 70, '闪', 'ft-shield', 46, 600);
+            await anim(heroArt, [{ transform: 'translateX(0)' }, { transform: 'translateX(-28px)' }, { transform: 'translateX(0)' }], 260);
+            return;
+        }
+        case 'save': {
+            const c = centerOf(heroArt);
+            disp.php = ev.hp;
+            floatText(c.x, c.y - 60, ev.name, 'ft-heal', 40, 1100);
+            burst(c.x, c.y, '#4fdc8e', 26, 1, 'ember');
+            playSfx('heal');
+            refreshBars();
+            await wait(400);
+            return;
+        }
         case 'revive': {
             disp.ehp = ev.hp;
             enemyArt.classList.remove('dying');
@@ -1106,7 +1122,7 @@ function showEnemyInfo() {
     const e = b.enemy;
     const moves = e.phase === 2 && def.phase2 ? def.phase2.moves : def.moves;
     const counter = counterOf(e.el), weak = KE[e.el];
-    infoCard(h('h3.brush', null, def.name, h('small', null, `　${def.title}`)), LORE[b.enemyId] ? h('p.dim', null, LORE[b.enemyId]) : null, h('p.info-num', null, `气血 ${fmt(e.hp)} / ${fmt(e.maxHp)}`, e.armor ? `　护甲 ${fmt(e.armor)}` : '', e.burn ? `　灼烧 ${fmt(e.burn)}` : ''), h('div.info-sec', null, h('b', null, '这一回合：'), intentTitle(e.intent).replace(/\n/g, '；')), h('div.info-list', null, ...moves.map((m, i) => h(`div.info-row${i === e.moveIndex ? '.on' : ''}`, null, h('b', null, m.name), h('span', null, intentTitle(m).split('\n').slice(1).join('；') || '—')))), h('p.dim', null, '招式按顺序循环，亮起的是这一回合。'), h('div.info-sec', null, h('b', null, `属${EL_NAME[e.el]}：`), `${EL_NAME[counter]}符克它，点数 ×2；三张以上成「破阵」。${EL_NAME[weak]}符被它克，点数 ×0.5。`), e.charged ? h('div.info-sec', null, h('b', null, '蓄势：'), '下一次攻击翻倍。') : null, e.atkBonus ? h('div.info-sec', null, h('b', null, '战意：'), `攻击 +${e.atkBonus}。`) : null, def.traitText ? h('div.info-sec', null, h('b', null, '特性：'), def.traitText) : null, h('div.info-sec', null, h('b', null, '天劫：'), `第 ${tribulationStart(r)} 回合起天雷劈向双方，一重比一重狠。`), r.endless ? h('div.info-sec', null, h('b', null, '限时斩敌：'), `无尽天劫中，第 ${endlessLimit(r)} 回合结束时还没斩敌，天劫转而落到你身上（渡劫失败）。天劫劈敌的伤害按本幕寻常敌人算，不随层数变大。`) : null);
+    infoCard(h('h3.brush', null, def.name, h('small', null, `　${def.title}`)), LORE[b.enemyId] ? h('p.dim', null, LORE[b.enemyId]) : null, h('p.info-num', null, `气血 ${fmt(e.hp)} / ${fmt(e.maxHp)}`, e.armor ? `　护甲 ${fmt(e.armor)}` : '', e.burn ? `　灼烧 ${fmt(e.burn)}` : ''), h('div.info-sec', null, h('b', null, '这一回合：'), intentTitle(e.intent).replace(/\n/g, '；')), h('div.info-list', null, ...moves.map((m, i) => h(`div.info-row${i === e.moveIndex ? '.on' : ''}`, null, h('b', null, m.name), h('span', null, intentTitle(m).split('\n').slice(1).join('；') || '—')))), h('p.dim', null, '招式按顺序循环，亮起的是这一回合。'), h('div.info-sec', null, h('b', null, `属${EL_NAME[e.el]}：`), `${EL_NAME[counter]}符克它，点数 ×2；三张以上成「破阵」。${EL_NAME[weak]}符被它克，点数 ×0.5。`), e.charged ? h('div.info-sec', null, h('b', null, '蓄势：'), '下一次攻击翻倍。') : null, e.atkBonus ? h('div.info-sec', null, h('b', null, '战意：'), `攻击 +${e.atkBonus}。`) : null, def.traitText ? h('div.info-sec', null, h('b', null, '特性：'), def.traitText) : null, h('div.info-sec', null, h('b', null, '天劫：'), `第 ${tribulationStart(r)} 回合起天雷劈向双方，一重比一重狠。`), r.endless ? h('div.info-sec', null, h('b', null, '限时斩敌：'), `无尽天劫中，第 ${endlessLimit(r)} 回合结束时还没斩敌，天劫转而落到你身上（渡劫失败）。天劫每重劈去敌人气血上限的 4%，累计至多 60%，剩下的要靠自己。`) : null);
 }
 /** Self: HP, shield and every running counter, with what each does. */
 function showSelfInfo() {
@@ -1126,6 +1142,11 @@ function showSelfInfo() {
         rows.push(['春华', `${fmt(b.spring)}：下一招计入气`]);
     if (b.stacks.thunder)
         rows.push(['雷引', `本场倍率永久 +${b.stacks.thunder}`]);
+    const d = defense(r, b);
+    if (d.reduce)
+        rows.push(['减伤', `受到敌人的伤害 −${d.reduce}%（上限 ${REDUCE_CAP}%）`]);
+    if (d.dodge)
+        rows.push(['闪避', `敌人每一击 ${d.dodge}% 机会闪开（上限 ${DODGE_CAP}%）`]);
     if (b.stacks.pendingHeal)
         rows.push(['待回复', `${b.stacks.pendingHeal}：敌人出手后回复`]);
     if (b.stacks.wheel)

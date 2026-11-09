@@ -4,7 +4,7 @@ import { next, shuffle, int, type Rng } from './rng.js';
 import { COMBOS, HETU, YAKU } from './patterns.js';
 import { pactRank } from './pacts.js';
 import { computeCast, defenseScale, has, relicFlag, type CastResult } from './score.js';
-import { SPECIALS } from './content.js';
+import { DODGE_CAP, REDUCE_CAP, SPECIALS } from './content.js';
 import type { BattleState, EnemyState, Move, NodeKind, RunState, Tile } from './types.js';
 
 export type BEvent =
@@ -21,6 +21,8 @@ export type BEvent =
   | { k: 'phase'; name: string; text: string }
   | { k: 'revive'; hp: number }
   | { k: 'tribulation'; level: number }
+  | { k: 'dodge'; hitIndex?: number }
+  | { k: 'save'; name: string; hp: number }
   | { k: 'element'; el: El }
   | { k: 'swords'; count: number; forged: number }
   | { k: 'thunder'; total: number }
@@ -34,7 +36,25 @@ export const MAX_CAST = 5;
 export const handSize = (run: RunState) => 7 + (has(run, 'yiqi') ? 1 : 0) + (run.vow === 'juenian' ? 2 : 0) - (pactRank(run, 'narrow') ? 1 : 0);
 export const discardsPerTurn = (run: RunState) => (run.vow === 'juenian' ? 0 : 2 + (has(run, 'douzhuan') ? 1 : 0));
 /** 无尽天劫·限时斩敌: the last turn you get before the tribulation takes you instead. */
-export const endlessLimit = (run: RunState) => tribulationStart(run) + 2;
+export const ENDLESS_LIMIT = 12;
+/** 无尽天劫劈敌：每重 4% 气血上限，累计至多 60%。 */
+export const ENDLESS_TRIB = 0.04;
+export const ENDLESS_TRIB_CAP = 0.6;
+export const endlessLimit = (_run: RunState) => ENDLESS_LIMIT;
+/** 减伤 % and 闪避 % right now (守御天赋), already capped. */
+export function defense(run: RunState, battle: BattleState) {
+  const t = (id: string) => run.talents.includes(id);
+  let reduce = (t('tieyi') ? 10 : 0) + (t('tieyi2') ? 20 : 0);
+  if (t('jianmu')) reduce += 3 * battle.swords;
+  if (t('fenshen') && battle.enemy.burn >= battle.enemy.hp * 0.1) reduce += 35;
+  if (t('budong') && battle.player.shield > 0) reduce += 30;
+  if (t('yeyin')) reduce += battle.turn % 2 === 0 ? 50 : 20;
+  let dodge = t('shenfa') ? 15 : 0;
+  if (t('leidun')) dodge += 10 * (battle.stacks.rages ?? 0);
+  // 雷遁: the turn you unleash a 怒技, nothing lands.
+  if (t('leidun') && battle.stacks.rageTurn === battle.turn) return { reduce: Math.min(REDUCE_CAP, reduce), dodge: 100 };
+  return { reduce: Math.min(REDUCE_CAP, reduce), dodge: Math.min(DODGE_CAP, dodge) };
+}
 export const tribulationStart = (run: RunState) => Math.max(3, (has(run, 'yinjie') ? 5 : 8) - (pactRank(run, 'short') ? 2 : 0) - (run.fate === 'yingjie' ? 2 : 0));
 export const swordDamage = (run: RunState) => 4 + run.realm * 4;
 /** Burn on enemies grows with realm so it keeps up with act HP. */
@@ -50,7 +70,7 @@ export function enemyHpScale(run: RunState) {
   const pact = legacyHeat(run) ? 1 + HEAT_HP * run.heat : 1 + 0.15 * pactRank(run, 'cloud');
   return pact * endlessHpScale(run);
 }
-export const ENDLESS_HP = 1.6;
+export const ENDLESS_HP = 1.5;
 export const endlessHpScale = (run: RunState) => (run.endless ? ENDLESS_HP ** run.endless : 1);
 export function enemyAtkScale(run: RunState, rank: string) {
   const pact = legacyHeat(run) ? 1 + HEAT_ATK * run.heat : 1 + 0.1 * pactRank(run, 'thunder');
@@ -80,8 +100,6 @@ export function startBattle(run: RunState, enemyId: string, kind: NodeKind): Bat
   if (def.act === 5 && def.rank === 'boss' && !run.endless) applyAssists(run, battle);
   if (run.unlocks?.includes('discard1')) battle.discardsLeft += 1;
   battle.stacks.startHp = battle.player.hp;
-  // 天劫 strikes by the act's yardstick, not by 无尽's swollen HP: deep layers must be cut down by hand.
-  battle.stacks.tribBase = Math.round(hp / endlessHpScale(run));
   if (run.method === 'benlei') battle.stacks.rageCost = 60;
   if (run.method === 'yangjian') battle.swords = Math.min(swordCap(run), run.swordsKept ?? 0);
   if (has(run, 'huanhua')) {
@@ -142,11 +160,15 @@ function turnRolls(run: RunState, battle: BattleState) {
   }
 }
 
+/** 护盾上限：金刚功为气血上限（不动明王 ×2），其余 ×1.5。 */
+export const shieldCap = (run: RunState, battle: BattleState) => battle.player.maxHp * (run.method === 'jingang' ? (run.talents.includes('budong') ? 2 : 1) : 1.5);
 function turnStartShield(run: RunState, battle: BattleState) {
   const plate = relicFlag(run, 'turnShield');
   if (plate) battle.player.shield += Math.round(plate * defenseScale(run));
   // 金刚功·护体: a tenth of max HP as shield every turn.
-  if (run.method === 'jingang') battle.player.shield = Math.min(battle.player.maxHp, battle.player.shield + Math.round(battle.player.maxHp * 0.1));
+  if (run.method === 'jingang') battle.player.shield = Math.min(shieldCap(run, battle), battle.player.shield + Math.round(battle.player.maxHp * (run.talents.includes('budong') ? 0.2 : 0.1)));
+  // 回灵: a little HP back every turn.
+  if (run.talents.includes('huiling')) battle.player.hp = Math.min(battle.player.maxHp, battle.player.hp + Math.round(battle.player.maxHp * 0.06));
 }
 
 function drawTo(run: RunState, battle: BattleState): number {
@@ -257,6 +279,13 @@ function enterPhase2(run: RunState, battle: BattleState, events: BEvent[]) {
 function damagePlayer(run: RunState, battle: BattleState, amount: number, src: 'enemy' | 'burn' | 'tribulation' | 'blood', events: BEvent[], hitIndex?: number) {
   const player = battle.player;
   if (amount <= 0 || battle.outcome !== 'fighting') return;
+  if (src === 'enemy') {
+    const d = defense(run, battle);
+    if (d.dodge && next(run.rng) * 100 < d.dodge) { events.push({ k: 'dodge', hitIndex }); return; }
+    if (d.reduce) amount = Math.round(amount * (1 - d.reduce / 100));
+  }
+  // 龟息: no single blow takes more than 35% of max HP.
+  if (src !== 'blood' && run.talents.includes('guixi')) amount = Math.min(amount, Math.round(player.maxHp * 0.35));
   let blocked = 0;
   if (src !== 'blood' && player.shield > 0) {
     blocked = Math.min(player.shield, amount);
@@ -274,6 +303,13 @@ function damagePlayer(run: RunState, battle: BattleState, amount: number, src: '
   battle.stacks[key] = (battle.stacks[key] ?? 0) + Math.max(0, dealt);
   battle.stacks.tkBlocked = (battle.stacks.tkBlocked ?? 0) + blocked;
   events.push({ k: 'hit', to: 'player', amount: dealt, blocked, src, hitIndex });
+  // 枯木逢春: once per fight, back on your feet at half HP.
+  if (player.hp <= 0 && run.talents.includes('kumu') && !battle.stacks.kumu) {
+    battle.stacks.kumu = 1;
+    player.hp = Math.round(player.maxHp / 2);
+    events.push({ k: 'save', name: '枯木逢春', hp: player.hp });
+    return;
+  }
   if (player.hp <= 0) { player.hp = 0; battle.outcome = 'lost'; events.push({ k: 'lose' }); }
 }
 
@@ -318,7 +354,7 @@ export function cast(run: RunState, battle: BattleState, uids: number[], rageWan
   // Tile effects. 回复 lands after the enemy has struck (盾在挨打前，血在挨打后).
   if (result.heal > 0) battle.stacks.pendingHeal = (battle.stacks.pendingHeal ?? 0) + result.heal;
   if (result.shield > 0) {
-    battle.player.shield = Math.min(battle.player.maxHp * (run.method === 'jingang' ? 1 : 1.5), battle.player.shield + result.shield);
+    battle.player.shield = Math.min(shieldCap(run, battle), battle.player.shield + result.shield);
     events.push({ k: 'shield', to: 'player', amount: result.shield });
   }
   // 御火诀: a cast with fire in it leaves 20% of its damage behind as burn.
@@ -340,7 +376,7 @@ export function cast(run: RunState, battle: BattleState, uids: number[], rageWan
       events.push({ k: 'seed', sp: sp.id, n: 2 });
     }
   }
-  if (rage) battle.stacks.rages = (battle.stacks.rages ?? 0) + 1;
+  if (rage) { battle.stacks.rages = (battle.stacks.rages ?? 0) + 1; battle.stacks.rageTurn = battle.turn; }
   if (rage && run.method === 'benlei') {
     battle.stacks.thunder = (battle.stacks.thunder ?? 0) + 4;
     events.push({ k: 'thunder', total: battle.stacks.thunder });
@@ -458,7 +494,11 @@ function enemyTurn(run: RunState, battle: BattleState, events: BEvent[]) {
   if (battle.turn >= start) {
     const level = battle.turn - start + 1;
     events.push({ k: 'tribulation', level });
-    damageEnemy(run, battle, Math.round((battle.stacks.tribBase ?? enemy.maxHp) * 0.07 * level * (run.fate === 'yingjie' && run.realm >= 2 ? 2 : 1)), 'tribulation', events);
+    let bolt = Math.round(enemy.maxHp * (run.endless ? ENDLESS_TRIB : 0.07) * level * (run.fate === 'yingjie' && run.realm >= 2 ? 2 : 1));
+    // 无尽: the tribulation takes at most 60% of the foe; the rest is yours to cut.
+    if (run.endless) bolt = Math.max(0, Math.min(bolt, Math.round(enemy.maxHp * (run.talents.includes('shijie') ? 0.85 : ENDLESS_TRIB_CAP)) - (battle.stacks.tribDealt ?? 0)));
+    battle.stacks.tribDealt = (battle.stacks.tribDealt ?? 0) + bolt;
+    if (bolt) damageEnemy(run, battle, bolt, 'tribulation', events);
     if (!has(run, 'yinjie') && battle.outcome === 'fighting') {
       const bolt = Math.round(battle.player.maxHp * 0.05 * level);
       // 应劫命: the bolt meant for you becomes a shield.

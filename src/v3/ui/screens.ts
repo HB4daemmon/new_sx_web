@@ -285,7 +285,7 @@ export function showHelp(first = false) {
           h('li', null, h('b', null, '伤害 = 气 × 番'), `：气是点数之和，每番另带 ${QI_PER_FAN} 气；`, '克制敌人的符点数 ×2，被克的 ×0.5。法宝自左向右再加、再乘。'),
           h('li', null, h('b', null, '得位与天成：'), '点数合河图数的符每张 +1 番（宝牌）；同花顺、五色同刻这类极难的牌是「天成」，直接给大倍率。'),
           h('li', null, h('b', null, '元素效果：'), '三张以上同元素触发', h('em', null, '共鸣'), '。护盾在挨打前生效，回复在挨打后生效。'),
-          h('li', null, h('b', null, '剑意 / 天劫：'), '剑意满可开怒技（本招 ×3）；拖到第 8 回合天雷劈向双方。无尽天劫限时斩敌：第 10 回合结束前不斩敌，渡劫失败。'),
+          h('li', null, h('b', null, '剑意 / 天劫：'), '剑意满可开怒技（本招 ×3）；拖到第 8 回合天雷劈向双方。无尽天劫限时斩敌：第 12 回合结束前不斩敌，渡劫失败；天劫至多替你劈去敌人六成气血。'),
           h('li', null, h('b', null, '本门役：'), '每门功法自己的一路役，看战况（飞剑、灼烧、护盾、怒技、春华、昼夜）而不只看牌面，番数与各路相加。点「功法详情」或诀谱查看。'),
         ),
         h('div.help-more', null,
@@ -434,7 +434,9 @@ function breakthroughScreen(run: RunState, s: Extract<Screen, { name: 'breakthro
   return h('div.scr.break-scr', null,
     h('img.bg', { src: art('bg-final'), alt: '' }),
     h('div.break-rays'),
-    h('div.break-realm', null, h('small', null, '境界突破'), h('div.brush.realm-big', null, REALMS[run.realm]), h('div.break-sub', null, `气血上限 +25 · 气血全满`)),
+    s.endless
+      ? h('div.break-realm', null, h('small', null, '劫后悟道'), h('div.brush.realm-big', null, `无尽 ${run.endless} 层`), h('div.break-sub', null, '每过两层，多悟一道天赋'))
+      : h('div.break-realm', null, h('small', null, '境界突破'), h('div.brush.realm-big', null, REALMS[run.realm]), h('div.break-sub', null, `气血上限 +25 · 气血全满`)),
     h('div.cards.talents', null, ...s.options.map((o, i) => cardButton(run, o, () => act(r => R.chooseBreakthrough(r, i), 'reward'), false))),
     h('p.break-note', null, '择一道天赋，此生不改。'));
 }

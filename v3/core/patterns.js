@@ -58,7 +58,7 @@ export const YAKU = {
     liaoyuan: Y('liaoyuan', 'ben', '燎原', '本门', 3, '本招带火符，且敌人的灼烧已达其当前气血的 5%', 'yuhuo'),
     fenyuan: Y('fenyuan', 'ben', '焚原', '本门', 6, '本招带火符，且敌人的灼烧已达其当前气血的 20%', 'yuhuo'),
     jinshen: Y('jinshen', 'ben', '金身', '本门', 3, '出招时护盾已达气血上限的 25%', 'jingang'),
-    buhuai: Y('buhuai', 'ben', '金刚不坏', '本门', 6, '出招时护盾已达气血上限的 60%：护盾每有上限的 10% 算 1 番（6–10 番）', 'jingang'),
+    buhuai: Y('buhuai', 'ben', '金刚不坏', '本门', 6, '出招时护盾已达气血上限的 60%：护盾每有上限的 10% 算 1 番（6–10 番；不动明王至多 15）', 'jingang'),
     leiming: Y('leiming', 'ben', '雷鸣', '本门', 3, '本招带倍符或雷引符', 'benlei'),
     lianlei: Y('lianlei', 'ben', '连雷', '本门', 6, '开怒技出招，且本场已经开过怒技', 'benlei'),
     chunman: Y('chunman', 'ben', '春满', '本门', 1, '满血时出招', 'huichun'),

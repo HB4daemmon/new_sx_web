@@ -17,11 +17,11 @@ for (const method of methods) {
     const fights = [];
     const run = playRun(createRun({ seed: `sim-${i}`, method, heat, fate }), f => fights.push(f));
     total += 1;
-    const m = byMethod[method] ??= { runs: 0, wins: 0, best: 0, endless: 0, endless3: 0 };
+    const m = byMethod[method] ??= { runs: 0, wins: 0, best: 0, endless: 0, endless3: 0, endless10: 0, deepest: 0 };
     m.runs += 1;
     m.best = Math.max(m.best, run.stats.bestHit);
     const won = run.screen.name === 'won' || run.endless > 0;
-    if (won) { wins += 1; m.wins += 1; m.endless += run.endless; if (run.endless >= 3) m.endless3 += 1; }
+    if (won) { wins += 1; m.wins += 1; m.endless += run.endless; if (run.endless >= 3) m.endless3 += 1; if (run.endless >= 10) m.endless10 += 1; m.deepest = Math.max(m.deepest, run.endless); }
     if (run.screen.name !== 'won') { const key = `${run.endless ? `e${run.endless}` : `act${run.act}`}:${fights.at(-1)?.enemy}`; deaths[key] = (deaths[key] ?? 0) + 1; }
     battles.push({ turns: run.stats.turns, casts: run.stats.casts, kills: run.stats.kills });
   }

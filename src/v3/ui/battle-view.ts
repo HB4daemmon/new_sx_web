@@ -1,5 +1,5 @@
-import { canRage, rageCost, enemyAttack, endlessLimit, MAX_CAST, previewCast, swordDamage, tribulationStart, type BEvent, type CastOutcome } from '../core/battle.js';
-import { METHOD, RAGES, RELIC, SPECIALS } from '../core/content.js';
+import { canRage, rageCost, defense, enemyAttack, endlessLimit, MAX_CAST, previewCast, swordDamage, tribulationStart, type BEvent, type CastOutcome } from '../core/battle.js';
+import { DODGE_CAP, METHOD, RAGES, REDUCE_CAP, RELIC, SPECIALS } from '../core/content.js';
 import { counterOf, EL_NAME, KE, type El } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
 import { COMBOS, fanTier, PATTERNS, PATTERN_ORDER, QI_PER_FAN, YAKU, YAKU_ORDER, HETU } from '../core/patterns.js';
@@ -811,6 +811,22 @@ async function playEvent(ev: BEvent, side: 'player' | 'enemy') {
       refreshIntent();
       return;
     }
+    case 'dodge': {
+      const c = centerOf(heroArt);
+      floatText(c.x + (ev.hitIndex ?? 0) * 30, c.y - 70, '闪', 'ft-shield', 46, 600);
+      await anim(heroArt, [{ transform: 'translateX(0)' }, { transform: 'translateX(-28px)' }, { transform: 'translateX(0)' }], 260);
+      return;
+    }
+    case 'save': {
+      const c = centerOf(heroArt);
+      disp.php = ev.hp;
+      floatText(c.x, c.y - 60, ev.name, 'ft-heal', 40, 1100);
+      burst(c.x, c.y, '#4fdc8e', 26, 1, 'ember');
+      playSfx('heal');
+      refreshBars();
+      await wait(400);
+      return;
+    }
     case 'revive': {
       disp.ehp = ev.hp;
       enemyArt.classList.remove('dying');
@@ -1034,7 +1050,7 @@ function showEnemyInfo() {
     e.atkBonus ? h('div.info-sec', null, h('b', null, '战意：'), `攻击 +${e.atkBonus}。`) : null,
     def.traitText ? h('div.info-sec', null, h('b', null, '特性：'), def.traitText) : null,
     h('div.info-sec', null, h('b', null, '天劫：'), `第 ${tribulationStart(r)} 回合起天雷劈向双方，一重比一重狠。`),
-    r.endless ? h('div.info-sec', null, h('b', null, '限时斩敌：'), `无尽天劫中，第 ${endlessLimit(r)} 回合结束时还没斩敌，天劫转而落到你身上（渡劫失败）。天劫劈敌的伤害按本幕寻常敌人算，不随层数变大。`) : null);
+    r.endless ? h('div.info-sec', null, h('b', null, '限时斩敌：'), `无尽天劫中，第 ${endlessLimit(r)} 回合结束时还没斩敌，天劫转而落到你身上（渡劫失败）。天劫每重劈去敌人气血上限的 4%，累计至多 60%，剩下的要靠自己。`) : null);
 }
 
 /** Self: HP, shield and every running counter, with what each does. */
@@ -1051,6 +1067,9 @@ function showSelfInfo() {
   if (b.swords) rows.push(['飞剑', `${b.swords} 柄：每次出招后齐射，每柄 ${swordDamage(r)} + 本招伤害的 6%`]);
   if (b.spring) rows.push(['春华', `${fmt(b.spring)}：下一招计入气`]);
   if (b.stacks.thunder) rows.push(['雷引', `本场倍率永久 +${b.stacks.thunder}`]);
+  const d = defense(r, b);
+  if (d.reduce) rows.push(['减伤', `受到敌人的伤害 −${d.reduce}%（上限 ${REDUCE_CAP}%）`]);
+  if (d.dodge) rows.push(['闪避', `敌人每一击 ${d.dodge}% 机会闪开（上限 ${DODGE_CAP}%）`]);
   if (b.stacks.pendingHeal) rows.push(['待回复', `${b.stacks.pendingHeal}：敌人出手后回复`]);
   if (b.stacks.wheel) rows.push(['命运轮盘', `本回合转出 ${b.stacks.wheel}：本招有几张 ${b.stacks.wheel} 点的符，番就 ×几`]);
   if (r.relics.includes('tianjiqian') && b.stacks.omen !== undefined) rows.push(['天机签', `本回合「吉」为${EL_NAME[(['mu', 'huo', 'tu', 'jin', 'shui'] as El[])[b.stacks.omen]]}：每张 +1 番`]);

@@ -185,23 +185,65 @@ test('本门役: each method has its own 路 that reads the fight', async () => 
   assert.ok(!ids(mk('yangjian'), [T('huo', 2), T('shui', 3)]).includes('zhouye'));
 });
 
-test('天劫 hits by the act yardstick; 无尽 has a hard turn limit', async () => {
-  const { endlessLimit } = await import('../../build/v3/core/battle.js');
-  const run = R.createRun({ seed: 'el', method: 'jingang' });
+test('无尽: 天劫 takes at most 60% of the foe, and the fight is lost after turn 12', async () => {
+  const { endlessLimit, ENDLESS_TRIB_CAP } = await import('../../build/v3/core/battle.js');
+  const run = R.createRun({ seed: 'el', method: 'zhulong' });
   run.endless = 2;
   run.act = 7;
+  run.talents = ['yinjie'];
   const battle = startBattle(run, 'gonggong', 'boss');
   run.battle = battle;
-  assert.ok(battle.stacks.tribBase < battle.enemy.maxHp / 2, 'tribulation ignores 无尽 HP growth');
-  assert.equal(endlessLimit(run), tribulationStart(run) + 2);
-  battle.enemy.intent = { name: 'idle' };
-  battle.turn = endlessLimit(run) - 1;
-  battle.player.hp = battle.player.maxHp;
-  battle.player.shield = 9999;
+  assert.equal(endlessLimit(run), 12);
+  battle.player.maxHp = battle.player.hp = 99999;
+  battle.player.shield = 0;
   const small = () => [...battle.hand].sort((a, b) => a.v - b.v)[0].uid;
-  cast(run, battle, [small()], false);
-  assert.equal(battle.outcome, 'fighting', 'one turn before the limit you are still standing');
+  while (battle.turn < 12 && battle.outcome === 'fighting') {
+    battle.enemy.intent = { name: 'idle' };
+    battle.enemy.hp = battle.enemy.maxHp; // keep it standing; tribDealt tracks the tribulation alone
+    cast(run, battle, [small()], false);
+  }
+  assert.ok(battle.stacks.tribDealt <= Math.round(battle.enemy.maxHp * ENDLESS_TRIB_CAP), 'capped at 60%');
+  assert.ok(battle.stacks.tribDealt >= battle.enemy.maxHp * 0.55, '引劫为用 reaches the cap in time');
+  assert.equal(battle.outcome, 'fighting');
   battle.enemy.intent = { name: 'idle' };
+  battle.enemy.hp = battle.enemy.maxHp;
   cast(run, battle, [small()], false);
-  assert.equal(battle.outcome, 'lost', 'past the limit the tribulation takes you, shield or not');
+  assert.equal(battle.outcome, 'lost', 'past turn 12 the tribulation takes you');
+});
+
+test('守御天赋: reduction and dodge are capped; 龟息 and 枯木逢春 stop one-shots', async () => {
+  const { defense } = await import('../../build/v3/core/battle.js');
+  const { REDUCE_CAP, DODGE_CAP, TALENT } = await import('../../build/v3/core/content.js');
+  const run = R.createRun({ seed: 'gd', method: 'yangjian' });
+  const battle = startBattle(run, 'shiyuan', 'fight');
+  run.battle = battle;
+  run.talents = ['tieyi', 'tieyi2', 'jianmu', 'shenfa'];
+  battle.swords = 15;
+  const d = defense(run, battle);
+  assert.equal(d.reduce, REDUCE_CAP);
+  assert.equal(d.dodge, 15);
+  run.method = 'benlei'; run.talents = ['shenfa', 'leidun']; battle.stacks.rages = 5;
+  assert.equal(defense(run, battle).dodge, DODGE_CAP);
+  // Method talents only show up for their method.
+  for (let i = 0; i < 200; i += 1) {
+    const r = R.createRun({ seed: `tm-${i}`, method: 'yuhuo' });
+    for (const id of R.talentChoices(r, 4)) assert.ok(!TALENT[id].method || TALENT[id].method.split(',').includes('yuhuo'), id);
+  }
+  // 龟息 / 枯木逢春 against a huge blow.
+  const g = R.createRun({ seed: 'gx2', method: 'huichun' });
+  g.talents = ['guixi', 'kumu'];
+  const gb = startBattle(g, 'shiyuan', 'fight');
+  g.battle = gb;
+  gb.player.shield = 0;
+  gb.enemy.intent = { name: 'big', atk: 9999 };
+  const hp0 = gb.player.hp;
+  cast(g, gb, [[...gb.hand].sort((a, b) => a.v - b.v)[0].uid], false);
+  assert.ok(hp0 - gb.player.hp <= Math.round(gb.player.maxHp * 0.35) + 1, '龟息 caps the blow');
+  g.talents = ['kumu'];
+  gb.player.hp = 5; gb.player.shield = 0;
+  gb.enemy.intent = { name: 'big', atk: 9999 };
+  gb.enemy.hp = gb.enemy.maxHp;
+  cast(g, gb, [[...gb.hand].sort((a, b) => a.v - b.v)[0].uid], false);
+  assert.equal(gb.outcome, 'fighting');
+  assert.ok(gb.player.hp > 0 && gb.stacks.kumu === 1, '枯木逢春 once');
 });

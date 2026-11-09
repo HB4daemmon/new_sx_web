@@ -13,6 +13,8 @@ export function bestCast(run, battle, rage) {
   return advice && { r: advice.result, uids: advice.uids };
 }
 
+const GUARD = ['shijie', 'jianmu', 'fenshen', 'budong', 'leidun', 'kumu', 'yeyin', 'guixi', 'tieyi2', 'shenfa', 'huiling', 'yinjie', 'tieyi', 'jinshen', 'changsheng', 'wanfa'];
+const OWN = { yangjian: 'jianmu', yuhuo: 'fenshen', jingang: 'budong', benlei: 'leidun', huichun: 'kumu', zhulong: 'yeyin' };
 export const FIGHTS = [];
 export const CASTS = [];
 export function playBattle(run) {
@@ -32,7 +34,10 @@ export function playBattle(run) {
     let rage = false;
     if (canRage(battle)) {
       const rb = bestCast(run, battle, true);
-      if (fanTier(rb.r.fan, !!rb.r.analysis.tian) >= 3 || rb.r.damage >= battle.enemy.hp || battle.player.hp < enemyAttack(run, battle) * 2) { best = rb; rage = true; }
+      const incoming = enemyAttack(run, battle) * (battle.enemy.intent.hits ?? 1);
+      // 金刚伏魔 spends the whole shield: don't strip it right before a heavy blow unless it kills.
+      const keepShield = run.method === 'jingang' && rb.r.damage < battle.enemy.hp && incoming > battle.player.hp * 0.3;
+      if (!keepShield && (fanTier(rb.r.fan, !!rb.r.analysis.tian) >= 3 || rb.r.damage >= battle.enemy.hp || battle.player.hp < enemyAttack(run, battle) * 2)) { best = rb; rage = true; }
     }
     globalThis.__probe?.(run, battle, best.r, rage);
     const out = R.castTiles(run, best.uids, rage);
@@ -76,9 +81,22 @@ export function playRun(run, log = () => {}) {
         R.leaveReward(run);
         break;
       }
-      case 'breakthrough': R.chooseBreakthrough(run, 0); break;
+      case 'breakthrough': {
+        // BUILD=guard: a player chasing 无尽 takes 守御 talents first.
+        const prefer = process.env.BUILD === 'guard' ? GUARD : [];
+        const ids = s.options.map(o => o.talent);
+        const best = prefer.find(id => ids.includes(id));
+        R.chooseBreakthrough(run, best ? ids.indexOf(best) : 0);
+        break;
+      }
       case 'story': R.leaveStory(run); break;
-      case 'ending': R.chooseEnding(run, R.endingAvailable(run, 'pillar') ? 'pillar' : 'return'); if (process.env.ENDLESS) R.enterEndless(run); break;
+      case 'ending': {
+        R.chooseEnding(run, R.endingAvailable(run, 'pillar') ? 'pillar' : 'return');
+        // FORCE=a,b,c: a drafted 无尽 build (method talent first), to test what a plan can reach.
+        if (process.env.FORCE) for (const id of process.env.FORCE.split(',').map(x => x === 'own' ? OWN[run.method] : x)) if (!run.talents.includes(id)) run.talents.push(id);
+        if (process.env.ENDLESS) R.enterEndless(run);
+        break;
+      }
       case 'shop': {
         s.items.forEach((item, i) => { if (!item.sold && run.gold >= item.price && (item.option.type === 'relic' ? run.relics.length < run.relicSlots : item.option.type === 'pattern')) R.buy(run, i); });
         R.leaveShop(run);

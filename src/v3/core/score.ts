@@ -216,7 +216,7 @@ export function benmenYaku(run: RunState, battle: BattleState, tiles: Tile[], el
       if (e.burn >= e.hp * 0.05) return hit('liaoyuan');
       return null;
     case 'jingang':
-      if (p.shield >= p.maxHp * 0.6) return { id: 'buhuai', fan: Math.min(10, Math.floor((p.shield / p.maxHp) * 10)) };
+      if (p.shield >= p.maxHp * 0.6) return { id: 'buhuai', fan: Math.min(has(run, 'budong') ? 15 : 10, Math.floor((p.shield / p.maxHp) * 10)) };
       if (p.shield >= p.maxHp * 0.25) return hit('jinshen');
       return null;
     case 'benlei':

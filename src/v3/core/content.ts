@@ -225,8 +225,12 @@ export const METHOD: Record<string, MethodDef> = Object.fromEntries(METHODS.map(
 /** 天赋档位：凡 / 灵 / 仙（与法宝品阶同名）。分类只用于整理与展示。 */
 export type TalentTier = 'common' | 'rare' | 'legend';
 export type TalentCat = '节奏' | '成役' | '百搭' | '成长' | '守御' | '行险' | '经营';
-export interface TalentDef { id: string; name: string; desc: string; tier: TalentTier; cat: TalentCat; once?: boolean }
-const T = (id: string, name: string, tier: TalentTier, cat: TalentCat, desc: string, once?: boolean): TalentDef => ({ id, name, desc, tier, cat, ...(once ? { once } : {}) });
+/** method: 本门天赋，只为这些功法出现（逗号分隔）。 */
+export interface TalentDef { id: string; name: string; desc: string; tier: TalentTier; cat: TalentCat; once?: boolean; method?: string }
+const T = (id: string, name: string, tier: TalentTier, cat: TalentCat, desc: string, once?: boolean, method?: string): TalentDef => ({ id, name, desc, tier, cat, ...(once ? { once } : {}), ...(method ? { method } : {}) });
+/** 减伤与闪避的上限。 */
+export const REDUCE_CAP = 60;
+export const DODGE_CAP = 40;
 /** 五组相克元素各一张「既济」：同一招里两种元素各 2 张以上，额外 4 番，并附一个小效果。 */
 export const JIJI: Record<string, { a: El; b: El; extra: string }> = {
   jiji_shuihuo: { a: 'shui', b: 'huo', extra: '护盾与灼烧各 ×2' },
@@ -267,6 +271,19 @@ export const TALENTS: TalentDef[] = [
   T('changsheng', '长生', 'common', '守御', '气血上限 +40 并回满', true),
   T('baizhe', '百折', 'rare', '守御', '护盾被打破时，气血上限永久 +5'),
   T('jieshi', '借势', 'legend', '守御', '敌人本回合要打出的伤害，有一半计入你这一招的气'),
+  T('tieyi', '铁衣', 'common', '守御', '受到敌人的伤害 −10%（减伤上限 60%）'),
+  T('tieyi2', '玄铁衣', 'rare', '守御', '受到敌人的伤害 −20%（减伤上限 60%）'),
+  T('shenfa', '身法', 'rare', '守御', '敌人每一击有 15% 机会闪开（闪避上限 40%）'),
+  T('huiling', '回灵', 'rare', '守御', '每回合开始回复气血上限的 6%'),
+  T('guixi', '龟息', 'legend', '守御', '单次受到的伤害至多为气血上限的 35%'),
+  // 本门守御：每门功法一条自己的活路。
+  T('jianmu', '剑幕', 'rare', '守御', '每柄飞剑使受到的伤害 −3%（减伤上限 60%）', false, 'yangjian'),
+  T('fenshen', '焚身', 'rare', '守御', '敌人身上的灼烧达其当前气血的 10% 时，受到它的伤害 −35%（减伤上限 60%）', false, 'yuhuo'),
+  T('budong', '不动明王', 'legend', '守御', '护盾上限变为气血上限 ×2；每回合护体由 10% 提升到 20%；有护盾时受到的伤害 −30%（减伤上限 60%）；金刚不坏至多 15 番', false, 'jingang'),
+  T('leidun', '雷遁', 'rare', '守御', '开怒技的那一回合，敌人的攻击全部闪开；本场每开过一次怒技，闪避 +10%（闪避上限 40%）', false, 'benlei'),
+  T('kumu', '枯木逢春', 'legend', '守御', '每场一次：气血归零时以一半气血复苏', false, 'huichun'),
+  T('shijie', '以身饲劫', 'legend', '守御', '无尽天劫中，天劫劈敌的累计上限由六成提到八成五（配「引劫为用」最好）', false, 'jingang,huichun'),
+  T('yeyin', '夜隐', 'rare', '守御', '昼回合受到的伤害 −20%，夜回合（偶数回合）−50%（减伤上限 60%）', false, 'zhulong'),
   // —— 行险 ——
   T('xingxian', '行险', 'common', '行险', '不掉血赢下一场，额外灵石 +10 并连续累加；某场掉血超过一半则清零'),
   T('xueji', '血祭', 'rare', '行险', '每次出招失去 3 气血，伤害 ×1.6'),
