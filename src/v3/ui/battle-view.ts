@@ -2,7 +2,7 @@ import { canRage, rageCost, defense, enemyAttack, endlessLimit, MAX_CAST, previe
 import { DODGE_CAP, METHOD, RAGES, REDUCE_CAP, RELIC, SPECIALS } from '../core/content.js';
 import { counterOf, EL_NAME, KE, type El } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
-import { COMBOS, fanTier, PATTERNS, PATTERN_ORDER, QI_PER_FAN, YAKU, YAKU_ORDER, HETU } from '../core/patterns.js';
+import { COMBOS, fanTier, OPENERS, pathOpen, PATTERNS, PATTERN_ORDER, QI_PER_FAN, YAKU, YAKU_ORDER, HETU } from '../core/patterns.js';
 import { dangerous, recommend, type AdviceMode } from '../core/advisor.js';
 import { MOD_DESC, TALENT, TIER_NAME } from '../core/content.js';
 import type { YakuId } from '../core/types.js';
@@ -73,7 +73,7 @@ export function mountBattle(container: HTMLElement) {
     h('div.pile-dock', null,
         h('button.pile-btn.advise', { type: 'button', 'data-action': 'advise', title: '推荐出牌：再点一次换成另一种思路', onclick: () => advise() }, '荐', h('small', null, '推荐')),
         h('button.pile-btn', { type: 'button', onclick: () => showBag(r), title: '查看符袋' }, h('span.pile-draw'), h('small', null, '待抽')),
-        h('button.pile-btn.sort', { type: 'button', title: '整理手牌', onclick: () => { sortMode = sortMode === 'el' ? 'v' : 'el'; renderHand(); } }, '理'),
+        h('button.pile-btn.sort', { type: 'button', title: '整理手牌：按元素 / 按点数', onclick: (e: Event) => { sortMode = sortMode === 'el' ? 'v' : 'el'; $('small', e.currentTarget as HTMLElement)!.textContent = sortMode === 'el' ? '按元素' : '按点数'; renderHand(); } }, '理', h('small', null, sortMode === 'el' ? '按元素' : '按点数')),
         h('button.pile-btn', { type: 'button', title: '诀谱', onclick: () => showHelp() }, '谱')),
     hud(r, { battle: true }));
   container.appendChild(root);
@@ -312,7 +312,7 @@ function renderHand(dealIn = false, newUids: number[] = []) {
   const tiles = sortedHand();
   hand.replaceChildren(...tiles.map((tile, i) => {
     const order = selected.indexOf(tile.uid) + 1;
-    const el = tileView(tile, { onclick: () => toggleTile(tile.uid) });
+    const el = tileView(tile, { onclick: () => toggleTile(tile.uid), dewei: pathOpen(run(), 'dewei') });
     el.dataset.key = String(i + 1);
     if (order) el.classList.add('sel');
     if (tile.el === counter) el.classList.add('counter');
@@ -408,6 +408,12 @@ function yakuChips(res: CastResult): HTMLElement[] {
   if (!res.analysis.tian && bao) out.push(chip('宝符', bao, () => showModInfo('bao')));
   if (!res.analysis.tian && res.analysis.dewei) out.push(chip('得位', res.analysis.dewei, () => showDeweiInfo()));
   if (!out.length) out.push(h('span.yk-none', null, '散牌 · 没有成役'));
+  // 洛书已开：两三张时报出点数和，凑十、凑十五差多少一目了然。
+  const n = res.tiles.length;
+  if (pathOpen(run(), 'luoshu') && (n === 2 || n === 3) && !res.yaku.some(y => YAKU[y.id].path === 'luoshu')) {
+    const sum = res.tiles.reduce((a, t) => a + (t.el === 'zhuo' ? 0 : t.v), 0);
+    out.push(h('span.yk-sum', null, `点数和 ${sum}／${n === 2 ? 10 : 15}`));
+  }
   return out;
 }
 

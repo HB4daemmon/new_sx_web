@@ -1,6 +1,6 @@
 import { JIJI, RAGES, RELIC, TALENT, type ScoreCtx, type Bump } from './content.js';
 import { counterOf, KE, type El } from './elements.js';
-import { analyze, assignments, COMBOS, isDewei, patternValue, PATTERN_ORDER, PATTERNS, QI_PER_FAN, YAKU, type Analysis, type YakuHit } from './patterns.js';
+import { analyze, assignments, COMBOS, isDewei, pathOpen, patternValue, PATTERN_ORDER, PATTERNS, QI_PER_FAN, YAKU, type Analysis, type YakuHit } from './patterns.js';
 import type { BattleState, ComboId, PatternId, RunState, Tile, YakuId } from './types.js';
 import { pactRank } from './pacts.js';
 
@@ -69,7 +69,7 @@ interface Stage { qi: number; mult: number; steps: Step[]; critChance: number; h
 
 /** Scores one reading of the cast (elements and values fixed): 点数成气 → 各路役番 → 得位 → 共鸣 → 倍符乘区. Order of tiles never matters. */
 function stage(run: RunState, battle: BattleState, tiles: Tile[], els: (El | null)[], vals: number[], rage = false): Stage {
-  const a = analyze(els, vals, battle.enemy.el, { ling: tiles.map(t => t.mod === 'ling'), huan: tiles.map(t => t.mod === 'huan'), loose: has(run, 'huiyan') });
+  const a = analyze(els, vals, battle.enemy.el, { ling: tiles.map(t => t.mod === 'ling'), huan: tiles.map(t => t.mod === 'huan'), loose: has(run, 'huiyan'), noLuoshu: !pathOpen(run, 'luoshu'), noDewei: !pathOpen(run, 'dewei') });
   let qi = 0;
   let fan = 0;
   let x = 1;

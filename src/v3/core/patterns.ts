@@ -25,6 +25,19 @@ export const PATTERNS: Record<PatternId, PatternDef> = {
 };
 export const PATTERN_ORDER: PatternId[] = ['yuan', 'shu', 'lian', 'wuxing', 'podi', 'luoshu'];
 
+/**
+ * 开路：每局默认只有同元、同数、连珠、五行、破敌五路。
+ * 「得位」与「洛书」要在局中拿到对应法宝（或选了河图命）才开启，开了就一直开着。
+ */
+export type OpenPath = 'dewei' | 'luoshu';
+export const OPENERS: Record<OpenPath, { name: string; relics: string[]; how: string; what: string }> = {
+  dewei: { name: '得位', relics: ['hetu', 'jubao'], how: '拿到法宝「河图」或「聚宝盆」，或选河图命', what: '点数合河图数的符每张 +1 番：水1/6 火2/7 木3/8 金4/9 土5/10。开启后这类符的牌面带「位」字。' },
+  luoshu: { name: '洛书', relics: ['luoshu', 'jiugong', 'taiyi'], how: '拿到法宝「洛书」「九宫格」或「太一盘」', what: '只出两张、点数和为 10 是「十全」（1 番）；只出三张、和为 15 是「洛书」（3 番）。开启后预览栏会显示点数和。' },
+};
+export const pathOpen = (run: { opened?: OpenPath[]; fate?: string | null }, p: OpenPath) => !!run.opened?.includes(p) || (p === 'dewei' && run.fate === 'hetu');
+/** 本局可成役、可升心法的路。 */
+export const activePatterns = (run: { opened?: OpenPath[]; fate?: string | null }) => PATTERN_ORDER.filter(p => p !== 'luoshu' || pathOpen(run, 'luoshu'));
+
 /** 心法 n 重：这一路成役时 +(n−1) 番。 */
 export const patternValue = (_id: PatternId, level: number) => ({ fan: Math.max(0, level - 1) });
 
@@ -104,7 +117,7 @@ function best<T extends YakuId>(...cands: [boolean, T][]): T | null {
 }
 
 /** Which tiles are wild: 灵 counts as every element at once, 幻 as every value at once (for the set-type 路). */
-export interface Wilds { ling?: boolean[]; huan?: boolean[]; /** 慧眼：点数与河图数差 1 也算得位。 */ loose?: boolean }
+export interface Wilds { ling?: boolean[]; huan?: boolean[]; /** 慧眼：点数与河图数差 1 也算得位。 */ loose?: boolean; /** 本局未开的路。 */ noLuoshu?: boolean; noDewei?: boolean }
 
 /** Counts per key where every wild joins every group that already exists (or forms one group on its own). */
 function wildCounts<K>(keys: (K | null)[], wild: boolean[]): number[] {
@@ -159,7 +172,7 @@ export function analyze(els: (El | null)[], vals: number[], enemyEl: El | null =
     best([isDragon, 'hualong'], [longest >= 5, 'lian5'], [longest === 4, 'lian4'], [longest === 3, 'lian3']),
     best([distinct === 5, 'wuxing'], [sanhua, 'sanhua']),
     best([hits >= 4, 'pojun'], [hits === 3, 'pozhen'], [hits === 2, 'pozhan']),
-    best([vals.length === 3 && ranked.length === 3 && total === 15, 'luoshu'], [vals.length === 2 && ranked.length === 2 && total === 10, 'shiquan']),
+    wilds.noLuoshu ? null : best([vals.length === 3 && ranked.length === 3 && total === 15, 'luoshu'], [vals.length === 2 && ranked.length === 2 && total === 10, 'shiquan']),
   ].filter(Boolean) as YakuId[];
   const yaku = picks.map(id => ({ id, fan: YAKU[id].fan }));
 
@@ -168,7 +181,7 @@ export function analyze(els: (El | null)[], vals: number[], enemyEl: El | null =
   const isShengSheng = els.length === 5 && sheng.every((el, i) => els.some((e, j) => e === el && vals[j] === i + 1));
   const tianId = best([isShengSheng, 'shengsheng'], [s[0] >= 5 && longest === 5, 'jiutian'], [fiveSame && distinct === 5, 'wuqi']);
   const tian = tianId ? { id: tianId, fan: YAKU[tianId].fan } : null;
-  const dewei = els.filter((el, i) => isDewei(el, vals[i]) || (!!wilds.loose && !!el && vals[i] > 0 && Math.abs(((vals[i] - 1) % 5) + 1 - HETU[el]) === 1)).length;
+  const dewei = wilds.noDewei ? 0 : els.filter((el, i) => isDewei(el, vals[i]) || (!!wilds.loose && !!el && vals[i] > 0 && Math.abs(((vals[i] - 1) % 5) + 1 - HETU[el]) === 1)).length;
   const head = tian ?? [...yaku].sort((a, b) => b.fan - a.fan)[0];
   return { els, vals, sets, distinct, yaku, tian, dewei, combo: head?.id ?? 'san' };
 }

@@ -19,6 +19,13 @@ export const PATTERNS = {
     luoshu: { id: 'luoshu', name: '洛书', alias: '凑数', hint: '只出两张、和为 10（十全）；只出三张、和为 15（洛书，九宫每行之和）', short: '两张凑十、三张凑十五' },
 };
 export const PATTERN_ORDER = ['yuan', 'shu', 'lian', 'wuxing', 'podi', 'luoshu'];
+export const OPENERS = {
+    dewei: { name: '得位', relics: ['hetu', 'jubao'], how: '拿到法宝「河图」或「聚宝盆」，或选河图命', what: '点数合河图数的符每张 +1 番：水1/6 火2/7 木3/8 金4/9 土5/10。开启后这类符的牌面带「位」字。' },
+    luoshu: { name: '洛书', relics: ['luoshu', 'jiugong', 'taiyi'], how: '拿到法宝「洛书」「九宫格」或「太一盘」', what: '只出两张、点数和为 10 是「十全」（1 番）；只出三张、和为 15 是「洛书」（3 番）。开启后预览栏会显示点数和。' },
+};
+export const pathOpen = (run, p) => !!run.opened?.includes(p) || (p === 'dewei' && run.fate === 'hetu');
+/** 本局可成役、可升心法的路。 */
+export const activePatterns = (run) => PATTERN_ORDER.filter(p => p !== 'luoshu' || pathOpen(run, 'luoshu'));
 /** 心法 n 重：这一路成役时 +(n−1) 番。 */
 export const patternValue = (_id, level) => ({ fan: Math.max(0, level - 1) });
 const Y = (id, path, name, alias, fan, desc, method) => ({ id, path, name, alias, fan, desc, ...(method ? { method } : {}) });
@@ -131,7 +138,7 @@ export function analyze(els, vals, enemyEl = null, wilds = {}) {
         best([isDragon, 'hualong'], [longest >= 5, 'lian5'], [longest === 4, 'lian4'], [longest === 3, 'lian3']),
         best([distinct === 5, 'wuxing'], [sanhua, 'sanhua']),
         best([hits >= 4, 'pojun'], [hits === 3, 'pozhen'], [hits === 2, 'pozhan']),
-        best([vals.length === 3 && ranked.length === 3 && total === 15, 'luoshu'], [vals.length === 2 && ranked.length === 2 && total === 10, 'shiquan']),
+        wilds.noLuoshu ? null : best([vals.length === 3 && ranked.length === 3 && total === 15, 'luoshu'], [vals.length === 2 && ranked.length === 2 && total === 10, 'shiquan']),
     ].filter(Boolean);
     const yaku = picks.map(id => ({ id, fan: YAKU[id].fan }));
     const fiveSame = ranked.length === 5 && uniq.length === 1;
@@ -139,7 +146,7 @@ export function analyze(els, vals, enemyEl = null, wilds = {}) {
     const isShengSheng = els.length === 5 && sheng.every((el, i) => els.some((e, j) => e === el && vals[j] === i + 1));
     const tianId = best([isShengSheng, 'shengsheng'], [s[0] >= 5 && longest === 5, 'jiutian'], [fiveSame && distinct === 5, 'wuqi']);
     const tian = tianId ? { id: tianId, fan: YAKU[tianId].fan } : null;
-    const dewei = els.filter((el, i) => isDewei(el, vals[i]) || (!!wilds.loose && !!el && vals[i] > 0 && Math.abs(((vals[i] - 1) % 5) + 1 - HETU[el]) === 1)).length;
+    const dewei = wilds.noDewei ? 0 : els.filter((el, i) => isDewei(el, vals[i]) || (!!wilds.loose && !!el && vals[i] > 0 && Math.abs(((vals[i] - 1) % 5) + 1 - HETU[el]) === 1)).length;
     const head = tian ?? [...yaku].sort((a, b) => b.fan - a.fan)[0];
     return { els, vals, sets, distinct, yaku, tian, dewei, combo: head?.id ?? 'san' };
 }

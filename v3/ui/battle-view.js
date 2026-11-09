@@ -2,7 +2,7 @@ import { canRage, rageCost, defense, enemyAttack, endlessLimit, MAX_CAST, previe
 import { DODGE_CAP, METHOD, RAGES, REDUCE_CAP, RELIC, SPECIALS } from '../core/content.js';
 import { counterOf, EL_NAME, KE } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
-import { fanTier, PATTERNS, PATTERN_ORDER, QI_PER_FAN, YAKU, YAKU_ORDER, HETU } from '../core/patterns.js';
+import { fanTier, pathOpen, PATTERNS, PATTERN_ORDER, QI_PER_FAN, YAKU, YAKU_ORDER, HETU } from '../core/patterns.js';
 import { dangerous, recommend } from '../core/advisor.js';
 import { MOD_DESC, TALENT, TIER_NAME } from '../core/content.js';
 import { BOND, BOSS_STORY, LORE } from '../core/story.js';
@@ -44,7 +44,7 @@ export function mountBattle(container) {
         } }, title: '点击查看敌人意图与弱点' }, h('div.enemy-intent'), h('img.enemy-art', { src: art(enemy.art), alt: enemy.name }), h('div.enemy-status')), h('div.enemy-plate', { onclick: (e) => { if (!busy) {
             e.stopPropagation();
             showEnemyInfo();
-        } } }, h('div.enemy-name', null, h('span.e-el'), h('b', null, enemy.name), h('small', null, enemy.title)), h('div.enemy-bar'), enemy.traitText ? h('div.enemy-trait', null, enemy.traitText) : null, null), h('div.wheel-slot'), h('div.turn-tag'), h('div.score-panel', null, h('div.sp-pattern', null, '　'), h('div.sp-row', null, h('div.sp-box.sp-qi', null, h('small', null, '气'), h('b', null, '0')), h('span.sp-x', null, '×'), h('div.sp-box.sp-mult', null, h('small', null, '倍'), h('b', null, '0'))), h('div.sp-dmg'), h('div.sp-yaku')), h('div.lane'), h('div.hand-area', null, h('div.preview-line'), h('div.hand')), h('div.controls', null, h('button.qi-gauge', { type: 'button', 'data-action': 'rage', title: `怒技「${RAGES[r.method]?.name ?? '怒技'}」：${RAGES[r.method]?.desc ?? '本招 ×3'}\n剑意攒够即可开启 · 快捷键 R`, onclick: () => toggleRage() }, h('div.qi-fill'), h('div.qi-mark'), h('span.qi-text')), h('button.btn.seal.cast-btn', { type: 'button', 'data-action': 'cast', onclick: () => void doCast() }, h('span.cast-main', null, '出招'), h('small.cast-sub')), h('button.btn.ink.discard-btn', { type: 'button', 'data-action': 'discard', onclick: () => void doDiscard() }, '换符', h('small.discard-left'))), h('div.pile-dock', null, h('button.pile-btn.advise', { type: 'button', 'data-action': 'advise', title: '推荐出牌：再点一次换成另一种思路', onclick: () => advise() }, '荐', h('small', null, '推荐')), h('button.pile-btn', { type: 'button', onclick: () => showBag(r), title: '查看符袋' }, h('span.pile-draw'), h('small', null, '待抽')), h('button.pile-btn.sort', { type: 'button', title: '整理手牌', onclick: () => { sortMode = sortMode === 'el' ? 'v' : 'el'; renderHand(); } }, '理'), h('button.pile-btn', { type: 'button', title: '诀谱', onclick: () => showHelp() }, '谱')), hud(r, { battle: true }));
+        } } }, h('div.enemy-name', null, h('span.e-el'), h('b', null, enemy.name), h('small', null, enemy.title)), h('div.enemy-bar'), enemy.traitText ? h('div.enemy-trait', null, enemy.traitText) : null, null), h('div.wheel-slot'), h('div.turn-tag'), h('div.score-panel', null, h('div.sp-pattern', null, '　'), h('div.sp-row', null, h('div.sp-box.sp-qi', null, h('small', null, '气'), h('b', null, '0')), h('span.sp-x', null, '×'), h('div.sp-box.sp-mult', null, h('small', null, '倍'), h('b', null, '0'))), h('div.sp-dmg'), h('div.sp-yaku')), h('div.lane'), h('div.hand-area', null, h('div.preview-line'), h('div.hand')), h('div.controls', null, h('button.qi-gauge', { type: 'button', 'data-action': 'rage', title: `怒技「${RAGES[r.method]?.name ?? '怒技'}」：${RAGES[r.method]?.desc ?? '本招 ×3'}\n剑意攒够即可开启 · 快捷键 R`, onclick: () => toggleRage() }, h('div.qi-fill'), h('div.qi-mark'), h('span.qi-text')), h('button.btn.seal.cast-btn', { type: 'button', 'data-action': 'cast', onclick: () => void doCast() }, h('span.cast-main', null, '出招'), h('small.cast-sub')), h('button.btn.ink.discard-btn', { type: 'button', 'data-action': 'discard', onclick: () => void doDiscard() }, '换符', h('small.discard-left'))), h('div.pile-dock', null, h('button.pile-btn.advise', { type: 'button', 'data-action': 'advise', title: '推荐出牌：再点一次换成另一种思路', onclick: () => advise() }, '荐', h('small', null, '推荐')), h('button.pile-btn', { type: 'button', onclick: () => showBag(r), title: '查看符袋' }, h('span.pile-draw'), h('small', null, '待抽')), h('button.pile-btn.sort', { type: 'button', title: '整理手牌：按元素 / 按点数', onclick: (e) => { sortMode = sortMode === 'el' ? 'v' : 'el'; $('small', e.currentTarget).textContent = sortMode === 'el' ? '按元素' : '按点数'; renderHand(); } }, '理', h('small', null, sortMode === 'el' ? '按元素' : '按点数')), h('button.pile-btn', { type: 'button', title: '诀谱', onclick: () => showHelp() }, '谱')), hud(r, { battle: true }));
     container.appendChild(root);
     root.addEventListener('pointerdown', () => { if (busy && !cinematic)
         setSkipping(true); });
@@ -317,7 +317,7 @@ function renderHand(dealIn = false, newUids = []) {
     const tiles = sortedHand();
     hand.replaceChildren(...tiles.map((tile, i) => {
         const order = selected.indexOf(tile.uid) + 1;
-        const el = tileView(tile, { onclick: () => toggleTile(tile.uid) });
+        const el = tileView(tile, { onclick: () => toggleTile(tile.uid), dewei: pathOpen(run(), 'dewei') });
         el.dataset.key = String(i + 1);
         if (order)
             el.classList.add('sel');
@@ -428,6 +428,12 @@ function yakuChips(res) {
         out.push(chip('得位', res.analysis.dewei, () => showDeweiInfo()));
     if (!out.length)
         out.push(h('span.yk-none', null, '散牌 · 没有成役'));
+    // 洛书已开：两三张时报出点数和，凑十、凑十五差多少一目了然。
+    const n = res.tiles.length;
+    if (pathOpen(run(), 'luoshu') && (n === 2 || n === 3) && !res.yaku.some(y => YAKU[y.id].path === 'luoshu')) {
+        const sum = res.tiles.reduce((a, t) => a + (t.el === 'zhuo' ? 0 : t.v), 0);
+        out.push(h('span.yk-sum', null, `点数和 ${sum}／${n === 2 ? 10 : 15}`));
+    }
     return out;
 }
 function onKey(e) {

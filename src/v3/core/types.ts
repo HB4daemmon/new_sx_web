@@ -146,6 +146,10 @@ export interface RunState {
   relics: string[];
   relicSlots: number;
   patternLv: Record<PatternId, number>;
+  /** 局中开启的路（得位、洛书）。 */
+  opened?: ('dewei' | 'luoshu')[];
+  /** 刚开启、界面还没提示过的路。 */
+  justOpened?: ('dewei' | 'luoshu')[];
   talents: string[];
   vow: string | null;
   realm: number;

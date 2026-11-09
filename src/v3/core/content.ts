@@ -88,8 +88,8 @@ export const RELICS: RelicDef[] = [
   { id: 'xinhuo', name: '薪火宝炉', glyph: '炉', rarity: 'legend', desc: '敌方每 3 层灼烧 倍率 +1', score: c => { const n = Math.floor(c.battle.enemy.burn / 3); return n ? { mult: n } : null; } },
   { id: 'qiming', name: '启明玉', glyph: '启', rarity: 'legend', desc: '开战剑意全满', flags: { startQi: 100 } },
   { id: 'tianji', name: '天机落雷箓', glyph: '箓', rarity: 'legend', desc: '倍符 ×2（原为 ×1.5）', flags: { leiX: 1 } },
-  { id: 'hetu', name: '河图', glyph: '图', rarity: 'legend', desc: '每张得位（宝牌）再 +2 番', score: c => (c.a.dewei ? { mult: 2 * c.a.dewei } : null) },
-  { id: 'luoshu', name: '洛书', glyph: '书', rarity: 'legend', desc: '成洛书（凑 15）时 ×2.5', score: c => (c.a.yaku.some(y => y.id === 'luoshu') ? { x: 2.5 } : null) },
+  { id: 'hetu', name: '河图', glyph: '图', rarity: 'legend', desc: '开启「得位」路；每张得位再 +2 番', score: c => (c.a.dewei ? { mult: 2 * c.a.dewei } : null) },
+  { id: 'luoshu', name: '洛书', glyph: '书', rarity: 'legend', desc: '开启「洛书」路；成洛书（三张凑 15）时 ×2.5', score: c => (c.a.yaku.some(y => y.id === 'luoshu') ? { x: 2.5 } : null) },
   { id: 'wuyue', name: '五岳真形图', glyph: '岳', rarity: 'legend', desc: '四象、五雷 ×3', score: c => (c.a.sets[0]?.size >= 4 ? { x: 3 } : null) },
   { id: 'fantian', name: '翻天印', glyph: '印', rarity: 'legend', desc: '出满五枚符时 ×2', score: c => (c.tiles.length >= 5 ? { x: 2 } : null) },
   // —— 道树解锁：新器一 ——
@@ -114,7 +114,7 @@ export const RELICS: RelicDef[] = [
   { id: 'yuanyang', name: '鸳鸯镜', glyph: '鸳', rarity: 'common', desc: '成「成双成对」或「紫金葫芦」时 +3 番', score: c => (c.a.yaku.some(y => y.id === 'shuangdui' || y.id === 'hulu') ? { mult: 3 } : null) },
   { id: 'dengtian', name: '登天梯', glyph: '梯', rarity: 'rare', desc: '连珠路的番再算一次', score: c => { const y = c.a.yaku.find(h => YAKU[h.id].path === 'lian'); return y ? { mult: y.fan + Math.max(0, (c.run.patternLv.lian ?? 1) - 1) } : null; } },
   { id: 'wufang', name: '五方旗', glyph: '旗', rarity: 'rare', desc: '成五行俱全时 ×2', score: c => (c.a.yaku.some(y => y.id === 'wuxing') ? { x: 2 } : null) },
-  { id: 'jubao', name: '聚宝盆', glyph: '盆', rarity: 'rare', desc: '每张宝符、每张得位再 +1 番', score: c => { const n = c.tiles.filter(t => t.mod === 'bao').length + c.a.dewei; return n ? { mult: n } : null; } },
+  { id: 'jubao', name: '聚宝盆', glyph: '盆', rarity: 'rare', desc: '开启「得位」路；每张宝符、每张得位再 +1 番', score: c => { const n = c.tiles.filter(t => t.mod === 'bao').length + c.a.dewei; return n ? { mult: n } : null; } },
   { id: 'yiyuan', name: '一元印', glyph: '元', rarity: 'legend', desc: '成五雷、四象双生时 ×2', score: c => (c.a.yaku.some(y => y.id === 'wulei' || y.id === 'sixiang2') ? { x: 2 } : null) },
   // —— 各路之器：每一路至少四件 ——
   { id: 'tongxin', name: '同心结', glyph: '结', rarity: 'common', desc: '本招每一组同点数（两张以上）+2 番', score: c => { const n = new Set(c.a.vals.filter((v, i) => v > 0 && c.a.vals.indexOf(v) !== i)).size; return n ? { mult: 2 * n } : null; } },
@@ -124,8 +124,8 @@ export const RELICS: RelicDef[] = [
   { id: 'sanhuaguan', name: '三花冠', glyph: '冠', rarity: 'rare', desc: '成三花聚顶时 ×2.5', score: c => (c.a.yaku.some(y => y.id === 'sanhua') ? { x: 2.5 } : null) },
   { id: 'pojia', name: '破甲锥', glyph: '锥', rarity: 'common', desc: '成破绽以上（两张以上克制）时 +3 番', score: c => (c.a.yaku.some(y => YAKU[y.id].path === 'podi') ? { mult: 3 } : null) },
   { id: 'zhanyao', name: '斩妖剑', glyph: '斩', rarity: 'legend', desc: '本招每张克制敌人的符 ×1.3', score: c => { const n = c.els.filter(e => e && e === counterOf(c.battle.enemy.el)).length; return n ? { x: 1.3 ** n } : null; } },
-  { id: 'jiugong', name: '九宫格', glyph: '宫', rarity: 'common', desc: '成十全或洛书时 +4 番', score: c => (c.a.yaku.some(y => YAKU[y.id].path === 'luoshu') ? { mult: 4 } : null) },
-  { id: 'taiyi', name: '太一盘', glyph: '盘', rarity: 'rare', desc: '成十全或洛书时，本招每张符 +20 气', score: c => (c.a.yaku.some(y => YAKU[y.id].path === 'luoshu') ? { qi: 20 * c.tiles.length } : null) },
+  { id: 'jiugong', name: '九宫格', glyph: '宫', rarity: 'common', desc: '开启「洛书」路；成十全或洛书时 +4 番', score: c => (c.a.yaku.some(y => YAKU[y.id].path === 'luoshu') ? { mult: 4 } : null) },
+  { id: 'taiyi', name: '太一盘', glyph: '盘', rarity: 'rare', desc: '开启「洛书」路；成十全或洛书时，本招每张符 +20 气', score: c => (c.a.yaku.some(y => YAKU[y.id].path === 'luoshu') ? { qi: 20 * c.tiles.length } : null) },
   // —— 单骑之器：把一张符养大，单张打出 ——
   { id: 'cuihuo', name: '淬火砧', glyph: '砧', rarity: 'rare', desc: '每次只出一张符，这张符永久 +2 点' },
   { id: 'wenyang', name: '温养玉', glyph: '温', rarity: 'common', desc: '每场胜后，符袋里点数最高的符 +2 点' },

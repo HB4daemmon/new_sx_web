@@ -3,7 +3,7 @@ import { FATE, METHOD, RELIC, RELICS, RELIC_PRICE, TALENT, TALENTS, TALENT_TIER_
 import { ELEMENTS, type El } from './elements.js';
 import { ENEMIES, ENEMY } from './enemies.js';
 import { EVENTS, EVENT } from './events.js';
-import { PATTERN_ORDER } from './patterns.js';
+import { activePatterns, OPENERS, pathOpen, PATTERN_ORDER, type OpenPath } from './patterns.js';
 import { BONDS, BOSS_STORY, ENDING } from './story.js';
 import { cleanPacts, pactHeat, pactRank } from './pacts.js';
 import { SIGNATURE, SPECIALS } from './content.js';
@@ -321,7 +321,7 @@ export function rewardOptions(run: RunState, n: number): RewardOption[] {
   const out: RewardOption[] = [];
   const sp = Object.values(SPECIALS).find(x => x.method === run.method);
   if (sp && chance(run.rng, 0.25)) out.push({ type: 'tile', tile: { el: sp.el, v: sp.v + Math.min(4, run.act - 1), sp: sp.id } });
-  const patterns = sample(run.rng, PATTERN_ORDER, 2);
+  const patterns = sample(run.rng, activePatterns(run), 2);
   out.push({ type: 'tile', tile: randomTile(run) });
   out.push({ type: 'pattern', pattern: patterns[0] });
   out.push(chance(run.rng, 0.5) ? { type: 'tile', tile: randomTile(run, 1) } : { type: 'pattern', pattern: patterns[1] });
@@ -368,7 +368,17 @@ export function gainRelic(run: RunState, id: string, replaceSlot?: number): bool
     run.relics[replaceSlot] = id;
   } else run.relics.push(id);
   def.onGain?.(run);
+  openFrom(run, id);
   return true;
+}
+
+/** 开路: some relics open 得位 or 洛书 for the rest of the run. */
+export function openFrom(run: RunState, relicId: string) {
+  for (const [p, o] of Object.entries(OPENERS) as [OpenPath, (typeof OPENERS)[OpenPath]][]) {
+    if (!o.relics.includes(relicId) || pathOpen(run, p)) continue;
+    (run.opened ??= []).push(p);
+    (run.justOpened ??= []).push(p);
+  }
 }
 
 export function moveRelic(run: RunState, from: number, to: number) {
@@ -448,7 +458,7 @@ export function leaveReward(run: RunState) {
 /** 突破三选一：每个选项按本幕的档位比例抽档（凡/灵/仙），不重复；第二幕起至少一个灵档以上。 */
 export function talentChoices(run: RunState, act: number): string[] {
   const odds = TALENT_TIER_ODDS[Math.max(1, Math.min(4, act))];
-  const pool = TALENTS.filter(t => !run.talents.includes(t.id) && (!t.method || t.method.split(',').includes(run.method)) && !(t.id === 'dongtian' && run.relicSlots >= MAX_RELIC_SLOTS));
+  const pool = TALENTS.filter(t => !run.talents.includes(t.id) && (t.id !== 'huiyan' || pathOpen(run, 'dewei')) && (!t.method || t.method.split(',').includes(run.method)) && !(t.id === 'dongtian' && run.relicSlots >= MAX_RELIC_SLOTS));
   const order: TalentTier[] = ['common', 'rare', 'legend'];
   const out: string[] = [];
   for (let i = 0; i < 3; i += 1) {
@@ -511,7 +521,7 @@ function makeShop(run: RunState): Screen {
   const options: RewardOption[] = [
     ...relicChoices(run, fateAwake(run, 'sanxiu') ? 4 : 3, 'shop'),
     { type: 'tile', tile: randomTile(run, 1) }, { type: 'tile', tile: randomTile(run, 1) }, { type: 'tile', tile: randomTile(run, 2) },
-    ...sample(run.rng, PATTERN_ORDER, 2).map(pattern => ({ type: 'pattern', pattern }) as RewardOption),
+    ...sample(run.rng, activePatterns(run), 2).map(pattern => ({ type: 'pattern', pattern }) as RewardOption),
     { type: 'heal', amount: Math.round(run.maxHp * 0.35) },
   ];
   const items: ShopItem[] = options.map(option => ({ option, price: optionPrice(run, option), sold: false }));
@@ -595,7 +605,7 @@ export const restHeal = (run: RunState) => (unlocked(run, 'rest1') ? 0.55 : 0.4)
 
 export function insightChoices(run: RunState): PatternId[] {
   const seed = { state: seedFrom(`${run.seed}:${run.at}`) };
-  return sample(seed, PATTERN_ORDER, 3);
+  return sample(seed, activePatterns(run), 3);
 }
 
 export function leaveRest(run: RunState) { if (run.screen.name === 'rest') run.screen = { name: 'map' }; }

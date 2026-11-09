@@ -1,6 +1,6 @@
 import { RELIC, RELICS, TALENTS, VOW } from './content.js';
 import { ELEMENTS, EL_NAME, type El } from './elements.js';
-import { PATTERNS, PATTERN_ORDER } from './patterns.js';
+import { activePatterns, PATTERNS, PATTERN_ORDER } from './patterns.js';
 import { chance, pick, sample } from './rng.js';
 import type { RunState, Screen, Tile } from './types.js';
 // Imported lazily through the function bodies to avoid a load-order cycle with run.ts.
@@ -111,12 +111,12 @@ export const EVENTS: EventDef[] = [
       { label: '换', desc: '失去最左侧的法宝，获得两件随机法宝', can: run => run.relics.length > 0, apply: run => {
         const lost = RELIC[run.relics.shift()!];
         const gained = R.relicChoices(run, 2, 'elite').filter(o => o.type === 'relic').map(o => (o as { relic: string }).relic);
-        for (const id of gained) if (run.relics.length < run.relicSlots) run.relics.push(id), RELIC[id].onGain?.(run);
+        for (const id of gained) if (run.relics.length < run.relicSlots) run.relics.push(id), RELIC[id].onGain?.(run), R.openFrom(run, id);
         return `「${lost.name}」不见了，手里多了 ${gained.map(id => `「${RELIC[id].name}」`).join('、')}。狐狸已经不在了。`;
       } },
       { label: '摸摸它', desc: '五成机会：随机一种诀式 +1', apply: run => {
         if (!chance(run.rng, 0.5)) return '狐狸咬了你一口，跑了。';
-        const id = pick(run.rng, PATTERN_ORDER); run.patternLv[id] += 1;
+        const id = pick(run.rng, activePatterns(run)); run.patternLv[id] += 1;
         return `狐狸蹭了蹭你的手。你忽然悟了：「${PATTERNS[id].name}」+1。`;
       } },
     ],
@@ -135,7 +135,7 @@ export const EVENTS: EventDef[] = [
     text: '一个受伤的修士靠在树下：「道友……可有灵石，借我疗伤？」',
     options: [
       { label: '解囊', desc: '花费 30 灵石；随机一种诀式 +1', can: run => run.gold >= 30, apply: run => {
-        run.gold -= 30; const id = pick(run.rng, PATTERN_ORDER); run.patternLv[id] += 1;
+        run.gold -= 30; const id = pick(run.rng, activePatterns(run)); run.patternLv[id] += 1;
         return `修士塞给你一页残谱作为回礼：「${PATTERNS[id].name}」+1。`;
       } },
       { label: '劫财', desc: '+55 灵石；符袋混入 1 枚浊符', apply: run => { run.gold += 55; curse(run, 1); return '你拿走了他的储物袋。心里多了一点脏东西。'; } },

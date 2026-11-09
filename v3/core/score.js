@@ -1,6 +1,6 @@
 import { JIJI, RAGES, RELIC, TALENT } from './content.js';
 import { counterOf, KE } from './elements.js';
-import { analyze, assignments, COMBOS, isDewei, patternValue, PATTERN_ORDER, PATTERNS, QI_PER_FAN, YAKU } from './patterns.js';
+import { analyze, assignments, COMBOS, isDewei, pathOpen, patternValue, PATTERN_ORDER, PATTERNS, QI_PER_FAN, YAKU } from './patterns.js';
 import { pactRank } from './pacts.js';
 export const has = (run, id) => run.talents.includes(id);
 export const relicFlag = (run, flag) => run.relics.reduce((sum, id) => sum + (RELIC[id]?.flags?.[flag] ?? 0), 0) * (run.fate === 'guxing' ? 2 : 1);
@@ -26,7 +26,7 @@ function bumpLabel(bump) {
 export const round1 = (n) => Math.round(n * 10) / 10;
 /** Scores one reading of the cast (elements and values fixed): 点数成气 → 各路役番 → 得位 → 共鸣 → 倍符乘区. Order of tiles never matters. */
 function stage(run, battle, tiles, els, vals, rage = false) {
-    const a = analyze(els, vals, battle.enemy.el, { ling: tiles.map(t => t.mod === 'ling'), huan: tiles.map(t => t.mod === 'huan'), loose: has(run, 'huiyan') });
+    const a = analyze(els, vals, battle.enemy.el, { ling: tiles.map(t => t.mod === 'ling'), huan: tiles.map(t => t.mod === 'huan'), loose: has(run, 'huiyan'), noLuoshu: !pathOpen(run, 'luoshu'), noDewei: !pathOpen(run, 'dewei') });
     let qi = 0;
     let fan = 0;
     let x = 1;

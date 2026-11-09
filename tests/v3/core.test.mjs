@@ -360,6 +360,7 @@ test('役之器 and talents: 命运轮盘, 天机签, 三清铃, 空灵根, 慧�
   assert.equal(computeCast(run, battle, tiles, false).mult, base.mult + 1);
   run.relics = [];
   // 慧眼: 金 3 is one off 金's 4 → 得位
+  run.opened = ['dewei'];
   assert.equal(computeCast(run, battle, [T('jin', 3)], false).analysis.dewei, 0);
   run.talents = ['huiyan'];
   assert.equal(computeCast(run, battle, [T('jin', 3)], false).analysis.dewei, 1);

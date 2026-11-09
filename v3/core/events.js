@@ -1,6 +1,6 @@
 import { RELIC, RELICS, TALENTS, VOW } from './content.js';
 import { ELEMENTS, EL_NAME } from './elements.js';
-import { PATTERNS, PATTERN_ORDER } from './patterns.js';
+import { activePatterns, PATTERNS, PATTERN_ORDER } from './patterns.js';
 import { chance, pick, sample } from './rng.js';
 // Imported lazily through the function bodies to avoid a load-order cycle with run.ts.
 import * as R from './run.js';
@@ -113,13 +113,13 @@ export const EVENTS = [
                     const gained = R.relicChoices(run, 2, 'elite').filter(o => o.type === 'relic').map(o => o.relic);
                     for (const id of gained)
                         if (run.relics.length < run.relicSlots)
-                            run.relics.push(id), RELIC[id].onGain?.(run);
+                            run.relics.push(id), RELIC[id].onGain?.(run), R.openFrom(run, id);
                     return `「${lost.name}」不见了，手里多了 ${gained.map(id => `「${RELIC[id].name}」`).join('、')}。狐狸已经不在了。`;
                 } },
             { label: '摸摸它', desc: '五成机会：随机一种诀式 +1', apply: run => {
                     if (!chance(run.rng, 0.5))
                         return '狐狸咬了你一口，跑了。';
-                    const id = pick(run.rng, PATTERN_ORDER);
+                    const id = pick(run.rng, activePatterns(run));
                     run.patternLv[id] += 1;
                     return `狐狸蹭了蹭你的手。你忽然悟了：「${PATTERNS[id].name}」+1。`;
                 } },
@@ -140,7 +140,7 @@ export const EVENTS = [
         options: [
             { label: '解囊', desc: '花费 30 灵石；随机一种诀式 +1', can: run => run.gold >= 30, apply: run => {
                     run.gold -= 30;
-                    const id = pick(run.rng, PATTERN_ORDER);
+                    const id = pick(run.rng, activePatterns(run));
                     run.patternLv[id] += 1;
                     return `修士塞给你一页残谱作为回礼：「${PATTERNS[id].name}」+1。`;
                 } },

@@ -247,3 +247,25 @@ test('守御天赋: reduction and dodge are capped; 龟息 and 枯木逢春 stop
   assert.equal(gb.outcome, 'fighting');
   assert.ok(gb.player.hp > 0 && gb.stacks.kumu === 1, '枯木逢春 once');
 });
+
+test('开路: 得位 and 洛书 stay shut until a relic (or 河图命) opens them', async () => {
+  const { activePatterns, pathOpen } = await import('../../build/v3/core/patterns.js');
+  const { run, battle } = fight({ seed: 'open' });
+  const luo = [T('jin', 4), T('huo', 5), T('tu', 6)];
+  const ids = () => computeCast(run, battle, luo, false).yaku.map(y => y.id);
+  assert.ok(!ids().includes('luoshu'), '洛书 is shut by default');
+  assert.equal(computeCast(run, battle, [T('shui', 1), T('jin', 4)], false).analysis.dewei, 0, '得位 is shut by default');
+  assert.ok(!activePatterns(run).includes('luoshu'));
+  for (let i = 0; i < 50; i += 1) for (const o of R.rewardOptions(run, 3)) assert.ok(o.type !== 'pattern' || o.pattern !== 'luoshu', 'no 洛书 心法 while shut');
+  R.gainRelic(run, 'jiugong');
+  assert.ok(pathOpen(run, 'luoshu') && ids().includes('luoshu'));
+  assert.deepEqual(run.justOpened, ['luoshu'], 'the UI gets told once');
+  // Losing the relic later keeps the 路 open.
+  run.relics = [];
+  assert.ok(pathOpen(run, 'luoshu'));
+  R.gainRelic(run, 'hetu');
+  assert.equal(computeCast(run, battle, [T('shui', 1), T('jin', 4)], false).analysis.dewei, 2);
+  // 河图命 opens 得位 from the start.
+  const h = fight({ seed: 'open2', fate: 'hetu' });
+  assert.ok(pathOpen(h.run, 'dewei') && !pathOpen(h.run, 'luoshu'));
+});

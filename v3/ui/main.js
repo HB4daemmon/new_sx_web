@@ -1,4 +1,5 @@
 import { deserialize, serialize, SAVE_KEY } from '../core/run.js';
+import { OPENERS } from '../core/patterns.js';
 import { mountBattle, unmountBattle } from './battle-view.js';
 import { mountFx, resizeFx, setSpeed } from './fx.js';
 import { $, h } from './h.js';
@@ -67,6 +68,15 @@ export function render() {
     screenRoot.replaceChildren(renderScreen());
     if (changed)
         inkWipe();
+    if (app.view === 'run' && run?.justOpened?.length)
+        announceOpened(run);
+}
+/** 开路: say once, plainly, what a newly opened 路 does and how it shows up. */
+function announceOpened(run) {
+    const opened = run.justOpened;
+    run.justOpened = [];
+    save();
+    showOverlay(h('div.info-card.open-card', null, h('h3.brush', null, `开路 · ${opened.map(p => OPENERS[p].name).join('、')}`), ...opened.map(p => h('div.info-sec', null, h('b', null, `${OPENERS[p].name}：`), OPENERS[p].what)), h('p.dim', null, '从这一局起一直有效，诀谱里也会亮起来。')));
 }
 function inkWipe() {
     const el = screenRoot.firstElementChild;

@@ -60,6 +60,8 @@ for (const [vpn, [w, hgt]] of Object.entries(VPS)) {
       const cont = p.locator('.title-menu .btn.seal.big').first();
       if (!(await p.locator('#stage[data-screen]').count()) || await p.locator('.title-scr').count()) { if (await cont.count()) await cont.click(); }
       await p.waitForTimeout(700);
+      // One-off notices (开路) sit on top until read.
+      for (let k = 0; k < 3 && await p.locator('.overlay-close').count(); k += 1) { await p.locator('.overlay-close').first().click(); await p.waitForTimeout(150); }
       // Battle intros (boss dialogue, banners) are tap-through by design: read them first.
       for (let k = 0; k < 12 && await p.locator('.dialogue').count(); k += 1) { await p.locator('.dialogue').click(); await p.waitForTimeout(150); }
       await p.waitForFunction(() => !document.querySelector('.battle-scr.busy'), null, { timeout: 15000 }).catch(() => {});

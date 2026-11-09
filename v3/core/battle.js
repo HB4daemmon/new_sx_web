@@ -1,7 +1,7 @@
 import { ACT_ATK, ACT_HP, ENEMY, HEAT_ATK, HEAT_HP, RANK_ATK, RANK_HP } from './enemies.js';
 import { GEN } from './elements.js';
 import { next, shuffle, int } from './rng.js';
-import { COMBOS, HETU, YAKU } from './patterns.js';
+import { activePatterns, COMBOS, HETU, PATTERN_ORDER, YAKU } from './patterns.js';
 import { pactRank } from './pacts.js';
 import { computeCast, defenseScale, has, relicFlag } from './score.js';
 import { DODGE_CAP, REDUCE_CAP, SPECIALS } from './content.js';
@@ -91,9 +91,11 @@ export function startBattle(run, enemyId, kind) {
     }
     // 星宿命: one 宿 per fight (two once awakened), each doubling one 路.
     if (run.fate === 'xingxiu') {
-        battle.stacks.star = int(rng, 0, 5);
+        const open = activePatterns(run).map(p => PATTERN_ORDER.indexOf(p));
+        const i = int(rng, 0, open.length - 1);
+        battle.stacks.star = open[i];
         if (run.realm >= 2)
-            battle.stacks.star2 = (battle.stacks.star + 1 + int(rng, 0, 4)) % 6;
+            battle.stacks.star2 = open[(i + 1 + int(rng, 0, open.length - 2)) % open.length];
     }
     // 河图命 化境: two random tiles take their element's 河图数 for this fight.
     if (run.fate === 'hetu' && run.realm >= 2) {
