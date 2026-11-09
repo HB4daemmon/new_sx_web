@@ -120,10 +120,10 @@ export type Screen =
   | { name: 'story'; act: number }
   | { name: 'ending' }
   | { name: 'breakthrough'; options: RewardOption[] }
-  | { name: 'shop'; items: ShopItem[]; removePrice: number; removed: boolean; restocked?: boolean }
+  | { name: 'shop'; items: ShopItem[]; removePrice: number; removed: boolean; restocked?: boolean; merged?: boolean }
   | { name: 'event'; event: string; resolved?: string }
   | { name: 'rest'; done?: boolean }
-  | { name: 'pick-tile'; purpose: 'remove' | 'upgrade' | 'reforge' | 'fuse'; count: number; then: Screen; title: string; price?: number }
+  | { name: 'pick-tile'; purpose: 'remove' | 'upgrade' | 'reforge' | 'fuse' | 'merge'; count: number; then: Screen; title: string; price?: number }
   | { name: 'won' }
   | { name: 'lost' };
 

@@ -774,3 +774,4 @@ b.qi { color: var(--shui); } b.mu { color: var(--ver); }
 .st.st-wheel { background: linear-gradient(160deg, #f6d36b, #b8862b); color: #2a1500; } .st.st-omen { background: #2f5d3a; color: #e8ffe8; }
 /* 高级符纹（灵、幻）：金边，一眼和普通符纹（宝、倍）区分。 */
 .tile.mod-ling .tile-mod, .tile.mod-huan .tile-mod { box-shadow: 0 0 0 2px #f6d36b, 0 0 10px rgba(246,211,107,.8); }
+.pick-grid .tile.unusable { opacity: .3; filter: saturate(.3); }

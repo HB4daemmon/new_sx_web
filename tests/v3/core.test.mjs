@@ -414,3 +414,35 @@ test('单骑流: 淬火砧 grows the lone tile for good, 本命符匣 always dea
   assert.equal(f.bag.length, n - 1);
   assert.ok(f.bag.some(t => t.v === 29 && t.mod === 'bao'));
 });
+
+test('三张归一: three tiles of the same element and value become one, value ×2, best mark kept; rest and shop', () => {
+  const run = R.createRun({ seed: 'merge', method: 'yangjian' });
+  run.bag = run.bag.filter(t => !(t.el === 'huo' && t.v === 4));
+  const a = R.addTile(run, { el: 'huo', v: 4 }), b = R.addTile(run, { el: 'huo', v: 4, mod: 'ling' }), c = R.addTile(run, { el: 'huo', v: 4, mod: 'bao' });
+  R.addTile(run, { el: 'huo', v: 5 });
+  assert.ok(R.mergeGroups(run).some(g => g[0].el === 'huo' && g[0].v === 4 && g.length === 3), 'the three 火4 form a group');
+  run.screen = { name: 'rest' };
+  R.restChoose(run, 'merge');
+  assert.equal(run.screen.purpose, 'merge');
+  const odd = run.bag.find(t => t.el === 'huo' && t.v === 5);
+  assert.equal(R.pickTiles(run, [a.uid, b.uid, odd.uid]), false, 'must match');
+  const n = run.bag.length;
+  assert.equal(R.pickTiles(run, [a.uid, b.uid, c.uid]), true);
+  assert.equal(run.bag.length, n - 2);
+  assert.ok(run.bag.some(t => t.el === 'huo' && t.v === 8 && t.mod === 'ling'), '灵 outranks 宝');
+  // Shop: paid, once.
+  const s = R.createRun({ seed: 'merge2', method: 'yangjian' });
+  for (let i = 0; i < 3; i += 1) R.addTile(s, { el: 'jin', v: 9 });
+  s.gold = 200;
+  s.screen = { name: 'map' };
+  s.map = [{ id: 'x', row: 0, col: 0, kind: 'shop', next: [] }];
+  R.enterNode(s, 'x');
+  R.startMerge(s);
+  const trio = s.bag.filter(t => t.el === 'jin' && t.v === 9).map(t => t.uid);
+  assert.equal(R.pickTiles(s, trio), true);
+  assert.equal(s.gold, 200 - R.mergePrice(s));
+  assert.equal(s.screen.name, 'shop');
+  assert.equal(s.screen.merged, true);
+  R.startMerge(s);
+  assert.equal(s.screen.name, 'shop', 'once per shop');
+});

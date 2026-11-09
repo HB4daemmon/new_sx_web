@@ -277,7 +277,7 @@ function shopScreen(run, s) {
             return chooseReplace(run, item.option, slot => act(r => R.buy(r, i, slot), 'reward'));
         act(r => R.buy(r, i), 'reward');
     };
-    return h('div.panel-scr.shop', null, h('div.panel-body', null, h('h1.brush.big-title', null, '坊 市'), h('div.shop-grid', null, ...s.items.map((item, i) => cardButton(run, item.option, () => buy(i), false, item.price, item.sold)))), h('div.shop-foot', null, h('button.btn.ink', { type: 'button', 'data-action': 'purge', disabled: run.gold < s.removePrice || undefined, onclick: () => act(r => R.startRemove(r)) }, `净符 · 移除一枚符 ◆${s.removePrice}`, h('small', null, `符袋 ${run.bag.length} 枚`)), !s.restocked ? h('button.btn.ink', { type: 'button', 'data-action': 'restock', disabled: run.gold < R.restockPrice(run) || undefined, onclick: () => act(r => R.restockShop(r), 'reward') }, `补货 ◆${R.restockPrice(run)}`, h('small', null, '没卖出的全部换新，限一次')) : null, h('button.btn.seal', { type: 'button', 'data-action': 'leave', onclick: () => act(r => R.leaveShop(r)) }, '离 开')));
+    return h('div.panel-scr.shop', null, h('div.panel-body', null, h('h1.brush.big-title', null, '坊 市'), h('div.shop-grid', null, ...s.items.map((item, i) => cardButton(run, item.option, () => buy(i), false, item.price, item.sold)))), h('div.shop-foot', null, h('button.btn.ink', { type: 'button', 'data-action': 'purge', disabled: run.gold < s.removePrice || undefined, onclick: () => act(r => R.startRemove(r)) }, `净符 · 移除一枚符 ◆${s.removePrice}`, h('small', null, `符袋 ${run.bag.length} 枚`)), !s.merged ? h('button.btn.ink', { type: 'button', 'data-action': 'merge', disabled: run.gold < R.mergePrice(run) || !R.mergeGroups(run).length || undefined, onclick: () => act(r => R.startMerge(r)) }, `三张归一 ◆${R.mergePrice(run)}`, h('small', null, R.mergeGroups(run).length ? '同元素同点数三张合一' : '符袋里还凑不出三张')) : null, !s.restocked ? h('button.btn.ink', { type: 'button', 'data-action': 'restock', disabled: run.gold < R.restockPrice(run) || undefined, onclick: () => act(r => R.restockShop(r), 'reward') }, `补货 ◆${R.restockPrice(run)}`, h('small', null, '没卖出的全部换新，限一次')) : null, h('button.btn.seal', { type: 'button', 'data-action': 'leave', onclick: () => act(r => R.leaveShop(r)) }, '离 开')));
 }
 // —— Event ——
 function eventScreen(run, s) {
@@ -295,20 +295,26 @@ function restScreen(run, s) {
         return h('div.panel-scr.rest', null, h('div.event-glyph.brush', null, '憩'), h('h1.brush', null, '洞 府'), h('p.event-text', null, '调息已毕，可以上路了。'), h('button.btn.seal', { type: 'button', 'data-action': 'continue', onclick: () => act(r => R.leaveRest(r)) }, '继 续'));
     }
     const insights = R.insightChoices(run);
-    return h('div.panel-scr.rest', null, h('div.event-glyph.brush', null, '憩'), h('h1.brush', null, '洞 府'), h('p.event-text', null, '石室清冷，可以歇一歇。只能做一件事。'), h('div.rest-options', null, h('button.event-opt', { type: 'button', 'data-option': 'heal', onclick: () => act(r => R.restChoose(r, 'heal'), 'heal') }, h('b', null, '调息'), h('span', null, `回复 ${Math.round(run.maxHp * 0.4)} 气血（${run.hp}/${run.maxHp}）`)), h('button.event-opt', { type: 'button', 'data-option': 'forge', onclick: () => act(r => R.restChoose(r, 'forge')) }, h('b', null, '炼符'), h('span', null, '一枚符点数 +3，并附上一道符纹')), h('button.event-opt', { type: 'button', 'data-option': 'fuse', disabled: run.bag.filter(t => t.el !== 'zhuo').length < 2 || undefined, onclick: () => act(r => R.restChoose(r, 'fuse')) }, h('b', null, '熔符'), h('span', null, '两枚符熔成一枚：点数相加（单骑流的根本）')), h('button.event-opt', { type: 'button', 'data-option': 'purge', onclick: () => act(r => R.restChoose(r, 'purge')) }, h('b', null, '净符'), h('span', null, `移除至多两枚符（符袋现有 ${run.bag.length} 枚）`)), h('div.event-opt.insight', null, h('b', null, '参悟'), h('span', null, '选一路心法 +1 重'), h('div.insight-row', null, ...insights.map(id => h('button.chip', { type: 'button', onclick: () => act(r => R.restChoose(r, 'insight', id), 'reward') }, `${PATTERNS[id].name} ${run.patternLv[id] + 1}重`))))));
+    return h('div.panel-scr.rest', null, h('div.event-glyph.brush', null, '憩'), h('h1.brush', null, '洞 府'), h('p.event-text', null, '石室清冷，可以歇一歇。只能做一件事。'), h('div.rest-options', null, h('button.event-opt', { type: 'button', 'data-option': 'heal', onclick: () => act(r => R.restChoose(r, 'heal'), 'heal') }, h('b', null, '调息'), h('span', null, `回复 ${Math.round(run.maxHp * 0.4)} 气血（${run.hp}/${run.maxHp}）`)), h('button.event-opt', { type: 'button', 'data-option': 'forge', onclick: () => act(r => R.restChoose(r, 'forge')) }, h('b', null, '炼符'), h('span', null, '一枚符点数 +3，并附上一道符纹')), h('button.event-opt', { type: 'button', 'data-option': 'merge', disabled: !R.mergeGroups(run).length || undefined, onclick: () => act(r => R.restChoose(r, 'merge')) }, h('b', null, '三张归一'), h('span', null, R.mergeGroups(run).length ? '三张同元素同点数的符合成一张：点数 ×2' : '需要三张同元素、同点数的符')), h('button.event-opt', { type: 'button', 'data-option': 'fuse', disabled: run.bag.filter(t => t.el !== 'zhuo').length < 2 || undefined, onclick: () => act(r => R.restChoose(r, 'fuse')) }, h('b', null, '熔符'), h('span', null, '两枚符熔成一枚：点数相加（单骑流的根本）')), h('button.event-opt', { type: 'button', 'data-option': 'purge', onclick: () => act(r => R.restChoose(r, 'purge')) }, h('b', null, '净符'), h('span', null, `移除至多两枚符（符袋现有 ${run.bag.length} 枚）`)), h('div.event-opt.insight', null, h('b', null, '参悟'), h('span', null, '选一路心法 +1 重'), h('div.insight-row', null, ...insights.map(id => h('button.chip', { type: 'button', onclick: () => act(r => R.restChoose(r, 'insight', id), 'reward') }, `${PATTERNS[id].name} ${run.patternLv[id] + 1}重`))))));
 }
 // —— Pick tiles ——
 let picked = [];
 function pickTileScreen(run, s) {
     picked = picked.filter(uid => run.bag.some(t => t.uid === uid));
     const tiles = [...run.bag].sort((a, b) => (a.el === b.el ? a.v - b.v : a.el < b.el ? -1 : 1));
+    const merge = s.purpose === 'merge';
+    const usable = merge ? new Set(R.mergeGroups(run).flat().map(t => t.uid)) : null;
+    const chosen = picked.map(uid => run.bag.find(t => t.uid === uid)).filter(Boolean);
+    const valid = !merge || (chosen.length === 3 && chosen.every(t => t.el === chosen[0].el && t.v === chosen[0].v));
     return h('div.panel-scr.pick', null, h('h2', null, s.title), h('div.pick-grid', null, ...tiles.map(t => {
         const on = picked.includes(t.uid);
         const el = tileView(t, { onclick: () => { picked = on ? picked.filter(x => x !== t.uid) : [...picked, t.uid].slice(-s.count); playSfx('select'); render(); } });
         if (on)
             el.classList.add('sel');
+        if (usable && !usable.has(t.uid))
+            el.classList.add('unusable');
         return el;
-    })), h('div.shop-foot', null, h('button.btn.ink', { type: 'button', onclick: () => { picked = []; act(r => R.cancelPick(r)); } }, '算 了'), h('button.btn.seal', { type: 'button', 'data-action': 'confirm', disabled: !picked.length || undefined, onclick: () => { const p = picked; picked = []; act(r => R.pickTiles(r, p), 'stamp'); } }, `确 定（${picked.length}/${s.count}）`)));
+    })), h('div.shop-foot', null, h('button.btn.ink', { type: 'button', onclick: () => { picked = []; act(r => R.cancelPick(r)); } }, '算 了'), h('button.btn.seal', { type: 'button', 'data-action': 'confirm', disabled: !picked.length || !valid || undefined, onclick: () => { const p = picked; picked = []; act(r => R.pickTiles(r, p), 'stamp'); } }, `确 定（${picked.length}/${s.count}）`)));
 }
 // —— End ——
 export function finishRun(run) {

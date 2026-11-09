@@ -485,11 +485,28 @@ export function rewardPurge(run: RunState) {
 export function leaveShop(run: RunState) { if (run.screen.name === 'shop') run.screen = { name: 'map' }; }
 
 // —— Rest ——
-export function restChoose(run: RunState, choice: 'heal' | 'forge' | 'insight' | 'purge' | 'fuse', pattern?: PatternId) {
+// —— 三张归一 ——
+/** Groups of three or more tiles sharing element and value (the only tiles 三张归一 accepts). */
+export function mergeGroups(run: RunState): Tile[][] {
+  const groups = new Map<string, Tile[]>();
+  for (const t of run.bag) if (t.el !== 'zhuo') groups.set(`${t.el}:${t.v}`, [...(groups.get(`${t.el}:${t.v}`) ?? []), t]);
+  return [...groups.values()].filter(g => g.length >= 3);
+}
+export const mergePrice = (run: RunState) => Math.round(35 * (pactRank(run, 'miser') ? 1.3 : 1));
+const MERGE_TITLE = '三张归一 · 选三张同元素、同点数的符，合成一张：点数 ×2，保留最好的符纹';
+export function startMerge(run: RunState) {
+  const screen = run.screen;
+  if (screen.name !== 'shop' || screen.merged || run.gold < mergePrice(run) || !mergeGroups(run).length) return;
+  run.screen = { name: 'pick-tile', purpose: 'merge', count: 3, then: { ...screen }, title: `${MERGE_TITLE}（花费 ${mergePrice(run)} 灵石）`, price: mergePrice(run) };
+}
+const MOD_RANK: Record<string, number> = { ling: 3, huan: 3, bao: 2, lei: 2 };
+
+export function restChoose(run: RunState, choice: 'heal' | 'forge' | 'insight' | 'purge' | 'fuse' | 'merge', pattern?: PatternId) {
   if (run.screen.name !== 'rest' || run.screen.done) return;
   if (choice === 'heal') { run.hp = Math.min(run.maxHp, run.hp + Math.round(run.maxHp * restHeal(run))); run.screen = { name: 'rest', done: true }; }
   if (choice === 'forge') run.screen = { name: 'pick-tile', purpose: 'upgrade', count: 1, then: { name: 'rest', done: true }, title: '炼符 · 选一枚符：点数 +3，并附上一道符纹' };
   if (choice === 'purge') run.screen = { name: 'pick-tile', purpose: 'remove', count: 2, then: { name: 'rest', done: true }, title: '净符 · 选至多两枚符永久移除' };
+  if (choice === 'merge' && mergeGroups(run).length) run.screen = { name: 'pick-tile', purpose: 'merge', count: 3, then: { name: 'rest', done: true }, title: MERGE_TITLE };
   if (choice === 'fuse') run.screen = { name: 'pick-tile', purpose: 'fuse', count: 2, then: { name: 'rest', done: true }, title: '熔符 · 选两枚符熔成一枚：点数相加，元素取第一枚，并成宝符' };
   if (choice === 'insight' && pattern) { run.patternLv[pattern] += 1; run.screen = { name: 'rest', done: true }; }
 }
@@ -521,6 +538,17 @@ export function pickTiles(run: RunState, uids: number[]): boolean {
   }
   if (screen.purpose === 'upgrade') for (const tile of tiles) { tile.v += 3; if (!tile.mod && tile.el !== 'zhuo') tile.mod = pickMod(run, 1); }
   if (screen.purpose === 'reforge') for (const tile of tiles) if (tile.el !== 'zhuo') tile.mod = 'bao';
+  if (screen.purpose === 'merge') {
+    if (tiles.length !== 3 || tiles.some(t => t.el === 'zhuo' || t.el !== tiles[0].el || t.v !== tiles[0].v)) return false;
+    if (screen.price) {
+      if (run.gold < screen.price) return false;
+      run.gold -= screen.price;
+      (screen.then as Extract<Screen, { name: 'shop' }>).merged = true;
+    }
+    run.bag = run.bag.filter(t => !uids.includes(t.uid));
+    const best = [...tiles].sort((a, b) => (MOD_RANK[b.mod ?? ''] ?? 0) - (MOD_RANK[a.mod ?? ''] ?? 0))[0];
+    addTile(run, { el: tiles[0].el, v: tiles[0].v * 2, mod: best.mod ?? 'bao', ...(best.sp ? { sp: best.sp } : {}) });
+  }
   if (screen.purpose === 'fuse') {
     if (tiles.length !== 2) return false;
     run.bag = run.bag.filter(t => !uids.includes(t.uid));
