@@ -91,6 +91,22 @@ for (const [label, viewport] of [['landscape', { width: 1366, height: 768 }], ['
   assert.ok((await page.textContent('.preview-line')).includes('='), 'live preview shows qi × mult');
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('.hand .tile.sel').count(), 0);
+  // 荐 picks tiles; the 役 it makes show up as tappable chips that open their rule; the enemy opens its intent.
+  await page.click('[data-action="advise"]');
+  assert.ok(await page.locator('.hand .tile.sel').count() >= 1, '荐 selects tiles');
+  assert.ok(await page.locator('.sp-yaku .yk-chip, .sp-yaku .yk-none').count() >= 1, '役 chips');
+  if (await page.locator('.sp-yaku .yk-chip').count()) {
+    await page.locator('.sp-yaku .yk-chip').first().click();
+    await page.waitForSelector('.info-card');
+    await page.locator('.info-card .btn').click();
+  }
+  await page.locator('.enemy-plate').click();
+  await page.waitForSelector('.info-card');
+  assert.ok((await page.textContent('.info-card')).includes('这一回合'), 'enemy intent panel');
+  await page.locator('.info-card .btn').click();
+  await page.waitForFunction(() => !document.querySelector('.info-card') && !document.querySelector('.overlay-root')?.childElementCount);
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('.hand .tile.sel').count(), 0, 'selection cleared before the scripted fight');
   const end = await playBattle(page, label);
   assert.ok(['reward', 'lost'].includes(end), `${label}: battle ended on ${end}`);
   if (end === 'reward') {

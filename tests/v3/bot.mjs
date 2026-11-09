@@ -1,47 +1,16 @@
 // Greedy bot used by the balance simulation and smoke tests. Not a strong player:
 // it is a floor for what a thoughtful human can do.
-import { GEN } from '../../build/v3/core/elements.js';
 import { previewCast, canRage, enemyAttack } from '../../build/v3/core/battle.js';
 import * as R from '../../build/v3/core/run.js';
-import { COMBOS } from '../../build/v3/core/patterns.js';
+import { fanTier } from '../../build/v3/core/patterns.js';
+import { recommend } from '../../build/v3/core/advisor.js';
 import { RELIC } from '../../build/v3/core/content.js';
 
-function subsets(list, max) {
-  const out = [];
-  const rec = (start, acc) => {
-    if (acc.length) out.push([...acc]);
-    if (acc.length === max) return;
-    for (let i = start; i < list.length; i += 1) { acc.push(list[i]); rec(i + 1, acc); acc.pop(); }
-  };
-  rec(0, []);
-  return out;
-}
-
-const SHENG = ['mu', 'huo', 'tu', 'jin', 'shui'];
-const KE = ['mu', 'tu', 'shui', 'huo', 'jin'];
-/** As-is plus every rotation of the 相生 and 相克 cycles (groups same elements, high values first). */
-function orderings(tiles) {
-  const out = [tiles];
-  for (const cycle of [SHENG, KE]) {
-    for (let start = 0; start < 5; start += 1) {
-      const rank = el => (el === 'zhuo' ? 9 : (cycle.indexOf(el) - start + 5) % 5);
-      out.push([...tiles].sort((a, b) => rank(a.el) - rank(b.el) || b.v - a.v));
-    }
-  }
-  return out;
-}
-
+/** The same picker the 「荐」 button uses; the casual bot only looks at 3+ tile plays. */
 export function bestCast(run, battle, rage) {
-  let best = null;
   const casual = process.env.BOT === 'casual';
-  for (const set of subsets(battle.hand, 5)) {
-    if (casual && set.length < 3 && battle.hand.length > 4) continue;
-    for (const order of casual ? orderings(set).slice(0, 3) : orderings(set)) {
-      const r = previewCast(run, battle, order.map(t => t.uid), rage);
-      if (r && (!best || r.damage > best.r.damage)) best = { r, uids: order.map(t => t.uid) };
-    }
-  }
-  return best;
+  const advice = recommend(run, battle, 'max', rage, casual ? { minTiles: 3 } : {});
+  return advice && { r: advice.result, uids: advice.uids };
 }
 
 export const FIGHTS = [];
@@ -53,7 +22,7 @@ export function playBattle(run) {
     const battle = run.battle;
     let best = bestCast(run, battle, false);
     const casual = process.env.BOT === 'casual';
-    if (battle.discardsLeft > 0 && COMBOS[best.r.pattern].tier < (casual ? 1 : 3) && best.r.damage < battle.enemy.hp) {
+    if (battle.discardsLeft > 0 && fanTier(best.r.fan, !!best.r.analysis.tian) < (casual ? 1 : 3) && best.r.damage < battle.enemy.hp) {
       const keep = new Set(best.uids);
       const toss = battle.hand.filter(t => !keep.has(t.uid) || t.el === 'zhuo').sort((a, b) => a.v - b.v).slice(0, 5).map(t => t.uid);
       const tossAll = toss.length ? toss : battle.hand.slice().sort((a, b) => a.v - b.v).slice(0, 3).map(t => t.uid);
@@ -63,10 +32,10 @@ export function playBattle(run) {
     let rage = false;
     if (canRage(battle)) {
       const rb = bestCast(run, battle, true);
-      if (COMBOS[rb.r.pattern].tier >= 3 || rb.r.damage >= battle.enemy.hp || battle.player.hp < enemyAttack(run, battle) * 2) { best = rb; rage = true; }
+      if (fanTier(rb.r.fan, !!rb.r.analysis.tian) >= 3 || rb.r.damage >= battle.enemy.hp || battle.player.hp < enemyAttack(run, battle) * 2) { best = rb; rage = true; }
     }
     const out = R.castTiles(run, best.uids, rage);
-    if (out) CASTS.push({ act: start.act, dmg: out.result.damage, rage, combo: out.result.pattern, sh: out.result.analysis.links.filter(l => l === 'sheng').length, ke: out.result.analysis.links.filter(l => l === 'ke').length, sets: out.result.analysis.sets.length });
+    if (out) CASTS.push({ act: start.act, dmg: out.result.damage, rage, combo: out.result.pattern, fan: out.result.fan, yaku: out.result.yaku.map(y => y.id) });
   }
   FIGHTS.push({ ...start, casts: run.stats.casts - start.casts, lost: start.hp - run.battle.player.hp, maxHp: run.maxHp, won: run.battle.outcome === 'won' });
   R.concludeBattle(run);

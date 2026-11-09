@@ -52,15 +52,21 @@ const castIs = (c, f) => c.kind === 'cast' && f(c);
 const winIs = (c, f) => c.kind === 'battle' && c.battle.outcome === 'won' && f(c);
 const endIs = (c, f) => c.kind === 'end' && f(c);
 const hit = (n) => (c) => castIs(c, x => x.total >= n);
-const pat = (id) => (c) => castIs(c, x => x.result.pattern === id);
+const pat = (id) => (c) => castIs(c, x => x.result.pattern === id || x.result.yaku.some(y => y.id === id));
 export const ACHIEVEMENTS = [
     { id: 'first', name: '初试锋芒', desc: '赢下第一场战斗', reward: 5, check: c => winIs(c, () => true) },
-    { id: 'p-sheng3', name: '三生', desc: '一招里连出三枚相生', reward: 5, check: c => castIs(c, x => x.result.chain.length >= 3) },
-    { id: 'p-mantang', name: '满堂', desc: '打出「满堂」（三才 + 双元）', reward: 8, check: pat('mantang') },
-    { id: 'p-sheng4', name: '五行逆乱', desc: '五枚符全部相克', reward: 15, check: pat('nixing') },
-    { id: 'p-lunzhuan', name: '五行轮转', desc: '五枚符全部相生', reward: 15, check: pat('lunzhuan') },
-    { id: 'p-wulei', name: '五雷正法', desc: '五枚同元', reward: 25, check: pat('wulei') },
-    { id: 'p-sixiang', name: '四象', desc: '四枚同元', reward: 12, check: pat('sixiang') },
+    { id: 'y-sanqing', name: '三清', desc: '打出「三清」（三条：三张同点数）', reward: 5, check: pat('sanqing') },
+    { id: 'p-mantang', name: '满堂', desc: '打出「满堂」（同花葫芦）', reward: 8, check: pat('mantang') },
+    { id: 'y-hulu', name: '紫金葫芦', desc: '打出「紫金葫芦」（葫芦：三张同点数＋两张同点数）', reward: 10, check: pat('hulu') },
+    { id: 'y-hualong', name: '一气化龙', desc: '打出「一气化龙」（一条龙：点数正好 1–5）', reward: 15, check: pat('hualong') },
+    { id: 'y-luoshu', name: '洛书', desc: '打出「洛书」（只出三张，点数和为 15）', reward: 8, check: pat('luoshu') },
+    { id: 'y-pojun', name: '破军', desc: '打出「破军」（四张克制敌人的符）', reward: 12, check: pat('pojun') },
+    { id: 'y-siyu', name: '四御', desc: '打出「四御」（四条）', reward: 15, check: pat('siyu') },
+    { id: 'p-wulei', name: '五雷', desc: '打出「五雷」（清一色：五张同元素）', reward: 25, check: pat('wulei') },
+    { id: 'p-sixiang', name: '四象', desc: '打出「四象」（四张同元素）', reward: 12, check: pat('sixiang') },
+    { id: 't-jiutian', name: '九天雷动', desc: '天成：五张同元素且点数连号（同花顺）', reward: 40, check: pat('jiutian') },
+    { id: 't-shengsheng', name: '生生不息', desc: '天成：木1 火2 土3 金4 水5', reward: 60, check: pat('shengsheng') },
+    { id: 't-wuqi', name: '五气朝元', desc: '天成：五种元素各一张，点数相同', reward: 40, check: pat('wuqi') },
     { id: 'resonance', name: '共鸣', desc: '一招里触发元素共鸣（三枚以上同元）', reward: 5, check: c => castIs(c, x => x.result.analysis.sets.some(st => st.size >= 3)) },
     { id: 'mud', name: '出淤泥', desc: '带着浊符打出一万以上的一招', reward: 20, check: c => castIs(c, x => x.total >= 1e4 && x.result.tiles.some(t => t.el === 'zhuo')) },
     { id: 'h4', name: '万钧', desc: '一招伤害破一万', reward: 10, check: hit(1e4) },
@@ -71,7 +77,7 @@ export const ACHIEVEMENTS = [
     { id: 'onefu', name: '一符破万法', desc: '只出一枚符斩杀敌人', reward: 20, check: c => castIs(c, x => x.killed && x.result.tiles.length === 1) },
     { id: 'swords', name: '万剑归宗', desc: '养剑诀：飞剑攒到 15 柄', reward: 20, check: c => castIs(c, x => x.battle.swords >= 15) },
     { id: 'fentian', name: '焚天', desc: '御火诀：一次怒技打出五万以上', reward: 20, check: c => castIs(c, x => x.run.method === 'yuhuo' && x.result.rage && x.total >= 5e4) },
-    { id: 'legend3', name: '仙器满身', desc: '同时持有三件仙品法宝', reward: 25, check: c => c.kind === 'cast' && c.run.relics.filter(id => ['kunlun', 'taotie', 'xinhuo', 'qiming', 'tianji', 'hetu', 'fantian', 'dinghai', 'zhanxian', 'jiulong', 'wanjianxia', 'zhurongzhong', 'buhuai', 'leigonggu', 'qingdilu', 'zhuyinmu'].includes(id)).length >= 3 },
+    { id: 'legend3', name: '仙器满身', desc: '同时持有三件仙品法宝', reward: 25, check: c => c.kind === 'cast' && c.run.relics.filter(id => ['kunlun', 'taotie', 'mingyun', 'yiyuan', 'xinhuo', 'qiming', 'tianji', 'hetu', 'fantian', 'dinghai', 'zhanxian', 'jiulong', 'wanjianxia', 'zhurongzhong', 'buhuai', 'leigonggu', 'qingdilu', 'zhuyinmu'].includes(id)).length >= 3 },
     { id: 'rage3', name: '怒发冲冠', desc: '一场战斗里打出三次怒技', reward: 15, check: c => winIs(c, x => (x.battle.stacks.rages ?? 0) >= 3) },
     { id: 'flawless', name: '不动如山', desc: '不损一滴气血击败首领', reward: 25, check: c => winIs(c, x => x.battle.kind === 'boss' && x.battle.player.hp >= (x.battle.stacks.startHp ?? Infinity)) },
     { id: 'oneshot', name: '一招定乾坤', desc: '第一招就斩杀首领', reward: 40, check: c => winIs(c, x => x.battle.kind === 'boss' && x.battle.castCount === 1) },

@@ -1,7 +1,7 @@
 import { ACT_ATK, ACT_HP, ENEMY, HEAT_ATK, HEAT_HP, RANK_ATK, RANK_HP } from './enemies.js';
 import { GEN } from './elements.js';
 import { next, shuffle, int } from './rng.js';
-import { COMBOS, SET_BY_SIZE } from './patterns.js';
+import { COMBOS, YAKU } from './patterns.js';
 import { pactRank } from './pacts.js';
 import { computeCast, defenseScale, has, relicFlag } from './score.js';
 import { SPECIALS } from './content.js';
@@ -56,8 +56,14 @@ export function startBattle(run, enemyId, kind) {
         battle.stacks.rageCost = 60;
     if (run.method === 'yangjian')
         battle.swords = Math.min(swordCap(run), run.swordsKept ?? 0);
+    if (has(run, 'huanhua')) {
+        const pool = battle.draw.filter(t => t.el !== 'zhuo' && !t.mod);
+        for (let i = 0; i < 2 && pool.length; i += 1)
+            pool.splice(int(rng, 0, pool.length - 1), 1)[0].mod = 'huan';
+    }
     turnStartShield(run, battle);
     drawTo(run, battle);
+    turnRolls(run, battle);
     return battle;
 }
 /** 因缘相助: completed threads show up for the final tribulation. */
@@ -81,6 +87,27 @@ function applyAssists(run, battle) {
         }
         if (id === 'tieshan')
             battle.enemy.burn += Math.round(battle.enemy.maxHp * 0.03);
+    }
+}
+/** Things that are rolled fresh every turn: 命运轮盘's number, 天机签's lucky element, 空灵根's 灵 tile. */
+function turnRolls(run, battle) {
+    if (run.relics.includes('mingyun'))
+        battle.stacks.wheel = int(run.rng, 1, 5);
+    if (run.relics.includes('tianjiqian'))
+        battle.stacks.omen = int(run.rng, 0, 4);
+    if (has(run, 'kongling')) {
+        const pile = [...battle.hand, ...battle.draw, ...battle.discard];
+        const prev = pile.find(t => t.uid === battle.stacks.kongUid);
+        if (prev && prev.mod === 'ling')
+            delete prev.mod;
+        const pool = battle.hand.filter(t => t.el !== 'zhuo' && !t.mod);
+        const pickT = pool.length ? pool[int(run.rng, 0, pool.length - 1)] : null;
+        if (pickT) {
+            pickT.mod = 'ling';
+            battle.stacks.kongUid = pickT.uid;
+        }
+        else
+            battle.stacks.kongUid = 0;
     }
 }
 function turnStartShield(run, battle) {
@@ -241,21 +268,9 @@ export function cast(run, battle, uids, rageWanted) {
     if (run.method === 'yuhuo' && rage && battle.enemy.burn > 0 && battle.outcome === 'fighting') {
         total += damageEnemy(run, battle, battle.enemy.burn * 8 * burnPower(run), 'detonate', events);
     }
-    // Tile effects.
-    if (result.heal > 0) {
-        const room = battle.player.maxHp - battle.player.hp;
-        const healed = Math.min(room, result.heal);
-        const overflow = result.heal - healed;
-        battle.player.hp += healed;
-        if (overflow > 0) {
-            if (run.method === 'huichun')
-                battle.spring += overflow;
-            const pot = relicFlag(run, 'overhealQi');
-            if (pot)
-                battle.stacks.overheal = overflow * pot;
-        }
-        events.push({ k: 'heal', to: 'player', amount: healed, overflow });
-    }
+    // Tile effects. 回复 lands after the enemy has struck (盾在挨打前，血在挨打后).
+    if (result.heal > 0)
+        battle.stacks.pendingHeal = (battle.stacks.pendingHeal ?? 0) + result.heal;
     if (result.shield > 0) {
         battle.player.shield = Math.min(battle.player.maxHp * (run.method === 'jingang' ? 1 : 2), battle.player.shield + result.shield);
         events.push({ k: 'shield', to: 'player', amount: result.shield });
@@ -302,24 +317,39 @@ export function cast(run, battle, uids, rageWanted) {
     const enemyEvents = [];
     if (turnEnded && battle.outcome === 'fighting')
         enemyTurn(run, battle, enemyEvents);
+    // A won fight still banks the healing.
+    if (battle.outcome === 'won')
+        settleHeal(run, battle, events);
     return { result, events, enemyEvents, turnEnded };
 }
-const patternTier = (id) => COMBOS[id].tier * 100 + COMBOS[id].intent;
+const patternTier = (id) => COMBOS[id].tier * 100 + (id in YAKU ? YAKU[id].fan : 0);
+/** Applies the turn's delayed 回复; overflow feeds 春华 and 玉液回天壶 as before. */
+function settleHeal(run, battle, events) {
+    const amount = battle.stacks.pendingHeal ?? 0;
+    if (amount <= 0)
+        return;
+    battle.stacks.pendingHeal = 0;
+    const room = Math.max(0, battle.player.maxHp - battle.player.hp);
+    const healed = Math.min(room, amount);
+    const overflow = amount - healed;
+    battle.player.hp += healed;
+    if (overflow > 0) {
+        if (run.method === 'huichun')
+            battle.spring += overflow;
+        const pot = relicFlag(run, 'overhealQi');
+        if (pot)
+            battle.stacks.overheal = overflow * pot;
+    }
+    events.push({ k: 'heal', to: 'player', amount: healed, overflow, late: true });
+}
 /** Counts which 诀 and elements actually carried the run (shown as 此行打法 and on rewards). */
 function recordUse(run, result) {
     const use = (run.stats.use ??= {});
-    const a = result.analysis;
-    for (const set of a.sets) {
-        const id = SET_BY_SIZE[Math.min(5, set.size)];
-        if (id)
-            use[id] = (use[id] ?? 0) + 1;
+    for (const hit of result.yaku) {
+        const path = YAKU[hit.id].path;
+        if (path !== 'tian')
+            use[path] = (use[path] ?? 0) + 1;
     }
-    if (a.links.includes('sheng'))
-        use.sheng = (use.sheng ?? 0) + 1;
-    if (a.links.includes('ke'))
-        use.ke = (use.ke ?? 0) + 1;
-    if (a.distinct === 5)
-        use.wuxing = (use.wuxing ?? 0) + 1;
     const elUse = (run.stats.elUse ??= {});
     for (const el of result.els)
         if (el)
@@ -405,6 +435,8 @@ function enemyTurn(run, battle, events) {
         if (battle.outcome !== 'fighting')
             return;
     }
+    // The cast's 回复 lands now that the enemy has struck.
+    settleHeal(run, battle, events);
     // Next intent.
     const moves = enemy.phase === 2 && def.phase2 ? def.phase2.moves : def.moves;
     enemy.moveIndex = (enemy.moveIndex + 1) % moves.length;
@@ -438,5 +470,6 @@ function enemyTurn(run, battle, events) {
     battle.discard.push(...battle.hand);
     battle.hand = [];
     const drawn = drawTo(run, battle);
+    turnRolls(run, battle);
     events.push({ k: 'draw', count: drawn });
 }

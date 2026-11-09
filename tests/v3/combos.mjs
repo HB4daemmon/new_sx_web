@@ -11,4 +11,6 @@ const med = a => { const s = [...a].sort((x, y) => x - y); return s[s.length >> 
 console.log('wins', wins);
 for (const [k, l] of Object.entries(by).sort((a, b) => b[1].length - a[1].length)) console.log(COMBOS[k].name.padEnd(6), 'share', (100 * l.length / CASTS.length).toFixed(1) + '%', 'median dmg a3+', med(l.filter(c => c.act >= 3).map(c => c.dmg)) ?? '-');
 const any = f => (100 * CASTS.filter(f).length / CASTS.length).toFixed(1) + '%';
-console.log('uses 生', any(c => c.sh), '克', any(c => c.ke), 'sets', any(c => c.sets));
+const paths = {};
+for (const c of CASTS) for (const y of c.yaku) paths[y] = (paths[y] ?? 0) + 1;
+console.log('役出现率', Object.entries(paths).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${COMBOS[k].name} ${(100 * n / CASTS.length).toFixed(1)}%`).join(' · '));

@@ -3,7 +3,7 @@ import { METHOD, RELIC, RELICS, RELIC_PRICE, TALENT, TALENTS, VOW, type Rarity }
 import { ELEMENTS, type El } from './elements.js';
 import { ENEMIES, ENEMY } from './enemies.js';
 import { EVENTS, EVENT } from './events.js';
-import { COMBOS, migrateLevels, PATTERN_ORDER } from './patterns.js';
+import { PATTERN_ORDER } from './patterns.js';
 import { BONDS, BOSS_STORY, ENDING } from './story.js';
 import { cleanPacts, pactHeat, pactRank } from './pacts.js';
 import { SIGNATURE, SPECIALS } from './content.js';
@@ -46,7 +46,7 @@ export const mastery = (run: RunState, level: number) => unlocked(run, `m:${run.
 function applyStartPerks(run: RunState) {
   if (unlocked(run, 'gold1')) run.gold += 30;
   if (unlocked(run, 'ling1')) addTile(run, { el: pick(run.rng, ELEMENTS), v: 4, mod: 'ling' });
-  if (unlocked(run, 'pattern1')) { run.patternLv.sheng += 1; run.patternLv.dui += 1; }
+  if (unlocked(run, 'pattern1')) { run.patternLv.yuan += 1; run.patternLv.shu += 1; }
   if (unlocked(run, 'slot1')) run.relicSlots += 1;
   if (mastery(run, 3)) addTile(run, { el: METHOD[run.method].el, v: 5, mod: 'ling' });
   if (mastery(run, 4) && SIGNATURE[run.method]) run.relics.push(SIGNATURE[run.method]);
@@ -263,7 +263,7 @@ export function chooseEnding(run: RunState, id: string) {
 export function leaveStory(run: RunState) { if (run.screen.name === 'story') run.screen = { name: 'map' }; }
 
 // —— Rewards ——
-const MODS: TileMod[] = ['lei', 'zhong', 'ling', 'jing'];
+const MODS: TileMod[] = ['ling', 'huan', 'bao', 'lei'];
 export function randomTile(run: RunState, quality = 0): Omit<Tile, 'uid'> {
   const el = pick(run.rng, ELEMENTS);
   const v = Math.min(9, int(run.rng, 3, 5) + Math.min(4, run.act - 1) + quality);
@@ -275,7 +275,7 @@ export function rewardOptions(run: RunState, n: number): RewardOption[] {
   const out: RewardOption[] = [];
   const sp = Object.values(SPECIALS).find(x => x.method === run.method);
   if (sp && chance(run.rng, 0.25)) out.push({ type: 'tile', tile: { el: sp.el, v: sp.v + Math.min(4, run.act - 1), sp: sp.id } });
-  const patterns = sample(run.rng, PATTERN_ORDER, 2, id => (id === 'wulei' ? 1 : 3));
+  const patterns = sample(run.rng, PATTERN_ORDER, 2);
   out.push({ type: 'tile', tile: randomTile(run) });
   out.push({ type: 'pattern', pattern: patterns[0] });
   out.push(chance(run.rng, 0.5) ? { type: 'tile', tile: randomTile(run, 1) } : { type: 'pattern', pattern: patterns[1] });
@@ -510,12 +510,12 @@ export function pickTiles(run: RunState, uids: number[]): boolean {
     run.bag = run.bag.filter(t => !uids.includes(t.uid));
   }
   if (screen.purpose === 'upgrade') for (const tile of tiles) { tile.v = Math.min(12, tile.v + 3); if (!tile.mod && tile.el !== 'zhuo') tile.mod = pick(run.rng, MODS); }
-  if (screen.purpose === 'reforge') for (const tile of tiles) if (tile.el !== 'zhuo') tile.mod = 'zhong';
+  if (screen.purpose === 'reforge') for (const tile of tiles) if (tile.el !== 'zhuo') tile.mod = 'bao';
   if (screen.purpose === 'fuse') {
     if (tiles.length !== 2) return false;
     run.bag = run.bag.filter(t => !uids.includes(t.uid));
     const el = tiles[0].el === 'zhuo' ? tiles[1].el : tiles[0].el;
-    addTile(run, el === 'zhuo' ? { el, v: 0 } : { el, v: Math.min(18, tiles[0].v + tiles[1].v), mod: 'jing' });
+    addTile(run, el === 'zhuo' ? { el, v: 0 } : { el, v: Math.min(18, tiles[0].v + tiles[1].v), mod: 'bao' });
   }
   run.screen = screen.then;
   return true;
@@ -557,14 +557,14 @@ export function deserialize(text: string | null): RunState | null {
   try {
     const run = JSON.parse(text) as RunState;
     if (run?.version !== 3 || !Array.isArray(run.bag) || !run.screen) return null;
+    // Runs from before the 役 scoring are not carried over: start fresh.
+    if (!run.patternLv || !PATTERN_ORDER.every(id => typeof run.patternLv[id] === 'number')) return null;
     // Runs saved before the story update.
     run.plan ??= [];
     run.bonds ??= {};
     run.deeds ??= [];
     run.ending ??= null;
     run.pacts ??= {};
-    run.patternLv = migrateLevels(run.patternLv as Record<string, number>);
-    if (run.stats.biggestPattern && !(run.stats.biggestPattern in COMBOS)) run.stats.biggestPattern = null;
     run.unlocks ??= [];
     run.endless ??= 0;
     run.daily ??= null;

@@ -1,6 +1,7 @@
 import type { El } from './elements.js';
 
-export type TileMod = 'lei' | 'zhong' | 'ling' | 'jing';
+/** 灵：当任意元素 · 幻：当任意点数 1–5 · 宝：+1 番 · 雷：伤害 ×1.5 */
+export type TileMod = 'ling' | 'huan' | 'bao' | 'lei';
 /** 本门符: each method's own buff tile. */
 export type SpId = 'jian' | 'huozhong' | 'jingang' | 'leiyin' | 'chunya' | 'zhuyin';
 export interface Tile {
@@ -12,12 +13,19 @@ export interface Tile {
   sp?: SpId;
 }
 
-/** Upgradeable 诀 (心法). */
-export type PatternId = 'dui' | 'sancai' | 'sixiang' | 'wulei' | 'sheng' | 'ke' | 'wuxing';
-/** The named shape of a cast. */
-export type ComboId =
-  | 'san' | 'dui' | 'sheng3' | 'ke3' | 'liangyi' | 'sancai' | 'sheng4' | 'ke4'
-  | 'wuxing' | 'mantang' | 'sixiang' | 'lunzhuan' | 'nixing' | 'wulei';
+/** 路 (each one an upgradeable 心法). */
+export type PatternId = 'yuan' | 'shu' | 'lian' | 'wuxing' | 'podi' | 'luoshu';
+/** 役. */
+export type YakuId =
+  | 'shuangyuan' | 'liangyi' | 'sancai' | 'mantang' | 'sixiang' | 'sancai2' | 'sixiang2' | 'wulei'
+  | 'chengshuang' | 'shuangdui' | 'sanqing' | 'hulu' | 'siyu' | 'sanqing2' | 'siyu2'
+  | 'lian3' | 'lian4' | 'lian5' | 'hualong'
+  | 'sanhua' | 'wuxing'
+  | 'pozhan' | 'pozhen' | 'pojun'
+  | 'shiquan' | 'luoshu'
+  | 'jiutian' | 'shengsheng' | 'wuqi';
+/** The named shape of a cast: its headline 役, or 散 (no 役). */
+export type ComboId = YakuId | 'san';
 
 export interface Move {
   name: string;

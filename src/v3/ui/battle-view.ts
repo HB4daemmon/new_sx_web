@@ -2,14 +2,17 @@ import { canRage, rageCost, enemyAttack, MAX_CAST, previewCast, swordDamage, tri
 import { METHOD, RAGES, RELIC, SPECIALS } from '../core/content.js';
 import { counterOf, EL_NAME, KE, type El } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
-import { COMBOS, PATTERNS, SET_BY_SIZE } from '../core/patterns.js';
+import { COMBOS, fanTier, PATTERNS, QI_PER_FAN, YAKU, YAKU_ORDER, HETU } from '../core/patterns.js';
+import { dangerous, recommend, type AdviceMode } from '../core/advisor.js';
+import { MOD_DESC } from '../core/content.js';
+import type { YakuId } from '../core/types.js';
 import { BOND, BOSS_STORY, LORE } from '../core/story.js';
 import * as R from '../core/run.js';
 import type { CastResult, Step } from '../core/score.js';
 import type { Move, RunState, Tile } from '../core/types.js';
 import { anim, burst, centerOf, comet, EL_COLOR, flash, floatText, hitstop, isSkipping, lightning, reducedMotion, ring, setSkipping, shake, wait } from './fx.js';
 import { $, $$, fmt, fmt1, h } from './h.js';
-import { app, overlayOpen, render, save, toast } from './main.js';
+import { app, overlayOpen, render, save, showOverlay, toast } from './main.js';
 import { announce, art, hud, showBag, showHelp } from './screens.js';
 import { checkAchievements } from './progression.js';
 import { playSfx } from './sfx.js';
@@ -40,16 +43,16 @@ export function mountBattle(container: HTMLElement) {
   root = h(`div.scr.battle-scr.rank-${enemy.rank}`, null,
     h('img.bg', { src: art(ACTS[r.act - 1].bg), alt: '' }),
     h('div.arena-shade'),
-    h('div.hero-wrap', null,
+    h('div.hero-wrap', { onclick: (e: Event) => { if (!busy) { e.stopPropagation(); showSelfInfo(); } }, title: '点击查看自身状态' },
       h('img.hero-art', { src: art(`hero-${r.method}`), alt: METHOD[r.method].name }),
       h('div.hero-shield'),
       h('div.hero-status'),
       h('div.hero-bar')),
-    h('div.enemy-wrap', null,
+    h('div.enemy-wrap', { onclick: (e: Event) => { if (!busy) { e.stopPropagation(); showEnemyInfo(); } }, title: '点击查看敌人意图与弱点' },
       h('div.enemy-intent'),
       h('img.enemy-art', { src: art(enemy.art), alt: enemy.name }),
       h('div.enemy-status')),
-    h('div.enemy-plate', null,
+    h('div.enemy-plate', { onclick: (e: Event) => { if (!busy) { e.stopPropagation(); showEnemyInfo(); } } },
       h('div.enemy-name', null, h('span.e-el'), h('b', null, enemy.name), h('small', null, enemy.title)),
       h('div.enemy-bar'),
       enemy.traitText ? h('div.enemy-trait', null, enemy.traitText) : null,
@@ -59,7 +62,8 @@ export function mountBattle(container: HTMLElement) {
     h('div.score-panel', null,
       h('div.sp-pattern', null, '　'),
       h('div.sp-row', null, h('div.sp-box.sp-qi', null, h('small', null, '气'), h('b', null, '0')), h('span.sp-x', null, '×'), h('div.sp-box.sp-mult', null, h('small', null, '倍'), h('b', null, '0'))),
-      h('div.sp-dmg')),
+      h('div.sp-dmg'),
+      h('div.sp-yaku')),
     h('div.lane'),
     h('div.hand-area', null, h('div.preview-line'), h('div.hand')),
     h('div.controls', null,
@@ -67,6 +71,7 @@ export function mountBattle(container: HTMLElement) {
       h('button.btn.seal.cast-btn', { type: 'button', 'data-action': 'cast', onclick: () => void doCast() }, h('span.cast-main', null, '出招'), h('small.cast-sub')),
       h('button.btn.ink.discard-btn', { type: 'button', 'data-action': 'discard', onclick: () => void doDiscard() }, '换符', h('small.discard-left'))),
     h('div.pile-dock', null,
+        h('button.pile-btn.advise', { type: 'button', 'data-action': 'advise', title: '推荐出牌：再点一次换成另一种思路', onclick: () => advise() }, '荐', h('small', null, '推荐')),
         h('button.pile-btn', { type: 'button', onclick: () => showBag(r), title: '查看符袋' }, h('span.pile-draw'), h('small', null, '待抽')),
         h('button.pile-btn.sort', { type: 'button', title: '整理手牌', onclick: () => { sortMode = sortMode === 'el' ? 'v' : 'el'; renderHand(); } }, '理'),
         h('button.pile-btn', { type: 'button', title: '诀谱', onclick: () => showHelp() }, '谱')),
@@ -211,7 +216,9 @@ function refreshStatus() {
     disp.pburn > 0 ? h('span.st.st-burn', null, '焰 ', String(disp.pburn)) : null,
     b.swords > 0 ? h('span.st.st-sword', { title: `飞剑：每次出招后齐射，每柄 ${swordDamage(run())} + 本招伤害的 10%` }, '剑 ×', String(b.swords)) : null,
     b.spring > 0 ? h('span.st.st-spring', { title: '春华：下一招计入气' }, '春 ', fmt(b.spring)) : null,
-    b.stacks.thunder ? h('span.st.st-thunder', { title: '雷引：本场倍率永久提高' }, '雷 +', String(b.stacks.thunder)) : null));
+    b.stacks.thunder ? h('span.st.st-thunder', { title: '雷引：本场倍率永久提高' }, '雷 +', String(b.stacks.thunder)) : null,
+    b.stacks.wheel ? h('span.st.st-wheel', { title: `命运轮盘：本回合转出 ${b.stacks.wheel}，本招有几张 ${b.stacks.wheel} 点的符，番就 ×几` }, '轮 ', String(b.stacks.wheel)) : null,
+    b.stacks.omen !== undefined && run().relics.includes('tianjiqian') ? h('span.st.st-omen', { title: `天机签：本回合「吉」为${EL_NAME[(['mu', 'huo', 'tu', 'jin', 'shui'] as El[])[b.stacks.omen]]}，每张 +1 番` }, '吉·', EL_NAME[(['mu', 'huo', 'tu', 'jin', 'shui'] as El[])[b.stacks.omen]]) : null));
   const plate = $('.e-el', root!)!;
   plate.className = `e-el el-${disp.el}`;
   plate.textContent = EL_NAME[disp.el];
@@ -301,7 +308,7 @@ function renderHand(dealIn = false, newUids: number[] = []) {
   const tiles = sortedHand();
   hand.replaceChildren(...tiles.map((tile, i) => {
     const order = selected.indexOf(tile.uid) + 1;
-    const el = tileView(tile, { order: order || undefined, onclick: () => toggleTile(tile.uid) });
+    const el = tileView(tile, { onclick: () => toggleTile(tile.uid) });
     el.dataset.key = String(i + 1);
     if (order) el.classList.add('sel');
     if (tile.el === counter) el.classList.add('counter');
@@ -355,32 +362,24 @@ function refreshPreview() {
   if (!root) return;
   const line = $('.preview-line', root)!;
   const r = run(), b = battle();
-  $$('.tile.chain', root).forEach(el => el.classList.remove('chain'));
   if (!selected.length) {
-    line.replaceChildren(h('span.dim', null, r.stats.casts < 4 ? '点选符组成诀式 · 点选顺序即出招顺序 · 木→火→土→金→水 连出成相生' : '点选 1–5 枚符'));
+    line.replaceChildren(h('span.dim', null, r.stats.casts < 4 ? '点选 1–5 张成役，不看顺序 · 不会出就点「荐」' : '点选 1–5 张符'));
     setScore(null);
     refreshControls();
     return;
   }
   const res = previewCast(r, b, selected, rageOn);
   if (!res) return;
-  $$('.tile.ke-link', root).forEach(el => el.classList.remove('ke-link'));
-  for (const i of res.chain) $(`.hand .tile[data-uid="${selected[i]}"]`, root)?.classList.add('chain');
-  for (const i of res.keIdx) $(`.hand .tile[data-uid="${selected[i]}"]`, root)?.classList.add('ke-link');
   const effects: string[] = [];
   if (res.shield) effects.push(`盾+${res.shield}`);
-  if (res.heal) effects.push(`血+${res.heal}`);
+  if (res.heal) effects.push(`血+${res.heal}（挨打后）`);
   if (res.burn) effects.push(`焰+${res.burn}`);
   if (res.critChance > 5) effects.push(`暴击 ${Math.round(res.critChance)}%`);
   const lethal = res.damage >= b.enemy.hp + (b.enemy.armor || 0);
-  const parts: string[] = res.analysis.sets.map(st => `${PATTERNS[SET_BY_SIZE[st.size]].name}·${EL_NAME[st.el]}`);
-  const sh = res.analysis.links.filter(l => l === 'sheng').length, ke = res.analysis.links.filter(l => l === 'ke').length;
-  if (sh) parts.push(`生×${sh}`);
-  if (ke) parts.push(`克×${ke}`);
   line.replaceChildren(...nn(
     h('b.pv-pattern', null, COMBOS[res.pattern].name),
-    parts.length ? h('span.pv-parts', null, parts.join(' + ')) : null,
-    h('span.pv-calc', null, h('b.qi', null, fmt(res.qi)), ' × ', h('b.mu', null, fmt1(res.mult)), ' = ', h('b.pv-dmg', null, fmt(res.damage))),
+    h('span.pv-fan', null, res.fan ? `${fmt1(res.fan)}番` : '散牌'),
+    h('span.pv-calc', null, '气 ', h('b.qi', null, fmt(res.qi)), ' × ', h('b.mu', null, fmt1(res.mult)), ' = ', h('b.pv-dmg', null, fmt(res.damage))),
     effects.length ? h('span.pv-fx', null, effects.join(' · ')) : null,
     lethal ? h('span.pv-kill', null, '斩！') : null));
   setScore(res);
@@ -394,6 +393,18 @@ function setScore(res: CastResult | null) {
   $('.sp-qi b', panel)!.textContent = res ? fmt(res.qi) : '0';
   $('.sp-mult b', panel)!.textContent = res ? fmt1(res.mult) : '0';
   $('.sp-dmg', panel)!.textContent = '';
+  $('.sp-yaku', panel)!.replaceChildren(...(res ? yakuChips(res) : []));
+}
+
+/** Tappable 役 chips: what this cast scores, each opens its rule. */
+function yakuChips(res: CastResult): HTMLElement[] {
+  const chip = (label: string, fan: number, onclick: () => void, cls = '') => h(`button.yk-chip${cls}`, { type: 'button', onclick: (e: Event) => { e.stopPropagation(); onclick(); } }, label, h('i', null, `${fan}番`));
+  const out = res.yaku.map(y => chip(YAKU[y.id].name, y.fan, () => showYakuInfo(y.id, res), YAKU[y.id].path === 'tian' ? '.tian' : ''));
+  const bao = res.tiles.filter(t => t.mod === 'bao').length;
+  if (!res.analysis.tian && bao) out.push(chip('宝符', bao, () => showModInfo('bao')));
+  if (!res.analysis.tian && res.analysis.dewei) out.push(chip('得位', res.analysis.dewei, () => showDeweiInfo()));
+  if (!out.length) out.push(h('span.yk-none', null, '散牌 · 没有成役'));
+  return out;
 }
 
 function onKey(e: KeyboardEvent) {
@@ -537,12 +548,11 @@ async function playStep(step: Step, res: CastResult, clones: HTMLElement[], qiB:
     case 'pattern': {
       const p = $('.sp-pattern', root!)!;
       p.textContent = step.label;
-      p.className = `sp-pattern tier-${COMBOS[res.pattern].tier}`;
+      const tier = fanTier(res.fan, !!res.analysis.tian);
+      p.className = `sp-pattern tier-${tier}`;
       setVals();
       playSfx('stamp');
-      if (COMBOS[res.pattern].tier >= 4) { shake(2); flash('rgba(255,220,150,.25)', 220); }
-      for (const i of res.chain) clones[i]?.classList.add('chain');
-      for (const i of res.keIdx) clones[i]?.classList.add('ke-link');
+      if (tier >= 4) { shake(2); flash('rgba(255,220,150,.25)', 220); }
       await anim(p, [{ transform: 'scale(2.4) rotate(-6deg)', opacity: 0 }, { transform: 'scale(.92)', opacity: 1, offset: 0.6 }, { transform: 'scale(1)' }], 300);
       pop(qiB); pop(multB);
       await wait(120);
@@ -553,19 +563,6 @@ async function playStep(step: Step, res: CastResult, clones: HTMLElement[], qiB:
       if (!el) return;
       const c = centerOf(el);
       const tile = res.tiles[step.index!];
-      if (step.link && clones[step.index! - 1]) {
-        const from = centerOf(clones[step.index! - 1]);
-        if (step.link === 'sheng') {
-          await comet({ x: from.x, y: from.y - 30 }, { x: c.x, y: c.y - 30 }, '#ffe7a1', 150, 22);
-          floatText((from.x + c.x) / 2, c.y - 96, '生', 'ft-link sheng', 20, 600);
-          playSfx('mult', 4 + index);
-        } else {
-          floatText((from.x + c.x) / 2, c.y - 96, '克', 'ft-link ke', 20, 600);
-          burst((from.x + c.x) / 2, c.y - 20, '#ff3b2f', 14, 0.7);
-          playSfx('xmult');
-          shake(1);
-        }
-      }
       anim(el, [{ transform: 'translateY(0)' }, { transform: 'translateY(-26px) scale(1.12)' }, { transform: 'translateY(0)' }], 200);
       floatText(c.x, c.y - 70, step.label, `ft-tile el-text-${tile.el}`, 40, 700);
       if (step.tag) floatText(c.x + 34, c.y - 40, step.tag, `ft-tag tag-${step.tag}`, 20, 700);
@@ -574,7 +571,7 @@ async function playStep(step: Step, res: CastResult, clones: HTMLElement[], qiB:
       if (fx?.heal) floatText(c.x - 30, c.y + 50, `血+${fx.heal}`, 'ft-fx el-text-mu', 20, 600);
       if (fx?.burn) floatText(c.x - 30, c.y + 50, `焰+${fx.burn}`, 'ft-fx el-text-huo', 20, 600);
       if (fx?.crit) floatText(c.x - 30, c.y + 50, `暴+${fx.crit}%`, 'ft-fx el-text-jin', 20, 600);
-      if (step.dMult || step.x) floatText(c.x + 30, c.y + 50, step.x ? `×${fmt1(step.x)}` : `+${fmt1(step.dMult!)}倍`, 'ft-fx ft-mult', 20, 600);
+      if (step.dMult || step.x) floatText(c.x + 30, c.y + 50, step.x ? `×${fmt1(step.x)}` : `+${fmt1(step.dMult!)}番`, 'ft-fx ft-mult', 20, 600);
       burst(c.x, c.y - 20, EL_COLOR[tile.el], 8, 0.5);
       playSfx('tick', index);
       if (step.x) playSfx('xmult');
@@ -970,3 +967,100 @@ async function endSequence() {
 
 export { refreshAll as refreshBattle };
 void RELIC;
+
+// —— 点开就能看：役、敌人、自身 ——
+function infoCard(...children: (HTMLElement | string | null)[]) {
+  const close = showOverlay(h('div.info-card', null, ...children.filter(c => c !== null) as (HTMLElement | string)[], h('button.btn.ink.small', { type: 'button', onclick: () => close() }, '知道了')));
+}
+
+/** One 役: what it is, what it is worth here, and the rest of its 路 (only the best one counts). */
+function showYakuInfo(id: YakuId, res?: CastResult) {
+  const def = YAKU[id];
+  const r = run();
+  const path = def.path === 'tian' ? null : PATTERNS[def.path];
+  const lv = path ? r.patternLv[path.id] ?? 1 : 1;
+  const siblings = YAKU_ORDER.filter(y => YAKU[y].path === def.path);
+  const got = res?.yaku.find(y => y.id === id);
+  infoCard(
+    h('h3.brush', null, def.name, h('small', null, `　${def.alias}`)),
+    h('p', null, def.desc),
+    h('p.info-num', null, path
+      ? `${def.fan} 番${lv > 1 ? ` ＋ 心法「${path.name}」${lv}重 ${lv - 1} 番` : ''}${got ? `　→ 本招 ${got.fan} 番，另带 ${got.fan * QI_PER_FAN} 气` : ''}`
+      : `天成：倍率直接 ${def.fan} 番，不再与其他役相加`),
+    path ? h('p.dim', null, `「${path.name}」路（${path.alias}）只算最高的一个役；不同路的番相加。`) : null,
+    h('div.info-list', null, ...siblings.map(y => h(`div.info-row${y === id ? '.on' : ''}`, null, h('b', null, YAKU[y].name), h('small', null, YAKU[y].alias), h('span', null, YAKU[y].desc), h('i', null, `${YAKU[y].fan}番`)))));
+}
+
+function showModInfo(mod: string) {
+  infoCard(h('h3.brush', null, `${{ ling: '灵', huan: '幻', bao: '宝', lei: '雷' }[mod] ?? ''}符`), h('p', null, MOD_DESC[mod] ?? ''));
+}
+
+function showDeweiInfo() {
+  infoCard(h('h3.brush', null, '得位', h('small', null, '　宝牌')),
+    h('p', null, `点数合该元素的河图数，每张 +1 番（另带 ${QI_PER_FAN} 气），与各路的役叠加。`),
+    h('div.info-list', null, ...(Object.entries(HETU) as [El, number][]).map(([el, n]) => h('div.info-row', null, h('b', { class: `el-text-${el}` }, EL_NAME[el]), h('span', null, `${n} 或 ${n + 5}`)))));
+}
+
+/** Enemy: this turn's intent in full, what is coming next, its element and how to break it. */
+function showEnemyInfo() {
+  const r = run(), b = battle();
+  const def = ENEMY[b.enemyId];
+  const e = b.enemy;
+  const moves = e.phase === 2 && def.phase2 ? def.phase2.moves : def.moves;
+  const counter = counterOf(e.el), weak = KE[e.el];
+  infoCard(
+    h('h3.brush', null, def.name, h('small', null, `　${def.title}`)),
+    h('p.info-num', null, `气血 ${fmt(e.hp)} / ${fmt(e.maxHp)}`, e.armor ? `　护甲 ${fmt(e.armor)}` : '', e.burn ? `　灼烧 ${fmt(e.burn)}` : ''),
+    h('div.info-sec', null, h('b', null, '这一回合：'), intentTitle(e.intent).replace(/\n/g, '；')),
+    h('div.info-list', null, ...moves.map((m, i) => h(`div.info-row${i === e.moveIndex ? '.on' : ''}`, null, h('b', null, m.name), h('span', null, intentTitle(m).split('\n').slice(1).join('；') || '—')))),
+    h('p.dim', null, '招式按顺序循环，亮起的是这一回合。'),
+    h('div.info-sec', null, h('b', null, `属${EL_NAME[e.el]}：`), `${EL_NAME[counter]}符克它，点数 ×2；三张以上成「破阵」。${EL_NAME[weak]}符被它克，点数 ×0.5。`),
+    e.charged ? h('div.info-sec', null, h('b', null, '蓄势：'), '下一次攻击翻倍。') : null,
+    e.atkBonus ? h('div.info-sec', null, h('b', null, '战意：'), `攻击 +${e.atkBonus}。`) : null,
+    def.traitText ? h('div.info-sec', null, h('b', null, '特性：'), def.traitText) : null,
+    h('div.info-sec', null, h('b', null, '天劫：'), `第 ${tribulationStart(r)} 回合起天雷劈向双方，一重比一重狠。`));
+}
+
+/** Self: HP, shield and every running counter, with what each does. */
+function showSelfInfo() {
+  const r = run(), b = battle();
+  const m = METHOD[r.method];
+  const rows: [string, string][] = [
+    ['气血', `${fmt(b.player.hp)} / ${fmt(b.player.maxHp)}`],
+    ['护盾', b.player.shield ? `${fmt(b.player.shield)}：在挨打前抵挡伤害${r.method === 'jingang' ? '（金刚功：护盾不散）' : '，回合开始时清空'}` : '没有。水符出招时获得护盾'],
+    ['剑意', `${Math.floor(b.qi)} / ${rageCost(b)}：攒满开「${RAGES[r.method]?.name ?? '怒技'}」—${RAGES[r.method]?.desc ?? '本招 ×3'}`],
+    ['换符', r.vow === 'juenian' ? '绝念：不能换符' : `本回合还能换 ${b.discardsLeft} 次`],
+  ];
+  if (b.player.burn) rows.push(['灼烧', `${b.player.burn}：回合开始时受到伤害，之后减半`]);
+  if (b.swords) rows.push(['飞剑', `${b.swords} 柄：每次出招后齐射，每柄 ${swordDamage(r)} + 本招伤害的 10%`]);
+  if (b.spring) rows.push(['春华', `${fmt(b.spring)}：下一招计入气`]);
+  if (b.stacks.thunder) rows.push(['雷引', `本场倍率永久 +${b.stacks.thunder}`]);
+  if (b.stacks.pendingHeal) rows.push(['待回复', `${b.stacks.pendingHeal}：敌人出手后回复`]);
+  if (b.stacks.wheel) rows.push(['命运轮盘', `本回合转出 ${b.stacks.wheel}：本招有几张 ${b.stacks.wheel} 点的符，番就 ×几`]);
+  if (r.relics.includes('tianjiqian') && b.stacks.omen !== undefined) rows.push(['天机签', `本回合「吉」为${EL_NAME[(['mu', 'huo', 'tu', 'jin', 'shui'] as El[])[b.stacks.omen]]}：每张 +1 番`]);
+  if (r.talents.includes('kongling')) rows.push(['空灵根', '每回合手里随机一张符化为灵符']);
+  infoCard(
+    h('h3.brush', null, m.name, h('small', null, `　${m.title}`)),
+    h('div.info-list', null, ...rows.map(([k, v]) => h('div.info-row', null, h('b', null, k), h('span', null, v)))),
+    h('div.info-sec', null, h('b', null, '功法：'), m.passive.join('；')));
+}
+
+// —— 荐 ——
+let adviceTurn = -1;
+let adviceMode: AdviceMode = 'max';
+/** Picks the tiles for the player. First tap: the safer play if a heavy blow is coming, else max damage; tap again to flip. */
+function advise() {
+  if (busy) return;
+  const r = run(), b = battle();
+  const key = b.turn * 100 + b.castsThisTurn;
+  adviceMode = adviceTurn === key ? (adviceMode === 'max' ? 'safe' : 'max') : dangerous(r, b) ? 'safe' : 'max';
+  adviceTurn = key;
+  const advice = recommend(r, b, adviceMode, rageOn);
+  if (!advice) return;
+  selected = advice.uids;
+  playSfx('select');
+  renderHand();
+  const res = advice.result;
+  const why = res.yaku.length ? res.yaku.map(y => YAKU[y.id].name).join('＋') : '散牌';
+  toast(advice.lethal ? `荐：${why}，可以斩杀` : adviceMode === 'safe' ? `荐·稳妥：${why}${res.shield ? `，护盾 ${res.shield}` : ''}${res.heal ? `，回复 ${res.heal}` : ''}（再点换成最高伤害）` : `荐·最高伤害：${why}（再点换成稳妥）`);
+}

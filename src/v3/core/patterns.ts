@@ -1,125 +1,188 @@
 /**
- * 诀式分析 v2 —— 三层叠加，而不是“取最好的一个牌型”：
- *  1. 同元成组（不看顺序）：每种元素凑成双元/三才/四象/五雷，各组的气与倍都计入；两组以上另有两仪/满堂加成。
- *     三枚以上同元触发该元素「共鸣」。
- *  2. 相生（看顺序，木→火→土→金→水→木）：后一枚符接过前一枚的气（传气），链尾的元素效果被放大。
- *  3. 相克（看顺序，木→土→水→火→金→木）：每一次相克，倍率再乘一次。
- *  五枚各不同元为「五行俱全」，再加倍率；全相生称「五行轮转」，全相克称「五行逆乱」。
+ * 役 —— 以符成役（不看出牌顺序）。
+ * 把符看成牌：元素＝花色，点数＝牌面。六路各取最高的一个役，不同路的番相加，番数就是倍率。
+ * 灵符同时算作每一种元素、幻符同时算作每一个点数（只用于同元、同数、破敌、三花聚顶）；
+ * 五行俱全、连珠、洛书里它们只顶一张。
+ *   同元（同花）· 同数（对子/刻子）· 连珠（顺子）· 五行（各不同色）· 破敌（克制当前敌人）· 洛书（凑点数）
+ * 另计：河图得位（宝牌，每张 +1 番）；天成（役满，固定大倍率，不再相加）。
+ * 每个役（含得位、宝符与心法）每番另带 QI_PER_FAN 气。
  */
-import { ELEMENTS, GEN, KE, type El } from './elements.js';
-import type { ComboId, PatternId, Tile } from './types.js';
+import { counterOf, ELEMENTS, type El } from './elements.js';
+import type { ComboId, PatternId, Tile, YakuId } from './types.js';
 
-export interface PatternDef { id: PatternId; name: string; hint: string; qi: number; mult: number; lvQi: number; lvMult: number }
+/** 每番另带的气。 */
+export const QI_PER_FAN = 10;
 
-/** Upgradeable 诀 (心法). For 相生 `qi` is the share of qi passed on, `mult` the 倍 per link; for 相克 `mult` is the × per link. */
+/** 一路（可升重的心法）。 */
+export interface PatternDef { id: PatternId; name: string; alias: string; hint: string }
 export const PATTERNS: Record<PatternId, PatternDef> = {
-  dui: { id: 'dui', name: '双元', hint: '两枚同元', qi: 10, mult: 2, lvQi: 8, lvMult: 1 },
-  sancai: { id: 'sancai', name: '三才', hint: '三枚同元，并触发该元素共鸣', qi: 25, mult: 3, lvQi: 15, lvMult: 1.5 },
-  sixiang: { id: 'sixiang', name: '四象', hint: '四枚同元', qi: 50, mult: 6, lvQi: 25, lvMult: 2 },
-  wulei: { id: 'wulei', name: '五雷', hint: '五枚同元', qi: 100, mult: 10, lvQi: 40, lvMult: 4 },
-  sheng: { id: 'sheng', name: '相生', hint: '按 木→火→土→金→水 相邻：后一枚接过前一枚的气，链尾元素效果放大', qi: 1, mult: 0.5, lvQi: 0.25, lvMult: 0.25 },
-  ke: { id: 'ke', name: '相克', hint: '按 木→土→水→火→金 相邻：每一次相克，倍率再乘一次', qi: 0, mult: 1.3, lvQi: 0, lvMult: 0.1 },
-  wuxing: { id: 'wuxing', name: '五行', hint: '五枚各不同元：倍率再加', qi: 0, mult: 3, lvQi: 0, lvMult: 1.5 },
+  yuan: { id: 'yuan', name: '同元', alias: '同花', hint: '同一元素的符凑在一起：双元、两仪、三才、满堂、四象、五雷' },
+  shu: { id: 'shu', name: '同数', alias: '对子', hint: '同一点数的符凑在一起：成双、成双成对、三清、紫金葫芦、四御' },
+  lian: { id: 'lian', name: '连珠', alias: '顺子', hint: '点数连号：三连珠、四连珠、五连珠，正好 1–5 为一气化龙' },
+  wuxing: { id: 'wuxing', name: '五行', alias: '杂色', hint: '元素各不相同：三花聚顶（三种元素同点数）、五行俱全（五种元素齐）' },
+  podi: { id: 'podi', name: '破敌', alias: '克制', hint: '带克制当前敌人的符：两张破绽、三张破阵、四张以上破军' },
+  luoshu: { id: 'luoshu', name: '洛书', alias: '凑数', hint: '只出两张、和为 10（十全）；只出三张、和为 15（洛书，九宫每行之和）' },
 };
-export const PATTERN_ORDER: PatternId[] = ['dui', 'sancai', 'sixiang', 'wulei', 'sheng', 'ke', 'wuxing'];
-export const SET_BY_SIZE: Record<number, PatternId> = { 2: 'dui', 3: 'sancai', 4: 'sixiang', 5: 'wulei' };
+export const PATTERN_ORDER: PatternId[] = ['yuan', 'shu', 'lian', 'wuxing', 'podi', 'luoshu'];
 
-export function patternValue(id: PatternId, level: number) {
-  const def = PATTERNS[id];
-  const lv = Math.max(1, level);
-  return { qi: def.qi + def.lvQi * (lv - 1), mult: def.mult + def.lvMult * (lv - 1) };
-}
+/** 心法 n 重：这一路成役时 +(n−1) 番。 */
+export const patternValue = (_id: PatternId, level: number) => ({ fan: Math.max(0, level - 1) });
 
-/** Named result of a cast, for the stamp, records and 悟道. */
-export interface ComboDef { name: string; tier: number; intent: number }
-export const COMBOS: Record<ComboId, ComboDef> = {
-  san: { name: '散招', tier: 0, intent: 8 },
-  dui: { name: '双元', tier: 1, intent: 12 },
-  sheng3: { name: '三生', tier: 1, intent: 14 },
-  ke3: { name: '三克', tier: 1, intent: 14 },
-  liangyi: { name: '两仪', tier: 2, intent: 18 },
-  sancai: { name: '三才', tier: 2, intent: 20 },
-  sheng4: { name: '四生', tier: 3, intent: 22 },
-  ke4: { name: '四克', tier: 3, intent: 22 },
-  wuxing: { name: '五行俱全', tier: 3, intent: 26 },
-  mantang: { name: '满堂', tier: 4, intent: 30 },
-  sixiang: { name: '四象', tier: 4, intent: 34 },
-  lunzhuan: { name: '五行轮转', tier: 5, intent: 40 },
-  nixing: { name: '五行逆乱', tier: 5, intent: 40 },
-  wulei: { name: '五雷正法', tier: 6, intent: 50 },
+export interface YakuDef { id: YakuId; path: PatternId | 'tian'; name: string; alias: string; fan: number; desc: string }
+const Y = (id: YakuId, path: YakuDef['path'], name: string, alias: string, fan: number, desc: string): YakuDef => ({ id, path, name, alias, fan, desc });
+export const YAKU: Record<YakuId, YakuDef> = {
+  shuangyuan: Y('shuangyuan', 'yuan', '双元', '两张同花', 1, '两张同元素'),
+  liangyi: Y('liangyi', 'yuan', '两仪', '两组同花', 2, '两组各两张同元素'),
+  sancai: Y('sancai', 'yuan', '三才', '三同花', 2, '三张同元素'),
+  mantang: Y('mantang', 'yuan', '满堂', '同花葫芦', 4, '三张同元素＋两张另一元素'),
+  sixiang: Y('sixiang', 'yuan', '四象', '四同花', 5, '四张同元素'),
+  sancai2: Y('sancai2', 'yuan', '三才并立', '两组三同花', 5, '两种元素各凑成三张（要靠灵符同时算两边）'),
+  sixiang2: Y('sixiang2', 'yuan', '四象双生', '两组四同花', 7, '两种元素各凑成四张（要靠灵符同时算两边）'),
+  wulei: Y('wulei', 'yuan', '五雷', '清一色', 8, '五张同元素'),
+  chengshuang: Y('chengshuang', 'shu', '成双', '对子', 1, '两张同点数'),
+  shuangdui: Y('shuangdui', 'shu', '成双成对', '两对', 2, '两组各两张同点数'),
+  sanqing: Y('sanqing', 'shu', '三清', '三条', 3, '三张同点数'),
+  hulu: Y('hulu', 'shu', '紫金葫芦', '葫芦', 5, '三张同点数＋两张另一点数'),
+  siyu: Y('siyu', 'shu', '四御', '四条', 6, '四张以上同点数'),
+  sanqing2: Y('sanqing2', 'shu', '三清同辉', '两组三条', 6, '两个点数各凑成三张（要靠幻符同时算两边）'),
+  siyu2: Y('siyu2', 'shu', '四御并尊', '两组四条', 9, '两个点数各凑成四张（要靠幻符同时算两边）'),
+  lian3: Y('lian3', 'lian', '三连珠', '三连顺', 2, '三个连号点数'),
+  lian4: Y('lian4', 'lian', '四连珠', '四连顺', 3, '四个连号点数'),
+  lian5: Y('lian5', 'lian', '五连珠', '顺子', 5, '五个连号点数'),
+  hualong: Y('hualong', 'lian', '一气化龙', '一条龙', 6, '点数正好 1、2、3、4、5'),
+  sanhua: Y('sanhua', 'wuxing', '三花聚顶', '三色同点', 2, '三种元素各一张同点数，如 金1 木1 水1'),
+  wuxing: Y('wuxing', 'wuxing', '五行俱全', '五门齐', 4, '五种元素各一张'),
+  pozhan: Y('pozhan', 'podi', '破绽', '两张克制', 1, '两张克制当前敌人的符'),
+  pozhen: Y('pozhen', 'podi', '破阵', '三张克制', 3, '三张克制当前敌人的符'),
+  pojun: Y('pojun', 'podi', '破军', '四张克制', 5, '四张以上克制当前敌人的符'),
+  shiquan: Y('shiquan', 'luoshu', '十全', '凑十', 1, '只出两张，点数和为 10'),
+  luoshu: Y('luoshu', 'luoshu', '洛书', '凑十五', 3, '只出三张，点数和为 15（洛书九宫每行之和）'),
+  jiutian: Y('jiutian', 'tian', '九天雷动', '同花顺', 30, '天成：五张同元素且点数连号'),
+  shengsheng: Y('shengsheng', 'tian', '生生不息', '天和', 40, '天成：木1 火2 土3 金4 水5'),
+  wuqi: Y('wuqi', 'tian', '五气朝元', '五色同刻', 30, '天成：五种元素各一张，点数相同'),
 };
+export const YAKU_ORDER = Object.keys(YAKU) as YakuId[];
 
-export type Link = 'sheng' | 'ke' | null;
+/** 河图数：天一生水、地二生火、天三生木、地四生金、天五生土（加五亦同）。 */
+export const HETU: Record<El, number> = { shui: 1, huo: 2, mu: 3, jin: 4, tu: 5 };
+export const isDewei = (el: El | null, v: number) => !!el && v > 0 && ((v - 1) % 5) + 1 === HETU[el];
+
+export interface YakuHit { id: YakuId; fan: number }
 export interface Analysis {
   els: (El | null)[];
+  /** 牌面点数（幻符已取定的点数；浊符为 0）。 */
+  vals: number[];
+  /** Same-element groups of two or more, largest first. */
   sets: { el: El; size: number }[];
-  links: Link[];
   distinct: number;
+  /** 每路最高的役（未加心法）。 */
+  yaku: YakuHit[];
+  /** 天成（役满），有则倍率固定。 */
+  tian: YakuHit | null;
+  /** 得位张数。 */
+  dewei: number;
+  /** 标题：天成或番数最高的役，没有为 'san'（散牌）。 */
   combo: ComboId;
-  /** Tile indices joined by a 相生 / 相克 link. */
-  shengIdx: number[];
-  keIdx: number[];
 }
 
-export interface AnalyzeOptions { reverse?: boolean }
-
-export function linkOf(a: El | null, b: El | null, opts: AnalyzeOptions = {}): Link {
-  if (!a || !b || a === b) return null;
-  if (GEN[a] === b || (opts.reverse && GEN[b] === a)) return 'sheng';
-  if (KE[a] === b) return 'ke';
+function best<T extends YakuId>(...cands: [boolean, T][]): T | null {
+  for (const [ok, id] of cands) if (ok) return id;
   return null;
 }
 
-function longestRun(links: Link[], kind: Link): number {
-  let best = 0, run = 0;
-  for (const l of links) { run = l === kind ? run + 1 : 0; best = Math.max(best, run); }
-  return best ? best + 1 : 0; // tiles in the run
+/** Which tiles are wild: 灵 counts as every element at once, 幻 as every value at once (for the set-type 路). */
+export interface Wilds { ling?: boolean[]; huan?: boolean[]; /** 慧眼：点数与河图数差 1 也算得位。 */ loose?: boolean }
+
+/** Counts per key where every wild joins every group that already exists (or forms one group on its own). */
+function wildCounts<K>(keys: (K | null)[], wild: boolean[]): number[] {
+  const count = new Map<K, number>();
+  let w = 0;
+  keys.forEach((k, i) => { if (wild[i]) w += 1; else if (k !== null) count.set(k, (count.get(k) ?? 0) + 1); });
+  const sizes = count.size ? [...count.values()].map(n => n + w) : w ? [w] : [];
+  return sizes.filter(n => n >= 2).sort((a, b) => b - a);
 }
 
-export function analyze(els: (El | null)[], opts: AnalyzeOptions = {}): Analysis {
-  const counts = new Map<El, number>();
-  for (const el of els) if (el) counts.set(el, (counts.get(el) ?? 0) + 1);
-  const sets = [...counts.entries()].filter(([, n]) => n >= 2).map(([el, size]) => ({ el, size })).sort((a, b) => b.size - a.size);
-  const links = els.slice(1).map((el, i) => linkOf(els[i], el, opts));
-  const shengIdx = new Set<number>(), keIdx = new Set<number>();
-  links.forEach((l, i) => { if (l === 'sheng') { shengIdx.add(i); shengIdx.add(i + 1); } if (l === 'ke') { keIdx.add(i); keIdx.add(i + 1); } });
-  const distinct = counts.size;
-  const sizes = sets.map(s => s.size);
-  const sh = longestRun(links, 'sheng'), kr = longestRun(links, 'ke');
-  let combo: ComboId = 'san';
-  if (sizes[0] === 5) combo = 'wulei';
-  else if (distinct === 5 && sh === 5) combo = 'lunzhuan';
-  else if (distinct === 5 && kr === 5) combo = 'nixing';
-  else if (sizes[0] === 4) combo = 'sixiang';
-  else if (sizes[0] === 3 && sizes[1] === 2) combo = 'mantang';
-  else if (distinct === 5) combo = 'wuxing';
-  else if (sh >= 4) combo = 'sheng4';
-  else if (kr >= 4) combo = 'ke4';
-  else if (sizes[0] === 3) combo = 'sancai';
-  else if (sizes[0] === 2 && sizes[1] === 2) combo = 'liangyi';
-  else if (sh >= 3) combo = 'sheng3';
-  else if (kr >= 3) combo = 'ke3';
-  else if (sizes[0] === 2) combo = 'dui';
-  return { els, sets, links, distinct, combo, shengIdx: [...shengIdx].sort(), keIdx: [...keIdx].sort() };
+export function analyze(els: (El | null)[], vals: number[], enemyEl: El | null = null, wilds: Wilds = {}): Analysis {
+  const ling = els.map((_, i) => !!wilds.ling?.[i]);
+  const huan = els.map((_, i) => !!wilds.huan?.[i]);
+  // 同元：灵符同时算作每一种元素（火 火 木 木 灵 → 火3 木3）。
+  const natural = new Map<El, number>();
+  els.forEach((el, i) => { if (el && !ling[i]) natural.set(el, (natural.get(el) ?? 0) + 1); });
+  const lingN = ling.filter(Boolean).length;
+  const setEls = natural.size ? [...natural.entries()] : lingN ? [[els.find((e, i) => ling[i] && e) as El, 0] as [El, number]] : [];
+  const sets = setEls.map(([el, n]) => ({ el, size: n + lingN })).filter(x => x.size >= 2).sort((a, b) => b.size - a.size);
+  const s = sets.map(x => x.size);
+  // 同数：幻符同时算作每一个点数。
+  const ranked = vals.filter(v => v > 0);
+  const ks = wildCounts(vals.map((v, i) => (v > 0 ? v : null)), huan.map((h, i) => h && vals[i] > 0));
+  // 五行俱全：每张灵符只补一种缺的元素。
+  const distinct = Math.min(5, natural.size + lingN);
+  const total = ranked.reduce((a, b) => a + b, 0);
+
+  // 连珠：最长连号（幻符只取一个点数，由读法枚举决定）。
+  const uniq = [...new Set(ranked)].sort((a, b) => a - b);
+  let run = 0, longest = 0;
+  uniq.forEach((v, i) => { run = i > 0 && v === uniq[i - 1] + 1 ? run + 1 : 1; longest = Math.max(longest, run); });
+  const isDragon = ranked.length === 5 && uniq.length === 5 && uniq[0] === 1 && uniq[4] === 5;
+
+  // 三花聚顶：同一点数下有三种以上不同元素（灵符各补一种）。
+  const colorsByValue = new Map<number, { els: Set<El>; wild: number }>();
+  els.forEach((el, i) => {
+    if (vals[i] <= 0 || (!el && !ling[i])) return;
+    const slot = colorsByValue.get(vals[i]) ?? { els: new Set<El>(), wild: 0 };
+    if (ling[i]) slot.wild += 1; else slot.els.add(el!);
+    colorsByValue.set(vals[i], slot);
+  });
+  const sanhua = [...colorsByValue.values()].some(x => Math.min(5, x.els.size + x.wild) >= 3);
+  // 破敌：灵符也算克制符。
+  const counter = enemyEl ? counterOf(enemyEl) : null;
+  const hits = counter ? els.filter((el, i) => ling[i] || el === counter).length : 0;
+
+  const picks = [
+    best([s[0] >= 5, 'wulei'], [s[0] >= 4 && s[1] >= 4, 'sixiang2'], [s[0] === 4, 'sixiang'], [s[0] >= 3 && s[1] >= 3, 'sancai2'],
+      [s[0] === 3 && s[1] === 2, 'mantang'], [s[0] === 3, 'sancai'], [s[0] === 2 && s[1] === 2, 'liangyi'], [s[0] === 2, 'shuangyuan']),
+    best([ks[0] >= 4 && ks[1] >= 4, 'siyu2'], [ks[0] >= 4, 'siyu'], [ks[0] >= 3 && ks[1] >= 3, 'sanqing2'], [ks[0] === 3 && ks[1] === 2, 'hulu'],
+      [ks[0] === 3, 'sanqing'], [ks[0] === 2 && ks[1] === 2, 'shuangdui'], [ks[0] === 2, 'chengshuang']),
+    best([isDragon, 'hualong'], [longest >= 5, 'lian5'], [longest === 4, 'lian4'], [longest === 3, 'lian3']),
+    best([distinct === 5, 'wuxing'], [sanhua, 'sanhua']),
+    best([hits >= 4, 'pojun'], [hits === 3, 'pozhen'], [hits === 2, 'pozhan']),
+    best([vals.length === 3 && ranked.length === 3 && total === 15, 'luoshu'], [vals.length === 2 && ranked.length === 2 && total === 10, 'shiquan']),
+  ].filter(Boolean) as YakuId[];
+  const yaku = picks.map(id => ({ id, fan: YAKU[id].fan }));
+
+  const fiveSame = ranked.length === 5 && uniq.length === 1;
+  const sheng = ['mu', 'huo', 'tu', 'jin', 'shui'] as El[];
+  const isShengSheng = els.length === 5 && sheng.every((el, i) => els.some((e, j) => e === el && vals[j] === i + 1));
+  const tianId = best([isShengSheng, 'shengsheng'], [s[0] >= 5 && longest === 5, 'jiutian'], [fiveSame && distinct === 5, 'wuqi']);
+  const tian = tianId ? { id: tianId, fan: YAKU[tianId].fan } : null;
+  const dewei = els.filter((el, i) => isDewei(el, vals[i]) || (!!wilds.loose && !!el && vals[i] > 0 && Math.abs(((vals[i] - 1) % 5) + 1 - HETU[el]) === 1)).length;
+  const head = tian ?? [...yaku].sort((a, b) => b.fan - a.fan)[0];
+  return { els, vals, sets, distinct, yaku, tian, dewei, combo: head?.id ?? 'san' };
 }
 
-/** Every element assignment for the cast (灵符 may be any element; 浊符 is none). */
-export function assignments(tiles: Tile[]): (El | null)[][] {
-  const base = tiles.map(t => (t.el === 'zhuo' ? null : t.el));
-  // 灵符 may be any element; 烛阴符 may be 火 or 水.
-  const choices = tiles.map(t => (t.el === 'zhuo' ? null : t.mod === 'ling' ? ELEMENTS : t.sp === 'zhuyin' ? (['huo', 'shui'] as El[]) : null));
-  const wild = choices.map((c, i) => (c ? i : -1)).filter(i => i >= 0);
-  let out: (El | null)[][] = [base];
-  for (const index of wild) out = out.flatMap(els => choices[index]!.map(el => { const next = [...els]; next[index] = el; return next; }));
+/**
+ * Every way to read the cast: 灵符 may be any element, 烛阴符 火 or 水, 幻符 any value 1–5.
+ * The scorer keeps whichever reading hits hardest.
+ */
+export function assignments(tiles: Tile[]): { els: (El | null)[]; vals: number[] }[] {
+  const elChoices = tiles.map(t => (t.el === 'zhuo' ? [null] : t.mod === 'ling' ? [...ELEMENTS] : t.sp === 'zhuyin' ? (['huo', 'shui'] as El[]) : [t.el]));
+  const valChoices = tiles.map(t => (t.el === 'zhuo' ? [0] : t.mod === 'huan' ? [1, 2, 3, 4, 5] : [t.v]));
+  let out: { els: (El | null)[]; vals: number[] }[] = [{ els: [], vals: [] }];
+  tiles.forEach((_, i) => {
+    out = out.flatMap(o => elChoices[i].flatMap(el => valChoices[i].map(v => ({ els: [...o.els, el], vals: [...o.vals, v] }))));
+  });
   return out;
 }
 
-/** Old saves stored levels per old pattern id. */
-export function migrateLevels(old: Record<string, number> | undefined): Record<PatternId, number> {
-  const lv = Object.fromEntries(PATTERN_ORDER.map(id => [id, 1])) as Record<PatternId, number>;
-  if (!old) return lv;
-  const take = (id: PatternId, ...keys: string[]) => { lv[id] = Math.max(1, ...keys.map(k => old[k] ?? 1)); };
-  take('dui', 'dui', 'liangyi'); take('sancai', 'sancai', 'mantang'); take('sixiang', 'sixiang'); take('wulei', 'wulei');
-  take('sheng', 'sheng', 'sheng3', 'sheng4', 'lunzhuan'); take('ke', 'ke'); take('wuxing', 'wuxing');
-  return lv;
+/** Named result of a cast, for the stamp, records and 悟道. Tier follows the cast's total 役番. */
+export interface ComboDef { name: string; alias: string; tier: number }
+export const COMBOS: Record<ComboId, ComboDef> = {
+  san: { name: '散招', alias: '散牌', tier: 0 },
+  ...(Object.fromEntries(YAKU_ORDER.map(id => [id, { name: YAKU[id].name, alias: YAKU[id].alias, tier: YAKU[id].path === 'tian' ? 6 : YAKU[id].fan >= 8 ? 5 : YAKU[id].fan >= 5 ? 4 : YAKU[id].fan >= 3 ? 3 : YAKU[id].fan >= 2 ? 2 : 1 }])) as Record<YakuId, ComboDef>),
+};
+
+/** Tier of a whole cast by its 役番 (stamp size, 剑意, bot thresholds). */
+export function fanTier(fan: number, tian: boolean) {
+  if (tian) return 6;
+  return fan >= 12 ? 5 : fan >= 8 ? 4 : fan >= 5 ? 3 : fan >= 3 ? 2 : fan >= 1 ? 1 : 0;
 }

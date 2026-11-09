@@ -17,7 +17,7 @@ export interface EventDef { id: string; title: string; glyph: string; text: stri
 const leave: EventOption = { label: '离开', desc: '不节外生枝', apply: () => '你收起心神，继续赶路。' };
 const healPct = (run: RunState, pct: number) => { const h = Math.round(run.maxHp * pct); run.hp = Math.min(run.maxHp, run.hp + h); return h; };
 const curse = (run: RunState, n: number) => { for (let i = 0; i < n; i += 1) R.addTile(run, { el: 'zhuo', v: 0 }); };
-const tileText = (t: Omit<Tile, 'uid'>) => `${t.mod ? ({ lei: '雷', zhong: '重', ling: '灵', jing: '晶' } as const)[t.mod] : ''}${EL_NAME[t.el as El] ?? '浊'}${t.v}`;
+const tileText = (t: Omit<Tile, 'uid'>) => `${t.mod ? ({ ling: '灵', huan: '幻', bao: '宝', lei: '雷' } as const)[t.mod] : ''}${EL_NAME[t.el as El] ?? '浊'}${t.v}`;
 
 export const EVENTS: EventDef[] = [
   {
@@ -50,7 +50,7 @@ export const EVENTS: EventDef[] = [
     id: 'furnace', title: '炼符炉', glyph: '炉',
     text: '一座无人看管的炼符炉，炉火仍旺。符纸投进去，出来时沉得压手。',
     options: [
-      { label: '投符入炉', desc: '选两枚符化为重符（气翻倍）', apply: run => ({ name: 'pick-tile', purpose: 'reforge', count: 2, then: { name: 'event', event: 'furnace', resolved: '炉火一收，两枚符沉如铁石。' }, title: '炼符炉 · 选至多两枚符化为重符' }) },
+      { label: '投符入炉', desc: '选两枚符化为宝符（+1 番）', apply: run => ({ name: 'pick-tile', purpose: 'reforge', count: 2, then: { name: 'event', event: 'furnace', resolved: '炉火一收，两枚符透出宝光。' }, title: '炼符炉 · 选至多两枚符化为宝符' }) },
       { label: '借火温养', desc: '回复 25% 气血', apply: run => `炉火温热。回复 ${healPct(run, 0.25)} 气血。` },
     ],
   },
@@ -125,8 +125,8 @@ export const EVENTS: EventDef[] = [
     id: 'demon', title: '心魔', glyph: '魔',
     text: '你的影子从地上站了起来，用你的声音说：「你到底想变多强？」',
     options: [
-      { label: '直面', desc: '失去 15 气血；「三才」「相生」各 +1', apply: run => { run.hp = Math.max(1, run.hp - 15); run.patternLv.sancai += 1; run.patternLv.sheng += 1; return '你与它对坐良久。它叹了口气，散了。三才、相生 +1。'; } },
-      { label: '斩之', desc: '失去 25 气血；「相克」+2', apply: run => { run.hp = Math.max(1, run.hp - 25); run.patternLv.ke += 2; return '一剑下去，影子碎成五色。相克 +2。'; } },
+      { label: '直面', desc: '失去 15 气血；「同元」「连珠」各 +1', apply: run => { run.hp = Math.max(1, run.hp - 15); run.patternLv.yuan += 1; run.patternLv.lian += 1; return '你与它对坐良久。它叹了口气，散了。同元、连珠 +1。'; } },
+      { label: '斩之', desc: '失去 25 气血；「破敌」+2', apply: run => { run.hp = Math.max(1, run.hp - 25); run.patternLv.podi += 2; return '一剑下去，影子碎成五色。破敌 +2。'; } },
       leave,
     ],
   },
@@ -166,7 +166,7 @@ export const EVENTS: EventDef[] = [
     id: 'jingwei', title: '精卫', glyph: '卫',
     text: '一只小鸟衔着石子，一次又一次投进海里。它看了你一眼，把石子放在你脚边。',
     options: [
-      { label: '收下石子', desc: '获得一枚 晶土6', apply: run => { R.addTile(run, { el: 'tu', v: 6, mod: 'jing' }); return '石子化作一枚晶土符。'; } },
+      { label: '收下石子', desc: '获得一枚 宝土6', apply: run => { R.addTile(run, { el: 'tu', v: 6, mod: 'bao' }); return '石子化作一枚宝土符。'; } },
       { label: '帮它填海', desc: '+40 灵石（海底捞出来的）', apply: run => { run.gold += 40; return '+40 灵石。'; } },
     ],
   },
@@ -200,7 +200,7 @@ EVENTS.push(
   { id: 'nvwa', unlock: 'events2', title: '补天石', glyph: '娲',
     text: '女娲补天剩下的一块五色石。它能把两样东西熔成一样，熔出来的会比原来的加起来更亮。',
     options: [
-      { label: '熔符', desc: '选两枚符熔成一枚：点数相加的晶符', apply: () => ({ name: 'pick-tile', purpose: 'fuse', count: 2, then: { name: 'event', event: 'nvwa', resolved: '两枚符在五色石上化开，凝成了一枚晶符。' }, title: '补天石 · 选两枚符熔为一枚（元素取第一枚）' }) },
+      { label: '熔符', desc: '选两枚符熔成一枚：点数相加的宝符', apply: () => ({ name: 'pick-tile', purpose: 'fuse', count: 2, then: { name: 'event', event: 'nvwa', resolved: '两枚符在五色石上化开，凝成了一枚宝符。' }, title: '补天石 · 选两枚符熔为一枚（元素取第一枚）' }) },
       { label: '收起石头', desc: '获得一枚 灵土7', apply: run => { R.addTile(run, { el: 'tu', v: 7, mod: 'ling' }); return '五色石在你手里变成了一枚灵符。'; } },
     ] },
 );
@@ -220,7 +220,7 @@ export const BOND_EVENTS: EventDef[] = [
     text: '一只小鸟衔着石子，一次又一次投进逆潮里。潮水每涨一寸，她就多衔一块。一个浪头打过来，眼看要把她拍进水里。',
     options: [
       { label: '替她挡浪', desc: '失去 12% 气血；与精卫约好在火海再见', apply: run => { const d = hurt(run, 0.12); bond(run, 'jingwei', 'kept', '你在潮口替精卫挡了一个浪头，约好火海再见。'); return `浪砸在你背上（-${d}）。精卫落在你肩头，啄了啄你的耳朵，往火海的方向飞走了。`; } },
-      { label: '收下她的石子', desc: '获得一枚 晶土6', apply: run => { R.addTile(run, { el: 'tu', v: 6, mod: 'jing' }); bond(run, 'jingwei', 'declined', '你收下了精卫的一颗石子。'); return '石子在你手心化成一枚晶土符。精卫继续衔她的石头，没有再看你。'; } },
+      { label: '收下她的石子', desc: '获得一枚 宝土6', apply: run => { R.addTile(run, { el: 'tu', v: 6, mod: 'bao' }); bond(run, 'jingwei', 'declined', '你收下了精卫的一颗石子。'); return '石子在你手心化成一枚晶土符。精卫继续衔她的石头，没有再看你。'; } },
     ] },
   { id: 'bond-jingwei-2', bond: 'jingwei', title: '精卫的堤', glyph: '卫',
     text: '火海边上横着一道石堤，每一颗石子都带着潮口的盐。堤还差最后一段，精卫站在堤头冲你叫了一声。',
@@ -232,12 +232,12 @@ export const BOND_EVENTS: EventDef[] = [
     text: '断桥头有个人在磨箭，箭头对着天。「九个太阳我射下来了，」他说，「这回天上要掉下来的东西，我想先备一支好箭。缺块铁。」',
     options: [
       { label: '替他买铁', desc: '花费 30 灵石；与后羿约好在昆仑再见', can: run => run.gold >= 30, apply: run => { run.gold -= 30; bond(run, 'houyi', 'kept', '你在断桥替后羿买了一块箭铁。'); return '后羿掂了掂铁块：「昆仑见。到时候你往上走，我往上射。」'; } },
-      { label: '向他讨教', desc: '获得一枚 重金7', apply: run => { R.addTile(run, { el: 'jin', v: 7, mod: 'zhong' }); bond(run, 'houyi', 'declined', '后羿教了你一招握箭的手法。'); return '他教你怎么握箭。你把那股劲收进了一枚重金符里。'; } },
+      { label: '向他讨教', desc: '获得一枚 雷金7', apply: run => { R.addTile(run, { el: 'jin', v: 7, mod: 'lei' }); bond(run, 'houyi', 'declined', '后羿教了你一招握箭的手法。'); return '他教你怎么握箭。你把那股劲收进了一枚重金符里。'; } },
     ] },
   { id: 'bond-houyi-2', bond: 'houyi', title: '风口试射', glyph: '羿',
     text: '昆仑的风口，后羿的箭已经磨好了。他要你站到靶子旁边——风太乱，得有人替他报风向。',
     options: [
-      { label: '站到靶边', desc: '失去 15% 气血；「双元」「三才」各 +1。后羿会在终战相助', apply: run => { const d = hurt(run, 0.15); run.patternLv.dui += 1; run.patternLv.sancai += 1; bond(run, 'houyi', 'done', '你在昆仑风口替后羿报了一整天的风向。'); return `一支箭擦着你的耳朵过去（-${d}）。后羿收了弓：「准了。你上天门的时候，抬头看。」你对成双的东西忽然敏锐了许多。`; } },
+      { label: '站到靶边', desc: '失去 15% 气血；「同数」+2。后羿会在终战相助', apply: run => { const d = hurt(run, 0.15); run.patternLv.shu += 2; bond(run, 'houyi', 'done', '你在昆仑风口替后羿报了一整天的风向。'); return `一支箭擦着你的耳朵过去（-${d}）。后羿收了弓：「准了。你上天门的时候，抬头看。」你对成双的东西忽然敏锐了许多。`; } },
       { label: '收下他的箭', desc: '从两件法宝中选一件；此线就此了结', apply: run => { bond(run, 'houyi', 'declined', '后羿把一支箭送给了你，自己留在了风口。'); return relicOffer(run, ['yinlei', 'mingmu']); } },
     ] },
   { id: 'bond-yu-1', bond: 'yu', title: '禹', glyph: '禹',
@@ -249,7 +249,7 @@ export const BOND_EVENTS: EventDef[] = [
   { id: 'bond-yu-2', bond: 'yu', title: '分水', glyph: '禹',
     text: '火海里，禹的沟已经挖到了火口边上。只差最后一锹，就能把热流引开——但那一锹得有人站在火口里挖。',
     options: [
-      { label: '站进火口', desc: '失去 15% 气血；「相生」+2、「五行」+1。禹会在终战相助', apply: run => { const d = hurt(run, 0.15); run.patternLv.sheng += 2; run.patternLv.wuxing += 1; bond(run, 'yu', 'done', '你站在火口里挖下了禹的最后一锹。'); return `火燎掉了你的眉毛（-${d}）。热流一分为九，顺着沟走了。你忽然明白：疏导，就是相生。`; } },
+      { label: '站进火口', desc: '失去 15% 气血；「连珠」+2、「五行」+1。禹会在终战相助', apply: run => { const d = hurt(run, 0.15); run.patternLv.lian += 2; run.patternLv.wuxing += 1; bond(run, 'yu', 'done', '你站在火口里挖下了禹的最后一锹。'); return `火燎掉了你的眉毛（-${d}）。热流一分为九，顺着沟走了。你忽然明白：疏导，就是一节接一节。`; } },
       { label: '借他的息壤', desc: '气血全满，气血上限 +12；此线就此了结', apply: run => { run.maxHp += 12; run.hp = run.maxHp; bond(run, 'yu', 'declined', '禹把一捧息壤给了你，自己跳进了火口。'); return '一捧息壤敷在身上，伤全好了。禹自己跳进了火口。'; } },
     ] },
   { id: 'bond-shennong-1', bond: 'shennong', title: '神农', glyph: '农',

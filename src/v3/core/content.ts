@@ -1,4 +1,5 @@
-import { counterOf, type El } from './elements.js';
+import { YAKU } from './patterns.js';
+import { counterOf, ELEMENTS, type El } from './elements.js';
 import type { BattleState, ComboId, RunState, SpId, Tile } from './types.js';
 import type { Analysis } from './patterns.js';
 
@@ -41,7 +42,7 @@ export type RelicFlag =
   | 'critPct' | 'startQi' | 'qiPerCast' | 'turnShield' | 'afterHeal' | 'afterGold'
   | 'burnDouble' | 'critX' | 'ignoreArmor' | 'rageX' | 'leiX' | 'overhealQi' | 'shieldQi' | 'drumQi'
   | 'swordCap' | 'burnTwice' | 'shieldBolt' | 'rageKeep' | 'springKeep' | 'dayNight'
-  | 'flowX' | 'keX' | 'linkMult' | 'resonance';
+  | 'resonance';
 
 const count = (ctx: ScoreCtx, el: El) => ctx.els.filter(e => e === el).length;
 const missing = (ctx: ScoreCtx) => 1 - ctx.battle.player.hp / ctx.battle.player.maxHp;
@@ -56,8 +57,8 @@ export const RELICS: RelicDef[] = [
   { id: 'houtu', name: '厚土环', glyph: '岳', rarity: 'common', desc: '每枚土符 倍率再 +1', score: c => (count(c, 'tu') ? { mult: count(c, 'tu') } : null) },
   { id: 'chiyan', name: '赤炎珠', glyph: '炎', rarity: 'common', desc: '火符施加的灼烧翻倍', flags: { burnDouble: 1 } },
   { id: 'shuangyu', name: '双鱼佩', glyph: '鱼', rarity: 'common', desc: '本招有两组同元时 ×2', score: c => (c.a.sets.length >= 2 ? { x: 2 } : null) },
-  { id: 'xiangsheng', name: '相生环', glyph: '环', rarity: 'common', desc: '每一次相生 倍率再 +1', flags: { linkMult: 1 } },
-  { id: 'nilin', name: '逆鳞', glyph: '鳞', rarity: 'rare', desc: '本招有两次以上相克时 ×2', score: c => (c.a.links.filter(l => l === 'ke').length >= 2 ? { x: 2 } : null) },
+  { id: 'xiangsheng', name: '相生环', glyph: '环', rarity: 'common', desc: '成连珠（顺子）时 +3 番', score: c => (c.a.yaku.some(y => y.id.startsWith('lian') || y.id === 'hualong') ? { mult: 3 } : null) },
+  { id: 'nilin', name: '逆鳞', glyph: '鳞', rarity: 'rare', desc: '成破阵、破军（三张以上克制敌人）时 ×2', score: c => (c.a.yaku.some(y => y.id === 'pozhen' || y.id === 'pojun') ? { x: 2 } : null) },
   { id: 'wunilian', name: '污泥莲', glyph: '莲', rarity: 'rare', desc: '本招每带一枚浊符 ×1.7 —— 出淤泥而不染', score: c => { const n = c.tiles.filter(t => t.el === 'zhuo').length; return n ? { x: 1.7 ** n } : null; } },
   { id: 'wusefan', name: '五色幡', glyph: '幡', rarity: 'rare', desc: '元素共鸣的效果再翻倍', flags: { resonance: 1 } },
   { id: 'mingmu', name: '明目珠', glyph: '目', rarity: 'common', desc: '暴击率 +20%', flags: { critPct: 20 } },
@@ -87,8 +88,8 @@ export const RELICS: RelicDef[] = [
   { id: 'xinhuo', name: '薪火宝炉', glyph: '炉', rarity: 'legend', desc: '敌方每 3 层灼烧 倍率 +1', score: c => { const n = Math.floor(c.battle.enemy.burn / 3); return n ? { mult: n } : null; } },
   { id: 'qiming', name: '启明玉', glyph: '启', rarity: 'legend', desc: '开战剑意全满', flags: { startQi: 100 } },
   { id: 'tianji', name: '天机落雷箓', glyph: '箓', rarity: 'legend', desc: '雷符 ×2（原为 ×1.5）', flags: { leiX: 1 } },
-  { id: 'hetu', name: '河图', glyph: '图', rarity: 'legend', desc: '相生传气翻倍（后一枚接过前一枚两倍的气）', flags: { flowX: 1 } },
-  { id: 'luoshu', name: '洛书', glyph: '书', rarity: 'legend', desc: '每次相克的倍率再 +0.4', flags: { keX: 2 } },
+  { id: 'hetu', name: '河图', glyph: '图', rarity: 'legend', desc: '每张得位（宝牌）再 +2 番', score: c => (c.a.dewei ? { mult: 2 * c.a.dewei } : null) },
+  { id: 'luoshu', name: '洛书', glyph: '书', rarity: 'legend', desc: '成洛书（凑 15）时 ×2.5', score: c => (c.a.yaku.some(y => y.id === 'luoshu') ? { x: 2.5 } : null) },
   { id: 'wuyue', name: '五岳真形图', glyph: '岳', rarity: 'legend', desc: '四象、五雷 ×3', score: c => (c.a.sets[0]?.size >= 4 ? { x: 3 } : null) },
   { id: 'fantian', name: '翻天印', glyph: '印', rarity: 'legend', desc: '出满五枚符时 ×2', score: c => (c.tiles.length >= 5 ? { x: 2 } : null) },
   // —— 道树解锁：新器一 ——
@@ -106,6 +107,15 @@ export const RELICS: RelicDef[] = [
   { id: 'dinghai', name: '定海神针', glyph: '针', rarity: 'legend', unlock: 'relics3', desc: '本回合没有换过符时 ×2.5', score: c => (!c.battle.stacks.discarded ? { x: 2.5 } : null) },
   { id: 'zhanxian', name: '斩仙飞刀', glyph: '刀', rarity: 'legend', unlock: 'relics3', desc: '敌人气血低于 35% 时 ×3', score: c => (c.battle.enemy.hp < c.battle.enemy.maxHp * 0.35 ? { x: 3 } : null) },
   { id: 'jiulong', name: '九龙神火罩', glyph: '罩', rarity: 'legend', unlock: 'relics3', desc: '敌方每 5 层灼烧 ×1.1（至多 ×4）', score: c => { const n = Math.floor(c.battle.enemy.burn / 5); return n ? { x: Math.min(4, 1.1 ** n) } : null; } },
+  // —— 役之器：围绕新计分 ——
+  { id: 'mingyun', name: '命运轮盘', glyph: '运', rarity: 'legend', desc: '每回合转出一个点数（1–5）；本招有几张该点数的符，番就 ×几', score: c => { const n = c.battle.stacks.wheel; const k = n ? c.a.vals.filter(v => v === n).length : 0; return k >= 2 ? { x: k } : null; } },
+  { id: 'tianjiqian', name: '天机签', glyph: '签', rarity: 'common', desc: '每回合抽签定一种「吉」元素；本招每张吉元素符 +1 番', score: c => { const el = ELEMENTS[c.battle.stacks.omen ?? -1]; const n = el ? c.els.filter(e => e === el).length : 0; return n ? { mult: n } : null; } },
+  { id: 'sanqingling', name: '三清铃', glyph: '铃', rarity: 'rare', desc: '成紫金葫芦、四御等同数大役（葫芦、四条及以上）时 ×2', score: c => (c.a.yaku.some(y => ['hulu', 'siyu', 'sanqing2', 'siyu2'].includes(y.id)) ? { x: 2 } : null) },
+  { id: 'yuanyang', name: '鸳鸯镜', glyph: '鸳', rarity: 'common', desc: '成「成双成对」或「紫金葫芦」时 +3 番', score: c => (c.a.yaku.some(y => y.id === 'shuangdui' || y.id === 'hulu') ? { mult: 3 } : null) },
+  { id: 'dengtian', name: '登天梯', glyph: '梯', rarity: 'rare', desc: '连珠路的番再算一次', score: c => { const y = c.a.yaku.find(h => YAKU[h.id].path === 'lian'); return y ? { mult: y.fan + Math.max(0, (c.run.patternLv.lian ?? 1) - 1) } : null; } },
+  { id: 'wufang', name: '五方旗', glyph: '旗', rarity: 'rare', desc: '成五行俱全时 ×2', score: c => (c.a.yaku.some(y => y.id === 'wuxing') ? { x: 2 } : null) },
+  { id: 'jubao', name: '聚宝盆', glyph: '盆', rarity: 'rare', desc: '每张宝符、每张得位再 +1 番', score: c => { const n = c.tiles.filter(t => t.mod === 'bao').length + c.a.dewei; return n ? { mult: n } : null; } },
+  { id: 'yiyuan', name: '一元印', glyph: '元', rarity: 'legend', desc: '成五雷、四象双生时 ×2', score: c => (c.a.yaku.some(y => y.id === 'wulei' || y.id === 'sixiang2') ? { x: 2 } : null) },
   // —— 本命法宝（功法道行 2 解锁，只为本门出现）——
   { id: 'wanjianxia', name: '万剑匣', glyph: '匣', rarity: 'legend', method: 'yangjian', desc: '飞剑上限 +10；每柄飞剑使出招倍率 +0.4', flags: { swordCap: 10 }, score: c => (c.battle.swords ? { mult: 0.4 * c.battle.swords } : null) },
   { id: 'zhurongzhong', name: '祝融火种', glyph: '种', rarity: 'legend', method: 'yuhuo', desc: '灼烧在敌方回合造成两次伤害', flags: { burnTwice: 1 } },
@@ -200,16 +210,18 @@ export const METHOD: Record<string, MethodDef> = Object.fromEntries(METHODS.map(
 export interface TalentDef { id: string; name: string; desc: string; once?: boolean }
 export const TALENTS: TalentDef[] = [
   { id: 'yiqi', name: '一气化三清', desc: '手中符数上限 +1' },
+  { id: 'kongling', name: '空灵根', desc: '每回合手里随机一张符化为灵符（当任意元素，当回合有效）' },
+  { id: 'huiyan', name: '慧眼', desc: '得位放宽：点数与河图数相差 1 也算得位' },
   { id: 'douzhuan', name: '斗转星移', desc: '每回合换符次数 +1' },
   { id: 'dongtian', name: '袖里乾坤', desc: '法宝栏位 +1' },
   { id: 'tongming', name: '剑意通明', desc: '剑意获取 ×1.5' },
   { id: 'guiyi', name: '五行归一', desc: '符袋中随机 4 枚符化为灵符（可当任意元素）', once: true },
-  { id: 'nisheng', name: '逆转五行', desc: '相生链也可逆向连出（水→金→土→火→木）' },
+  { id: 'huanhua', name: '幻化', desc: '每场开战，符袋里随机 2 张符本场化为幻符（当任意点数）' },
   { id: 'shuangjue', name: '一念双诀', desc: '每回合第一次出招若不超过两枚符，不结束回合' },
   { id: 'yinjie', name: '引劫为用', desc: '天劫提前至第 5 回合，且只劈敌人' },
   { id: 'xueji', name: '血祭', desc: '每次出招失去 3 气血，倍率 ×1.6' },
   { id: 'jinshen', name: '金身', desc: '每场开战获得 20×境界 护盾' },
-  { id: 'wanfa', name: '万法归宗', desc: '所有诀式等级 +1', once: true },
+  { id: 'wanfa', name: '万法归宗', desc: '所有心法 +1 重', once: true },
   { id: 'poyang', name: '破妄', desc: '克制加成由 ×2 提升为 ×3' },
   { id: 'changsheng', name: '长生', desc: '气血上限 +40 并回满', once: true },
   { id: 'leiyin', name: '雷引', desc: '每枚雷符额外暴击率 +25%' },
@@ -222,14 +234,14 @@ export interface VowDef { id: string; name: string; desc: string }
 export const VOWS: VowDef[] = [
   { id: 'suidan', name: '碎丹燃血', desc: '气血上限 -40%；所有出招伤害 ×1.6' },
   { id: 'juenian', name: '绝念', desc: '再也不能换符；手中符数上限 +2' },
-  { id: 'gujian', name: '孤剑', desc: '法宝栏位 -2（多出的法宝散去）；所有诀式等级 +2' },
+  { id: 'gujian', name: '孤剑', desc: '法宝栏位 -2（多出的法宝散去）；所有心法 +2 重' },
 ];
 export const VOW: Record<string, VowDef> = Object.fromEntries(VOWS.map(v => [v.id, v]));
 
-export const MOD_NAME: Record<string, string> = { lei: '雷', zhong: '重', ling: '灵', jing: '晶' };
+export const MOD_NAME: Record<string, string> = { ling: '灵', huan: '幻', bao: '宝', lei: '雷' };
 export const MOD_DESC: Record<string, string> = {
-  lei: '雷符：计分时倍率 ×1.5',
-  zhong: '重符：气翻倍',
-  ling: '灵符：可当作任意元素组成诀式',
-  jing: '晶符：计分时倍率 +3',
+  ling: '灵符：当任意元素（百搭花色）',
+  huan: '幻符：当任意点数 1–5（百搭点数）',
+  bao: '宝符：自己就是宝牌，+1 番',
+  lei: '雷符：本招伤害 ×1.5',
 };

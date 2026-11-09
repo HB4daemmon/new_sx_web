@@ -8,7 +8,7 @@ import { PATTERNS, PATTERN_ORDER } from './patterns.js';
 import { counterOf, KE } from './elements.js';
 const EL_NAME = { jin: '金', mu: '木', shui: '水', huo: '火', tu: '土' };
 const pct = (n) => Math.round(n * 100);
-/** The run's build as actually played: “相生 · 火”. Null until a few casts are in. */
+/** The run's build as actually played: “同数 · 火”. Null until a few casts are in. */
 export function playStyle(run) {
     const use = run.stats.use ?? {};
     const top = topPattern(run);
@@ -56,7 +56,7 @@ export function reviewRun(run) {
                 id: 'slow', weight: 3 + last.taken.trib / Math.max(1, taken),
                 title: '拖进了天劫',
                 detail: `与${name}打到第 ${last.turns} 回合，天劫从第 ${trib} 回合起两边都劈，你因此掉了 ${last.taken.trib} 气血。`,
-                tryNext: '输出要在天劫前结束战斗：把心法升重集中到最常打的一个诀上，少拿分散的新符。',
+                tryNext: '输出要在天劫前结束战斗：把心法升重集中到最常成役的一路上，少拿分散的新符。',
             });
         }
         // 2. 输出不足: even the best hit was small against this enemy.
@@ -65,7 +65,7 @@ export function reviewRun(run) {
                 id: 'output', weight: 2.5 + (last.enemyMax / 5 - last.best) / (last.enemyMax / 5),
                 title: '输出没跟上',
                 detail: `这场最强一招 ${last.best}，只有${name}气血的 ${pct(last.best / last.enemyMax)}%。`,
-                tryNext: '精英与首领给的法宝里，优先拿“乘倍”的；排符时把大点数放前面、留好链尾。',
+                tryNext: '凑能叠加的役：同元、同数、连珠可以同时成立；精英与首领给的法宝优先拿“乘倍”的。',
             });
         }
         // 3. 防御没撑住: enemy blows did most of the damage and shields soaked little.
@@ -97,7 +97,7 @@ export function reviewRun(run) {
         findings.push({
             id: 'bag', weight: 1.5 + Math.max(0, bag - 30) / 10 + murk * 0.3,
             title: '符袋太杂',
-            detail: `结束时符袋 ${bag} 枚${murk ? `，其中浊符 ${murk} 枚` : ''}；想凑的同元组和相生链更难同时摸到。`,
+            detail: `结束时符袋 ${bag} 枚${murk ? `，其中浊符 ${murk} 枚` : ''}；想凑的同花、对子、顺子更难同时摸到。`,
             tryNext: '战后奖励不合打法就“不取”或“净符”；坊市与洞府都能净符。',
         });
     }
@@ -109,8 +109,8 @@ export function reviewRun(run) {
         findings.push({
             id: 'spread', weight: 1.6,
             title: '心法升得太散',
-            detail: `${spread} 个诀各升了一点，最高只有 ${deepest} 重。`,
-            tryNext: `盯住一个诀往上升${topPattern(run) ? `（你这局最常打的是「${PATTERNS[topPattern(run)].name}」）` : ''}，倍率才会滚起来。`,
+            detail: `${spread} 路心法各升了一点，最高只有 ${deepest} 重。`,
+            tryNext: `盯住一路往上升${topPattern(run) ? `（你这局最常打的是「${PATTERNS[topPattern(run)].name}」）` : ''}，倍率才会滚起来。`,
         });
     }
     // 7. 法宝栏空着: relics are the biggest multipliers in the game.
@@ -129,7 +129,7 @@ export function reviewRun(run) {
             id: 'counter', weight: 1,
             title: `${def.name}属${EL_NAME[def.el]}`,
             detail: `${EL_NAME[counterOf(def.el)]}符克它，点数翻倍；${EL_NAME[KE[def.el]]}符被它克，点数减半。${def.traitText ? def.traitText : ''}`,
-            tryNext: `去${def.name}所在的一幕前，多留几枚${EL_NAME[counterOf(def.el)]}符，心法往能用上它们的诀上升。`,
+            tryNext: `去${def.name}所在的一幕前，多留几枚${EL_NAME[counterOf(def.el)]}符，多凑「破阵」「破军」（三张以上克制符）。`,
         });
     }
     findings.sort((a, b) => b.weight - a.weight);

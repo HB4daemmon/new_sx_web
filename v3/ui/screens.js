@@ -2,7 +2,7 @@ import { METHOD, METHODS, MOD_NAME, REALMS, RELIC, VOW } from '../core/content.j
 import { EL_NAME } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
 import { EVENT } from '../core/events.js';
-import { COMBOS, PATTERNS } from '../core/patterns.js';
+import { COMBOS, PATTERNS, QI_PER_FAN } from '../core/patterns.js';
 import { enemyThreat } from '../core/battle.js';
 import { favouriteElement, favouritePatterns, playStyle, reviewRun } from '../core/review.js';
 import * as R from '../core/run.js';
@@ -10,14 +10,22 @@ import { ACT_STORY, BOND, BONDS, ENDING, ENDINGS, LORE } from '../core/story.js'
 import { burst, EL_COLOR, ring, shake, flash } from './fx.js';
 import { fmt, h } from './h.js';
 import { app, act, closeOverlays, go, portrait, render, save, showOverlay, stageSize, toast } from './main.js';
-import { recordRunEnd } from './meta.js';
+import { ART_SETS, recordRunEnd } from './meta.js';
 import { ACH, ACHIEVEMENTS, buyNode, canBuy, checkAchievements, dailySetup, MASTERY_PERKS, MASTERY_XP, masteryLevel, nextGoal, runUnlocks, settle, todayKey, TREE } from './progression.js';
 import { PACTS, pactHeat, pactMultiplier } from '../core/pacts.js';
 import { RAGES, RELICS, SIGNATURE, SPECIALS } from '../core/content.js';
 import { playSfx, setSfxEnabled } from './sfx.js';
 import { setSpeed } from './fx.js';
 import { bar, elLabel, optionCard, patternTable, relicView, tileView, wuxingWheel, GEN_TEXT } from './widgets.js';
-export const art = (id) => `./assets/v3/${id}.webp`;
+/** Re-points every game image already on screen (the battle view is not rebuilt by render). */
+function swapArt() {
+    document.querySelectorAll('img').forEach(img => {
+        const m = img.getAttribute('src')?.match(/assets\/v3\/(?:[a-z]+\/)?([\w-]+)\.webp$/);
+        if (m)
+            img.src = art(m[1]);
+    });
+}
+export const art = (id) => `./assets/v3/${app.meta.artSet ? `${app.meta.artSet}/` : ''}${id}.webp`;
 export function renderScreen() {
     if (app.view === 'title' || (app.view === 'run' && !app.run))
         return titleScreen();
@@ -150,7 +158,7 @@ function settingsButton() {
 }
 function showSettings() {
     const meta = app.meta;
-    const close = showOverlay(h('div.settings-panel', null, h('h2.brush', null, '设 置'), h('label.set-row', null, h('span', null, '音效'), h('button.toggle' + (meta.sound ? '.on' : ''), { type: 'button', 'data-action': 'toggle-sound', onclick: () => { meta.sound = !meta.sound; setSfxEnabled(meta.sound); save(); close(); showSettings(); } }, meta.sound ? '开' : '关')), h('label.set-row', null, h('span', null, '演出速度'), h('button.toggle.on', { type: 'button', onclick: () => { meta.speed = meta.speed === 1 ? 2 : 1; setSpeed(meta.speed); save(); close(); showSettings(); } }, `${meta.speed}×`)), h('p.dim', null, '战斗演出中点击任意处可快进。系统开启“减少动态效果”时自动关闭震屏与闪光。'), app.run && app.view === 'run' ? h('button.btn.ink', { type: 'button', onclick: () => { closeOverlays(); go('title'); } }, '回到标题（进度已自动保存）') : null, app.run && app.view === 'run' ? h('button.btn.ink.danger', { type: 'button', onclick: () => { if (confirm('放弃本局？此局进度将清除。')) {
+    const close = showOverlay(h('div.settings-panel', null, h('h2.brush', null, '设 置'), h('label.set-row', null, h('span', null, '音效'), h('button.toggle' + (meta.sound ? '.on' : ''), { type: 'button', 'data-action': 'toggle-sound', onclick: () => { meta.sound = !meta.sound; setSfxEnabled(meta.sound); save(); close(); showSettings(); } }, meta.sound ? '开' : '关')), h('div.set-row.art-row', null, h('span', null, '画风'), h('div.art-sets', null, ...ART_SETS.map(a => h(`button.toggle${meta.artSet === a.id ? '.on' : ''}`, { type: 'button', 'data-art': a.id || 'default', onclick: () => { meta.artSet = a.id; save(); swapArt(); close(); render(); showSettings(); } }, a.name)))), h('label.set-row', null, h('span', null, '演出速度'), h('button.toggle.on', { type: 'button', onclick: () => { meta.speed = meta.speed === 1 ? 2 : 1; setSpeed(meta.speed); save(); close(); showSettings(); } }, `${meta.speed}×`)), h('p.dim', null, '战斗演出中点击任意处可快进。系统开启“减少动态效果”时自动关闭震屏与闪光。'), app.run && app.view === 'run' ? h('button.btn.ink', { type: 'button', onclick: () => { closeOverlays(); go('title'); } }, '回到标题（进度已自动保存）') : null, app.run && app.view === 'run' ? h('button.btn.ink.danger', { type: 'button', onclick: () => { if (confirm('放弃本局？此局进度将清除。')) {
             abandon();
             closeOverlays();
         } } }, '放弃本局') : null));
@@ -169,7 +177,7 @@ export function showBag(run) {
     showOverlay(h('div.bag', null, h('h2.brush', null, `符 袋 · ${run.bag.length}`), ...groups));
 }
 export function showHelp(first = false) {
-    const close = showOverlay(h('div.help', null, h('h2.brush', null, '诀 谱'), h('div.help-cols', null, h('div.help-col', null, h('ol.help-steps', null, h('li', null, h('b', null, '选符：'), '点选 1–5 枚符出招，', h('em', null, '点选的顺序就是出招顺序'), '。每回合手牌全部刷新；「换符」不选符时整手全换。'), h('li', null, h('b', null, '同元成组（可叠加）：'), '两枚同元为双元、三枚三才、四枚四象、五枚五雷；三才 + 双元同时计分，并称「满堂」再 ×1.5。三枚以上同元触发', h('em', null, '共鸣'), '（金必暴、火灼烧 ×3、水护盾 ×3、木回复 ×3、土镇 ×2）。'), h('li', null, h('b', null, '相生（传气）：'), '按 ', h('em', null, '木→火→土→金→水'), ' 相邻，后一枚接过前一枚的气，越往后越大；', h('em', null, '链尾'), '那枚符的元素效果被放大。'), h('li', null, h('b', null, '相克（乘倍）：'), '按 ', h('em', null, '木→土→水→火→金'), ' 相邻，每一次相克倍率 ×1.3。同一手五行，排成相生是加气，排成相克是乘倍。'), h('li', null, h('b', null, '伤害 = 气 × 倍'), '：法宝自左向右再加、再乘。克制敌人元素的符点数翻倍，被克的减半。'), h('li', null, h('b', null, '剑意 / 天劫：'), '剑意满可开怒技（本招 ×3）；拖到第 8 回合天雷劈向双方。')), h('div.help-els', null, ...['jin', 'mu', 'shui', 'huo', 'tu'].map(el => h('div.help-el', null, tileView({ el, v: 5 }, { small: true }), h('span', null, { jin: '锐：暴击率 +12%', mu: '生：回复气血', shui: '护：获得护盾', huo: '焚：施加灼烧', tu: '镇：倍率 +0.5' }[el]))))), h('div.help-col', null, wuxingWheel(), patternTable(app.run))), first ? h('button.btn.seal', { type: 'button', onclick: () => { app.meta.tutorialDone = true; save(); close(); } }, '明白了，出发') : null), { onClose: () => { app.meta.tutorialDone = true; save(); } });
+    const close = showOverlay(h('div.help', null, h('h2.brush', null, '诀 谱'), h('div.help-cols', null, h('div.help-col', null, h('ol.help-steps', null, h('li', null, h('b', null, '把符当牌：'), '元素是花色，点数是牌面。点选 1–5 张出招，', h('em', null, '怎么排都一样'), '。每回合手牌全部刷新；「换符」不选符时整手全换。不会出就点「荐」。'), h('li', null, h('b', null, '成役：'), '同元素（同花）、同点数（对子、三条、葫芦）、连号（顺子）、五种元素齐、带克制敌人的符、两张凑 10 或三张凑 15，都能成役。', h('em', null, '每一路只算最高的役，不同路的番相加'), '，番数就是倍率。'), h('li', null, h('b', null, '伤害 = 气 × 番'), `：气是点数之和，每番另带 ${QI_PER_FAN} 气；`, '克制敌人的符点数 ×2，被克的 ×0.5。法宝自左向右再加、再乘。'), h('li', null, h('b', null, '得位与天成：'), '点数合河图数的符每张 +1 番（宝牌）；同花顺、五色同刻这类极难的牌是「天成」，直接给大倍率。'), h('li', null, h('b', null, '元素效果：'), '三张以上同元素触发', h('em', null, '共鸣'), '。护盾在挨打前生效，回复在挨打后生效。'), h('li', null, h('b', null, '剑意 / 天劫：'), '剑意满可开怒技（本招 ×3）；拖到第 8 回合天雷劈向双方。')), h('div.help-els', null, ...['jin', 'mu', 'shui', 'huo', 'tu'].map(el => h('div.help-el', null, tileView({ el, v: 5 }, { small: true }), h('span', null, { jin: '锐：暴击率 +12%', mu: '生：挨打后回复气血', shui: '护：获得护盾', huo: '焚：施加灼烧', tu: '镇：+0.5 番' }[el]))))), h('div.help-col', null, wuxingWheel(), patternTable(app.run))), first ? h('button.btn.seal', { type: 'button', onclick: () => { app.meta.tutorialDone = true; save(); close(); } }, '明白了，出发') : null), { onClose: () => { app.meta.tutorialDone = true; save(); } });
 }
 // —— Map ——
 const NODE_GLYPH = { fight: '斗', elite: '煞', event: '奇', shop: '市', rest: '憩', boss: '首' };
@@ -287,7 +295,7 @@ function restScreen(run, s) {
         return h('div.panel-scr.rest', null, h('div.event-glyph.brush', null, '憩'), h('h1.brush', null, '洞 府'), h('p.event-text', null, '调息已毕，可以上路了。'), h('button.btn.seal', { type: 'button', 'data-action': 'continue', onclick: () => act(r => R.leaveRest(r)) }, '继 续'));
     }
     const insights = R.insightChoices(run);
-    return h('div.panel-scr.rest', null, h('div.event-glyph.brush', null, '憩'), h('h1.brush', null, '洞 府'), h('p.event-text', null, '石室清冷，可以歇一歇。只能做一件事。'), h('div.rest-options', null, h('button.event-opt', { type: 'button', 'data-option': 'heal', onclick: () => act(r => R.restChoose(r, 'heal'), 'heal') }, h('b', null, '调息'), h('span', null, `回复 ${Math.round(run.maxHp * 0.4)} 气血（${run.hp}/${run.maxHp}）`)), h('button.event-opt', { type: 'button', 'data-option': 'forge', onclick: () => act(r => R.restChoose(r, 'forge')) }, h('b', null, '炼符'), h('span', null, '一枚符点数 +3，并附上一道符纹')), h('button.event-opt', { type: 'button', 'data-option': 'purge', onclick: () => act(r => R.restChoose(r, 'purge')) }, h('b', null, '净符'), h('span', null, `移除至多两枚符（符袋现有 ${run.bag.length} 枚）`)), h('div.event-opt.insight', null, h('b', null, '参悟'), h('span', null, '选一种诀式 +1 重'), h('div.insight-row', null, ...insights.map(id => h('button.chip', { type: 'button', onclick: () => act(r => R.restChoose(r, 'insight', id), 'reward') }, `${PATTERNS[id].name} ${run.patternLv[id] + 1}重`))))));
+    return h('div.panel-scr.rest', null, h('div.event-glyph.brush', null, '憩'), h('h1.brush', null, '洞 府'), h('p.event-text', null, '石室清冷，可以歇一歇。只能做一件事。'), h('div.rest-options', null, h('button.event-opt', { type: 'button', 'data-option': 'heal', onclick: () => act(r => R.restChoose(r, 'heal'), 'heal') }, h('b', null, '调息'), h('span', null, `回复 ${Math.round(run.maxHp * 0.4)} 气血（${run.hp}/${run.maxHp}）`)), h('button.event-opt', { type: 'button', 'data-option': 'forge', onclick: () => act(r => R.restChoose(r, 'forge')) }, h('b', null, '炼符'), h('span', null, '一枚符点数 +3，并附上一道符纹')), h('button.event-opt', { type: 'button', 'data-option': 'purge', onclick: () => act(r => R.restChoose(r, 'purge')) }, h('b', null, '净符'), h('span', null, `移除至多两枚符（符袋现有 ${run.bag.length} 枚）`)), h('div.event-opt.insight', null, h('b', null, '参悟'), h('span', null, '选一路心法 +1 重'), h('div.insight-row', null, ...insights.map(id => h('button.chip', { type: 'button', onclick: () => act(r => R.restChoose(r, 'insight', id), 'reward') }, `${PATTERNS[id].name} ${run.patternLv[id] + 1}重`))))));
 }
 // —— Pick tiles ——
 let picked = [];
@@ -331,7 +339,7 @@ function endScreen(run) {
         : won ? (report?.newEnding ? `新结局 · ${app.meta.endings.length}/${ENDINGS.length}` : `结局 ${app.meta.endings.length}/${ENDINGS.length}`)
             : `止步${ACTS[run.act - 1].name}。山海还在，再来。`;
     const gotThisRun = run.log.filter(l => l.startsWith('ach:')).map(l => ACH[l.slice(4)]).filter(Boolean);
-    return h(`div.scr.end-scr${won ? '.won' : '.lost'}`, null, h('img.bg.dim', { src: art(won ? 'bg-title' : ACTS[Math.min(4, run.act - 1)].bg), alt: '' }), h('div.end-left', null, h('div.end-seal.brush', null, title), h('div.end-sub', null, sub), won && run.ending && !run.endless ? h('div.ending-text.inline', null, ...ENDING[run.ending].text.map((t, i) => h('p', { style: { animationDelay: `${0.6 + i * 0.8}s` } }, t))) : null, h('div.end-stats', null, stat('最强一招', fmt(run.stats.bestHit), report?.newBest ? '新纪录' : ''), stat('最高诀式', run.stats.biggestPattern ? COMBOS[run.stats.biggestPattern]?.name ?? '—' : '—'), stat('斩敌', String(run.stats.kills)), stat('劫数', String(run.heat))), playStyle(run) ? h('div.play-style', null, '此行打法 · ', h('b', null, playStyle(run))) : null, report?.unlockedMethod ? h('div.unlock', null, `解锁功法：${METHOD[report.unlockedMethod].name}`) : null, h('button.btn.ink.small', { type: 'button', 'data-action': 'deeds', onclick: () => showDeeds(run) }, won ? '回看此行' : '此行行迹'), won ? null : reviewPanel(run)), h('div.end-right', null, st ? settlementPanel(st, gotThisRun) : null, h('div.end-actions', null, won && !run.endless ? h('button.btn.seal.endless-btn', { type: 'button', 'data-action': 'endless', onclick: () => { if (R.enterEndless(run)) {
+    return h(`div.scr.end-scr${won ? '.won' : '.lost'}`, null, h('img.bg.dim', { src: art(won ? 'bg-title' : ACTS[Math.min(4, run.act - 1)].bg), alt: '' }), h('div.end-left', null, h('div.end-seal.brush', null, title), h('div.end-sub', null, sub), won && run.ending && !run.endless ? h('div.ending-text.inline', null, ...ENDING[run.ending].text.map((t, i) => h('p', { style: { animationDelay: `${0.6 + i * 0.8}s` } }, t))) : null, h('div.end-stats', null, stat('最强一招', fmt(run.stats.bestHit), report?.newBest ? '新纪录' : ''), stat('最高役', run.stats.biggestPattern ? COMBOS[run.stats.biggestPattern]?.name ?? '—' : '—'), stat('斩敌', String(run.stats.kills)), stat('劫数', String(run.heat))), playStyle(run) ? h('div.play-style', null, '此行打法 · ', h('b', null, playStyle(run))) : null, report?.unlockedMethod ? h('div.unlock', null, `解锁功法：${METHOD[report.unlockedMethod].name}`) : null, h('button.btn.ink.small', { type: 'button', 'data-action': 'deeds', onclick: () => showDeeds(run) }, won ? '回看此行' : '此行行迹'), won ? null : reviewPanel(run)), h('div.end-right', null, st ? settlementPanel(st, gotThisRun) : null, h('div.end-actions', null, won && !run.endless ? h('button.btn.seal.endless-btn', { type: 'button', 'data-action': 'endless', onclick: () => { if (R.enterEndless(run)) {
             app.settlement = null;
             playSfx('thunder');
             save();

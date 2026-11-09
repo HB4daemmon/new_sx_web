@@ -1,5 +1,13 @@
 export const META_KEY = 'shanhai-v3-meta';
-const DEFAULT = { runs: 0, wins: 0, bestHit: 0, bestHitMethod: null, unlocked: [], heatWon: {}, maxHeat: 0, seen: [], sound: true, speed: 1, tutorialDone: false, endings: [], daoguo: 0, unlocks: [], achievements: [], mastery: {}, endlessBest: 0, daily: {}, lastPacts: {} };
+/** 可切换的画风（都由 tools/v3-art 生成）。 */
+export const ART_SETS = [
+    { id: '', name: '剪纸' },
+    { id: 'ink', name: '水墨' },
+    { id: 'gongbi', name: '工笔' },
+    { id: 'dunhuang', name: '敦煌' },
+    { id: 'guochao', name: '国潮' },
+];
+const DEFAULT = { runs: 0, wins: 0, bestHit: 0, bestHitMethod: null, unlocked: [], heatWon: {}, maxHeat: 0, seen: [], sound: true, speed: 1, tutorialDone: false, endings: [], daoguo: 0, unlocks: [], achievements: [], mastery: {}, endlessBest: 0, daily: {}, lastPacts: {}, artSet: '' };
 const strs = (x) => (Array.isArray(x) ? x.filter((v) => typeof v === 'string') : []);
 const nums = (x) => (x && typeof x === 'object' ? Object.fromEntries(Object.entries(x).filter(([, v]) => typeof v === 'number' && Number.isFinite(v) && v >= 0)) : {});
 export function readMeta(storage = globalThis.localStorage) {
@@ -26,6 +34,7 @@ export function readMeta(storage = globalThis.localStorage) {
             endlessBest: n(raw.endlessBest),
             daily: raw.daily && typeof raw.daily === 'object' ? Object.fromEntries(Object.entries(raw.daily).filter(([, v]) => v && typeof v === 'object').slice(-60)) : {},
             lastPacts: nums(raw.lastPacts),
+            artSet: ART_SETS.some(a => a.id === raw.artSet) ? raw.artSet : '',
         };
     }
     catch {

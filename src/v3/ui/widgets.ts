@@ -1,6 +1,6 @@
 import { MOD_DESC, MOD_NAME, RELIC, SPECIALS, TALENT, type RelicDef } from '../core/content.js';
 import { counterOf, EL_EFFECT, EL_NAME, GEN, KE, type El } from '../core/elements.js';
-import { PATTERNS, PATTERN_ORDER, patternValue } from '../core/patterns.js';
+import { PATTERNS, PATTERN_ORDER, QI_PER_FAN, YAKU, YAKU_ORDER } from '../core/patterns.js';
 import type { PatternId, RewardOption, RunState, Tile } from '../core/types.js';
 import { fmt, h } from './h.js';
 
@@ -8,7 +8,7 @@ export const elLabel = (el: El | 'zhuo') => (el === 'zhuo' ? '浊' : EL_NAME[el]
 
 export function tileView(tile: Omit<Tile, 'uid'> & { uid?: number }, opts: { small?: boolean; onclick?: (e: Event) => void; order?: number; title?: string } = {}) {
   const sp = tile.sp ? SPECIALS[tile.sp] : null;
-  const tip = tile.el === 'zhuo' ? '浊符：没有元素，0 点，会打断相生链' : `${sp ? `本门符「${sp.name}」：${sp.desc}\n` : ''}${EL_NAME[tile.el]}${tile.v}　${EL_EFFECT[tile.el]}${tile.mod ? `\n${MOD_DESC[tile.mod]}` : ''}`;
+  const tip = tile.el === 'zhuo' ? '浊符：没有元素，0 点，凑不成任何役' : `${sp ? `本门符「${sp.name}」：${sp.desc}\n` : ''}${EL_NAME[tile.el]}${tile.v}　${EL_EFFECT[tile.el]}${tile.mod ? `\n${MOD_DESC[tile.mod]}` : ''}`;
   return h(`button.tile.el-${tile.el}${tile.mod ? `.mod-${tile.mod}` : ''}${sp ? `.sp.sp-${sp.id}` : ''}${opts.small ? '.small' : ''}`, {
     type: 'button', 'data-uid': tile.uid, title: opts.title ?? tip, onclick: opts.onclick, 'aria-label': tip,
   },
@@ -44,11 +44,8 @@ export function optionCard(run: RunState, option: RewardOption) {
       h('div.card-desc', null, option.tile.el === 'zhuo' ? '' : EL_EFFECT[option.tile.el]), option.tile.mod ? h('div.card-desc.dim', null, MOD_DESC[option.tile.mod]) : null);
     case 'pattern': {
       const lv = run.patternLv[option.pattern];
-      const now = patternValue(option.pattern, lv);
-      const next = patternValue(option.pattern, lv + 1);
-      void now; void next;
       return h('div.card-pattern', null, h('div.pattern-seal', null, PATTERNS[option.pattern].name),
-        h('div.card-title', null, `心法 · ${PATTERNS[option.pattern].name} ${lv + 1}重`),
+        h('div.card-title', null, `心法 · ${PATTERNS[option.pattern].name}（${PATTERNS[option.pattern].alias}）${lv + 1}重`),
         h('div.card-desc', null, PATTERNS[option.pattern].hint),
         h('div.card-desc.num', null, patternText(option.pattern, lv), ' → ', h('b', null, patternText(option.pattern, lv + 1))));
     }
@@ -80,7 +77,7 @@ export function wuxingWheel(enemyEl?: El) {
     <defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="rgba(240,228,207,.7)"/></marker></defs>
     ${order.map((el, i) => { const a = pos[i], b = pos[(i + 1) % 5]; const mx = a.x + (b.x - a.x) * 0.24, my = a.y + (b.y - a.y) * 0.24, nx = a.x + (b.x - a.x) * 0.76, ny = a.y + (b.y - a.y) * 0.76; void el; return `<line x1="${mx}" y1="${my}" x2="${nx}" y2="${ny}" stroke="rgba(240,228,207,.55)" stroke-width="1.6" marker-end="url(#arr)"/>`; }).join('')}
   </svg>`;
-  const wrap = h('div.wheel', { html: svg, title: '五行相生：木→火→土→金→水→木。按此顺序连出即成相生诀。' });
+  const wrap = h('div.wheel', { html: svg, title: '五行相克：克制敌人元素的符点数 ×2，三张以上成「破阵」。' });
   order.forEach((el, i) => {
     wrap.appendChild(h(`span.wheel-node.el-${el}${el === counter ? '.counter' : ''}${el === weak ? '.weak' : ''}`, { style: { left: `${pos[i].x}%`, top: `${pos[i].y}%` } }, EL_NAME[el]));
   });
@@ -88,24 +85,28 @@ export function wuxingWheel(enemyEl?: El) {
   return wrap;
 }
 
+/** 役表（诀谱）：按路分组，每路只算最高的一个役；心法每重 +1 番。 */
 export function patternTable(run: RunState | null, highlight?: PatternId) {
-  return h('div.pattern-table', null, ...[...PATTERN_ORDER].reverse().map(id => {
+  const rows = PATTERN_ORDER.map(id => {
     const lv = run?.patternLv[id] ?? 1;
+    const list = YAKU_ORDER.filter(y => YAKU[y].path === id);
     return h(`div.pattern-row${id === highlight ? '.hl' : ''}`, null,
-      h('span.pr-name', null, PATTERNS[id].name, lv > 1 ? h('small', null, ` ${lv}重`) : null),
-      h('span.pr-hint', null, PATTERNS[id].hint),
-      h('span.pr-val', null, patternText(id, lv)));
-  }));
+      h('span.pr-name', null, PATTERNS[id].name, h('small', null, `（${PATTERNS[id].alias}）`), lv > 1 ? h('small.pr-lv', null, ` ${lv}重 +${lv - 1}番`) : null),
+      h('span.pr-yaku', null, ...list.map(y => h('span.yk', { title: YAKU[y].desc }, h('b', null, YAKU[y].name), h('small', null, `${YAKU[y].alias} `), h('i', null, `${YAKU[y].fan}番`)))));
+  });
+  const tian = YAKU_ORDER.filter(y => YAKU[y].path === 'tian');
+  return h('div.pattern-table', null,
+    h('p.pt-rule', null, `每一路只算最高的一个役，不同路的番相加，番数就是倍率。每番另带 ${QI_PER_FAN} 气。`),
+    ...rows,
+    h('div.pattern-row', null, h('span.pr-name', null, '得位', h('small', null, '（宝牌）')),
+      h('span.pr-yaku', null, h('span.yk', null, '点数合河图数，每张 +1 番：', h('b', null, '水1/6 火2/7 木3/8 金4/9 土5/10')))),
+    h('div.pattern-row.tian', null, h('span.pr-name', null, '天成', h('small', null, '（役满）')),
+      h('span.pr-yaku', null, ...tian.map(y => h('span.yk', { title: YAKU[y].desc }, h('b', null, YAKU[y].name), h('small', null, `${YAKU[y].alias} `), h('i', null, `${YAKU[y].fan}番`))))));
 }
 
-/** What one level of a 诀 gives, in words. */
-export function patternText(id: PatternId, level: number): string {
-  const v = patternValue(id, level);
-  const r = (n: number) => String(Math.round(n * 100) / 100);
-  if (id === 'sheng') return `传气 ${Math.round(v.qi * 100)}% · 每链 +${r(v.mult)}倍`;
-  if (id === 'ke') return `每克 ×${r(v.mult)}`;
-  if (id === 'wuxing') return `+${r(v.mult)} 倍`;
-  return `+${v.qi} 气 · +${r(v.mult)} 倍`;
+/** What a 心法 level gives, in words. */
+export function patternText(_id: PatternId, level: number): string {
+  return level > 1 ? `成役时 +${level - 1} 番` : '未升重';
 }
 
 export const GEN_TEXT = `相生：${(['mu', 'huo', 'tu', 'jin', 'shui'] as El[]).map(e => EL_NAME[e]).join('→')}→${EL_NAME[GEN.shui]}`;

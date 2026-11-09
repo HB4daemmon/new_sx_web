@@ -89,6 +89,6 @@ test('map threat grows with the act and 最常用诀 shows up as favourite', () 
   const a1 = enemyThreat(run, 'shiyuan');
   run.act = 3;
   assert.ok(enemyThreat(run, 'shiyuan') > a1 && a1 > 0);
-  run.stats.use = { sheng: 5, dui: 1, ke: 3 };
-  assert.deepEqual(favouritePatterns(run), ['sheng', 'ke']);
+  run.stats.use = { lian: 5, yuan: 1, podi: 3 };
+  assert.deepEqual(favouritePatterns(run), ['lian', 'podi']);
 });

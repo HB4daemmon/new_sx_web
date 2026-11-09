@@ -23,9 +23,20 @@ export interface Meta {
   endlessBest: number;
   daily: Record<string, { act: number; won: boolean; bestHit: number; endless: number }>;
   lastPacts: Record<string, number>;
+  /** 画风: '' = 剪纸（默认），否则 assets/v3/<set>/。 */
+  artSet: string;
 }
 export const META_KEY = 'shanhai-v3-meta';
-const DEFAULT: Meta = { runs: 0, wins: 0, bestHit: 0, bestHitMethod: null, unlocked: [], heatWon: {}, maxHeat: 0, seen: [], sound: true, speed: 1, tutorialDone: false, endings: [], daoguo: 0, unlocks: [], achievements: [], mastery: {}, endlessBest: 0, daily: {}, lastPacts: {} };
+/** 可切换的画风（都由 tools/v3-art 生成）。 */
+export const ART_SETS = [
+  { id: '', name: '剪纸' },
+  { id: 'ink', name: '水墨' },
+  { id: 'gongbi', name: '工笔' },
+  { id: 'dunhuang', name: '敦煌' },
+  { id: 'guochao', name: '国潮' },
+];
+
+const DEFAULT: Meta = { runs: 0, wins: 0, bestHit: 0, bestHitMethod: null, unlocked: [], heatWon: {}, maxHeat: 0, seen: [], sound: true, speed: 1, tutorialDone: false, endings: [], daoguo: 0, unlocks: [], achievements: [], mastery: {}, endlessBest: 0, daily: {}, lastPacts: {}, artSet: '' };
 
 const strs = (x: unknown) => (Array.isArray(x) ? x.filter((v): v is string => typeof v === 'string') : []);
 const nums = (x: unknown) => (x && typeof x === 'object' ? Object.fromEntries(Object.entries(x).filter(([, v]) => typeof v === 'number' && Number.isFinite(v) && v >= 0)) as Record<string, number> : {});
@@ -53,6 +64,7 @@ export function readMeta(storage: Pick<Storage, 'getItem'> | undefined = globalT
       endlessBest: n(raw.endlessBest),
       daily: raw.daily && typeof raw.daily === 'object' ? Object.fromEntries(Object.entries(raw.daily).filter(([, v]) => v && typeof v === 'object').slice(-60)) as Meta['daily'] : {},
       lastPacts: nums(raw.lastPacts),
+      artSet: ART_SETS.some(a => a.id === raw.artSet) ? raw.artSet : '',
     };
   } catch {
     return { ...DEFAULT };
