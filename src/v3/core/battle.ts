@@ -1,7 +1,7 @@
 import { ACT_ATK, ACT_HP, ENEMY, HEAT_ATK, HEAT_HP, RANK_ATK, RANK_HP } from './enemies.js';
 import { GEN, type El } from './elements.js';
 import { next, shuffle, int, type Rng } from './rng.js';
-import { COMBOS, YAKU } from './patterns.js';
+import { COMBOS, HETU, YAKU } from './patterns.js';
 import { pactRank } from './pacts.js';
 import { computeCast, defenseScale, has, relicFlag, type CastResult } from './score.js';
 import { SPECIALS } from './content.js';
@@ -33,7 +33,7 @@ export type BEvent =
 export const MAX_CAST = 5;
 export const handSize = (run: RunState) => 7 + (has(run, 'yiqi') ? 1 : 0) + (run.vow === 'juenian' ? 2 : 0) - (pactRank(run, 'narrow') ? 1 : 0);
 export const discardsPerTurn = (run: RunState) => (run.vow === 'juenian' ? 0 : 2 + (has(run, 'douzhuan') ? 1 : 0));
-export const tribulationStart = (run: RunState) => (has(run, 'yinjie') ? 5 : 8) - (pactRank(run, 'short') ? 2 : 0);
+export const tribulationStart = (run: RunState) => Math.max(3, (has(run, 'yinjie') ? 5 : 8) - (pactRank(run, 'short') ? 2 : 0) - (run.fate === 'yingjie' ? 2 : 0));
 export const swordDamage = (run: RunState) => 4 + run.realm * 4;
 /** Burn on enemies grows with realm so it keeps up with act HP. */
 export const burnPower = (run: RunState) => 1 + run.realm;
@@ -82,9 +82,29 @@ export function startBattle(run: RunState, enemyId: string, kind: NodeKind): Bat
     const pool = battle.draw.filter(t => t.el !== 'zhuo' && !t.mod);
     for (let i = 0; i < 2 && pool.length; i += 1) pool.splice(int(rng, 0, pool.length - 1), 1)[0].mod = 'huan';
   }
+  // 星宿命: one 宿 per fight (two once awakened), each doubling one 路.
+  if (run.fate === 'xingxiu') {
+    battle.stacks.star = int(rng, 0, 5);
+    if (run.realm >= 2) battle.stacks.star2 = (battle.stacks.star + 1 + int(rng, 0, 4)) % 6;
+  }
+  // 河图命 化境: two random tiles take their element's 河图数 for this fight.
+  if (run.fate === 'hetu' && run.realm >= 2) {
+    const pool = battle.draw.filter(t => t.el !== 'zhuo');
+    for (let i = 0; i < 2 && pool.length; i += 1) { const t = pool.splice(int(rng, 0, pool.length - 1), 1)[0]; const n = HETU[t.el as El]; t.v = t.v > 5 ? n + 5 : n; }
+  }
+  // 温养: the bag's biggest tile grows for good at the start of every fight.
+  const grow = has(run, 'wenyang3') ? 3 : has(run, 'wenyang2') ? 2 : has(run, 'wenyang1') ? 1 : 0;
+  if (grow) {
+    const top = run.bag.filter(t => t.el !== 'zhuo').sort((a, b) => b.v - a.v)[0];
+    if (top) { top.v += grow; const copy = battle.draw.find(t => t.uid === top.uid); if (copy) copy.v += grow; }
+  }
   turnStartShield(run, battle);
   drawTo(run, battle);
   turnRolls(run, battle);
+  if (has(run, 'bubu')) {
+    const top = battle.hand.filter(t => t.el !== 'zhuo').sort((a, b) => b.v - a.v)[0];
+    if (top) { top.v += 5; battle.stacks.bubuUid = top.uid; }
+  }
   return battle;
 }
 
@@ -166,9 +186,16 @@ export function discardTiles(run: RunState, battle: BattleState, uids: number[])
 export const rageCost = (battle: BattleState) => battle.stacks.rageCost || 100;
 export const canRage = (battle: BattleState) => battle.qi >= rageCost(battle);
 
+/** What the enemy is about to deal this turn (read by 借势). */
+function noteIncoming(run: RunState, battle: BattleState) {
+  const intent = battle.enemy.intent;
+  battle.stacks.incoming = intent.atk ? enemyAttack(run, battle) * (intent.hits ?? 1) : 0;
+}
+
 export function previewCast(run: RunState, battle: BattleState, uids: number[], rage: boolean): CastResult | null {
   const tiles = uids.map(uid => battle.hand.find(tile => tile.uid === uid)).filter(Boolean) as Tile[];
   if (!tiles.length) return null;
+  noteIncoming(run, battle);
   return computeCast(run, battle, tiles, rage && canRage(battle));
 }
 
@@ -226,6 +253,8 @@ function damagePlayer(run: RunState, battle: BattleState, amount: number, src: '
   if (src !== 'blood' && player.shield > 0) {
     blocked = Math.min(player.shield, amount);
     player.shield -= blocked;
+    // 百折: a broken shield toughens you for good.
+    if (player.shield <= 0 && run.talents.includes('baizhe')) { run.maxHp += 5; player.maxHp += 5; }
     const drum = relicFlag(run, 'drumQi');
     if (drum) battle.stacks.drum = (battle.stacks.drum ?? 0) + blocked * drum;
   }
@@ -247,6 +276,7 @@ export function cast(run: RunState, battle: BattleState, uids: number[], rageWan
   const tiles = uids.map(uid => battle.hand.find(tile => tile.uid === uid)).filter(Boolean) as Tile[];
   if (tiles.length !== uids.length) return null;
   const rage = rageWanted && canRage(battle);
+  noteIncoming(run, battle);
   const result = computeCast(run, battle, tiles, rage, next(run.rng));
   const events: BEvent[] = [];
   battle.hand = battle.hand.filter(tile => !uids.includes(tile.uid));
@@ -312,6 +342,19 @@ export function cast(run: RunState, battle: BattleState, uids: number[], rageWan
     tiles[0].v += 2;
     const own = run.bag.find(t => t.uid === tiles[0].uid);
     if (own) own.v += 2;
+  }
+  // 拓印: the turn's first cast leaves a copy of its biggest tile on top of the draw pile.
+  if (has(run, 'tuoyin') && battle.castsThisTurn === 1) {
+    const top = [...tiles].filter(t => t.el !== 'zhuo').sort((a, b) => b.v - a.v)[0];
+    if (top) { battle.stacks.tempSeq = (battle.stacks.tempSeq ?? 0) + 1; battle.draw.push({ uid: -700000 - battle.stacks.tempSeq, el: top.el, v: top.v }); }
+  }
+  // 法相天地: every 役 makes every tile in this battle +1.
+  if (has(run, 'faxiang') && result.yaku.length) for (const t of [...battle.hand, ...battle.draw, ...battle.discard]) if (t.el !== 'zhuo') t.v += result.yaku.length;
+  // 步步为营: the boosted tile landing the killing blow keeps its +5.
+  if ((battle.outcome as string) === 'won' && battle.stacks.bubuUid && uids.includes(battle.stacks.bubuUid)) {
+    const own = run.bag.find(t => t.uid === battle.stacks.bubuUid);
+    if (own) own.v += 5;
+    battle.stacks.bubuKept = 1;
   }
   recordUse(run, result);
   battle.bestHit = Math.max(battle.bestHit, total);
@@ -407,8 +450,13 @@ function enemyTurn(run: RunState, battle: BattleState, events: BEvent[]) {
   if (battle.turn >= start) {
     const level = battle.turn - start + 1;
     events.push({ k: 'tribulation', level });
-    damageEnemy(run, battle, Math.round(enemy.maxHp * 0.07 * level), 'tribulation', events);
-    if (!has(run, 'yinjie') && battle.outcome === 'fighting') damagePlayer(run, battle, Math.round(battle.player.maxHp * 0.05 * level), 'tribulation', events);
+    damageEnemy(run, battle, Math.round(enemy.maxHp * 0.07 * level * (run.fate === 'yingjie' && run.realm >= 2 ? 2 : 1)), 'tribulation', events);
+    if (!has(run, 'yinjie') && battle.outcome === 'fighting') {
+      const bolt = Math.round(battle.player.maxHp * 0.05 * level);
+      // 应劫命: the bolt meant for you becomes a shield.
+      if (run.fate === 'yingjie') { battle.player.shield += bolt; events.push({ k: 'shield', to: 'player', amount: bolt }); }
+      else damagePlayer(run, battle, bolt, 'tribulation', events);
+    }
     if (battle.outcome !== 'fighting') return;
   }
 

@@ -1,5 +1,5 @@
 import { cast as battleCast, discardTiles, startBattle } from './battle.js';
-import { METHOD, RELIC, RELICS, RELIC_PRICE, TALENT, TALENTS, VOW } from './content.js';
+import { FATE, METHOD, RELIC, RELICS, RELIC_PRICE, TALENT, TALENTS, TALENT_TIER_ODDS, VOW } from './content.js';
 import { ELEMENTS } from './elements.js';
 import { ENEMIES, ENEMY } from './enemies.js';
 import { EVENTS, EVENT } from './events.js';
@@ -35,8 +35,23 @@ export function createRun(opts) {
         for (let i = 0; i < 2; i += 1)
             addTile(run, { el: sp.el, v: sp.v, sp: sp.id });
     applyStartPerks(run);
+    applyFate(run, opts.fate ?? null, opts.fateEl ?? null);
     run.map = generateMap(run, 1);
     return run;
+}
+/** Every 灵石 the player pays at a shop or reward screen goes through here (点石成金 counts it). */
+export function spend(run, amount) {
+    run.gold -= amount;
+    if (!run.talents.includes('dianshi'))
+        return;
+    const c = (run.counters ??= {});
+    c.spent = (c.spent ?? 0) + amount;
+    while (c.spent >= 50) {
+        c.spent -= 50;
+        const top = run.bag.filter(t => t.el !== 'zhuo').sort((a, b) => b.v - a.v)[0];
+        if (top)
+            top.v += 3;
+    }
 }
 export const unlocked = (run, id) => run.unlocks?.includes(id) ?? false;
 export const mastery = (run, level) => unlocked(run, `m:${run.method}:${level}`);
@@ -58,6 +73,29 @@ function applyStartPerks(run) {
         run.relics.push(SIGNATURE[run.method]);
     for (let i = 0; i < 2 * pactRank(run, 'murk'); i += 1)
         addTile(run, { el: 'zhuo', v: 0 });
+}
+/** 命格：开局改写的规则。 */
+export const fateIs = (run, id) => run.fate === id;
+/** 化境：突破到金丹（第二次突破）起生效。 */
+export const fateAwake = (run, id) => run.fate === id && run.realm >= 2;
+function applyFate(run, fate, el) {
+    if (!fate || !FATE[fate])
+        return;
+    run.fate = fate;
+    if (fate === 'pianku') {
+        run.fateEl = el && ELEMENTS.includes(el) ? el : METHOD[run.method].el;
+        for (let v = 1; v <= 5; v += 1)
+            addTile(run, { el: run.fateEl, v });
+    }
+    if (fate === 'guxing') {
+        run.relicSlots = 3;
+        run.relics = run.relics.slice(0, 3);
+    }
+    if (fate === 'tianyan') {
+        run.maxHp = Math.round(run.maxHp * 0.85);
+        run.hp = Math.min(run.hp, run.maxHp);
+    }
+    (run.counters ??= {}).reshape = fate === 'tianyan' ? 1 : 0;
 }
 export function addTile(run, tile) {
     const made = { ...tile, uid: run.nextUid++ };
@@ -252,6 +290,17 @@ export function concludeBattle(run) {
         return;
     }
     run.stats.kills += 1;
+    // 行险: a clean win pays more each time in a row; a bad scrape resets it.
+    if (run.talents.includes('xingxian')) {
+        const c = (run.counters ??= {});
+        const lost = (battle.stacks.startHp ?? battle.player.hp) - battle.player.hp;
+        if (lost <= 0) {
+            c.streak = (c.streak ?? 0) + 1;
+            run.gold += 10 * c.streak;
+        }
+        else if (lost > battle.player.maxHp / 2)
+            c.streak = 0;
+    }
     if (run.method === 'yangjian')
         run.swordsKept = Math.floor(battle.swords / 2);
     run.hp = Math.max(1, Math.min(run.maxHp, battle.player.hp));
@@ -276,10 +325,10 @@ export function concludeBattle(run) {
         return;
     }
     const extraGold = RELICS.filter(r => run.relics.includes(r.id)).reduce((s, r) => s + (r.flags?.afterGold ?? 0), 0);
-    const gold = (kind === 'boss' ? 60 : kind === 'elite' ? 30 : int(run.rng, 12, 18)) + extraGold;
+    const gold = ((kind === 'boss' ? 60 : kind === 'elite' ? 30 : int(run.rng, 12, 18)) + extraGold) * (fateIs(run, 'sanxiu') ? 2 : 1);
     run.gold += gold;
-    const options = rewardOptions(run, 3);
-    const relicOptions = kind === 'fight' ? (chance(run.rng, 0.12) ? relicChoices(run, 1, kind) : []) : relicChoices(run, 3 + (unlocked(run, 'boss1') ? 1 : 0), kind);
+    const options = rewardOptions(run, fateIs(run, 'bailian') ? 2 : 3);
+    const relicOptions = fateIs(run, 'sanxiu') ? [] : kind === 'fight' ? (chance(run.rng, 0.12) ? relicChoices(run, 1, kind) : []) : relicChoices(run, 3 + (unlocked(run, 'boss1') ? 1 : 0), kind);
     const next = kind !== 'boss' ? 'map' : run.endless ? 'endless' : 'breakthrough';
     run.screen = { name: 'reward', gold, options, relicOptions, picked: false, relicPicked: relicOptions.length === 0, next, story: kind === 'boss' && !run.endless ? BOSS_STORY[enemyId]?.after : undefined };
 }
@@ -444,7 +493,7 @@ export function rerollReward(run) {
     const screen = run.screen;
     if (screen.name !== 'reward' || screen.picked || screen.rerolled || !screen.options.length || run.gold < rerollPrice(run))
         return false;
-    run.gold -= rerollPrice(run);
+    spend(run, rerollPrice(run));
     screen.options = rewardOptions(run, 3);
     screen.rerolled = true;
     run.stats.rerolls = (run.stats.rerolls ?? 0) + 1;
@@ -470,13 +519,47 @@ export function leaveReward(run) {
     }
     if (screen.next === 'breakthrough') {
         run.realm += 1;
+        if (run.realm === 2 && fateIs(run, 'guxing'))
+            run.relicSlots = Math.min(MAX_RELIC_SLOTS, run.relicSlots + 1);
         run.maxHp += 25;
         run.hp = run.maxHp;
-        const pool = TALENTS.filter(t => !run.talents.includes(t.id) && !(t.id === 'dongtian' && run.relicSlots >= MAX_RELIC_SLOTS));
-        run.screen = { name: 'breakthrough', options: sample(run.rng, pool, 3).map(t => ({ type: 'talent', talent: t.id })) };
+        run.screen = { name: 'breakthrough', options: talentChoices(run, run.act).map(id => ({ type: 'talent', talent: id })) };
         return;
     }
     run.screen = { name: 'map' };
+}
+/** 突破三选一：每个选项按本幕的档位比例抽档（凡/灵/仙），不重复；第二幕起至少一个灵档以上。 */
+export function talentChoices(run, act) {
+    const odds = TALENT_TIER_ODDS[Math.max(1, Math.min(4, act))];
+    const pool = TALENTS.filter(t => !run.talents.includes(t.id) && !(t.id === 'dongtian' && run.relicSlots >= MAX_RELIC_SLOTS));
+    const order = ['common', 'rare', 'legend'];
+    const out = [];
+    for (let i = 0; i < 3; i += 1) {
+        let tier = pickWeighted(run, odds);
+        if (i === 2 && act >= 2 && out.every(id => TALENT[id].tier === 'common') && tier === 'common')
+            tier = 'rare';
+        // Empty tier: try the neighbours, nearest first.
+        const idx = order.indexOf(tier);
+        const tries = [tier, order[idx + 1], order[idx - 1], order[idx + 2], order[idx - 2]].filter(Boolean);
+        for (const t of tries) {
+            const left = pool.filter(x => x.tier === t && !out.includes(x.id));
+            if (left.length) {
+                out.push(pick(run.rng, left).id);
+                break;
+            }
+        }
+    }
+    return out;
+}
+function pickWeighted(run, weights) {
+    const entries = Object.entries(weights);
+    let roll = next(run.rng) * entries.reduce((s, [, w]) => s + w, 0);
+    for (const [k, w] of entries) {
+        roll -= w;
+        if (roll <= 0)
+            return k;
+    }
+    return entries[entries.length - 1][0];
 }
 export function chooseBreakthrough(run, index) {
     const screen = run.screen;
@@ -487,30 +570,32 @@ export function chooseBreakthrough(run, index) {
 }
 export function advanceAct(run) {
     run.act += 1;
+    if (fateIs(run, 'tianyan'))
+        (run.counters ??= {}).reshape = fateAwake(run, 'tianyan') ? 2 : 1;
     run.at = null;
     run.map = generateMap(run, run.act);
     run.screen = { name: 'story', act: run.act };
 }
 // —— Shop ——
 export function optionPrice(run, option) {
-    const discount = 1;
+    const discount = fateIs(run, 'sanxiu') ? 0.7 : 1;
     switch (option.type) {
         case 'relic': return Math.round(RELIC_PRICE[RELIC[option.relic].rarity] * discount * (pactRank(run, 'miser') ? 1.3 : 1));
-        case 'tile': return Math.round((30 + (option.tile.mod ? (RARE_MODS.includes(option.tile.mod) ? 35 : 15) : 0) + option.tile.v * 2) * (pactRank(run, 'miser') ? 1.3 : 1));
-        case 'pattern': return Math.round(45 * (pactRank(run, 'miser') ? 1.3 : 1));
-        case 'heal': return Math.round(30 * (pactRank(run, 'miser') ? 1.3 : 1));
+        case 'tile': return Math.round((30 + (option.tile.mod ? (RARE_MODS.includes(option.tile.mod) ? 35 : 15) : 0) + option.tile.v * 2) * discount * (pactRank(run, 'miser') ? 1.3 : 1));
+        case 'pattern': return Math.round(45 * discount * (pactRank(run, 'miser') ? 1.3 : 1));
+        case 'heal': return Math.round(30 * discount * (pactRank(run, 'miser') ? 1.3 : 1));
         default: return 0;
     }
 }
 function makeShop(run) {
     const options = [
-        ...relicChoices(run, 3, 'shop'),
+        ...relicChoices(run, fateAwake(run, 'sanxiu') ? 4 : 3, 'shop'),
         { type: 'tile', tile: randomTile(run, 1) }, { type: 'tile', tile: randomTile(run, 1) }, { type: 'tile', tile: randomTile(run, 2) },
         ...sample(run.rng, PATTERN_ORDER, 2).map(pattern => ({ type: 'pattern', pattern })),
         { type: 'heal', amount: Math.round(run.maxHp * 0.35) },
     ];
     const items = options.map(option => ({ option, price: optionPrice(run, option), sold: false }));
-    return { name: 'shop', items, removePrice: 40 + 15 * run.log.filter(l => l === 'removed').length, removed: false };
+    return { name: 'shop', items, removePrice: Math.round((40 + 15 * run.log.filter(l => l === 'removed').length) * (fateIs(run, 'sanxiu') ? 0.7 : 1)), removed: false };
 }
 export function buy(run, index, replaceSlot) {
     const screen = run.screen;
@@ -521,17 +606,17 @@ export function buy(run, index, replaceSlot) {
         return false;
     if (!applyOption(run, item.option, replaceSlot))
         return false;
-    run.gold -= item.price;
+    spend(run, item.price);
     item.sold = true;
     return true;
 }
 /** 补货: once per shop, pay to replace everything still on the shelf. */
-export const restockPrice = (run) => Math.round(25 * (pactRank(run, 'miser') ? 1.3 : 1));
+export const restockPrice = (run) => Math.round(25 * (pactRank(run, 'miser') ? 1.3 : 1) * (fateIs(run, 'sanxiu') ? 0.7 : 1));
 export function restockShop(run) {
     const screen = run.screen;
     if (screen.name !== 'shop' || screen.restocked || run.gold < restockPrice(run))
         return false;
-    run.gold -= restockPrice(run);
+    spend(run, restockPrice(run));
     const fresh = makeShop(run);
     screen.items = screen.items.map((item, i) => (item.sold ? item : fresh.items[i]));
     screen.restocked = true;
@@ -562,7 +647,7 @@ export function mergeGroups(run) {
             groups.set(`${t.el}:${t.v}`, [...(groups.get(`${t.el}:${t.v}`) ?? []), t]);
     return [...groups.values()].filter(g => g.length >= 3);
 }
-export const mergePrice = (run) => Math.round(35 * (pactRank(run, 'miser') ? 1.3 : 1));
+export const mergePrice = (run) => Math.round(35 * (pactRank(run, 'miser') ? 1.3 : 1) * (fateIs(run, 'sanxiu') ? 0.7 : 1));
 const MERGE_TITLE = '三张归一 · 选三张同元素、同点数的符，合成一张：点数 ×2，保留最好的符纹';
 export function startMerge(run) {
     const screen = run.screen;
@@ -571,24 +656,31 @@ export function startMerge(run) {
     run.screen = { name: 'pick-tile', purpose: 'merge', count: 3, then: { ...screen }, title: `${MERGE_TITLE}（花费 ${mergePrice(run)} 灵石）`, price: mergePrice(run) };
 }
 const MOD_RANK = { ling: 3, huan: 3, bao: 2, lei: 2 };
+/** 百炼命: the 洞府 allows a second action. */
+function restAfter(run) {
+    const cur = run.screen;
+    return fateIs(run, 'bailian') && cur.name === 'rest' && !cur.used ? { name: 'rest', used: 1 } : { name: 'rest', done: true };
+}
 export function restChoose(run, choice, pattern) {
     if (run.screen.name !== 'rest' || run.screen.done)
         return;
+    const after = restAfter(run);
+    const plus = fateIs(run, 'bailian') ? '（百炼：再 +2）' : '';
     if (choice === 'heal') {
         run.hp = Math.min(run.maxHp, run.hp + Math.round(run.maxHp * restHeal(run)));
-        run.screen = { name: 'rest', done: true };
+        run.screen = after;
     }
     if (choice === 'forge')
-        run.screen = { name: 'pick-tile', purpose: 'upgrade', count: 1, then: { name: 'rest', done: true }, title: '炼符 · 选一枚符：点数 +3，并附上一道符纹' };
+        run.screen = { name: 'pick-tile', purpose: 'upgrade', count: 1, then: after, title: `炼符 · 选一枚符：点数 +3${plus}，并附上一道符纹` };
     if (choice === 'purge')
-        run.screen = { name: 'pick-tile', purpose: 'remove', count: 2, then: { name: 'rest', done: true }, title: '净符 · 选至多两枚符永久移除' };
+        run.screen = { name: 'pick-tile', purpose: 'remove', count: 2, then: after, title: '净符 · 选至多两枚符永久移除' };
     if (choice === 'merge' && mergeGroups(run).length)
-        run.screen = { name: 'pick-tile', purpose: 'merge', count: 3, then: { name: 'rest', done: true }, title: MERGE_TITLE };
+        run.screen = { name: 'pick-tile', purpose: 'merge', count: 3, then: after, title: MERGE_TITLE + plus };
     if (choice === 'fuse')
-        run.screen = { name: 'pick-tile', purpose: 'fuse', count: 2, then: { name: 'rest', done: true }, title: '熔符 · 选两枚符熔成一枚：点数相加，元素取第一枚，并成宝符' };
+        run.screen = { name: 'pick-tile', purpose: 'fuse', count: 2, then: after, title: `熔符 · 选两枚符熔成一枚：点数相加${plus}，元素取第一枚，并成宝符` };
     if (choice === 'insight' && pattern) {
         run.patternLv[pattern] += 1;
-        run.screen = { name: 'rest', done: true };
+        run.screen = after;
     }
 }
 export const restHeal = (run) => (unlocked(run, 'rest1') ? 0.55 : 0.4);
@@ -612,49 +704,104 @@ export function pickTiles(run, uids) {
         if (screen.then.name === 'shop' && screen.price) {
             if (run.gold < screen.price)
                 return false;
-            run.gold -= screen.price;
+            spend(run, screen.price);
             run.log.push('removed');
             screen.then.removePrice = screen.price + 20;
         }
         run.bag = run.bag.filter(t => !uids.includes(t.uid));
     }
+    const craft = fateIs(run, 'bailian') ? 2 : 0;
     if (screen.purpose === 'upgrade')
         for (const tile of tiles) {
-            tile.v += 3;
-            if (!tile.mod && tile.el !== 'zhuo')
+            tile.v += 3 + craft;
+            if (tile.el === 'zhuo')
+                continue;
+            if (fateAwake(run, 'bailian') && !RARE_MODS.includes(tile.mod))
+                tile.mod = pick(run.rng, RARE_MODS);
+            else if (!tile.mod)
                 tile.mod = pickMod(run, 1);
         }
     if (screen.purpose === 'reforge')
         for (const tile of tiles)
             if (tile.el !== 'zhuo')
                 tile.mod = 'bao';
+    if (screen.purpose === 'devour') {
+        if (tiles.length !== 1)
+            return false;
+        devour(run, tiles[0]);
+    }
     if (screen.purpose === 'merge') {
         if (tiles.length !== 3 || tiles.some(t => t.el === 'zhuo' || t.el !== tiles[0].el || t.v !== tiles[0].v))
             return false;
         if (screen.price) {
             if (run.gold < screen.price)
                 return false;
-            run.gold -= screen.price;
+            spend(run, screen.price);
             screen.then.merged = true;
         }
         run.bag = run.bag.filter(t => !uids.includes(t.uid));
         const best = [...tiles].sort((a, b) => (MOD_RANK[b.mod ?? ''] ?? 0) - (MOD_RANK[a.mod ?? ''] ?? 0))[0];
-        addTile(run, { el: tiles[0].el, v: tiles[0].v * 2, mod: best.mod ?? 'bao', ...(best.sp ? { sp: best.sp } : {}) });
+        addTile(run, { el: tiles[0].el, v: tiles[0].v * 2 + craft, mod: best.mod ?? 'bao', ...(best.sp ? { sp: best.sp } : {}) });
     }
     if (screen.purpose === 'fuse') {
         if (tiles.length !== 2)
             return false;
         run.bag = run.bag.filter(t => !uids.includes(t.uid));
         const el = tiles[0].el === 'zhuo' ? tiles[1].el : tiles[0].el;
-        addTile(run, el === 'zhuo' ? { el, v: 0 } : { el, v: tiles[0].v + tiles[1].v, mod: 'bao' });
+        addTile(run, el === 'zhuo' ? { el, v: 0 } : { el, v: tiles[0].v + tiles[1].v + craft, mod: 'bao' });
     }
     run.screen = screen.then;
+    return true;
+}
+// —— 吞符命 ——
+export function startDevour(run) {
+    const screen = run.screen;
+    if (!fateIs(run, 'tunfu') || screen.name !== 'reward' || screen.devoured || run.bag.length < 2)
+        return;
+    run.screen = { name: 'pick-tile', purpose: 'devour', count: 1, then: { ...screen, devoured: true }, title: '吞符 · 选一张符永久吞下：它的点数平分给同元素的其他符' };
+}
+function devour(run, tile) {
+    run.bag = run.bag.filter(t => t.uid !== tile.uid);
+    const kin = run.bag.filter(t => t.el === tile.el && t.el !== 'zhuo').sort((a, b) => b.v - a.v);
+    if (!kin.length)
+        return;
+    const share = Math.floor(tile.v / kin.length);
+    kin.forEach(t => { t.v += share; });
+    kin[0].v += tile.v - share * kin.length;
+    // 化境: the mark goes to the biggest tile of that element.
+    if (fateAwake(run, 'tunfu') && tile.mod && (!kin[0].mod || (MOD_RANK[tile.mod] ?? 0) > (MOD_RANK[kin[0].mod] ?? 0)))
+        kin[0].mod = tile.mod;
+}
+// —— 天眼命 ——
+export const reshapeLeft = (run) => (fateIs(run, 'tianyan') ? run.counters?.reshape ?? 0 : 0);
+/** Turns a not-yet-visited, non-boss/elite node into another kind (斗法、奇遇、坊市、洞府). */
+export function reshapeNode(run, id, kind) {
+    const node = nodeById(run, id);
+    const here = run.at ? nodeById(run, run.at) : null;
+    if (run.screen.name !== 'map' || !node || reshapeLeft(run) <= 0 || run.visited.includes(id) || node.kind === 'boss' || node.kind === 'elite' || node.kind === kind)
+        return false;
+    if (here && node.row <= here.row)
+        return false;
+    if (node.event?.startsWith('bond-'))
+        return false;
+    delete node.enemy;
+    delete node.event;
+    node.kind = kind;
+    if (kind === 'fight')
+        node.enemy = pick(run.rng, ENEMIES.filter(e => e.act === Math.min(4, run.act) && e.rank === 'fight')).id;
+    if (kind === 'event')
+        node.event = pick(run.rng, EVENTS.filter(e => (!e.once || !run.log.includes(`event:${e.id}`)) && (!e.unlock || unlocked(run, e.unlock)) && !e.id.startsWith('bond-'))).id;
+    run.counters.reshape -= 1;
     return true;
 }
 export function cancelPick(run) {
     const screen = run.screen;
     if (screen.name !== 'pick-tile')
         return;
+    if (screen.purpose === 'devour' && screen.then.name === 'reward') {
+        run.screen = { ...screen.then, devoured: false };
+        return;
+    }
     if (screen.then.name === 'reward' && screen.purpose === 'remove')
         run.screen = { ...screen.then, picked: false };
     else

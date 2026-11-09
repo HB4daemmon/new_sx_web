@@ -15,12 +15,18 @@ export const TREE = [
     { id: 'relics3', branch: '器', name: '新器 · 三', desc: '七宝妙树、定海神针、斩仙飞刀、九龙神火罩进入法宝池', cost: 180, requires: 'boss1' },
     { id: 'slot1', branch: '器', name: '洞天 · 一格', desc: '法宝栏位 +1', cost: 320, requires: 'relics3' },
     { id: 'ling1', branch: '符', name: '灵根', desc: '每局起手多一枚灵符', cost: 30 },
-    { id: 'pattern1', branch: '符', name: '家传心法', desc: '每局起手「双元」「三生」各 +1 重', cost: 70, requires: 'ling1' },
+    { id: 'pattern1', branch: '符', name: '家传心法', desc: '每局起手「同元」「同数」心法各 +1 重', cost: 70, requires: 'ling1' },
     { id: 'discard1', branch: '符', name: '先手换符', desc: '每场战斗多一次换符', cost: 120, requires: 'pattern1' },
     { id: 'events2', branch: '符', name: '奇遇新卷', desc: '扶桑、瑶池、夸父之杖、补天石加入奇遇', cost: 160, requires: 'discard1' },
     { id: 'gold1', branch: '路', name: '盘缠', desc: '每局起手多 30 灵石', cost: 25 },
     { id: 'rest1', branch: '路', name: '洞府深眠', desc: '洞府调息回复 40% → 55%', cost: 60, requires: 'gold1' },
     { id: 'guide', branch: '路', name: '因缘指引', desc: '因缘相遇在地图上出现两处，更容易遇见', cost: 110, requires: 'rest1' },
+    { id: 'fate:guxing', branch: '命', name: '孤星命', desc: '每件法宝触发两次，法宝栏只有 3 格', cost: 50 },
+    { id: 'fate:sanxiu', branch: '命', name: '散修命', desc: '灵石 ×2、坊市七折，战后不给法宝', cost: 80, requires: 'fate:guxing' },
+    { id: 'fate:yingjie', branch: '命', name: '应劫命', desc: '天劫提前，劈你的化为护盾', cost: 110, requires: 'fate:sanxiu' },
+    { id: 'fate:bailian', branch: '命', name: '百炼命', desc: '炼符熔符多 +2，洞府做两件事', cost: 140, requires: 'fate:yingjie' },
+    { id: 'fate:tunfu', branch: '命', name: '吞符命', desc: '胜后吞符，点数分给同元素', cost: 170, requires: 'fate:bailian' },
+    { id: 'fate:shouzhuo', branch: '命', name: '守拙命', desc: '出满五张 ×1.5，两张以下 ×0.6', cost: 200, requires: 'fate:tunfu' },
 ];
 export const TREE_NODE = Object.fromEntries(TREE.map(n => [n.id, n]));
 export function canBuy(meta, id) {

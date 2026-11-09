@@ -116,14 +116,14 @@ export interface ShopItem { option: RewardOption; price: number; sold: boolean }
 export type Screen =
   | { name: 'map' }
   | { name: 'battle' }
-  | { name: 'reward'; gold: number; options: RewardOption[]; relicOptions: RewardOption[]; picked: boolean; relicPicked: boolean; next: 'map' | 'breakthrough' | 'endless'; story?: string; rerolled?: boolean }
+  | { name: 'reward'; gold: number; options: RewardOption[]; relicOptions: RewardOption[]; picked: boolean; relicPicked: boolean; next: 'map' | 'breakthrough' | 'endless'; story?: string; rerolled?: boolean; devoured?: boolean }
   | { name: 'story'; act: number }
   | { name: 'ending' }
   | { name: 'breakthrough'; options: RewardOption[] }
   | { name: 'shop'; items: ShopItem[]; removePrice: number; removed: boolean; restocked?: boolean; merged?: boolean }
   | { name: 'event'; event: string; resolved?: string }
-  | { name: 'rest'; done?: boolean }
-  | { name: 'pick-tile'; purpose: 'remove' | 'upgrade' | 'reforge' | 'fuse' | 'merge'; count: number; then: Screen; title: string; price?: number }
+  | { name: 'rest'; done?: boolean; used?: number }
+  | { name: 'pick-tile'; purpose: 'remove' | 'upgrade' | 'reforge' | 'fuse' | 'merge' | 'devour'; count: number; then: Screen; title: string; price?: number }
   | { name: 'won' }
   | { name: 'lost' };
 
@@ -159,6 +159,11 @@ export interface RunState {
   };
   /** One line per battle, for the 复盘 on the end screen. */
   journal?: FightRecord[];
+  /** 命格 and, for 偏枯命, its 本命元素. */
+  fate?: string | null;
+  fateEl?: El | null;
+  /** Small running tallies for talents and 命格 (行险 streak, 点石成金 spend, …). */
+  counters?: Record<string, number>;
   log: string[];
   /** The two 因缘 threads planned for this run: [act1→act3, act2→act4]. */
   plan: string[];

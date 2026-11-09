@@ -212,26 +212,68 @@ export const METHODS: MethodDef[] = [
 ];
 export const METHOD: Record<string, MethodDef> = Object.fromEntries(METHODS.map(m => [m.id, m]));
 
-export interface TalentDef { id: string; name: string; desc: string; once?: boolean }
+/** 天赋档位：凡 / 灵 / 仙（与法宝品阶同名）。分类只用于整理与展示。 */
+export type TalentTier = 'common' | 'rare' | 'legend';
+export type TalentCat = '节奏' | '成役' | '百搭' | '成长' | '守御' | '行险' | '经营';
+export interface TalentDef { id: string; name: string; desc: string; tier: TalentTier; cat: TalentCat; once?: boolean }
+const T = (id: string, name: string, tier: TalentTier, cat: TalentCat, desc: string, once?: boolean): TalentDef => ({ id, name, desc, tier, cat, ...(once ? { once } : {}) });
+/** 五组相克元素各一张「既济」：同一招里两种元素各 2 张以上，额外 4 番，并附一个小效果。 */
+export const JIJI: Record<string, { a: El; b: El; extra: string }> = {
+  jiji_shuihuo: { a: 'shui', b: 'huo', extra: '护盾与灼烧各 ×2' },
+  jiji_jinmu: { a: 'jin', b: 'mu', extra: '暴击率 +30%' },
+  jiji_mutu: { a: 'mu', b: 'tu', extra: '回复 ×2' },
+  jiji_tushui: { a: 'tu', b: 'shui', extra: '再 +2 番' },
+  jiji_huojin: { a: 'huo', b: 'jin', extra: '伤害 ×1.2' },
+};
 export const TALENTS: TalentDef[] = [
-  { id: 'yiqi', name: '一气化三清', desc: '手中符数上限 +1' },
-  { id: 'guzhu', name: '孤注', desc: '只出一张符时，它的点数 ×3 计入气' },
-  { id: 'kongling', name: '空灵根', desc: '每回合手里随机一张符化为灵符（当任意元素，当回合有效）' },
-  { id: 'huiyan', name: '慧眼', desc: '得位放宽：点数与河图数相差 1 也算得位' },
-  { id: 'douzhuan', name: '斗转星移', desc: '每回合换符次数 +1' },
-  { id: 'dongtian', name: '袖里乾坤', desc: '法宝栏位 +1' },
-  { id: 'tongming', name: '剑意通明', desc: '剑意获取 ×1.5' },
-  { id: 'guiyi', name: '五行归一', desc: '符袋中随机 4 枚符化为灵符（可当任意元素）', once: true },
-  { id: 'huanhua', name: '幻化', desc: '每场开战，符袋里随机 2 张符本场化为幻符（当任意点数）' },
-  { id: 'shuangjue', name: '一念双诀', desc: '每回合第一次出招若不超过两枚符，不结束回合' },
-  { id: 'yinjie', name: '引劫为用', desc: '天劫提前至第 5 回合，且只劈敌人' },
-  { id: 'xueji', name: '血祭', desc: '每次出招失去 3 气血，倍率 ×1.6' },
-  { id: 'jinshen', name: '金身', desc: '每场开战获得 20×境界 护盾' },
-  { id: 'wanfa', name: '万法归宗', desc: '所有心法 +1 重', once: true },
-  { id: 'poyang', name: '破妄', desc: '克制加成由 ×2 提升为 ×3' },
-  { id: 'changsheng', name: '长生', desc: '气血上限 +40 并回满', once: true },
-  { id: 'leiyin', name: '倍引', desc: '每枚倍符额外暴击率 +25%' },
+  // —— 节奏 ——
+  T('douzhuan', '斗转星移', 'common', '节奏', '每回合换符次数 +1'),
+  T('yiqi', '一气化三清', 'rare', '节奏', '手中符数上限 +1'),
+  T('tuoyin', '拓印', 'rare', '节奏', '每回合第一招后，下回合多摸一张与这一招里最大那张同元素、同点数的临时符'),
+  T('shuangjue', '一念双诀', 'legend', '节奏', '每回合第一次出招若不超过两张，不结束回合'),
+  // —— 成役 ——
+  T('poyang', '破妄', 'rare', '成役', '克制加成由 ×2 提升为 ×3'),
+  T('huiyan', '慧眼', 'rare', '成役', '得位放宽：点数与河图数相差 1 也算得位'),
+  T('jiji_shuihuo', '水火既济', 'rare', '成役', '同一招里水、火各 2 张以上：额外 4 番，护盾与灼烧各 ×2'),
+  T('jiji_jinmu', '金木交并', 'rare', '成役', '同一招里金、木各 2 张以上：额外 4 番，暴击率 +30%'),
+  T('jiji_mutu', '木土相持', 'rare', '成役', '同一招里木、土各 2 张以上：额外 4 番，回复 ×2'),
+  T('jiji_tushui', '土水相制', 'rare', '成役', '同一招里土、水各 2 张以上：额外 6 番'),
+  T('jiji_huojin', '火金相炼', 'rare', '成役', '同一招里火、金各 2 张以上：额外 4 番，伤害 ×1.2'),
+  T('wanfa', '万法归宗', 'legend', '成役', '所有心法 +1 重', true),
+  T('faxiang', '法相天地', 'legend', '成役', '本场每成一个役，本场所有符 +1 点'),
+  // —— 百搭 ——
+  T('leiyin', '倍引', 'common', '百搭', '每张倍符额外暴击率 +25%'),
+  T('huanhua', '幻化', 'rare', '百搭', '每场开战，符袋里随机 2 张符本场化为幻符（当任意点数）'),
+  T('kongling', '空灵根', 'legend', '百搭', '每回合手里随机一张符化为灵符（当任意元素，当回合有效）'),
+  T('guiyi', '五行归一', 'legend', '百搭', '符袋中随机 4 张符永久化为灵符', true),
+  // —— 成长 ——
+  T('wenyang1', '温养·小成', 'common', '成长', '每场开战，符袋里点数最大的符永久 +1'),
+  T('wenyang2', '温养·大成', 'rare', '成长', '每场开战，符袋里点数最大的符永久 +2'),
+  T('wenyang3', '温养·圆满', 'legend', '成长', '每场开战，符袋里点数最大的符永久 +3'),
+  T('guzhu', '孤注', 'rare', '成长', '只出一张符时，它的点数 ×3 计入气'),
+  T('bubu', '步步为营', 'rare', '成长', '每场开战，手里最大的符临时 +5；斩杀敌人的那一招用到了它，+5 转为永久'),
+  // —— 守御 ——
+  T('jinshen', '金身', 'common', '守御', '每场开战获得 20×境界 护盾'),
+  T('changsheng', '长生', 'common', '守御', '气血上限 +40 并回满', true),
+  T('baizhe', '百折', 'rare', '守御', '护盾被打破时，气血上限永久 +5'),
+  T('jieshi', '借势', 'legend', '守御', '敌人本回合要打出的伤害，有一半计入你这一招的气'),
+  // —— 行险 ——
+  T('xingxian', '行险', 'common', '行险', '不掉血赢下一场，额外灵石 +10 并连续累加；某场掉血超过一半则清零'),
+  T('xueji', '血祭', 'rare', '行险', '每次出招失去 3 气血，伤害 ×1.6'),
+  T('yinjie', '引劫为用', 'legend', '行险', '天劫提前至第 5 回合，且只劈敌人'),
+  // —— 经营 ——
+  T('tongming', '剑意通明', 'common', '经营', '剑意获取 ×1.5'),
+  T('dianshi', '点石成金', 'common', '经营', '在坊市和斩获页每花 50 灵石，符袋里点数最大的符 +3'),
+  T('dongtian', '袖里乾坤', 'rare', '经营', '法宝栏位 +1'),
 ];
+/** 每次突破，三选一的每个选项按此抽档（键为刚打完的幕）。 */
+export const TALENT_TIER_ODDS: Record<number, Record<TalentTier, number>> = {
+  1: { common: 60, rare: 35, legend: 5 },
+  2: { common: 40, rare: 45, legend: 15 },
+  3: { common: 25, rare: 45, legend: 30 },
+  4: { common: 10, rare: 40, legend: 50 },
+};
+export const TIER_NAME: Record<TalentTier, string> = { common: '凡', rare: '灵', legend: '仙' };
 export const TALENT: Record<string, TalentDef> = Object.fromEntries(TALENTS.map(t => [t.id, t]));
 
 export const REALMS = ['炼气', '筑基', '金丹', '元婴', '化神', '渡劫'];
@@ -245,9 +287,27 @@ export const VOWS: VowDef[] = [
 export const VOW: Record<string, VowDef> = Object.fromEntries(VOWS.map(v => [v.id, v]));
 
 export const MOD_NAME: Record<string, string> = { ling: '灵', huan: '幻', bao: '宝', lei: '倍' };
+/** One line for cards; the full rule is MOD_DESC (诀谱 · 符纹). */
+export const MOD_SHORT: Record<string, string> = { ling: '灵 · 百搭元素（高级）', huan: '幻 · 百搭点数（高级）', bao: '宝 · +1 番', lei: '倍 · 伤害 ×1.5' };
 export const MOD_DESC: Record<string, string> = {
   ling: '高级符纹 · 灵：当任意元素（百搭花色），并同时算进每一组同元',
   huan: '高级符纹 · 幻：当任意点数 1–5（百搭点数），并同时算进每一组同数',
   bao: '普通符纹 · 宝：自己就是宝牌，+1 番',
   lei: '普通符纹 · 倍：本招伤害 ×1.5',
 };
+
+// —— 命格：先天命数。开局改写一条规则、带一个代价；突破到金丹时「化境」再变一次。 ——
+export interface FateDef { id: string; name: string; gift: string; cost: string; awaken: string; play: string; unlock?: string }
+export const FATES: FateDef[] = [
+  { id: 'hetu', name: '河图命', gift: '得位每张 +2 番（原为 +1）', cost: '不得位的符，气 −1', awaken: '每场开战，随机 2 张符的点数改成该元素的河图数', play: '收集得位' },
+  { id: 'pianku', name: '偏枯命', gift: '选一种本命元素：符袋多 5 张；本命元素的符气 +2', cost: '其余元素的符，气 −1', awaken: '本命元素三张以上时，额外 +3 番', play: '同元' },
+  { id: 'xingxiu', name: '星宿命', gift: '每场开战抽一宿，本场某一路的番 ×2', cost: '每场主打的路都不同', awaken: '每场抽两宿', play: '随机应变' },
+  { id: 'tianyan', name: '天眼命', gift: '地图上奇遇的名字可见；每幕可以把一个节点改成别的类型', cost: '气血上限 −15%', awaken: '每幕可改两个节点', play: '规划路线' },
+  { id: 'guxing', name: '孤星命', gift: '每件法宝都触发两次', cost: '法宝栏只有 3 格', awaken: '法宝栏 +1', play: '少而精的法宝', unlock: 'fate:guxing' },
+  { id: 'sanxiu', name: '散修命', gift: '战斗所得灵石 ×2，坊市七折', cost: '战后不再给法宝选择（精英、首领也一样）', awaken: '每个坊市多上一件法宝', play: '坊市经营', unlock: 'fate:sanxiu' },
+  { id: 'yingjie', name: '应劫命', gift: '天劫提前 2 回合；劈到你身上的天劫化为护盾', cost: '回合一长，敌人也被劈', awaken: '天劫劈敌伤害 ×2', play: '以守代攻', unlock: 'fate:yingjie' },
+  { id: 'bailian', name: '百炼命', gift: '炼符、熔符、三张归一每次额外 +2 点；洞府可以做两件事', cost: '战后的符奖励少一个选项', awaken: '炼符时附上高级符纹（灵或幻）', play: '养大一张符', unlock: 'fate:bailian' },
+  { id: 'tunfu', name: '吞符命', gift: '每场胜后可吞一张符：永久移除，它的点数平分给同元素的其他符', cost: '符袋越吞越薄，元素越来越偏', awaken: '吞符时，它的符纹转给同元素点数最大的那张', play: '精简符袋', unlock: 'fate:tunfu' },
+  { id: 'shouzhuo', name: '守拙命', gift: '出满五张时伤害 ×1.5', cost: '出两张以下时伤害 ×0.6', awaken: '出满五张时额外 +2 番', play: '大手牌多叠役', unlock: 'fate:shouzhuo' },
+];
+export const FATE: Record<string, FateDef> = Object.fromEntries(FATES.map(f => [f.id, f]));

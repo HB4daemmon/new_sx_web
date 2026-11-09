@@ -2,15 +2,15 @@ import { canRage, rageCost, enemyAttack, MAX_CAST, previewCast, swordDamage, tri
 import { METHOD, RAGES, RELIC, SPECIALS } from '../core/content.js';
 import { counterOf, EL_NAME, KE } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
-import { COMBOS, fanTier, PATTERNS, QI_PER_FAN, YAKU, YAKU_ORDER, HETU } from '../core/patterns.js';
+import { fanTier, PATTERNS, PATTERN_ORDER, QI_PER_FAN, YAKU, YAKU_ORDER, HETU } from '../core/patterns.js';
 import { dangerous, recommend } from '../core/advisor.js';
-import { MOD_DESC } from '../core/content.js';
+import { MOD_DESC, TALENT, TIER_NAME } from '../core/content.js';
 import { BOND, BOSS_STORY, LORE } from '../core/story.js';
 import * as R from '../core/run.js';
 import { anim, burst, centerOf, comet, EL_COLOR, flash, floatText, hitstop, isSkipping, lightning, reducedMotion, ring, setSkipping, shake, wait } from './fx.js';
 import { $, fmt, fmt1, h } from './h.js';
 import { app, overlayOpen, render, save, showOverlay, toast } from './main.js';
-import { announce, art, hud, showBag, showHelp } from './screens.js';
+import { announce, art, fateText, hud, showBag, showHelp } from './screens.js';
 import { checkAchievements } from './progression.js';
 import { playSfx } from './sfx.js';
 import { bar, tileView, wuxingWheel } from './widgets.js';
@@ -44,7 +44,7 @@ export function mountBattle(container) {
         } }, title: '点击查看敌人意图与弱点' }, h('div.enemy-intent'), h('img.enemy-art', { src: art(enemy.art), alt: enemy.name }), h('div.enemy-status')), h('div.enemy-plate', { onclick: (e) => { if (!busy) {
             e.stopPropagation();
             showEnemyInfo();
-        } } }, h('div.enemy-name', null, h('span.e-el'), h('b', null, enemy.name), h('small', null, enemy.title)), h('div.enemy-bar'), enemy.traitText ? h('div.enemy-trait', null, enemy.traitText) : null, LORE[enemy.id] ? h('div.enemy-lore', null, LORE[enemy.id]) : null), h('div.wheel-slot'), h('div.turn-tag'), h('div.score-panel', null, h('div.sp-pattern', null, '　'), h('div.sp-row', null, h('div.sp-box.sp-qi', null, h('small', null, '气'), h('b', null, '0')), h('span.sp-x', null, '×'), h('div.sp-box.sp-mult', null, h('small', null, '倍'), h('b', null, '0'))), h('div.sp-dmg'), h('div.sp-yaku')), h('div.lane'), h('div.hand-area', null, h('div.preview-line'), h('div.hand')), h('div.controls', null, h('button.qi-gauge', { type: 'button', 'data-action': 'rage', title: `怒技「${RAGES[r.method]?.name ?? '怒技'}」：${RAGES[r.method]?.desc ?? '本招 ×3'}\n剑意攒够即可开启 · 快捷键 R`, onclick: () => toggleRage() }, h('div.qi-fill'), h('div.qi-mark'), h('span.qi-text')), h('button.btn.seal.cast-btn', { type: 'button', 'data-action': 'cast', onclick: () => void doCast() }, h('span.cast-main', null, '出招'), h('small.cast-sub')), h('button.btn.ink.discard-btn', { type: 'button', 'data-action': 'discard', onclick: () => void doDiscard() }, '换符', h('small.discard-left'))), h('div.pile-dock', null, h('button.pile-btn.advise', { type: 'button', 'data-action': 'advise', title: '推荐出牌：再点一次换成另一种思路', onclick: () => advise() }, '荐', h('small', null, '推荐')), h('button.pile-btn', { type: 'button', onclick: () => showBag(r), title: '查看符袋' }, h('span.pile-draw'), h('small', null, '待抽')), h('button.pile-btn.sort', { type: 'button', title: '整理手牌', onclick: () => { sortMode = sortMode === 'el' ? 'v' : 'el'; renderHand(); } }, '理'), h('button.pile-btn', { type: 'button', title: '诀谱', onclick: () => showHelp() }, '谱')), hud(r, { battle: true }));
+        } } }, h('div.enemy-name', null, h('span.e-el'), h('b', null, enemy.name), h('small', null, enemy.title)), h('div.enemy-bar'), enemy.traitText ? h('div.enemy-trait', null, enemy.traitText) : null, null), h('div.wheel-slot'), h('div.turn-tag'), h('div.score-panel', null, h('div.sp-pattern', null, '　'), h('div.sp-row', null, h('div.sp-box.sp-qi', null, h('small', null, '气'), h('b', null, '0')), h('span.sp-x', null, '×'), h('div.sp-box.sp-mult', null, h('small', null, '倍'), h('b', null, '0'))), h('div.sp-dmg'), h('div.sp-yaku')), h('div.lane'), h('div.hand-area', null, h('div.preview-line'), h('div.hand')), h('div.controls', null, h('button.qi-gauge', { type: 'button', 'data-action': 'rage', title: `怒技「${RAGES[r.method]?.name ?? '怒技'}」：${RAGES[r.method]?.desc ?? '本招 ×3'}\n剑意攒够即可开启 · 快捷键 R`, onclick: () => toggleRage() }, h('div.qi-fill'), h('div.qi-mark'), h('span.qi-text')), h('button.btn.seal.cast-btn', { type: 'button', 'data-action': 'cast', onclick: () => void doCast() }, h('span.cast-main', null, '出招'), h('small.cast-sub')), h('button.btn.ink.discard-btn', { type: 'button', 'data-action': 'discard', onclick: () => void doDiscard() }, '换符', h('small.discard-left'))), h('div.pile-dock', null, h('button.pile-btn.advise', { type: 'button', 'data-action': 'advise', title: '推荐出牌：再点一次换成另一种思路', onclick: () => advise() }, '荐', h('small', null, '推荐')), h('button.pile-btn', { type: 'button', onclick: () => showBag(r), title: '查看符袋' }, h('span.pile-draw'), h('small', null, '待抽')), h('button.pile-btn.sort', { type: 'button', title: '整理手牌', onclick: () => { sortMode = sortMode === 'el' ? 'v' : 'el'; renderHand(); } }, '理'), h('button.pile-btn', { type: 'button', title: '诀谱', onclick: () => showHelp() }, '谱')), hud(r, { battle: true }));
     container.appendChild(root);
     root.addEventListener('pointerdown', () => { if (busy && !cinematic)
         setSkipping(true); });
@@ -214,7 +214,7 @@ function refreshStatus() {
     es.replaceChildren(...nn(disp.armor > 0 ? h('span.st.st-armor', { title: '护甲：先抵挡你下一招的伤害' }, '甲 ', fmt(disp.armor)) : null, disp.eburn > 0 ? h('span.st.st-burn', { title: `灼烧：敌方回合开始时受到 层数×${1 + run().realm} 伤害` }, '焰 ', fmt(disp.eburn)) : null, battle().enemy.charged ? h('span.st.st-charge', { title: '蓄势：下一次攻击伤害翻倍' }, '蓄势') : null, battle().enemy.atkBonus > 0 ? h('span.st.st-buff', { title: '战意：攻击伤害提高' }, '怒 +', String(battle().enemy.atkBonus)) : null));
     const hs = $('.hero-status', root);
     const b = battle();
-    hs.replaceChildren(...nn(disp.pburn > 0 ? h('span.st.st-burn', null, '焰 ', String(disp.pburn)) : null, b.swords > 0 ? h('span.st.st-sword', { title: `飞剑：每次出招后齐射，每柄 ${swordDamage(run())} + 本招伤害的 10%` }, '剑 ×', String(b.swords)) : null, b.spring > 0 ? h('span.st.st-spring', { title: '春华：下一招计入气' }, '春 ', fmt(b.spring)) : null, b.stacks.thunder ? h('span.st.st-thunder', { title: '雷引：本场倍率永久提高' }, '雷 +', String(b.stacks.thunder)) : null, b.stacks.wheel ? h('span.st.st-wheel', { title: `命运轮盘：本回合转出 ${b.stacks.wheel}，本招有几张 ${b.stacks.wheel} 点的符，番就 ×几` }, '轮 ', String(b.stacks.wheel)) : null, b.stacks.omen !== undefined && run().relics.includes('tianjiqian') ? h('span.st.st-omen', { title: `天机签：本回合「吉」为${EL_NAME[['mu', 'huo', 'tu', 'jin', 'shui'][b.stacks.omen]]}，每张 +1 番` }, '吉·', EL_NAME[['mu', 'huo', 'tu', 'jin', 'shui'][b.stacks.omen]]) : null));
+    hs.replaceChildren(...nn(disp.pburn > 0 ? h('span.st.st-burn', null, '焰 ', String(disp.pburn)) : null, b.swords > 0 ? h('span.st.st-sword', { title: `飞剑：每次出招后齐射，每柄 ${swordDamage(run())} + 本招伤害的 10%` }, '剑 ×', String(b.swords)) : null, b.spring > 0 ? h('span.st.st-spring', { title: '春华：下一招计入气' }, '春 ', fmt(b.spring)) : null, b.stacks.thunder ? h('span.st.st-thunder', { title: '雷引：本场倍率永久提高' }, '雷 +', String(b.stacks.thunder)) : null, run().fate === 'xingxiu' && b.stacks.star !== undefined ? h('span.st.st-star', { title: '星宿命：本场这一路的番 ×2' }, '宿·', ...[b.stacks.star, b.stacks.star2].filter(x => x !== undefined).map(x => PATTERNS[PATTERN_ORDER[x]].name).join('、')) : null, b.stacks.wheel ? h('span.st.st-wheel', { title: `命运轮盘：本回合转出 ${b.stacks.wheel}，本招有几张 ${b.stacks.wheel} 点的符，番就 ×几` }, '轮 ', String(b.stacks.wheel)) : null, b.stacks.omen !== undefined && run().relics.includes('tianjiqian') ? h('span.st.st-omen', { title: `天机签：本回合「吉」为${EL_NAME[['mu', 'huo', 'tu', 'jin', 'shui'][b.stacks.omen]]}，每张 +1 番` }, '吉·', EL_NAME[['mu', 'huo', 'tu', 'jin', 'shui'][b.stacks.omen]]) : null));
     const plate = $('.e-el', root);
     plate.className = `e-el el-${disp.el}`;
     plate.textContent = EL_NAME[disp.el];
@@ -399,14 +399,16 @@ function refreshPreview() {
     if (res.critChance > 5)
         effects.push(`暴击 ${Math.round(res.critChance)}%`);
     const lethal = res.damage >= b.enemy.hp + (b.enemy.armor || 0);
-    line.replaceChildren(...nn(h('b.pv-pattern', null, COMBOS[res.pattern].name), h('span.pv-fan', null, res.fan ? `${fmt1(res.fan)}番` : '散牌'), h('span.pv-calc', null, '气 ', h('b.qi', null, fmt(res.qi)), ' × ', h('b.mu', null, fmt1(res.mult)), ' = ', h('b.pv-dmg', null, fmt(res.damage))), effects.length ? h('span.pv-fx', null, effects.join(' · ')) : null, lethal ? h('span.pv-kill', null, '斩！') : null));
+    // The score panel already shows 气 × 番 and the 役: the line only adds the result and side effects.
+    line.replaceChildren(...nn(h('span.pv-calc', null, '伤害 ', h('b.pv-dmg', null, fmt(res.damage))), effects.length ? h('span.pv-fx', null, effects.join(' · ')) : null, lethal ? h('span.pv-kill', null, '斩！') : null));
     setScore(res);
     refreshControls();
 }
 function setScore(res) {
     const panel = $('.score-panel', root);
     panel.classList.toggle('preview', !!res);
-    $('.sp-pattern', panel).textContent = res ? COMBOS[res.pattern].name : '　';
+    // The big 役 stamp is for the cast animation; while aiming, the chips below say it all.
+    $('.sp-pattern', panel).textContent = '　';
     $('.sp-qi b', panel).textContent = res ? fmt(res.qi) : '0';
     $('.sp-mult b', panel).textContent = res ? fmt1(res.mult) : '0';
     $('.sp-dmg', panel).textContent = '';
@@ -1096,7 +1098,7 @@ function showEnemyInfo() {
     const e = b.enemy;
     const moves = e.phase === 2 && def.phase2 ? def.phase2.moves : def.moves;
     const counter = counterOf(e.el), weak = KE[e.el];
-    infoCard(h('h3.brush', null, def.name, h('small', null, `　${def.title}`)), h('p.info-num', null, `气血 ${fmt(e.hp)} / ${fmt(e.maxHp)}`, e.armor ? `　护甲 ${fmt(e.armor)}` : '', e.burn ? `　灼烧 ${fmt(e.burn)}` : ''), h('div.info-sec', null, h('b', null, '这一回合：'), intentTitle(e.intent).replace(/\n/g, '；')), h('div.info-list', null, ...moves.map((m, i) => h(`div.info-row${i === e.moveIndex ? '.on' : ''}`, null, h('b', null, m.name), h('span', null, intentTitle(m).split('\n').slice(1).join('；') || '—')))), h('p.dim', null, '招式按顺序循环，亮起的是这一回合。'), h('div.info-sec', null, h('b', null, `属${EL_NAME[e.el]}：`), `${EL_NAME[counter]}符克它，点数 ×2；三张以上成「破阵」。${EL_NAME[weak]}符被它克，点数 ×0.5。`), e.charged ? h('div.info-sec', null, h('b', null, '蓄势：'), '下一次攻击翻倍。') : null, e.atkBonus ? h('div.info-sec', null, h('b', null, '战意：'), `攻击 +${e.atkBonus}。`) : null, def.traitText ? h('div.info-sec', null, h('b', null, '特性：'), def.traitText) : null, h('div.info-sec', null, h('b', null, '天劫：'), `第 ${tribulationStart(r)} 回合起天雷劈向双方，一重比一重狠。`));
+    infoCard(h('h3.brush', null, def.name, h('small', null, `　${def.title}`)), LORE[b.enemyId] ? h('p.dim', null, LORE[b.enemyId]) : null, h('p.info-num', null, `气血 ${fmt(e.hp)} / ${fmt(e.maxHp)}`, e.armor ? `　护甲 ${fmt(e.armor)}` : '', e.burn ? `　灼烧 ${fmt(e.burn)}` : ''), h('div.info-sec', null, h('b', null, '这一回合：'), intentTitle(e.intent).replace(/\n/g, '；')), h('div.info-list', null, ...moves.map((m, i) => h(`div.info-row${i === e.moveIndex ? '.on' : ''}`, null, h('b', null, m.name), h('span', null, intentTitle(m).split('\n').slice(1).join('；') || '—')))), h('p.dim', null, '招式按顺序循环，亮起的是这一回合。'), h('div.info-sec', null, h('b', null, `属${EL_NAME[e.el]}：`), `${EL_NAME[counter]}符克它，点数 ×2；三张以上成「破阵」。${EL_NAME[weak]}符被它克，点数 ×0.5。`), e.charged ? h('div.info-sec', null, h('b', null, '蓄势：'), '下一次攻击翻倍。') : null, e.atkBonus ? h('div.info-sec', null, h('b', null, '战意：'), `攻击 +${e.atkBonus}。`) : null, def.traitText ? h('div.info-sec', null, h('b', null, '特性：'), def.traitText) : null, h('div.info-sec', null, h('b', null, '天劫：'), `第 ${tribulationStart(r)} 回合起天雷劈向双方，一重比一重狠。`));
 }
 /** Self: HP, shield and every running counter, with what each does. */
 function showSelfInfo() {
@@ -1124,6 +1126,10 @@ function showSelfInfo() {
         rows.push(['天机签', `本回合「吉」为${EL_NAME[['mu', 'huo', 'tu', 'jin', 'shui'][b.stacks.omen]]}：每张 +1 番`]);
     if (r.talents.includes('kongling'))
         rows.push(['空灵根', '每回合手里随机一张符化为灵符']);
+    if (r.fate)
+        rows.push(['命格', fateText(r).replace(/\n/g, '；')]);
+    if (r.talents.length)
+        rows.push(['天赋', r.talents.map(id => `${TALENT[id]?.name ?? id}（${TIER_NAME[TALENT[id]?.tier ?? 'common']}）`).join('、')]);
     infoCard(h('h3.brush', null, m.name, h('small', null, `　${m.title}`)), h('div.info-list', null, ...rows.map(([k, v]) => h('div.info-row', null, h('b', null, k), h('span', null, v)))), h('div.info-sec', null, h('b', null, '功法：'), m.passive.join('；')));
 }
 // —— 荐 ——
@@ -1145,5 +1151,6 @@ function advise() {
     renderHand();
     const res = advice.result;
     const why = res.yaku.length ? res.yaku.map(y => YAKU[y.id].name).join('＋') : '散牌';
-    toast(advice.lethal ? `荐：${why}，可以斩杀` : adviceMode === 'safe' ? `荐·稳妥：${why}${res.shield ? `，护盾 ${res.shield}` : ''}${res.heal ? `，回复 ${res.heal}` : ''}（再点换成最高伤害）` : `荐·最高伤害：${why}（再点换成稳妥）`);
+    void why;
+    toast(advice.lethal ? '荐：可以斩杀' : adviceMode === 'safe' ? '荐：稳妥（再点换最高伤害）' : '荐：最高伤害（再点换稳妥）');
 }

@@ -1,4 +1,4 @@
-import { METHOD, METHODS, MOD_NAME, REALMS, RELIC, VOW } from '../core/content.js';
+import { METHOD, METHODS, MOD_NAME, REALMS, RELIC, TALENT, VOW } from '../core/content.js';
 import { EL_NAME } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
 import { EVENT } from '../core/events.js';
@@ -13,7 +13,7 @@ import { app, act, closeOverlays, go, portrait, render, save, showOverlay, stage
 import { ART_SETS, recordRunEnd } from './meta.js';
 import { ACH, ACHIEVEMENTS, buyNode, canBuy, checkAchievements, dailySetup, MASTERY_PERKS, MASTERY_XP, masteryLevel, nextGoal, runUnlocks, settle, todayKey, TREE } from './progression.js';
 import { PACTS, pactHeat, pactMultiplier } from '../core/pacts.js';
-import { RAGES, RELICS, SIGNATURE, SPECIALS } from '../core/content.js';
+import { FATE, FATES, MOD_DESC, RAGES, RELICS, SIGNATURE, SPECIALS, TIER_NAME } from '../core/content.js';
 import { playSfx, setSfxEnabled } from './sfx.js';
 import { setSpeed } from './fx.js';
 import { bar, elLabel, optionCard, patternTable, relicView, tileView, wuxingWheel, GEN_TEXT } from './widgets.js';
@@ -65,12 +65,29 @@ function selectScreen() {
         type: 'button', 'data-method': def.id, disabled: locked(def.id) || undefined,
         onclick: () => { pickedMethod = def.id; playSfx('select'); render(); },
     }, h('img', { src: art(`hero-${def.id}`), alt: '' }), h('span.mc-name', null, def.name), h('span.mc-title', null, locked(def.id) ? '未解锁' : def.title)));
-    return h('div.scr.select-scr', null, h('img.bg.dim', { src: art('bg-act1'), alt: '' }), h('div.select-head', null, h('button.btn.ink.small', { type: 'button', onclick: () => go('title') }, '← 返回'), h('h1.brush', null, '择 功 法')), h('div.method-grid', null, ...cards), h('div.method-detail', null, h('img.md-art', { src: art(`hero-${m.id}`), alt: m.name }), h('div.md-body', null, h('div.md-name', null, m.name, h('span', null, ` · ${m.title}`), h('span.md-diff', { title: '上手难度' }, ['', '上手', '进阶', '精通'][m.difficulty] + ' ' + '★'.repeat(m.difficulty))), h('div.md-blurb', null, m.blurb), h('ul.md-passive', null, ...m.passive.map(p => h('li', null, p))), h('div.md-kit', null, ...Object.values(SPECIALS).filter(x => x.method === m.id).map(x => h('div.kit-item', null, tileView({ el: x.el, v: x.v, sp: x.id }, { small: true }), h('span', null, h('b', null, x.name), x.desc))), RAGES[m.id] ? h('div.kit-item.rage', null, h('span.kit-rage.brush', null, '怒'), h('span', null, h('b', null, RAGES[m.id].name), RAGES[m.id].desc)) : null), h('div.md-stats', null, `气血 ${m.hp} · 起手多带 `, ...m.extra.map(t => h('span.mini-tile', { class: `el-${t.el}` }, `${t.mod ? MOD_NAME[t.mod] : ''}${elLabel(t.el)}${t.v}`))), masteryBlock(m.id), h('button.btn.ink.pact-btn', { type: 'button', 'data-action': 'pacts', onclick: () => showPacts() }, `天劫契 · 劫数 ${pactHeat(meta.lastPacts)}`, h('small', null, `道果 ×${pactMultiplier(pactHeat(meta.lastPacts)).toFixed(2)} · 点此加减条款`)))), 
+    return h('div.scr.select-scr', null, h('img.bg.dim', { src: art('bg-act1'), alt: '' }), h('div.select-head', null, h('button.btn.ink.small', { type: 'button', onclick: () => go('title') }, '← 返回'), h('h1.brush', null, '择 功 法')), h('div.method-grid', null, ...cards), h('div.method-detail', null, h('img.md-art', { src: art(`hero-${m.id}`), alt: m.name }), h('div.md-body', null, h('div.md-name', null, m.name, h('span', null, ` · ${m.title}`), h('span.md-diff', { title: '上手难度' }, ['', '上手', '进阶', '精通'][m.difficulty] + ' ' + '★'.repeat(m.difficulty))), h('div.md-blurb', null, m.blurb), 
+    // Clean by default: names only; the full rules sit behind 功法详情.
+    h('div.md-kit.compact', null, ...Object.values(SPECIALS).filter(x => x.method === m.id).map(x => h('div.kit-item', null, tileView({ el: x.el, v: x.v, sp: x.id }, { small: true }), h('span', null, h('b', null, x.name), h('small', null, '本门符')))), RAGES[m.id] ? h('div.kit-item.rage', null, h('span.kit-rage.brush', null, '怒'), h('span', null, h('b', null, RAGES[m.id].name), h('small', null, '怒技'))) : null, h('button.btn.ink.small', { type: 'button', 'data-action': 'method-info', onclick: () => showMethodInfo(m.id) }, '功法详情')), masteryBlock(m.id), h('button.btn.ink.pact-btn', { type: 'button', 'data-action': 'pacts', onclick: () => showPacts() }, `天劫契 · 劫数 ${pactHeat(meta.lastPacts)}`, h('small', null, `道果 ×${pactMultiplier(pactHeat(meta.lastPacts)).toFixed(2)} · 点此加减条款`)))), 
     // Outside the scrolling detail column: always at the bottom of the screen, never over the text.
     h('button.btn.seal.big.go.select-go', { type: 'button', 'data-action': 'start', onclick: () => startRun() }, '起 程'));
 }
+/** 择命格: three random unlocked 命格, or none. 偏枯命 also picks its 本命元素. */
+/** Everything about a 功法 in one place: passives, 本门符, 怒技, starting tiles, HP. */
+function showMethodInfo(id) {
+    const m = METHOD[id];
+    const close = showOverlay(h('div.info-card', null, h('h3.brush', null, m.name, h('small', null, `　${m.title} · ${['', '上手', '进阶', '精通'][m.difficulty]}`)), h('p', null, m.blurb), h('div.info-list', null, ...m.passive.map(p => h('div.info-row.wide', null, h('span', null, p)))), ...Object.values(SPECIALS).filter(x => x.method === id).map(x => h('div.info-sec', null, h('b', null, `本门符「${x.name}」：`), x.desc)), RAGES[id] ? h('div.info-sec', null, h('b', null, `怒技「${RAGES[id].name}」：`), RAGES[id].desc) : null, h('div.info-sec', null, h('b', null, '起手：'), `气血 ${m.hp}，多带 `, m.extra.map(t => `${t.mod ? MOD_NAME[t.mod] : ''}${EL_NAME[t.el] ?? '浊'}${t.v}`).join('、')), h('button.btn.ink.small', { type: 'button', onclick: () => close() }, '知道了')));
+}
 function startRun() {
-    app.run = R.createRun({ method: pickedMethod, pacts: app.meta.lastPacts, unlocks: runUnlocks(app.meta, pickedMethod) });
+    const open = FATES.filter(f => !f.unlock || app.meta.unlocks.includes(f.unlock));
+    const offer = [...open].sort(() => Math.random() - 0.5).slice(0, 3);
+    const begin = (fate, fateEl = null) => { close(); launchRun(fate, fateEl); };
+    const card = (f) => h('div.fate-card', null, h('h3.brush', null, f.name), h('small.fate-play', null, f.play), h('p', null, h('b', null, '先天 '), f.gift), h('p.cost', null, h('b', null, '代价 '), f.cost), h('p.awaken', null, h('b', null, '化境 '), f.awaken, h('small', null, '（突破到金丹时）')), f.id === 'pianku'
+        ? h('div.fate-els', null, h('span', null, '选本命元素：'), ...['mu', 'huo', 'tu', 'jin', 'shui'].map(el => h('button.chip', { type: 'button', class: `el-text-${el}`, 'data-fate': `pianku-${el}`, onclick: () => begin('pianku', el) }, EL_NAME[el])))
+        : h('button.btn.seal', { type: 'button', 'data-fate': f.id, onclick: () => begin(f.id) }, '择此命'));
+    const close = showOverlay(h('div.fate-pick', null, h('h2.brush', null, '择 命 格'), h('p.dim', null, `命格改写一条规则，也带一个代价。还有 ${FATES.length - open.length} 个命格可在洞天 · 命 中解锁。`), h('div.fate-row', null, ...offer.map(card)), h('button.btn.ink', { type: 'button', 'data-fate': 'none', onclick: () => begin(null) }, '随缘 · 不择命格')));
+}
+function launchRun(fate, fateEl) {
+    app.run = R.createRun({ method: pickedMethod, pacts: app.meta.lastPacts, unlocks: runUnlocks(app.meta, pickedMethod), fate, fateEl });
     app.view = 'run';
     playSfx('breakthrough');
     save();
@@ -82,9 +99,22 @@ function startRun() {
 function withHud(run, body) {
     return h('div.scr.run-scr', null, h('img.bg.dim', { src: art(ACTS[run.act - 1].bg), alt: '' }), body, hud(run));
 }
+export function fateText(run) {
+    const f = run.fate ? FATE[run.fate] : null;
+    if (!f)
+        return '';
+    return `${f.name}${run.fateEl ? `（本命 ${EL_NAME[run.fateEl]}）` : ''}\n先天：${f.gift}\n代价：${f.cost}\n化境${run.realm >= 2 ? '（已成）' : '（金丹）'}：${f.awaken}`;
+}
+/** 此行: the run's 命格 and every 天赋, with their full text. Opened from the HUD name. */
+export function showRunInfo(run) {
+    const f = run.fate ? FATE[run.fate] : null;
+    const close = showOverlay(h('div.info-card', null, h('h3.brush', null, METHOD[run.method].name, h('small', null, `　${REALMS[run.realm]}`)), f ? h('div.info-sec', null, h('b', null, `${f.name}${run.fateEl ? `（本命 ${EL_NAME[run.fateEl]}）` : ''}`), h('br'), `先天：${f.gift}`, h('br'), `代价：${f.cost}`, h('br'), `化境${run.realm >= 2 ? '（已成）' : '（突破到金丹时）'}：${f.awaken}`) : h('p.dim', null, '没有命格。'), run.talents.length
+        ? h('div.info-list', null, ...run.talents.map(id => h('div.info-row', null, h('b', null, TALENT[id]?.name ?? id), h('small', null, `${TIER_NAME[TALENT[id]?.tier ?? 'common']}品`), h('span', null, TALENT[id]?.desc ?? ''))))
+        : h('p.dim', null, '还没有天赋：每幕首领后突破境界，三选一。'), run.vow ? h('div.info-sec', null, h('b', null, '誓：'), `${VOW[run.vow].name} —— ${VOW[run.vow].desc}`) : null, h('button.btn.ink.small', { type: 'button', onclick: () => close() }, '知道了')));
+}
 export function hud(run, opts = {}) {
     const hp = opts.battle && run.battle ? run.battle.player.hp : run.hp;
-    return h('div.hud', null, h('div.hud-who', null, h('img.hud-face', { src: art(`hero-${run.method}`), alt: '' }), h('div.hud-id', null, h('b', null, METHOD[run.method].name), h('span.realm', null, REALMS[run.realm])), opts.battle ? null : bar('hp', hp, run.maxHp)), h('div.hud-mid', null, relicRow(run)), h('div.hud-right', null, bondChips(run), h('span.gold', { title: '灵石' }, h('i', null, '◆'), fmt(run.gold)), h('span.act-tag', null, run.endless ? `无尽 · ${run.endless}` : `${ACTS[run.act - 1].name}`), run.heat ? h('span.act-tag.heat-tag', { title: '天劫契劫数' }, `劫 ${run.heat}`) : null, h('button.icon-btn', { type: 'button', title: '符袋', 'data-action': 'bag', onclick: () => showBag(run) }, '袋', h('small', null, String(run.bag.length))), h('button.icon-btn', { type: 'button', title: '诀谱', onclick: () => showHelp() }, '谱'), settingsButton()));
+    return h('div.hud', null, h('div.hud-who', null, h('img.hud-face', { src: art(`hero-${run.method}`), alt: '' }), h('div.hud-id', { onclick: (e) => { e.stopPropagation(); showRunInfo(run); }, title: '点击查看此行：命格与天赋' }, h('b', null, METHOD[run.method].name), h('span.realm', null, REALMS[run.realm], run.fate ? h('span.hud-fate', null, ` · ${FATE[run.fate].name}`) : null)), opts.battle ? null : bar('hp', hp, run.maxHp)), h('div.hud-mid', null, relicRow(run)), h('div.hud-right', null, bondChips(run), h('span.gold', { title: '灵石' }, h('i', null, '◆'), fmt(run.gold)), h('span.act-tag', null, run.endless ? `无尽 · ${run.endless}` : `${ACTS[run.act - 1].name}`), run.heat ? h('span.act-tag.heat-tag', { title: '天劫契劫数' }, `劫 ${run.heat}`) : null, h('button.icon-btn', { type: 'button', title: '符袋', 'data-action': 'bag', onclick: () => showBag(run) }, '袋', h('small', null, String(run.bag.length))), h('button.icon-btn', { type: 'button', title: '诀谱', onclick: () => showHelp() }, '谱'), settingsButton()));
 }
 /** Relic row; drag (mouse or touch) to reorder — relics fire left to right. */
 export function relicRow(run) {
@@ -177,7 +207,7 @@ export function showBag(run) {
     showOverlay(h('div.bag', null, h('h2.brush', null, `符 袋 · ${run.bag.length}`), ...groups));
 }
 export function showHelp(first = false) {
-    const close = showOverlay(h('div.help', null, h('h2.brush', null, '诀 谱'), h('div.help-cols', null, h('div.help-col', null, h('ol.help-steps', null, h('li', null, h('b', null, '把符当牌：'), '元素是花色，点数是牌面。点选 1–5 张出招，', h('em', null, '怎么排都一样'), '。每回合手牌全部刷新；「换符」不选符时整手全换。不会出就点「荐」。'), h('li', null, h('b', null, '成役：'), '同元素（同花）、同点数（对子、三条、葫芦）、连号（顺子）、五种元素齐、带克制敌人的符、两张凑 10 或三张凑 15，都能成役。', h('em', null, '每一路只算最高的役，不同路的番相加'), '，番数就是倍率。'), h('li', null, h('b', null, '伤害 = 气 × 番'), `：气是点数之和，每番另带 ${QI_PER_FAN} 气；`, '克制敌人的符点数 ×2，被克的 ×0.5。法宝自左向右再加、再乘。'), h('li', null, h('b', null, '得位与天成：'), '点数合河图数的符每张 +1 番（宝牌）；同花顺、五色同刻这类极难的牌是「天成」，直接给大倍率。'), h('li', null, h('b', null, '元素效果：'), '三张以上同元素触发', h('em', null, '共鸣'), '。护盾在挨打前生效，回复在挨打后生效。'), h('li', null, h('b', null, '剑意 / 天劫：'), '剑意满可开怒技（本招 ×3）；拖到第 8 回合天雷劈向双方。')), h('div.help-els', null, ...['jin', 'mu', 'shui', 'huo', 'tu'].map(el => h('div.help-el', null, tileView({ el, v: 5 }, { small: true }), h('span', null, { jin: '锐：暴击率 +12%', mu: '生：挨打后回复气血', shui: '护：获得护盾', huo: '焚：施加灼烧', tu: '镇：+0.5 番' }[el]))))), h('div.help-col', null, wuxingWheel(), patternTable(app.run))), first ? h('button.btn.seal', { type: 'button', onclick: () => { app.meta.tutorialDone = true; save(); close(); } }, '明白了，出发') : null), { onClose: () => { app.meta.tutorialDone = true; save(); } });
+    const close = showOverlay(h('div.help', null, h('h2.brush', null, '诀 谱'), h('div.help-cols', null, h('div.help-col', null, h('ol.help-steps', null, h('li', null, h('b', null, '把符当牌：'), '元素是花色，点数是牌面。点选 1–5 张出招，', h('em', null, '怎么排都一样'), '。每回合手牌全部刷新；「换符」不选符时整手全换。不会出就点「荐」。'), h('li', null, h('b', null, '成役：'), '同元素（同花）、同点数（对子、三条、葫芦）、连号（顺子）、五种元素齐、带克制敌人的符、两张凑 10 或三张凑 15，都能成役。', h('em', null, '每一路只算最高的役，不同路的番相加'), '，番数就是倍率。'), h('li', null, h('b', null, '伤害 = 气 × 番'), `：气是点数之和，每番另带 ${QI_PER_FAN} 气；`, '克制敌人的符点数 ×2，被克的 ×0.5。法宝自左向右再加、再乘。'), h('li', null, h('b', null, '得位与天成：'), '点数合河图数的符每张 +1 番（宝牌）；同花顺、五色同刻这类极难的牌是「天成」，直接给大倍率。'), h('li', null, h('b', null, '元素效果：'), '三张以上同元素触发', h('em', null, '共鸣'), '。护盾在挨打前生效，回复在挨打后生效。'), h('li', null, h('b', null, '剑意 / 天劫：'), '剑意满可开怒技（本招 ×3）；拖到第 8 回合天雷劈向双方。')), h('div.help-more', null, h('h4', null, '符纹'), ...['ling', 'huan', 'bao', 'lei'].map(k => h('p', null, MOD_DESC[k])), h('h4', null, '坊市与洞府'), h('p', null, '净符：移除一张符（坊市可反复买，每次 +20 灵石）。补货：坊市没卖出的全部换新，每个坊市一次。'), h('p', null, '三张归一：三张同元素、同点数的符合成一张，点数 ×2、保留最好的符纹；洞府免费，坊市 35 灵石一次。'), h('p', null, '炼符：一张符 +3 点并附符纹。熔符：两张熔成一张，点数相加。参悟：一路心法 +1 重。')), h('div.help-els', null, ...['jin', 'mu', 'shui', 'huo', 'tu'].map(el => h('div.help-el', null, tileView({ el, v: 5 }, { small: true }), h('span', null, { jin: '锐：暴击率 +12%', mu: '生：挨打后回复气血', shui: '护：获得护盾', huo: '焚：施加灼烧', tu: '镇：+0.5 番' }[el]))))), h('div.help-col', null, wuxingWheel(), patternTable(app.run))), first ? h('button.btn.seal', { type: 'button', onclick: () => { app.meta.tutorialDone = true; save(); close(); } }, '明白了，出发') : null), { onClose: () => { app.meta.tutorialDone = true; save(); } });
 }
 // —— Map ——
 const NODE_GLYPH = { fight: '斗', elite: '煞', event: '奇', shop: '市', rest: '憩', boss: '首' };
@@ -199,7 +229,15 @@ function threatTag(run, enemyId) {
     const level = threat >= run.hp * 0.4 ? '.danger' : threat >= run.hp * 0.2 ? '.warn' : '';
     return h(`span.node-threat${level}`, { title: `最重一击约 ${threat}（你现有 ${run.hp} 气血）` }, `⚔${fmt(threat)}`);
 }
+let reshapeMode = false;
+/** 天眼命: choose what an upcoming node becomes. */
+function pickReshape(run, node) {
+    const kinds = ['fight', 'event', 'shop', 'rest'].filter(k => k !== node.kind);
+    const close = showOverlay(h('div.info-card', null, h('h3.brush', null, '天眼 · 改换节点'), h('p.dim', null, `把这个「${NODE_NAME[node.kind]}」改成：`), h('div.fate-els', null, ...kinds.map(k => h('button.btn.ink', { type: 'button', 'data-reshape': k, onclick: () => { close(); reshapeMode = false; act(r => R.reshapeNode(r, node.id, k)); } }, NODE_NAME[k])))));
+}
 function mapScreen(run) {
+    if (R.reshapeLeft(run) <= 0)
+        reshapeMode = false;
     const reach = new Set(R.reachable(run).map(n => n.id));
     const visited = new Set(run.visited);
     const size = { ...stageSize };
@@ -209,17 +247,22 @@ function mapScreen(run) {
         const live = node.id === run.at && reach.has(id);
         return `<path d="M${a.x} ${a.y} Q ${(a.x + b.x) / 2 + (a.y - b.y) * 0.08} ${(a.y + b.y) / 2} ${b.x} ${b.y}" class="map-line${walked ? ' walked' : ''}${live ? ' live' : ''}"/>`;
     })).join('');
+    const here = run.at ? R.nodeById(run, run.at) : null;
+    const canReshape = (node) => reshapeMode && !visited.has(node.id) && node.kind !== 'boss' && node.kind !== 'elite' && !node.event?.startsWith('bond-') && (!here || node.row > here.row);
     const nodes = run.map.map(node => {
         const p = nodePos(node, run);
         const enemy = node.enemy ? ENEMY[node.enemy] : null;
-        const isReach = reach.has(node.id);
+        const isReach = reach.has(node.id) && !reshapeMode;
+        const reshapable = canReshape(node);
         const bondEvent = node.event?.startsWith('bond-') ? EVENT[node.event] : null;
-        const btn = h(`button.map-node.k-${node.kind}${bondEvent ? '.k-bond' : ''}${isReach ? '.reach' : ''}${visited.has(node.id) ? '.done' : ''}${node.id === run.at ? '.here' : ''}`, {
-            type: 'button', 'data-node': node.id, 'data-kind': node.kind, disabled: !isReach || undefined,
+        const btn = h(`button.map-node.k-${node.kind}${bondEvent ? '.k-bond' : ''}${isReach ? '.reach' : ''}${reshapable ? '.reshapable' : ''}${visited.has(node.id) ? '.done' : ''}${node.id === run.at ? '.here' : ''}`, {
+            type: 'button', 'data-node': node.id, 'data-kind': node.kind, disabled: !(isReach || reshapable) || undefined,
             style: { left: `${p.x}px`, top: `${p.y}px` },
             title: bondEvent ? `因缘 · ${BOND[bondEvent.bond].name}` : `${NODE_NAME[node.kind]}${enemy ? ` · ${enemy.name}（${EL_NAME[enemy.el]}）` : ''}`,
-            onclick: () => act(r => R.enterNode(r, node.id), node.kind === 'boss' ? 'stamp' : 'click'),
+            onclick: () => (reshapable ? pickReshape(run, node) : act(r => R.enterNode(r, node.id), node.kind === 'boss' ? 'stamp' : 'click')),
         }, node.kind === 'boss' && enemy ? h('img.node-art', { src: art(enemy.art), alt: '' }) : null, h('span.node-glyph', null, node.event?.startsWith('bond-') ? '缘' : NODE_GLYPH[node.kind]), enemy && node.kind !== 'boss' ? h('span.node-el', { class: `el-${enemy.el}` }, EL_NAME[enemy.el]) : null, node.kind === 'boss' && enemy ? h('span.node-label', null, enemy.name) : null, bondEvent ? h('span.node-label.bond-label', null, BOND[bondEvent.bond].name) : null, 
+        // 天眼命: 奇遇 show their name.
+        run.fate === 'tianyan' && node.kind === 'event' && !bondEvent && node.event && !visited.has(node.id) ? h('span.node-label.event-label', null, EVENT[node.event]?.title ?? '') : null, 
         // Route risk at a glance: the enemy's heaviest turn (red when it would take 40% of your current HP), and what an elite pays.
         enemy && !visited.has(node.id) ? threatTag(run, node.enemy) : null, node.kind === 'elite' && !visited.has(node.id) ? h('span.node-loot', null, '法宝') : null);
         return btn;
@@ -227,7 +270,7 @@ function mapScreen(run) {
     const a = ACTS[run.act - 1];
     return h('div.map', null, run.endless
         ? h('div.map-title', null, h('span.act-no', null, '无尽天劫'), h('span.brush', null, `第 ${run.endless} 层`), h('small', null, `敌方气血 ×${(1.75 ** run.endless).toFixed(1)} · 最深 ${app.meta.endlessBest} 层`))
-        : h('div.map-title', null, h('span.act-no', null, run.act === 5 ? '终幕' : `第${'一二三四'[run.act - 1]}幕`), h('span.brush', null, a.name), h('small', null, ACT_STORY[run.act]?.goal ?? a.sub)), h('div.map-lines', { html: `<svg viewBox="0 0 ${size.w} ${size.h}" width="100%" height="100%">${lines}</svg>` }), ...nodes, h('div.map-legend', null, ...Object.keys(NODE_GLYPH).map(k => h('span', null, h('i', { class: `k-${k}` }, NODE_GLYPH[k]), NODE_NAME[k])), h('span.legend-tip', null, run.relics.length > 1 ? '⚔ 敌人最重一击（红＝伤你四成以上）· 法宝自左向右触发，可拖动换位' : '⚔ 敌人最重一击（红＝伤你四成以上）')));
+        : h('div.map-title', null, h('span.act-no', null, run.act === 5 ? '终幕' : `第${'一二三四'[run.act - 1]}幕`), h('span.brush', null, a.name), h('small', null, ACT_STORY[run.act]?.goal ?? a.sub)), h('div.map-lines', { html: `<svg viewBox="0 0 ${size.w} ${size.h}" width="100%" height="100%">${lines}</svg>` }), ...nodes, R.reshapeLeft(run) > 0 ? h(`button.btn.ink.reshape-btn${reshapeMode ? '.on' : ''}`, { type: 'button', 'data-action': 'reshape', onclick: () => { reshapeMode = !reshapeMode; render(); } }, reshapeMode ? '点一个节点改换（再点取消）' : `天眼 · 改换节点（剩 ${R.reshapeLeft(run)}）`) : null, h('div.map-legend', null, ...Object.keys(NODE_GLYPH).map(k => h('span', null, h('i', { class: `k-${k}` }, NODE_GLYPH[k]), NODE_NAME[k])), h('span.legend-tip', null, run.relics.length > 1 ? '⚔ 敌人最重一击（红＝伤你四成以上）· 法宝自左向右触发，可拖动换位' : '⚔ 敌人最重一击（红＝伤你四成以上）')));
 }
 // —— Reward ——
 function rewardScreen(run, s) {
@@ -238,7 +281,7 @@ function rewardScreen(run, s) {
         act(r => R.takeReward(r, 'relic', i), 'reward');
     };
     const style = playStyle(run);
-    return h('div.panel-scr.reward', null, h('div.panel-body', null, h('h1.brush.big-title', null, '斩 获'), s.story ? h('p.story-quote', null, s.story) : null, style ? h('div.play-style', null, '此行打法 · ', h('b', null, style)) : null, s.gold ? h('div.reward-gold', null, h('i', null, '◆'), ` +${s.gold} 灵石`) : null, s.relicOptions.length ? h('div.reward-block', null, h('h3', null, s.relicPicked ? '法宝已取' : '择一件法宝'), h('div.cards', null, ...s.relicOptions.map((o, i) => cardButton(run, o, () => pickRelic(i), s.relicPicked)))) : null, s.options.length ? h('div.reward-block', null, h('h3', null, s.picked ? '已取' : '择其一'), h('div.cards', null, ...s.options.map((o, i) => cardButton(run, o, () => pickMain(i), s.picked))), !s.picked && !s.rerolled ? h('button.btn.ink.reroll-btn', { type: 'button', 'data-action': 'reroll', disabled: run.gold < R.rerollPrice(run) || undefined, onclick: () => act(r => R.rerollReward(r), 'reward') }, `换一批 ◆${R.rerollPrice(run)}`, h('small', null, '每次奖励限一次')) : null) : null, !s.picked && s.options.length ? h('button.btn.ink.purge-btn', { type: 'button', 'data-action': 'purge', onclick: () => act(r => R.rewardPurge(r)) }, '净符 · 不取奖励，移除一枚符', h('small', null, `符袋 ${run.bag.length} 枚，越精越容易成诀`)) : null), h('button.btn.seal.continue', { type: 'button', 'data-action': 'continue', onclick: () => act(r => R.leaveReward(r)) }, s.next === 'breakthrough' ? '突 破' : s.picked || !s.options.length ? '继 续' : '不 取', !s.picked && s.options.length ? h('small', null, `不取奖励，得 ${R.skipGold(run)} 灵石`) : null));
+    return h('div.panel-scr.reward', null, h('div.panel-body', null, h('h1.brush.big-title', null, '斩 获'), s.story ? h('p.story-quote', null, s.story) : null, style ? h('div.play-style', null, '此行打法 · ', h('b', null, style)) : null, s.gold ? h('div.reward-gold', null, h('i', null, '◆'), ` +${s.gold} 灵石`) : null, s.relicOptions.length ? h('div.reward-block', null, h('h3', null, s.relicPicked ? '法宝已取' : '择一件法宝'), h('div.cards', null, ...s.relicOptions.map((o, i) => cardButton(run, o, () => pickRelic(i), s.relicPicked)))) : null, s.options.length ? h('div.reward-block', null, h('h3', null, s.picked ? '已取' : '择其一'), h('div.cards', null, ...s.options.map((o, i) => cardButton(run, o, () => pickMain(i), s.picked))), !s.picked && !s.rerolled ? h('button.btn.ink.reroll-btn', { type: 'button', 'data-action': 'reroll', disabled: run.gold < R.rerollPrice(run) || undefined, onclick: () => act(r => R.rerollReward(r), 'reward') }, `换一批 ◆${R.rerollPrice(run)}`, h('small', null, '每次奖励限一次')) : null) : null, run.fate === 'tunfu' && !s.devoured ? h('button.btn.ink.purge-btn', { type: 'button', 'data-action': 'devour', onclick: () => act(r => R.startDevour(r)) }, '吞符 · 吞下一张符', h('small', null, '点数平分给同元素的其他符（吞符命）')) : null, !s.picked && s.options.length ? h('button.btn.ink.purge-btn', { type: 'button', 'data-action': 'purge', onclick: () => act(r => R.rewardPurge(r)) }, '净符 · 不取奖励，移除一枚符', h('small', null, `符袋 ${run.bag.length} 枚，越精越容易成诀`)) : null), h('button.btn.seal.continue', { type: 'button', 'data-action': 'continue', onclick: () => act(r => R.leaveReward(r)) }, s.next === 'breakthrough' ? '突 破' : s.picked || !s.options.length ? '继 续' : '不 取', !s.picked && s.options.length ? h('small', null, `不取奖励，得 ${R.skipGold(run)} 灵石`) : null));
 }
 /** 契合: does this option feed what the player has actually been casting? */
 function fitTag(run, option) {
@@ -277,7 +320,7 @@ function shopScreen(run, s) {
             return chooseReplace(run, item.option, slot => act(r => R.buy(r, i, slot), 'reward'));
         act(r => R.buy(r, i), 'reward');
     };
-    return h('div.panel-scr.shop', null, h('div.panel-body', null, h('h1.brush.big-title', null, '坊 市'), h('div.shop-grid', null, ...s.items.map((item, i) => cardButton(run, item.option, () => buy(i), false, item.price, item.sold)))), h('div.shop-foot', null, h('button.btn.ink', { type: 'button', 'data-action': 'purge', disabled: run.gold < s.removePrice || undefined, onclick: () => act(r => R.startRemove(r)) }, `净符 · 移除一枚符 ◆${s.removePrice}`, h('small', null, `符袋 ${run.bag.length} 枚`)), !s.merged ? h('button.btn.ink', { type: 'button', 'data-action': 'merge', disabled: run.gold < R.mergePrice(run) || !R.mergeGroups(run).length || undefined, onclick: () => act(r => R.startMerge(r)) }, `三张归一 ◆${R.mergePrice(run)}`, h('small', null, R.mergeGroups(run).length ? '同元素同点数三张合一' : '符袋里还凑不出三张')) : null, !s.restocked ? h('button.btn.ink', { type: 'button', 'data-action': 'restock', disabled: run.gold < R.restockPrice(run) || undefined, onclick: () => act(r => R.restockShop(r), 'reward') }, `补货 ◆${R.restockPrice(run)}`, h('small', null, '没卖出的全部换新，限一次')) : null, h('button.btn.seal', { type: 'button', 'data-action': 'leave', onclick: () => act(r => R.leaveShop(r)) }, '离 开')));
+    return h('div.panel-scr.shop', null, h('div.panel-body', null, h('h1.brush.big-title', null, '坊 市'), h('div.shop-grid', null, ...s.items.map((item, i) => cardButton(run, item.option, () => buy(i), false, item.price, item.sold)))), h('div.shop-foot', null, h('button.btn.ink', { type: 'button', 'data-action': 'purge', disabled: run.gold < s.removePrice || undefined, onclick: () => act(r => R.startRemove(r)) }, `净符 ◆${s.removePrice}`), !s.merged ? h('button.btn.ink', { type: 'button', 'data-action': 'merge', disabled: run.gold < R.mergePrice(run) || !R.mergeGroups(run).length || undefined, onclick: () => act(r => R.startMerge(r)) }, `三张归一 ◆${R.mergePrice(run)}`) : null, !s.restocked ? h('button.btn.ink', { type: 'button', 'data-action': 'restock', disabled: run.gold < R.restockPrice(run) || undefined, onclick: () => act(r => R.restockShop(r), 'reward') }, `补货 ◆${R.restockPrice(run)}`) : null, h('button.btn.seal', { type: 'button', 'data-action': 'leave', onclick: () => act(r => R.leaveShop(r)) }, '离 开')));
 }
 // —— Event ——
 function eventScreen(run, s) {
@@ -295,7 +338,7 @@ function restScreen(run, s) {
         return h('div.panel-scr.rest', null, h('div.event-glyph.brush', null, '憩'), h('h1.brush', null, '洞 府'), h('p.event-text', null, '调息已毕，可以上路了。'), h('button.btn.seal', { type: 'button', 'data-action': 'continue', onclick: () => act(r => R.leaveRest(r)) }, '继 续'));
     }
     const insights = R.insightChoices(run);
-    return h('div.panel-scr.rest', null, h('div.event-glyph.brush', null, '憩'), h('h1.brush', null, '洞 府'), h('p.event-text', null, '石室清冷，可以歇一歇。只能做一件事。'), h('div.rest-options', null, h('button.event-opt', { type: 'button', 'data-option': 'heal', onclick: () => act(r => R.restChoose(r, 'heal'), 'heal') }, h('b', null, '调息'), h('span', null, `回复 ${Math.round(run.maxHp * 0.4)} 气血（${run.hp}/${run.maxHp}）`)), h('button.event-opt', { type: 'button', 'data-option': 'forge', onclick: () => act(r => R.restChoose(r, 'forge')) }, h('b', null, '炼符'), h('span', null, '一枚符点数 +3，并附上一道符纹')), h('button.event-opt', { type: 'button', 'data-option': 'merge', disabled: !R.mergeGroups(run).length || undefined, onclick: () => act(r => R.restChoose(r, 'merge')) }, h('b', null, '三张归一'), h('span', null, R.mergeGroups(run).length ? '三张同元素同点数的符合成一张：点数 ×2' : '需要三张同元素、同点数的符')), h('button.event-opt', { type: 'button', 'data-option': 'fuse', disabled: run.bag.filter(t => t.el !== 'zhuo').length < 2 || undefined, onclick: () => act(r => R.restChoose(r, 'fuse')) }, h('b', null, '熔符'), h('span', null, '两枚符熔成一枚：点数相加（单骑流的根本）')), h('button.event-opt', { type: 'button', 'data-option': 'purge', onclick: () => act(r => R.restChoose(r, 'purge')) }, h('b', null, '净符'), h('span', null, `移除至多两枚符（符袋现有 ${run.bag.length} 枚）`)), h('div.event-opt.insight', null, h('b', null, '参悟'), h('span', null, '选一路心法 +1 重'), h('div.insight-row', null, ...insights.map(id => h('button.chip', { type: 'button', onclick: () => act(r => R.restChoose(r, 'insight', id), 'reward') }, `${PATTERNS[id].name} ${run.patternLv[id] + 1}重`))))));
+    return h('div.panel-scr.rest', null, h('div.event-glyph.brush', null, '憩'), h('h1.brush', null, '洞 府'), h('p.event-text', null, s.used ? '百炼命：还可以再做一件事。' : run.fate === 'bailian' ? '石室清冷，可以歇一歇。百炼命：可以做两件事。' : '石室清冷，可以歇一歇。只能做一件事。'), h('div.rest-options', null, h('button.event-opt', { type: 'button', 'data-option': 'heal', onclick: () => act(r => R.restChoose(r, 'heal'), 'heal') }, h('b', null, '调息'), h('span', null, `回复 ${Math.round(run.maxHp * 0.4)} 气血（${run.hp}/${run.maxHp}）`)), h('button.event-opt', { type: 'button', 'data-option': 'forge', onclick: () => act(r => R.restChoose(r, 'forge')) }, h('b', null, '炼符'), h('span', null, '一枚符点数 +3，并附上一道符纹')), h('button.event-opt', { type: 'button', 'data-option': 'merge', disabled: !R.mergeGroups(run).length || undefined, onclick: () => act(r => R.restChoose(r, 'merge')) }, h('b', null, '三张归一'), h('span', null, R.mergeGroups(run).length ? '三张同元素同点数的符合成一张：点数 ×2' : '需要三张同元素、同点数的符')), h('button.event-opt', { type: 'button', 'data-option': 'fuse', disabled: run.bag.filter(t => t.el !== 'zhuo').length < 2 || undefined, onclick: () => act(r => R.restChoose(r, 'fuse')) }, h('b', null, '熔符'), h('span', null, '两枚符熔成一枚：点数相加（单骑流的根本）')), h('button.event-opt', { type: 'button', 'data-option': 'purge', onclick: () => act(r => R.restChoose(r, 'purge')) }, h('b', null, '净符'), h('span', null, `移除至多两枚符（符袋现有 ${run.bag.length} 枚）`)), h('div.event-opt.insight', null, h('b', null, '参悟'), h('span', null, '选一路心法 +1 重'), h('div.insight-row', null, ...insights.map(id => h('button.chip', { type: 'button', onclick: () => act(r => R.restChoose(r, 'insight', id), 'reward') }, `${PATTERNS[id].name} ${run.patternLv[id] + 1}重`))))), s.used ? h('button.btn.seal', { type: 'button', 'data-action': 'continue', onclick: () => act(r => R.leaveRest(r)) }, '离 开') : null);
 }
 // —— Pick tiles ——
 let picked = [];
@@ -436,7 +479,7 @@ export function showHub() {
         const tabs = h('div.hub-tabs', null, ...['道树', '悟道', '道行', '图鉴'].map(t => h(`button.hub-tab${t === hubTab ? '.on' : ''}`, { type: 'button', onclick: () => { hubTab = t; draw(); } }, t)));
         let content;
         if (hubTab === '道树') {
-            content = h('div.tree', null, ...['器', '符', '路'].map(branch => h('div.tree-col', null, h('h3.brush', null, { 器: '器 · 法宝', 符: '符 · 起手', 路: '路 · 旅途' }[branch]), ...TREE.filter(n => n.branch === branch).map(n => {
+            content = h('div.tree', null, ...['器', '符', '路', '命'].map(branch => h('div.tree-col', null, h('h3.brush', null, { 器: '器 · 法宝', 符: '符 · 起手', 路: '路 · 旅途', 命: '命 · 命格' }[branch]), ...TREE.filter(n => n.branch === branch).map(n => {
                 const owned = meta.unlocks.includes(n.id);
                 const ok = canBuy(meta, n.id);
                 const locked = n.requires && !meta.unlocks.includes(n.requires);

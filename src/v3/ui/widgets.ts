@@ -1,4 +1,4 @@
-import { MOD_DESC, MOD_NAME, RELIC, SPECIALS, TALENT, type RelicDef } from '../core/content.js';
+import { MOD_DESC, MOD_NAME, MOD_SHORT, RELIC, SPECIALS, TALENT, TIER_NAME, type RelicDef } from '../core/content.js';
 import { counterOf, EL_EFFECT, EL_NAME, GEN, KE, type El } from '../core/elements.js';
 import { PATTERNS, PATTERN_ORDER, QI_PER_FAN, YAKU, YAKU_ORDER } from '../core/patterns.js';
 import type { PatternId, RewardOption, RunState, Tile } from '../core/types.js';
@@ -41,17 +41,17 @@ export function optionCard(run: RunState, option: RewardOption) {
     case 'relic': return relicCard(RELIC[option.relic]);
     case 'tile': return h('div.card-tile', null, tileView(option.tile), h('div.card-title', null, option.tile.sp ? `本门符 · ${SPECIALS[option.tile.sp].name}${option.tile.v}` : `新符 · ${option.tile.mod ? MOD_NAME[option.tile.mod] : ''}${elLabel(option.tile.el)}${option.tile.v}`),
       option.tile.sp ? h('div.card-desc', null, SPECIALS[option.tile.sp].desc) : null,
-      h('div.card-desc', null, option.tile.el === 'zhuo' ? '' : EL_EFFECT[option.tile.el]), option.tile.mod ? h('div.card-desc.dim', null, MOD_DESC[option.tile.mod]) : null);
+      h('div.card-desc', null, option.tile.el === 'zhuo' ? '' : EL_EFFECT[option.tile.el]), option.tile.mod ? h('div.card-desc.dim', null, MOD_SHORT[option.tile.mod]) : null);
     case 'pattern': {
       const lv = run.patternLv[option.pattern];
       return h('div.card-pattern', null, h('div.pattern-seal', null, PATTERNS[option.pattern].name),
         h('div.card-title', null, `心法 · ${PATTERNS[option.pattern].name}（${PATTERNS[option.pattern].alias}）${lv + 1}重`),
-        h('div.card-desc', null, PATTERNS[option.pattern].hint),
+        h('div.card-desc', null, PATTERNS[option.pattern].short),
         h('div.card-desc.num', null, patternText(option.pattern, lv), ' → ', h('b', null, patternText(option.pattern, lv + 1))));
     }
     case 'talent': {
       const def = TALENT[option.talent];
-      return h('div.card-talent', null, h('div.talent-glyph', null, def.name.slice(0, 1)), h('div.card-title', null, def.name), h('div.card-desc', null, def.desc));
+      return h(`div.card-talent.t-${def.tier}`, null, h('div.talent-glyph', null, def.name.slice(0, 1)), h('div.card-title', null, def.name), h('div.card-rarity', null, `${TIER_NAME[def.tier]}品 · ${def.cat}`), h('div.card-desc', null, def.desc));
     }
     case 'heal': return h('div.card-heal', null, h('div.talent-glyph', null, '丹'), h('div.card-title', null, '回春丹'), h('div.card-desc', null, `回复 ${option.amount} 气血`));
     case 'gold': return h('div.card-heal', null, h('div.card-title', null, `${option.amount} 灵石`));

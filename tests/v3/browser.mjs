@@ -74,6 +74,10 @@ for (const [label, viewport] of [['landscape', { width: 1366, height: 768 }], ['
   await page.click('[data-method="jingang"]');
   await inStage(page, `${label} select`);
   await page.click('[data-action="start"]');
+  // 择命格: three 命格 on offer (or none); take the first one.
+  await page.waitForSelector('.fate-pick');
+  assert.equal(await page.locator('.fate-card').count(), 3, 'three 命格 on offer');
+  await page.locator('.fate-card [data-fate]').first().click();
   // Act 1 opens on the story scroll; tap once to reveal everything, then set off.
   await page.waitForSelector('.story-scr');
   await inStage(page, `${label} story`);
@@ -88,7 +92,8 @@ for (const [label, viewport] of [['landscape', { width: 1366, height: 768 }], ['
   // Keyboard: "1" selects the first tile, Escape clears.
   await page.keyboard.press('1');
   assert.equal(await page.locator('.hand .tile.sel').count(), 1, 'keyboard select');
-  assert.ok((await page.textContent('.preview-line')).includes('='), 'live preview shows qi × mult');
+  assert.ok((await page.textContent('.preview-line')).includes('伤害'), 'live preview shows the damage');
+  assert.match(await page.textContent('.sp-qi b'), /^[\d,]+$/, 'score panel shows 气');
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('.hand .tile.sel').count(), 0);
   // 荐 picks tiles; the 役 it makes show up as tappable chips that open their rule; the enemy opens its intent.

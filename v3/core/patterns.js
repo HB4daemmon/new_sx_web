@@ -11,12 +11,12 @@ import { counterOf, ELEMENTS } from './elements.js';
 /** 每番另带的气。 */
 export const QI_PER_FAN = 10;
 export const PATTERNS = {
-    yuan: { id: 'yuan', name: '同元', alias: '同花', hint: '同一元素的符凑在一起：双元、两仪、三才、满堂、四象、五雷' },
-    shu: { id: 'shu', name: '同数', alias: '对子', hint: '同一点数的符凑在一起：成双、成双成对、三清、紫金葫芦、四御' },
-    lian: { id: 'lian', name: '连珠', alias: '顺子', hint: '点数连号：三连珠、四连珠、五连珠，正好 1–5 为一气化龙' },
-    wuxing: { id: 'wuxing', name: '五行', alias: '杂色', hint: '元素各不相同：三花聚顶（三种元素同点数）、五行俱全（五种元素齐）' },
-    podi: { id: 'podi', name: '破敌', alias: '克制', hint: '带克制当前敌人的符：两张破绽、三张破阵、四张以上破军' },
-    luoshu: { id: 'luoshu', name: '洛书', alias: '凑数', hint: '只出两张、和为 10（十全）；只出三张、和为 15（洛书，九宫每行之和）' },
+    yuan: { id: 'yuan', name: '同元', alias: '同花', hint: '同一元素的符凑在一起：双元、两仪、三才、满堂、四象、五雷', short: '同元素凑组' },
+    shu: { id: 'shu', name: '同数', alias: '对子', hint: '同一点数的符凑在一起：成双、成双成对、三清、紫金葫芦、四御', short: '同点数凑组' },
+    lian: { id: 'lian', name: '连珠', alias: '顺子', hint: '点数连号：三连珠、四连珠、五连珠，正好 1–5 为一气化龙', short: '点数连号' },
+    wuxing: { id: 'wuxing', name: '五行', alias: '杂色', hint: '元素各不相同：三花聚顶（三种元素同点数）、五行俱全（五种元素齐）', short: '元素各不相同' },
+    podi: { id: 'podi', name: '破敌', alias: '克制', hint: '带克制当前敌人的符：两张破绽、三张破阵、四张以上破军', short: '带克制敌人的符' },
+    luoshu: { id: 'luoshu', name: '洛书', alias: '凑数', hint: '只出两张、和为 10（十全）；只出三张、和为 15（洛书，九宫每行之和）', short: '两张凑十、三张凑十五' },
 };
 export const PATTERN_ORDER = ['yuan', 'shu', 'lian', 'wuxing', 'podi', 'luoshu'];
 /** 心法 n 重：这一路成役时 +(n−1) 番。 */

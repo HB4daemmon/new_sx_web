@@ -1,9 +1,10 @@
-import { RAGES, RELIC } from './content.js';
+import { JIJI, RAGES, RELIC, TALENT } from './content.js';
 import { counterOf, KE } from './elements.js';
-import { analyze, assignments, COMBOS, patternValue, QI_PER_FAN, YAKU } from './patterns.js';
+import { analyze, assignments, COMBOS, isDewei, patternValue, PATTERN_ORDER, PATTERNS, QI_PER_FAN, YAKU } from './patterns.js';
 import { pactRank } from './pacts.js';
 export const has = (run, id) => run.talents.includes(id);
-export const relicFlag = (run, flag) => run.relics.reduce((sum, id) => sum + (RELIC[id]?.flags?.[flag] ?? 0), 0);
+export const relicFlag = (run, flag) => run.relics.reduce((sum, id) => sum + (RELIC[id]?.flags?.[flag] ?? 0), 0) * (run.fate === 'guxing' ? 2 : 1);
+const awake = (run, id) => run.fate === id && run.realm >= 2;
 export const defenseScale = (run) => 1 + 0.5 * run.realm;
 export const isDay = (battle) => battle.turn % 2 === 1;
 function applyBump(qi, mult, bump) {
@@ -68,6 +69,11 @@ function stage(run, battle, tiles, els, vals, rage = false) {
             tag = tag ?? '孤';
         }
         tq = Math.round(tq);
+        // 河图命: tiles off their 河图数 lose a point; 偏枯命: the 本命元素 +2, the rest −1.
+        if (run.fate === 'hetu' && el && !isDewei(el, vals[index]))
+            tq = Math.max(0, tq - 1);
+        if (run.fate === 'pianku' && el)
+            tq = Math.max(0, tq + (el === run.fateEl ? 2 : -1));
         let dFan = 0;
         const fx = { el };
         if (el === 'jin') {
@@ -136,11 +142,58 @@ function stage(run, battle, tiles, els, vals, rage = false) {
             push({ k: 'bonus', label: `宝符 ×${bao} ${bao}番`, dQi: QI_PER_FAN * bao, dMult: bao });
         }
         if (a.dewei) {
-            yakuFan += a.dewei;
-            qi += QI_PER_FAN * a.dewei;
-            fan += a.dewei;
-            push({ k: 'bonus', label: `得位 ×${a.dewei} ${a.dewei}番`, dQi: QI_PER_FAN * a.dewei, dMult: a.dewei });
+            const df = a.dewei * (run.fate === 'hetu' ? 2 : 1);
+            yakuFan += df;
+            qi += QI_PER_FAN * df;
+            fan += df;
+            push({ k: 'bonus', label: `得位 ×${a.dewei} ${df}番${run.fate === 'hetu' ? '（河图命）' : ''}`, dQi: QI_PER_FAN * df, dMult: df });
         }
+        // 星宿命: this battle's 宿 doubles one 路.
+        for (const star of [battle.stacks.star, battle.stacks.star2]) {
+            if (star === undefined || run.fate !== 'xingxiu')
+                continue;
+            const path = PATTERN_ORDER[star];
+            const hit = yaku.find(y => YAKU[y.id].path === path);
+            if (!hit)
+                continue;
+            yakuFan += hit.fan;
+            qi += QI_PER_FAN * hit.fan;
+            fan += hit.fan;
+            push({ k: 'bonus', label: `星宿·${PATTERNS[path].name} 再 ${hit.fan}番`, dQi: QI_PER_FAN * hit.fan, dMult: hit.fan });
+        }
+        // 偏枯命 化境 / 守拙命 化境.
+        if (awake(run, 'pianku') && els.filter(e => e === run.fateEl).length >= 3) {
+            yakuFan += 3;
+            qi += QI_PER_FAN * 3;
+            fan += 3;
+            push({ k: 'bonus', label: '偏枯·化境 3番', dQi: QI_PER_FAN * 3, dMult: 3 });
+        }
+        if (awake(run, 'shouzhuo') && tiles.length >= 5) {
+            yakuFan += 2;
+            qi += QI_PER_FAN * 2;
+            fan += 2;
+            push({ k: 'bonus', label: '守拙·化境 2番', dQi: QI_PER_FAN * 2, dMult: 2 });
+        }
+    }
+    // 既济：一组相克元素各 2 张以上（天赋）。
+    for (const [id, j] of Object.entries(JIJI)) {
+        if (!has(run, id) || els.filter(e => e === j.a).length < 2 || els.filter(e => e === j.b).length < 2)
+            continue;
+        const f = id === 'jiji_tushui' ? 6 : 4;
+        yakuFan += f;
+        qi += QI_PER_FAN * f;
+        fan += f;
+        if (id === 'jiji_shuihuo') {
+            shield *= 2;
+            burn *= 2;
+        }
+        if (id === 'jiji_jinmu')
+            critChance += 30;
+        if (id === 'jiji_mutu')
+            heal *= 2;
+        if (id === 'jiji_huojin')
+            x *= 1.2;
+        push({ k: 'bonus', label: `${TALENT[id].name} ${f}番${j.extra && id !== 'jiji_tushui' ? `，${j.extra}` : ''}`, dQi: QI_PER_FAN * f, dMult: f });
     }
     // 3 —— 共鸣：三张以上同元素。
     if (resonant.has('jin')) {
@@ -208,6 +261,8 @@ function finish(run, battle, tiles, st, rage, roll) {
         push('bonus', `玉液 +${battle.stacks.overheal} 气`, { qi: battle.stacks.overheal });
     if (battle.stacks.drum)
         push('bonus', `震岳 +${battle.stacks.drum} 气`, { qi: battle.stacks.drum });
+    if (has(run, 'jieshi') && battle.stacks.incoming)
+        push('bonus', `借势 +${Math.round(battle.stacks.incoming / 2)} 气`, { qi: Math.round(battle.stacks.incoming / 2) });
     // Relics fire left to right — order matters.
     const ctxBase = { run, battle, tiles, els: match.els, pattern: match.combo, a: match, rage, castIndex };
     run.relics.forEach((id, slot) => {
@@ -229,7 +284,14 @@ function finish(run, battle, tiles, st, rage, roll) {
         if (!bump)
             return;
         push('relic', label ? `${label} ${bumpLabel(bump)}` : bumpLabel(bump), bump, { relic: id, index: slot });
+        // 孤星命: every relic fires twice.
+        if (run.fate === 'guxing')
+            push('relic', `孤星·再 ${bumpLabel(bump)}`, bump, { relic: id, index: slot });
     });
+    if (run.fate === 'shouzhuo' && tiles.length >= 5)
+        push('bonus', '守拙 ×1.5', { x: 1.5 });
+    if (run.fate === 'shouzhuo' && tiles.length <= 2)
+        push('bonus', '守拙 ×0.6', { x: 0.6 });
     if (has(run, 'xueji'))
         push('bonus', '血祭 ×1.6', { x: 1.6 });
     if (run.vow === 'suidan')

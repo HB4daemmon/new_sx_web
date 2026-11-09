@@ -2,9 +2,9 @@ import { canRage, rageCost, enemyAttack, MAX_CAST, previewCast, swordDamage, tri
 import { METHOD, RAGES, RELIC, SPECIALS } from '../core/content.js';
 import { counterOf, EL_NAME, KE, type El } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
-import { COMBOS, fanTier, PATTERNS, QI_PER_FAN, YAKU, YAKU_ORDER, HETU } from '../core/patterns.js';
+import { COMBOS, fanTier, PATTERNS, PATTERN_ORDER, QI_PER_FAN, YAKU, YAKU_ORDER, HETU } from '../core/patterns.js';
 import { dangerous, recommend, type AdviceMode } from '../core/advisor.js';
-import { MOD_DESC } from '../core/content.js';
+import { MOD_DESC, TALENT, TIER_NAME } from '../core/content.js';
 import type { YakuId } from '../core/types.js';
 import { BOND, BOSS_STORY, LORE } from '../core/story.js';
 import * as R from '../core/run.js';
@@ -13,7 +13,7 @@ import type { Move, RunState, Tile } from '../core/types.js';
 import { anim, burst, centerOf, comet, EL_COLOR, flash, floatText, hitstop, isSkipping, lightning, reducedMotion, ring, setSkipping, shake, wait } from './fx.js';
 import { $, $$, fmt, fmt1, h } from './h.js';
 import { app, overlayOpen, render, save, showOverlay, toast } from './main.js';
-import { announce, art, hud, showBag, showHelp } from './screens.js';
+import { announce, art, fateText, hud, showBag, showHelp } from './screens.js';
 import { checkAchievements } from './progression.js';
 import { playSfx } from './sfx.js';
 import { bar, tileView, wuxingWheel } from './widgets.js';
@@ -56,7 +56,7 @@ export function mountBattle(container: HTMLElement) {
       h('div.enemy-name', null, h('span.e-el'), h('b', null, enemy.name), h('small', null, enemy.title)),
       h('div.enemy-bar'),
       enemy.traitText ? h('div.enemy-trait', null, enemy.traitText) : null,
-      LORE[enemy.id] ? h('div.enemy-lore', null, LORE[enemy.id]) : null),
+      null),
     h('div.wheel-slot'),
     h('div.turn-tag'),
     h('div.score-panel', null,
@@ -217,6 +217,7 @@ function refreshStatus() {
     b.swords > 0 ? h('span.st.st-sword', { title: `飞剑：每次出招后齐射，每柄 ${swordDamage(run())} + 本招伤害的 10%` }, '剑 ×', String(b.swords)) : null,
     b.spring > 0 ? h('span.st.st-spring', { title: '春华：下一招计入气' }, '春 ', fmt(b.spring)) : null,
     b.stacks.thunder ? h('span.st.st-thunder', { title: '雷引：本场倍率永久提高' }, '雷 +', String(b.stacks.thunder)) : null,
+    run().fate === 'xingxiu' && b.stacks.star !== undefined ? h('span.st.st-star', { title: '星宿命：本场这一路的番 ×2' }, '宿·', ...[b.stacks.star, b.stacks.star2].filter(x => x !== undefined).map(x => PATTERNS[PATTERN_ORDER[x!]].name).join('、')) : null,
     b.stacks.wheel ? h('span.st.st-wheel', { title: `命运轮盘：本回合转出 ${b.stacks.wheel}，本招有几张 ${b.stacks.wheel} 点的符，番就 ×几` }, '轮 ', String(b.stacks.wheel)) : null,
     b.stacks.omen !== undefined && run().relics.includes('tianjiqian') ? h('span.st.st-omen', { title: `天机签：本回合「吉」为${EL_NAME[(['mu', 'huo', 'tu', 'jin', 'shui'] as El[])[b.stacks.omen]]}，每张 +1 番` }, '吉·', EL_NAME[(['mu', 'huo', 'tu', 'jin', 'shui'] as El[])[b.stacks.omen]]) : null));
   const plate = $('.e-el', root!)!;
@@ -376,10 +377,9 @@ function refreshPreview() {
   if (res.burn) effects.push(`焰+${res.burn}`);
   if (res.critChance > 5) effects.push(`暴击 ${Math.round(res.critChance)}%`);
   const lethal = res.damage >= b.enemy.hp + (b.enemy.armor || 0);
+  // The score panel already shows 气 × 番 and the 役: the line only adds the result and side effects.
   line.replaceChildren(...nn(
-    h('b.pv-pattern', null, COMBOS[res.pattern].name),
-    h('span.pv-fan', null, res.fan ? `${fmt1(res.fan)}番` : '散牌'),
-    h('span.pv-calc', null, '气 ', h('b.qi', null, fmt(res.qi)), ' × ', h('b.mu', null, fmt1(res.mult)), ' = ', h('b.pv-dmg', null, fmt(res.damage))),
+    h('span.pv-calc', null, '伤害 ', h('b.pv-dmg', null, fmt(res.damage))),
     effects.length ? h('span.pv-fx', null, effects.join(' · ')) : null,
     lethal ? h('span.pv-kill', null, '斩！') : null));
   setScore(res);
@@ -389,7 +389,8 @@ function refreshPreview() {
 function setScore(res: CastResult | null) {
   const panel = $('.score-panel', root!)!;
   panel.classList.toggle('preview', !!res);
-  $('.sp-pattern', panel)!.textContent = res ? COMBOS[res.pattern].name : '　';
+  // The big 役 stamp is for the cast animation; while aiming, the chips below say it all.
+  $('.sp-pattern', panel)!.textContent = '　';
   $('.sp-qi b', panel)!.textContent = res ? fmt(res.qi) : '0';
   $('.sp-mult b', panel)!.textContent = res ? fmt1(res.mult) : '0';
   $('.sp-dmg', panel)!.textContent = '';
@@ -1010,6 +1011,7 @@ function showEnemyInfo() {
   const counter = counterOf(e.el), weak = KE[e.el];
   infoCard(
     h('h3.brush', null, def.name, h('small', null, `　${def.title}`)),
+    LORE[b.enemyId] ? h('p.dim', null, LORE[b.enemyId]) : null,
     h('p.info-num', null, `气血 ${fmt(e.hp)} / ${fmt(e.maxHp)}`, e.armor ? `　护甲 ${fmt(e.armor)}` : '', e.burn ? `　灼烧 ${fmt(e.burn)}` : ''),
     h('div.info-sec', null, h('b', null, '这一回合：'), intentTitle(e.intent).replace(/\n/g, '；')),
     h('div.info-list', null, ...moves.map((m, i) => h(`div.info-row${i === e.moveIndex ? '.on' : ''}`, null, h('b', null, m.name), h('span', null, intentTitle(m).split('\n').slice(1).join('；') || '—')))),
@@ -1039,6 +1041,8 @@ function showSelfInfo() {
   if (b.stacks.wheel) rows.push(['命运轮盘', `本回合转出 ${b.stacks.wheel}：本招有几张 ${b.stacks.wheel} 点的符，番就 ×几`]);
   if (r.relics.includes('tianjiqian') && b.stacks.omen !== undefined) rows.push(['天机签', `本回合「吉」为${EL_NAME[(['mu', 'huo', 'tu', 'jin', 'shui'] as El[])[b.stacks.omen]]}：每张 +1 番`]);
   if (r.talents.includes('kongling')) rows.push(['空灵根', '每回合手里随机一张符化为灵符']);
+  if (r.fate) rows.push(['命格', fateText(r).replace(/\n/g, '；')]);
+  if (r.talents.length) rows.push(['天赋', r.talents.map(id => `${TALENT[id]?.name ?? id}（${TIER_NAME[TALENT[id]?.tier ?? 'common']}）`).join('、')]);
   infoCard(
     h('h3.brush', null, m.name, h('small', null, `　${m.title}`)),
     h('div.info-list', null, ...rows.map(([k, v]) => h('div.info-row', null, h('b', null, k), h('span', null, v)))),
@@ -1062,5 +1066,6 @@ function advise() {
   renderHand();
   const res = advice.result;
   const why = res.yaku.length ? res.yaku.map(y => YAKU[y.id].name).join('＋') : '散牌';
-  toast(advice.lethal ? `荐：${why}，可以斩杀` : adviceMode === 'safe' ? `荐·稳妥：${why}${res.shield ? `，护盾 ${res.shield}` : ''}${res.heal ? `，回复 ${res.heal}` : ''}（再点换成最高伤害）` : `荐·最高伤害：${why}（再点换成稳妥）`);
+  void why;
+  toast(advice.lethal ? '荐：可以斩杀' : adviceMode === 'safe' ? '荐：稳妥（再点换最高伤害）' : '荐：最高伤害（再点换稳妥）');
 }
