@@ -104,8 +104,8 @@ export function patternTable(run: RunState | null, highlight?: PatternId) {
     ...rows,
     h('div.pattern-row.ben', null, h('span.pr-name', null, '本门', h('small', null, '（功法专属）')),
       h('span.pr-yaku', null, ...ben.map(y => h('span.yk', { title: YAKU[y].desc }, h('b', null, YAKU[y].name), h('small', null, `${YAKU[y].desc} `), h('i', null, `${YAKU[y].fan}番`))))),
-    h('div.pattern-row.tian', null, h('span.pr-name', null, '天成', h('small', null, '（役满）')),
-      h('span.pr-yaku', null, ...tian.map(y => h('span.yk', { title: YAKU[y].desc }, h('b', null, YAKU[y].name), h('small', null, `${YAKU[y].alias} `), h('i', null, `${YAKU[y].fan}番`))))));
+    tian.length ? h('div.pattern-row.tian', null, h('span.pr-name', null, '天成', h('small', null, '（役满）')),
+      h('span.pr-yaku', null, ...tian.map(y => h('span.yk', { title: YAKU[y].desc }, h('b', null, YAKU[y].name), h('small', null, `${YAKU[y].alias} `), h('i', null, `${YAKU[y].fan}番`))))) : null);
 }
 
 /** What a 心法 level gives, in words. */

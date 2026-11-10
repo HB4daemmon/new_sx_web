@@ -32,7 +32,7 @@ test('役: 同元 by count, 相生 by left-to-right order; 连跳 k-th tile fire
   assert.deepEqual(ids(A(['mu', 'mu', 'huo'])), ['shuangyuan', 'xiangsheng'], '两路相加：双元＋相生');
   assert.deepEqual(ids(A(['huo', 'tu', 'jin', 'shui'])), ['sisheng'], '四生');
   assert.deepEqual(ids(A(['jin', 'mu', 'shui', 'huo', 'tu'])), ['wuxing'], '五种不论顺序：五行俱全');
-  assert.equal(A(['shui', 'mu', 'huo', 'tu', 'jin']).tian.id, 'shengsheng', '五张连成一圈：天成');
+  assert.deepEqual(ids(A(['shui', 'mu', 'huo', 'tu', 'jin'])), ['shengsheng'], '五张连成一圈：生生不息');
   assert.equal(A(['mu', null]).yaku.length, 0, '浊符断链、无元素');
   assert.equal(assignments([T('mu'), T('huo', 3, 'ling')]).length, 5, '灵符 tries every element');
 });
@@ -55,7 +55,7 @@ test('scoring: 气 = Σ触发点数 + QI_PER_FAN per 役番, 倍 = 番; 心法 a
   run.patternLv.yuan = 3;
   assert.equal(computeCast(run, battle, [T('jin', 2), T('jin', 2)], false).yaku.find(y => y.id === 'shuangyuan').fan, 3, '心法 3重 +2 番');
   run.patternLv.yuan = 1;
-  assert.ok(computeCast(run, battle, [T('shui', 1), T('mu', 2), T('huo', 3), T('tu', 4), T('jin', 5)], false).mult >= 30, '天成');
+  assert.deepEqual(computeCast(run, battle, [T('shui', 1), T('mu', 2), T('huo', 3), T('tu', 4), T('jin', 5)], false).yaku.map(y => y.id), ['shengsheng'], '五张连成一圈');
   assert.equal(computeCast(run, battle, [T('jin', 2), T('jin', 2, 'bao')], false).fan, 2, '宝符 +1 番');
   // 回复 is held until the enemy has struck.
   const h = fresh('huichun', 'shiyuan');
@@ -81,7 +81,7 @@ test('罡气: one turn of damage through the 罡气 breaks the enemy — its mov
   assert.equal(battle.hand.filter(t => t.el === 'huo' && t.v === 1).length >= 5, true, 'unplayed tiles stay in hand');
   assert.equal(battle.stacks.guard, battle.stacks.guardMax, '罡气 refills each turn');
   const next = computeCast(run, battle, [T('jin', 3)], false);
-  assert.ok(next.vuln && next.steps.some(s => s.label === '破势 ×2'), 'the next cast is doubled');
+  assert.ok(next.vuln && next.steps.some(s => s.label === '破势 ×1.5'), 'the next cast gets ×1.5');
 });
 
 test('scoring: relic order matters (+倍 before ×倍) and 昆仑镜 mirrors its right neighbour', () => {

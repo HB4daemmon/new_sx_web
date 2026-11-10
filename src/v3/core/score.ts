@@ -46,7 +46,7 @@ export interface CastResult {
   triggers: number[];
   /** 这一招削罡气的倍数。 */
   guardMult: number;
-  /** 这一招吃到了破势的翻倍。 */
+  /** 这一招吃到了破势的加成（×1.5）。 */
   vuln: boolean;
 }
 
@@ -339,7 +339,7 @@ function finish(run: RunState, battle: BattleState, tiles: Tile[], st: Stage, ra
   if (has(run, 'xueji')) push('bonus', '血祭 ×1.6', { x: 1.6 });
   if (run.vow === 'suidan') push('bonus', '碎丹燃血 ×1.6', { x: 1.6 });
   const vuln = !!battle.stacks.vuln;
-  if (vuln) { const vx = relicFlag(run, 'vulnX') ? 3 : 2; push('bonus', `破势 ×${vx}`, { x: vx }); }
+  if (vuln) { const vx = relicFlag(run, 'vulnX') ? 3 : 1.5; push('bonus', `破势 ×${vx}`, { x: vx }); }
   let rageHeal = 0;
   if (rage) {
     const dull = pactRank(run, 'dull') ? 1 : 0;

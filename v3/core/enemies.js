@@ -1,8 +1,8 @@
 /** Per-act multipliers: authored numbers are act-1 scale. */
-export const ACT_HP = [0, 0.75, 2.5, 7.8, 17, 27];
+export const ACT_HP = [0, 1.35, 4.5, 14, 30.6, 48.6];
 /** Enemy HP by rank (authored HP × act × rank). */
 export const RANK_HP = { fight: 28.5, elite: 19, boss: 10.2 };
-export const ACT_ATK = [0, 1.3, 1.9, 2.6, 3.3, 4.0];
+export const ACT_ATK = [0, 2.08, 3.04, 4.16, 5.28, 6.4];
 export const RANK_ATK = { fight: 1.3, elite: 1.1, boss: 0.9 };
 export const HEAT_HP = 0.15;
 export const HEAT_ATK = 0.08;

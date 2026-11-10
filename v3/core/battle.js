@@ -208,10 +208,13 @@ export function enemyAttack(run, battle, move = battle.enemy.intent) {
 }
 // —— 罡气与破势 ——
 /** 敌人每回合的罡气：气血上限的一定比例，一回合内打穿就「破势」。 */
-export const GUARD_PCT = { fight: 0.15, elite: 0.2, boss: 0.25 };
+export const GUARD_PCT = { fight: 0.3, elite: 0.3, boss: 0.25 };
+export const GUARD_GROW = 1.5;
 export function guardMax(run, battle) {
     const cut = 1 - 0.25 * relicFlag(run, 'guardCut');
-    return Math.max(1, Math.round(battle.enemy.maxHp * (GUARD_PCT[ENEMY[battle.enemy.id].rank] ?? 0.15) * cut));
+    // 罡气越破越厚：每破势一次，之后的罡气上限 ×GUARD_GROW。
+    const grow = GUARD_GROW ** (battle.stacks.poshi ?? 0);
+    return Math.max(1, Math.round(battle.enemy.maxHp * (GUARD_PCT[ENEMY[battle.enemy.id].rank] ?? 0.15) * cut * grow));
 }
 /** 每回合开始，罡气回满。 */
 export function refillGuard(run, battle) {
@@ -219,12 +222,12 @@ export function refillGuard(run, battle) {
     battle.stacks.guard = battle.stacks.guardMax;
     battle.stacks.broken = 0;
 }
-/** 破势之后这一回合敌人的招：小怪、精英被打断；首领只剩一半攻击，别的效果作废。 */
+/** 破势之后这一回合敌人的招：小怪被打断；精英与首领只剩一半攻击，别的效果作废。 */
 export function breakEffect(battle) {
     if (!battle.stacks.broken)
         return { broken: false, interrupt: false, half: false };
-    const boss = ENEMY[battle.enemy.id].rank === 'boss';
-    return { broken: true, interrupt: !boss, half: boss };
+    const fight = ENEMY[battle.enemy.id].rank === 'fight';
+    return { broken: true, interrupt: fight, half: !fight };
 }
 /** Knocks the enemy's 罡气 down; at zero the enemy is 破势. */
 function hitGuard(run, battle, amount, events) {
@@ -237,7 +240,7 @@ function hitGuard(run, battle, amount, events) {
         return;
     battle.stacks.broken = 1;
     battle.stacks.poshi = (battle.stacks.poshi ?? 0) + 1;
-    // 破势：下一招伤害翻倍（斩铁 ×3）。
+    // 破势：下一招伤害 ×1.5（斩铁 ×3）。
     battle.stacks.vuln = 1;
     battle.stacks.brokeBy = battle.castCount;
     if (has(run, 'zhenhun'))
@@ -564,7 +567,7 @@ function enemyTurn(run, battle, events) {
             return;
     }
     const g = breakEffect(battle);
-    // 破势: a 小怪 or elite loses its whole move; a boss keeps half its attack but nothing else.
+    // 破势: a 小怪 loses its whole move; an elite or boss keeps half its attack but nothing else.
     const move = g.interrupt ? { name: `${enemy.intent.name}（被打断）` } : g.half ? { name: `${enemy.intent.name}（破势）`, atk: enemy.intent.atk, hits: enemy.intent.hits } : enemy.intent;
     if (g.interrupt)
         enemy.charged = false;

@@ -49,7 +49,7 @@ export function arrange(tiles) {
 function hpKept(run, battle, r) {
     const intent = battle.enemy.intent;
     const incoming = intent.atk ? enemyAttack(run, battle) * (intent.hits ?? 1) : 0;
-    // 破势：小怪、精英的招被打断，首领只剩一半。
+    // 破势：小怪的招被打断，精英与首领只剩一半。
     if (!battle.stacks.broken && r.damage * r.guardMult >= (battle.stacks.guard ?? Infinity)) {
         const boss = !breakEffect({ ...battle, stacks: { ...battle.stacks, broken: 1 } }).interrupt;
         return Math.min(battle.player.maxHp, boss ? incoming / 2 : incoming) + Math.min(r.heal, battle.player.maxHp - battle.player.hp);

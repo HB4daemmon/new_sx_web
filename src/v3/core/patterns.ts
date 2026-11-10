@@ -4,7 +4,7 @@
  *   相生：出招从左到右结算，左边的符生右边的（木→火→土→金→水→木）就连上一跳；
  *         连跳里第 k 张符触发 k 次（相生连跳），连得越长番越高。顺序由玩家自己排。
  * 两路各取最高的一个役，番相加，番数就是倍率。灵符同时算作每一种元素（同元里算进每一组）；
- * 在相生里它取最好的一种元素。另计：本门役（看战况）；天成（固定大倍率，不再相加）。
+ * 在相生里它取最好的一种元素。另计：本门役（看战况）。
  * 每个役（含宝符与心法）每番另带 QI_PER_FAN 气。
  */
 import { ELEMENTS, GEN, KE, type El } from './elements.js';
@@ -36,10 +36,10 @@ export const YAKU: Record<YakuId, YakuDef> = {
   sixiang2: Y('sixiang2', 'yuan', '四象双生', '两组四同花', 7, '两种元素各凑成四张（要靠灵符同时算两边）'),
   wulei: Y('wulei', 'yuan', '五雷', '清一色', 8, '五张同元素'),
   xiangsheng: Y('xiangsheng', 'sheng', '相生', '一跳', 1, '相邻两张，左生右，如 木→火'),
-  sansheng: Y('sansheng', 'sheng', '三生', '两跳', 3, '连着三张依次相生，如 木→火→土'),
-  sisheng: Y('sisheng', 'sheng', '四生', '三跳', 5, '连着四张依次相生，如 火→土→金→水'),
+  sansheng: Y('sansheng', 'sheng', '三生', '两跳', 2, '连着三张依次相生，如 木→火→土'),
+  sisheng: Y('sisheng', 'sheng', '四生', '三跳', 4, '连着四张依次相生，如 火→土→金→水'),
   wuxing: Y('wuxing', 'sheng', '五行俱全', '五色', 4, '五种元素各一张（不论顺序）'),
-  shengsheng: Y('shengsheng', 'tian', '生生不息', '天成', 30, '天成：五张依次相生，连成一整圈'),
+  shengsheng: Y('shengsheng', 'sheng', '生生不息', '四跳', 6, '五张依次相生，连成一整圈（与五雷相当）'),
   // 本门役：每门功法自己的一路，看的是战况而不只是牌面；同样只算最高的一个，不受心法加成。
   jianzhen: Y('jianzhen', 'ben', '剑阵', '本门', 1, '本招有两张以上金符，且已有 5 柄以上飞剑', 'yangjian'),
   wanjian: Y('wanjian', 'ben', '万剑朝宗', '本门', 3, '本招有三张以上金符，且已有 10 柄以上飞剑', 'yangjian'),
@@ -109,11 +109,10 @@ export function analyze(els: (El | null)[], wilds: Wilds = {}): Analysis {
   const picks = [
     best([s[0] >= 5, 'wulei'], [s[0] >= 4 && s[1] >= 4, 'sixiang2'], [s[0] === 4, 'sixiang'], [s[0] >= 3 && s[1] >= 3, 'sancai2'],
       [s[0] === 3 && s[1] === 2, 'mantang'], [s[0] === 3, 'sancai'], [s[0] === 2 && s[1] === 2, 'liangyi'], [s[0] === 2, 'shuangyuan']),
-    best([chain >= 4, 'sisheng'], [distinct >= 5, 'wuxing'], [chain === 3, 'sansheng'], [chain === 2, 'xiangsheng']),
+    best([chain >= 5, 'shengsheng'], [chain === 4, 'sisheng'], [distinct >= 5, 'wuxing'], [chain === 3, 'sansheng'], [chain === 2, 'xiangsheng']),
   ].filter(Boolean) as YakuId[];
   const yaku: YakuHit[] = picks.map(id => ({ id, fan: YAKU[id].fan }));
-  const tianId = best([chain >= 5, 'shengsheng']);
-  const tian = tianId ? { id: tianId, fan: YAKU[tianId].fan } : null;
+  const tian: YakuHit | null = null;
   const head = tian ?? [...yaku].sort((a, b) => b.fan - a.fan)[0];
   return { els, sets, distinct, chainPos, chain, links: linkN, yaku, tian, combo: head?.id ?? 'san' };
 }

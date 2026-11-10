@@ -401,7 +401,7 @@ function finish(run, battle, tiles, st, rage, roll) {
         push('bonus', '碎丹燃血 ×1.6', { x: 1.6 });
     const vuln = !!battle.stacks.vuln;
     if (vuln) {
-        const vx = relicFlag(run, 'vulnX') ? 3 : 2;
+        const vx = relicFlag(run, 'vulnX') ? 3 : 1.5;
         push('bonus', `破势 ×${vx}`, { x: vx });
     }
     let rageHeal = 0;

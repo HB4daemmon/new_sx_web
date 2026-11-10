@@ -55,7 +55,7 @@ export function mountBattle(container: HTMLElement) {
     h('div.enemy-plate', { onclick: (e: Event) => { if (!busy) { e.stopPropagation(); showEnemyInfo(); } } },
       h('div.enemy-name', null, h('span.e-el'), h('b', null, enemy.name), h('small', null, enemy.title)),
       h('div.enemy-bar'),
-      h('div.enemy-guard', { title: '罡气：一回合内把它打穿就「破势」——打断它这回合的招（首领只剩一半攻击），你的下一招 ×2。克制它的符削罡气 +50%，土符 +25%。' }),
+      h('div.enemy-guard', { title: '罡气：一回合内把它打穿就「破势」——小怪这回合的招被打断，精英与首领只剩一半攻击；你的下一招 ×1.5。每破势一次，罡气上限 ×1.5。克制它的符削罡气 +50%，土符 +25%。' }),
       enemy.traitText ? h('div.enemy-trait', null, enemy.traitText) : null,
       null),
     h('div.wheel-slot'),
@@ -1084,7 +1084,7 @@ function showEnemyInfo() {
     h('div.info-list', null, ...moves.map((m, i) => h(`div.info-row${i === e.moveIndex ? '.on' : ''}`, null, h('b', null, m.name), h('span', null, intentTitle(m).split('\n').slice(1).join('；') || '—')))),
     h('p.dim', null, '招式按顺序循环，亮起的是这一回合。'),
     h('div.info-sec', null, h('b', null, `属${EL_NAME[e.el]}：`), `${EL_NAME[counter]}符克它，点数 ×2，削罡气 +50%。${EL_NAME[weak]}符被它克，点数 ×0.5。`),
-    h('div.info-sec', null, h('b', null, '罡气：'), b.stacks.broken ? '已破势：这一回合的招被打断（首领只剩一半攻击），你的下一招 ×2。' : `${fmt(b.stacks.guard ?? 0)} / ${fmt(b.stacks.guardMax ?? 0)}。一回合内打穿即破势：打断它这回合的招（首领只剩一半攻击），你的下一招 ×2。每回合回满。`),
+    h('div.info-sec', null, h('b', null, '罡气：'), b.stacks.broken ? '已破势：小怪这回合的招被打断，精英与首领只剩一半攻击；你的下一招 ×1.5。' : `${fmt(b.stacks.guard ?? 0)} / ${fmt(b.stacks.guardMax ?? 0)}。一回合内打穿即破势：小怪这回合的招被打断，精英与首领只剩一半攻击；你的下一招 ×1.5。每回合回满；每破势一次，上限 ×1.5。`),
     e.charged ? h('div.info-sec', null, h('b', null, '蓄势：'), '下一次攻击翻倍。') : null,
     e.atkBonus ? h('div.info-sec', null, h('b', null, '战意：'), `攻击 +${e.atkBonus}。`) : null,
     def.traitText ? h('div.info-sec', null, h('b', null, '特性：'), def.traitText) : null,
@@ -1111,7 +1111,7 @@ function showSelfInfo() {
   if (d.dodge) rows.push(['闪避', `敌人每一击 ${d.dodge}% 机会闪开（上限 ${DODGE_CAP}%）`]);
   if (b.stacks.pendingHeal) rows.push(['待回复', `${b.stacks.pendingHeal}：敌人出手后回复`]);
   if (b.stacks.wheel !== undefined && r.relics.includes('mingyun')) rows.push(['命运轮盘', `本回合转出${EL_NAME[(['mu', 'huo', 'tu', 'jin', 'shui'] as El[])[b.stacks.wheel]]}：本招有几张就 ×几`]);
-  if (b.stacks.vuln) rows.push(['破势', '敌人破势中：你的下一招伤害翻倍']);
+  if (b.stacks.vuln) rows.push(['破势', '敌人破势中：你的下一招伤害 ×1.5']);
   if (r.relics.includes('tianjiqian') && b.stacks.omen !== undefined) rows.push(['天机签', `本回合「吉」为${EL_NAME[(['mu', 'huo', 'tu', 'jin', 'shui'] as El[])[b.stacks.omen]]}：每张 +1 番`]);
   if (r.talents.includes('kongling')) rows.push(['空灵根', '每回合手里随机一张符化为灵符']);
   if (r.fate) rows.push(['命格', fateText(r).replace(/\n/g, '；')]);

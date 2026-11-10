@@ -81,7 +81,7 @@ export const RELICS = [
     { id: 'zhanyao', name: '斩妖剑', glyph: '斩', rarity: 'legend', desc: '本招每张克制敌人的符 ×1.3', score: c => { const n = c.els.filter(e => e && e === counterOf(c.battle.enemy.el)).length; return n ? { x: 1.3 ** n } : null; } },
     { id: 'jiugong', name: '九宫格', glyph: '宫', rarity: 'common', desc: '敌人的罡气上限 −25%', flags: { guardCut: 1 } },
     { id: 'zhenyin', name: '镇岳印', glyph: '镇', rarity: 'common', desc: '每张土符削罡气再 +25%', flags: { tuGuard: 1 } },
-    { id: 'zhantie', name: '斩铁', glyph: '铁', rarity: 'legend', desc: '破势后的那一招 ×3（原为 ×2）', flags: { vulnX: 1 } },
+    { id: 'zhantie', name: '斩铁', glyph: '铁', rarity: 'legend', desc: '破势后的那一招 ×3（原为 ×1.5）', flags: { vulnX: 1 } },
     { id: 'taiyi', name: '太一盘', glyph: '盘', rarity: 'rare', desc: '本场每破势一次，之后每招 +2 番', score: c => { const n = c.battle.stacks.poshi ?? 0; return n ? { mult: 2 * n } : null; } },
     // —— 单骑之器：把一张符养大，单张打出 ——
     { id: 'cuihuo', name: '淬火砧', glyph: '砧', rarity: 'rare', desc: '每次只出一张符，这张符永久 +2 点' },
