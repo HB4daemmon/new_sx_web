@@ -50,7 +50,7 @@ for (const [label, viewport] of [['landscape', { width: 1366, height: 768 }], ['
   page.on('pageerror', e => errors.push(String(e)));
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
   await page.goto(BASE);
-  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('shanhai-v3-meta', JSON.stringify({ speed: 2, sound: false, tutorialDone: true, unlocked: ['yuhuo', 'jingang', 'benlei', 'huichun', 'zhulong'] })); });
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('shanhai-v3-meta', JSON.stringify({ speed: 2, sound: false, advise: true, tutorialDone: true, unlocked: ['yuhuo', 'jingang', 'benlei', 'huichun', 'zhulong'] })); });
   await page.reload();
   await page.waitForSelector('[data-action="new-run"]');
   await inStage(page, `${label} title`);

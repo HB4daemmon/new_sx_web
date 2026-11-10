@@ -71,7 +71,7 @@ export function mountBattle(container: HTMLElement) {
       h('button.btn.seal.cast-btn', { type: 'button', 'data-action': 'cast', onclick: () => void doCast() }, h('span.cast-main', null, '出招'), h('small.cast-sub')),
       h('button.btn.ink.discard-btn', { type: 'button', 'data-action': 'discard', onclick: () => void doDiscard() }, '换符', h('small.discard-left'))),
     h('div.pile-dock', null,
-        h('button.pile-btn.advise', { type: 'button', 'data-action': 'advise', title: '推荐出牌：再点一次换成另一种思路', onclick: () => advise() }, '荐', h('small', null, '推荐')),
+        !app.meta.advise ? null : h('button.pile-btn.advise', { type: 'button', 'data-action': 'advise', title: '推荐出牌：再点一次换成另一种思路', onclick: () => advise() }, '荐', h('small', null, '推荐')),
         h('button.pile-btn', { type: 'button', onclick: () => showBag(r), title: '查看符袋' }, h('span.pile-draw'), h('small', null, '待抽')),
         h('button.pile-btn.sort', { type: 'button', title: '整理手牌：按元素 / 按点数', onclick: (e: Event) => { sortMode = sortMode === 'el' ? 'v' : 'el'; $('small', e.currentTarget as HTMLElement)!.textContent = sortMode === 'el' ? '按元素' : '按点数'; renderHand(); } }, '理', h('small', null, sortMode === 'el' ? '按元素' : '按点数')),
         h('button.pile-btn', { type: 'button', title: '诀谱', onclick: () => showHelp() }, '谱')),
@@ -367,7 +367,7 @@ function refreshPreview() {
   const line = $('.preview-line', root)!;
   const r = run(), b = battle();
   if (!selected.length) {
-    line.replaceChildren(h('span.dim', null, r.stats.casts < 4 ? '点选 1–5 张成役，不看顺序 · 不会出就点「荐」' : '点选 1–5 张符'));
+    line.replaceChildren(h('span.dim', null, r.stats.casts < 4 ? '点选 1–5 张成役，不看顺序' : '点选 1–5 张符'));
     setScore(null);
     refreshControls();
     return;
@@ -1093,7 +1093,7 @@ let adviceTurn = -1;
 let adviceMode: AdviceMode = 'max';
 /** Picks the tiles for the player. First tap: the safer play if a heavy blow is coming, else max damage; tap again to flip. */
 function advise() {
-  if (busy) return;
+  if (busy || !app.meta.advise) return;
   const r = run(), b = battle();
   const key = b.turn * 100 + b.castsThisTurn;
   adviceMode = adviceTurn === key ? (adviceMode === 'max' ? 'safe' : 'max') : dangerous(r, b) ? 'safe' : 'max';

@@ -44,7 +44,7 @@ export function mountBattle(container) {
         } }, title: '点击查看敌人意图与弱点' }, h('div.enemy-intent'), h('img.enemy-art', { src: art(enemy.art), alt: enemy.name }), h('div.enemy-status')), h('div.enemy-plate', { onclick: (e) => { if (!busy) {
             e.stopPropagation();
             showEnemyInfo();
-        } } }, h('div.enemy-name', null, h('span.e-el'), h('b', null, enemy.name), h('small', null, enemy.title)), h('div.enemy-bar'), enemy.traitText ? h('div.enemy-trait', null, enemy.traitText) : null, null), h('div.wheel-slot'), h('div.turn-tag'), h('div.score-panel', null, h('div.sp-pattern', null, '　'), h('div.sp-row', null, h('div.sp-box.sp-qi', null, h('small', null, '气'), h('b', null, '0')), h('span.sp-x', null, '×'), h('div.sp-box.sp-mult', null, h('small', null, '倍'), h('b', null, '0'))), h('div.sp-dmg'), h('div.sp-yaku')), h('div.lane'), h('div.hand-area', null, h('div.preview-line'), h('div.hand')), h('div.controls', null, h('button.qi-gauge', { type: 'button', 'data-action': 'rage', title: `怒技「${RAGES[r.method]?.name ?? '怒技'}」：${RAGES[r.method]?.desc ?? '本招 ×3'}\n剑意攒够即可开启 · 快捷键 R`, onclick: () => toggleRage() }, h('div.qi-fill'), h('div.qi-mark'), h('span.qi-text')), h('button.btn.seal.cast-btn', { type: 'button', 'data-action': 'cast', onclick: () => void doCast() }, h('span.cast-main', null, '出招'), h('small.cast-sub')), h('button.btn.ink.discard-btn', { type: 'button', 'data-action': 'discard', onclick: () => void doDiscard() }, '换符', h('small.discard-left'))), h('div.pile-dock', null, h('button.pile-btn.advise', { type: 'button', 'data-action': 'advise', title: '推荐出牌：再点一次换成另一种思路', onclick: () => advise() }, '荐', h('small', null, '推荐')), h('button.pile-btn', { type: 'button', onclick: () => showBag(r), title: '查看符袋' }, h('span.pile-draw'), h('small', null, '待抽')), h('button.pile-btn.sort', { type: 'button', title: '整理手牌：按元素 / 按点数', onclick: (e) => { sortMode = sortMode === 'el' ? 'v' : 'el'; $('small', e.currentTarget).textContent = sortMode === 'el' ? '按元素' : '按点数'; renderHand(); } }, '理', h('small', null, sortMode === 'el' ? '按元素' : '按点数')), h('button.pile-btn', { type: 'button', title: '诀谱', onclick: () => showHelp() }, '谱')), hud(r, { battle: true }));
+        } } }, h('div.enemy-name', null, h('span.e-el'), h('b', null, enemy.name), h('small', null, enemy.title)), h('div.enemy-bar'), enemy.traitText ? h('div.enemy-trait', null, enemy.traitText) : null, null), h('div.wheel-slot'), h('div.turn-tag'), h('div.score-panel', null, h('div.sp-pattern', null, '　'), h('div.sp-row', null, h('div.sp-box.sp-qi', null, h('small', null, '气'), h('b', null, '0')), h('span.sp-x', null, '×'), h('div.sp-box.sp-mult', null, h('small', null, '倍'), h('b', null, '0'))), h('div.sp-dmg'), h('div.sp-yaku')), h('div.lane'), h('div.hand-area', null, h('div.preview-line'), h('div.hand')), h('div.controls', null, h('button.qi-gauge', { type: 'button', 'data-action': 'rage', title: `怒技「${RAGES[r.method]?.name ?? '怒技'}」：${RAGES[r.method]?.desc ?? '本招 ×3'}\n剑意攒够即可开启 · 快捷键 R`, onclick: () => toggleRage() }, h('div.qi-fill'), h('div.qi-mark'), h('span.qi-text')), h('button.btn.seal.cast-btn', { type: 'button', 'data-action': 'cast', onclick: () => void doCast() }, h('span.cast-main', null, '出招'), h('small.cast-sub')), h('button.btn.ink.discard-btn', { type: 'button', 'data-action': 'discard', onclick: () => void doDiscard() }, '换符', h('small.discard-left'))), h('div.pile-dock', null, !app.meta.advise ? null : h('button.pile-btn.advise', { type: 'button', 'data-action': 'advise', title: '推荐出牌：再点一次换成另一种思路', onclick: () => advise() }, '荐', h('small', null, '推荐')), h('button.pile-btn', { type: 'button', onclick: () => showBag(r), title: '查看符袋' }, h('span.pile-draw'), h('small', null, '待抽')), h('button.pile-btn.sort', { type: 'button', title: '整理手牌：按元素 / 按点数', onclick: (e) => { sortMode = sortMode === 'el' ? 'v' : 'el'; $('small', e.currentTarget).textContent = sortMode === 'el' ? '按元素' : '按点数'; renderHand(); } }, '理', h('small', null, sortMode === 'el' ? '按元素' : '按点数')), h('button.pile-btn', { type: 'button', title: '诀谱', onclick: () => showHelp() }, '谱')), hud(r, { battle: true }));
     container.appendChild(root);
     root.addEventListener('pointerdown', () => { if (busy && !cinematic)
         setSkipping(true); });
@@ -384,7 +384,7 @@ function refreshPreview() {
     const line = $('.preview-line', root);
     const r = run(), b = battle();
     if (!selected.length) {
-        line.replaceChildren(h('span.dim', null, r.stats.casts < 4 ? '点选 1–5 张成役，不看顺序 · 不会出就点「荐」' : '点选 1–5 张符'));
+        line.replaceChildren(h('span.dim', null, r.stats.casts < 4 ? '点选 1–5 张成役，不看顺序' : '点选 1–5 张符'));
         setScore(null);
         refreshControls();
         return;
@@ -1172,7 +1172,7 @@ let adviceTurn = -1;
 let adviceMode = 'max';
 /** Picks the tiles for the player. First tap: the safer play if a heavy blow is coming, else max damage; tap again to flip. */
 function advise() {
-    if (busy)
+    if (busy || !app.meta.advise)
         return;
     const r = run(), b = battle();
     const key = b.turn * 100 + b.castsThisTurn;

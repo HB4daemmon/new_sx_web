@@ -7,7 +7,7 @@ export const ART_SETS = [
     { id: 'woodcut', name: '木刻' },
     { id: 'pixel', name: '像素' },
 ];
-const DEFAULT = { runs: 0, wins: 0, bestHit: 0, bestHitMethod: null, unlocked: [], heatWon: {}, maxHeat: 0, seen: [], sound: true, speed: 1, tutorialDone: false, endings: [], daoguo: 0, unlocks: [], achievements: [], mastery: {}, endlessBest: 0, daily: {}, lastPacts: {}, artSet: '' };
+const DEFAULT = { runs: 0, wins: 0, bestHit: 0, bestHitMethod: null, unlocked: [], heatWon: {}, maxHeat: 0, seen: [], sound: true, speed: 1, advise: false, tutorialDone: false, endings: [], daoguo: 0, unlocks: [], achievements: [], mastery: {}, endlessBest: 0, daily: {}, lastPacts: {}, artSet: '' };
 const strs = (x) => (Array.isArray(x) ? x.filter((v) => typeof v === 'string') : []);
 const nums = (x) => (x && typeof x === 'object' ? Object.fromEntries(Object.entries(x).filter(([, v]) => typeof v === 'number' && Number.isFinite(v) && v >= 0)) : {});
 export function readMeta(storage = globalThis.localStorage) {
@@ -25,6 +25,7 @@ export function readMeta(storage = globalThis.localStorage) {
             seen: Array.isArray(raw.seen) ? raw.seen.filter((x) => typeof x === 'string') : [],
             sound: raw.sound !== false,
             speed: raw.speed === 2 ? 2 : 1,
+            advise: raw.advise === true,
             tutorialDone: raw.tutorialDone === true,
             endings: Array.isArray(raw.endings) ? raw.endings.filter((x) => typeof x === 'string') : [],
             daoguo: n(raw.daoguo),

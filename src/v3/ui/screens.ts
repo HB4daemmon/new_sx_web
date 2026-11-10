@@ -254,6 +254,7 @@ function showSettings() {
     h('div.set-row.art-row', null, h('span', null, '画风'),
       h('div.art-sets', null, ...ART_SETS.map(a => h(`button.toggle${meta.artSet === a.id ? '.on' : ''}`, { type: 'button', 'data-art': a.id || 'default', onclick: () => { meta.artSet = a.id; save(); swapArt(); close(); render(); showSettings(); } }, a.name)))),
     h('label.set-row', null, h('span', null, '演出速度'), h('button.toggle.on', { type: 'button', onclick: () => { meta.speed = meta.speed === 1 ? 2 : 1; setSpeed(meta.speed); save(); close(); showSettings(); } }, `${meta.speed}×`)),
+    h('label.set-row', null, h('span', null, '推荐出牌（荐）'), h('button.toggle' + (meta.advise ? '.on' : ''), { type: 'button', 'data-action': 'toggle-advise', onclick: () => { meta.advise = !meta.advise; save(); close(); if (app.view === 'run') render(); showSettings(); } }, meta.advise ? '开' : '关')),
     h('p.dim', null, '战斗演出中点击任意处可快进。系统开启“减少动态效果”时自动关闭震屏与闪光。'),
     app.run && app.view === 'run' ? h('button.btn.ink', { type: 'button', onclick: () => { closeOverlays(); go('title'); } }, '回到标题（进度已自动保存）') : null,
     app.run && app.view === 'run' ? h('button.btn.ink.danger', { type: 'button', onclick: () => { if (confirm('放弃本局？此局进度将清除。')) { abandon(); closeOverlays(); } } }, '放弃本局') : null));
@@ -280,7 +281,7 @@ export function showHelp(first = false) {
     h('div.help-cols', null,
       h('div.help-col', null,
         h('ol.help-steps', null,
-          h('li', null, h('b', null, '把符当牌：'), '元素是花色，点数是牌面。点选 1–5 张出招，', h('em', null, '怎么排都一样'), '。每回合手牌全部刷新；「换符」不选符时整手全换。不会出就点「荐」。'),
+          h('li', null, h('b', null, '把符当牌：'), '元素是花色，点数是牌面。点选 1–5 张出招，', h('em', null, '怎么排都一样'), '。每回合手牌全部刷新；「换符」不选符时整手全换。（设置里可打开「荐」按钮代为选符。）'),
           h('li', null, h('b', null, '成役：'), '同元素（同花）、同点数（对子、三条、葫芦）、连号（顺子）、五种元素齐、带克制敌人的符，都能成役。', h('em', null, '每一路只算最高的役，不同路的番相加'), '，番数就是倍率。'),
           h('li', null, h('b', null, '伤害 = 气 × 番'), `：气是点数之和，每番另带 ${QI_PER_FAN} 气；`, '克制敌人的符点数 ×2，被克的 ×0.5。法宝自左向右再加、再乘。'),
           h('li', null, h('b', null, '开路与天成：'), '「得位」（点数合河图数，牌面带「位」字，每张 +1 番）和「洛书」（两张凑 10、三张凑 15）默认不开，拿到对应法宝才开启；同花顺、五色同刻这类极难的牌是「天成」，直接给大倍率。'),

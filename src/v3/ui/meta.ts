@@ -11,6 +11,8 @@ export interface Meta {
   seen: string[];
   sound: boolean;
   speed: 1 | 2;
+  /** 「荐」推荐出牌按钮，默认关闭。 */
+  advise: boolean;
   tutorialDone: boolean;
   endings: string[];
   /** 道果 balance and lifetime earnings. */
@@ -36,7 +38,7 @@ export const ART_SETS = [
   { id: 'pixel', name: '像素' },
 ];
 
-const DEFAULT: Meta = { runs: 0, wins: 0, bestHit: 0, bestHitMethod: null, unlocked: [], heatWon: {}, maxHeat: 0, seen: [], sound: true, speed: 1, tutorialDone: false, endings: [], daoguo: 0, unlocks: [], achievements: [], mastery: {}, endlessBest: 0, daily: {}, lastPacts: {}, artSet: '' };
+const DEFAULT: Meta = { runs: 0, wins: 0, bestHit: 0, bestHitMethod: null, unlocked: [], heatWon: {}, maxHeat: 0, seen: [], sound: true, speed: 1, advise: false, tutorialDone: false, endings: [], daoguo: 0, unlocks: [], achievements: [], mastery: {}, endlessBest: 0, daily: {}, lastPacts: {}, artSet: '' };
 
 const strs = (x: unknown) => (Array.isArray(x) ? x.filter((v): v is string => typeof v === 'string') : []);
 const nums = (x: unknown) => (x && typeof x === 'object' ? Object.fromEntries(Object.entries(x).filter(([, v]) => typeof v === 'number' && Number.isFinite(v) && v >= 0)) as Record<string, number> : {});
@@ -55,6 +57,7 @@ export function readMeta(storage: Pick<Storage, 'getItem'> | undefined = globalT
       seen: Array.isArray(raw.seen) ? raw.seen.filter((x: unknown) => typeof x === 'string') : [],
       sound: raw.sound !== false,
       speed: raw.speed === 2 ? 2 : 1,
+      advise: raw.advise === true,
       tutorialDone: raw.tutorialDone === true,
       endings: Array.isArray(raw.endings) ? raw.endings.filter((x: unknown) => typeof x === 'string') : [],
       daoguo: n(raw.daoguo),
