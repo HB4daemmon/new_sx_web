@@ -1,7 +1,7 @@
 import type { El } from './elements.js';
 
-/** 灵：当任意元素 · 幻：当任意点数 1–5 · 宝：+1 番 · 倍（id 'lei'）：伤害 ×1.5 */
-export type TileMod = 'ling' | 'huan' | 'bao' | 'lei';
+/** 灵：当任意元素 · 宝：+1 番 · 倍（id 'lei'）：伤害 ×1.5 */
+export type TileMod = 'ling' | 'bao' | 'lei';
 /** 本门符: each method's own buff tile. */
 export type SpId = 'jian' | 'huozhong' | 'jingang' | 'leiyin' | 'chunya' | 'zhuyin';
 export interface Tile {
@@ -14,16 +14,12 @@ export interface Tile {
 }
 
 /** 路 (each one an upgradeable 心法). */
-export type PatternId = 'yuan' | 'shu' | 'lian' | 'wuxing' | 'podi' | 'luoshu';
+export type PatternId = 'yuan' | 'sheng';
 /** 役. */
 export type YakuId =
   | 'shuangyuan' | 'liangyi' | 'sancai' | 'mantang' | 'sixiang' | 'sancai2' | 'sixiang2' | 'wulei'
-  | 'chengshuang' | 'shuangdui' | 'sanqing' | 'hulu' | 'siyu' | 'sanqing2' | 'siyu2'
-  | 'lian3' | 'lian4' | 'lian5' | 'hualong'
-  | 'sanhua' | 'wuxing'
-  | 'pozhan' | 'pozhen' | 'pojun'
-  | 'shiquan' | 'luoshu'
-  | 'jiutian' | 'shengsheng' | 'wuqi'
+  | 'xiangsheng' | 'sansheng' | 'sisheng' | 'wuxing'
+  | 'shengsheng'
   | 'jianzhen' | 'wanjian' | 'liaoyuan' | 'fenyuan' | 'jinshen' | 'buhuai' | 'leiming' | 'lianlei' | 'chunman' | 'wanmu' | 'zhouye' | 'riyue';
 /** The named shape of a cast: its headline 役, or 散 (no 役). */
 export type ComboId = YakuId | 'san';
@@ -146,10 +142,6 @@ export interface RunState {
   relics: string[];
   relicSlots: number;
   patternLv: Record<PatternId, number>;
-  /** 局中开启的路（得位、洛书）。 */
-  opened?: ('dewei' | 'luoshu')[];
-  /** 刚开启、界面还没提示过的路。 */
-  justOpened?: ('dewei' | 'luoshu')[];
   talents: string[];
   vow: string | null;
   realm: number;

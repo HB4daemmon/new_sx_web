@@ -19,51 +19,44 @@ function fresh(method = 'yangjian', enemy = 'shiyuan') {
   return { run, battle };
 }
 
-const A = (pairs, enemy = null) => analyze(pairs.map(p => p[0]), pairs.map(p => p[1]), enemy);
+const A = els => analyze(els);
 const ids = a => a.yaku.map(y => y.id).sort();
 
-test('役: each 路 takes its best 役, different 路 stack, order never matters', () => {
-  const house = A([['jin', 1], ['jin', 1], ['jin', 1], ['mu', 2], ['mu', 2]]);
-  assert.deepEqual(ids(house), ['hulu', 'mantang'], '同元·满堂 + 同数·紫金葫芦, nothing lower from the same 路');
-  assert.equal(house.combo, 'hulu', 'headline is the biggest 役');
-  const shuffled = A([['mu', 2], ['jin', 1], ['mu', 2], ['jin', 1], ['jin', 1]]);
-  assert.deepEqual(ids(shuffled), ids(house), 'same tiles, any order, same 役');
-  assert.deepEqual(ids(A([['jin', 2], ['huo', 3], ['tu', 4]])), ['lian3'], '三连珠');
-  assert.deepEqual(ids(A([['jin', 1], ['mu', 1], ['shui', 1]])), ['sanhua', 'sanqing'], '金1 木1 水1: 三花聚顶 + 三清');
-  assert.ok(ids(A([['jin', 1], ['mu', 3], ['shui', 5], ['huo', 2], ['tu', 4]])).includes('hualong'), '一气化龙 needs exactly 1–5');
-  assert.ok(ids(A([['jin', 1], ['mu', 3], ['shui', 5], ['huo', 2], ['tu', 4]])).includes('wuxing'), '五行俱全');
-  assert.deepEqual(ids(A([['mu', 2], ['mu', 9], ['mu', 7]], 'tu')).filter(id => id.startsWith('po')), ['pozhen'], '三张克制 土 敌人：破阵');
-  assert.ok(ids(A([['jin', 4], ['huo', 5], ['tu', 6]])).includes('luoshu'), '总和 15：洛书');
-  assert.ok(ids(A([['jin', 4], ['huo', 6]])).includes('shiquan'), '总和 10：十全');
-  assert.ok(!ids(A([['jin', 4], ['huo', 6], ['tu', 9]])).includes('shiquan'), '十全 is exactly two tiles');
-  assert.ok(!ids(A([['jin', 4], ['huo', 5], ['tu', 3], ['mu', 3]])).includes('luoshu'), '洛书 is exactly three tiles');
-  assert.equal(A([['jin', 1], ['jin', 2], ['jin', 3], ['jin', 4], ['jin', 5]]).tian.id, 'jiutian', '同花顺');
-  assert.equal(A([['shui', 5], ['jin', 4], ['tu', 3], ['huo', 2], ['mu', 1]]).tian.id, 'shengsheng');
-  assert.equal(A([['shui', 3], ['jin', 3], ['tu', 3], ['huo', 3], ['mu', 3]]).tian.id, 'wuqi');
-  assert.equal(A([['shui', 1], ['huo', 7], ['jin', 3], ['tu', 10]]).dewei, 3, '得位：水1、火7、土10');
-  assert.equal(A([['mu', 4], [null, 0]]).yaku.length, 0, '浊符 has no element and no value');
+test('役: 同元 by count, 相生 by left-to-right order; 连跳 k-th tile fires k times', () => {
+  const house = A(['jin', 'jin', 'jin', 'mu', 'mu']);
+  assert.deepEqual(ids(house), ['mantang'], '同元·满堂');
+  assert.deepEqual(ids(A(['mu', 'huo', 'tu'])), ['sansheng'], '木→火→土：三生');
+  assert.deepEqual(ids(A(['tu', 'huo', 'mu'])), [], '反过来不连：顺序要对');
+  assert.deepEqual(A(['mu', 'huo', 'tu']).chainPos, [1, 2, 3], '连跳里第 k 张触发 k 次');
+  assert.deepEqual(A(['mu', 'mu', 'huo', 'jin', 'shui']).chainPos, [1, 1, 2, 1, 2], '断了重新数');
+  assert.deepEqual(ids(A(['mu', 'mu', 'huo'])), ['shuangyuan', 'xiangsheng'], '两路相加：双元＋相生');
+  assert.deepEqual(ids(A(['huo', 'tu', 'jin', 'shui'])), ['sisheng'], '四生');
+  assert.deepEqual(ids(A(['jin', 'mu', 'shui', 'huo', 'tu'])), ['wuxing'], '五种不论顺序：五行俱全');
+  assert.equal(A(['shui', 'mu', 'huo', 'tu', 'jin']).tian.id, 'shengsheng', '五张连成一圈：天成');
+  assert.equal(A(['mu', null]).yaku.length, 0, '浊符断链、无元素');
   assert.equal(assignments([T('mu'), T('huo', 3, 'ling')]).length, 5, '灵符 tries every element');
-  assert.equal(assignments([T('mu'), T('huo', 3, 'huan')]).length, 5, '幻符 tries every value 1–5');
 });
 
-test('scoring: 气 = points + QI_PER_FAN per 役番, 倍 = 番; 心法 adds 番; 回复 lands after the enemy acts', () => {
+test('scoring: 气 = Σ触发点数 + QI_PER_FAN per 役番, 倍 = 番; 心法 adds 番; 回复 lands after the enemy acts', () => {
   const { run, battle } = fresh('yangjian', 'shiyuan'); // 石鼋 is 土: 木 counters it, 水 is weak to it
   const pair = computeCast(run, battle, [T('jin', 2), T('jin', 2)], false);
-  assert.deepEqual(pair.yaku.map(y => y.id).sort(), ['chengshuang', 'shuangyuan']);
-  assert.equal(pair.fan, 2);
-  assert.equal(pair.qi, 2 + 2 + Q * 2);
-  assert.equal(pair.mult, 2);
+  assert.deepEqual(pair.yaku.map(y => y.id), ['shuangyuan']);
+  assert.equal(pair.fan, 1);
+  assert.equal(pair.qi, 2 + 2 + Q * 1);
   assert.equal(computeCast(run, battle, [T('jin', 2)], false).mult, 1, 'no 役: 1 倍');
-  assert.equal(computeCast(run, battle, [T('mu', 2), T('mu', 2)], false).qi, 4 + 4 + Q * 3, '木克土: points doubled, and two counters make 破绽');
-  assert.equal(computeCast(run, battle, [T('shui', 2), T('shui', 2)], false).qi, 1 + 1 + Q * 2, '土克水: points halved');
-  const a = computeCast(run, battle, [T('jin', 2), T('huo', 3), T('tu', 4)], false);
-  const b = computeCast(run, battle, [T('tu', 4), T('jin', 2), T('huo', 3)], false);
-  assert.equal(a.damage, b.damage, 'order never matters');
+  assert.equal(computeCast(run, battle, [T('mu', 2), T('mu', 2)], false).qi, 4 + 4 + Q, '木克土: points doubled');
+  assert.equal(computeCast(run, battle, [T('shui', 2), T('shui', 2)], false).qi, 1 + 1 + Q, '土克水: points halved');
+  // 金→水 is one 跳: 水 fires twice (halved by 土 → 1 each).
+  const chain = computeCast(run, battle, [T('jin', 2), T('shui', 2)], false);
+  assert.deepEqual(chain.triggers, [1, 2]);
+  assert.equal(chain.qi, 2 + 1 + 1 + Q * 1, '相生 1 番，水触发两次');
+  const back = computeCast(run, battle, [T('shui', 2), T('jin', 2)], false);
+  assert.ok(chain.damage > back.damage, 'order matters for 相生');
   run.patternLv.yuan = 3;
   assert.equal(computeCast(run, battle, [T('jin', 2), T('jin', 2)], false).yaku.find(y => y.id === 'shuangyuan').fan, 3, '心法 3重 +2 番');
-  assert.ok(computeCast(run, battle, [T('jin', 1), T('jin', 2), T('jin', 3), T('jin', 4), T('jin', 5)], false).mult >= 30, '天成');
   run.patternLv.yuan = 1;
-  assert.equal(computeCast(run, battle, [T('jin', 2), T('jin', 2, 'bao')], false).fan, 3, '宝符 +1 番');
+  assert.ok(computeCast(run, battle, [T('shui', 1), T('mu', 2), T('huo', 3), T('tu', 4), T('jin', 5)], false).mult >= 30, '天成');
+  assert.equal(computeCast(run, battle, [T('jin', 2), T('jin', 2, 'bao')], false).fan, 2, '宝符 +1 番');
   // 回复 is held until the enemy has struck.
   const h = fresh('huichun', 'shiyuan');
   h.battle.player.hp = 10;
@@ -71,6 +64,24 @@ test('scoring: 气 = points + QI_PER_FAN per 役番, 倍 = 番; 心法 adds 番;
   const out = cast(h.run, h.battle, [h.battle.hand[0].uid, h.battle.hand[1].uid], false);
   assert.ok(!out.events.some(e => e.k === 'heal' && e.to === 'player'), 'no healing during the cast');
   if (h.battle.outcome === 'fighting') assert.ok(out.enemyEvents.some(e => e.k === 'heal' && e.to === 'player' && e.late), 'healing after the enemy turn');
+});
+
+test('罡气: one turn of damage through the 罡气 breaks the enemy — its move is cut, the next cast ×2; hand is kept', () => {
+  const { run, battle } = fresh('yangjian', 'shiyuan');
+  assert.ok(battle.stacks.guard > 0 && battle.stacks.guard === battle.stacks.guardMax, '罡气 starts full');
+  battle.player.hp = battle.player.maxHp = 999;
+  battle.stacks.guard = 1;
+  battle.hand = [T('jin', 3), T('jin', 3), T('huo', 1), T('huo', 1), T('huo', 1), T('huo', 1), T('huo', 1)];
+  battle.enemy.intent = { name: '重击', atk: 50 };
+  const hp = battle.player.hp;
+  const out = cast(run, battle, [battle.hand[0].uid], false);
+  assert.ok(out.events.some(e => e.k === 'break' && e.interrupt), '破势 interrupts a 小怪');
+  assert.ok(!out.enemyEvents.some(e => e.k === 'hit' && e.to === 'player' && e.src === 'enemy'), 'the blow never lands');
+  assert.ok(battle.player.hp >= hp - battle.player.maxHp * 0.2, 'only the tribulation could hurt');
+  assert.equal(battle.hand.filter(t => t.el === 'huo' && t.v === 1).length >= 5, true, 'unplayed tiles stay in hand');
+  assert.equal(battle.stacks.guard, battle.stacks.guardMax, '罡气 refills each turn');
+  const next = computeCast(run, battle, [T('jin', 3)], false);
+  assert.ok(next.vuln && next.steps.some(s => s.label === '破势 ×2'), 'the next cast is doubled');
 });
 
 test('scoring: relic order matters (+倍 before ×倍) and 昆仑镜 mirrors its right neighbour', () => {
@@ -317,53 +328,59 @@ test('本门符 effects and method 怒技 differ', () => {
   assert.ok(zz.qi >= 3 * 2, '烛阴符 doubles');
 });
 
-test('灵 counts as every element at once, 幻 as every value; 五行 / 连珠 / 洛书 still take one', () => {
-  const W = (pairs, wild) => analyze(pairs.map(p => p[0]), pairs.map(p => p[1]), null, wild);
+test('灵 counts as every element at once for 同元, and the best one in a 相生 chain', () => {
+  const W = (els, ling) => analyze(els, { ling });
   const ids2 = a => a.yaku.map(y => y.id);
   // 火 火 木 木 灵 → 火3 + 木3
-  const a = W([['huo', 2], ['huo', 7], ['mu', 3], ['mu', 9], ['jin', 4]], { ling: [false, false, false, false, true] });
+  const a = W(['huo', 'huo', 'mu', 'mu', 'jin'], [false, false, false, false, true]);
   assert.deepEqual(a.sets.map(s => s.size), [3, 3]);
   assert.ok(ids2(a).includes('sancai2'), '三才并立');
   // 火 木 灵 灵 灵 → 火4 + 木4
-  const b = W([['huo', 2], ['mu', 3], ['jin', 4], ['jin', 5], ['jin', 9]], { ling: [false, false, true, true, true] });
+  const b = W(['huo', 'mu', 'jin', 'jin', 'jin'], [false, false, true, true, true]);
   assert.deepEqual(b.sets.map(s => s.size), [4, 4]);
   assert.ok(ids2(b).includes('sixiang2'), '四象双生');
-  assert.ok(ids2(b).includes('wuxing'), '三张灵补齐五行俱全（每张只顶一种）');
-  // 一张灵 + 四种元素各一：五行俱全，但同元只是两张
-  const c = W([['huo', 2], ['mu', 3], ['tu', 6], ['shui', 8], ['jin', 9]], { ling: [false, false, false, false, true] });
-  assert.ok(ids2(c).includes('wuxing'));
-  // 幻：3 3 5 5 幻 → 两组三条
-  const d = W([['huo', 3], ['mu', 3], ['tu', 5], ['shui', 5], ['jin', 1]], { huan: [false, false, false, false, true] });
-  assert.ok(ids2(d).includes('sanqing2'), '三清同辉');
-  // 灵 counts as a counter for 破敌
-  const e = analyze(['mu', 'mu', 'jin'], [2, 3, 9], 'tu', { ling: [false, false, true] });
-  assert.ok(e.yaku.some(y => y.id === 'pozhen'), '两张木 + 灵 vs 土 → 破阵');
-});
-
-test('役之器 and talents: 命运轮盘, 天机签, 三清铃, 空灵根, 慧眼', () => {
+  // In a cast the 灵 tile tries every element: 木 灵 土 reads as 木→火→土.
   const { run, battle } = fresh('yangjian', 'shiyuan');
-  const tiles = [T('jin', 3), T('huo', 3), T('shui', 3)];
+  const r = computeCast(run, battle, [T('mu', 2), T('jin', 2, 'ling'), T('tu', 2)], false);
+  assert.deepEqual(r.triggers, [1, 2, 3], '灵 fills the gap in the chain');
+});
+test('役之器 and talents: 命运轮盘, 天机签, 三清铃, 空灵根, 相生与罡气之器', () => {
+  const { run, battle } = fresh('yangjian', 'shiyuan');
+  const tiles = [T('jin', 3), T('jin', 3), T('shui', 3)];
   const base = computeCast(run, battle, tiles, false);
   run.relics = ['mingyun'];
-  battle.stacks.wheel = 3;
-  assert.equal(computeCast(run, battle, tiles, false).damage, Math.floor(base.qi * base.mult * 3), '三张 3 点 → 番 ×3');
-  battle.stacks.wheel = 5;
-  assert.equal(computeCast(run, battle, tiles, false).damage, base.damage, 'no 5s: no effect');
-  run.relics = ['sanqingling'];
-  assert.equal(computeCast(run, battle, tiles, false).damage, base.damage, '三清 alone is not enough');
-  const house = [T('jin', 3), T('huo', 3), T('shui', 3), T('tu', 5), T('mu', 5)];
-  const plainHouse = (run.relics = [], computeCast(run, battle, house, false));
-  run.relics = ['sanqingling'];
-  assert.equal(computeCast(run, battle, house, false).mult, plainHouse.mult * 2, '葫芦 ×2');
+  battle.stacks.wheel = 3; // 金
+  assert.equal(computeCast(run, battle, tiles, false).damage, Math.floor(base.qi * base.mult * 2), '两张金 → ×2');
+  battle.stacks.wheel = 0; // 木
+  assert.equal(computeCast(run, battle, tiles, false).damage, base.damage, 'no 木: no effect');
   run.relics = ['tianjiqian'];
   battle.stacks.omen = 3; // 金
-  assert.equal(computeCast(run, battle, tiles, false).mult, base.mult + 1);
+  assert.equal(computeCast(run, battle, tiles, false).mult, base.mult + 2);
+  // 相生之器
+  const chain = [T('mu', 2), T('huo', 2), T('tu', 2)];
   run.relics = [];
-  // 慧眼: 金 3 is one off 金's 4 → 得位
-  run.opened = ['dewei'];
-  assert.equal(computeCast(run, battle, [T('jin', 3)], false).analysis.dewei, 0);
-  run.talents = ['huiyan'];
-  assert.equal(computeCast(run, battle, [T('jin', 3)], false).analysis.dewei, 1);
+  const plain = computeCast(run, battle, chain, false);
+  assert.deepEqual(plain.triggers, [1, 2, 3]);
+  run.relics = ['hetu'];
+  assert.deepEqual(computeCast(run, battle, chain, false).triggers, [1, 4, 6], '河图：被生的触发次数 ×2');
+  run.relics = ['tongxin'];
+  assert.deepEqual(computeCast(run, battle, chain, false).triggers, [1, 4, 3], '同心结：第一次相生多触发 2 次');
+  run.relics = ['sanhuaguan'];
+  assert.deepEqual(computeCast(run, battle, chain, false).triggers, [2, 2, 3], '三花冠：链首也多触发');
+  run.relics = ['nilin'];
+  assert.deepEqual(computeCast(run, battle, [T('mu', 2), T('tu', 2)], false).triggers, [1, 2], '逆鳞：木克土也连跳');
+  run.relics = ['luoshu'];
+  assert.deepEqual(computeCast(run, battle, [T('tu', 2), T('mu', 2), T('huo', 2)], false).triggers, [2, 2, 3], '洛书：最后的火生第一张土，首尾相生，每张再触发一次');
+  run.relics = ['xiangsheng'];
+  assert.equal(computeCast(run, battle, chain, false).mult, plain.mult + 4, '相生环：两跳 +4 番');
+  // 罡气之器
+  run.relics = ['pojia'];
+  assert.equal(computeCast(run, battle, tiles, false).guardMult, base.guardMult + 0.5, '破甲锥：削罡气 +50%');
+  run.relics = ['jiugong'];
+  const g = startBattle(run, 'shiyuan', 'fight');
+  run.relics = [];
+  const g0 = startBattle(run, 'shiyuan', 'fight');
+  assert.ok(g.stacks.guardMax < g0.stacks.guardMax, '九宫格：罡气上限 −25%');
   // 空灵根: each turn exactly one hand tile is 灵
   const k = R.createRun({ seed: 'kong', method: 'yangjian' });
   k.talents = ['kongling'];
@@ -372,7 +389,7 @@ test('役之器 and talents: 命运轮盘, 天机签, 三清铃, 空灵根, 慧�
   const wheel = R.createRun({ seed: 'wheel', method: 'yangjian' });
   wheel.relics = ['mingyun'];
   const wb = startBattle(wheel, 'shiyuan', 'fight');
-  assert.ok(wb.stacks.wheel >= 1 && wb.stacks.wheel <= 5, 'the wheel is spun at the start of the fight');
+  assert.ok(wb.stacks.wheel >= 0 && wb.stacks.wheel <= 4, 'the wheel is spun at the start of the fight');
 });
 
 test('单骑流: 淬火砧 grows the lone tile for good, 本命符匣 always deals it, 孤注 / 孤峰剑 / 熔符', () => {

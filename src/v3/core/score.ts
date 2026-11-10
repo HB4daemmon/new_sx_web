@@ -1,6 +1,6 @@
 import { JIJI, RAGES, RELIC, TALENT, type ScoreCtx, type Bump } from './content.js';
 import { counterOf, KE, type El } from './elements.js';
-import { analyze, assignments, COMBOS, isDewei, pathOpen, patternValue, PATTERN_ORDER, PATTERNS, QI_PER_FAN, YAKU, type Analysis, type YakuHit } from './patterns.js';
+import { analyze, assignments, COMBOS, links, patternValue, PATTERN_ORDER, PATTERNS, QI_PER_FAN, YAKU, type Analysis, type YakuHit } from './patterns.js';
 import type { BattleState, ComboId, PatternId, RunState, Tile, YakuId } from './types.js';
 import { pactRank } from './pacts.js';
 
@@ -17,6 +17,8 @@ export interface Step {
   index?: number;
   relic?: string;
   tag?: '克' | '被克' | '昼' | '夜' | '孤';
+  /** 相生连跳：这张符的第几次触发（1 为首次）。 */
+  rep?: number;
   fx?: { el: El | null; heal?: number; shield?: number; burn?: number; crit?: number };
 }
 
@@ -40,6 +42,12 @@ export interface CastResult {
   swords: number;
   intentGain: number;
   rage: boolean;
+  /** 每张符触发几次（相生连跳）。 */
+  triggers: number[];
+  /** 这一招削罡气的倍数。 */
+  guardMult: number;
+  /** 这一招吃到了破势的翻倍。 */
+  vuln: boolean;
 }
 
 export const has = (run: RunState, id: string) => run.talents.includes(id);
@@ -65,11 +73,30 @@ function bumpLabel(bump: Bump): string {
 }
 export const round1 = (n: number) => Math.round(n * 10) / 10;
 
-interface Stage { qi: number; mult: number; steps: Step[]; critChance: number; heal: number; shield: number; burn: number; swords: number; a: Analysis; intent: number; comboIntent: number; yaku: YakuHit[]; fan: number }
+interface Stage { qi: number; mult: number; steps: Step[]; critChance: number; heal: number; shield: number; burn: number; swords: number; a: Analysis; intent: number; comboIntent: number; yaku: YakuHit[]; fan: number; triggers: number[]; guardMult: number }
 
-/** Scores one reading of the cast (elements and values fixed): 点数成气 → 各路役番 → 得位 → 共鸣 → 倍符乘区. Order of tiles never matters. */
+/**
+ * How many times each tile fires: 相生连跳 makes the k-th tile of a chain fire k times,
+ * and relics / talents / 命格 bend that.
+ */
+export function tileTriggers(run: RunState, chainPos: number[], els: (El | null)[]) {
+  const n = chainPos.length;
+  const t = chainPos.map(p => p);
+  const extra = (has(run, 'lianhuan') ? 1 : 0) + (run.fate === 'liansheng' ? 1 : 0);
+  chainPos.forEach((p, i) => { if (p >= 2) t[i] += extra; });
+  if (relicFlag(run, 'trigX')) chainPos.forEach((p, i) => { if (p >= 2) t[i] *= 2; });
+  const first = chainPos.indexOf(2);
+  if (first >= 0 && relicFlag(run, 'firstLinkX')) t[first] += 2 * relicFlag(run, 'firstLinkX');
+  if (relicFlag(run, 'headTrig')) chainPos.forEach((p, i) => { if (p === 1 && chainPos[i + 1] === 2) t[i] += relicFlag(run, 'headTrig'); });
+  // 洛书：首尾相生（最后一张生第一张）时，每张再触发一次。
+  if (relicFlag(run, 'loop') && n >= 3 && links(els[n - 1], els[0])) for (let i = 0; i < n; i += 1) t[i] += 1;
+  return t;
+}
+
+/** Scores one reading of the cast (elements and values fixed): 每张符按相生连跳逐次触发 → 各路役番 → 共鸣 → 倍符乘区. Order matters for 相生. */
 function stage(run: RunState, battle: BattleState, tiles: Tile[], els: (El | null)[], vals: number[], rage = false): Stage {
-  const a = analyze(els, vals, battle.enemy.el, { ling: tiles.map(t => t.mod === 'ling'), huan: tiles.map(t => t.mod === 'huan'), loose: has(run, 'huiyan'), noLuoshu: !pathOpen(run, 'luoshu'), noDewei: !pathOpen(run, 'dewei') });
+  const a = analyze(els, { ling: tiles.map(t => t.mod === 'ling'), keLink: !!relicFlag(run, 'keLink') });
+  const triggers = tileTriggers(run, a.chainPos, els);
   let qi = 0;
   let fan = 0;
   let x = 1;
@@ -99,23 +126,29 @@ function stage(run: RunState, battle: BattleState, tiles: Tile[], els: (El | nul
     if (tile.sp === 'zhuyin') tq *= 2;
     if (tiles.length === 1 && has(run, 'guzhu')) { tq *= 3; tag = tag ?? '孤'; }
     tq = Math.round(tq);
-    // 河图命: tiles off their 河图数 lose a point; 偏枯命: the 本命元素 +2, the rest −1.
-    if (run.fate === 'hetu' && el && !isDewei(el, vals[index])) tq = Math.max(0, tq - 1);
+    // 偏枯命: the 本命元素 +2, the rest −1.
     if (run.fate === 'pianku' && el) tq = Math.max(0, tq + (el === run.fateEl ? 2 : -1));
-    let dFan = 0;
-    const fx: Step['fx'] = { el };
-    if (el === 'jin') { critChance += 12; fx.crit = 12; if (run.method === 'yangjian') swords += tile.sp === 'jian' ? 2 : 1; }
-    if (el === 'mu') { const h = Math.round(tile.v * dScale * 1 * (tile.sp === 'chunya' ? 2 : 1) * (resonant.has('mu') ? 3 * res : 1)); heal += h; fx.heal = h; }
-    if (el === 'shui') { const sh = Math.round(tile.v * 2 * dScale * (tile.sp === 'jingang' ? 3 : 1) * (resonant.has('shui') ? 3 * res : 1)); shield += sh; fx.shield = sh; }
-    if (tile.sp === 'jingang' && battle.player.shield > 0) tq += Math.round(battle.player.shield * 0.1);
-    if (tile.sp === 'huozhong' && battle.enemy.burn > 0) { const b = Math.round(battle.enemy.burn / 2); burn += b; fx.burn = (fx.burn ?? 0) + b; }
-    if (tile.sp === 'leiyin') intent += 25;
-    if (el === 'huo') { const b = tile.v * (relicFlag(run, 'burnDouble') ? 2 : 1) * (run.method === 'yuhuo' ? 2 : 1) * (resonant.has('huo') ? 3 * res : 1); burn += b; fx.burn = b; }
-    if (el === 'tu') dFan += (run.method === 'zhulong' ? 1.5 : 0.5) * (resonant.has('tu') ? 2 * res : 1);
-    qi += tq;
-    fan += dFan;
-    const label = tile.el === 'zhuo' ? '浊' : `+${tq}`;
-    push({ k: 'tile', label, dQi: tq, dMult: dFan || undefined, index, tag, fx });
+    const times = Math.max(1, triggers[index]);
+    for (let rep = 1; rep <= times; rep += 1) {
+      let dFan = 0;
+      const fx: Step['fx'] = { el };
+      if (el === 'jin') { critChance += 12; fx.crit = 12; if (run.method === 'yangjian') swords += tile.sp === 'jian' ? 2 : 1; }
+      if (el === 'mu') { const h = Math.round(tile.v * dScale * 1 * (tile.sp === 'chunya' ? 2 : 1) * (resonant.has('mu') ? 3 * res : 1)); heal += h; fx.heal = h; }
+      if (el === 'shui') { const sh = Math.round(tile.v * 2 * dScale * (tile.sp === 'jingang' ? 3 : 1) * (resonant.has('shui') ? 3 * res : 1)); shield += sh; fx.shield = sh; }
+      let q = tq;
+      if (tile.sp === 'jingang' && battle.player.shield > 0) q += Math.round(battle.player.shield * 0.1);
+      if (tile.sp === 'huozhong' && battle.enemy.burn > 0) { const b = Math.round(battle.enemy.burn / 2); burn += b; fx.burn = (fx.burn ?? 0) + b; }
+      if (tile.sp === 'leiyin') intent += 25;
+      if (el === 'huo') { const b = tile.v * (relicFlag(run, 'burnDouble') ? 2 : 1) * (run.method === 'yuhuo' ? 2 : 1) * (resonant.has('huo') ? 3 * res : 1); burn += b; fx.burn = (fx.burn ?? 0) + b; }
+      if (el === 'tu') dFan += (run.method === 'zhulong' ? 1.5 : 0.5) * (resonant.has('tu') ? 2 * res : 1);
+      // 算盘：每次再触发另加气；源生：每一跳回复气血。
+      if (rep > 1) q += 6 * relicFlag(run, 'trigQi');
+      if (rep === 1 && a.chainPos[index] >= 2 && has(run, 'yuansheng')) { heal += 3; fx.heal = (fx.heal ?? 0) + 3; }
+      qi += q;
+      fan += dFan;
+      const label = tile.el === 'zhuo' ? '浊' : rep > 1 ? `+${q} 连跳` : `+${q}`;
+      push({ k: 'tile', label, dQi: q, dMult: dFan || undefined, index, tag, fx, rep });
+    }
   });
   // 2 —— 各路最高的役（心法每重 +1 番），每番另带 10 气。
   const yaku: YakuHit[] = [];
@@ -130,7 +163,8 @@ function stage(run: RunState, battle: BattleState, tiles: Tile[], els: (El | nul
     for (const hit of a.yaku) {
       const def = YAKU[hit.id];
       const plus = patternValue(def.path as PatternId, run.patternLv[def.path as PatternId] ?? 1).fan;
-      const f = hit.fan + plus;
+      // 连生命：同元的役番数 −1。
+      const f = Math.max(0, hit.fan + plus - (run.fate === 'liansheng' && def.path === 'yuan' ? 1 : 0));
       yaku.push({ id: hit.id, fan: f });
       yakuFan += f;
       qi += QI_PER_FAN * f;
@@ -144,12 +178,10 @@ function stage(run: RunState, battle: BattleState, tiles: Tile[], els: (El | nul
       fan += bao;
       push({ k: 'bonus', label: `宝符 ×${bao} ${bao}番`, dQi: QI_PER_FAN * bao, dMult: bao });
     }
-    if (a.dewei) {
-      const df = a.dewei * (run.fate === 'hetu' ? 2 : 1);
-      yakuFan += df;
-      qi += QI_PER_FAN * df;
-      fan += df;
-      push({ k: 'bonus', label: `得位 ×${a.dewei} ${df}番${run.fate === 'hetu' ? '（河图命）' : ''}`, dQi: QI_PER_FAN * df, dMult: df });
+    // 连生命 化境：每一跳 +1 番。
+    if (awake(run, 'liansheng') && a.links) {
+      yakuFan += a.links; qi += QI_PER_FAN * a.links; fan += a.links;
+      push({ k: 'bonus', label: `连生·化境 ${a.links}番`, dQi: QI_PER_FAN * a.links, dMult: a.links });
     }
     // 星宿命: this battle's 宿 doubles one 路.
     for (const star of [battle.stacks.star, battle.stacks.star2]) {
@@ -197,7 +229,11 @@ function stage(run: RunState, battle: BattleState, tiles: Tile[], els: (El | nul
     push({ k: 'bonus', label: `倍符 ×${lx}`, x: lx, index });
   });
   const comboIntent = a.tian ? 50 : Math.min(50, 8 + 3 * yakuFan);
-  return { qi, mult: mult(), steps, critChance, heal, shield, burn, swords, a, intent, comboIntent, yaku, fan: yakuFan };
+  // 罡气：克制敌人的符每张削罡气 +50%，土符 +25%（镇岳印再 +25%）。
+  const nCounter = els.filter(e => e && e === counter).length;
+  const nTu = els.filter(e => e === 'tu').length;
+  const guardMult = 1 + 0.5 * nCounter + (0.25 + 0.25 * relicFlag(run, 'tuGuard')) * nTu + 0.5 * relicFlag(run, 'guardX') + (has(run, 'gangjin') ? 0.3 : 0);
+  return { qi, mult: mult(), steps, critChance, heal, shield, burn, swords, a, intent, comboIntent, yaku, fan: yakuFan, triggers, guardMult };
 }
 
 /** The best 本门役 this cast earns for the run's method (null if none). */
@@ -302,6 +338,8 @@ function finish(run: RunState, battle: BattleState, tiles: Tile[], st: Stage, ra
   if (run.fate === 'shouzhuo' && tiles.length <= 2) push('bonus', '守拙 ×0.6', { x: 0.6 });
   if (has(run, 'xueji')) push('bonus', '血祭 ×1.6', { x: 1.6 });
   if (run.vow === 'suidan') push('bonus', '碎丹燃血 ×1.6', { x: 1.6 });
+  const vuln = !!battle.stacks.vuln;
+  if (vuln) { const vx = relicFlag(run, 'vulnX') ? 3 : 2; push('bonus', `破势 ×${vx}`, { x: vx }); }
   let rageHeal = 0;
   if (rage) {
     const dull = pactRank(run, 'dull') ? 1 : 0;
@@ -327,6 +365,6 @@ function finish(run: RunState, battle: BattleState, tiles: Tile[], st: Stage, ra
     tiles, pattern: match.combo, yaku: stage.yaku, fan: stage.fan, analysis: match, els: match.els, steps,
     qi, mult, critChance, crit, damage: Math.floor(qi * mult),
     heal: stage.heal + rageHeal, shield: stage.shield, burn: stage.burn, swords: stage.swords,
-    intentGain: Math.round(gain), rage,
+    intentGain: Math.round(gain), rage, triggers: stage.triggers, guardMult: stage.guardMult, vuln,
   };
 }

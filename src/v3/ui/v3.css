@@ -60,8 +60,6 @@ button.chip:hover { border-color: var(--gold); color: var(--gold); }
 .tile.el-zhuo .tile-glyph { color: #a197ab; }
 /* 点数和元素一样醒目：同数、连珠一眼可见。 */
 .tile-v { position: absolute; left: 0; right: 0; bottom: 8px; text-align: center; font: 800 40px/1 var(--num); color: var(--ink); letter-spacing: -1px; }
-.tile-dw { position: absolute; left: 3px; top: 17px; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--brush); font-size: 14px; color: #4a2a00; background: radial-gradient(circle at 35% 30%, #fff3c4, #e0a72b); box-shadow: 0 0 0 1px rgba(0,0,0,.25); }
-.tile.small .tile-dw { width: 13px; height: 13px; font-size: 9px; left: 1px; top: 8px; }
 .tile.el-zhuo .tile-v { color: #b9b0c2; }
 .tile-mod { position: absolute; right: -6px; bottom: -6px; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--brush); font-size: 19px; color: #fff; background: #6c4bd8; box-shadow: 0 0 0 2px #f7efdd, 0 0 12px rgba(140,110,255,.8); }
 .tile.mod-huan .tile-mod { background: linear-gradient(135deg, #e9d9ff, #9a7bea); color: #2a1460; }
@@ -333,6 +331,19 @@ b.qi { color: var(--shui); } b.mu { color: var(--ver); }
 .hero-status, .enemy-status { position: absolute; display: flex; gap: 6px; flex-wrap: wrap; }
 .hero-status { left: 0; right: 0; bottom: 34px; justify-content: center; }
 .hero-bar { position: absolute; left: 20px; right: 20px; bottom: 0; }
+.enemy-guard { margin-top: 3px; }
+.enemy-guard .bar { height: 12px; } .enemy-guard .bar-text { line-height: 12px; font-size: 11px; letter-spacing: .05em; }
+.enemy-guard .bar.guard .bar-fill { background: linear-gradient(180deg, #ffe7a1, #c99a3a); }
+.enemy-guard.broken .bar { animation: blink .5s infinite alternate; } .enemy-guard.broken .bar-text { color: #ffd166; font-weight: 700; }
+.stage.port .enemy-guard .bar { height: 16px; } .stage.port .enemy-guard .bar-text { line-height: 16px; font-size: 14px; }
+.enemy-intent.broken { opacity: .55; text-decoration: line-through; }
+.tile-reps { position: absolute; right: -6px; top: -12px; padding: 0 5px; border-radius: 10px; background: #ffd166; color: #3a2400; font: 800 14px/22px var(--num); box-shadow: 0 2px 6px rgba(0,0,0,.6); }
+.pv-chain { display: inline-flex; align-items: baseline; gap: 2px; font-family: var(--brush); font-size: 20px; }
+.pv-chain small { font: 700 12px var(--num); color: #ffd166; margin-left: 1px; }
+.pv-link { color: var(--dim); font-size: 14px; padding: 0 1px; } .pv-link.on { color: #ffd166; font-size: 18px; font-weight: 700; }
+.pv-break { font-family: var(--brush); font-size: 20px; color: #3a2400; background: #ffd166; padding: 0 8px; border-radius: 4px; }
+.stage.port .pv-chain { font-size: 26px; } .stage.port .pv-chain small { font-size: 16px; } .stage.port .pv-break { font-size: 24px; }
+.tag-chain { color: #ffd166 !important; }
 .hero-bar .bar, .enemy-bar .bar { height: 24px; } .hero-bar .bar-text, .enemy-bar .bar-text { line-height: 24px; font-size: 16px; }
 .st { font: 700 14px var(--sans); padding: 2px 8px; border-radius: 4px; background: rgba(0,0,0,.75); box-shadow: inset 0 0 0 1px currentColor; }
 .st-armor { color: #d9e2ea; } .st-burn { color: var(--huo); } .st-charge { color: #ff6b5a; animation: blink .6s infinite alternate; } .st-buff { color: #ff8a6a; } .st-sword { color: var(--jin); } .st-spring { color: var(--mu); } .st-thunder { color: #b9a6ff; }
@@ -752,9 +763,6 @@ b.qi { color: var(--shui); } b.mu { color: var(--ver); }
 .pv-parts { display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; }
 .yk-chip { display: inline-flex; align-items: baseline; gap: 4px; padding: 2px 9px; border-radius: 999px; font-family: var(--brush); font-size: 18px; line-height: 1.2; color: #fff6e4; background: linear-gradient(160deg, #a2321f, #6d1a10); box-shadow: inset 0 0 0 1px rgba(255,220,190,.45); pointer-events: auto; cursor: pointer; }
 .yk-chip i { font: 700 12px var(--num); font-style: normal; color: #ffd77a; }
-.pattern-row.closed { opacity: .5; } .pr-open { display: block; color: var(--gold); font-size: 12px; } .stage.port .pr-open { font-size: 16px; }
-.yk-sum { font: 700 14px var(--num); color: var(--dim); align-self: center; } .stage.port .pattern-row.closed { opacity: .5; } .pr-open { display: block; color: var(--gold); font-size: 12px; } .stage.port .pr-open { font-size: 16px; }
-.yk-sum { font-size: 18px; }
 .yk-chip.ben { background: linear-gradient(160deg, #2f6b5a, #173d33); }
 .yk-chip.tian { background: linear-gradient(160deg, #f6d36b, #b8862b); color: #2a1500; } .yk-chip.tian i { color: #5a2d00; }
 .yk-none { font-size: 13px; color: var(--dim); }

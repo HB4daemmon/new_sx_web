@@ -71,7 +71,8 @@ test('坊市补货 replaces unsold items once and keeps sold ones', () => {
 test('复盘 explains a lost run: near-miss, at least one finding with a next step', () => {
   let checked = 0;
   for (let i = 0; i < 12 && checked < 3; i += 1) {
-    const run = playRun(R.createRun({ seed: `lose-${i}`, method: 'huichun' }));
+    // Hard pacts so the bot reliably loses some runs (the rules are being reworked; balance is not the point here).
+    const run = playRun(R.createRun({ seed: `lose-${i}`, method: 'huichun', pacts: { cloud: 3, thunder: 3, awake: 1 } }));
     if (run.screen.name !== 'lost') continue;
     const review = reviewRun(run);
     assert.ok(review.last && !review.last.won);
@@ -89,6 +90,6 @@ test('map threat grows with the act and 最常用诀 shows up as favourite', () 
   const a1 = enemyThreat(run, 'shiyuan');
   run.act = 3;
   assert.ok(enemyThreat(run, 'shiyuan') > a1 && a1 > 0);
-  run.stats.use = { lian: 5, yuan: 1, podi: 3 };
-  assert.deepEqual(favouritePatterns(run), ['lian', 'podi']);
+  run.stats.use = { sheng: 5, yuan: 3 };
+  assert.deepEqual(favouritePatterns(run), ['sheng', 'yuan']);
 });

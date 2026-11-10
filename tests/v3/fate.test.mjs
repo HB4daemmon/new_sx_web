@@ -84,9 +84,10 @@ test('命格: every 命格 is selectable; the rules they rewrite', () => {
   assert.equal(p.run.bag.filter(t => t.el === 'huo').length, 5 + 5);
   const plain = fight({ seed: 'pk' });
   assert.equal(computeCast(p.run, p.battle, [T('huo', 4)], false).qi, computeCast(plain.run, plain.battle, [T('huo', 4)], false).qi + 2);
-  // 河图命: 得位 +2 each; off-河图 tiles −1 气.
-  const h = fight({ seed: 'ht', fate: 'hetu' });
-  assert.equal(computeCast(h.run, h.battle, [T('shui', 1), T('jin', 4)], false).fan >= 4, true);
+  // 连生命: every chained tile fires once more; 同元 −1 番.
+  const h = fight({ seed: 'ht', fate: 'liansheng' });
+  assert.deepEqual(computeCast(h.run, h.battle, [T('mu', 1), T('huo', 1)], false).triggers, [1, 3]);
+  assert.equal(computeCast(h.run, h.battle, [T('jin', 1), T('jin', 1)], false).fan, 0, '双元 1 − 1');
   // 孤星命: three slots, relics fire twice.
   const g = fight({ seed: 'gx', fate: 'guxing' });
   assert.equal(g.run.relicSlots, 3);
@@ -248,24 +249,14 @@ test('守御天赋: reduction and dodge are capped; 龟息 and 枯木逢春 stop
   assert.ok(gb.player.hp > 0 && gb.stacks.kumu === 1, '枯木逢春 once');
 });
 
-test('开路: 得位 and 洛书 stay shut until a relic (or 河图命) opens them', async () => {
-  const { activePatterns, pathOpen } = await import('../../build/v3/core/patterns.js');
-  const { run, battle } = fight({ seed: 'open' });
-  const luo = [T('jin', 4), T('huo', 5), T('tu', 6)];
-  const ids = () => computeCast(run, battle, luo, false).yaku.map(y => y.id);
-  assert.ok(!ids().includes('luoshu'), '洛书 is shut by default');
-  assert.equal(computeCast(run, battle, [T('shui', 1), T('jin', 4)], false).analysis.dewei, 0, '得位 is shut by default');
-  assert.ok(!activePatterns(run).includes('luoshu'));
-  for (let i = 0; i < 50; i += 1) for (const o of R.rewardOptions(run, 3)) assert.ok(o.type !== 'pattern' || o.pattern !== 'luoshu', 'no 洛书 心法 while shut');
-  R.gainRelic(run, 'jiugong');
-  assert.ok(pathOpen(run, 'luoshu') && ids().includes('luoshu'));
-  assert.deepEqual(run.justOpened, ['luoshu'], 'the UI gets told once');
-  // Losing the relic later keeps the 路 open.
-  run.relics = [];
-  assert.ok(pathOpen(run, 'luoshu'));
-  R.gainRelic(run, 'hetu');
-  assert.equal(computeCast(run, battle, [T('shui', 1), T('jin', 4)], false).analysis.dewei, 2);
-  // 河图命 opens 得位 from the start.
-  const h = fight({ seed: 'open2', fate: 'hetu' });
-  assert.ok(pathOpen(h.run, 'dewei') && !pathOpen(h.run, 'luoshu'));
+test('势如破竹 and 震魂: 破势 lets you cast again; each break saps the enemy', async () => {
+  const { run, battle } = fight({ seed: 'pozhu' });
+  run.talents = ['pozhu', 'zhenhun'];
+  battle.stacks.guard = 1;
+  const out = cast(run, battle, [battle.hand[0].uid], false);
+  assert.ok(out.events.some(e => e.k === 'break'));
+  assert.equal(out.turnEnded, false, '破势后还能再出一招');
+  assert.equal(battle.stacks.daunt, 1);
+  const again = cast(run, battle, [battle.hand[0].uid], false);
+  assert.ok(again.turnEnded, 'only once per turn');
 });

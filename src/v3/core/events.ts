@@ -1,6 +1,6 @@
 import { RELIC, RELICS, TALENTS, VOW } from './content.js';
 import { ELEMENTS, EL_NAME, type El } from './elements.js';
-import { activePatterns, PATTERNS, PATTERN_ORDER } from './patterns.js';
+import { PATTERNS, PATTERN_ORDER } from './patterns.js';
 import { chance, pick, sample } from './rng.js';
 import type { RunState, Screen, Tile } from './types.js';
 // Imported lazily through the function bodies to avoid a load-order cycle with run.ts.
@@ -111,12 +111,12 @@ export const EVENTS: EventDef[] = [
       { label: '换', desc: '失去最左侧的法宝，获得两件随机法宝', can: run => run.relics.length > 0, apply: run => {
         const lost = RELIC[run.relics.shift()!];
         const gained = R.relicChoices(run, 2, 'elite').filter(o => o.type === 'relic').map(o => (o as { relic: string }).relic);
-        for (const id of gained) if (run.relics.length < run.relicSlots) run.relics.push(id), RELIC[id].onGain?.(run), R.openFrom(run, id);
+        for (const id of gained) if (run.relics.length < run.relicSlots) run.relics.push(id), RELIC[id].onGain?.(run);
         return `「${lost.name}」不见了，手里多了 ${gained.map(id => `「${RELIC[id].name}」`).join('、')}。狐狸已经不在了。`;
       } },
       { label: '摸摸它', desc: '五成机会：随机一种诀式 +1', apply: run => {
         if (!chance(run.rng, 0.5)) return '狐狸咬了你一口，跑了。';
-        const id = pick(run.rng, activePatterns(run)); run.patternLv[id] += 1;
+        const id = pick(run.rng, PATTERN_ORDER); run.patternLv[id] += 1;
         return `狐狸蹭了蹭你的手。你忽然悟了：「${PATTERNS[id].name}」+1。`;
       } },
     ],
@@ -125,8 +125,8 @@ export const EVENTS: EventDef[] = [
     id: 'demon', title: '心魔', glyph: '魔',
     text: '你的影子从地上站了起来，用你的声音说：「你到底想变多强？」',
     options: [
-      { label: '直面', desc: '失去 15 气血；「同元」「连珠」各 +1', apply: run => { run.hp = Math.max(1, run.hp - 15); run.patternLv.yuan += 1; run.patternLv.lian += 1; return '你与它对坐良久。它叹了口气，散了。同元、连珠 +1。'; } },
-      { label: '斩之', desc: '失去 25 气血；「破敌」+2', apply: run => { run.hp = Math.max(1, run.hp - 25); run.patternLv.podi += 2; return '一剑下去，影子碎成五色。破敌 +2。'; } },
+      { label: '直面', desc: '失去 15 气血；「同元」「相生」各 +1', apply: run => { run.hp = Math.max(1, run.hp - 15); run.patternLv.yuan += 1; run.patternLv.sheng += 1; return '你与它对坐良久。它叹了口气，散了。同元、相生 +1。'; } },
+      { label: '斩之', desc: '失去 25 气血；「相生」+2', apply: run => { run.hp = Math.max(1, run.hp - 25); run.patternLv.sheng += 2; return '一剑下去，影子碎成五色，又一环环接回来。相生 +2。'; } },
       leave,
     ],
   },
@@ -135,7 +135,7 @@ export const EVENTS: EventDef[] = [
     text: '一个受伤的修士靠在树下：「道友……可有灵石，借我疗伤？」',
     options: [
       { label: '解囊', desc: '花费 30 灵石；随机一种诀式 +1', can: run => run.gold >= 30, apply: run => {
-        run.gold -= 30; const id = pick(run.rng, activePatterns(run)); run.patternLv[id] += 1;
+        run.gold -= 30; const id = pick(run.rng, PATTERN_ORDER); run.patternLv[id] += 1;
         return `修士塞给你一页残谱作为回礼：「${PATTERNS[id].name}」+1。`;
       } },
       { label: '劫财', desc: '+55 灵石；符袋混入 1 枚浊符', apply: run => { run.gold += 55; curse(run, 1); return '你拿走了他的储物袋。心里多了一点脏东西。'; } },
@@ -151,7 +151,7 @@ export const EVENTS: EventDef[] = [
         for (const t of tiles) t.mod = 'ling';
         return `${tiles.map(tileText).join('、')} 化为灵符。`;
       } },
-      { label: '拓印', desc: '「五行」+2', apply: run => { run.patternLv.wuxing += 2; return '五行 +2。'; } },
+      { label: '拓印', desc: '「相生」+2', apply: run => { run.patternLv.sheng += 2; return '相生 +2。'; } },
     ],
   },
   {
@@ -237,7 +237,7 @@ export const BOND_EVENTS: EventDef[] = [
   { id: 'bond-houyi-2', bond: 'houyi', title: '风口试射', glyph: '羿',
     text: '昆仑的风口，后羿的箭已经磨好了。他要你站到靶子旁边——风太乱，得有人替他报风向。',
     options: [
-      { label: '站到靶边', desc: '失去 15% 气血；「同数」+2。后羿会在终战相助', apply: run => { const d = hurt(run, 0.15); run.patternLv.shu += 2; bond(run, 'houyi', 'done', '你在昆仑风口替后羿报了一整天的风向。'); return `一支箭擦着你的耳朵过去（-${d}）。后羿收了弓：「准了。你上天门的时候，抬头看。」你对成双的东西忽然敏锐了许多。`; } },
+      { label: '站到靶边', desc: '失去 15% 气血；「同元」+2。后羿会在终战相助', apply: run => { const d = hurt(run, 0.15); run.patternLv.yuan += 2; bond(run, 'houyi', 'done', '你在昆仑风口替后羿报了一整天的风向。'); return `一支箭擦着你的耳朵过去（-${d}）。后羿收了弓：「准了。你上天门的时候，抬头看。」你对成双的东西忽然敏锐了许多。`; } },
       { label: '收下他的箭', desc: '从两件法宝中选一件；此线就此了结', apply: run => { bond(run, 'houyi', 'declined', '后羿把一支箭送给了你，自己留在了风口。'); return relicOffer(run, ['yinlei', 'mingmu']); } },
     ] },
   { id: 'bond-yu-1', bond: 'yu', title: '禹', glyph: '禹',
@@ -249,7 +249,7 @@ export const BOND_EVENTS: EventDef[] = [
   { id: 'bond-yu-2', bond: 'yu', title: '分水', glyph: '禹',
     text: '火海里，禹的沟已经挖到了火口边上。只差最后一锹，就能把热流引开——但那一锹得有人站在火口里挖。',
     options: [
-      { label: '站进火口', desc: '失去 15% 气血；「连珠」+2、「五行」+1。禹会在终战相助', apply: run => { const d = hurt(run, 0.15); run.patternLv.lian += 2; run.patternLv.wuxing += 1; bond(run, 'yu', 'done', '你站在火口里挖下了禹的最后一锹。'); return `火燎掉了你的眉毛（-${d}）。热流一分为九，顺着沟走了。你忽然明白：疏导，就是一节接一节。`; } },
+      { label: '站进火口', desc: '失去 15% 气血；「相生」+2、「同元」+1。禹会在终战相助', apply: run => { const d = hurt(run, 0.15); run.patternLv.sheng += 2; run.patternLv.yuan += 1; bond(run, 'yu', 'done', '你站在火口里挖下了禹的最后一锹。'); return `火燎掉了你的眉毛（-${d}）。热流一分为九，顺着沟走了。你忽然明白：疏导，就是一节接一节。`; } },
       { label: '借他的息壤', desc: '气血全满，气血上限 +12；此线就此了结', apply: run => { run.maxHp += 12; run.hp = run.maxHp; bond(run, 'yu', 'declined', '禹把一捧息壤给了你，自己跳进了火口。'); return '一捧息壤敷在身上，伤全好了。禹自己跳进了火口。'; } },
     ] },
   { id: 'bond-shennong-1', bond: 'shennong', title: '神农', glyph: '农',

@@ -3,7 +3,7 @@ import { FATE, METHOD, RELIC, RELICS, RELIC_PRICE, TALENT, TALENTS, TALENT_TIER_
 import { ELEMENTS } from './elements.js';
 import { ENEMIES, ENEMY } from './enemies.js';
 import { EVENTS, EVENT } from './events.js';
-import { activePatterns, OPENERS, pathOpen, PATTERN_ORDER } from './patterns.js';
+import { PATTERN_ORDER } from './patterns.js';
 import { BONDS, BOSS_STORY, ENDING } from './story.js';
 import { cleanPacts, pactHeat, pactRank } from './pacts.js';
 import { SIGNATURE, SPECIALS } from './content.js';
@@ -63,7 +63,7 @@ function applyStartPerks(run) {
         addTile(run, { el: pick(run.rng, ELEMENTS), v: 4, mod: 'ling' });
     if (unlocked(run, 'pattern1')) {
         run.patternLv.yuan += 1;
-        run.patternLv.shu += 1;
+        run.patternLv.sheng += 1;
     }
     if (unlocked(run, 'slot1'))
         run.relicSlots += 1;
@@ -365,7 +365,7 @@ export function leaveStory(run) { if (run.screen.name === 'story')
     run.screen = { name: 'map' }; }
 // —— Rewards ——
 /** 普通符纹（宝、倍）常见，高级符纹（灵、幻）少见；品质越高，高级的比例越高。 */
-export const RARE_MODS = ['ling', 'huan'];
+export const RARE_MODS = ['ling'];
 function pickMod(run, quality = 0) {
     const rare = 0.2 + 0.1 * Math.max(0, quality);
     return chance(run.rng, rare) ? pick(run.rng, RARE_MODS) : pick(run.rng, ['bao', 'lei']);
@@ -381,7 +381,7 @@ export function rewardOptions(run, n) {
     const sp = Object.values(SPECIALS).find(x => x.method === run.method);
     if (sp && chance(run.rng, 0.25))
         out.push({ type: 'tile', tile: { el: sp.el, v: sp.v + Math.min(4, run.act - 1), sp: sp.id } });
-    const patterns = sample(run.rng, activePatterns(run), 2);
+    const patterns = sample(run.rng, PATTERN_ORDER, 2);
     out.push({ type: 'tile', tile: randomTile(run) });
     out.push({ type: 'pattern', pattern: patterns[0] });
     out.push(chance(run.rng, 0.5) ? { type: 'tile', tile: randomTile(run, 1) } : { type: 'pattern', pattern: patterns[1] });
@@ -440,17 +440,7 @@ export function gainRelic(run, id, replaceSlot) {
     else
         run.relics.push(id);
     def.onGain?.(run);
-    openFrom(run, id);
     return true;
-}
-/** 开路: some relics open 得位 or 洛书 for the rest of the run. */
-export function openFrom(run, relicId) {
-    for (const [p, o] of Object.entries(OPENERS)) {
-        if (!o.relics.includes(relicId) || pathOpen(run, p))
-            continue;
-        (run.opened ??= []).push(p);
-        (run.justOpened ??= []).push(p);
-    }
 }
 export function moveRelic(run, from, to) {
     if (from < 0 || from >= run.relics.length || to < 0 || to >= run.relics.length || from === to)
@@ -543,7 +533,7 @@ export function leaveReward(run) {
 /** 突破三选一：每个选项按本幕的档位比例抽档（凡/灵/仙），不重复；第二幕起至少一个灵档以上。 */
 export function talentChoices(run, act) {
     const odds = TALENT_TIER_ODDS[Math.max(1, Math.min(4, act))];
-    const pool = TALENTS.filter(t => !run.talents.includes(t.id) && (t.id !== 'huiyan' || pathOpen(run, 'dewei')) && (!t.method || t.method.split(',').includes(run.method)) && !(t.id === 'dongtian' && run.relicSlots >= MAX_RELIC_SLOTS));
+    const pool = TALENTS.filter(t => !run.talents.includes(t.id) && (!t.method || t.method.split(',').includes(run.method)) && !(t.id === 'dongtian' && run.relicSlots >= MAX_RELIC_SLOTS));
     const order = ['common', 'rare', 'legend'];
     const out = [];
     for (let i = 0; i < 3; i += 1) {
@@ -612,7 +602,7 @@ function makeShop(run) {
     const options = [
         ...relicChoices(run, fateAwake(run, 'sanxiu') ? 4 : 3, 'shop'),
         { type: 'tile', tile: randomTile(run, 1) }, { type: 'tile', tile: randomTile(run, 1) }, { type: 'tile', tile: randomTile(run, 2) },
-        ...sample(run.rng, activePatterns(run), 2).map(pattern => ({ type: 'pattern', pattern })),
+        ...sample(run.rng, PATTERN_ORDER, 2).map(pattern => ({ type: 'pattern', pattern })),
         { type: 'heal', amount: Math.round(run.maxHp * 0.35) },
     ];
     const items = options.map(option => ({ option, price: optionPrice(run, option), sold: false }));
@@ -676,7 +666,7 @@ export function startMerge(run) {
         return;
     run.screen = { name: 'pick-tile', purpose: 'merge', count: 3, then: { ...screen }, title: `${MERGE_TITLE}（花费 ${mergePrice(run)} 灵石）`, price: mergePrice(run) };
 }
-const MOD_RANK = { ling: 3, huan: 3, bao: 2, lei: 2 };
+const MOD_RANK = { ling: 3, bao: 2, lei: 2 };
 /** 百炼命: the 洞府 allows a second action. */
 function restAfter(run) {
     const cur = run.screen;
@@ -707,7 +697,7 @@ export function restChoose(run, choice, pattern) {
 export const restHeal = (run) => (unlocked(run, 'rest1') ? 0.55 : 0.4);
 export function insightChoices(run) {
     const seed = { state: seedFrom(`${run.seed}:${run.at}`) };
-    return sample(seed, activePatterns(run), 3);
+    return sample(seed, PATTERN_ORDER, 3);
 }
 export function leaveRest(run) { if (run.screen.name === 'rest')
     run.screen = { name: 'map' }; }

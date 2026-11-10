@@ -1,8 +1,8 @@
-import { canRage, rageCost, defense, enemyAttack, endlessLimit, MAX_CAST, previewCast, swordDamage, tribulationStart, type BEvent, type CastOutcome } from '../core/battle.js';
+import { breakEffect, canRage, rageCost, defense, enemyAttack, endlessLimit, MAX_CAST, previewCast, swordDamage, tribulationStart, type BEvent, type CastOutcome } from '../core/battle.js';
 import { DODGE_CAP, METHOD, RAGES, REDUCE_CAP, RELIC, SPECIALS } from '../core/content.js';
 import { counterOf, EL_NAME, KE, type El } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
-import { COMBOS, fanTier, OPENERS, pathOpen, PATTERNS, PATTERN_ORDER, QI_PER_FAN, YAKU, YAKU_ORDER, HETU } from '../core/patterns.js';
+import { COMBOS, fanTier, links, PATTERNS, PATTERN_ORDER, QI_PER_FAN, YAKU, YAKU_ORDER } from '../core/patterns.js';
 import { dangerous, recommend, type AdviceMode } from '../core/advisor.js';
 import { MOD_DESC, TALENT, TIER_NAME } from '../core/content.js';
 import type { YakuId } from '../core/types.js';
@@ -25,7 +25,7 @@ let busy = false;
 let sortMode: 'el' | 'v' = 'el';
 let keyHandler: ((e: KeyboardEvent) => void) | null = null;
 /** Values shown on screen; animations move these toward the real state. */
-const disp = { ehp: 0, emax: 1, php: 0, pmax: 1, shield: 0, armor: 0, eburn: 0, pburn: 0, qi: 0, el: 'jin' as El };
+const disp = { ehp: 0, emax: 1, php: 0, pmax: 1, shield: 0, armor: 0, eburn: 0, pburn: 0, qi: 0, el: 'jin' as El, guard: 0, gmax: 1, broken: false };
 
 const run = () => app.run!;
 const nn = (...items: (HTMLElement | null)[]) => items.filter(Boolean) as HTMLElement[];
@@ -55,6 +55,7 @@ export function mountBattle(container: HTMLElement) {
     h('div.enemy-plate', { onclick: (e: Event) => { if (!busy) { e.stopPropagation(); showEnemyInfo(); } } },
       h('div.enemy-name', null, h('span.e-el'), h('b', null, enemy.name), h('small', null, enemy.title)),
       h('div.enemy-bar'),
+      h('div.enemy-guard', { title: '罡气：一回合内把它打穿就「破势」——打断它这回合的招（首领只剩一半攻击），你的下一招 ×2。克制它的符削罡气 +50%，土符 +25%。' }),
       enemy.traitText ? h('div.enemy-trait', null, enemy.traitText) : null,
       null),
     h('div.wheel-slot'),
@@ -166,6 +167,7 @@ function syncDisp() {
   disp.ehp = b.enemy.hp; disp.emax = b.enemy.maxHp; disp.php = b.player.hp; disp.pmax = b.player.maxHp;
   disp.shield = b.player.shield; disp.armor = b.enemy.armor; disp.eburn = b.enemy.burn; disp.pburn = b.player.burn;
   disp.qi = b.qi; disp.el = b.enemy.el;
+  disp.guard = b.stacks.guard ?? 0; disp.gmax = b.stacks.guardMax ?? 1; disp.broken = !!b.stacks.broken;
 }
 
 // —— Static refreshers ——
@@ -197,6 +199,11 @@ function setBar(container: HTMLElement | null, cls: string, value: number, max: 
 
 function refreshBars() {
   setBar($('.enemy-bar', root!), 'ehp', disp.ehp, disp.emax);
+  const g = $('.enemy-guard', root!)!;
+  setBar(g, 'guard', disp.guard, disp.gmax);
+  g.classList.toggle('broken', disp.broken);
+  const gt = g.querySelector('.bar-text');
+  if (gt) gt.textContent = disp.broken ? '破 势' : `罡气 ${fmt(Math.max(0, disp.guard))} / ${fmt(disp.gmax)}`;
   setBar($('.hero-bar', root!), 'hp', disp.php, disp.pmax);
   const shield = $('.hero-shield', root!)!;
   shield.classList.toggle('on', disp.shield > 0);
@@ -218,7 +225,8 @@ function refreshStatus() {
     b.spring > 0 ? h('span.st.st-spring', { title: '春华：下一招计入气' }, '春 ', fmt(b.spring)) : null,
     b.stacks.thunder ? h('span.st.st-thunder', { title: '雷引：本场倍率永久提高' }, '雷 +', String(b.stacks.thunder)) : null,
     run().fate === 'xingxiu' && b.stacks.star !== undefined ? h('span.st.st-star', { title: '星宿命：本场这一路的番 ×2' }, '宿·', ...[b.stacks.star, b.stacks.star2].filter(x => x !== undefined).map(x => PATTERNS[PATTERN_ORDER[x!]].name).join('、')) : null,
-    b.stacks.wheel ? h('span.st.st-wheel', { title: `命运轮盘：本回合转出 ${b.stacks.wheel}，本招有几张 ${b.stacks.wheel} 点的符，番就 ×几` }, '轮 ', String(b.stacks.wheel)) : null,
+    b.stacks.wheel !== undefined && run().relics.includes('mingyun') ? h('span.st.st-wheel', { title: `命运轮盘：本回合转出${EL_NAME[(['mu', 'huo', 'tu', 'jin', 'shui'] as El[])[b.stacks.wheel]]}，本招有几张就 ×几` }, '轮·', EL_NAME[(['mu', 'huo', 'tu', 'jin', 'shui'] as El[])[b.stacks.wheel]]) : null,
+    b.stacks.poshi ? h('span.st.st-poshi', { title: '本场已破势的次数' }, '破势 ×', String(b.stacks.poshi)) : null,
     b.stacks.omen !== undefined && run().relics.includes('tianjiqian') ? h('span.st.st-omen', { title: `天机签：本回合「吉」为${EL_NAME[(['mu', 'huo', 'tu', 'jin', 'shui'] as El[])[b.stacks.omen]]}，每张 +1 番` }, '吉·', EL_NAME[(['mu', 'huo', 'tu', 'jin', 'shui'] as El[])[b.stacks.omen]]) : null));
   const plate = $('.e-el', root!)!;
   plate.className = `e-el el-${disp.el}`;
@@ -256,7 +264,9 @@ function refreshIntent() {
   const b = battle();
   const el = $('.enemy-intent', root!)!;
   el.title = intentTitle(b.enemy.intent);
-  el.replaceChildren(h('span.it-name', null, b.enemy.intent.name), ...intentText(b.enemy.intent));
+  const br = breakEffect(b);
+  el.classList.toggle('broken', br.broken);
+  el.replaceChildren(h('span.it-name', null, br.interrupt ? `${b.enemy.intent.name} · 已打断` : br.half ? `${b.enemy.intent.name} · 破势` : b.enemy.intent.name), ...(br.interrupt ? [] : intentText(b.enemy.intent)));
   const total = (b.enemy.intent.atk ? enemyAttack(run(), b) * (b.enemy.intent.hits ?? 1) : 0);
   el.classList.toggle('danger', total >= b.player.hp + b.player.shield);
 }
@@ -310,9 +320,10 @@ function renderHand(dealIn = false, newUids: number[] = []) {
   const counter = counterOf(enemyEl);
   const weak = KE[enemyEl];
   const tiles = sortedHand();
+  const pv = selected.length ? previewCast(run(), battle(), selected, rageOn) : null;
   hand.replaceChildren(...tiles.map((tile, i) => {
     const order = selected.indexOf(tile.uid) + 1;
-    const el = tileView(tile, { onclick: () => toggleTile(tile.uid), dewei: pathOpen(run(), 'dewei') });
+    const el = tileView(tile, { onclick: () => toggleTile(tile.uid), order: order || undefined, reps: order && pv ? pv.triggers[order - 1] : undefined });
     el.dataset.key = String(i + 1);
     if (order) el.classList.add('sel');
     if (tile.el === counter) el.classList.add('counter');
@@ -367,7 +378,7 @@ function refreshPreview() {
   const line = $('.preview-line', root)!;
   const r = run(), b = battle();
   if (!selected.length) {
-    line.replaceChildren(h('span.dim', null, r.stats.casts < 4 ? '点选 1–5 张成役，不看顺序' : '点选 1–5 张符'));
+    line.replaceChildren(h('span.dim', null, r.stats.casts < 4 ? '按顺序点选 1–5 张：同元素凑组，或左生右连跳（木→火→土→金→水）' : '按顺序点选 1–5 张符'));
     setScore(null);
     refreshControls();
     return;
@@ -381,8 +392,20 @@ function refreshPreview() {
   if (res.critChance > 5) effects.push(`暴击 ${Math.round(res.critChance)}%`);
   const lethal = res.damage >= b.enemy.hp + (b.enemy.armor || 0);
   // The score panel already shows 气 × 番 and the 役: the line only adds the result and side effects.
+  // 出招顺序：左生右连上一跳，×k 是这张触发几次。
+  const chain = h('span.pv-chain', null, ...res.tiles.flatMap((t, i) => {
+    const el = res.els[i];
+    const link = i > 0 && links(res.els[i - 1], el, !!run().relics.includes('nilin'));
+    return [
+      i > 0 ? h(`span.pv-link${link ? '.on' : ''}`, null, link ? '→' : '·') : null,
+      h(`span.pv-el.el-text-${el ?? 'zhuo'}`, null, el ? EL_NAME[el] : '浊', res.triggers[i] > 1 ? h('small', null, `×${res.triggers[i]}`) : null),
+    ].filter(Boolean) as HTMLElement[];
+  }));
+  const willBreak = !b.stacks.broken && res.damage * res.guardMult >= (b.stacks.guard ?? Infinity);
   line.replaceChildren(...nn(
+    chain,
     h('span.pv-calc', null, '伤害 ', h('b.pv-dmg', null, fmt(res.damage))),
+    willBreak ? h('span.pv-break', null, '破势！') : null,
     effects.length ? h('span.pv-fx', null, effects.join(' · ')) : null,
     lethal ? h('span.pv-kill', null, '斩！') : null));
   setScore(res);
@@ -406,14 +429,7 @@ function yakuChips(res: CastResult): HTMLElement[] {
   const out = res.yaku.map(y => chip(YAKU[y.id].name, y.fan, () => showYakuInfo(y.id, res), YAKU[y.id].path === 'tian' ? '.tian' : YAKU[y.id].path === 'ben' ? '.ben' : ''));
   const bao = res.tiles.filter(t => t.mod === 'bao').length;
   if (!res.analysis.tian && bao) out.push(chip('宝符', bao, () => showModInfo('bao')));
-  if (!res.analysis.tian && res.analysis.dewei) out.push(chip('得位', res.analysis.dewei, () => showDeweiInfo()));
   if (!out.length) out.push(h('span.yk-none', null, '散牌 · 没有成役'));
-  // 洛书已开：两三张时报出点数和，凑十、凑十五差多少一目了然。
-  const n = res.tiles.length;
-  if (pathOpen(run(), 'luoshu') && (n === 2 || n === 3) && !res.yaku.some(y => YAKU[y.id].path === 'luoshu')) {
-    const sum = res.tiles.reduce((a, t) => a + (t.el === 'zhuo' ? 0 : t.v), 0);
-    out.push(h('span.yk-sum', null, `点数和 ${sum}／${n === 2 ? 10 : 15}`));
-  }
   return out;
 }
 
@@ -582,13 +598,15 @@ async function playStep(step: Step, res: CastResult, clones: HTMLElement[], qiB:
       if (fx?.burn) floatText(c.x - 30, c.y + 50, `焰+${fx.burn}`, 'ft-fx el-text-huo', 20, 600);
       if (fx?.crit) floatText(c.x - 30, c.y + 50, `暴+${fx.crit}%`, 'ft-fx el-text-jin', 20, 600);
       if (step.dMult || step.x) floatText(c.x + 30, c.y + 50, step.x ? `×${fmt1(step.x)}` : `+${fmt1(step.dMult!)}番`, 'ft-fx ft-mult', 20, 600);
-      burst(c.x, c.y - 20, EL_COLOR[tile.el], 8, 0.5);
+      burst(c.x, c.y - 20, EL_COLOR[tile.el], 8 + 4 * (step.rep ?? 1), 0.5);
+      // 相生连跳：同一张符再触发时，环光一圈圈放大。
+      if (step.rep && step.rep > 1) { ring(c.x, c.y, EL_COLOR[tile.el], 50 + 18 * step.rep); floatText(c.x, c.y - 110, `连跳 ×${step.rep}`, 'ft-tag tag-chain', 20, 600); }
       playSfx('tick', index);
       if (step.x) playSfx('xmult');
       setVals();
       pop(qiB);
       if (step.dMult || step.x) pop(multB, !!step.x);
-      await wait(150);
+      await wait(Math.max(70, 150 - 20 * ((step.rep ?? 1) - 1)));
       return;
     }
     case 'relic': case 'bonus': {
@@ -781,6 +799,25 @@ async function playEvent(ev: BEvent, side: 'player' | 'enemy') {
       await Promise.all(Array.from({ length: ev.n }, (_, i) => wait(i * 90).then(() => comet(from, to, '#8a7f95', 380, 30))));
       if (!ev.n) ring(from.x, from.y, '#45c9f5', 160);
       toast(ev.n ? `${ev.n} 枚浊符混入你的符袋` : '精卫的石子填住了劫云——浊符没有落下', ev.n ? 'bad' : '');
+      return;
+    }
+    case 'guard': {
+      disp.guard = ev.left;
+      refreshBars();
+      return;
+    }
+    case 'break': {
+      disp.guard = 0; disp.broken = true;
+      refreshBars();
+      refreshIntent();
+      const c = centerOf(enemyArt);
+      shake(3);
+      burst(c.x, c.y, '#ffd166', 46, 1.2);
+      ring(c.x, c.y, '#ffd166', 220);
+      floatText(c.x, c.y - 150, ev.interrupt ? '破 势 · 打断' : '破 势', 'ft-move big', 26, 1100);
+      playSfx('thunder');
+      refreshStatus();
+      await wait(420);
       return;
     }
     case 'charge': {
@@ -1028,14 +1065,9 @@ function showYakuInfo(id: YakuId, res?: CastResult) {
 }
 
 function showModInfo(mod: string) {
-  infoCard(h('h3.brush', null, `${{ ling: '灵', huan: '幻', bao: '宝', lei: '倍' }[mod] ?? ''}符`), h('p', null, MOD_DESC[mod] ?? ''));
+  infoCard(h('h3.brush', null, `${{ ling: '灵', bao: '宝', lei: '倍' }[mod] ?? ''}符`), h('p', null, MOD_DESC[mod] ?? ''));
 }
 
-function showDeweiInfo() {
-  infoCard(h('h3.brush', null, '得位', h('small', null, '　宝牌')),
-    h('p', null, `点数合该元素的河图数，每张 +1 番（另带 ${QI_PER_FAN} 气），与各路的役叠加。`),
-    h('div.info-list', null, ...(Object.entries(HETU) as [El, number][]).map(([el, n]) => h('div.info-row', null, h('b', { class: `el-text-${el}` }, EL_NAME[el]), h('span', null, `${n} 或 ${n + 5}`)))));
-}
 
 /** Enemy: this turn's intent in full, what is coming next, its element and how to break it. */
 function showEnemyInfo() {
@@ -1051,7 +1083,8 @@ function showEnemyInfo() {
     h('div.info-sec', null, h('b', null, '这一回合：'), intentTitle(e.intent).replace(/\n/g, '；')),
     h('div.info-list', null, ...moves.map((m, i) => h(`div.info-row${i === e.moveIndex ? '.on' : ''}`, null, h('b', null, m.name), h('span', null, intentTitle(m).split('\n').slice(1).join('；') || '—')))),
     h('p.dim', null, '招式按顺序循环，亮起的是这一回合。'),
-    h('div.info-sec', null, h('b', null, `属${EL_NAME[e.el]}：`), `${EL_NAME[counter]}符克它，点数 ×2；三张以上成「破阵」。${EL_NAME[weak]}符被它克，点数 ×0.5。`),
+    h('div.info-sec', null, h('b', null, `属${EL_NAME[e.el]}：`), `${EL_NAME[counter]}符克它，点数 ×2，削罡气 +50%。${EL_NAME[weak]}符被它克，点数 ×0.5。`),
+    h('div.info-sec', null, h('b', null, '罡气：'), b.stacks.broken ? '已破势：这一回合的招被打断（首领只剩一半攻击），你的下一招 ×2。' : `${fmt(b.stacks.guard ?? 0)} / ${fmt(b.stacks.guardMax ?? 0)}。一回合内打穿即破势：打断它这回合的招（首领只剩一半攻击），你的下一招 ×2。每回合回满。`),
     e.charged ? h('div.info-sec', null, h('b', null, '蓄势：'), '下一次攻击翻倍。') : null,
     e.atkBonus ? h('div.info-sec', null, h('b', null, '战意：'), `攻击 +${e.atkBonus}。`) : null,
     def.traitText ? h('div.info-sec', null, h('b', null, '特性：'), def.traitText) : null,
@@ -1077,7 +1110,8 @@ function showSelfInfo() {
   if (d.reduce) rows.push(['减伤', `受到敌人的伤害 −${d.reduce}%（上限 ${REDUCE_CAP}%）`]);
   if (d.dodge) rows.push(['闪避', `敌人每一击 ${d.dodge}% 机会闪开（上限 ${DODGE_CAP}%）`]);
   if (b.stacks.pendingHeal) rows.push(['待回复', `${b.stacks.pendingHeal}：敌人出手后回复`]);
-  if (b.stacks.wheel) rows.push(['命运轮盘', `本回合转出 ${b.stacks.wheel}：本招有几张 ${b.stacks.wheel} 点的符，番就 ×几`]);
+  if (b.stacks.wheel !== undefined && r.relics.includes('mingyun')) rows.push(['命运轮盘', `本回合转出${EL_NAME[(['mu', 'huo', 'tu', 'jin', 'shui'] as El[])[b.stacks.wheel]]}：本招有几张就 ×几`]);
+  if (b.stacks.vuln) rows.push(['破势', '敌人破势中：你的下一招伤害翻倍']);
   if (r.relics.includes('tianjiqian') && b.stacks.omen !== undefined) rows.push(['天机签', `本回合「吉」为${EL_NAME[(['mu', 'huo', 'tu', 'jin', 'shui'] as El[])[b.stacks.omen]]}：每张 +1 番`]);
   if (r.talents.includes('kongling')) rows.push(['空灵根', '每回合手里随机一张符化为灵符']);
   if (r.fate) rows.push(['命格', fateText(r).replace(/\n/g, '；')]);

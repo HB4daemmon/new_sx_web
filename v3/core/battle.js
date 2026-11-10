@@ -1,7 +1,7 @@
 import { ACT_ATK, ACT_HP, ENEMY, HEAT_ATK, HEAT_HP, RANK_ATK, RANK_HP } from './enemies.js';
 import { GEN } from './elements.js';
 import { next, shuffle, int } from './rng.js';
-import { activePatterns, COMBOS, HETU, PATTERN_ORDER, YAKU } from './patterns.js';
+import { COMBOS, PATTERN_ORDER, YAKU } from './patterns.js';
 import { pactRank } from './pacts.js';
 import { computeCast, defenseScale, has, relicFlag } from './score.js';
 import { DODGE_CAP, REDUCE_CAP, SPECIALS } from './content.js';
@@ -84,27 +84,13 @@ export function startBattle(run, enemyId, kind) {
         battle.stacks.rageCost = 60;
     if (run.method === 'yangjian')
         battle.swords = Math.min(swordCap(run), run.swordsKept ?? 0);
-    if (has(run, 'huanhua')) {
-        const pool = battle.draw.filter(t => t.el !== 'zhuo' && !t.mod);
-        for (let i = 0; i < 2 && pool.length; i += 1)
-            pool.splice(int(rng, 0, pool.length - 1), 1)[0].mod = 'huan';
-    }
     // 星宿命: one 宿 per fight (two once awakened), each doubling one 路.
     if (run.fate === 'xingxiu') {
-        const open = activePatterns(run).map(p => PATTERN_ORDER.indexOf(p));
+        const open = PATTERN_ORDER.map((_, i) => i);
         const i = int(rng, 0, open.length - 1);
         battle.stacks.star = open[i];
         if (run.realm >= 2)
             battle.stacks.star2 = open[(i + 1 + int(rng, 0, open.length - 2)) % open.length];
-    }
-    // 河图命 化境: two random tiles take their element's 河图数 for this fight.
-    if (run.fate === 'hetu' && run.realm >= 2) {
-        const pool = battle.draw.filter(t => t.el !== 'zhuo');
-        for (let i = 0; i < 2 && pool.length; i += 1) {
-            const t = pool.splice(int(rng, 0, pool.length - 1), 1)[0];
-            const n = HETU[t.el];
-            t.v = t.v > 5 ? n + 5 : n;
-        }
     }
     // 温养: the bag's biggest tile grows for good at the start of every fight.
     const grow = has(run, 'wenyang3') ? 3 : has(run, 'wenyang2') ? 2 : has(run, 'wenyang1') ? 1 : 0;
@@ -118,6 +104,7 @@ export function startBattle(run, enemyId, kind) {
         }
     }
     turnStartShield(run, battle);
+    refillGuard(run, battle);
     drawTo(run, battle);
     turnRolls(run, battle);
     if (has(run, 'bubu')) {
@@ -155,7 +142,7 @@ function applyAssists(run, battle) {
 /** Things that are rolled fresh every turn: 命运轮盘's number, 天机签's lucky element, 空灵根's 灵 tile. */
 function turnRolls(run, battle) {
     if (run.relics.includes('mingyun'))
-        battle.stacks.wheel = int(run.rng, 1, 5);
+        battle.stacks.wheel = int(run.rng, 0, 4);
     if (run.relics.includes('tianjiqian'))
         battle.stacks.omen = int(run.rng, 0, 4);
     if (has(run, 'kongling')) {
@@ -214,7 +201,52 @@ function drawTo(run, battle) {
 export function enemyAttack(run, battle, move = battle.enemy.intent) {
     if (!move.atk)
         return 0;
-    return Math.round((scaleAtk(run, battle, move.atk) + battle.enemy.atkBonus) * (battle.enemy.charged ? 2 : 1) * (battle.stacks.calm ? 0.8 : 1));
+    const g = breakEffect(battle);
+    if (g.interrupt)
+        return 0;
+    return Math.round((scaleAtk(run, battle, move.atk) + battle.enemy.atkBonus) * (battle.enemy.charged ? 2 : 1) * (battle.stacks.calm ? 0.8 : 1) * (g.half ? 0.5 : 1) * (1 - 0.1 * Math.min(5, battle.stacks.daunt ?? 0)));
+}
+// —— 罡气与破势 ——
+/** 敌人每回合的罡气：气血上限的一定比例，一回合内打穿就「破势」。 */
+export const GUARD_PCT = { fight: 0.15, elite: 0.2, boss: 0.25 };
+export function guardMax(run, battle) {
+    const cut = 1 - 0.25 * relicFlag(run, 'guardCut');
+    return Math.max(1, Math.round(battle.enemy.maxHp * (GUARD_PCT[ENEMY[battle.enemy.id].rank] ?? 0.15) * cut));
+}
+/** 每回合开始，罡气回满。 */
+export function refillGuard(run, battle) {
+    battle.stacks.guardMax = guardMax(run, battle);
+    battle.stacks.guard = battle.stacks.guardMax;
+    battle.stacks.broken = 0;
+}
+/** 破势之后这一回合敌人的招：小怪、精英被打断；首领只剩一半攻击，别的效果作废。 */
+export function breakEffect(battle) {
+    if (!battle.stacks.broken)
+        return { broken: false, interrupt: false, half: false };
+    const boss = ENEMY[battle.enemy.id].rank === 'boss';
+    return { broken: true, interrupt: !boss, half: boss };
+}
+/** Knocks the enemy's 罡气 down; at zero the enemy is 破势. */
+function hitGuard(run, battle, amount, events) {
+    if (battle.stacks.broken || amount <= 0 || battle.outcome !== 'fighting')
+        return;
+    const before = battle.stacks.guard ?? 0;
+    battle.stacks.guard = Math.max(0, before - Math.round(amount));
+    events.push({ k: 'guard', amount: before - battle.stacks.guard, left: battle.stacks.guard });
+    if (battle.stacks.guard > 0)
+        return;
+    battle.stacks.broken = 1;
+    battle.stacks.poshi = (battle.stacks.poshi ?? 0) + 1;
+    // 破势：下一招伤害翻倍（斩铁 ×3）。
+    battle.stacks.vuln = 1;
+    battle.stacks.brokeBy = battle.castCount;
+    if (has(run, 'zhenhun'))
+        battle.stacks.daunt = (battle.stacks.daunt ?? 0) + 1;
+    const heal = relicFlag(run, 'breakHeal');
+    if (heal)
+        battle.stacks.pendingHeal = (battle.stacks.pendingHeal ?? 0) + Math.round(battle.player.maxHp * heal / 100);
+    battle.qi = Math.min(100, battle.qi + relicFlag(run, 'breakQi'));
+    events.push({ k: 'break', interrupt: breakEffect(battle).interrupt });
 }
 export function discardTiles(run, battle, uids) {
     if (battle.outcome !== 'fighting' || battle.discardsLeft <= 0 || !uids.length)
@@ -255,6 +287,8 @@ function damageEnemy(run, battle, amount, src, events, crit = false) {
     const dealt = amount - blocked;
     enemy.hp -= dealt;
     events.push({ k: 'hit', to: 'enemy', amount: dealt, blocked, src, crit });
+    if (src === 'sword' || src === 'detonate')
+        hitGuard(run, battle, dealt, events);
     checkEnemy(run, battle, events);
     return dealt;
 }
@@ -367,7 +401,10 @@ export function cast(run, battle, uids, rageWanted) {
     battle.stacks.drum = 0;
     if (run.method === 'huichun' && !relicFlag(run, 'springKeep'))
         battle.spring = Math.floor(battle.spring / 2);
+    if (result.vuln)
+        battle.stacks.vuln = 0;
     let total = damageEnemy(run, battle, result.damage, 'cast', events, result.crit);
+    hitGuard(run, battle, total * result.guardMult, events);
     if (run.method === 'yangjian') {
         const forged = Math.min(swordCap(run) - battle.swords, result.swords);
         battle.swords += Math.max(0, forged);
@@ -451,7 +488,13 @@ export function cast(run, battle, uids, rageWanted) {
     if (!tierBest || patternTier(result.pattern) > patternTier(tierBest))
         run.stats.biggestPattern = result.pattern;
     let turnEnded = true;
-    if (has(run, 'shuangjue') && !battle.freeCastUsed && tiles.length <= 2 && battle.outcome === 'fighting') {
+    // 势如破竹（天赋）：这一招打出破势，不结束回合，可以再出一招（每回合一次）。
+    if (has(run, 'pozhu') && battle.stacks.broken && !battle.stacks.pozhuUsed && battle.outcome === 'fighting' && battle.stacks.brokeBy === battle.castCount) {
+        battle.stacks.pozhuUsed = 1;
+        turnEnded = false;
+        drawTo(run, battle);
+    }
+    if (turnEnded && has(run, 'shuangjue') && !battle.freeCastUsed && tiles.length <= 2 && battle.outcome === 'fighting') {
         battle.freeCastUsed = true;
         turnEnded = false;
         drawTo(run, battle);
@@ -520,7 +563,11 @@ function enemyTurn(run, battle, events) {
         if (battle.outcome !== 'fighting')
             return;
     }
-    const move = enemy.intent;
+    const g = breakEffect(battle);
+    // 破势: a 小怪 or elite loses its whole move; a boss keeps half its attack but nothing else.
+    const move = g.interrupt ? { name: `${enemy.intent.name}（被打断）` } : g.half ? { name: `${enemy.intent.name}（破势）`, atk: enemy.intent.atk, hits: enemy.intent.hits } : enemy.intent;
+    if (g.interrupt)
+        enemy.charged = false;
     events.push({ k: 'move', name: move.name, move });
     if (move.atk) {
         const dmg = enemyAttack(run, battle, move);
@@ -614,6 +661,7 @@ function enemyTurn(run, battle, events) {
         enemy.el = GEN[enemy.el];
         events.push({ k: 'element', el: enemy.el });
     }
+    refillGuard(run, battle);
     // Player turn start.
     battle.turn += 1;
     run.stats.turns += 1;
@@ -631,9 +679,8 @@ function enemyTurn(run, battle, events) {
     battle.stacks.discarded = 0;
     battle.castsThisTurn = 0;
     battle.freeCastUsed = false;
-    // Every turn starts on a fresh hand: unplayed tiles go to the discard pile.
-    battle.discard.push(...battle.hand);
-    battle.hand = [];
+    battle.stacks.pozhuUsed = 0;
+    // 手牌保留：没出的符留在手里，每回合摸满。
     const drawn = drawTo(run, battle);
     turnRolls(run, battle);
     events.push({ k: 'draw', count: drawn });

@@ -22,7 +22,7 @@ export interface Review {
 const EL_NAME: Record<El, string> = { jin: '金', mu: '木', shui: '水', huo: '火', tu: '土' };
 const pct = (n: number) => Math.round(n * 100);
 
-/** The run's build as actually played: “同数 · 火”. Null until a few casts are in. */
+/** The run's build as actually played: “相生 · 火”. Null until a few casts are in. */
 export function playStyle(run: RunState): string | null {
   const use = run.stats.use ?? {};
   const top = topPattern(run);
@@ -84,7 +84,7 @@ export function reviewRun(run: RunState): Review {
         id: 'output', weight: 2.5 + (last.enemyMax / 5 - last.best) / (last.enemyMax / 5),
         title: '输出没跟上',
         detail: `这场最强一招 ${last.best}，只有${name}气血的 ${pct(last.best / last.enemyMax)}%。`,
-        tryNext: '凑能叠加的役：同元、同数、连珠可以同时成立；精英与首领给的法宝优先拿“乘倍”的。',
+        tryNext: '同元和相生可以同时成立：比如 木木→火→土，既是双元又连两跳；精英与首领给的法宝优先拿“乘倍”的。',
       });
     }
     // 3. 防御没撑住: enemy blows did most of the damage and shields soaked little.
@@ -150,7 +150,7 @@ export function reviewRun(run: RunState): Review {
       id: 'counter', weight: 1,
       title: `${def.name}属${EL_NAME[def.el]}`,
       detail: `${EL_NAME[counterOf(def.el)]}符克它，点数翻倍；${EL_NAME[KE[def.el]]}符被它克，点数减半。${def.traitText ? def.traitText : ''}`,
-      tryNext: `去${def.name}所在的一幕前，多留几枚${EL_NAME[counterOf(def.el)]}符，多凑「破阵」「破军」（三张以上克制符）。`,
+      tryNext: `去${def.name}所在的一幕前，多留几枚${EL_NAME[counterOf(def.el)]}符，克制符削罡气 +50%，凑够了就能破势、打断它的重击。`,
     });
   }
   findings.sort((a, b) => b.weight - a.weight);
