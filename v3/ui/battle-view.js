@@ -2,11 +2,12 @@ import { breakEffect, canRage, rageCost, defense, enemyAttack, endlessLimit, MAX
 import { DODGE_CAP, METHOD, RAGES, REDUCE_CAP, RELIC, SPECIALS } from '../core/content.js';
 import { counterOf, EL_NAME, KE } from '../core/elements.js';
 import { ACTS, ENEMY } from '../core/enemies.js';
-import { fanTier, links, PATTERNS, PATTERN_ORDER, QI_PER_FAN, YAKU, YAKU_ORDER } from '../core/patterns.js';
-import { dangerous, recommend } from '../core/advisor.js';
+import { fanTier, PATTERNS, PATTERN_ORDER, QI_PER_FAN, YAKU, YAKU_ORDER } from '../core/patterns.js';
+import { arrange, dangerous, recommend } from '../core/advisor.js';
 import { MOD_DESC, TALENT, TIER_NAME } from '../core/content.js';
 import { BOND, BOSS_STORY, LORE } from '../core/story.js';
 import * as R from '../core/run.js';
+import { relicFlag } from '../core/score.js';
 import { anim, burst, centerOf, comet, EL_COLOR, flash, floatText, hitstop, isSkipping, lightning, reducedMotion, ring, setSkipping, shake, wait } from './fx.js';
 import { $, fmt, fmt1, h } from './h.js';
 import { app, overlayOpen, render, save, showOverlay, toast } from './main.js';
@@ -44,7 +45,7 @@ export function mountBattle(container) {
         } }, title: '点击查看敌人意图与弱点' }, h('div.enemy-intent'), h('img.enemy-art', { src: art(enemy.art), alt: enemy.name }), h('div.enemy-status')), h('div.enemy-plate', { onclick: (e) => { if (!busy) {
             e.stopPropagation();
             showEnemyInfo();
-        } } }, h('div.enemy-name', null, h('span.e-el'), h('b', null, enemy.name), h('small', null, enemy.title)), h('div.enemy-bar'), h('div.enemy-guard', { title: '罡气：一回合内把它打穿就「破势」——小怪这回合的招被打断，精英与首领只剩一半攻击；你的下一招 ×1.5。每破势一次，罡气上限 ×1.5。克制它的符削罡气 +50%，土符 +25%。' }), enemy.traitText ? h('div.enemy-trait', null, enemy.traitText) : null, null), h('div.wheel-slot'), h('div.turn-tag'), h('div.score-panel', null, h('div.sp-pattern', null, '　'), h('div.sp-row', null, h('div.sp-box.sp-qi', null, h('small', null, '气'), h('b', null, '0')), h('span.sp-x', null, '×'), h('div.sp-box.sp-mult', null, h('small', null, '倍'), h('b', null, '0'))), h('div.sp-dmg'), h('div.sp-yaku')), h('div.lane'), h('div.hand-area', null, h('div.preview-line'), h('div.hand')), h('div.controls', null, h('button.qi-gauge', { type: 'button', 'data-action': 'rage', title: `怒技「${RAGES[r.method]?.name ?? '怒技'}」：${RAGES[r.method]?.desc ?? '本招 ×3'}\n剑意攒够即可开启 · 快捷键 R`, onclick: () => toggleRage() }, h('div.qi-fill'), h('div.qi-mark'), h('span.qi-text')), h('button.btn.seal.cast-btn', { type: 'button', 'data-action': 'cast', onclick: () => void doCast() }, h('span.cast-main', null, '出招'), h('small.cast-sub')), h('button.btn.ink.discard-btn', { type: 'button', 'data-action': 'discard', onclick: () => void doDiscard() }, '换符', h('small.discard-left'))), h('div.pile-dock', null, !app.meta.advise ? null : h('button.pile-btn.advise', { type: 'button', 'data-action': 'advise', title: '推荐出牌：再点一次换成另一种思路', onclick: () => advise() }, '荐', h('small', null, '推荐')), h('button.pile-btn', { type: 'button', onclick: () => showBag(r), title: '查看符袋' }, h('span.pile-draw'), h('small', null, '待抽')), h('button.pile-btn.sort', { type: 'button', title: '整理手牌：按元素 / 按点数', onclick: (e) => { sortMode = sortMode === 'el' ? 'v' : 'el'; $('small', e.currentTarget).textContent = sortMode === 'el' ? '按元素' : '按点数'; renderHand(); } }, '理', h('small', null, sortMode === 'el' ? '按元素' : '按点数')), h('button.pile-btn', { type: 'button', title: '诀谱', onclick: () => showHelp() }, '谱')), hud(r, { battle: true }));
+        } } }, h('div.enemy-name', null, h('span.e-el'), h('b', null, enemy.name), h('small', null, enemy.title)), h('div.enemy-bar'), h('div.enemy-guard', { title: '罡气：一回合内把它打穿就「破势」——小怪这回合的招被打断，精英与首领只剩一半攻击；你的下一招 ×1.5。每破势一次，罡气上限 ×1.5。克制它的符削罡气 +50%，土符 +25%。' }), enemy.traitText ? h('div.enemy-trait', null, enemy.traitText) : null, null), h('div.wheel-slot'), h('div.turn-tag'), h('div.score-panel', null, h('div.sp-pattern', null, '　'), h('div.sp-row', null, h('div.sp-box.sp-qi', null, h('small', null, '气'), h('b', null, '0')), h('span.sp-x', null, '×'), h('div.sp-box.sp-mult', null, h('small', null, '倍'), h('b', null, '0'))), h('div.sp-dmg'), h('div.sp-yaku')), h('div.lane'), h('div.hand-area', null, h('div.preview-line'), h('div.hand')), h('div.controls', null, h('button.qi-gauge', { type: 'button', 'data-action': 'rage', title: `怒技「${RAGES[r.method]?.name ?? '怒技'}」：${RAGES[r.method]?.desc ?? '本招 ×3'}\n剑意攒够即可开启 · 快捷键 R`, onclick: () => toggleRage() }, h('div.qi-fill'), h('div.qi-mark'), h('span.qi-text')), h('button.btn.ink.arrange-btn', { type: 'button', 'data-action': 'arrange', title: '理链：同元素合丹，先排最长相生链，再取触发总数最多的顺序', onclick: () => arrangeSelected() }, '理链'), h('button.btn.seal.cast-btn', { type: 'button', 'data-action': 'cast', onclick: () => void doCast() }, h('span.cast-main', null, '出招'), h('small.cast-sub')), h('button.btn.ink.discard-btn', { type: 'button', 'data-action': 'discard', onclick: () => void doDiscard() }, '换符', h('small.discard-left'))), h('div.pile-dock', null, !app.meta.advise ? null : h('button.pile-btn.advise', { type: 'button', 'data-action': 'advise', title: '推荐出牌：再点一次换成另一种思路', onclick: () => advise() }, '荐', h('small', null, '推荐')), h('button.pile-btn', { type: 'button', onclick: () => showBag(r), title: '查看符袋' }, h('span.pile-draw'), h('small', null, '待抽')), h('button.pile-btn.sort', { type: 'button', title: '整理手牌：按元素 / 按点数', onclick: (e) => { sortMode = sortMode === 'el' ? 'v' : 'el'; $('small', e.currentTarget).textContent = sortMode === 'el' ? '按元素' : '按点数'; renderHand(); } }, '理', h('small', null, sortMode === 'el' ? '按元素' : '按点数')), h('button.pile-btn', { type: 'button', title: '诀谱', onclick: () => showHelp() }, '谱')), hud(r, { battle: true }));
     container.appendChild(root);
     root.addEventListener('pointerdown', () => { if (busy && !cinematic)
         setSkipping(true); });
@@ -309,6 +310,7 @@ function refreshControls() {
     $('.discard-btn', root).disabled = busy || b.discardsLeft <= 0;
     $('.discard-btn', root).firstChild.textContent = selected.length ? '换符' : '全换';
     $('.cast-btn', root).disabled = busy || !selected.length;
+    $('.arrange-btn', root).disabled = busy || selected.length < 2;
     $('.pile-draw', root).textContent = String(b.draw.length);
     root.classList.toggle('busy', busy);
     root.classList.toggle('rage-armed', rageOn && canRage(b));
@@ -379,6 +381,15 @@ function toggleTile(uid) {
     playSfx('select');
     renderHand();
 }
+function arrangeSelected() {
+    if (busy || selected.length < 2)
+        return;
+    const hand = battle().hand;
+    const tiles = selected.map(uid => hand.find(tile => tile.uid === uid));
+    selected = arrange(tiles, { keLink: !!relicFlag(run(), 'keLink') }).map(tile => tile.uid);
+    playSfx('select');
+    renderHand();
+}
 function toggleRage() {
     if (busy || !canRage(battle())) {
         if (!canRage(battle()))
@@ -396,7 +407,7 @@ function refreshPreview() {
     const line = $('.preview-line', root);
     const r = run(), b = battle();
     if (!selected.length) {
-        line.replaceChildren(h('span.dim', null, r.stats.casts < 4 ? '按顺序点选 1–5 张：同元素凑组，或左生右连跳（木→火→土→金→水）' : '按顺序点选 1–5 张符'));
+        line.replaceChildren(h('span.dim', null, r.stats.casts < 4 ? '选 1–5 张：同元素合丹，相生连跳；「理链」自动排' : '点选 1–5 张符，同元素自动合丹'));
         setScore(null);
         refreshControls();
         return;
@@ -415,13 +426,14 @@ function refreshPreview() {
         effects.push(`暴击 ${Math.round(res.critChance)}%`);
     const lethal = res.damage >= b.enemy.hp + (b.enemy.armor || 0);
     // The score panel already shows 气 × 番 and the 役: the line only adds the result and side effects.
-    // 出招顺序：左生右连上一跳，×k 是这张触发几次。
-    const chain = h('span.pv-chain', null, ...res.tiles.flatMap((t, i) => {
-        const el = res.els[i];
-        const link = i > 0 && links(res.els[i - 1], el, !!run().relics.includes('nilin'));
+    // 上标表示丹内张数，×k 表示丹内每张符的实际触发次数。
+    const chain = h('span.pv-chain', { title: '同元素合丹；上标是张数，×k 是丹内每张符触发几次' }, ...res.analysis.nodes.flatMap((node, i) => {
+        const { el, tiles, pos } = node;
+        const reps = res.triggers[tiles[0]];
+        const link = pos > 1;
         return [
             i > 0 ? h(`span.pv-link${link ? '.on' : ''}`, null, link ? '→' : '·') : null,
-            h(`span.pv-el.el-text-${el ?? 'zhuo'}`, null, el ? EL_NAME[el] : '浊', res.triggers[i] > 1 ? h('small', null, `×${res.triggers[i]}`) : null),
+            h(`span.pv-el.el-text-${el ?? 'zhuo'}`, null, el ? EL_NAME[el] : '浊', tiles.length > 1 ? h('sup.pv-count', null, String(tiles.length)) : null, reps > 1 ? h('small', null, `×${reps}`) : null),
         ].filter(Boolean);
     }));
     const willBreak = !b.stacks.broken && res.damage * res.guardMult >= (b.stacks.guard ?? Infinity);

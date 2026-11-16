@@ -340,9 +340,11 @@ b.qi { color: var(--shui); } b.mu { color: var(--ver); }
 .tile-reps { position: absolute; right: -6px; top: -12px; padding: 0 5px; border-radius: 10px; background: #ffd166; color: #3a2400; font: 800 14px/22px var(--num); box-shadow: 0 2px 6px rgba(0,0,0,.6); }
 .pv-chain { display: inline-flex; align-items: baseline; gap: 2px; font-family: var(--brush); font-size: 20px; }
 .pv-chain small { font: 700 12px var(--num); color: #ffd166; margin-left: 1px; }
+.pv-count { font: 700 11px var(--num); color: var(--paper); margin-left: 1px; }
+.pv-el { white-space: nowrap; }
 .pv-link { color: var(--dim); font-size: 14px; padding: 0 1px; } .pv-link.on { color: #ffd166; font-size: 18px; font-weight: 700; }
 .pv-break { font-family: var(--brush); font-size: 20px; color: #3a2400; background: #ffd166; padding: 0 8px; border-radius: 4px; }
-.stage.port .pv-chain { font-size: 26px; } .stage.port .pv-chain small { font-size: 16px; } .stage.port .pv-break { font-size: 24px; }
+.stage.port .pv-chain { font-size: 26px; } .stage.port .pv-chain small, .stage.port .pv-count { font-size: 16px; } .stage.port .pv-break { font-size: 24px; }
 .tag-chain { color: #ffd166 !important; }
 .hero-bar .bar, .enemy-bar .bar { height: 24px; } .hero-bar .bar-text, .enemy-bar .bar-text { line-height: 24px; font-size: 16px; }
 .st { font: 700 14px var(--sans); padding: 2px 8px; border-radius: 4px; background: rgba(0,0,0,.75); box-shadow: inset 0 0 0 1px currentColor; }
@@ -401,6 +403,7 @@ b.qi { color: var(--shui); } b.mu { color: var(--ver); }
 .pv-fx { font-size: 13px; color: var(--dim); }
 .pv-kill { font-family: var(--brush); font-size: 26px; color: #fff; background: var(--ver); padding: 0 10px; border-radius: 4px; animation: blink .45s infinite alternate; }
 .controls { right: 18px; bottom: 18px; width: 330px; height: 124px; }
+.arrange-btn { position: absolute; left: -84px; bottom: 0; width: 74px; height: 120px; padding: 0; font-size: 20px; }
 .cast-btn { position: absolute; right: 0; bottom: 0; width: 150px; height: 120px; padding: 0; font-size: 46px; }
 .cast-btn .cast-main { line-height: 1; }
 .discard-btn { position: absolute; left: 76px; bottom: 0; width: 92px; height: 120px; padding: 0; font-size: 22px; }
@@ -492,10 +495,11 @@ b.qi { color: var(--shui); } b.mu { color: var(--ver); }
 .stage.port .hand .tile { width: 92px; height: 122px; }
 .stage.port .preview-line { font-size: 22px; max-width: 708px; overflow: hidden; } .stage.port .pv-fx { display: none; } .stage.port .pv-pattern { font-size: 32px; } .stage.port .pv-calc { font-size: 26px; } .stage.port .pv-dmg { font-size: 30px; } .stage.port .pv-fx { font-size: 18px; }
 .stage.port .controls { left: 16px; right: 16px; bottom: 16px; width: auto; height: 110px; }
-.stage.port .controls .cast-btn { width: 230px; height: 108px; font-size: 52px; }
-.stage.port .controls .discard-btn { left: auto; right: 246px; bottom: 0; width: 150px; height: 108px; font-size: 28px; }
+.stage.port .controls .cast-btn { width: 196px; height: 108px; font-size: 52px; }
+.stage.port .controls .arrange-btn { left: 206px; right: auto; bottom: 0; width: 114px; height: 108px; font-size: 28px; }
+.stage.port .controls .discard-btn { left: auto; right: 206px; bottom: 0; width: 150px; height: 108px; font-size: 28px; }
 .stage.port .discard-btn small { font-size: 16px; }
-.stage.port .qi-gauge { left: 0; bottom: 0; width: 270px; height: 108px; border-radius: 14px; }
+.stage.port .qi-gauge { left: 0; bottom: 0; width: 196px; height: 108px; border-radius: 14px; }
 .stage.port .qi-gauge .qi-fill { right: auto; top: 0; height: 100% !important; width: var(--w, 0%); }
 .stage.port .qi-text { writing-mode: horizontal-tb; font-size: 24px; }
 .stage.port .qi-gauge.full .qi-text { font-size: 38px; }

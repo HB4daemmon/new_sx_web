@@ -5,8 +5,9 @@
  * 同一份逻辑给界面的「荐」按钮和平衡模拟的机器人用。
  */
 import { breakEffect, enemyAttack, previewCast } from './battle.js';
-import { GEN } from './elements.js';
+import { assignments, chainNodes, links } from './patterns.js';
 import { MAX_CAST } from './battle.js';
+import { relicFlag } from './score.js';
 function* subsets(list, max) {
     const n = list.length;
     const pick = [];
@@ -23,26 +24,30 @@ function* subsets(list, max) {
     }
     yield* rec(0);
 }
-/** Orders a set of tiles for the longest 相生 runs (灵符 links with anything). */
-export function arrange(tiles) {
+/** 按丹理链：先最长链，再比较各丹张数 × 链位置之和；同丹保留点选顺序。 */
+export function arrange(tiles, opts = {}) {
     if (tiles.length < 2)
         return tiles;
-    const link = (a, b) => a.el !== 'zhuo' && b.el !== 'zhuo' && (a.mod === 'ling' || b.mod === 'ling' || GEN[a.el] === b.el);
-    let best = tiles, bestScore = -1;
-    const perm = (rest, acc, pos, score) => {
-        if (!rest.length) {
-            if (score > bestScore) {
-                bestScore = score;
-                best = acc;
+    let best = tiles, bestChain = -1, bestTotal = -1;
+    for (const { els } of assignments(tiles)) {
+        const nodes = chainNodes(els, !!opts.keLink);
+        const perm = (rest, acc, pos, chain, total) => {
+            if (!rest.length) {
+                if (chain > bestChain || (chain === bestChain && total > bestTotal)) {
+                    bestChain = chain;
+                    bestTotal = total;
+                    best = acc.flatMap(node => node.tiles.map(i => tiles[i]));
+                }
+                return;
             }
-            return;
-        }
-        rest.forEach((t, i) => {
-            const p = acc.length && link(acc[acc.length - 1], t) ? pos + 1 : 1;
-            perm([...rest.slice(0, i), ...rest.slice(i + 1)], [...acc, t], p, score + p);
-        });
-    };
-    perm(tiles, [], 0, 0);
+            rest.forEach((node, i) => {
+                const prev = acc[acc.length - 1];
+                const p = prev && links(prev.el, node.el, !!opts.keLink) ? pos + 1 : 1;
+                perm([...rest.slice(0, i), ...rest.slice(i + 1)], [...acc, node], p, Math.max(chain, p), total + p * node.tiles.length);
+            });
+        };
+        perm(nodes, [], 0, 0, 0);
+    }
     return best;
 }
 /** HP this cast would keep: shield that soaks the coming blow, plus healing that lands after it. */
@@ -66,7 +71,7 @@ export function recommend(run, battle, mode = 'max', rage = false, opts = {}) {
     for (const set of subsets(hand, MAX_CAST)) {
         if (opts.minTiles && set.length < opts.minTiles && hand.length >= opts.minTiles)
             continue;
-        const uids = arrange(set).map(t => t.uid);
+        const uids = arrange(set, { keLink: !!relicFlag(run, 'keLink') }).map(t => t.uid);
         const r = previewCast(run, battle, uids, rage);
         if (!r)
             continue;

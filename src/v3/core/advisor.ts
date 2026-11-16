@@ -5,9 +5,9 @@
  * 同一份逻辑给界面的「荐」按钮和平衡模拟的机器人用。
  */
 import { breakEffect, enemyAttack, previewCast } from './battle.js';
-import { GEN } from './elements.js';
+import { assignments, chainNodes, links, type DanNode, type Wilds } from './patterns.js';
 import { MAX_CAST } from './battle.js';
-import type { CastResult } from './score.js';
+import { relicFlag, type CastResult } from './score.js';
 import type { BattleState, RunState, Tile } from './types.js';
 
 export type AdviceMode = 'max' | 'safe';
@@ -24,19 +24,28 @@ function* subsets<T>(list: T[], max: number): Generator<T[]> {
   yield* rec(0);
 }
 
-/** Orders a set of tiles for the longest 相生 runs (灵符 links with anything). */
-export function arrange(tiles: Tile[]): Tile[] {
+/** 按丹理链：先最长链，再比较各丹张数 × 链位置之和；同丹保留点选顺序。 */
+export function arrange(tiles: Tile[], opts: Pick<Wilds, 'keLink'> = {}): Tile[] {
   if (tiles.length < 2) return tiles;
-  const link = (a: Tile, b: Tile) => a.el !== 'zhuo' && b.el !== 'zhuo' && (a.mod === 'ling' || b.mod === 'ling' || GEN[a.el] === b.el);
-  let best = tiles, bestScore = -1;
-  const perm = (rest: Tile[], acc: Tile[], pos: number, score: number) => {
-    if (!rest.length) { if (score > bestScore) { bestScore = score; best = acc; } return; }
-    rest.forEach((t, i) => {
-      const p = acc.length && link(acc[acc.length - 1], t) ? pos + 1 : 1;
-      perm([...rest.slice(0, i), ...rest.slice(i + 1)], [...acc, t], p, score + p);
-    });
-  };
-  perm(tiles, [], 0, 0);
+  let best = tiles, bestChain = -1, bestTotal = -1;
+  for (const { els } of assignments(tiles)) {
+    const nodes = chainNodes(els, !!opts.keLink);
+    const perm = (rest: DanNode[], acc: DanNode[], pos: number, chain: number, total: number) => {
+      if (!rest.length) {
+        if (chain > bestChain || (chain === bestChain && total > bestTotal)) {
+          bestChain = chain; bestTotal = total;
+          best = acc.flatMap(node => node.tiles.map(i => tiles[i]));
+        }
+        return;
+      }
+      rest.forEach((node, i) => {
+        const prev = acc[acc.length - 1];
+        const p = prev && links(prev.el, node.el, !!opts.keLink) ? pos + 1 : 1;
+        perm([...rest.slice(0, i), ...rest.slice(i + 1)], [...acc, node], p, Math.max(chain, p), total + p * node.tiles.length);
+      });
+    };
+    perm(nodes, [], 0, 0, 0);
+  }
   return best;
 }
 
@@ -61,7 +70,7 @@ export function recommend(run: RunState, battle: BattleState, mode: AdviceMode =
   let best: { score: number; uids: number[]; r: CastResult } | null = null;
   for (const set of subsets(hand, MAX_CAST)) {
     if (opts.minTiles && set.length < opts.minTiles && hand.length >= opts.minTiles) continue;
-    const uids = arrange(set).map(t => t.uid);
+    const uids = arrange(set, { keLink: !!relicFlag(run, 'keLink') }).map(t => t.uid);
     const r = previewCast(run, battle, uids, rage);
     if (!r) continue;
     const lethal = r.damage >= enemyHp;

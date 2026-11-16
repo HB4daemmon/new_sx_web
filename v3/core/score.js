@@ -25,11 +25,10 @@ function bumpLabel(bump) {
 }
 export const round1 = (n) => Math.round(n * 10) / 10;
 /**
- * How many times each tile fires: 相生连跳 makes the k-th tile of a chain fire k times,
+ * How many times each tile fires: 合丹连跳 makes every tile of the k-th node fire k times,
  * and relics / talents / 命格 bend that.
  */
-export function tileTriggers(run, chainPos, els) {
-    const n = chainPos.length;
+export function tileTriggers(run, { chainPos, nodes }) {
     const t = chainPos.map(p => p);
     const extra = (has(run, 'lianhuan') ? 1 : 0) + (run.fate === 'liansheng' ? 1 : 0);
     chainPos.forEach((p, i) => { if (p >= 2)
@@ -37,22 +36,25 @@ export function tileTriggers(run, chainPos, els) {
     if (relicFlag(run, 'trigX'))
         chainPos.forEach((p, i) => { if (p >= 2)
             t[i] *= 2; });
-    const first = chainPos.indexOf(2);
-    if (first >= 0 && relicFlag(run, 'firstLinkX'))
-        t[first] += 2 * relicFlag(run, 'firstLinkX');
+    const first = nodes.find(node => node.pos === 2);
+    if (first && relicFlag(run, 'firstLinkX'))
+        first.tiles.forEach(i => { t[i] += 2 * relicFlag(run, 'firstLinkX'); });
     if (relicFlag(run, 'headTrig'))
-        chainPos.forEach((p, i) => { if (p === 1 && chainPos[i + 1] === 2)
-            t[i] += relicFlag(run, 'headTrig'); });
-    // 洛书：首尾相生（最后一张生第一张）时，每张再触发一次。
-    if (relicFlag(run, 'loop') && n >= 3 && links(els[n - 1], els[0]))
-        for (let i = 0; i < n; i += 1)
+        nodes.forEach((node, i) => {
+            if (node.pos === 1 && nodes[i + 1]?.pos === 2)
+                node.tiles.forEach(j => { t[j] += relicFlag(run, 'headTrig'); });
+        });
+    // 洛书：至少三丹，末丹生首丹时，每张符再触发一次。
+    if (relicFlag(run, 'loop') && nodes.length >= 3 && links(nodes[nodes.length - 1].el, nodes[0].el)) {
+        for (let i = 0; i < t.length; i += 1)
             t[i] += 1;
+    }
     return t;
 }
 /** Scores one reading of the cast (elements and values fixed): 每张符按相生连跳逐次触发 → 各路役番 → 共鸣 → 倍符乘区. Order matters for 相生. */
 function stage(run, battle, tiles, els, vals, rage = false) {
     const a = analyze(els, { ling: tiles.map(t => t.mod === 'ling'), keLink: !!relicFlag(run, 'keLink') });
-    const triggers = tileTriggers(run, a.chainPos, els);
+    const triggers = tileTriggers(run, a);
     let qi = 0;
     let fan = 0;
     let x = 1;
@@ -67,6 +69,7 @@ function stage(run, battle, tiles, els, vals, rage = false) {
     let heal = 0, shield = 0, burn = 0, swords = 0, intent = 0;
     const resonant = new Set(a.sets.filter(st => st.size >= 3).map(st => st.el));
     const res = relicFlag(run, 'resonance') ? 2 : 1;
+    const linkHeads = new Set(a.nodes.filter(node => node.pos >= 2).map(node => node.tiles[0]));
     // 1 —— 每张符：点数成气，元素各有效果。
     tiles.forEach((tile, index) => {
         const el = els[index];
@@ -138,7 +141,7 @@ function stage(run, battle, tiles, els, vals, rage = false) {
             // 算盘：每次再触发另加气；源生：每一跳回复气血。
             if (rep > 1)
                 q += 6 * relicFlag(run, 'trigQi');
-            if (rep === 1 && a.chainPos[index] >= 2 && has(run, 'yuansheng')) {
+            if (rep === 1 && linkHeads.has(index) && has(run, 'yuansheng')) {
                 heal += 3;
                 fx.heal = (fx.heal ?? 0) + 3;
             }

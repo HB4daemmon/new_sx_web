@@ -1,8 +1,8 @@
 /**
  * 役 —— 以符成役。只看元素，不用算点数：点数只是每张符的气（伤害底数）。
  *   同元：同一元素凑组（双元、两仪、三才、满堂、四象、五雷）。
- *   相生：出招从左到右结算，左边的符生右边的（木→火→土→金→水→木）就连上一跳；
- *         连跳里第 k 张符触发 k 次（相生连跳），连得越长番越高。顺序由玩家自己排。
+ *   合丹连跳：同元素自动合成一丹，按元素首次点选的顺序排列；相邻丹左生右就连一跳。
+ *         链里第 k 个丹，每张符触发 k 次；同元与相生两路番相加。
  * 两路各取最高的一个役，番相加，番数就是倍率。灵符同时算作每一种元素（同元里算进每一组）；
  * 在相生里它取最好的一种元素。另计：本门役（看战况）。
  * 每个役（含宝符与心法）每番另带 QI_PER_FAN 气。
@@ -17,7 +17,7 @@ export const QI_PER_FAN = 10;
 export interface PatternDef { id: PatternId; name: string; alias: string; hint: string; short: string }
 export const PATTERNS: Record<PatternId, PatternDef> = {
   yuan: { id: 'yuan', name: '同元', alias: '同花', hint: '同一元素的符凑在一起：双元、两仪、三才、满堂、四象、五雷', short: '同元素凑组' },
-  sheng: { id: 'sheng', name: '相生', alias: '连跳', hint: '从左到右，左生右就连上一跳（木→火→土→金→水→木），连跳里第 k 张触发 k 次：相生、三生、四生、五行俱全', short: '按相生顺序排' },
+  sheng: { id: 'sheng', name: '相生', alias: '合丹连跳', hint: '同元素自动合丹，按首次点选排丹；木→火→土→金→水→木，左丹生右丹就连一跳，第 k 丹每张符触发 k 次。点「理链」自动排', short: '同元素合丹，按相生连跳' },
 };
 export const PATTERN_ORDER: PatternId[] = ['yuan', 'sheng'];
 
@@ -35,11 +35,11 @@ export const YAKU: Record<YakuId, YakuDef> = {
   sancai2: Y('sancai2', 'yuan', '三才并立', '两组三同花', 5, '两种元素各凑成三张（要靠灵符同时算两边）'),
   sixiang2: Y('sixiang2', 'yuan', '四象双生', '两组四同花', 7, '两种元素各凑成四张（要靠灵符同时算两边）'),
   wulei: Y('wulei', 'yuan', '五雷', '清一色', 8, '五张同元素'),
-  xiangsheng: Y('xiangsheng', 'sheng', '相生', '一跳', 1, '相邻两张，左生右，如 木→火'),
-  sansheng: Y('sansheng', 'sheng', '三生', '两跳', 2, '连着三张依次相生，如 木→火→土'),
-  sisheng: Y('sisheng', 'sheng', '四生', '三跳', 4, '连着四张依次相生，如 火→土→金→水'),
-  wuxing: Y('wuxing', 'sheng', '五行俱全', '五色', 4, '五种元素各一张（不论顺序）'),
-  shengsheng: Y('shengsheng', 'sheng', '生生不息', '四跳', 6, '五张依次相生，连成一整圈（与五雷相当）'),
+  xiangsheng: Y('xiangsheng', 'sheng', '相生', '一跳', 1, '相邻两丹，左生右，如 木→火；火丹每张触发 2 次'),
+  sansheng: Y('sansheng', 'sheng', '三生', '两跳', 2, '连续三丹依次相生，如 火→土→金；各丹每张分别触发 1、2、3 次'),
+  sisheng: Y('sisheng', 'sheng', '四生', '三跳', 4, '连续四丹依次相生，如 火→土→金→水'),
+  wuxing: Y('wuxing', 'sheng', '五行俱全', '五色', 4, '五种元素齐全（不论丹的顺序）'),
+  shengsheng: Y('shengsheng', 'sheng', '生生不息', '四跳', 6, '五丹依次相生，走完五行一圈；各丹每张分别触发 1 至 5 次'),
   // 本门役：每门功法自己的一路，看的是战况而不只是牌面；同样只算最高的一个，不受心法加成。
   jianzhen: Y('jianzhen', 'ben', '剑阵', '本门', 1, '本招有两张以上金符，且已有 5 柄以上飞剑', 'yangjian'),
   wanjian: Y('wanjian', 'ben', '万剑朝宗', '本门', 3, '本招有三张以上金符，且已有 10 柄以上飞剑', 'yangjian'),
@@ -57,14 +57,17 @@ export const YAKU: Record<YakuId, YakuDef> = {
 export const YAKU_ORDER = Object.keys(YAKU) as YakuId[];
 
 export interface YakuHit { id: YakuId; fan: number }
+export interface DanNode { el: El | null; tiles: number[]; pos: number }
 export interface Analysis {
   els: (El | null)[];
   /** Same-element groups of two or more, largest first. */
   sets: { el: El; size: number }[];
   distinct: number;
-  /** 每张符在相生连跳里的位置（1＝链首或没连上；k＝连跳里第 k 张，触发 k 次）。 */
+  /** 同元素合丹，按元素首次出现排列；每张浊符单独成节点并断链。 */
+  nodes: DanNode[];
+  /** 每张符所在丹的链位置（1＝链首或没连上；第 k 丹内每张触发 k 次）。 */
   chainPos: number[];
-  /** 最长连跳的张数（1 表示没有相生）。 */
+  /** 最长连跳的丹数（1 表示没有相生）。 */
   chain: number;
   /** 本招一共有几跳（左生右的相邻对数）。 */
   links: number;
@@ -84,12 +87,31 @@ function best<T extends YakuId>(...cands: [boolean, T][]): T | null {
 /** Which tiles are wild: 灵 counts as every element at once (for 同元). */
 export interface Wilds { ling?: boolean[]; /** 逆鳞：左克右也算连上一跳。 */ keLink?: boolean }
 
-/** 相生连跳：左边的元素生右边的就连上（浊符断链）。 */
+/** 相生连跳：左丹生右丹就连上（浊符断链）。 */
 export const links = (a: El | null, b: El | null, ke = false) => !!a && !!b && (GEN[a] === b || (ke && KE[a] === b));
-export function chainPositions(els: (El | null)[], ke = false) {
-  const pos: number[] = [];
-  els.forEach((el, i) => { pos.push(i > 0 && links(els[i - 1], el, ke) ? pos[i - 1] + 1 : 1); });
+export function chainNodes(els: (El | null)[], ke = false): DanNode[] {
+  const nodes: DanNode[] = [];
+  const byEl = new Map<El, DanNode>();
+  els.forEach((el, i) => {
+    const existing = el ? byEl.get(el) : undefined;
+    if (existing) { existing.tiles.push(i); return; }
+    const prev = nodes[nodes.length - 1];
+    const node = { el, tiles: [i], pos: prev && links(prev.el, el, ke) ? prev.pos + 1 : 1 };
+    nodes.push(node);
+    if (el) byEl.set(el, node);
+  });
+  return nodes;
+}
+
+function tilePositions(nodes: DanNode[], n: number): number[] {
+  const pos = new Array<number>(n);
+  nodes.forEach(node => node.tiles.forEach(i => { pos[i] = node.pos; }));
   return pos;
+}
+
+/** 保持逐张符的接口：同丹各符共享链位置。 */
+export function chainPositions(els: (El | null)[], ke = false): number[] {
+  return tilePositions(chainNodes(els, ke), els.length);
 }
 
 export function analyze(els: (El | null)[], wilds: Wilds = {}): Analysis {
@@ -102,9 +124,10 @@ export function analyze(els: (El | null)[], wilds: Wilds = {}): Analysis {
   const sets = setEls.map(([el, n]) => ({ el, size: n + lingN })).filter(x => x.size >= 2).sort((a, b) => b.size - a.size);
   const s = sets.map(x => x.size);
   const distinct = new Set(els.filter(Boolean)).size;
-  const chainPos = chainPositions(els, !!wilds.keLink);
-  const chain = Math.max(0, ...chainPos);
-  const linkN = chainPos.filter(p => p > 1).length;
+  const nodes = chainNodes(els, !!wilds.keLink);
+  const chainPos = tilePositions(nodes, els.length);
+  const chain = Math.max(0, ...nodes.map(node => node.pos));
+  const linkN = nodes.filter(node => node.pos > 1).length;
 
   const picks = [
     best([s[0] >= 5, 'wulei'], [s[0] >= 4 && s[1] >= 4, 'sixiang2'], [s[0] === 4, 'sixiang'], [s[0] >= 3 && s[1] >= 3, 'sancai2'],
@@ -114,7 +137,7 @@ export function analyze(els: (El | null)[], wilds: Wilds = {}): Analysis {
   const yaku: YakuHit[] = picks.map(id => ({ id, fan: YAKU[id].fan }));
   const tian: YakuHit | null = null;
   const head = tian ?? [...yaku].sort((a, b) => b.fan - a.fan)[0];
-  return { els, sets, distinct, chainPos, chain, links: linkN, yaku, tian, combo: head?.id ?? 'san' };
+  return { els, sets, distinct, nodes, chainPos, chain, links: linkN, yaku, tian, combo: head?.id ?? 'san' };
 }
 
 /**

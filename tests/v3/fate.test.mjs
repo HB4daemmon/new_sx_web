@@ -84,10 +84,18 @@ test('命格: every 命格 is selectable; the rules they rewrite', () => {
   assert.equal(p.run.bag.filter(t => t.el === 'huo').length, 5 + 5);
   const plain = fight({ seed: 'pk' });
   assert.equal(computeCast(p.run, p.battle, [T('huo', 4)], false).qi, computeCast(plain.run, plain.battle, [T('huo', 4)], false).qi + 2);
-  // 连生命: every chained tile fires once more; 同元 −1 番.
+  // 连生命: 第 2 丹起，丹内每张符多触发一次；同元 −1 番；化境按丹间跳数加番。
   const h = fight({ seed: 'ht', fate: 'liansheng' });
   assert.deepEqual(computeCast(h.run, h.battle, [T('mu', 1), T('huo', 1)], false).triggers, [1, 3]);
   assert.equal(computeCast(h.run, h.battle, [T('jin', 1), T('jin', 1)], false).fan, 0, '双元 1 − 1');
+  const dan = [T('huo', 4), T('tu', 3), T('huo', 5), T('jin', 5), T('tu', 4)];
+  const asleep = computeCast(h.run, h.battle, dan, false);
+  assert.deepEqual(asleep.triggers, [1, 3, 1, 4, 3], '被生丹内的每张符都 +1');
+  assert.deepEqual(asleep.yaku.map(y => [y.id, y.fan]), [['liangyi', 1], ['sansheng', 2]]);
+  h.run.realm = 2;
+  const awakened = computeCast(h.run, h.battle, dan, false);
+  assert.equal(awakened.fan, asleep.fan + 2, '两跳 +2 番，不按三张被生符计');
+  assert.deepEqual(awakened.triggers, asleep.triggers);
   // 孤星命: three slots, relics fire twice.
   const g = fight({ seed: 'gx', fate: 'guxing' });
   assert.equal(g.run.relicSlots, 3);

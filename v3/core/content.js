@@ -13,7 +13,7 @@ export const RELICS = [
     { id: 'chiyan', name: '赤炎珠', glyph: '炎', rarity: 'common', desc: '火符施加的灼烧翻倍', flags: { burnDouble: 1 } },
     { id: 'shuangyu', name: '双鱼佩', glyph: '鱼', rarity: 'common', desc: '本招有两组同元时 ×2', score: c => (c.a.sets.length >= 2 ? { x: 2 } : null) },
     { id: 'xiangsheng', name: '相生环', glyph: '环', rarity: 'common', desc: '本招每一跳相生 +2 番', score: c => (c.a.links ? { mult: 2 * c.a.links } : null) },
-    { id: 'nilin', name: '逆鳞', glyph: '鳞', rarity: 'rare', desc: '左边的符克右边的，也算连上一跳（相克也能连跳）', flags: { keLink: 1 } },
+    { id: 'nilin', name: '逆鳞', glyph: '鳞', rarity: 'rare', desc: '左丹克右丹，也算连上一跳（同丹每张共享链位置）', flags: { keLink: 1 } },
     { id: 'wunilian', name: '污泥莲', glyph: '莲', rarity: 'rare', desc: '本招每带一枚浊符 ×1.7 —— 出淤泥而不染', score: c => { const n = c.tiles.filter(t => t.el === 'zhuo').length; return n ? { x: 1.7 ** n } : null; } },
     { id: 'wusefan', name: '五色幡', glyph: '幡', rarity: 'rare', desc: '元素共鸣的效果再翻倍', flags: { resonance: 1 } },
     { id: 'mingmu', name: '明目珠', glyph: '目', rarity: 'common', desc: '暴击率 +20%', flags: { critPct: 20 } },
@@ -43,8 +43,8 @@ export const RELICS = [
     { id: 'xinhuo', name: '薪火宝炉', glyph: '炉', rarity: 'legend', desc: '敌方每 3 层灼烧 倍率 +1', score: c => { const n = Math.floor(c.battle.enemy.burn / 3); return n ? { mult: n } : null; } },
     { id: 'qiming', name: '启明玉', glyph: '启', rarity: 'legend', desc: '开战剑意全满', flags: { startQi: 100 } },
     { id: 'tianji', name: '天机落雷箓', glyph: '箓', rarity: 'legend', desc: '倍符 ×2（原为 ×1.5）', flags: { leiX: 1 } },
-    { id: 'hetu', name: '河图', glyph: '图', rarity: 'legend', desc: '相生连跳里被生的符，触发次数 ×2', flags: { trigX: 1 } },
-    { id: 'luoshu', name: '洛书', glyph: '书', rarity: 'legend', desc: '三张以上、最后一张又生第一张（首尾相生）时，每张符再触发一次', flags: { loop: 1 } },
+    { id: 'hetu', name: '河图', glyph: '图', rarity: 'legend', desc: '相生连跳中第 2 丹起，每丹内每张符触发次数 ×2', flags: { trigX: 1 } },
+    { id: 'luoshu', name: '洛书', glyph: '书', rarity: 'legend', desc: '至少三丹、末丹生首丹（首尾相生）时，每张符再触发一次', flags: { loop: 1 } },
     { id: 'wuyue', name: '五岳真形图', glyph: '岳', rarity: 'legend', desc: '四象、五雷 ×3', score: c => (c.a.sets[0]?.size >= 4 ? { x: 3 } : null) },
     { id: 'fantian', name: '翻天印', glyph: '印', rarity: 'legend', desc: '出满五枚符时 ×2', score: c => (c.tiles.length >= 5 ? { x: 2 } : null) },
     // —— 道树解锁：新器一 ——
@@ -72,11 +72,11 @@ export const RELICS = [
     { id: 'jubao', name: '聚宝盆', glyph: '盆', rarity: 'rare', desc: '每张宝符再 +2 番', score: c => { const n = c.tiles.filter(t => t.mod === 'bao').length; return n ? { mult: 2 * n } : null; } },
     { id: 'yiyuan', name: '一元印', glyph: '元', rarity: 'legend', desc: '成五雷、四象双生时 ×2', score: c => (c.a.yaku.some(y => y.id === 'wulei' || y.id === 'sixiang2') ? { x: 2 } : null) },
     // —— 各路之器：每一路至少四件 ——
-    { id: 'tongxin', name: '同心结', glyph: '结', rarity: 'common', desc: '本招第一次相生：被生的那张多触发 2 次', flags: { firstLinkX: 1 } },
+    { id: 'tongxin', name: '同心结', glyph: '结', rarity: 'common', desc: '本招第一次连跳的第 2 丹，丹内每张符多触发 2 次', flags: { firstLinkX: 1 } },
     { id: 'jiulian', name: '九连环', glyph: '连', rarity: 'rare', desc: '成四生以上（含生生不息）时 ×2', score: c => (c.a.chain >= 4 ? { x: 2 } : null) },
     { id: 'suanpan', name: '算盘', glyph: '算', rarity: 'common', desc: '相生连跳每多触发一次，另 +6 气', flags: { trigQi: 1 } },
     { id: 'wuwei', name: '五味瓶', glyph: '瓶', rarity: 'common', desc: '本招有三种以上元素时，每种元素 +1 番', score: c => { const n = new Set(c.els.filter(Boolean)).size; return n >= 3 ? { mult: n } : null; } },
-    { id: 'sanhuaguan', name: '三花冠', glyph: '冠', rarity: 'rare', desc: '每条相生链的链首也多触发 1 次', flags: { headTrig: 1 } },
+    { id: 'sanhuaguan', name: '三花冠', glyph: '冠', rarity: 'rare', desc: '每条相生链的链首丹，丹内每张符多触发 1 次', flags: { headTrig: 1 } },
     { id: 'pojia', name: '破甲锥', glyph: '锥', rarity: 'common', desc: '削罡气 +50%', flags: { guardX: 1 } },
     { id: 'zhanyao', name: '斩妖剑', glyph: '斩', rarity: 'legend', desc: '本招每张克制敌人的符 ×1.3', score: c => { const n = c.els.filter(e => e && e === counterOf(c.battle.enemy.el)).length; return n ? { x: 1.3 ** n } : null; } },
     { id: 'jiugong', name: '九宫格', glyph: '宫', rarity: 'common', desc: '敌人的罡气上限 −25%', flags: { guardCut: 1 } },
@@ -177,7 +177,7 @@ export const TALENTS = [
     T('shuangjue', '一念双诀', 'legend', '节奏', '每回合第一次出招若不超过两张，不结束回合'),
     // —— 成役 ——
     T('poyang', '破妄', 'rare', '成役', '克制加成由 ×2 提升为 ×3'),
-    T('lianhuan', '连环', 'rare', '成役', '相生连跳里被生的符，每张多触发 1 次'),
+    T('lianhuan', '连环', 'rare', '成役', '相生连跳中第 2 丹起，丹内每张符多触发 1 次'),
     T('yuansheng', '源生', 'common', '成役', '每一跳相生回复 3 气血'),
     T('gangjin', '罡劲', 'common', '成役', '削罡气 +30%'),
     T('pozhu', '势如破竹', 'legend', '节奏', '一招打出破势后不结束回合，可以再出一招（每回合一次）'),
@@ -246,12 +246,12 @@ export const MOD_NAME = { ling: '灵', bao: '宝', lei: '倍' };
 /** One line for cards; the full rule is MOD_DESC (诀谱 · 符纹). */
 export const MOD_SHORT = { ling: '灵 · 百搭元素（高级）', bao: '宝 · +1 番', lei: '倍 · 伤害 ×1.5' };
 export const MOD_DESC = {
-    ling: '高级符纹 · 灵：当任意元素（百搭花色），同时算进每一组同元；在相生链里取最好的一种',
+    ling: '高级符纹 · 灵：同元里同时算进每一组；合丹连跳时取一种元素并入该丹，自动选伤害最高的读法',
     bao: '普通符纹 · 宝：自己就是宝牌，+1 番',
     lei: '普通符纹 · 倍：本招伤害 ×1.5',
 };
 export const FATES = [
-    { id: 'liansheng', name: '连生命', gift: '相生连跳里被生的符，每张多触发 1 次', cost: '同元的役番数 −1', awaken: '每一跳相生 +1 番', play: '相生排序' },
+    { id: 'liansheng', name: '连生命', gift: '相生连跳中第 2 丹起，丹内每张符多触发 1 次', cost: '同元的役番数 −1', awaken: '每一跳相生 +1 番', play: '合丹连跳' },
     { id: 'pianku', name: '偏枯命', gift: '选一种本命元素：符袋多 5 张；本命元素的符气 +2', cost: '其余元素的符，气 −1', awaken: '本命元素三张以上时，额外 +3 番', play: '同元' },
     { id: 'xingxiu', name: '星宿命', gift: '每场开战抽一宿，本场某一路的番 ×2', cost: '每场主打的路都不同', awaken: '每场抽两宿', play: '随机应变' },
     { id: 'tianyan', name: '天眼命', gift: '地图上奇遇的名字可见；每幕可以把一个节点改成别的类型', cost: '气血上限 −15%', awaken: '每幕可改两个节点', play: '规划路线' },

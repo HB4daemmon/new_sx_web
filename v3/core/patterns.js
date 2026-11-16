@@ -1,8 +1,8 @@
 /**
  * 役 —— 以符成役。只看元素，不用算点数：点数只是每张符的气（伤害底数）。
  *   同元：同一元素凑组（双元、两仪、三才、满堂、四象、五雷）。
- *   相生：出招从左到右结算，左边的符生右边的（木→火→土→金→水→木）就连上一跳；
- *         连跳里第 k 张符触发 k 次（相生连跳），连得越长番越高。顺序由玩家自己排。
+ *   合丹连跳：同元素自动合成一丹，按元素首次点选的顺序排列；相邻丹左生右就连一跳。
+ *         链里第 k 个丹，每张符触发 k 次；同元与相生两路番相加。
  * 两路各取最高的一个役，番相加，番数就是倍率。灵符同时算作每一种元素（同元里算进每一组）；
  * 在相生里它取最好的一种元素。另计：本门役（看战况）。
  * 每个役（含宝符与心法）每番另带 QI_PER_FAN 气。
@@ -12,7 +12,7 @@ import { ELEMENTS, GEN, KE } from './elements.js';
 export const QI_PER_FAN = 10;
 export const PATTERNS = {
     yuan: { id: 'yuan', name: '同元', alias: '同花', hint: '同一元素的符凑在一起：双元、两仪、三才、满堂、四象、五雷', short: '同元素凑组' },
-    sheng: { id: 'sheng', name: '相生', alias: '连跳', hint: '从左到右，左生右就连上一跳（木→火→土→金→水→木），连跳里第 k 张触发 k 次：相生、三生、四生、五行俱全', short: '按相生顺序排' },
+    sheng: { id: 'sheng', name: '相生', alias: '合丹连跳', hint: '同元素自动合丹，按首次点选排丹；木→火→土→金→水→木，左丹生右丹就连一跳，第 k 丹每张符触发 k 次。点「理链」自动排', short: '同元素合丹，按相生连跳' },
 };
 export const PATTERN_ORDER = ['yuan', 'sheng'];
 /** 心法 n 重：这一路成役时 +(n−1) 番。 */
@@ -27,11 +27,11 @@ export const YAKU = {
     sancai2: Y('sancai2', 'yuan', '三才并立', '两组三同花', 5, '两种元素各凑成三张（要靠灵符同时算两边）'),
     sixiang2: Y('sixiang2', 'yuan', '四象双生', '两组四同花', 7, '两种元素各凑成四张（要靠灵符同时算两边）'),
     wulei: Y('wulei', 'yuan', '五雷', '清一色', 8, '五张同元素'),
-    xiangsheng: Y('xiangsheng', 'sheng', '相生', '一跳', 1, '相邻两张，左生右，如 木→火'),
-    sansheng: Y('sansheng', 'sheng', '三生', '两跳', 2, '连着三张依次相生，如 木→火→土'),
-    sisheng: Y('sisheng', 'sheng', '四生', '三跳', 4, '连着四张依次相生，如 火→土→金→水'),
-    wuxing: Y('wuxing', 'sheng', '五行俱全', '五色', 4, '五种元素各一张（不论顺序）'),
-    shengsheng: Y('shengsheng', 'sheng', '生生不息', '四跳', 6, '五张依次相生，连成一整圈（与五雷相当）'),
+    xiangsheng: Y('xiangsheng', 'sheng', '相生', '一跳', 1, '相邻两丹，左生右，如 木→火；火丹每张触发 2 次'),
+    sansheng: Y('sansheng', 'sheng', '三生', '两跳', 2, '连续三丹依次相生，如 火→土→金；各丹每张分别触发 1、2、3 次'),
+    sisheng: Y('sisheng', 'sheng', '四生', '三跳', 4, '连续四丹依次相生，如 火→土→金→水'),
+    wuxing: Y('wuxing', 'sheng', '五行俱全', '五色', 4, '五种元素齐全（不论丹的顺序）'),
+    shengsheng: Y('shengsheng', 'sheng', '生生不息', '四跳', 6, '五丹依次相生，走完五行一圈；各丹每张分别触发 1 至 5 次'),
     // 本门役：每门功法自己的一路，看的是战况而不只是牌面；同样只算最高的一个，不受心法加成。
     jianzhen: Y('jianzhen', 'ben', '剑阵', '本门', 1, '本招有两张以上金符，且已有 5 柄以上飞剑', 'yangjian'),
     wanjian: Y('wanjian', 'ben', '万剑朝宗', '本门', 3, '本招有三张以上金符，且已有 10 柄以上飞剑', 'yangjian'),
@@ -53,12 +53,33 @@ function best(...cands) {
             return id;
     return null;
 }
-/** 相生连跳：左边的元素生右边的就连上（浊符断链）。 */
+/** 相生连跳：左丹生右丹就连上（浊符断链）。 */
 export const links = (a, b, ke = false) => !!a && !!b && (GEN[a] === b || (ke && KE[a] === b));
-export function chainPositions(els, ke = false) {
-    const pos = [];
-    els.forEach((el, i) => { pos.push(i > 0 && links(els[i - 1], el, ke) ? pos[i - 1] + 1 : 1); });
+export function chainNodes(els, ke = false) {
+    const nodes = [];
+    const byEl = new Map();
+    els.forEach((el, i) => {
+        const existing = el ? byEl.get(el) : undefined;
+        if (existing) {
+            existing.tiles.push(i);
+            return;
+        }
+        const prev = nodes[nodes.length - 1];
+        const node = { el, tiles: [i], pos: prev && links(prev.el, el, ke) ? prev.pos + 1 : 1 };
+        nodes.push(node);
+        if (el)
+            byEl.set(el, node);
+    });
+    return nodes;
+}
+function tilePositions(nodes, n) {
+    const pos = new Array(n);
+    nodes.forEach(node => node.tiles.forEach(i => { pos[i] = node.pos; }));
     return pos;
+}
+/** 保持逐张符的接口：同丹各符共享链位置。 */
+export function chainPositions(els, ke = false) {
+    return tilePositions(chainNodes(els, ke), els.length);
 }
 export function analyze(els, wilds = {}) {
     const ling = els.map((_, i) => !!wilds.ling?.[i]);
@@ -71,9 +92,10 @@ export function analyze(els, wilds = {}) {
     const sets = setEls.map(([el, n]) => ({ el, size: n + lingN })).filter(x => x.size >= 2).sort((a, b) => b.size - a.size);
     const s = sets.map(x => x.size);
     const distinct = new Set(els.filter(Boolean)).size;
-    const chainPos = chainPositions(els, !!wilds.keLink);
-    const chain = Math.max(0, ...chainPos);
-    const linkN = chainPos.filter(p => p > 1).length;
+    const nodes = chainNodes(els, !!wilds.keLink);
+    const chainPos = tilePositions(nodes, els.length);
+    const chain = Math.max(0, ...nodes.map(node => node.pos));
+    const linkN = nodes.filter(node => node.pos > 1).length;
     const picks = [
         best([s[0] >= 5, 'wulei'], [s[0] >= 4 && s[1] >= 4, 'sixiang2'], [s[0] === 4, 'sixiang'], [s[0] >= 3 && s[1] >= 3, 'sancai2'], [s[0] === 3 && s[1] === 2, 'mantang'], [s[0] === 3, 'sancai'], [s[0] === 2 && s[1] === 2, 'liangyi'], [s[0] === 2, 'shuangyuan']),
         best([chain >= 5, 'shengsheng'], [chain === 4, 'sisheng'], [distinct >= 5, 'wuxing'], [chain === 3, 'sansheng'], [chain === 2, 'xiangsheng']),
@@ -81,7 +103,7 @@ export function analyze(els, wilds = {}) {
     const yaku = picks.map(id => ({ id, fan: YAKU[id].fan }));
     const tian = null;
     const head = tian ?? [...yaku].sort((a, b) => b.fan - a.fan)[0];
-    return { els, sets, distinct, chainPos, chain, links: linkN, yaku, tian, combo: head?.id ?? 'san' };
+    return { els, sets, distinct, nodes, chainPos, chain, links: linkN, yaku, tian, combo: head?.id ?? 'san' };
 }
 /**
  * Every way to read the cast: 灵符 may be any element, 烛阴符 火 or 水.

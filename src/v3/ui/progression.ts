@@ -75,15 +75,15 @@ const pat = (id: string) => (c: AchCtx) => castIs(c, x => x.result.pattern === i
 
 export const ACHIEVEMENTS: AchDef[] = [
   { id: 'first', name: '初试锋芒', desc: '赢下第一场战斗', reward: 5, check: c => winIs(c, () => true) },
-  { id: 'y-sansheng', name: '三生', desc: '打出「三生」（三张依次相生，如 木→火→土）', reward: 5, check: pat('sansheng') },
+  { id: 'y-sansheng', name: '三生', desc: '打出「三生」（三丹依次相生，如 木→火→土）', reward: 5, check: pat('sansheng') },
   { id: 'p-mantang', name: '满堂', desc: '打出「满堂」（同花葫芦）', reward: 8, check: pat('mantang') },
-  { id: 'y-sisheng', name: '四生', desc: '打出「四生」（四张依次相生）', reward: 10, check: pat('sisheng') },
+  { id: 'y-sisheng', name: '四生', desc: '打出「四生」（四丹依次相生）', reward: 10, check: pat('sisheng') },
   { id: 'y-wuxing', name: '五行俱全', desc: '打出「五行俱全」（五种元素各一张）', reward: 10, check: pat('wuxing') },
   { id: 'y-lianji', name: '连跳', desc: '一招里有一张符触发 5 次以上', reward: 12, check: c => castIs(c, x => Math.max(...x.result.triggers) >= 5) },
   { id: 'y-poshi', name: '破势', desc: '一场战斗里破势三次', reward: 12, check: c => winIs(c, x => (x.battle.stacks.poshi ?? 0) >= 3) },
   { id: 'p-wulei', name: '五雷', desc: '打出「五雷」（清一色：五张同元素）', reward: 25, check: pat('wulei') },
   { id: 'p-sixiang', name: '四象', desc: '打出「四象」（四张同元素）', reward: 12, check: pat('sixiang') },
-  { id: 't-shengsheng', name: '生生不息', desc: '打出「生生不息」（五张依次相生，连成一整圈）', reward: 30, check: pat('shengsheng') },
+  { id: 't-shengsheng', name: '生生不息', desc: '打出「生生不息」（五丹依次相生，走完五行一圈）', reward: 30, check: pat('shengsheng') },
   { id: 'resonance', name: '共鸣', desc: '一招里触发元素共鸣（三枚以上同元）', reward: 5, check: c => castIs(c, x => x.result.analysis.sets.some(st => st.size >= 3)) },
   { id: 'mud', name: '出淤泥', desc: '带着浊符打出一万以上的一招', reward: 20, check: c => castIs(c, x => x.total >= 1e4 && x.result.tiles.some(t => t.el === 'zhuo')) },
   { id: 'h4', name: '万钧', desc: '一招伤害破一万', reward: 10, check: hit(1e4) },

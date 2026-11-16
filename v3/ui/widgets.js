@@ -3,10 +3,10 @@ import { counterOf, EL_EFFECT, EL_NAME, GEN, KE } from '../core/elements.js';
 import { PATTERNS, PATTERN_ORDER, QI_PER_FAN, YAKU, YAKU_ORDER } from '../core/patterns.js';
 import { fmt, h } from './h.js';
 export const elLabel = (el) => (el === 'zhuo' ? '浊' : EL_NAME[el]);
-/** opts.order: the tile's place in the cast (相生 runs left to right). opts.reps: how many times it fires. */
+/** opts.order: 点选顺序（元素首次出现决定丹序）; opts.reps: 这张符实际触发次数。 */
 export function tileView(tile, opts = {}) {
     const sp = tile.sp ? SPECIALS[tile.sp] : null;
-    const tip = tile.el === 'zhuo' ? '浊符：没有元素，0 点，凑不成任何役' : `${sp ? `本门符「${sp.name}」：${sp.desc}\n` : ''}${EL_NAME[tile.el]}${tile.v}　${EL_EFFECT[tile.el]}${tile.mod ? `\n${MOD_DESC[tile.mod]}` : ''}`;
+    const tip = tile.el === 'zhuo' ? '浊符：没有元素，0 点，单独成节点并断链，凑不成任何役' : `${sp ? `本门符「${sp.name}」：${sp.desc}\n` : ''}${EL_NAME[tile.el]}${tile.v}　${EL_EFFECT[tile.el]}${tile.mod ? `\n${MOD_DESC[tile.mod]}` : ''}`;
     return h(`button.tile.el-${tile.el}${tile.mod ? `.mod-${tile.mod}` : ''}${sp ? `.sp.sp-${sp.id}` : ''}${opts.small ? '.small' : ''}`, {
         type: 'button', 'data-uid': tile.uid, title: opts.title ?? tip, onclick: opts.onclick, 'aria-label': tip,
     }, h('span.tile-band'), h('span.tile-glyph', null, elLabel(tile.el)), h('span.tile-v', null, String(tile.v)), tile.mod ? h('span.tile-mod', null, MOD_NAME[tile.mod]) : null, sp ? h('span.tile-sp', null, sp.glyph) : null, opts.order ? h('span.tile-order', null, String(opts.order)) : null, opts.reps && opts.reps > 1 ? h('span.tile-reps', null, `×${opts.reps}`) : null);
@@ -55,7 +55,7 @@ export function wuxingWheel(enemyEl) {
     <defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="rgba(240,228,207,.7)"/></marker></defs>
     ${order.map((el, i) => { const a = pos[i], b = pos[(i + 1) % 5]; const mx = a.x + (b.x - a.x) * 0.24, my = a.y + (b.y - a.y) * 0.24, nx = a.x + (b.x - a.x) * 0.76, ny = a.y + (b.y - a.y) * 0.76; void el; return `<line x1="${mx}" y1="${my}" x2="${nx}" y2="${ny}" stroke="rgba(240,228,207,.55)" stroke-width="1.6" marker-end="url(#arr)"/>`; }).join('')}
   </svg>`;
-    const wrap = h('div.wheel', { html: svg, title: '五行相生：木→火→土→金→水→木，出招时左生右就连上一跳。克制敌人元素的符点数 ×2，削罡气 +50%。' });
+    const wrap = h('div.wheel', { html: svg, title: '五行相生：木→火→土→金→水→木。同元素合丹，左丹生右丹就连一跳，第 k 丹每张触发 k 次。克制敌人的符点数 ×2，削罡气 +50%。' });
     order.forEach((el, i) => {
         wrap.appendChild(h(`span.wheel-node.el-${el}${el === counter ? '.counter' : ''}${el === weak ? '.weak' : ''}`, { style: { left: `${pos[i].x}%`, top: `${pos[i].y}%` } }, EL_NAME[el]));
     });
@@ -73,7 +73,7 @@ export function patternTable(run, highlight) {
     const tian = YAKU_ORDER.filter(y => YAKU[y].path === 'tian');
     // 本门役: only the current method's when in a run; every method's otherwise.
     const ben = YAKU_ORDER.filter(y => YAKU[y].path === 'ben' && (!run || YAKU[y].method === run.method));
-    return h('div.pattern-table', null, h('p.pt-rule', null, `两路：同元（同一元素凑组）与相生（按顺序排，左生右连上一跳，连跳里第 k 张触发 k 次）。每路只算最高的一个役，两路的番相加，番数就是倍率。每番另带 ${QI_PER_FAN} 气。`), ...rows, h('div.pattern-row.ben', null, h('span.pr-name', null, '本门', h('small', null, '（功法专属）')), h('span.pr-yaku', null, ...ben.map(y => h('span.yk', { title: YAKU[y].desc }, h('b', null, YAKU[y].name), h('small', null, `${YAKU[y].desc} `), h('i', null, `${YAKU[y].fan}番`))))), tian.length ? h('div.pattern-row.tian', null, h('span.pr-name', null, '天成', h('small', null, '（役满）')), h('span.pr-yaku', null, ...tian.map(y => h('span.yk', { title: YAKU[y].desc }, h('b', null, YAKU[y].name), h('small', null, `${YAKU[y].alias} `), h('i', null, `${YAKU[y].fan}番`))))) : null);
+    return h('div.pattern-table', null, h('p.pt-rule', null, `合丹连跳：同元素自动叠成一丹，按元素首次点选排丹；左丹生右丹就连一跳，第 k 丹内每张符触发 k 次。同元仍按张数，相生按连续丹数，各取最高的役、番相加。每番另带 ${QI_PER_FAN} 气。`), ...rows, h('div.pattern-row.ben', null, h('span.pr-name', null, '本门', h('small', null, '（功法专属）')), h('span.pr-yaku', null, ...ben.map(y => h('span.yk', { title: YAKU[y].desc }, h('b', null, YAKU[y].name), h('small', null, `${YAKU[y].desc} `), h('i', null, `${YAKU[y].fan}番`))))), tian.length ? h('div.pattern-row.tian', null, h('span.pr-name', null, '天成', h('small', null, '（役满）')), h('span.pr-yaku', null, ...tian.map(y => h('span.yk', { title: YAKU[y].desc }, h('b', null, YAKU[y].name), h('small', null, `${YAKU[y].alias} `), h('i', null, `${YAKU[y].fan}番`))))) : null);
 }
 /** What a 心法 level gives, in words. */
 export function patternText(_id, level) {
