@@ -1,0 +1,50 @@
+{
+ "P01": {
+  "who": "Grok",
+  "name": "一人镇路"
+ },
+ "P02": {
+  "who": "Grok",
+  "name": "三枚入鼎"
+ },
+ "P03": {
+  "who": "Grok",
+  "name": "一刀见潮"
+ },
+ "P04": {
+  "who": "Codex",
+  "name": "借脉人"
+ },
+ "P05": {
+  "who": "Gemini",
+  "name": "探渊冲穴"
+ },
+ "P06": {
+  "who": "Gemini",
+  "name": "弹剑破妄"
+ },
+ "P07": {
+  "who": "Gemini",
+  "name": "踏罡斩妖"
+ },
+ "P08": {
+  "who": "Claude",
+  "name": "巡夜斩妖"
+ },
+ "P09": {
+  "who": "Claude",
+  "name": "弹剑问脉"
+ },
+ "P10": {
+  "who": "Codex",
+  "name": "还山一掌"
+ },
+ "P11": {
+  "who": "Claude",
+  "name": "九宫炼阵"
+ },
+ "P12": {
+  "who": "Codex",
+  "name": "堂下何人"
+ }
+}
