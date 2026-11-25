@@ -1,6 +1,6 @@
 # 四方讨论 · 发散核心玩法（两轮，2026-11-24）
 
-四方：Claude、Codex gpt-6.2-astra、Cursor gemini-4-carbon-high、Cursor grok-4.7-high。原文都在 [discussions/2026-11-24-diverge/](discussions/2026-11-24-diverge/)。
+四方：Claude、Codex gpt-6.2-astra、Cursor gemini-4-carbon-high、Cursor grok-4.7-high。原文都在 [discussions/2026-11-24-diverge/](discussions/2026-11-24-diverge/README.md)。
 
 - **第一轮**：每方出 3 套核心玩法，不受 V1–V3 框架约束，一共 12 套。
 - **第二轮**：12 套方案打乱顺序、去掉作者（P01–P12，对照表见 `r2-key.json`），四方各自给每套打分，再选出前三名，并各给一个融合方案。
